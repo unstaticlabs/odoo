@@ -70,7 +70,9 @@ make deploy
 
 `make dev` opens the existing environment. `make deploy` stops Odoo, updates
 `rebuild_account_migration` in `odoo_dev`, recreates the web service and waits
-for it to become healthy. It does not restore source data or rebuild the image.
+for it to become healthy. The compatibility module update also installs or
+updates its declared `usl_accounting` and `usl_expense_batch` dependencies. It
+does not restore source data or rebuild the image.
 
 Use `make rebuild` only after Dockerfile, dependency, system or
 core-source changes. Both commands print the development URL:
@@ -104,6 +106,7 @@ Use this refresh behavior:
 | JavaScript or backend QWeb assets already listed in the manifest | Restart Odoo after the module update | Enable `debug=assets` in the URL during development and hard refresh |
 | Transactions list navigation | focused model/view test plus `scripts/odoo-dev test-js rebuild_account_migration` | full reconstruction or comprehensive browser suite |
 | Manifest dependencies, data files or asset declarations | Stop Odoo, update the module, then start it again | Hard refresh with `debug=assets` enabled |
+| Shared native/OCA model extensions in `usl_accounting` | Update `rebuild_account_migration` so the complete product dependency graph is loaded; run `/usl_accounting` plus affected integration tests | Reload only; no reconstruction |
 | Files under `docs/users/` | No module update; the development route reads the mounted Markdown on each request | Reload `/usl/user-docs` |
 | Other Markdown documentation | No Odoo action | Rebuild or reload the documentation site as applicable |
 
