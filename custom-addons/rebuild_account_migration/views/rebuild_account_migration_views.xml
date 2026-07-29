@@ -1983,10 +1983,10 @@
                                             </span>
                                             <div class="o_usl_cca_direction">
                                                 <span invisible="cca_projection_direction != 'company_owes'">
-                                                    Estimated amount USL owes
+                                                    Estimated amount USL owes <field name="cca_projection_owner_name" nolabel="1"/>
                                                 </span>
                                                 <span invisible="cca_projection_direction != 'shareholder_owes'">
-                                                    Estimated amount due to USL
+                                                    Estimated amount <field name="cca_projection_owner_name" nolabel="1"/> owes USL
                                                 </span>
                                                 <span invisible="cca_projection_direction != 'settled'">
                                                     Estimated position settled
