@@ -21,7 +21,11 @@
      distributions. Posted general-ledger amounts are not changed; Odoo updates
      the native analytic lines associated with those journal items.
 7. Return and select **Check Resolution**.
-8. Dismiss only a reviewed signal that is deliberately acceptable; dismissal does not change accounting.
+8. Dismiss only a reviewed occurrence that is deliberately acceptable.
+   Dismissal hides that occurrence from the active queue without changing
+   accounting or disabling the Control. The same unchanged records stay
+   dismissed; new records or materially changed evidence make the result
+   actionable again.
 
 Open **Control and detection details** only when you need result type,
 confidence, company scope or the first and latest detection timestamps.
@@ -30,6 +34,11 @@ Each result links to its visible definition under **Configuration > Controls**.
 Informational results remain traceable without creating a Closing warning.
 Technical failures mean the evaluator did not produce an accounting conclusion;
 ask a Technical Administrator to inspect the advanced evaluator details.
+
+The issue's **Dismissal history** shows who dismissed each occurrence, when,
+the evidence that was reviewed and when changed evidence reopened it. Use
+**Configuration > Controls**—not **Dismiss**—when an Accounting Manager intends
+to disable a Control for future evaluations.
 
 Hygiene uses deterministic, configured controls. It does not post automatically
 and does not claim probabilistic or AI matching.

@@ -47,6 +47,14 @@ status, responsible role, evidence summary and next action. Hygiene results
 retain their definition, source links, first and last detection, resolution and
 dismissal history.
 
+Dismissal acknowledges one detected occurrence; it never disables its Control.
+The occurrence fingerprint uses the Control version, company-scoped related
+record IDs, affected amount, detection date, result kind and severity rather
+than mutable display text. An unchanged population therefore stays dismissed,
+while a new related record or another material evidence change reopens the
+result. Each dismissal keeps its user, timestamp, evidence snapshot and the
+time at which later evidence superseded it.
+
 Accounting outcomes and technical failures are distinct:
 
 - an accounting result reports a condition found by a completed evaluator;
@@ -59,6 +67,13 @@ Accounting outcomes and technical failures are distinct:
 Disabling a definition resolves its currently open Hygiene result on the next
 refresh and removes its Closing result from the next workspace refresh. History
 remains available.
+
+These lifecycle actions are deliberately distinct:
+
+- resolving means the underlying accounting condition is no longer detected;
+- dismissing hides only the reviewed occurrence while unchanged;
+- disabling is an Accounting Manager configuration decision that prevents the
+  Control from running in its configured workflows.
 
 ## Extension rules
 

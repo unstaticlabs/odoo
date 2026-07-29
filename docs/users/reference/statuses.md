@@ -45,7 +45,9 @@ review without being resubmitted.
 
 - **Open** — the underlying condition is present.
 - **Resolved** — the condition is no longer present.
-- **Dismissed** — reviewed and deliberately accepted without changing accounting.
+- **Dismissed** — this reviewed occurrence is hidden without changing
+  accounting or disabling its Control. Unchanged evidence stays dismissed;
+  new or materially changed records make the result actionable again.
 
 Severity is **Blocking**, **Warning**, **Attention** or **Information**.
 

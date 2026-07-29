@@ -2554,7 +2554,14 @@
                 <header>
                     <button name="action_open_source" type="object" string="Open Related Record" class="btn-primary" title="Open the accounting record or control configuration related to this result."/>
                     <button name="action_check_resolution" type="object" string="Check Resolution" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the control and resolve this issue only if the accounting condition has been fixed."/>
-                    <button name="action_dismiss" type="object" string="Dismiss" groups="account.group_account_manager" invisible="status != 'open'" confirm="Dismiss this issue without changing the underlying accounting record? It remains traceable and can be reviewed later." title="Record that this deterministic signal has been reviewed and deliberately dismissed."/>
+                    <button
+                        name="action_dismiss"
+                        type="object"
+                        string="Dismiss"
+                        groups="account.group_account_manager"
+                        invisible="status != 'open'"
+                        confirm="Dismiss this occurrence? This hides only the current related-record scope from the active Hygiene list. The control remains active, and new or materially changed records may create a new issue. No accounting record is changed."
+                        title="Hide this reviewed occurrence. The control stays active and changed evidence will reopen it."/>
                     <field name="status" widget="statusbar" statusbar_visible="open,resolved,dismissed"/>
                 </header>
                 <sheet class="o_usl_hygiene_issue_form">
@@ -2630,6 +2637,17 @@
                         <field name="resolved_at" readonly="1" invisible="status != 'resolved'"/>
                         <field name="dismissed_at" readonly="1" invisible="status != 'dismissed'"/>
                         <field name="dismissed_by_id" readonly="1" invisible="status != 'dismissed'"/>
+                    </group>
+                    <group string="Dismissal history" invisible="not dismissal_ids">
+                        <field name="dismissal_ids" nolabel="1" readonly="1">
+                            <list create="false" edit="false" delete="false">
+                                <field name="dismissed_at"/>
+                                <field name="dismissed_by_id"/>
+                                <field name="related_record_count"/>
+                                <field name="evidence_snapshot" optional="show"/>
+                                <field name="superseded_at" optional="show"/>
+                            </list>
+                        </field>
                     </group>
                     <details class="o_usl_control_traceability">
                         <summary>Control and detection details</summary>

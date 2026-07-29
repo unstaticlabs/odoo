@@ -59,6 +59,10 @@ Valentin and the accountant must be able to:
 - Accounting Hygiene and Closing use one visible, company-scoped control
   catalogue. Business policy is configurable; advanced evaluators are
   whitelisted module extensions rather than arbitrary code.
+- Dismissing Hygiene acknowledges only the current detected occurrence. It
+  never disables the Control: unchanged evidence stays dismissed, while new
+  records or materially changed evidence make the result actionable again and
+  retain the prior dismissal in its audit history.
 - A technical control failure is not reported as an accounting failure and
   cannot produce a false Ready conclusion.
 - Interactive reports are statement-first: one shared filter and interaction
