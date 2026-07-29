@@ -7,6 +7,8 @@ Controls, Reports and the compatibility product module:
 
 - governed fiscal-year behavior;
 - payment and partner suggestions;
+- immediate settlement of deterministic foreign-currency payments at their
+  executed bank rate;
 - bank matching and reconciliation compatibility;
 - analytic measures and entry-direction safeguards;
 - scoped read-only accounting evidence protection.
