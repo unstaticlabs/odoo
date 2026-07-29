@@ -129,6 +129,7 @@ menus.
 
 | Repository | Commit |
 | --- | --- |
+| `server-auth` | `f51fe1b36965b78ac935e80c6b95d7115440a1b4` |
 | `account-financial-reporting` | `aa34bf33fc96fbae7fb5a2b9609b807b4e20514c` |
 | `account-reconcile` | `a9bbab67e42f3b762e9c34b30b6c1a77f9c373fb` |
 | `bank-statement-import` | `7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c` |
