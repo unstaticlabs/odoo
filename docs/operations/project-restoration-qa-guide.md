@@ -1,31 +1,27 @@
-# Projects restoration: local QA guide
+# Projects restoration: QA guide
 
-## Open the QA site
+## Prepare a disposable QA site
 
-The local QA environment is already running at:
+Run this tour only on a disposable database that has completed Projects
+restoration, validation and finalization. The environment owner must provide:
 
-<http://127.0.0.1:8079/web/login?db=odoo_projects_qa_20260729&type=password>
+- a local-only URL;
+- a restored project manager account;
+- a restricted internal reviewer account;
+- the exact disposable database and container names.
 
-Use the main restored account for normal testing:
+Share temporary passwords through an appropriate local or secret channel.
+Never commit them to the repository or reuse production credentials.
+Set `QA_DATABASE` and `QA_CONTAINER` in the review shell to the exact
+branch-specific resource names before using the commands below.
 
-```text
-Login: valentin
-Password: projects-qa
-```
-
-Use the restricted reviewer account for the permissions check:
-
-```text
-Login: prosper
-Password: projects-reviewer
-```
-
-This is a disposable copy named `odoo_projects_qa_20260729`. It is separate
-from the clean restoration proofs and from the normal shared Odoo database.
-Cron is disabled, as are live electronic invoicing and e-reporting.
+The QA copy must be separate from clean restoration proofs, canonical
+development databases and preserved source databases. Run it through the
+normal product add-ons path with cron disabled and both live electronic
+invoicing guards set to zero. Bind its HTTP port to localhost only.
 
 The data came from a private production backup. Keep this site on the local
-machine, do not expose port 8079 publicly, and do not send invitations or
+machine, do not expose its port publicly, and do not send invitations or
 messages to real external addresses.
 
 ## What changed
@@ -52,7 +48,7 @@ project-management features.
 
 ### 1. Confirm the project overview
 
-1. Log in as `valentin`.
+1. Log in with the restored project manager account.
 2. Open **Projects**.
 3. Confirm the normal view immediately shows active projects.
 4. Clear any personal filters if the count looks different.
@@ -154,20 +150,21 @@ Documents records, so their absence is expected.
 
 ### 8. Check privacy and company access
 
-First, while logged in as `valentin`, confirm private/follower-only projects
-open normally.
+First, while logged in with the restored project manager account, confirm
+private/follower-only projects open normally.
 
 Then:
 
 1. Log out.
-2. Log in as `prosper` with `projects-reviewer`.
+2. Log in with the designated restricted internal reviewer account.
 3. Open **Projects**.
 4. Confirm follower-only private projects are absent.
 5. Expect 11 projects to be visible to this restricted reviewer.
 6. Try navigating back to a private project using browser history; access
    should still be refused or the record should remain hidden.
 
-Log back in as `valentin` for the remaining checks.
+Log back in with the restored project manager account for the remaining
+checks.
 
 The source has 2 employee-visible, 5 follower-only, 1 invited-user and 9
 portal-visible projects. It has no external project collaborators, so this QA
@@ -189,13 +186,14 @@ valid post-cutover task edits.
 
 ### 10. Confirm the clean product boundary
 
-As `valentin`, confirm that ordinary Projects navigation contains no
-**Restoration Runs**, import reports, source IDs or reconstruction fields.
+As the restored project manager, confirm that ordinary Projects navigation
+contains no **Restoration Runs**, import reports, source IDs or reconstruction
+fields.
 
 From the repository, run:
 
 ```bash
-PROJECT_TARGET_DATABASE=odoo_projects_qa_20260729 \
+PROJECT_TARGET_DATABASE="$QA_DATABASE" \
   scripts/project-restore product-validate
 ```
 
@@ -215,30 +213,32 @@ These are deliberate and should not be reported as defects:
 - unsupported Enterprise-only property keys are excluded from Community Odoo
   and reported only in the external migration evidence.
 
-## Managing the local server
+## Managing the disposable server
 
 Check that it is running:
 
 ```bash
-docker ps --filter name=usl-projects-qa-20260729
+docker ps --filter name="$QA_CONTAINER"
 ```
 
 Read recent logs:
 
 ```bash
-docker logs --tail 100 usl-projects-qa-20260729
+docker logs --tail 100 "$QA_CONTAINER"
 ```
 
 Stop it when finished:
 
 ```bash
-docker stop usl-projects-qa-20260729
+docker stop "$QA_CONTAINER"
 ```
 
-Start the same QA environment again:
+After evidence is recorded and review is complete, remove the branch-specific
+container and disposable database. Do not remove shared Docker networks,
+volumes, source services or canonical databases.
 
 ```bash
-docker start usl-projects-qa-20260729
+docker rm "$QA_CONTAINER"
 ```
 
 ## Reporting a problem
