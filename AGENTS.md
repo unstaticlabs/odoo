@@ -9,10 +9,12 @@ fork-level patch and the tradeoff is documented.
 
 - Prefer isolated custom add-ons under `custom-addons/` for project-specific behavior.
 - Put shared extensions of existing native/OCA Accounting models in
-  `usl_accounting`; keep installed `rebuild.*` models and stable XML/data
-  ownership in `rebuild_account_migration` until a rehearsed ownership
-  migration exists. `usl_bootstrap` is test-only and must not enter a product
-  dependency graph.
+  `usl_accounting`. Existing installed `rebuild.*` models and stable XML/data
+  ownership may remain in `rebuild_account_migration` only as transitional
+  accounting debt until a rehearsed ownership migration exists; do not add new
+  product behavior or source-trace dependencies there, and do not treat that
+  exception as acceptable final-product architecture. `usl_bootstrap` is
+  test-only and must not enter a product dependency graph.
 - Inspect existing Odoo code, relevant add-ons, and current documentation before editing.
 - Research standard Odoo behavior and maintained OCA functionality before implementing custom behavior.
 - Product, operations, accounting, and agent specifications live under:
@@ -27,6 +29,27 @@ fork-level patch and the tradeoff is documented.
 - Material implementation decisions must compare at least two credible alternatives, including standard Odoo or OCA options where relevant.
 - Treat accounting, security, privacy, access control, data integrity, and migration-sensitive changes as risky. Inspect the surrounding model, security, view, migration, and test behavior before changing them.
 - Do not make unrelated refactors, broad rewrites, formatting churn, speculative abstractions, or product changes outside the requested scope.
+
+## Product and Migration Boundary
+
+- `custom-addons/` is the delivered product add-ons path. Do not put source
+  extraction, import orchestration, reconstruction runs, parity evidence,
+  source bindings or migration-only provenance fields there.
+- Put one-shot migration machinery under `migration/`. It may use the Odoo ORM
+  through a dedicated migration service and temporary add-on path, but it must
+  not be available on the normal Odoo add-ons path or become a production
+  dependency.
+- A finalized target database must not have migration modules installed,
+  migration menus or models loaded, or migration-only fields on operational
+  models. Store technical evidence outside the delivered database.
+- Preserve user-visible business history such as chatter, attachments and
+  lifecycle dates in native operational records. Do not confuse that business
+  history with technical reconstruction history.
+- Keep only behavior required for ongoing work in product modules. Any
+  exception requires an explicit product decision, a documented removal plan
+  and an automated final-state boundary check.
+- Run `make product-migration-boundary` for changes affecting imports,
+  reconstruction, add-on paths or product manifests.
 
 ## Validation
 

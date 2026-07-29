@@ -39,12 +39,14 @@ The visible additions are:
 - a **Planned Start** field beside the existing deadline;
 - a warning when a task is planned to start before an unfinished dependency;
 - restored task history, followers, activities and attachments;
-- restored aliases, milestones, recurrences, subtasks and dependencies;
-- **Projects > Configuration > Restoration Runs** for managers to inspect the
-  import result and its reported issues.
+- restored aliases, milestones, recurrences, subtasks and dependencies.
 
 The Enterprise Gantt screen is not included. Its meaningful date range is
 available through Planned Start and Deadline in native task views.
+
+Import runs, source identifiers and reconstruction reports are deliberately
+absent from the product interface. They are migration evidence, not ongoing
+project-management features.
 
 ## Suggested test tour
 
@@ -185,20 +187,21 @@ Do not run the restoration importer from the user interface. Automated tests
 already verify that repeating the same source snapshot does not overwrite
 valid post-cutover task edits.
 
-### 10. Inspect the restoration report
+### 10. Confirm the clean product boundary
 
-As `valentin`, open:
+As `valentin`, confirm that ordinary Projects navigation contains no
+**Restoration Runs**, import reports, source IDs or reconstruction fields.
 
-**Projects > Configuration > Restoration Runs**
+From the repository, run:
 
-Open the latest run and confirm:
+```bash
+PROJECT_TARGET_DATABASE=odoo_projects_qa_20260729 \
+  scripts/project-restore product-validate
+```
 
-- status is **Passed**;
-- 17 projects and 1,793 tasks are reported;
-- source and target material counts match;
-- there is no unresolved error or warning;
-- the one informational issue explains that 638 source activities had no
-  assigned user and used the documented fallback assignment rule.
+It must report that `usl_project_restore` is uninstalled, with zero migration
+models, model metadata, fields, field metadata, project views and XML IDs. The
+operational `usl_project` module and Planned Start field must remain installed.
 
 ## Expected differences from Odoo Online
 
@@ -209,8 +212,8 @@ These are deliberate and should not be reported as defects:
 - no replay of historical outgoing-email or notification queues;
 - no project sales links, project Documents or external collaborators, because
   the source contained none;
-- Enterprise-only property metadata is retained for audit but unsupported keys
-  are not injected into Community Odoo.
+- unsupported Enterprise-only property keys are excluded from Community Odoo
+  and reported only in the external migration evidence.
 
 ## Managing the local server
 
