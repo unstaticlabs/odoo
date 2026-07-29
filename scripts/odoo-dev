@@ -113,8 +113,8 @@ bootstrap_einvoice_qa() {
     return "$status"
   fi
   printf '\nFrench e-invoicing QA is ready but inactive.\n'
-  printf 'Manager: qa.manager / qa-manager\n'
-  printf 'Read-only: qa.reviewer / qa-reviewer\n'
+  printf 'Manager: qa.manager / admin\n'
+  printf 'Read-only: qa.reviewer / admin\n'
 }
 
 cleanup_test_database() {
