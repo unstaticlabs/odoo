@@ -11,8 +11,25 @@ Accounting managers use **Configuration** for:
 - asset models;
 - governed Bank Matching Rules, including usage evidence and inert rule
   suggestions;
+- French electronic-invoice reception readiness, safe testing and deliberate
+  production activation;
 - the configurable Accounting Framework for Controls, Reports and
   Declarations.
+
+## E-Invoicing
+
+Open **Configuration > Invoicing > E-Invoicing**. Complete the French company
+identifier and incoming purchase journal, then use **Test Reception** to create
+a synthetic draft supplier bill without contacting a provider.
+
+**Ready but inactive** is the expected state before production. Authentication,
+production registration, Pilot Phase, live polling and deregistration are
+external actions, not configuration previews.
+
+Use [Prepare electronic-invoice reception](../how-to/prepare-electronic-invoice-reception.md)
+for safe checks. Use
+[Activate electronic-invoice reception in production](../how-to/activate-electronic-invoice-reception.md)
+only during the approved production change window.
 
 ## Bank Matching Rules
 

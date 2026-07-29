@@ -29,6 +29,21 @@ fork-level patch and the tradeoff is documented.
 - For custom add-ons, use the helper workflow documented in `README.md` where possible.
 - Report every command run and any failures honestly. Do not claim validation that was not performed.
 
+## Electronic-Invoice Safety
+
+- Keep `USL_EINVOICE_LIVE_ENABLED=0` and
+  `USL_EREPORTING_LIVE_ENABLED=0` in development, test, staging,
+  reconstruction and copied databases.
+- Never register or deregister USL, query a live French directory/provider,
+  retrieve or send real invoices, or submit e-reporting outside the approved
+  production activation runbook.
+- Use the synthetic offline fixture and mocked provider calls for validation.
+- Reception activation and e-reporting are separate rollouts. Enabling
+  reception must not activate auto-registration, regulatory-document,
+  lifecycle or e-reporting jobs.
+- Record provider eligibility, subscription and live first-invoice checks as
+  production prerequisites; never infer them from passing software tests.
+
 ## Accounting Milestone Workflow
 
 - Follow `docs/operations/accounting-development-workflow.md` when working on Milestone 13.

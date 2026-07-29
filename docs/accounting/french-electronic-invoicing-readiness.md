@@ -1,82 +1,138 @@
-# French Electronic-Invoicing Reception Readiness
+# French Electronic-Invoice Reception Readiness
 
 ## Product contract
 
-All French VAT-registered businesses must be able to receive electronic
-invoices from **1 September 2026**. Small and micro-enterprises begin mandatory
-electronic issuance and e-reporting on **1 September 2027**. The official
-calendar is maintained by
+French VAT-registered businesses must be able to receive regulated electronic
+invoices from **1 September 2026**. The official calendar is maintained by
 [impots.gouv.fr](https://www.impots.gouv.fr/professionnel/questions/partir-de-quand-suis-je-concerne-par-la-reforme-de-la-facturation).
+Reception requires a French approved platform and a structured UBL, CII or
+Factur-X document; an ordinary emailed PDF is not a regulated electronic
+invoice.
 
-Compliant domestic electronic invoices use UBL, CII or a mixed structured
-format and pass through a French approved platform. A scanned or ordinary PDF
-sent by email is not compliant. See the
-[DGFiP overview](https://www.impots.gouv.fr/professionnel/je-decouvre-la-facturation-electronique)
-and
-[approved-platform responsibilities](https://www.impots.gouv.fr/facturation-electronique-et-plateformes-agreees).
+This release is **ready but inactive**. It proves the software reception
+journey without a network call. Production identity verification, platform
+terms and French-directory registration remain deliberate activation steps.
+
+Odoo documents generic Peppol registration as free and available in Community:
+[Electronic invoicing — Peppol](https://www.odoo.com/documentation/19.0/applications/finance/accounting/customer_invoices/electronic_invoicing.html#peppol).
+For the French reform, Odoo documents its certified Approved Platform and the
+`l10n_fr_pdp` workflow separately:
+[France — E-invoicing](https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/france.html#e-invoicing).
+Both client modules are LGPL-3 in this source tree. Odoo's French workflow
+requires legal-representative authentication and acceptance of the displayed
+terms during production onboarding; no provider outreach is required for
+offline preparation.
 
 ## Architecture decision
 
-Two approaches were evaluated:
+Three credible approaches were evaluated:
 
-1. build a USL transport, directory client and invoice decoder;
-2. govern Odoo's maintained SaaS 19.2 modules:
-   `account_edi_ubl_cii`, `account_peppol`, `account_peppol_response` and
-   `l10n_fr_pdp`.
+1. use Odoo's maintained `account_edi_ubl_cii`, `account_peppol`,
+   `account_peppol_response` and `l10n_fr_pdp` modules;
+2. use OCA `account_invoice_import_ubl`;
+3. build a USL directory, approved-platform transport and decoder.
 
-The second approach is implemented. Odoo remains responsible for
-approved-platform transport, French UBL/CII/Factur-X formats, native
-vendor-bill creation, lifecycle status and invoice attachments. The isolated
-USL module adds the production activation boundary, company readiness,
-reception evidence and duplicate/technical-failure governance.
+The first approach is implemented behind an isolated USL safety and evidence
+layer. It reuses Odoo's French approved-platform adapter and native vendor-bill
+decoder. OCA's module is maintained and useful for importing UBL files, but it
+does not supply the French approved-platform transport, directory registration
+or lifecycle needed for mandatory reception. A bespoke transport would
+duplicate regulated, security-sensitive machinery and create a larger
+maintenance and certification burden.
 
-## Runtime states
+The only compatibility extension needed is isolated in
+`rebuild_account_migration`: Odoo's provider reception method assumes an XML
+attachment even when the French adapter identifies a delivery as Factur-X.
+The extension extracts the embedded CII/UBL document for native decoding while
+retaining the original Factur-X PDF as immutable reception evidence. Odoo core
+is unchanged.
 
-**Configuration > Accounting Framework > Electronic Invoicing** separates:
+## User-facing states
 
-- **Implemented and Validated**: the native modules and USL reception contract
-  are installed;
-- **Ready for Production Activation**: identifiers, contact, purchase journal,
-  native provider adapter, production marker and manager approval are complete;
-- **Not Connected**: no live participant, directory registration or endpoint
-  exists.
+**Accounting > Configuration > Invoicing > E-Invoicing** presents only
+product states and the current next action:
 
-Capability never implies a live connection.
+- **Configuration incomplete** — the accounting country, company identifiers
+  or incoming purchase journal is missing;
+- **Not yet verified** — configuration may be present, but the representative
+  offline reception test is outstanding;
+- **Test passed** — the current company produced a correct native draft bill
+  from the maintained safe fixture;
+- **Ready but inactive** — company configuration and safe tests pass, but no
+  live connection is active;
+- **Production activation required** — a production deployment is prepared
+  but still needs deliberate approval, registration or scheduled-reception
+  enablement;
+- **Active** — production approval, connected receiver state and reception-only
+  jobs are all present.
 
-Every payload creates immutable `rebuild.einvoice.reception` evidence with its
-company, provider message ID, SHA-256, original attachment, processing result
-and related vendor bill. Repeated message IDs or payload hashes are
-acknowledged without a second bill. Malformed payloads are **Technical
-Failure**; provider error deliveries are **Rejected by Provider**. Accounting
-problems remain on the ordinary draft bill.
+The screen never interprets installed code as proof of a provider contract or
+live connectivity. **Next Action** is phase-aware: it first resolves reception
+setup, then the offline test and deliberate production
+activation. **Odoo Approved Platform** is selected by default for French
+companies because it is the only French Approved Platform adapter implemented
+in this release; that default does not create an account or contact Odoo.
 
-## Activation safety
+## Reception and evidence
 
-Installation and module updates force Peppol/PDP retrieval, status, lifecycle,
-webhook and e-reporting jobs inactive. Native French registration is blocked
-until:
+UBL invoices, UBL credit notes, CII and Factur-X enter Odoo's native import
+framework and create draft `account.move` vendor bills or refunds. Multiple VAT
+rates and document currencies are preserved. The bill then follows ordinary
+review, posting, payment and reconciliation.
 
-1. the database is the deployed production Accounting system;
-2. the Odoo Approved Platform adapter is selected, or another adapter has been
-   implemented and validated;
-3. identifiers, contact and reception journal are complete;
-4. an Accounting Manager records production activation approval.
+Each delivery records company-scoped evidence containing the original file,
+platform message reference, document fingerprint, structured format, invoice
+or credit-note type, processing attempts, recovery guidance and related native
+bill. The Accounting Manager sees friendly results:
 
-Registration still does not enable scheduled exchange. After the provider
-reports the company as a receiver, a manager must enable it explicitly.
-Because the Odoo jobs are database-wide, every connected company must be
-production-approved first.
+- **Draft Bill Created** — review and process the native draft;
+- **Duplicate Controlled** — the same message or payload did not create a
+  second bill;
+- **Action Required** — the original is retained and can be retried up to five
+  times after correction;
+- **Rejected by Platform** — retain the provider result and investigate before
+  creating any replacement.
 
-Selecting **another approved platform** remains visible but blocks activation
-until its maintained adapter has behavioral evidence. This prevents a generic
-Peppol setting being presented as French reform readiness.
+Technical exception text is restricted to technical administrators. Read-only
+accountants can inspect company-authorized evidence and the resulting bill but
+cannot test, retry, post or activate.
 
-## Offline validation
+## External-call boundary
 
-The permanent module test generates a representative French UBL 2.1 invoice,
-imports it through Odoo's native reception method, verifies the draft bill and
-structured attachment, posts the bill, and verifies deduplication, malformed
-XML, provider rejection and the activation boundary.
+All Compose services receive these explicit defaults:
 
-No remote request, production identifier, directory registration, supplier
-invoice retrieval, sending or e-reporting occurs.
+```text
+USL_EINVOICE_LIVE_ENABLED=0
+USL_EREPORTING_LIVE_ENABLED=0
+```
+
+With the reception guard off, live provider calls, French directory lookup,
+Peppol lookup, registration, deregistration and authentication refresh are
+blocked. The Odoo PA Demo mode remains available because Odoo simulates it
+locally and explicitly performs no French-network communication. Installation
+and every module upgrade select Demo mode, disable e-reporting and disable
+reception, auto-registration, regulatory-document, lifecycle and e-reporting
+jobs.
+
+Production reception requires all of the following:
+
+1. French company identifiers, scheme `0225`, contact and purchase journal;
+2. the representative offline test marked **Test passed**;
+3. legal-representative identity verification and acceptance of the displayed
+   platform terms;
+4. an actual production deployment;
+5. `USL_EINVOICE_LIVE_ENABLED=1` in that deployment;
+6. Accounting Manager approval;
+7. native approved-platform receiver registration;
+8. a separate **Enable Scheduled Reception** action.
+
+Only four reception jobs are enabled. Auto-registration and all e-reporting or
+regulatory-flow jobs remain disabled. `USL_EREPORTING_LIVE_ENABLED` is a
+separate future rollout and must remain `0` for reception activation.
+
+## Verified boundary
+
+Durable backend and browser coverage is listed in
+[French electronic-invoicing validation](french-electronic-invoicing-validation.md).
+No test registers USL, contacts a live directory/provider, retrieves a real
+invoice, sends an invoice, or submits e-reporting.
