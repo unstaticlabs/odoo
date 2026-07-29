@@ -11,6 +11,7 @@ the following contract:
 - current, draft or deprecated lifecycle;
 - optional effective dates and company scope;
 - business purpose and expected outcome;
+- official-document template, colors and footer label for Reports;
 - an installed source module and inspectable technical boundary.
 
 Configuration and runtime remain separate:
@@ -63,7 +64,8 @@ definition only after historical results have frozen its provenance.
 - Hygiene and Closing execute only enabled, current and effective Controls.
 - The report client resolves the active Report for the selected company and
   period. Its filter/export capabilities and default hierarchy govern the
-  runtime session.
+  runtime session. The same resolved definition also supplies validated visual
+  tokens to the screen, PDF and readable XLSX output.
 - Native analysis workspaces, including Analytic Reporting, resolve a visible
   Report definition for catalogue, provenance and navigation purposes while
   retaining Odoo's specialized pivot engine and native saved analysis state.

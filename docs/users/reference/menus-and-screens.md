@@ -131,11 +131,13 @@ draft bill without exposing provider internals.
 ## Reporting
 
 The canonical designed financial, partner, tax, asset, management and
-analytical statements. **Compte de résultat analytique** is the governed
-analytical statement; use **Reporting > Analyse analytique** for free-form pivot
-exploration. Combine configured analytic plans with dates, financial accounts,
-partners, products, journals and companies; switch between pivot, list and
-graph; and open any aggregate to its source records.
+analytical statements. **Compte de résultat** is the single French performance
+statement; the former detailed alias is not shown separately. **Compte de
+résultat analytique** is the governed
+analytical statement; use **Reporting > Pilotage > Analyse analytique** for
+free-form pivot exploration. Combine configured analytic plans with dates,
+financial accounts, partners, products, journals and companies; switch between
+pivot, list and graph; and open any aggregate to its source records.
 
 ## Declarations
 

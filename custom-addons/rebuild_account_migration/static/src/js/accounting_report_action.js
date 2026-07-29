@@ -1,4 +1,9 @@
 import { Component, onWillStart, useState } from "@odoo/owl";
+import { DateTimeInput } from "@web/core/datetime/datetime_input";
+import {
+    deserializeDate,
+    serializeDate,
+} from "@web/core/l10n/dates";
 import { download } from "@web/core/network/download";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -7,6 +12,7 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
 
 export class AccountingReportAction extends Component {
     static template = "rebuild_account_migration.AccountingReportAction";
+    static components = { DateTimeInput };
     static props = { ...standardActionServiceProps };
 
     setup() {
@@ -66,12 +72,30 @@ export class AccountingReportAction extends Component {
 
     async onFilterChange(event) {
         const name = event.target.name;
-        let value = event.target.value;
+        let value =
+            event.target.type === "checkbox"
+                ? event.target.checked
+                : event.target.value;
         if (name === "company_id") {
             value = Number(value);
         }
         const changes = { [name]: value || false };
         if (["date_from", "date_to"].includes(name)) {
+            changes.period_preset = "custom";
+        }
+        await this.load(changes);
+    }
+
+    dateFilterValue(fieldName) {
+        const value = this.state.filters[fieldName];
+        return value ? deserializeDate(value) : false;
+    }
+
+    async onDateFilterChange(fieldName, value) {
+        const changes = {
+            [fieldName]: value ? serializeDate(value) : false,
+        };
+        if (["date_from", "date_to"].includes(fieldName)) {
             changes.period_preset = "custom";
         }
         await this.load(changes);
@@ -117,6 +141,7 @@ export class AccountingReportAction extends Component {
             partner_ids: [],
             analytic_plan_ids: [],
             analytic_account_ids: [],
+            hide_zero_accounts: false,
         });
     }
 
@@ -133,6 +158,40 @@ export class AccountingReportAction extends Component {
     }
 
     filterOptionLabel(fieldName, option) {
+        if (fieldName === "display_unit") {
+            const symbol =
+                this.state.data.currency?.symbol ||
+                this.state.data.currency?.name ||
+                "";
+            const unitLabels = {
+                units: ["Unités", symbol],
+                thousands: ["Milliers", `k${symbol}`],
+                millions: ["Millions", `M${symbol}`],
+            };
+            const [label, shortLabel] = unitLabels[option.value] || [
+                option.label,
+                "",
+            ];
+            return shortLabel ? `${label} (${shortLabel})` : label;
+        }
+        if (fieldName === "amount_rounding") {
+            const labels = {
+                whole: {
+                    units: "À l’euro",
+                    thousands: "Au millier d’euros",
+                    millions: "Au million d’euros",
+                },
+                cents: {
+                    units: "Au centime",
+                    thousands: "Deux décimales en k€",
+                    millions: "Deux décimales en M€",
+                },
+            };
+            return (
+                labels[option.value]?.[this.state.filters.display_unit] ||
+                option.label
+            );
+        }
         const labels = {
             period_preset: {
                 custom: "Dates personnalisées",
@@ -182,6 +241,7 @@ export class AccountingReportAction extends Component {
         return (
             this.activeAdvancedFilterCount > 0 ||
             Boolean(this.state.filters.search_text) ||
+            Boolean(this.state.filters.hide_zero_accounts) ||
             this.state.filters.comparison_mode !== "none"
         );
     }
@@ -230,9 +290,23 @@ export class AccountingReportAction extends Component {
         const data = await this.orm.call(
             "rebuild.account.report.export.wizard",
             "report_client_export",
-            [this.state.data.wizard_id, format],
+            [
+                this.state.data.wizard_id,
+                format,
+                { ...this.state.filters },
+            ],
         );
+        this.applyExportReportPayload(data.report_payload);
         await download({ url: "/web/content", data });
+    }
+
+    applyExportReportPayload(payload) {
+        if (!payload) {
+            return;
+        }
+        this.state.data = payload;
+        this.state.filters = { ...payload.filters };
+        this.props?.updateActionState?.({ resId: payload.wizard_id });
     }
 
     async toggleGroup(line) {
@@ -267,10 +341,11 @@ export class AccountingReportAction extends Component {
     }
 
     formatAmount(value) {
+        const decimalPlaces = this.amountDecimalPlaces;
         return new Intl.NumberFormat(this.state.data.locale || undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(value || 0);
+            minimumFractionDigits: decimalPlaces,
+            maximumFractionDigits: decimalPlaces,
+        }).format(Number(value || 0) / this.displayUnitFactor);
     }
 
     formatForeignAmount(value, currency) {
@@ -357,6 +432,65 @@ export class AccountingReportAction extends Component {
 
     get capabilities() {
         return this.state.data.capabilities;
+    }
+
+    get displayUnitFactor() {
+        return Number(this.state.data.display_unit?.factor || 1);
+    }
+
+    get displayUnitLabel() {
+        return this.state.data.display_unit?.short_label || "";
+    }
+
+    get amountDecimalPlaces() {
+        return Number(this.state.data.amount_rounding?.decimal_places ?? 2);
+    }
+
+    get reportWorkspaceClass() {
+        const landscapeReports = new Set([
+            "trial_balance",
+            "general_ledger",
+            "journal_report",
+            "partner_ledger",
+            "customer_statement",
+            "open_items",
+            "aged_receivable",
+            "aged_payable",
+            "tax_report",
+            "currency_report",
+            "analytic_report",
+            "fixed_assets",
+            "depreciation_schedule",
+            "deferred_schedule",
+            "french_tax_package",
+            "closing_package",
+        ]);
+        return [
+            "o_usl_report_workspace",
+            landscapeReports.has(this.reportType)
+                ? "o_usl_report_workspace_landscape"
+                : "o_usl_report_workspace_portrait",
+        ].join(" ");
+    }
+
+    get documentThemeStyle() {
+        const document = this.state.data.document || {};
+        return [
+            `--usl-report-primary:${document.primary_color || "#111111"}`,
+            `--usl-report-section-bg:${
+                document.section_background_color || "#E9ECEF"
+            }`,
+            `--usl-report-section-text:${
+                document.section_text_color || "#111111"
+            }`,
+            `--usl-report-muted:${document.muted_color || "#666666"}`,
+        ].join(";");
+    }
+
+    summaryCardLabel(card) {
+        return card.type === "currency" && this.displayUnitLabel
+            ? `${card.label} (${this.displayUnitLabel})`
+            : card.label;
     }
 
     formatCell(value, valueType) {

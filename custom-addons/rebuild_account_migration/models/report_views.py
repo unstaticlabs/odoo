@@ -1,6 +1,5 @@
 from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
-from odoo.tools import date_utils
 
 
 BENCHMARK_PERIOD_KEY = "USL benchmark 2024-01-10 to 2025-09-30"
@@ -1904,10 +1903,8 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
     @api.model
     def _current_fiscal_year_bounds(self, company):
         today = fields.Date.context_today(self.with_company(company))
-        return date_utils.get_fiscal_year(
+        return company.rebuild_compute_fiscalyear_dates(
             today,
-            day=company.fiscalyear_last_day,
-            month=int(company.fiscalyear_last_month),
         )
 
     def _compute_is_current_fiscal_year(self):
@@ -2387,11 +2384,16 @@ class RebuildAccountFrenchStatementLine(models.Model):
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'bilan_passif', 'Bilan Passif', 40,
-                           'PASSIF_COMPTE_COURANT_ASSOCIE', 'Compte courant d’associé',
-                           'Comptes 455', '455',
+                           'PASSIF_DETTES_FINANCIERES', 'Emprunts et dettes financières diverses',
+                           'Comptes 16/17 et comptes courants d’associés 455', '16,17,455',
                            move_line_count, 0, 0, -balance, -balance
                       FROM balances
-                     WHERE account_code LIKE '455%' AND balance < 0
+                     WHERE (
+                           account_code LIKE '16%'
+                        OR account_code LIKE '17%'
+                        OR account_code LIKE '455%'
+                     )
+                       AND balance < 0
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'bilan_passif', 'Bilan Passif', 50,
@@ -2404,28 +2406,40 @@ class RebuildAccountFrenchStatementLine(models.Model):
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'bilan_passif', 'Bilan Passif', 80,
-                           'PASSIF_TOTAL_DETTES', 'Total dettes',
-                           'Compte courant d’associé + dettes fiscales et sociales', '455,42,43,44',
+                           'PASSIF_TOTAL_DETTES', 'Total des dettes',
+                           'Dettes financières, fournisseurs, fiscales et sociales', '16,17,455,40,42,43,44',
                            move_line_count, 0, 0, -balance, -balance
                       FROM balances
-                     WHERE ((account_code LIKE '455%' OR account_code LIKE '42%' OR account_code LIKE '43%' OR account_code LIKE '44%')
+                     WHERE ((account_code LIKE '16%'
+                             OR account_code LIKE '17%'
+                             OR account_code LIKE '455%'
+                             OR account_code LIKE '40%'
+                             OR account_code LIKE '42%'
+                             OR account_code LIKE '43%'
+                             OR account_code LIKE '44%')
                             AND balance < 0)
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'bilan_passif', 'Bilan Passif', 90,
                            'PASSIF_TOTAL', 'Total passif',
-                           'Capitaux propres + dettes', '101,6,7,455,42,43,44',
+                           'Capitaux propres + dettes', '101,6,7,16,17,455,40,42,43,44',
                            move_line_count, 0, 0, -balance, -balance
                       FROM balances
                      WHERE account_code LIKE '101%'
                         OR account_code LIKE '6%'
                         OR account_code LIKE '7%'
-                        OR ((account_code LIKE '455%' OR account_code LIKE '42%' OR account_code LIKE '43%' OR account_code LIKE '44%')
+                        OR ((account_code LIKE '16%'
+                             OR account_code LIKE '17%'
+                             OR account_code LIKE '455%'
+                             OR account_code LIKE '40%'
+                             OR account_code LIKE '42%'
+                             OR account_code LIKE '43%'
+                             OR account_code LIKE '44%')
                             AND balance < 0)
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'compte_resultat', 'Compte de résultat', 10,
-                           'CR_VENTES_PRODUITS', 'Ventes de biens et produits',
+                           'CR_VENTES_PRODUITS', 'Production vendue — biens',
                            'Comptes 701', '701',
                            move_line_count, 0, 0, -balance, -balance
                       FROM balances
@@ -2450,10 +2464,26 @@ class RebuildAccountFrenchStatementLine(models.Model):
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'compte_resultat', 'Compte de résultat', 40,
                            'CR_TOTAL_PRODUITS_EXPLOITATION', 'Total des produits d’exploitation',
-                           'Comptes 70 et 758', '70,758',
+                           'Comptes 70/71/72/74/75 hors 755', '70,71,72,74,75',
                            move_line_count, 0, 0, -balance, -balance
                       FROM balances
-                     WHERE account_code LIKE '70%' OR account_code LIKE '758%'
+                     WHERE account_code LIKE '70%'
+                        OR account_code LIKE '71%'
+                        OR account_code LIKE '72%'
+                        OR account_code LIKE '74%'
+                        OR (
+                            account_code LIKE '75%'
+                            AND account_code NOT LIKE '755%'
+                        )
+                    UNION ALL
+                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                           'compte_resultat', 'Compte de résultat', 35,
+                           'CR_AUTRES_PRODUITS_EXPLOITATION', 'Autres produits d’exploitation',
+                           'Comptes 75 hors opérations en commun 755', '75',
+                           move_line_count, 0, 0, -balance, -balance
+                      FROM balances
+                     WHERE account_code LIKE '75%'
+                       AND account_code NOT LIKE '755%'
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'compte_resultat', 'Compte de résultat', 50,
@@ -2593,8 +2623,24 @@ class RebuildAccountFrenchStatementLine(models.Model):
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key,
                            'compte_resultat', 'Compte de résultat', 190,
-                           'CR_RESULTAT_NET', 'Résultat net comptable',
-                           'Solde des comptes 6 et 7', '6,7',
+                           'CR_TOTAL_PRODUITS', 'Total des produits',
+                           'Total des comptes de classe 7', '7',
+                           move_line_count, 0, 0, -balance, -balance
+                      FROM balances
+                     WHERE account_code LIKE '7%'
+                    UNION ALL
+                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                           'compte_resultat', 'Compte de résultat', 195,
+                           'CR_TOTAL_CHARGES', 'Total des charges',
+                           'Total des comptes de classe 6', '6',
+                           move_line_count, 0, 0, balance, balance
+                      FROM balances
+                     WHERE account_code LIKE '6%'
+                    UNION ALL
+                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                           'compte_resultat', 'Compte de résultat', 200,
+                           'CR_RESULTAT_NET', 'Résultat net de l’exercice',
+                           'Total des produits - total des charges', '6,7',
                            move_line_count, 0, 0, -balance, -balance
                       FROM balances
                      WHERE account_code LIKE '6%' OR account_code LIKE '7%'

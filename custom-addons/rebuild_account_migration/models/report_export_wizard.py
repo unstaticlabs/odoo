@@ -4,14 +4,17 @@ import csv
 import hashlib
 import io
 import json
+import math
 from datetime import date, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools import date_utils
 
-from .report_definition import ACCOUNTING_REPORT_TYPES
+from .report_definition import (
+    ACCOUNTING_REPORT_TYPES,
+    AMOUNT_ROUNDING_SELECTION,
+)
 
 ACCOUNT_CODE_SQL = (
     "COALESCE("
@@ -22,6 +25,141 @@ ACCOUNT_CODE_SQL = (
     ")"
 )
 ACCOUNT_NAME_SQL = "COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)"
+
+MONETARY_REPORT_FIELDS = {
+    "opening_balance",
+    "debit",
+    "credit",
+    "balance",
+    "closing_balance",
+    "movement",
+    "amount",
+    "gross_amount",
+    "depreciation_amount",
+    "net_amount",
+    "residual",
+    "presented_residual",
+    "amount_residual",
+    "imported_period_net_value",
+    "original_value",
+    "accumulated_depreciation",
+    "accumulated_depreciation_amount",
+    "net_book_value_after_line",
+    "deferred_account_balance",
+    "counterpart_balance",
+    "rounded_amount",
+    "statement_balance",
+    "tax_base_amount",
+    "presented_tax_base",
+    "presented_tax_amount",
+    "period_value",
+    "comparison_value",
+    "difference",
+    "not_due",
+    "bucket_1_30",
+    "bucket_31_60",
+    "bucket_61_90",
+    "bucket_over_90",
+    "total",
+    "allocated_debit",
+    "allocated_credit",
+    "allocated_balance",
+}
+
+DATE_REPORT_FIELDS = {
+    "date",
+    "due_date",
+    "acquisition_date",
+    "depreciation_date",
+    "deferred_date",
+}
+
+DISPLAY_UNIT_VALUES = {
+    "units": {
+        "factor": 1,
+        "label": "Unités",
+        "short_label": "€",
+    },
+    "thousands": {
+        "factor": 1_000,
+        "label": "Milliers",
+        "short_label": "k€",
+    },
+    "millions": {
+        "factor": 1_000_000,
+        "label": "Millions",
+        "short_label": "M€",
+    },
+}
+
+AMOUNT_ROUNDING_VALUES = {
+    "whole": {
+        "decimal_places": 0,
+    },
+    "cents": {
+        "decimal_places": 2,
+    },
+}
+
+CANONICAL_REPORT_TYPES = {
+    "french_profit_loss_2024": "profit_loss",
+}
+
+ZERO_ACCOUNT_FILTER_REPORT_TYPES = {
+    "trial_balance",
+    "balance_sheet",
+    "profit_loss",
+    "tax_report",
+    "fixed_asset_group_account",
+    "french_annual",
+    "french_balance_sheet_2024",
+    "french_profit_loss_2024",
+    "sig_caf_2024",
+}
+
+FRENCH_PROFIT_LOSS_SECTIONS = {
+    "CR_VENTES_PRODUITS": "Produits d’exploitation",
+    "CR_SERVICES": "Produits d’exploitation",
+    "CR_CHIFFRE_AFFAIRES": "Produits d’exploitation",
+    "CR_AUTRES_PRODUITS_EXPLOITATION": "Produits d’exploitation",
+    "CR_TOTAL_PRODUITS_EXPLOITATION": "Produits d’exploitation",
+    "CR_ACHATS_MARCHANDISES": "Charges d’exploitation",
+    "CR_CHARGES_EXTERNES": "Charges d’exploitation",
+    "CR_IMPOTS_TAXES": "Charges d’exploitation",
+    "CR_SALAIRES": "Charges d’exploitation",
+    "CR_CHARGES_SOCIALES": "Charges d’exploitation",
+    "CR_DOTATIONS_AMORTISSEMENTS": "Charges d’exploitation",
+    "CR_AUTRES_CHARGES_EXPLOITATION": "Charges d’exploitation",
+    "CR_TOTAL_CHARGES_EXPLOITATION": "Charges d’exploitation",
+    "CR_RESULTAT_EXPLOITATION": "Résultats intermédiaires",
+    "CR_PRODUITS_FINANCIERS": "Résultat financier",
+    "CR_CHARGES_FINANCIERES": "Résultat financier",
+    "CR_RESULTAT_FINANCIER": "Résultat financier",
+    "CR_RESULTAT_COURANT_AVANT_IMPOT": "Résultats intermédiaires",
+    "CR_RESULTAT_EXCEPTIONNEL": "Résultats intermédiaires",
+    "CR_IMPOTS_BENEFICES": "Résultat de l’exercice",
+    "CR_TOTAL_PRODUITS": "Résultat de l’exercice",
+    "CR_TOTAL_CHARGES": "Résultat de l’exercice",
+    "CR_RESULTAT_NET": "Résultat de l’exercice",
+}
+
+FRENCH_PROFIT_LOSS_SECTION_TOTALS = {
+    "Produits d’exploitation": "CR_TOTAL_PRODUITS_EXPLOITATION",
+    "Charges d’exploitation": "CR_TOTAL_CHARGES_EXPLOITATION",
+    "Résultat financier": "CR_RESULTAT_FINANCIER",
+    "Résultat de l’exercice": "CR_RESULTAT_NET",
+}
+
+FRENCH_PROFIT_LOSS_SUBTOTALS = {
+    *FRENCH_PROFIT_LOSS_SECTION_TOTALS.values(),
+    "CR_RESULTAT_EXPLOITATION",
+    "CR_RESULTAT_COURANT_AVANT_IMPOT",
+    "CR_RESULTAT_EXCEPTIONNEL",
+    "CR_TOTAL_PRODUITS",
+    "CR_TOTAL_CHARGES",
+}
+
+HIERARCHY_STATE_SENTINEL = "__pcg_hierarchy_initialized__"
 
 
 def _amount(value):
@@ -109,6 +247,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         required=True,
         default="posted",
     )
+    display_unit = fields.Selection(
+        [
+            ("units", "Unités"),
+            ("thousands", "Milliers"),
+            ("millions", "Millions"),
+        ],
+        required=True,
+        default="units",
+        string="Unité d’affichage",
+    )
+    amount_rounding = fields.Selection(
+        AMOUNT_ROUNDING_SELECTION,
+        required=True,
+        default="cents",
+        string="Arrondi",
+        help=(
+            "Arrondit uniquement les montants présentés à l’écran et dans "
+            "les exports. Les calculs et la feuille Audit Data du XLSX "
+            "conservent les montants comptables exacts."
+        ),
+    )
     export_format = fields.Selection(
         [
             ("csv", "CSV"),
@@ -154,6 +313,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         default="none",
     )
     search_text = fields.Char(string="Search Report")
+    hide_zero_accounts = fields.Boolean(
+        string="Masquer les lignes à zéro",
+        help=(
+            "Masque les lignes de détail et les comptes dont toutes les "
+            "valeurs monétaires affichées sont nulles. Les comptes ayant une "
+            "activité débit ou crédit restent visibles même si leur solde "
+            "est nul."
+        ),
+    )
     show_details = fields.Boolean(default=True)
     collapsed_group_keys = fields.Text(default="[]")
     export_file = fields.Binary(readonly=True, attachment=True)
@@ -201,7 +369,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         keeps its implementation details out of the normal Accounting UI.
         """
         filters = filters or {}
+        report_type = CANONICAL_REPORT_TYPES.get(
+            report_type,
+            report_type,
+        )
         wizard = self.browse(wizard_id).exists() if wizard_id else self.browse()
+        if wizard and wizard.report_type in CANONICAL_REPORT_TYPES:
+            wizard.report_type = CANONICAL_REPORT_TYPES[
+                wizard.report_type
+            ]
         requested_company = (
             self.env["res.company"].browse(filters.get("company_id")).exists()
             or wizard.company_id
@@ -216,16 +392,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
         if not wizard:
             today = fields.Date.context_today(self)
-            fiscal_from, fiscal_to = date_utils.get_fiscal_year(
-                today,
-                day=self.env.company.fiscalyear_last_day,
-                month=int(self.env.company.fiscalyear_last_month),
+            fiscal_from, fiscal_to = (
+                requested_company.rebuild_compute_fiscalyear_dates(today)
             )
             default_group = definition.default_group_by
             wizard = self.create({
                 "report_type": report_type,
-                "company_id": self.env.company.id,
-                "company_ids": [Command.set([self.env.company.id])],
+                "company_id": requested_company.id,
+                "company_ids": [Command.set([requested_company.id])],
                 "data_scope": "native",
                 "period_preset": "fiscal_year",
                 "period_anchor_date": today,
@@ -234,6 +408,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "target_move": "posted",
                 "comparison_mode": "none",
                 "group_by": default_group,
+                "display_unit": "units",
+                "amount_rounding": definition.default_amount_rounding,
                 "preview_limit": 1000,
                 "export_format": "xlsx",
                 "report_definition_id": definition.id,
@@ -260,6 +436,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "comparison_date_from",
             "comparison_date_to",
             "group_by",
+            "display_unit",
+            "amount_rounding",
+            "hide_zero_accounts",
             "search_text",
             "journal_ids",
             "account_ids",
@@ -436,6 +615,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     self.report_definition_id.business_purpose or ""
                 ),
             },
+            "variant": {
+                "key": self._report_variant_key() or "standard",
+                "label": self._report_variant_label(),
+                "basis": self._report_variant_basis(),
+            },
+            "document": self._document_theme(),
             "label_column": self._report_client_label_column(),
             "report_type": self.report_type,
             "currency": {
@@ -444,6 +629,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "symbol": self.company_id.currency_id.symbol,
                 "position": self.company_id.currency_id.position,
             },
+            "display_unit": self._display_unit_metadata(),
+            "amount_rounding": self._amount_rounding_metadata(),
             "filters": {
                 "company_id": self.company_id.id,
                 "date_from": fields.Date.to_string(self.date_from),
@@ -463,6 +650,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     if self.comparison_date_to else ""
                 ),
                 "group_by": self.group_by,
+                "display_unit": self.display_unit,
+                "amount_rounding": self.amount_rounding,
+                "hide_zero_accounts": self.hide_zero_accounts,
                 "search_text": self.search_text or "",
                 "journal_ids": self.journal_ids.ids,
                 "account_ids": self.account_ids.ids,
@@ -479,6 +669,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "target_move": selection_options("target_move"),
                 "comparison_mode": selection_options("comparison_mode"),
                 "group_by": selection_options("group_by"),
+                "display_unit": selection_options("display_unit"),
+                "amount_rounding": selection_options("amount_rounding"),
                 "journals": [
                     {
                         "value": journal.id,
@@ -671,6 +863,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         }
         capabilities = {
             "period_presets": True,
+            "display_unit": True,
+            "amount_rounding": True,
             "comparison": self.report_type in comparison_reports,
             "group_by": self.report_type not in {
                 "aged_receivable",
@@ -685,6 +879,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "french_tax_package",
             },
             "analytics": self.report_type in analytic_reports,
+            "hide_zero_accounts": (
+                self.report_type in ZERO_ACCOUNT_FILTER_REPORT_TYPES
+                or self.group_by == "account"
+            ),
         }
         definition = self.report_definition_id
         if definition:
@@ -870,19 +1068,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 else "CR_RESULTAT_NET"
             )
             result = amount_for(result_code)
-            if self.report_type == "profit_loss":
-                result_row = next(
-                    (
-                        row
-                        for row in rows
-                        if row.get("account_code") == "RESULT"
-                    ),
-                    {},
-                )
-                result = float(_amount(result_row.get("amount")))
             return {
                 "cards": [{
-                    "label": "Résultat net",
+                    "label": "Résultat net de l’exercice",
                     "value": result,
                     "type": "currency",
                     "status": "success" if result >= 0 else "warning",
@@ -938,67 +1126,67 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "bank_reconciliation": [
                 ("date", "Date", date),
                 ("journal_code", "Journal", text),
-                ("amount", "Amount", currency),
-                ("amount_residual", "Residual", currency),
-                ("reconciliation_status", "Status", text),
+                ("amount", "Montant", currency),
+                ("amount_residual", "Résiduel", currency),
+                ("reconciliation_status", "Statut", text),
             ],
             "currency_report": [
-                ("currency", "Currency", text),
-                ("amount_currency", "Original amount", number),
-                ("balance", "Company currency", currency),
-                ("amount_residual", "Residual", currency),
+                ("currency", "Devise", text),
+                ("amount_currency", "Montant d’origine", number),
+                ("balance", "Contre-valeur société", currency),
+                ("amount_residual", "Résiduel", currency),
             ],
             "cash_flow": [
-                ("amount", "Amount", currency),
-                ("statement_balance", "Statement balance", currency),
+                ("amount", "Montant", currency),
+                ("statement_balance", "Solde de trésorerie", currency),
             ],
             "executive_summary": [
-                ("amount", "Amount", currency),
-                ("details", "Details", text),
+                ("metric_value", "Valeur", number),
+                ("unit", "Unité", text),
+                ("details", "Définition", text),
             ],
             "analytic_report": [
-                ("allocated_debit", "Revenue", currency),
-                ("allocated_credit", "Spending", currency),
-                ("allocated_balance", "Net contribution", currency),
-                ("move_line_count", "Journal items", number),
+                ("allocated_debit", "Produits", currency),
+                ("allocated_credit", "Charges", currency),
+                ("allocated_balance", "Contribution nette", currency),
+                ("move_line_count", "Écritures", number),
             ],
             "fixed_assets": [
-                ("acquisition_date", "Acquired", date),
-                ("original_value", "Original value", currency),
+                ("acquisition_date", "Acquisition", date),
+                ("original_value", "Valeur d’origine", currency),
                 (
                     "accumulated_depreciation",
-                    "Accumulated depreciation",
+                    "Amortissements cumulés",
                     currency,
                 ),
                 (
                     "imported_period_net_value",
-                    "Net book value",
+                    "Valeur nette comptable",
                     currency,
                 ),
-                ("state", "Status", text),
+                ("state", "Statut", text),
             ],
             "depreciation_schedule": [
                 ("depreciation_date", "Date", date),
-                ("depreciation_amount", "Depreciation", currency),
+                ("depreciation_amount", "Dotation", currency),
                 (
                     "accumulated_depreciation_amount",
-                    "Accumulated",
+                    "Amortissements cumulés",
                     currency,
                 ),
-                ("net_book_value_after_line", "Net book value", currency),
-                ("representation_status", "Status", text),
+                ("net_book_value_after_line", "Valeur nette comptable", currency),
+                ("representation_status", "Statut", text),
             ],
             "deferred_schedule": [
                 ("deferred_date", "Date", date),
-                ("deferred_account_code", "Deferred account", text),
-                ("amount", "Amount", currency),
-                ("review_status", "Status", text),
+                ("deferred_account_code", "Compte de régularisation", text),
+                ("amount", "Montant", currency),
+                ("review_status", "Statut", text),
             ],
             "french_annual": [
                 ("gross_amount", "Brut", currency),
                 ("depreciation_amount", "Amortissements / provisions", currency),
-                ("net_amount", "Net", currency),
-                ("amount", "Montant", currency),
+                ("net_amount", "Net / montant", currency),
             ],
             "french_balance_sheet_2024": [
                 ("gross_amount", "Brut", currency),
@@ -1010,11 +1198,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ],
             "sig_caf_2024": [("amount", "Montant", currency)],
             "french_tax_package": [
-                ("quantity", "Quantity", number),
-                ("amount", "Amount", currency),
-                ("rounded_amount", "Rounded", currency),
-                ("value_text", "Value / note", text),
-                ("review_status", "Review status", text),
+                ("quantity", "Quantité", number),
+                ("amount", "Montant", currency),
+                ("rounded_amount", "Montant arrondi", currency),
+                ("value_text", "Valeur / note", text),
+                ("review_status", "Statut de revue", text),
             ],
         }
         columns = column_map.get(
@@ -1024,21 +1212,42 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.comparison_mode != "none":
             columns = [
                 *columns,
-                ("comparison_value", "Comparison", currency),
-                ("difference", "Difference", currency),
+                ("comparison_value", "Comparaison", currency),
+                ("difference", "Écart", currency),
             ]
+        unit_label = self._display_unit_metadata()["short_label"]
         return [
-            {"key": key, "label": label, "type": value_type}
+            {
+                "key": key,
+                "label": (
+                    f"{label} ({unit_label})"
+                    if value_type == currency
+                    else label
+                ),
+                "type": value_type,
+            }
             for key, label, value_type in columns
         ]
 
     @api.model
-    def report_client_export(self, wizard_id, export_format):
+    def report_client_export(
+        self,
+        wizard_id,
+        export_format,
+        filters=None,
+    ):
         wizard = self.browse(wizard_id).exists()
         if not wizard:
             raise UserError("The report session expired. Reopen the report.")
         if export_format not in {"pdf", "xlsx"}:
             raise UserError("Choose PDF or XLSX.")
+        if filters is not None:
+            self.report_client_load(
+                wizard.report_type,
+                filters,
+                wizard.id,
+            )
+            wizard = self.browse(wizard.id).exists()
         definition = wizard.report_definition_id
         if (
             definition
@@ -1060,6 +1269,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "filename_field": "export_filename",
             "filename": wizard.export_filename,
             "download": True,
+            # Applying the live filters may recreate transient preview lines.
+            # Return their current identifiers so fold and drill-down actions
+            # remain valid immediately after a download.
+            "report_payload": wizard._report_client_payload(),
         }
 
     @api.model
@@ -1094,7 +1307,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             if not can_generate_official_fec and report_type == "fec":
                 values["fec_test_mode"] = True
-            if not values.get("report_definition_id"):
+            definition = self.env[
+                "rebuild.account.report.definition"
+            ].browse(values.get("report_definition_id")).exists()
+            if not definition:
                 company = self.env["res.company"].browse(
                     values.get("company_id"),
                 ).exists() or self.env.company
@@ -1114,6 +1330,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         definition._definition_snapshot()
                     ),
                 })
+            values.setdefault(
+                "amount_rounding",
+                definition.default_amount_rounding,
+            )
         return super().create(vals_list)
 
     def write(self, values):
@@ -1142,7 +1362,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self.ensure_one()
         self.write({
             "show_details": True,
-            "collapsed_group_keys": "[]",
+            "collapsed_group_keys": json.dumps([
+                HIERARCHY_STATE_SENTINEL,
+            ]),
         })
         return self.action_preview_report()
 
@@ -1162,6 +1384,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             raise UserError(message)
         rows = self._report_rows()
+        collapsed_groups = self._collapsed_group_key_set()
+        if HIERARCHY_STATE_SENTINEL not in collapsed_groups:
+            default_collapsed = sorted({
+                str(row.get("group_key"))
+                for row in rows
+                if row.get("hierarchy_kind") == "statement"
+                and row.get("group_key")
+            })
+            if default_collapsed:
+                self.write({
+                    "collapsed_group_keys": json.dumps([
+                        HIERARCHY_STATE_SENTINEL,
+                        *default_collapsed,
+                    ]),
+                })
         limit = max(1, min(self.preview_limit or 500, 5000))
         visible_rows = self._visible_preview_rows(rows)
         preview_rows = (
@@ -1211,7 +1448,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.report_type == "fec":
             payload, filename, metadata = self._fec_export_payload()
         else:
-            rows = self._report_rows()
+            rows = self._visible_preview_rows(self._report_rows())
             payload = self._export_payload(rows)
             filename = self._export_filename()
             metadata = self._export_metadata(len(rows))
@@ -1340,33 +1577,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _fiscal_year_dates(self, anchor):
         self.ensure_one()
-        company = self.company_id
-        end_month = int(company.fiscalyear_last_month or 12)
-        end_day = min(
-            company.fiscalyear_last_day or 31,
-            calendar.monthrange(anchor.year, end_month)[1],
+        return self.company_id.rebuild_compute_fiscalyear_dates(
+            anchor,
         )
-        fiscal_end = date(anchor.year, end_month, end_day)
-        if anchor > fiscal_end:
-            next_year = anchor.year + 1
-            fiscal_end = date(
-                next_year,
-                end_month,
-                min(
-                    company.fiscalyear_last_day or 31,
-                    calendar.monthrange(next_year, end_month)[1],
-                ),
-            )
-        previous_end_year = fiscal_end.year - 1
-        previous_end = date(
-            previous_end_year,
-            end_month,
-            min(
-                company.fiscalyear_last_day or 31,
-                calendar.monthrange(previous_end_year, end_month)[1],
-            ),
-        )
-        return previous_end + timedelta(days=1), fiscal_end
 
     def _apply_comparison_values(self):
         self.ensure_one()
@@ -1507,27 +1720,121 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
 
     def _report_variant_key(self):
-        if self.report_type in {"french_balance_sheet_2024", "french_profit_loss_2024", "sig_caf_2024"}:
-            return "pcg_2024_pre_2025_opening_year"
+        if self.report_type in {
+            "profit_loss",
+            "french_annual",
+            "french_balance_sheet_2024",
+            "french_profit_loss_2024",
+            "sig_caf_2024",
+        }:
+            return "pcg_fr"
         return ""
+
+    def _report_variant_label(self):
+        if self._report_variant_key():
+            return "Présentation française (PCG)"
+        return "Présentation standard"
 
     def _report_variant_basis(self):
         if self._report_variant_key():
             return (
-                "Le règlement ANC 2022-06 s’applique aux exercices ouverts "
-                "à compter du 01/01/2025, avec application anticipée "
-                "possible. L’exercice de référence ouvert le 10/01/2024 "
-                "conserve donc explicitement la présentation antérieure."
+                "Présentation française résolue pour la société et la "
+                "période sélectionnées par la définition de rapport active."
             )
         return ""
 
+    def _document_theme(self):
+        self.ensure_one()
+        definition = self.report_definition_id
+        return {
+            "template": (
+                definition.document_template
+                if definition
+                else "usl_official"
+            ),
+            "primary_color": (
+                definition.document_primary_color
+                if definition
+                else "#111111"
+            ),
+            "section_background_color": (
+                definition.document_section_background_color
+                if definition
+                else "#E9ECEF"
+            ),
+            "section_text_color": (
+                definition.document_section_text_color
+                if definition
+                else "#111111"
+            ),
+            "muted_color": (
+                definition.document_muted_color
+                if definition
+                else "#666666"
+            ),
+            "footer_label": (
+                definition.document_footer_label
+                if definition
+                else "Document comptable"
+            ),
+        }
+
+    def _display_unit_metadata(self):
+        self.ensure_one()
+        metadata = DISPLAY_UNIT_VALUES.get(
+            self.display_unit,
+            DISPLAY_UNIT_VALUES["units"],
+        )
+        currency_symbol = self.company_id.currency_id.symbol or (
+            self.company_id.currency_id.name
+        )
+        short_label = {
+            "units": currency_symbol,
+            "thousands": f"k{currency_symbol}",
+            "millions": f"M{currency_symbol}",
+        }.get(self.display_unit, currency_symbol)
+        return {
+            **metadata,
+            "key": self.display_unit,
+            "short_label": short_label,
+        }
+
+    def _amount_rounding_metadata(self):
+        self.ensure_one()
+        metadata = AMOUNT_ROUNDING_VALUES.get(
+            self.amount_rounding,
+            AMOUNT_ROUNDING_VALUES["cents"],
+        )
+        labels = {
+            "whole": {
+                "units": "À l’euro",
+                "thousands": "Au millier d’euros",
+                "millions": "Au million d’euros",
+            },
+            "cents": {
+                "units": "Au centime",
+                "thousands": "Deux décimales en k€",
+                "millions": "Deux décimales en M€",
+            },
+        }
+        return {
+            **metadata,
+            "key": self.amount_rounding,
+            "label": labels.get(
+                self.amount_rounding,
+                labels["cents"],
+            ).get(
+                self.display_unit,
+                "Deux décimales",
+            ),
+        }
+
     def _preview_line_values(self, sequence, row):
         if row.get("empty_report") == "true":
-            label = "No rows for the selected report filters"
+            label = "Aucune ligne pour les filtres sélectionnés"
         else:
             label = (
                 row.get("label")
-                or row.get("details")
                 or row.get("line_name")
                 or row.get("field_label")
                 or row.get("asset_name")
@@ -1540,6 +1847,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 or row.get("move_name")
                 or row.get("journal_name")
                 or row.get("report_section")
+                or row.get("details")
                 or self._report_type_label()
             )
         return {
@@ -1591,13 +1899,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.group_by == "none":
             return rows
         collapsed = self._collapsed_group_key_set()
+        hidden_groups = set()
         visible = []
         for row in rows:
+            parent_key = str(row.get("parent_group_key") or "")
+            hidden_by_parent = (
+                parent_key in collapsed
+                or parent_key in hidden_groups
+            )
+            if hidden_by_parent:
+                if row.get("is_group") in (True, "true"):
+                    hidden_groups.add(str(row.get("group_key") or ""))
+                continue
             if row.get("is_group") in (True, "true"):
                 visible.append(row)
+                if (
+                    not self.show_details
+                    or str(row.get("group_key") or "") in collapsed
+                ):
+                    hidden_groups.add(str(row.get("group_key") or ""))
                 continue
-            parent_key = row.get("parent_group_key")
-            if not self.show_details or parent_key in collapsed:
+            if not self.show_details:
                 continue
             visible.append(row)
         return visible
@@ -2044,6 +2366,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "date_from": fields.Date.to_string(self.date_from),
             "date_to": fields.Date.to_string(self.date_to),
             "currency": self.company_id.currency_id.name,
+            "display_unit": self.display_unit,
+            "amount_rounding": self.amount_rounding,
+            "hide_zero_accounts": self.hide_zero_accounts,
+            "display_unit_label": self._display_unit_metadata()["label"],
+            "display_unit_short_label": (
+                self._display_unit_metadata()["short_label"]
+            ),
+            "display_unit_factor": self._display_unit_metadata()["factor"],
+            "amount_rounding_label": (
+                self._amount_rounding_metadata()["label"]
+            ),
+            "amount_decimal_places": (
+                self._amount_rounding_metadata()["decimal_places"]
+            ),
             "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "target_move": self.target_move,
             "data_scope": self.data_scope,
@@ -2060,11 +2396,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 else None
             ),
             "group_by": self.group_by,
+            "show_details": self.show_details,
+            "collapsed_group_keys": sorted(
+                self._collapsed_group_key_set()
+                - {HIERARCHY_STATE_SENTINEL},
+            ),
             "search_text": self.search_text or "",
             "row_count": row_count,
             "format": self.export_format,
             "report_variant": self._report_variant_key(),
             "report_variant_basis": self._report_variant_basis(),
+            "document": self._document_theme(),
             "report_definition": self.report_definition_snapshot or {},
             "report_definition_version": self.report_definition_version or "",
             "fec_test_mode": self.fec_test_mode if self.report_type == "fec" else None,
@@ -2147,55 +2489,59 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _report_export_columns(self, rows):
         available = {key for row in rows for key in row}
         labels = {
-            "report_company_name": "Company",
+            "report_company_name": "Société",
             "section": "Section",
-            "statement_name": "Statement",
+            "statement_name": "État",
             "report_section": "Section",
-            "form_code": "Form",
+            "form_code": "Formulaire",
             "line_code": "Code",
-            "field_code": "Field",
+            "field_code": "Champ",
             "date": "Date",
-            "due_date": "Due date",
+            "due_date": "Échéance",
             "journal_code": "Journal",
-            "journal_name": "Journal name",
-            "move_name": "Entry",
-            "piece_reference": "Document reference",
-            "account_code": "Account",
-            "account_name": "Account name",
-            "partner_name": "Partner",
-            "label": "Description",
-            "line_name": "Description",
-            "field_label": "Field description",
-            "asset_name": "Asset",
-            "opening_balance": "Opening",
-            "debit": "Debit",
-            "credit": "Credit",
-            "balance": "Balance",
-            "closing_balance": "Closing",
-            "amount": "Amount",
-            "gross_amount": "Gross",
-            "depreciation_amount": "Depreciation",
+            "journal_name": "Libellé du journal",
+            "move_name": "Écriture",
+            "piece_reference": "Référence de pièce",
+            "account_code": "Compte",
+            "account_name": "Libellé du compte",
+            "partner_name": "Partenaire",
+            "label": "Libellé",
+            "line_name": "Libellé",
+            "field_label": "Libellé du champ",
+            "asset_name": "Immobilisation",
+            "opening_balance": "Ouverture",
+            "debit": "Débit",
+            "credit": "Crédit",
+            "balance": "Solde",
+            "closing_balance": "Clôture",
+            "amount": "Montant",
+            "gross_amount": "Brut",
+            "depreciation_amount": "Amortissements / provisions",
             "net_amount": "Net",
-            "tax_base_amount": "Taxable base",
-            "residual": "Residual",
-            "presented_residual": "Residual",
-            "amount_residual": "Residual",
-            "imported_period_net_value": "Net book value",
-            "currency": "Currency",
-            "status": "Status",
+            "tax_base_amount": "Base taxable",
+            "residual": "Résiduel",
+            "presented_residual": "Résiduel",
+            "amount_residual": "Résiduel",
+            "imported_period_net_value": "Valeur nette comptable",
+            "currency": "Devise",
+            "status": "Statut",
             "validation": "Validation",
-            "review_status": "Review status",
-            "record_count": "Count",
-            "quantity": "Quantity",
-            "value_text": "Value / note",
-            "period_value": "Selected Period",
-            "comparison_value": "Comparison Period",
-            "difference": "Difference",
-            "details": "Details",
-            "next_action": "Next action",
-            "evidence": "Evidence",
-            "source_reference": "Source reference",
+            "review_status": "Statut de revue",
+            "record_count": "Nombre",
+            "quantity": "Quantité",
+            "value_text": "Valeur / note",
+            "period_value": "Période sélectionnée",
+            "comparison_value": "Période comparée",
+            "difference": "Écart",
+            "details": "Explication",
+            "next_action": "Action suivante",
+            "evidence": "Justificatif",
+            "source_reference": "Référence source",
+            "metric_value": "Valeur",
+            "unit": "Unité",
         }
+        if self.report_type == "balance_sheet":
+            labels["amount"] = "Solde"
         preferred = {
             "trial_balance": ["account_code", "account_name", "opening_balance", "debit", "credit", "closing_balance"],
             "general_ledger": ["date", "journal_code", "move_name", "account_code", "account_name", "partner_name", "debit", "credit", "balance"],
@@ -2205,10 +2551,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "open_items": ["date", "due_date", "move_name", "account_code", "partner_name", "balance", "residual"],
             "aged_receivable": ["partner_name", "not_due", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "residual"],
             "aged_payable": ["partner_name", "not_due", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "residual"],
-            "balance_sheet": ["section", "line_code", "label", "opening_balance", "movement", "closing_balance"],
+            "balance_sheet": ["section", "line_code", "label", "amount"],
             "profit_loss": ["section", "line_code", "label", "amount"],
             "cash_flow": ["section", "line_code", "label", "amount", "statement_balance"],
-            "executive_summary": ["section", "line_code", "label", "amount", "details"],
+            "executive_summary": [
+                "section",
+                "line_code",
+                "label",
+                "metric_value",
+                "unit",
+                "details",
+            ],
             "tax_report": [
                 "account_code",
                 "account_name",
@@ -2226,7 +2579,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "fixed_asset_group_account": ["account_code", "account_name", "original_value", "depreciation_amount", "imported_period_net_value"],
             "depreciation_schedule": ["asset_name", "depreciation_date", "depreciation_amount", "accumulated_depreciation", "imported_period_net_value", "status"],
             "deferred_schedule": ["deferred_date", "deferred_account_code", "partner_name", "amount", "residual", "review_status"],
-            "french_annual": ["statement_name", "line_code", "label", "gross_amount", "depreciation_amount", "net_amount", "amount"],
+            "french_annual": [
+                "statement_name",
+                "line_code",
+                "label",
+                "gross_amount",
+                "depreciation_amount",
+                "net_amount",
+            ],
             "french_balance_sheet_2024": ["statement_name", "line_code", "label", "gross_amount", "depreciation_amount", "net_amount"],
             "french_profit_loss_2024": ["statement_name", "line_code", "label", "amount"],
             "sig_caf_2024": ["statement_name", "line_code", "label", "amount"],
@@ -2254,7 +2614,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "label": "Libellé",
                 "gross_amount": "Brut",
                 "depreciation_amount": "Amortissements / provisions",
-                "net_amount": "Net",
+                "net_amount": (
+                    "Net / montant"
+                    if self.report_type == "french_annual"
+                    else "Net"
+                ),
                 "amount": "Montant",
             })
         if self.group_by != "none":
@@ -2307,14 +2671,30 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             chosen = sorted(available - excluded)[:9]
         if not chosen:
             chosen = ["label"]
-        return [(key, labels.get(key, key.replace("_", " ").title())) for key in chosen]
+        unit_label = self._display_unit_metadata()["short_label"]
+        return [
+            (
+                key,
+                (
+                    f"{labels.get(key, key.replace('_', ' ').title())} "
+                    f"({unit_label})"
+                    if key in MONETARY_REPORT_FIELDS
+                    else labels.get(key, key.replace("_", " ").title())
+                ),
+            )
+            for key in chosen
+        ]
 
     @staticmethod
     def _report_export_row_value(row, fieldname):
         value = row.get(fieldname)
-        if fieldname != "label" or value not in (None, "", False):
+        if fieldname in DATE_REPORT_FIELDS and value:
+            return fields.Date.to_date(str(value)[:10]).strftime(
+                "%d/%m/%Y",
+            )
+        if fieldname != "label":
             return value
-        label = (
+        label = value or (
             row.get("line_name")
             or row.get("field_label")
             or row.get("asset_name")
@@ -2325,7 +2705,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             or row.get("report_section")
             or ""
         )
-        if row.get("is_group") not in (True, "true"):
+        account_code = str(row.get("account_code") or "").strip()
+        if (
+            account_code
+            and row.get("hierarchy_kind") in {"pcg_group", "account"}
+            and not str(label).startswith(f"{account_code} ")
+        ):
+            label = f"{account_code} {label}"
+        if (
+            row.get("is_group") not in (True, "true")
+            and row.get("hierarchy_kind") not in {"account"}
+        ):
             label = f"  {label}"
         return label
 
@@ -2338,6 +2728,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         formats,
         fieldname,
         presentation_role="detail",
+        monetary_scale_factor=1,
+        monetary_decimal_places=None,
     ):
         numeric_fields = {
             "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
@@ -2347,6 +2739,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "quantity", "tax_base_amount", "presented_tax_base",
             "presented_tax_amount", "period_value",
             "comparison_value", "difference",
+            "metric_value",
         }
         label_fields = {
             "label",
@@ -2372,10 +2765,23 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return
         if fieldname in numeric_fields:
             try:
+                numeric_value = float(value)
+                if fieldname in MONETARY_REPORT_FIELDS:
+                    numeric_value /= monetary_scale_factor or 1
+                    if monetary_decimal_places is not None:
+                        quantum = Decimal(1).scaleb(
+                            -monetary_decimal_places,
+                        )
+                        numeric_value = float(
+                            Decimal(str(numeric_value)).quantize(
+                                quantum,
+                                rounding=ROUND_HALF_UP,
+                            ),
+                        )
                 worksheet.write_number(
                     row,
                     column,
-                    float(value),
+                    numeric_value,
                     number_format,
                 )
                 return
@@ -2398,16 +2804,44 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         })
         workbook.set_properties({
             "title": self._report_type_label(),
-            "subject": f"{self.company_id.display_name} - {self.date_from} to {self.date_to}",
+            "subject": (
+                f"{self.company_id.display_name} - "
+                f"{self.date_from.strftime('%d/%m/%Y')} au "
+                f"{self.date_to.strftime('%d/%m/%Y')}"
+            ),
             "company": self.company_id.display_name,
             "comments": "Generated from Odoo Community by the USL accounting report exporter.",
         })
+        metadata = self._export_metadata(len(rows))
+        decimal_places = metadata["amount_decimal_places"]
+        decimal_suffix = ".00" if decimal_places else ""
+        number_pattern = f"#,##0{decimal_suffix}"
+        document_theme = metadata["document"]
+        primary_color = document_theme["primary_color"]
+        section_background_color = (
+            document_theme["section_background_color"]
+        )
+        section_text_color = document_theme["section_text_color"]
+        muted_color = document_theme["muted_color"]
         formats = {
-            "title": workbook.add_format({"bold": True, "font_size": 18, "font_color": "#17324D"}),
-            "subtitle": workbook.add_format({"font_size": 10, "font_color": "#52606D"}),
+            "title": workbook.add_format({
+                "bold": True,
+                "font_size": 18,
+                "font_color": primary_color,
+            }),
+            "subtitle": workbook.add_format({
+                "font_size": 10,
+                "font_color": muted_color,
+                "text_wrap": True,
+                "valign": "vcenter",
+            }),
             "header": workbook.add_format({
-                "bold": True, "font_color": "#FFFFFF", "bg_color": "#17324D",
-                "border": 1, "border_color": "#17324D", "text_wrap": True,
+                "bold": True,
+                "font_color": section_text_color,
+                "bg_color": section_background_color,
+                "border": 1,
+                "border_color": primary_color,
+                "text_wrap": True,
                 "valign": "vcenter",
             }),
             "metadata_key": workbook.add_format({"bold": True, "bg_color": "#E8EDF2", "border": 1}),
@@ -2420,45 +2854,49 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             }),
             "body": workbook.add_format({"border": 1, "border_color": "#D5DBE1", "valign": "top", "text_wrap": True}),
             "number": workbook.add_format({
-                "border": 1, "border_color": "#D5DBE1", "num_format": "#,##0.00;[Red]-#,##0.00;-",
+                "border": 1,
+                "border_color": "#D5DBE1",
+                "num_format": (
+                    f"{number_pattern};[Red]-{number_pattern};-"
+                ),
                 "align": "right", "valign": "top",
             }),
         }
         role_styles = {
             "section": {
                 "bold": True,
-                "font_color": "#FFFFFF",
-                "bg_color": "#274C69",
+                "font_color": section_text_color,
+                "bg_color": section_background_color,
                 "top": 1,
                 "bottom": 1,
-                "border_color": "#274C69",
+                "border_color": primary_color,
             },
             "group": {
                 "bold": True,
-                "font_color": "#17324D",
-                "bg_color": "#E8EFF5",
+                "font_color": primary_color,
+                "bg_color": "#F1F1F1",
                 "top": 1,
                 "bottom": 1,
                 "border_color": "#B8C7D3",
             },
             "subtotal": {
                 "bold": True,
-                "font_color": "#17324D",
+                "font_color": primary_color,
                 "top": 1,
                 "bottom": 1,
                 "border_color": "#8395A4",
             },
             "total": {
                 "bold": True,
-                "font_color": "#102A43",
+                "font_color": primary_color,
                 "top": 1,
                 "bottom": 6,
-                "border_color": "#17324D",
+                "border_color": primary_color,
             },
             "control": {
                 "bold": True,
-                "font_color": "#17324D",
-                "bg_color": "#F1F7FA",
+                "font_color": primary_color,
+                "bg_color": "#F7F7F7",
                 "top": 1,
                 "bottom": 1,
                 "border_color": "#6E93AA",
@@ -2484,21 +2922,29 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             formats[f"{role}_label"] = workbook.add_format({
                 **base_style,
                 "indent": 1 if role == "detail" else 0,
+                "text_wrap": True,
             })
             formats[f"{role}_number"] = workbook.add_format({
                 **base_style,
                 "align": "right",
-                "num_format": "#,##0.00;[Red]-#,##0.00;-",
+                "num_format": (
+                    f"{number_pattern};-{number_pattern};-"
+                    if role == "section"
+                    else (
+                        f"{number_pattern};[Red]-{number_pattern};-"
+                    )
+                ),
             })
-        metadata = self._export_metadata(len(rows))
-
         metadata_sheet = workbook.add_worksheet("Metadata")
         metadata_sheet.hide_gridlines(2)
         metadata_sheet.write(0, 0, self._report_type_label(), formats["title"])
         metadata_sheet.merge_range(0, 0, 0, 1, self._report_type_label(), formats["title"])
         for row_idx, (key, value) in enumerate(metadata.items(), start=2):
             metadata_sheet.write(row_idx, 0, key.replace("_", " ").title(), formats["metadata_key"])
-            display_value = json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (list, dict)) else value
+            display_value = self._export_metadata_display_value(
+                key,
+                value,
+            )
             metadata_sheet.write(row_idx, 1, "" if display_value is None else str(display_value), formats["metadata_value"])
         metadata_sheet.set_column(0, 0, 28)
         metadata_sheet.set_column(1, 1, 88)
@@ -2509,24 +2955,56 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         report_sheet.hide_gridlines(2)
         columns = self._report_export_columns(rows)
         last_column = max(0, len(columns) - 1)
-        subtitle = f"{metadata['company']} | {metadata['date_from']} to {metadata['date_to']} | {metadata['currency']} | {metadata['target_move']}"
+        zero_accounts_label = (
+            " | Lignes à zéro masquées"
+            if metadata["hide_zero_accounts"]
+            else ""
+        )
+        date_from_display = self._display_export_date(
+            metadata["date_from"],
+        )
+        date_to_display = self._display_export_date(
+            metadata["date_to"],
+        )
+        subtitle = (
+            f"{metadata['company']} | {date_from_display} au "
+            f"{date_to_display} | {metadata['currency']} | "
+            f"{metadata['display_unit_label']} "
+            f"({metadata['display_unit_short_label']}) | "
+            f"{metadata['amount_rounding_label']}"
+            f"{zero_accounts_label}"
+        )
         if last_column:
             report_sheet.merge_range(0, 0, 0, last_column, self._report_type_label(), formats["title"])
             report_sheet.merge_range(1, 0, 1, last_column, subtitle, formats["subtitle"])
         else:
             report_sheet.write(0, 0, self._report_type_label(), formats["title"])
             report_sheet.write(1, 0, subtitle, formats["subtitle"])
+        report_sheet.set_row(0, 26)
+        report_sheet.set_row(1, 30)
         header_row = 3
         for column_idx, (fieldname, label) in enumerate(columns):
             report_sheet.write(header_row, column_idx, label, formats["header"])
             width = 15
             if fieldname in {
-                "label", "line_name", "field_label", "account_name", "partner_name",
-                "details", "evidence", "next_action", "source_reference",
+                "label",
+                "line_name",
+                "field_label",
+                "account_name",
+                "partner_name",
             }:
-                width = 30
+                width = 58
+            elif fieldname in {
+                "details",
+                "evidence",
+                "next_action",
+                "source_reference",
+            }:
+                width = 42
             report_sheet.set_column(column_idx, column_idx, width)
-        data_rows = rows or [{"label": "No rows for the selected filters"}]
+        data_rows = rows or [{
+            "label": "Aucune ligne pour les filtres sélectionnés",
+        }]
         for row_idx, row in enumerate(data_rows, start=header_row + 1):
             presentation_role = self._report_presentation_role(row)
             for column_idx, (fieldname, _label) in enumerate(columns):
@@ -2538,14 +3016,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     formats,
                     fieldname,
                     presentation_role,
+                    metadata["display_unit_factor"],
+                    metadata["amount_decimal_places"],
                 )
         report_sheet.freeze_panes(header_row + 1, 0)
         report_sheet.autofilter(header_row, 0, header_row + len(data_rows), last_column)
         report_sheet.set_landscape()
         report_sheet.fit_to_pages(1, 0)
         report_sheet.repeat_rows(header_row, header_row)
-        report_sheet.set_header(f"&L{self.company_id.display_name}&C{self._report_type_label()}&R{self.date_to}")
-        report_sheet.set_footer("&LOdoo Community accounting export&CPage &P of &N&RGenerated &D &T")
+        report_sheet.set_header(
+            f"&L{self.company_id.display_name}"
+            f"&C{self._report_type_label()}"
+            f"&RArrêté au {date_to_display}",
+        )
+        report_sheet.set_footer(
+            "&LExport comptable Odoo Community"
+            "&CPage &P sur &N"
+            f"&RGénéré le "
+            f"{self._display_export_datetime(metadata['generated_at'])}"
+        )
 
         raw_sheet = workbook.add_worksheet("Audit Data")
         raw_sheet.hide_gridlines(2)
@@ -2572,6 +3061,39 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         workbook.close()
         return output.getvalue()
+
+    def _export_metadata_display_value(self, key, value):
+        if value in (None, False, ""):
+            return value
+        if key in {
+            "date_from",
+            "date_to",
+            "period_anchor_date",
+            "comparison_date_from",
+            "comparison_date_to",
+        }:
+            return self._display_export_date(value)
+        if key == "generated_at":
+            return self._display_export_datetime(value)
+        if isinstance(value, (list, dict)):
+            return json.dumps(
+                value,
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        return value
+
+    @staticmethod
+    def _display_export_date(value):
+        return fields.Date.to_date(str(value)[:10]).strftime("%d/%m/%Y")
+
+    def _display_export_datetime(self, value):
+        generated_at = fields.Datetime.to_datetime(value)
+        localized = fields.Datetime.context_timestamp(
+            self,
+            generated_at,
+        )
+        return localized.strftime("%d/%m/%Y %H:%M")
 
     def _pdf_payload(self, rows):
         try:
@@ -2616,6 +3138,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         output = io.BytesIO()
         metadata = self._export_metadata(len(rows))
+        document_theme = metadata["document"]
+        primary_color = colors.HexColor(
+            document_theme["primary_color"],
+        )
+        section_background_color = colors.HexColor(
+            document_theme["section_background_color"],
+        )
+        section_text_color = colors.HexColor(
+            document_theme["section_text_color"],
+        )
+        muted_color = colors.HexColor(
+            document_theme["muted_color"],
+        )
+        light_rule_color = colors.HexColor("#C9CDD1")
+        soft_background_color = colors.HexColor("#F7F7F7")
         date_from_display = fields.Date.to_date(metadata["date_from"]).strftime("%d/%m/%Y")
         date_to_display = fields.Date.to_date(metadata["date_to"]).strftime("%d/%m/%Y")
         columns = self._report_export_columns(rows)
@@ -2626,22 +3163,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         document = BaseDocTemplate(
             output,
             pagesize=page_size,
-            leftMargin=13 * mm,
-            rightMargin=13 * mm,
-            topMargin=23 * mm,
-            bottomMargin=17 * mm,
+            leftMargin=18 * mm,
+            rightMargin=18 * mm,
+            topMargin=34 * mm,
+            bottomMargin=19 * mm,
             title=self._report_type_label(),
             author=self.company_id.display_name,
-            subject=f"Accounting report for {self.date_from} to {self.date_to}",
+            subject=(
+                f"Rapport comptable du {date_from_display} au "
+                f"{date_to_display}"
+            ),
         )
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(
             name="USLTitle",
             parent=styles["Title"],
             fontName=bold_font_name,
-            fontSize=20,
-            leading=24,
-            textColor=colors.HexColor("#17324D"),
+            fontSize=18,
+            leading=21,
+            textColor=primary_color,
             alignment=TA_LEFT,
             spaceAfter=3 * mm,
         ))
@@ -2651,7 +3191,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             fontName=font_name,
             fontSize=9,
             leading=12,
-            textColor=colors.HexColor("#52606D"),
+            textColor=muted_color,
             spaceAfter=5 * mm,
         ))
         styles.add(ParagraphStyle(
@@ -2660,7 +3200,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             fontName=bold_font_name,
             fontSize=12,
             leading=15,
-            textColor=colors.HexColor("#17324D"),
+            textColor=primary_color,
             spaceBefore=4 * mm,
             spaceAfter=2 * mm,
         ))
@@ -2670,6 +3210,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             fontName=font_name,
             fontSize=7.2,
             leading=9,
+            textColor=primary_color,
             alignment=TA_LEFT,
         ))
         styles.add(ParagraphStyle(
@@ -2678,10 +3219,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             alignment=TA_RIGHT,
         ))
         styles.add(ParagraphStyle(
+            name="USLBodyBold",
+            parent=styles["USLBody"],
+            fontName=bold_font_name,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLBodyRightBold",
+            parent=styles["USLBodyRight"],
+            fontName=bold_font_name,
+        ))
+        styles.add(ParagraphStyle(
             name="USLHeaderCell",
             parent=styles["USLBody"],
             fontName=bold_font_name,
-            textColor=colors.white,
+            textColor=primary_color,
             alignment=TA_CENTER,
         ))
         styles.add(ParagraphStyle(
@@ -2690,9 +3241,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             fontName=font_name,
             fontSize=8,
             leading=11,
-            textColor=colors.HexColor("#374151"),
-            backColor=colors.HexColor("#F3F5F7"),
-            borderColor=colors.HexColor("#C9D2DB"),
+            textColor=primary_color,
+            backColor=soft_background_color,
+            borderColor=light_rule_color,
             borderWidth=0.5,
             borderPadding=7,
             spaceAfter=4 * mm,
@@ -2704,22 +3255,34 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 return text.encode("latin-1", "replace").decode("latin-1")
             return text
 
-        def amount_text(value):
+        def amount_text(value, fieldname):
             if value in (None, "", False):
                 return ""
             try:
-                return f"{Decimal(str(value)):,.2f}".replace(",", " ").replace(".", ",")
+                amount = Decimal(str(value))
+                if fieldname in MONETARY_REPORT_FIELDS:
+                    amount /= Decimal(
+                        str(metadata["display_unit_factor"] or 1),
+                    )
+                    decimal_places = metadata["amount_decimal_places"]
+                    quantum = Decimal(1).scaleb(-decimal_places)
+                    amount = amount.quantize(
+                        quantum,
+                        rounding=ROUND_HALF_UP,
+                    )
+                    return (
+                        f"{amount:,.{decimal_places}f}"
+                        .replace(",", " ")
+                        .replace(".", ",")
+                    )
+                return f"{amount:,.2f}".replace(",", " ").replace(".", ",")
             except (ArithmeticError, TypeError, ValueError):
                 return clean_text(value)
 
-        numeric_fields = {
-            "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
-            "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
-            "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
-            "amount_currency", "rounded_amount", "statement_balance",
-            "tax_base_amount", "presented_tax_base",
-            "presented_tax_amount",
-            "period_value", "comparison_value", "difference",
+        numeric_fields = MONETARY_REPORT_FIELDS | {
+            "record_count",
+            "quantity",
+            "metric_value",
         }
         status_labels = {
             "pass": "Conforme",
@@ -2740,26 +3303,51 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "posted": "Ecritures comptabilisées",
         }
 
-        def cell(value, fieldname=""):
+        def cell(value, fieldname="", presentation_role=""):
             if fieldname in {"status", "validation", "review_status"}:
                 display = status_labels.get(str(value or ""), clean_text(value))
             else:
-                display = amount_text(value) if fieldname in numeric_fields else clean_text(value)
-            style = styles["USLBodyRight"] if fieldname in numeric_fields else styles["USLBody"]
+                display = (
+                    amount_text(value, fieldname)
+                    if fieldname in numeric_fields
+                    else clean_text(value)
+                )
+            emphasized = presentation_role in {
+                "section",
+                "group",
+                "subtotal",
+                "total",
+                "control",
+            }
+            if fieldname in numeric_fields:
+                style = styles[
+                    "USLBodyRightBold" if emphasized else "USLBodyRight"
+                ]
+            else:
+                style = styles[
+                    "USLBodyBold" if emphasized else "USLBody"
+                ]
             return Paragraph(display.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), style)
 
         def table_style(extra=None):
             commands = [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#17324D")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("BACKGROUND", (0, 0), (-1, 0), section_background_color),
+                ("TEXTCOLOR", (0, 0), (-1, 0), section_text_color),
                 ("FONTNAME", (0, 0), (-1, 0), bold_font_name),
-                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#B8C2CC")),
+                ("BOX", (0, 0), (-1, -1), 0.45, light_rule_color),
+                ("INNERGRID", (0, 0), (-1, -1), 0.25, light_rule_color),
+                ("LINEBELOW", (0, 0), (-1, 0), 0.8, primary_color),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 3),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F7F8FA")]),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.white, soft_background_color],
+                ),
             ]
             return TableStyle([*commands, *(extra or [])])
 
@@ -2775,7 +3363,26 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             presentation_roles=None,
             page_break_before=True,
         ):
-            chunks = [body_rows[index:index + chunk_size] for index in range(0, len(body_rows), chunk_size)] or [[]]
+            chunk_count = max(
+                1,
+                math.ceil(len(body_rows) / max(1, chunk_size)),
+            )
+            base_size, larger_chunk_count = divmod(
+                len(body_rows),
+                chunk_count,
+            )
+            chunk_sizes = [
+                base_size + (1 if index < larger_chunk_count else 0)
+                for index in range(chunk_count)
+            ]
+            chunks = []
+            row_offset = 0
+            for balanced_size in chunk_sizes:
+                chunks.append(
+                    body_rows[row_offset:row_offset + balanced_size],
+                )
+                row_offset += balanced_size
+            row_offset = 0
             for chunk_index, chunk in enumerate(chunks):
                 if page_break_before or chunk_index:
                     story.append(PageBreak())
@@ -2791,7 +3398,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         "not_applicable": "#EEF1F4",
                     }
                     chunk_statuses = status_values[
-                        chunk_index * chunk_size:(chunk_index * chunk_size) + len(chunk)
+                        row_offset:row_offset + len(chunk)
                     ]
                     for row_index, status in enumerate(chunk_statuses, start=1):
                         if status in status_colors:
@@ -2801,7 +3408,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                             ))
                 if emphasis_values:
                     chunk_emphasis = emphasis_values[
-                        chunk_index * chunk_size:(chunk_index * chunk_size) + len(chunk)
+                        row_offset:row_offset + len(chunk)
                     ]
                     for row_index, emphasized in enumerate(chunk_emphasis, start=1):
                         if emphasized:
@@ -2811,32 +3418,53 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                             ])
                 if presentation_roles:
                     chunk_roles = presentation_roles[
-                        chunk_index * chunk_size:
-                        (chunk_index * chunk_size) + len(chunk)
+                        row_offset:row_offset + len(chunk)
                     ]
                     for row_index, role in enumerate(chunk_roles, start=1):
                         role_commands = {
                             "section": [
-                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#274C69")),
-                                ("TEXTCOLOR", (0, row_index), (-1, row_index), colors.white),
+                                (
+                                    "BACKGROUND",
+                                    (0, row_index),
+                                    (-1, row_index),
+                                    section_background_color,
+                                ),
+                                (
+                                    "TEXTCOLOR",
+                                    (0, row_index),
+                                    (-1, row_index),
+                                    section_text_color,
+                                ),
                                 ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                                (
+                                    "LINEABOVE",
+                                    (0, row_index),
+                                    (-1, row_index),
+                                    0.8,
+                                    primary_color,
+                                ),
                             ],
                             "group": [
-                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#E8EFF5")),
+                                (
+                                    "BACKGROUND",
+                                    (0, row_index),
+                                    (-1, row_index),
+                                    soft_background_color,
+                                ),
                                 ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
                             ],
                             "subtotal": [
-                                ("LINEABOVE", (0, row_index), (-1, row_index), 0.8, colors.HexColor("#8395A4")),
+                                ("LINEABOVE", (0, row_index), (-1, row_index), 0.8, muted_color),
                                 ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
                             ],
                             "total": [
-                                ("LINEABOVE", (0, row_index), (-1, row_index), 1.0, colors.HexColor("#17324D")),
-                                ("LINEBELOW", (0, row_index), (-1, row_index), 1.5, colors.HexColor("#17324D")),
+                                ("LINEABOVE", (0, row_index), (-1, row_index), 1.0, primary_color),
+                                ("LINEBELOW", (0, row_index), (-1, row_index), 1.5, primary_color),
                                 ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
                             ],
                             "control": [
-                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#F1F7FA")),
-                                ("LINEABOVE", (0, row_index), (-1, row_index), 0.8, colors.HexColor("#6E93AA")),
+                                ("BACKGROUND", (0, row_index), (-1, row_index), soft_background_color),
+                                ("LINEABOVE", (0, row_index), (-1, row_index), 0.8, muted_color),
                                 ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
                             ],
                             "detail": [
@@ -2847,75 +3475,202 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 chunk_table = Table([header, *chunk], colWidths=column_widths, repeatRows=1)
                 chunk_table.setStyle(table_style(extra_style))
                 story.append(chunk_table)
+                row_offset += len(chunk)
 
         def draw_page(canvas, doc):
             width, height = page_size
             canvas.saveState()
-            canvas.setStrokeColor(colors.HexColor("#17324D"))
-            canvas.setLineWidth(1.2)
-            canvas.line(doc.leftMargin, height - 13 * mm, width - doc.rightMargin, height - 13 * mm)
-            canvas.setFont(bold_font_name, 8.5)
-            canvas.setFillColor(colors.HexColor("#17324D"))
-            canvas.drawString(doc.leftMargin, height - 10.5 * mm, clean_text(self.company_id.display_name.upper()))
-            canvas.setFont(font_name, 8)
-            canvas.setFillColor(colors.HexColor("#52606D"))
-            canvas.drawRightString(width - doc.rightMargin, height - 10.5 * mm, clean_text(f"Arrêté au {date_to_display}"))
-            canvas.setStrokeColor(colors.HexColor("#AAB4BE"))
+            if self.report_type == "french_annual" and doc.page == 1:
+                canvas.setFont(font_name, 7.5)
+                canvas.setFillColor(muted_color)
+                canvas.drawRightString(
+                    width - doc.rightMargin,
+                    7.5 * mm,
+                    clean_text("Page 1"),
+                )
+                canvas.restoreState()
+                return
+            canvas.setFillColor(primary_color)
+            canvas.setFont(bold_font_name, 11)
+            canvas.drawString(
+                doc.leftMargin,
+                height - 13 * mm,
+                clean_text(self.company_id.display_name.upper()),
+            )
+            canvas.setFillColor(muted_color)
+            canvas.setFont(font_name, 7.2)
+            canvas.drawString(
+                doc.leftMargin,
+                height - 17.5 * mm,
+                clean_text(
+                    (
+                        "COMPTES PRÉPARÉS PAR LA SOCIÉTÉ — NON ATTESTÉS"
+                        if self.report_type == "french_annual"
+                        else "DOCUMENT COMPTABLE OFFICIEL"
+                    ),
+                ),
+            )
+            identity_lines = [
+                " - ".join(filter(None, [
+                    metadata["company_registry"],
+                    (
+                        f"TVA {metadata['vat_number']}"
+                        if metadata["vat_number"]
+                        else ""
+                    ),
+                ])),
+                metadata["address"],
+                f"Arrêté au {date_to_display}",
+            ]
+            canvas.setFont(font_name, 6.8)
+            for line_index, identity_line in enumerate(
+                filter(None, identity_lines),
+            ):
+                display_line = clean_text(identity_line)
+                if len(display_line) > 96:
+                    display_line = f"{display_line[:93]}..."
+                canvas.drawRightString(
+                    width - doc.rightMargin,
+                    height - (11.5 + line_index * 3.7) * mm,
+                    display_line,
+                )
+            canvas.setStrokeColor(primary_color)
+            canvas.setLineWidth(0.7)
+            canvas.line(
+                doc.leftMargin,
+                height - 27 * mm,
+                width - doc.rightMargin,
+                height - 27 * mm,
+            )
+            canvas.setStrokeColor(light_rule_color)
             canvas.setLineWidth(0.5)
             canvas.line(doc.leftMargin, 11 * mm, width - doc.rightMargin, 11 * mm)
             canvas.setFont(font_name, 7.5)
-            canvas.drawString(doc.leftMargin, 7.5 * mm, clean_text("Odoo Community - Dossier comptable reproductible"))
-            canvas.drawCentredString(width / 2, 7.5 * mm, clean_text(f"Généré le {metadata['generated_at']}"))
-            canvas.drawRightString(width - doc.rightMargin, 7.5 * mm, clean_text(f"Page {doc.page}"))
+            canvas.setFillColor(muted_color)
+            canvas.drawString(
+                doc.leftMargin,
+                7.5 * mm,
+                clean_text(
+                    f"{document_theme['footer_label']} - "
+                    f"{self._report_type_label()}",
+                ),
+            )
+            canvas.drawCentredString(
+                width / 2,
+                7.5 * mm,
+                clean_text(
+                    "Généré le "
+                    f"{self._display_export_datetime(metadata['generated_at'])}"
+                ),
+            )
+            canvas.drawRightString(
+                width - doc.rightMargin,
+                7.5 * mm,
+                clean_text(f"Page {doc.page}"),
+            )
             canvas.restoreState()
 
-        title = "Dossier de clôture" if self.report_type == "closing_package" else self._report_type_label()
-        french_statement = self.report_type in {
-            "french_annual",
-            "french_balance_sheet_2024",
-            "french_profit_loss_2024",
-            "sig_caf_2024",
-        }
-        target_move_display = (
-            "écritures comptabilisées"
-            if french_statement and metadata["target_move"] == "posted"
+        title = (
+            "Dossier de clôture"
+            if self.report_type == "closing_package"
+            else self._report_type_label()
+        )
+        display_scale_context = (
+            ""
+            if metadata["display_unit"] == "units"
             else (
-                "brouillons inclus"
-                if french_statement
-                else metadata["target_move"]
+                f" - {metadata['display_unit_label']} "
+                f"({metadata['display_unit_short_label']})"
             )
+        )
+        rounding_context = f" - {metadata['amount_rounding_label']}"
+        zero_accounts_context = (
+            " - Lignes à zéro masquées"
+            if metadata["hide_zero_accounts"]
+            else ""
         )
         story = [
             Paragraph(clean_text(title), styles["USLTitle"]),
             Paragraph(
                 clean_text(
                     f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
-                    f"Monnaie {metadata['currency']} - {target_move_display}",
+                    f"Monnaie {metadata['currency']}"
+                    f"{display_scale_context}{rounding_context}"
+                    f"{zero_accounts_context}",
                 ),
                 styles["USLSubtitle"],
             ),
         ]
-        identity_data = [
-            [Paragraph("Société", styles["USLHeaderCell"]), cell(metadata["legal_name"]),
-             Paragraph("Identifiant", styles["USLHeaderCell"]), cell(metadata["company_registry"] or metadata["vat_number"] or "Non renseigné")],
-            [Paragraph("Adresse", styles["USLHeaderCell"]), cell(metadata["address"] or "Non renseignée"),
-             Paragraph("Périmètre", styles["USLHeaderCell"]), cell(f"{len(rows)} ligne(s), {target_move_display}")],
-        ]
-        identity_value_width = (document.width - (49 * mm)) / 2
-        identity_table = Table(identity_data, colWidths=[24 * mm, identity_value_width, 25 * mm, identity_value_width])
-        identity_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#17324D")),
-            ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#17324D")),
-            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#B8C2CC")),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 5),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ]))
-        story.extend([identity_table, Spacer(1, 4 * mm)])
-        if metadata.get("report_variant_basis"):
-            story.append(Paragraph(clean_text(metadata["report_variant_basis"]), styles["USLNote"]))
+
+        if self.report_type == "french_annual":
+            story.insert(0, Spacer(1, 12 * mm))
+            story.extend([
+                Spacer(1, 25 * mm),
+                Paragraph(
+                    clean_text(
+                        "Comptes annuels préparés par Unstatic Labs à partir "
+                        "du grand livre sélectionné. Ce document n’est ni "
+                        "une attestation professionnelle, ni un rapport de "
+                        "mission d’un expert-comptable ou d’un commissaire "
+                        "aux comptes."
+                    ),
+                    styles["USLNote"],
+                ),
+                Spacer(1, 20 * mm),
+                Paragraph(
+                    clean_text(
+                        f"Exercice du {date_from_display} au "
+                        f"{date_to_display}"
+                    ),
+                    styles["USLSection"],
+                ),
+                Paragraph(
+                    clean_text(
+                        f"Monnaie de présentation : "
+                        f"{metadata['currency']}"
+                    ),
+                    styles["USLSubtitle"],
+                ),
+                PageBreak(),
+                Paragraph("Sommaire", styles["USLTitle"]),
+                Paragraph(
+                    clean_text(
+                        "1. Base de préparation et statut du document<br/>"
+                        "2. Bilan — actif<br/>"
+                        "3. Bilan — passif<br/>"
+                        "4. Compte de résultat<br/>"
+                        "5. Soldes intermédiaires de gestion et CAF<br/>"
+                        "6. Ratios de gestion"
+                    ),
+                    styles["USLBody"],
+                ),
+                PageBreak(),
+                Paragraph(
+                    "Base de préparation et statut du document",
+                    styles["USLTitle"],
+                ),
+                Paragraph(
+                    clean_text(
+                        "Les états sont produits depuis les écritures "
+                        "comptabilisées du périmètre affiché, selon les "
+                        "rubriques du Plan comptable général français. Les "
+                        "montants restent traçables jusqu’aux comptes et aux "
+                        "écritures sources dans le rapport interactif."
+                    ),
+                    styles["USLNote"],
+                ),
+                Paragraph(
+                    clean_text(
+                        "Les méthodes d’évaluation, travaux d’inventaire, "
+                        "estimations et informations d’annexe doivent être "
+                        "confirmés lors de la clôture. Cette édition de "
+                        "gestion ne remplace pas l’annexe légale lorsque "
+                        "celle-ci est requise et ne reproduit aucune "
+                        "attestation du précédent professionnel."
+                    ),
+                    styles["USLNote"],
+                ),
+            ])
 
         if self.report_type == "closing_package":
             story.append(Paragraph(
@@ -3014,29 +3769,74 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             flexible_count = max(1, fixed_widths.count(0))
             column_widths = [width or (remaining / flexible_count) for width in fixed_widths]
             data_rows = rows or [{"label": "Aucune ligne pour les filtres sélectionnés"}]
+            presentation_roles = [
+                self._report_presentation_role(row)
+                for row in data_rows
+            ]
             table_rows = [
                 [
                     cell(
                         self._report_export_row_value(row, fieldname),
                         fieldname,
+                        presentation_role,
                     )
                     for fieldname, _label in columns
                 ]
-                for row in data_rows
-            ]
-            presentation_roles = [
-                self._report_presentation_role(row)
-                for row in data_rows
+                for row, presentation_role in zip(
+                    data_rows,
+                    presentation_roles,
+                    strict=True,
+                )
             ]
             append_chunked_table(
                 "État",
                 [label for _field, label in columns],
                 table_rows,
                 column_widths,
-                chunk_size=20,
+                # A standard portrait statement fits up to 32 compact rows on
+                # one A4 page. Longer reports still use balanced chunks so a
+                # final subtotal or total is not stranded by itself.
+                chunk_size=32,
                 presentation_roles=presentation_roles,
-                page_break_before=False,
+                # The annual package reserves its preparation-status page for
+                # narrative context; starting the statement table on a fresh
+                # page prevents a split table from invading the repeated
+                # legal header.
+                page_break_before=self.report_type == "french_annual",
             )
+            if self.report_type == "french_annual":
+                ratio_rows = [
+                    row
+                    for row in self._management_summary_rows(
+                        "executive_summary",
+                    )
+                    if row.get("section") == "Ratios de gestion"
+                ]
+                ratio_data = [
+                    [
+                        cell(row.get("line_name")),
+                        cell(
+                            row.get("metric_value"),
+                            "metric_value",
+                        ),
+                        cell(row.get("unit")),
+                        cell(row.get("details")),
+                    ]
+                    for row in ratio_rows
+                ]
+                append_chunked_table(
+                    "Ratios de gestion",
+                    ["Indicateur", "Valeur", "Unité", "Définition"],
+                    ratio_data,
+                    [
+                        47 * mm,
+                        22 * mm,
+                        18 * mm,
+                        document.width - 87 * mm,
+                    ],
+                    chunk_size=12,
+                    page_break_before=True,
+                )
 
         document.addPageTemplates([PageTemplate(
             id="USLAccountingReport",
@@ -3073,9 +3873,99 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             comparison_rows = self._group_report_rows(
                 comparison_rows,
             )
-        return self._attach_comparison_values(
+        rows = self._attach_comparison_values(
             current_rows,
             comparison_rows,
+        )
+        return self._hide_zero_account_rows(rows)
+
+    def _hide_zero_account_rows(self, rows):
+        """Hide empty account leaves and their now-empty account branches."""
+        self.ensure_one()
+        if (
+            not self.hide_zero_accounts
+            or self.report_type not in ZERO_ACCOUNT_FILTER_REPORT_TYPES
+        ):
+            return rows
+        hidden_group_keys = set()
+        visible_rows = []
+        for row in rows:
+            parent_key = str(row.get("parent_group_key") or "")
+            if parent_key in hidden_group_keys:
+                if row.get("is_group") in (True, "true"):
+                    hidden_group_keys.add(str(row.get("group_key") or ""))
+                continue
+            if self._is_zero_report_row(row):
+                if row.get("is_group") in (True, "true"):
+                    hidden_group_keys.add(str(row.get("group_key") or ""))
+                continue
+            visible_rows.append(row)
+        retained_parent_keys = set()
+        pruned_rows = []
+        for row in reversed(visible_rows):
+            group_key = str(row.get("group_key") or "")
+            if (
+                row.get("hierarchy_kind") == "pcg_group"
+                and group_key not in retained_parent_keys
+            ):
+                continue
+            if (
+                row.get("hierarchy_kind") == "statement"
+                and group_key not in retained_parent_keys
+                and self._report_presentation_role(row) == "detail"
+                and self._row_monetary_values_are_zero(row)
+            ):
+                continue
+            pruned_rows.append(row)
+            parent_key = str(row.get("parent_group_key") or "")
+            if parent_key:
+                retained_parent_keys.add(parent_key)
+        return list(reversed(pruned_rows))
+
+    def _is_zero_report_row(self, row):
+        self.ensure_one()
+        hierarchy_kind = row.get("hierarchy_kind")
+        is_account_row = (
+            hierarchy_kind == "account"
+            or (
+                self.report_type == "trial_balance"
+                and bool(row.get("account_code"))
+            )
+            or (
+                self.report_type in {
+                    "tax_report",
+                    "fixed_asset_group_account",
+                }
+                and bool(row.get("account_code"))
+            )
+            or (
+                self.group_by == "account"
+                and row.get("is_group") in (True, "true")
+            )
+        )
+        is_zero_presentational_row = (
+            row.get("is_group") not in (True, "true")
+            and self._report_presentation_role(row) not in {
+                "section",
+                "total",
+                "control",
+            }
+        )
+        return (
+            (is_account_row or is_zero_presentational_row)
+            and self._row_monetary_values_are_zero(row)
+        )
+
+    @staticmethod
+    def _row_monetary_values_are_zero(row):
+        monetary_values = [
+            _amount(row.get(field_name))
+            for field_name in MONETARY_REPORT_FIELDS
+            if row.get(field_name) not in (None, "")
+        ]
+        return bool(monetary_values) and all(
+            abs(value) < Decimal("0.005")
+            for value in monetary_values
         )
 
     def _raw_report_rows(self, date_from, date_to):
@@ -3093,6 +3983,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 company_rows = clone._report_rows_single()
             finally:
                 clone.sudo().unlink()
+            company_rows = self._apply_account_presentations(
+                company_rows,
+                company,
+            )
             for row in company_rows:
                 row = dict(row)
                 row.update({
@@ -3103,6 +3997,47 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 })
                 rows.append(row)
         return rows
+
+    def _apply_account_presentations(self, rows, company):
+        """Apply governed labels to screen and export rows alike."""
+        self.ensure_one()
+        account_codes = {
+            str(row.get("account_code") or "").strip()
+            for row in rows
+            if row.get("account_code")
+        }
+        for row in rows:
+            account_codes.update(
+                str(item.get("account_code") or "").strip()
+                for item in row.get("account_breakdown") or []
+                if item.get("account_code")
+            )
+        labels = self.env[
+            "rebuild.account.report.account.presentation"
+        ]._resolve_labels(company, self.report_type, account_codes)
+        if not labels:
+            return rows
+        presented_rows = []
+        for source_row in rows:
+            row = dict(source_row)
+            account_code = str(row.get("account_code") or "").strip()
+            if account_code in labels:
+                row["account_name"] = labels[account_code]
+                if row.get("hierarchy_kind") == "account":
+                    row["label"] = labels[account_code]
+            if row.get("account_breakdown"):
+                row["account_breakdown"] = [
+                    {
+                        **item,
+                        "account_name": labels.get(
+                            str(item.get("account_code") or "").strip(),
+                            item.get("account_name") or "",
+                        ),
+                    }
+                    for item in row["account_breakdown"]
+                ]
+            presented_rows.append(row)
+        return presented_rows
 
     def _report_clone_values(self, company, date_from, date_to):
         journals = self.journal_ids.filtered(
@@ -3122,6 +4057,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "date_to": date_to,
             "comparison_mode": "none",
             "target_move": self.target_move,
+            "display_unit": self.display_unit,
+            "amount_rounding": self.amount_rounding,
+            "hide_zero_accounts": self.hide_zero_accounts,
             "export_format": self.export_format,
             "fec_test_mode": self.fec_test_mode,
             "journal_ids": [Command.set(journals.ids)],
@@ -3181,7 +4119,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         result = []
         for group_key, bucket in groups.items():
             children = bucket["rows"]
-            summary_code = {
+            summary_code = (
+                FRENCH_PROFIT_LOSS_SECTION_TOTALS.get(
+                    bucket["label"],
+                )
+                if self.report_type in {"profit_loss", "french_annual"}
+                else None
+            ) or {
                 "bilan_actif": "ACTIF_TOTAL",
                 "bilan_passif": "PASSIF_TOTAL",
                 "compte_resultat": "CR_RESULTAT_NET",
@@ -3210,7 +4154,24 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             })
             if account_codes:
                 group_row["drilldown_account_codes"] = ",".join(account_codes)
+            account_prefixes = sorted({
+                prefix.strip()
+                for child in children
+                for prefix in (
+                    child.get("drilldown_account_prefixes") or ""
+                ).split(",")
+                if prefix.strip()
+            })
+            if account_prefixes:
+                group_row["drilldown_account_prefixes"] = ",".join(
+                    account_prefixes,
+                )
             for field_name in self._summable_report_fields():
+                if (
+                    self.report_type in {"profit_loss", "french_annual"}
+                    and not summary_row
+                ):
+                    continue
                 if (
                     summary_row
                     and summary_row.get(field_name) not in (None, "")
@@ -3236,16 +4197,152 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     children[-1].get("running_balance") or "0.00"
                 )
             result.append(group_row)
-            result.extend([
-                {
-                    **row,
-                    "is_group": "false",
-                    "row_level": 1,
-                    "parent_group_key": group_key,
-                }
-                for row in children
-            ])
+            for row in children:
+                result.extend(
+                    self._statement_hierarchy_rows(
+                        row,
+                        section_group_key=group_key,
+                    ),
+                )
         return result
+
+    def _statement_hierarchy_rows(self, row, *, section_group_key):
+        """Expand one statement line through PCG groups to account numbers."""
+        self.ensure_one()
+        breakdown = row.get("account_breakdown") or []
+        statement_key = (
+            f"{section_group_key}|statement|"
+            f"{row.get('line_code') or row.get('line_name') or 'line'}"
+        )
+        statement_row = {
+            **row,
+            "is_group": "true" if breakdown else "false",
+            "row_level": 1,
+            "parent_group_key": section_group_key,
+        }
+        if not breakdown:
+            return [statement_row]
+        statement_row.update({
+            "group_key": statement_key,
+            "hierarchy_kind": "statement",
+            "presentation_role": (
+                row.get("presentation_role") or "detail"
+            ),
+        })
+
+        tree = {"entries": {}}
+        for account_row in breakdown:
+            node = tree
+            for group in account_row.get("group_chain") or []:
+                entry_key = f"group:{group['id']}"
+                entry = node["entries"].setdefault(entry_key, {
+                    "kind": "group",
+                    "sort_key": group.get("code") or "",
+                    "group": group,
+                    "entries": {},
+                })
+                node = entry
+            account_key = (
+                f"account:{account_row.get('account_id') or ''}:"
+                f"{account_row.get('account_code') or ''}"
+            )
+            node["entries"][account_key] = {
+                "kind": "account",
+                "sort_key": account_row.get("account_code") or "",
+                "account": account_row,
+            }
+
+        def descendant_accounts(node):
+            accounts = []
+            for entry in node["entries"].values():
+                if entry["kind"] == "account":
+                    accounts.append(entry["account"])
+                else:
+                    accounts.extend(descendant_accounts(entry))
+            return accounts
+
+        def flatten(node, *, parent_key, level):
+            flattened = []
+            entries = sorted(
+                node["entries"].values(),
+                key=lambda entry: (
+                    entry.get("sort_key") or "",
+                    entry["kind"] != "group",
+                ),
+            )
+            for entry in entries:
+                if entry["kind"] == "account":
+                    account = entry["account"]
+                    flattened.append({
+                        "statement_key": row.get("statement_key"),
+                        "section": row.get("section"),
+                        "line_code": row.get("line_code"),
+                        "label": account.get("account_name") or "",
+                        "account_code": account.get("account_code") or "",
+                        "account_name": account.get("account_name") or "",
+                        "source_account_id": (
+                            account.get("source_account_id") or ""
+                        ),
+                        "drilldown_account_codes": (
+                            account.get("account_code") or ""
+                        ),
+                        "move_line_count": str(
+                            account.get("move_line_count") or 0,
+                        ),
+                        "amount": _amount_text(account.get("amount")),
+                        "net_amount": _amount_text(account.get("amount")),
+                        "is_group": "false",
+                        "row_level": level,
+                        "parent_group_key": parent_key,
+                        "presentation_role": "detail",
+                        "hierarchy_kind": "account",
+                    })
+                    continue
+                group = entry["group"]
+                accounts = descendant_accounts(entry)
+                group_key = f"{parent_key}|pcg_group|{group['id']}"
+                amount = sum(
+                    (_amount(account.get("amount")) for account in accounts),
+                    Decimal("0.00"),
+                )
+                codes = sorted({
+                    account.get("account_code") or ""
+                    for account in accounts
+                    if account.get("account_code")
+                })
+                flattened.append({
+                    "statement_key": row.get("statement_key"),
+                    "section": row.get("section"),
+                    "line_code": row.get("line_code"),
+                    "label": group.get("name") or "",
+                    "account_code": group.get("code") or "",
+                    "drilldown_account_codes": ",".join(codes),
+                    "move_line_count": str(sum(
+                        int(account.get("move_line_count") or 0)
+                        for account in accounts
+                    )),
+                    "amount": _amount_text(amount),
+                    "net_amount": _amount_text(amount),
+                    "is_group": "true",
+                    "row_level": level,
+                    "group_key": group_key,
+                    "parent_group_key": parent_key,
+                    "presentation_role": "group",
+                    "hierarchy_kind": "pcg_group",
+                })
+                flattened.extend(
+                    flatten(
+                        entry,
+                        parent_key=group_key,
+                        level=level + 1,
+                    ),
+                )
+            return flattened
+
+        return [
+            statement_row,
+            *flatten(tree, parent_key=statement_key, level=2),
+        ]
 
     def _report_group(self, row):
         company_key = str(row.get("report_company_id") or "")
@@ -3296,6 +4393,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             value = str(value or "Not specified")
         if self.group_by == "section":
             french_statement = self.report_type in {
+                "profit_loss",
                 "french_annual",
                 "french_balance_sheet_2024",
                 "french_profit_loss_2024",
@@ -3373,10 +4471,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         comparison_by_key = {
             self._comparison_key(row): row
             for row in comparison_rows
-            if not (
-                self.group_by != "none"
-                and row.get("is_group") not in (True, "true")
-            )
         }
         result = []
         seen_keys = set()
@@ -3387,16 +4481,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             period_value = self._row_period_value(row)
             row["period_value"] = _amount_text(period_value)
             if self.comparison_mode == "none":
-                result.append(row)
-                continue
-            if (
-                self.group_by != "none"
-                and row.get("is_group") not in (True, "true")
-            ):
-                row.update({
-                    "comparison_value": "",
-                    "difference": "",
-                })
                 result.append(row)
                 continue
             comparison_row = comparison_by_key.get(key, {})
@@ -3412,13 +4496,23 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if key in seen_keys:
                 continue
             comparison_value = self._row_period_value(comparison_row)
-            row = {
-                **comparison_row,
+            row = dict(comparison_row)
+            current_amount_fields = (
+                MONETARY_REPORT_FIELDS
+                | self._summable_report_fields()
+            ) - {
+                "comparison_value",
+                "difference",
+            }
+            for field_name in current_amount_fields:
+                if field_name in row:
+                    row[field_name] = "0.00"
+            row.update({
                 "period_value": "0.00",
                 "comparison_value": _amount_text(comparison_value),
                 "difference": _amount_text(-comparison_value),
                 "comparison_only": "true",
-            }
+            })
             result.append(row)
         return result
 
@@ -3506,7 +4600,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.report_type == "balance_sheet":
             return self._balance_sheet_rows()
         if self.report_type == "profit_loss":
-            return self._profit_loss_rows()
+            return self._french_annual_rows(
+                statement_keys={"compte_resultat"},
+                report_variant=self._report_variant_key(),
+            )
         if self.report_type == "tax_report":
             return self._tax_report_rows()
         if self.report_type == "tax_report_group_account_tax":
@@ -3931,6 +5028,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"""
             SELECT {ACCOUNT_CODE_SQL} AS account_code,
                    {ACCOUNT_NAME_SQL} AS account_name,
+                   account.id::text AS account_id,
                    account.account_type AS account_type,
                    account.rebuild_source_id::text AS source_account_id,
                    count(line.id) FILTER (
@@ -4788,13 +5886,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return int(data.get(key) or 0)
 
         def metric_text(value):
-            return f"{Decimal(str(value or '0')).quantize(Decimal('0.0001')):.4f}"
+            if value is None:
+                return ""
+            return (
+                f"{Decimal(str(value)).quantize(Decimal('0.01')):.2f}"
+            )
 
         def safe_ratio(numerator, denominator, multiplier=Decimal("1")):
             numerator = Decimal(str(numerator or "0"))
             denominator = Decimal(str(denominator or "0"))
             if not denominator:
-                return Decimal("0")
+                return None
             return numerator / denominator * multiplier
 
         day_count = Decimal(str(data.get("day_count") or "1"))
@@ -4813,17 +5915,47 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         rows = []
 
-        def add(line_code, line_name, metric_type, source_formula, move_line_count, amount, metric_value=None):
+        def add(
+            line_code,
+            line_name,
+            metric_type,
+            source_formula,
+            move_line_count,
+            amount,
+            metric_value=None,
+            *,
+            section="Indicateurs clés",
+            unit=None,
+        ):
+            metric = amount if metric_type == "currency" else metric_value
+            if metric_type == "currency":
+                metric = Decimal(str(metric or "0")) / Decimal(
+                    str(self._display_unit_metadata()["factor"]),
+                )
+                unit = self._display_unit_metadata()["short_label"]
+            elif unit is None:
+                unit = {
+                    "percent": "%",
+                    "days": "jours",
+                    "ratio": "x",
+                }.get(metric_type, "")
             rows.append({
                 "report_key": report_key,
-                "report_name": "Cash Flow Statement" if report_key == "cash_flow" else "Executive Summary",
+                "report_name": (
+                    "Tableau des flux de trésorerie"
+                    if report_key == "cash_flow"
+                    else "Synthèse de gestion"
+                ),
+                "section": section,
                 "line_code": line_code,
                 "line_name": line_name,
                 "metric_type": metric_type,
                 "source_formula": source_formula,
+                "details": source_formula,
                 "move_line_count": str(move_line_count),
                 "amount": _amount_text(amount),
-                "metric_value": metric_text(metric_value if metric_value is not None else amount),
+                "metric_value": metric_text(metric),
+                "unit": unit,
             })
 
         if report_key == "cash_flow":
@@ -4833,22 +5965,313 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             add("CLOSING_CASH", "Closing bank balance", "currency", "Closing balance of cash and credit-card accounts", count_value("cash_line_count"), closing_cash)
             return rows
 
-        gross_profit = revenue - cost_of_revenue
-        add("REVENUE", "Total income", "currency", "Income and other income account balances with management sign", count_value("revenue_line_count"), revenue)
-        add("COST_OF_REVENUE", "Cost of revenue", "currency", "Direct-cost expense account balances", count_value("cost_line_count"), cost_of_revenue)
-        add("GROSS_PROFIT", "Gross profit", "currency", "Revenue minus cost of revenue", count_value("profit_loss_line_count"), gross_profit)
-        add("EXPENSES", "Expenses", "currency", "Operating, depreciation and other expense account balances excluding direct costs", count_value("expense_line_count"), expenses)
-        add("NET_PROFIT", "Net profit", "currency", "Net balance of income and expense accounts with management sign", count_value("profit_loss_line_count"), net_profit)
-        add("RECEIVABLES", "Receivables", "currency", "Receivable account balances", count_value("receivable_line_count"), receivables)
-        add("PAYABLES", "Payables", "currency", "Payable account balances with liability sign", count_value("payable_line_count"), payables)
-        add("NET_ASSETS", "Net assets", "currency", "Asset balances minus liability balances", count_value("net_asset_line_count"), net_assets)
-        add("GROSS_PROFIT_MARGIN", "Gross profit margin", "percent", "(Gross profit / revenue) * 100", count_value("profit_loss_line_count"), 0, safe_ratio(gross_profit, revenue, Decimal("100")))
-        add("NET_PROFIT_MARGIN", "Net profit margin", "percent", "(Net profit / revenue) * 100", count_value("profit_loss_line_count"), 0, safe_ratio(net_profit, revenue, Decimal("100")))
-        add("RETURN_ON_INVESTMENT", "Return on investments", "percent", "(Net profit / current assets) * 100", count_value("current_line_count"), 0, safe_ratio(net_profit, current_assets, Decimal("100")))
-        add("AVERAGE_DEBTORS_DAYS", "Average debtors days", "days", "(Receivables / revenue) * days in selected period", count_value("receivable_line_count"), 0, safe_ratio(receivables, revenue, day_count))
-        add("AVERAGE_CREDITORS_DAYS", "Average creditors days", "days", "(Payables / (cost of revenue + expenses)) * days in selected period", count_value("payable_line_count"), 0, safe_ratio(payables, cost_of_revenue + expenses, day_count))
-        add("SHORT_TERM_CASH_FORECAST", "Short term cash forecast", "currency", "Receivables less payables", count_value("current_line_count"), receivables - payables)
-        add("CURRENT_ASSETS_TO_LIABILITIES", "Current assets to liabilities", "ratio", "Current assets / current liabilities", count_value("current_line_count"), 0, safe_ratio(current_assets, current_liabilities))
+        statement_rows = self._french_annual_rows()
+        statement_by_code = {
+            row["line_code"]: _amount(row.get("amount"))
+            for row in statement_rows
+        }
+        trial_balance = self._trial_balance_rows()
+
+        def balance_for(
+            prefixes,
+            *,
+            positive=False,
+            negative=False,
+            excluded_prefixes=(),
+            account_types=(),
+        ):
+            total = Decimal("0.00")
+            count = 0
+            for row in trial_balance:
+                code = str(row.get("account_code") or "")
+                balance = _amount(row.get("balance"))
+                if not any(code.startswith(prefix) for prefix in prefixes):
+                    continue
+                if any(
+                    code.startswith(prefix)
+                    for prefix in excluded_prefixes
+                ):
+                    continue
+                if account_types and row.get("account_type") not in account_types:
+                    continue
+                if positive and balance <= 0:
+                    continue
+                if negative and balance >= 0:
+                    continue
+                total += balance
+                count += int(row.get("move_line_count") or 0)
+            return total, count
+
+        turnover = statement_by_code.get(
+            "CR_CHIFFRE_AFFAIRES",
+            Decimal("0.00"),
+        )
+        total_products = statement_by_code.get(
+            "CR_TOTAL_PRODUITS",
+            Decimal("0.00"),
+        )
+        total_charges = statement_by_code.get(
+            "CR_TOTAL_CHARGES",
+            Decimal("0.00"),
+        )
+        operating_result = statement_by_code.get(
+            "CR_RESULTAT_EXPLOITATION",
+            Decimal("0.00"),
+        )
+        net_result = statement_by_code.get(
+            "CR_RESULTAT_NET",
+            Decimal("0.00"),
+        )
+        equity = statement_by_code.get(
+            "PASSIF_CAPITAUX_PROPRES",
+            Decimal("0.00"),
+        )
+        financial_debt = statement_by_code.get(
+            "PASSIF_DETTES_FINANCIERES",
+            Decimal("0.00"),
+        )
+        fixed_assets = statement_by_code.get(
+            "ACTIF_IMMO_CORP",
+            Decimal("0.00"),
+        )
+        value_added = statement_by_code.get(
+            "SIG_VALEUR_AJOUTEE",
+            Decimal("0.00"),
+        )
+        ebe = statement_by_code.get("SIG_EBE", Decimal("0.00"))
+        caf = statement_by_code.get(
+            "SIG_CAPACITE_AUTOFINANCEMENT",
+            Decimal("0.00"),
+        )
+        trade_receivables, trade_receivable_count = balance_for(
+            ["411", "413", "416", "4181"],
+            positive=True,
+        )
+        supplier_balance, supplier_count = balance_for(
+            ["401", "403", "4081", "4088"],
+            negative=True,
+        )
+        supplier_debt = -supplier_balance
+        purchases = statement_by_code.get(
+            "CR_ACHATS_MARCHANDISES",
+            Decimal("0.00"),
+        ) + statement_by_code.get(
+            "CR_CHARGES_EXTERNES",
+            Decimal("0.00"),
+        )
+        operating_assets, operating_asset_count = balance_for(
+            ["3", "4"],
+            positive=True,
+            excluded_prefixes=["455"],
+        )
+        operating_liability_balance, operating_liability_count = balance_for(
+            ["4"],
+            negative=True,
+            # Corporate-income-tax debt is outside operating working capital.
+            excluded_prefixes=["444", "455"],
+        )
+        working_capital_requirement = (
+            operating_assets + operating_liability_balance
+        )
+        overdraft_balance, overdraft_count = balance_for(
+            ["5"],
+            negative=True,
+            account_types={"asset_cash", "liability_credit_card"},
+        )
+        bank_overdraft = -overdraft_balance
+
+        add(
+            "TURNOVER",
+            "Chiffre d’affaires net",
+            "currency",
+            "Comptes 70 présentés selon le PCG.",
+            count_value("revenue_line_count"),
+            turnover,
+        )
+        add(
+            "TOTAL_PRODUCTS",
+            "Total des produits",
+            "currency",
+            "Total des comptes de classe 7.",
+            count_value("revenue_line_count"),
+            total_products,
+        )
+        add(
+            "TOTAL_CHARGES",
+            "Total des charges",
+            "currency",
+            "Total des comptes de classe 6.",
+            count_value("profit_loss_line_count"),
+            total_charges,
+        )
+        add(
+            "OPERATING_RESULT",
+            "Résultat d’exploitation",
+            "currency",
+            "Produits d’exploitation moins charges d’exploitation.",
+            count_value("profit_loss_line_count"),
+            operating_result,
+        )
+        add(
+            "NET_RESULT",
+            "Résultat net de l’exercice",
+            "currency",
+            "Total des produits moins total des charges.",
+            count_value("profit_loss_line_count"),
+            net_result,
+        )
+        add(
+            "CLOSING_CASH",
+            "Trésorerie disponible",
+            "currency",
+            "Solde débiteur des comptes classés en trésorerie.",
+            count_value("cash_line_count"),
+            closing_cash,
+        )
+        add(
+            "EQUITY",
+            "Capitaux propres",
+            "currency",
+            "Capitaux propres, report à nouveau et résultat de l’exercice.",
+            count_value("net_asset_line_count"),
+            equity,
+        )
+        add(
+            "FINANCIAL_DEBT",
+            "Dettes financières",
+            "currency",
+            "Comptes 16/17 et comptes courants d’associés 455 créditeurs.",
+            count_value("payable_line_count"),
+            financial_debt,
+        )
+        add(
+            "VALUE_ADDED",
+            "Valeur ajoutée",
+            "currency",
+            "Marge commerciale + production - consommations de tiers.",
+            count_value("profit_loss_line_count"),
+            value_added,
+        )
+        add(
+            "CAF",
+            "Capacité d’autofinancement",
+            "currency",
+            "Résultat net retraité des charges et produits calculés.",
+            count_value("profit_loss_line_count"),
+            caf,
+        )
+
+        ratio_section = "Ratios de gestion"
+        add(
+            "FIXED_ASSET_COVERAGE",
+            "Couverture des immobilisations",
+            "ratio",
+            "(Capitaux propres + dettes financières) / immobilisations nettes.",
+            count_value("net_asset_line_count"),
+            0,
+            safe_ratio(equity + financial_debt, fixed_assets),
+            section=ratio_section,
+        )
+        add(
+            "DEBT_RATIO",
+            "Taux d’endettement",
+            "ratio",
+            "Dettes financières / capitaux propres.",
+            count_value("net_asset_line_count"),
+            0,
+            safe_ratio(financial_debt, equity),
+            section=ratio_section,
+        )
+        add(
+            "OVERDRAFT_IMPORTANCE",
+            "Importance du découvert bancaire",
+            "ratio",
+            "Découverts bancaires / chiffre d’affaires net HT.",
+            overdraft_count,
+            0,
+            safe_ratio(bank_overdraft, turnover),
+            section=ratio_section,
+        )
+        add(
+            "REPAYMENT_CAPACITY",
+            "Capacité de remboursement",
+            "ratio",
+            "Capacité d’autofinancement / dettes financières.",
+            count_value("net_asset_line_count"),
+            0,
+            safe_ratio(caf, financial_debt),
+            section=ratio_section,
+        )
+        add(
+            "EBE_MARGIN",
+            "Taux de marge brute",
+            "ratio",
+            "Excédent brut d’exploitation / chiffre d’affaires net HT.",
+            count_value("profit_loss_line_count"),
+            0,
+            safe_ratio(ebe, turnover),
+            section=ratio_section,
+        )
+        add(
+            "COMMERCIAL_PROFITABILITY",
+            "Rentabilité commerciale",
+            "ratio",
+            "Résultat net / chiffre d’affaires net HT.",
+            count_value("profit_loss_line_count"),
+            0,
+            safe_ratio(net_result, turnover),
+            section=ratio_section,
+        )
+        add(
+            "ECONOMIC_PROFITABILITY",
+            "Rentabilité économique",
+            "ratio",
+            "Résultat net / immobilisations nettes.",
+            count_value("net_asset_line_count"),
+            0,
+            safe_ratio(net_result, fixed_assets),
+            section=ratio_section,
+        )
+        add(
+            "FINANCIAL_PROFITABILITY",
+            "Rentabilité financière",
+            "ratio",
+            "Résultat net / capitaux propres.",
+            count_value("net_asset_line_count"),
+            0,
+            safe_ratio(net_result, equity),
+            section=ratio_section,
+        )
+        add(
+            "CUSTOMER_CREDIT_DAYS",
+            "Crédit clients",
+            "days",
+            "Créances clients / chiffre d’affaires net HT × jours de la période.",
+            trade_receivable_count,
+            0,
+            safe_ratio(trade_receivables, turnover, day_count),
+            section=ratio_section,
+        )
+        add(
+            "SUPPLIER_CREDIT_DAYS",
+            "Crédit fournisseurs",
+            "days",
+            "Dettes fournisseurs / achats et charges externes × jours de la période.",
+            supplier_count,
+            0,
+            safe_ratio(supplier_debt, purchases, day_count),
+            section=ratio_section,
+        )
+        add(
+            "WORKING_CAPITAL_REQUIREMENT",
+            "Importance du besoin en fonds de roulement",
+            "ratio",
+            "Actifs circulants d’exploitation nets des passifs d’exploitation, hors impôt sur les bénéfices, / chiffre d’affaires net HT.",
+            operating_asset_count + operating_liability_count,
+            0,
+            safe_ratio(working_capital_requirement, turnover),
+            section=ratio_section,
+        )
         return rows
 
     def _analytic_report_rows(self):
@@ -5115,12 +6538,23 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _french_annual_rows(self, statement_keys=None, report_variant=""):
         tb = self._trial_balance_rows()
 
-        def sum_bal(prefixes, account_types=None, positive=None, negative=None):
+        def sum_bal(
+            prefixes,
+            account_types=None,
+            positive=None,
+            negative=None,
+            excluded_prefixes=None,
+        ):
             total = Decimal("0.00")
             count = 0
             for row in tb:
                 balance = _amount(row["balance"])
                 if not _matches(row, prefixes):
+                    continue
+                if excluded_prefixes and _matches(
+                    row,
+                    excluded_prefixes,
+                ):
                     continue
                 if account_types and row["account_type"] not in account_types:
                     continue
@@ -5161,7 +6595,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 count += int(item.get("move_line_count") or 0)
             return total, count
 
-        def row(statement_key, line_code, line_name, amount, formula, prefixes, count=0, gross=0, depreciation=0):
+        def row(
+            statement_key,
+            line_code,
+            line_name,
+            amount,
+            formula,
+            prefixes,
+            count=0,
+            gross=0,
+            depreciation=0,
+            presentation_role=None,
+        ):
             return {
                 "statement_key": statement_key,
                 "line_code": line_code,
@@ -5173,6 +6618,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "depreciation_amount": _amount_text(depreciation),
                 "net_amount": _amount_text(amount),
                 "amount": _amount_text(amount),
+                "presentation_role": presentation_role,
             }
 
         fixed_types = {"asset_fixed", "asset_non_current"}
@@ -5211,18 +6657,37 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             excluded_prefixes=["101"],
         )
         result_balance, result_count = sum_bal(["6", "7"])
-        trade_payables, trade_payable_count = sum_types(
-            {"liability_payable"},
+        financial_debt_balance, financial_debt_count = sum_bal(
+            ["16", "17", "455"],
             negative=True,
         )
-        tax_social_debt, tax_social_count = sum_types(
-            {"liability_current", "liability_non_current"},
-            prefixes=["42", "43", "44"],
+        trade_payables, trade_payable_count = sum_bal(
+            ["401", "403", "4081", "4088"],
+            negative=True,
+        )
+        tax_social_debt, tax_social_count = sum_bal(
+            ["42", "43", "44"],
             negative=True,
         )
         other_liability_credits, other_liability_credit_count = sum_types(
-            {"liability_current", "liability_non_current"},
-            excluded_prefixes=["42", "43", "44"],
+            {
+                "liability_payable",
+                "liability_current",
+                "liability_non_current",
+                "liability_credit_card",
+            },
+            excluded_prefixes=[
+                "16",
+                "17",
+                "401",
+                "403",
+                "4081",
+                "4088",
+                "42",
+                "43",
+                "44",
+                "455",
+            ],
             negative=True,
         )
         asset_credits, asset_credit_count = sum_types(
@@ -5233,47 +6698,175 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         other_debt_count = (
             other_liability_credit_count + asset_credit_count
         )
+        financial_debt = -financial_debt_balance
         current_result = -result_balance
         equity = -capital - other_equity_balance + current_result
-        total_debt = -trade_payables - tax_social_debt - other_debt
+        total_debt = (
+            financial_debt
+            - trade_payables
+            - tax_social_debt
+            - other_debt
+        )
         total_passif = equity + total_debt
 
-        goods_sales, goods_sales_count = sum_bal(["701"])
+        goods_sales, goods_sales_count = sum_bal(["707", "7097"])
+        goods_production_sales, goods_production_sales_count = sum_bal(
+            ["701", "702", "703", "704", "705", "7091", "7092", "7094", "7095"],
+        )
         service_sales, service_sales_count = sum_bal(["706"])
         turnover_balance, turnover_count = sum_bal(["70"])
         turnover = -turnover_balance
         operating_income_balance, operating_income_count = sum_bal(
             ["70", "71", "72", "74", "75"],
+            excluded_prefixes=["755"],
         )
         operating_income = -operating_income_balance
         goods_purchases, goods_purchases_count = sum_bal(["607"])
-        external_charges, external_charges_count = sum_bal(["606", "61", "62"])
+        external_charge_prefixes = [
+            "601",
+            "602",
+            "603",
+            "604",
+            "605",
+            "606",
+            "608",
+            "609",
+            "61",
+            "62",
+        ]
+        external_charges, external_charges_count = sum_bal(
+            external_charge_prefixes,
+        )
         taxes, taxes_count = sum_bal(["631", "633"])
         salaries, salaries_count = sum_bal(["641"])
         social_charges, social_charges_count = sum_bal(["645"])
         depreciation_expense, depreciation_expense_count = sum_bal(["681"])
-        other_expenses, other_expenses_count = sum_bal(["658"])
+        other_operating_charge_prefixes = [
+            "651",
+            "652",
+            "653",
+            "654",
+            "656",
+            "657",
+            "658",
+            "659",
+        ]
+        other_expenses, other_expenses_count = sum_bal(
+            other_operating_charge_prefixes,
+        )
+        personnel_charges, personnel_charges_count = sum_bal(["64"])
+        production_stocked_balance, production_stocked_count = sum_bal(["71"])
+        production_capitalized_balance, production_capitalized_count = sum_bal(
+            ["72"],
+        )
+        operating_subsidies_balance, operating_subsidies_count = sum_bal(
+            ["74"],
+        )
+        operating_other_income_balance, operating_other_income_count = sum_bal(
+            ["75"],
+            excluded_prefixes=["755"],
+        )
+        operating_reversals_balance, operating_reversals_count = sum_bal(
+            ["781"],
+        )
+        investment_grant_transfer_balance, investment_grant_transfer_count = (
+            sum_bal(["777"])
+        )
+        disposal_proceeds_balance, disposal_proceeds_count = sum_bal(["775"])
+        disposal_carrying_value, disposal_carrying_count = sum_bal(["675"])
         operating_expenses, operating_expense_count = sum_bal(
             ["60", "61", "62", "63", "64", "65", "68"],
         )
-        operating_result = operating_income - operating_expenses
         financial_income, financial_income_count = sum_bal(["76"])
         financial_charges, financial_charges_count = sum_bal(["66"])
         financial_result = -financial_income - financial_charges
         exceptional_income, exceptional_income_count = sum_bal(["77"])
         exceptional_charges, exceptional_charges_count = sum_bal(["67"])
-        exceptional_result = -exceptional_income - exceptional_charges
-        current_result_before_tax = operating_result + financial_result
-        income_tax, income_tax_count = sum_bal(["695"])
-        net_result = (
-            current_result_before_tax
-            + exceptional_result
-            - income_tax
+        sig_exceptional_income, sig_exceptional_income_count = sum_bal(
+            ["77"],
+            excluded_prefixes=["775", "777"],
         )
-
-        value_added = operating_income - goods_purchases - external_charges - other_expenses
-        ebe = value_added - taxes - salaries - social_charges
-        caf = net_result + depreciation_expense
+        sig_exceptional_charges, sig_exceptional_charges_count = sum_bal(
+            ["67"],
+            excluded_prefixes=["675"],
+        )
+        joint_operation_income, joint_operation_income_count = sum_bal(["755"])
+        joint_operation_charges, joint_operation_charges_count = sum_bal(
+            ["655"],
+        )
+        employee_profit_sharing, employee_profit_sharing_count = sum_bal(
+            ["691"],
+        )
+        exceptional_result = -exceptional_income - exceptional_charges
+        sig_exceptional_result = (
+            -sig_exceptional_income
+            - sig_exceptional_charges
+        )
+        income_tax, income_tax_count = sum_bal(["695"])
+        total_products_balance, total_products_count = sum_bal(["7"])
+        total_charges, total_charges_count = sum_bal(["6"])
+        total_products = -total_products_balance
+        goods_sales_amount = -goods_sales
+        production_sold = turnover - goods_sales_amount
+        production_stocked = -production_stocked_balance
+        production_capitalized = -production_capitalized_balance
+        production_for_period = (
+            production_sold
+            + production_stocked
+            + production_capitalized
+        )
+        operating_subsidies = -operating_subsidies_balance
+        operating_other_income = -operating_other_income_balance
+        operating_reversals = -operating_reversals_balance
+        investment_grant_transfer = -investment_grant_transfer_balance
+        disposal_proceeds = -disposal_proceeds_balance
+        joint_operation_income_amount = -joint_operation_income
+        joint_operation_charges_amount = joint_operation_charges
+        commercial_margin = goods_sales_amount - goods_purchases
+        value_added = (
+            commercial_margin
+            + production_for_period
+            - external_charges
+        )
+        ebe = (
+            value_added
+            + operating_subsidies
+            - taxes
+            - personnel_charges
+        )
+        operating_result = (
+            value_added
+            - taxes
+            - personnel_charges
+            + operating_subsidies
+            + operating_other_income
+            + operating_reversals
+            + investment_grant_transfer
+            + disposal_proceeds
+            - depreciation_expense
+            - other_expenses
+            - disposal_carrying_value
+        )
+        current_result_before_tax = (
+            operating_result
+            + joint_operation_income_amount
+            - joint_operation_charges_amount
+            + financial_result
+        )
+        net_result = -result_balance
+        all_depreciation_expense, all_depreciation_expense_count = sum_bal(
+            ["68"],
+        )
+        all_reversals_balance, all_reversals_count = sum_bal(["78"])
+        all_reversals = -all_reversals_balance
+        caf = (
+            net_result
+            + all_depreciation_expense
+            - all_reversals
+            + disposal_carrying_value
+            - disposal_proceeds
+            - investment_grant_transfer
+        )
 
         rows = [
             row("bilan_actif", "ACTIF_IMMO_CORP", "Immobilisations", fixed_net, "Comptes d’actif immobilisé, nets des amortissements et provisions", ["2"], fixed_count, fixed_gross, depreciation),
@@ -5283,23 +6876,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row("bilan_passif", "PASSIF_CAPITAL", "Capital social", -capital, "101", ["101"], capital_count),
             row("bilan_passif", "PASSIF_RESERVES_REPORT", "Réserves, report à nouveau et autres capitaux propres", -other_equity_balance, "Autres comptes classés en capitaux propres", ["10", "11", "12", "13", "14"], other_equity_count),
             row("bilan_passif", "PASSIF_RESULTAT", "Résultat de l’exercice", current_result, "6 et 7", ["6", "7"], result_count),
-            row("bilan_passif", "PASSIF_CAPITAUX_PROPRES", "Capitaux propres", equity, "Tous les comptes de capitaux propres + résultat", ["1", "6", "7"], capital_count + other_equity_count + result_count),
-            row("bilan_passif", "PASSIF_DETTES_FOURNISSEURS", "Dettes fournisseurs", -trade_payables, "Soldes créditeurs des comptes fournisseurs", ["40"], trade_payable_count),
+            row("bilan_passif", "PASSIF_CAPITAUX_PROPRES", "Total des capitaux propres", equity, "Capitaux propres + résultat de l’exercice", ["1", "6", "7"], capital_count + other_equity_count + result_count, presentation_role="subtotal"),
+            row("bilan_passif", "PASSIF_DETTES_FINANCIERES", "Emprunts et dettes financières diverses", financial_debt, "Soldes créditeurs 16/17 et comptes courants d’associés 455", ["16", "17", "455"], financial_debt_count),
+            row("bilan_passif", "PASSIF_DETTES_FOURNISSEURS", "Dettes fournisseurs et comptes rattachés", -trade_payables, "Soldes créditeurs 401/403/4081/4088", ["401", "403", "4081", "4088"], trade_payable_count),
             row("bilan_passif", "PASSIF_DETTES_FISCALES_SOCIALES", "Dettes fiscales et sociales", -tax_social_debt, "Soldes créditeurs 42/43/44", ["42", "43", "44"], tax_social_count),
-            row("bilan_passif", "PASSIF_AUTRES_DETTES", "Emprunts, découverts et autres dettes", -other_debt, "Autres soldes créditeurs classés en passif", ["1", "4", "5"], other_debt_count),
-            row("bilan_passif", "PASSIF_TOTAL_DETTES", "Total dettes", total_debt, "Toutes les dettes selon leur type comptable", ["1", "4", "5"], trade_payable_count + tax_social_count + other_debt_count),
-            row("bilan_passif", "PASSIF_TOTAL", "Total passif", total_passif, "Capitaux propres + résultat + dettes", ["1", "4", "5", "6", "7"], capital_count + other_equity_count + result_count + trade_payable_count + tax_social_count + other_debt_count),
-            row("compte_resultat", "CR_VENTES_PRODUITS", "Ventes de biens et produits", -goods_sales, "701", ["701"], goods_sales_count),
+            row("bilan_passif", "PASSIF_AUTRES_DETTES", "Autres dettes et découverts", -other_debt, "Autres soldes créditeurs classés en passif", ["1", "4", "5"], other_debt_count),
+            row("bilan_passif", "PASSIF_TOTAL_DETTES", "Total des dettes", total_debt, "Dettes financières, fournisseurs, fiscales, sociales et autres", ["1", "4", "5"], financial_debt_count + trade_payable_count + tax_social_count + other_debt_count, presentation_role="subtotal"),
+            row("bilan_passif", "PASSIF_TOTAL", "Total passif", total_passif, "Capitaux propres + résultat + dettes", ["1", "4", "5", "6", "7"], capital_count + other_equity_count + result_count + financial_debt_count + trade_payable_count + tax_social_count + other_debt_count, presentation_role="total"),
+            row("compte_resultat", "CR_VENTES_PRODUITS", "Production vendue — biens", -goods_production_sales, "701 à 705 nets des réductions correspondantes", ["701", "702", "703", "704", "705", "7091", "7092", "7094", "7095"], goods_production_sales_count),
             row("compte_resultat", "CR_SERVICES", "Prestations de services", -service_sales, "706", ["706"], service_sales_count),
             row("compte_resultat", "CR_CHIFFRE_AFFAIRES", "Chiffre d’affaires net", turnover, "70", ["70"], turnover_count),
-            row("compte_resultat", "CR_TOTAL_PRODUITS_EXPLOITATION", "Total produits d’exploitation", operating_income, "70/71/72/74/75", ["70", "71", "72", "74", "75"], operating_income_count),
+            row("compte_resultat", "CR_AUTRES_PRODUITS_EXPLOITATION", "Autres produits d’exploitation", operating_other_income, "75 hors opérations en commun 755", ["75"], operating_other_income_count),
+            row("compte_resultat", "CR_TOTAL_PRODUITS_EXPLOITATION", "Total des produits d’exploitation", operating_income, "70/71/72/74/75 hors opérations en commun", ["70", "71", "72", "74", "75"], operating_income_count),
             row("compte_resultat", "CR_ACHATS_MARCHANDISES", "Achats de marchandises", goods_purchases, "607", ["607"], goods_purchases_count),
-            row("compte_resultat", "CR_CHARGES_EXTERNES", "Autres achats et charges externes", external_charges, "606 + 61 + 62", ["606", "61", "62"], external_charges_count),
+            row("compte_resultat", "CR_CHARGES_EXTERNES", "Autres achats et charges externes", external_charges, "60 hors 607 + 61 + 62", external_charge_prefixes, external_charges_count),
             row("compte_resultat", "CR_IMPOTS_TAXES", "Impôts, taxes et versements assimilés", taxes, "631 + 633", ["631", "633"], taxes_count),
             row("compte_resultat", "CR_SALAIRES", "Salaires et traitements", salaries, "641", ["641"], salaries_count),
             row("compte_resultat", "CR_CHARGES_SOCIALES", "Charges sociales", social_charges, "645", ["645"], social_charges_count),
             row("compte_resultat", "CR_DOTATIONS_AMORTISSEMENTS", "Dotations aux amortissements", depreciation_expense, "681", ["681"], depreciation_expense_count),
-            row("compte_resultat", "CR_AUTRES_CHARGES_EXPLOITATION", "Autres charges d’exploitation", other_expenses, "658", ["658"], other_expenses_count),
+            row("compte_resultat", "CR_AUTRES_CHARGES_EXPLOITATION", "Autres charges d’exploitation", other_expenses, "65 hors 655 et 675", other_operating_charge_prefixes, other_expenses_count),
             row("compte_resultat", "CR_TOTAL_CHARGES_EXPLOITATION", "Total charges d’exploitation", operating_expenses, "60 à 65 et 68", ["60", "61", "62", "63", "64", "65", "68"], operating_expense_count),
             row("compte_resultat", "CR_RESULTAT_EXPLOITATION", "Résultat d’exploitation", operating_result, "Produits d’exploitation - charges d’exploitation", ["70", "71", "72", "74", "75", "60", "61", "62", "63", "64", "65", "68"]),
             row("compte_resultat", "CR_PRODUITS_FINANCIERS", "Produits financiers", -financial_income, "76", ["76"], financial_income_count),
@@ -5308,14 +6903,62 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row("compte_resultat", "CR_RESULTAT_COURANT_AVANT_IMPOT", "Résultat courant avant impôts", current_result_before_tax, "Résultat exploitation + résultat financier", ["70", "758", "60", "61", "62", "63", "64", "658", "681", "76", "66"]),
             row("compte_resultat", "CR_RESULTAT_EXCEPTIONNEL", "Résultat exceptionnel", exceptional_result, "77 - 67", ["77", "67"], exceptional_income_count + exceptional_charges_count),
             row("compte_resultat", "CR_IMPOTS_BENEFICES", "Impôts sur les bénéfices", income_tax, "695", ["695"], income_tax_count),
-            row("compte_resultat", "CR_RESULTAT_NET", "Résultat net comptable", net_result, "Solde 6 et 7", ["6", "7"], result_count),
-            row("sig_caf", "SIG_VALEUR_AJOUTEE", "Valeur ajoutée", value_added, "Produits - achats - charges externes", ["70", "758", "607", "606", "61", "62", "658"]),
-            row("sig_caf", "SIG_EBE", "Excédent brut d’exploitation", ebe, "VA - impôts - personnel", ["70", "758", "607", "606", "61", "62", "658", "631", "633", "641", "645"]),
-            row("sig_caf", "SIG_RESULTAT_EXPLOITATION", "Résultat d’exploitation", operating_result, "EBE - dotations", ["70", "758", "60", "61", "62", "63", "64", "658", "681"]),
-            row("sig_caf", "SIG_RESULTAT_COURANT_AVANT_IMPOT", "Résultat courant avant impôts", current_result_before_tax, "Résultat exploitation + financier", ["70", "758", "60", "61", "62", "63", "64", "658", "681", "76", "66"]),
-            row("sig_caf", "SIG_RESULTAT_NET", "Résultat net comptable", net_result, "Solde 6 et 7", ["6", "7"], result_count),
-            row("sig_caf", "SIG_CAPACITE_AUTOFINANCEMENT", "Capacité d’autofinancement", caf, "Résultat net + dotations", ["6", "7", "681"], result_count + depreciation_expense_count),
+            row("compte_resultat", "CR_TOTAL_PRODUITS", "Total des produits", total_products, "Total des comptes de classe 7", ["7"], total_products_count, presentation_role="subtotal"),
+            row("compte_resultat", "CR_TOTAL_CHARGES", "Total des charges", total_charges, "Total des comptes de classe 6", ["6"], total_charges_count, presentation_role="subtotal"),
+            row("compte_resultat", "CR_RESULTAT_NET", "Résultat net de l’exercice", net_result, "Total des produits - total des charges", ["6", "7"], result_count, presentation_role="total"),
+            row("sig_caf", "SIG_VALEUR_AJOUTEE", "Valeur ajoutée (I + II - III)", value_added, "Marge commerciale + production de l’exercice - consommations externes", ["70", "607", "606", "61", "62"], turnover_count + goods_purchases_count + external_charges_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_MARGE_COMMERCIALE", "Marge commerciale (I)", commercial_margin, "Ventes de marchandises - coût d’achat des marchandises vendues", ["707", "7097", "607"], goods_sales_count + goods_purchases_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_VENTES_MARCHANDISES", "Ventes de marchandises", goods_sales_amount, "707 net de 7097", ["707", "7097"], goods_sales_count),
+            row("sig_caf", "SIG_COUT_ACHAT_MARCHANDISES", "Coût d’achat des marchandises vendues", goods_purchases, "607", ["607"], goods_purchases_count),
+            row("sig_caf", "SIG_PRODUCTION_EXERCICE", "Production de l’exercice (II)", production_for_period, "Production vendue + production stockée + production immobilisée", ["70", "71", "72"], turnover_count + production_stocked_count + production_capitalized_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_PRODUCTION_VENDUE", "Production vendue", production_sold, "Chiffre d’affaires hors ventes de marchandises", ["70"], turnover_count),
+            row("sig_caf", "SIG_CHIFFRE_AFFAIRES_NET", "Montant net du chiffre d’affaires", turnover, "70", ["70"], turnover_count),
+            row("sig_caf", "SIG_PRODUCTION_STOCKEE", "Production (dé)stockée", production_stocked, "71", ["71"], production_stocked_count),
+            row("sig_caf", "SIG_PRODUCTION_IMMOBILISEE", "Production immobilisée", production_capitalized, "72", ["72"], production_capitalized_count),
+            row("sig_caf", "SIG_CONSOMMATIONS_TIERS", "Consommations de l’exercice en provenance de tiers (III)", external_charges, "60 hors 607 + 61 + 62", external_charge_prefixes, external_charges_count),
+            row("sig_caf", "SIG_EBE", "Excédent brut d’exploitation", ebe, "Valeur ajoutée + subventions - impôts et taxes - charges de personnel", ["70", "71", "72", "74", "60", "61", "62", "63", "64"], turnover_count + external_charges_count + operating_subsidies_count + taxes_count + personnel_charges_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_SUBVENTIONS_EXPLOITATION", "Subventions d’exploitation", operating_subsidies, "74", ["74"], operating_subsidies_count),
+            row("sig_caf", "SIG_IMPOTS_TAXES", "Impôts, taxes et versements assimilés", taxes, "631 + 633", ["631", "633"], taxes_count),
+            row("sig_caf", "SIG_CHARGES_PERSONNEL", "Charges de personnel", personnel_charges, "64", ["64"], personnel_charges_count),
+            row("sig_caf", "SIG_RESULTAT_EXPLOITATION", "Résultat d’exploitation", operating_result, "EBE + autres produits et reprises - dotations et autres charges", ["70", "71", "72", "74", "75", "77", "78", "60", "61", "62", "63", "64", "65", "67", "68"], operating_income_count + operating_expense_count + operating_reversals_count + disposal_proceeds_count + disposal_carrying_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_AUTRES_PRODUITS_EXPLOITATION", "Autres produits d’exploitation", operating_other_income, "758", ["758"], operating_other_income_count),
+            row("sig_caf", "SIG_REPRISES_EXPLOITATION", "Reprises sur amortissements, dépréciations et provisions d’exploitation", operating_reversals, "781", ["781"], operating_reversals_count),
+            row("sig_caf", "SIG_TRANSFERT_SUBVENTIONS", "Quote-part des subventions d’investissement transférée au résultat", investment_grant_transfer, "777", ["777"], investment_grant_transfer_count),
+            row("sig_caf", "SIG_PRODUITS_CESSIONS", "Produits des cessions d’immobilisations", disposal_proceeds, "775", ["775"], disposal_proceeds_count),
+            row("sig_caf", "SIG_DOTATIONS_EXPLOITATION", "Dotations aux amortissements, dépréciations et provisions d’exploitation", depreciation_expense, "681", ["681"], depreciation_expense_count),
+            row("sig_caf", "SIG_AUTRES_CHARGES", "Autres charges d’exploitation", other_expenses, "65 hors 655 et 675", other_operating_charge_prefixes, other_expenses_count),
+            row("sig_caf", "SIG_VNC_CESSIONS", "Valeur comptable des immobilisations cédées", disposal_carrying_value, "675", ["675"], disposal_carrying_count),
+            row("sig_caf", "SIG_RESULTAT_COURANT_AVANT_IMPOT", "Résultat courant avant impôts", current_result_before_tax, "Résultat d’exploitation + résultat financier + opérations en commun", ["70", "60", "61", "62", "63", "64", "65", "66", "68", "75", "76"], operating_income_count + operating_expense_count + financial_income_count + financial_charges_count + joint_operation_income_count + joint_operation_charges_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_QUOTE_PART_PRODUITS_COMMUN", "Quote-part de résultat sur opérations faites en commun — produits", joint_operation_income_amount, "755", ["755"], joint_operation_income_count),
+            row("sig_caf", "SIG_PRODUITS_FINANCIERS", "Produits financiers", -financial_income, "76", ["76"], financial_income_count),
+            row("sig_caf", "SIG_QUOTE_PART_CHARGES_COMMUN", "Quote-part de résultat sur opérations faites en commun — charges", joint_operation_charges_amount, "655", ["655"], joint_operation_charges_count),
+            row("sig_caf", "SIG_CHARGES_FINANCIERES", "Charges financières", financial_charges, "66", ["66"], financial_charges_count),
+            row("sig_caf", "SIG_RESULTAT_EXCEPTIONNEL", "Résultat exceptionnel", sig_exceptional_result, "Produits exceptionnels - charges exceptionnelles", ["77", "67"], sig_exceptional_income_count + sig_exceptional_charges_count, presentation_role="subtotal"),
+            row("sig_caf", "SIG_PRODUITS_EXCEPTIONNELS", "Produits exceptionnels", -sig_exceptional_income, "77 hors 775 et 777", ["77"], sig_exceptional_income_count),
+            row("sig_caf", "SIG_CHARGES_EXCEPTIONNELLES", "Charges exceptionnelles", sig_exceptional_charges, "67 hors 675", ["67"], sig_exceptional_charges_count),
+            row("sig_caf", "SIG_RESULTAT_NET", "Résultat de l’exercice", net_result, "Solde des comptes 6 et 7", ["6", "7"], result_count, presentation_role="total"),
+            row("sig_caf", "SIG_PARTICIPATION_SALARIES", "Participation des salariés", employee_profit_sharing, "691", ["691"], employee_profit_sharing_count),
+            row("sig_caf", "SIG_IMPOT_BENEFICES", "Impôt sur les bénéfices", income_tax, "695", ["695"], income_tax_count),
+            row("sig_caf", "CAF_RESULTAT_NET", "CAF — Résultat net comptable", net_result, "Point de départ de la CAF", ["6", "7"], result_count, presentation_role="subtotal"),
+            row("sig_caf", "CAF_DOTATIONS", "CAF — (+) Dotations aux amortissements, dépréciations et provisions", all_depreciation_expense, "68", ["68"], all_depreciation_expense_count),
+            row("sig_caf", "CAF_REPRISES", "CAF — (-) Reprises sur amortissements, dépréciations et provisions", all_reversals, "78", ["78"], all_reversals_count),
+            row("sig_caf", "CAF_VNC_CESSIONS", "CAF — (+) Valeur comptable des immobilisations cédées", disposal_carrying_value, "675", ["675"], disposal_carrying_count),
+            row("sig_caf", "CAF_PRODUITS_CESSIONS", "CAF — (-) Produits des cessions d’immobilisations", disposal_proceeds, "775", ["775"], disposal_proceeds_count),
+            row("sig_caf", "CAF_TRANSFERT_SUBVENTIONS", "CAF — (-) Quote-part des subventions d’investissement transférée", investment_grant_transfer, "777", ["777"], investment_grant_transfer_count),
+            row("sig_caf", "SIG_CAPACITE_AUTOFINANCEMENT", "Capacité d’autofinancement", caf, "Résultat net + charges non décaissées - produits non encaissés", ["6", "7", "68", "78", "675", "775", "777"], result_count + all_depreciation_expense_count + all_reversals_count + disposal_carrying_count + disposal_proceeds_count + investment_grant_transfer_count, presentation_role="total"),
         ]
+        for item in rows:
+            if item["statement_key"] != "compte_resultat":
+                continue
+            item["section"] = FRENCH_PROFIT_LOSS_SECTIONS.get(
+                item["line_code"],
+                "Compte de résultat",
+            )
+            if item["line_code"] == "CR_RESULTAT_NET":
+                item["presentation_role"] = "total"
+            elif item["line_code"] in FRENCH_PROFIT_LOSS_SUBTOTALS:
+                item["presentation_role"] = "subtotal"
+        self._attach_statement_account_breakdowns(rows, tb)
         if statement_keys:
             rows = [item for item in rows if item["statement_key"] in statement_keys]
         if report_variant:
@@ -5323,6 +6966,86 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 item["report_variant"] = report_variant
                 item["applicability_basis"] = self._report_variant_basis()
         return rows
+
+    def _attach_statement_account_breakdowns(self, rows, trial_balance_rows):
+        """Attach only account contributions that reconcile to their line."""
+        self.ensure_one()
+        account_ids = [
+            int(item["account_id"])
+            for item in trial_balance_rows
+            if item.get("account_id")
+        ]
+        accounts = self.env["account.account"].browse(account_ids)
+        account_by_id = {
+            account.id: account.with_company(self.company_id)
+            for account in accounts
+        }
+        for row in rows:
+            if row.get("presentation_role") in {"subtotal", "total"}:
+                continue
+            prefixes = [
+                prefix.strip()
+                for prefix in (
+                    row.get("drilldown_account_prefixes") or ""
+                ).split(",")
+                if prefix.strip()
+            ]
+            if not prefixes:
+                continue
+            contributions = [
+                item
+                for item in trial_balance_rows
+                if _matches(item, prefixes)
+                and _amount(item.get("balance"))
+                and int(item.get("move_line_count") or 0)
+            ]
+            if not contributions:
+                continue
+            raw_total = sum(
+                (_amount(item.get("balance")) for item in contributions),
+                Decimal("0.00"),
+            )
+            statement_amount = _amount(
+                row.get("amount") or row.get("net_amount"),
+            )
+            if abs(statement_amount - raw_total) <= Decimal("0.01"):
+                sign = Decimal("1.00")
+            elif abs(statement_amount + raw_total) <= Decimal("0.01"):
+                sign = Decimal("-1.00")
+            else:
+                # Derived totals and conditionally filtered balances remain
+                # calculation rows until their exact source rule is available.
+                continue
+            breakdown = []
+            for item in contributions:
+                account = account_by_id.get(int(item["account_id"]))
+                groups = []
+                group = account.group_id if account else False
+                while group:
+                    group_code = str(group.code_prefix_start or "")
+                    if (
+                        group.code_prefix_end
+                        and group.code_prefix_end != group.code_prefix_start
+                    ):
+                        group_code += f"-{group.code_prefix_end}"
+                    groups.append({
+                        "id": group.id,
+                        "code": group_code,
+                        "name": group.with_context(lang="fr_FR").name,
+                    })
+                    group = group.parent_id
+                breakdown.append({
+                    "account_id": int(item["account_id"]),
+                    "source_account_id": item.get("source_account_id") or "",
+                    "account_code": item.get("account_code") or "",
+                    "account_name": item.get("account_name") or "",
+                    "move_line_count": int(item.get("move_line_count") or 0),
+                    "amount": _amount_text(
+                        _amount(item.get("balance")) * sign,
+                    ),
+                    "group_chain": list(reversed(groups)),
+                })
+            row["account_breakdown"] = breakdown
 
     def _french_tax_package_rows(self):
         period_key = "USL benchmark 2024-01-10 to 2025-09-30"

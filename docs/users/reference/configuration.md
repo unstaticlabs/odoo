@@ -31,6 +31,22 @@ for safe checks. Use
 [Activate electronic-invoice reception in production](../how-to/activate-electronic-invoice-reception.md)
 only during the approved production change window.
 
+## Fiscal years
+
+Configure the recurring closing day and month under
+**Accounting > Configuration > Settings > Fiscal Year End**.
+
+When the first exercise is exceptional, open
+**Configuration > Companies**, select the company, then set
+**First Reconstructed Fiscal-Year Start** and
+**First Reconstructed Fiscal-Year End** under
+**French Declaration Profile**.
+
+For Unstatic Labs, the exceptional first exercise is
+**10/01/2024–30/09/2025**; the recurring cadence then runs from 1 October to
+30 September. The report presets **Fiscal Year** and **Fiscal Year to Date**
+use these governed boundaries on screen and in PDF/XLSX exports.
+
 ## Bank Matching Rules
 
 Open **Configuration > Bank Matching Rules** to govern recurring direct
@@ -137,8 +153,12 @@ module evaluators instead of arbitrary Python entered in the UI.
 
 Open **Accounting Framework > Reports** to understand where a report appears,
 its professional presentation style, default hierarchy, available filters and
-PDF/XLSX support. **Open Report** launches the normal polished report; the
-configuration form is not a generic report builder.
+PDF/XLSX support. **Arrondi par défaut** selects **Sans décimales** or **Deux
+décimales** for new sessions (respectively **À l’euro** and **Au centime**
+when the display unit is the euro). Create a company override before changing
+it: shared definitions remain upgrade-managed. **Open Report** launches the
+normal polished report; the configuration form is not a generic report
+builder.
 
 Company overrides take precedence for their company and effective dates. The
 interactive session and export metadata retain the resolved definition version.

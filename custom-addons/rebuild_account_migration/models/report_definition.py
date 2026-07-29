@@ -1,8 +1,7 @@
+import re
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
-
-from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
-
 
 ACCOUNTING_REPORT_TYPES = [
     ("trial_balance", "Balance générale"),
@@ -32,16 +31,88 @@ ACCOUNTING_REPORT_TYPES = [
     ("depreciation_schedule", "Plan d’amortissement"),
     ("deferred_schedule", "Charges et produits constatés d’avance"),
     ("french_annual", "États financiers français"),
-    ("french_balance_sheet_2024", "Bilan détaillé (PCG 2024)"),
+    ("french_balance_sheet_2024", "Bilan détaillé"),
     (
         "french_profit_loss_2024",
-        "Compte de résultat détaillé (PCG 2024)",
+        "Compte de résultat (alias historique)",
     ),
-    ("sig_caf_2024", "SIG et CAF (PCG 2024)"),
+    ("sig_caf_2024", "SIG et CAF"),
     ("french_tax_package", "Liasse fiscale française"),
     ("closing_package", "Dossier de revue de clôture"),
     ("fec", "FEC"),
 ]
+
+AMOUNT_ROUNDING_SELECTION = [
+    ("whole", "Sans décimales"),
+    ("cents", "Deux décimales"),
+]
+
+WHOLE_EURO_DEFAULT_REPORT_TYPES = {
+    "balance_sheet",
+    "profit_loss",
+    "tax_report",
+    "tax_report_group_account_tax",
+    "tax_report_group_tax_account",
+    "ec_sales_list",
+    "oss_sales",
+    "oss_imports",
+    "cash_flow",
+    "executive_summary",
+    "analytic_report",
+    "french_annual",
+    "french_balance_sheet_2024",
+    "french_profit_loss_2024",
+    "sig_caf_2024",
+    "french_tax_package",
+    "closing_package",
+}
+
+STANDARD_ACCOUNT_PRESENTATIONS = {
+    "281540": {
+        "display_label": "Amortissements du matériel industriel",
+        "evidence_note": (
+            "Libellé de présentation corrigé d’après la nature du compte "
+            "28154 et le grand livre historique USL."
+        ),
+    },
+    "281830": {
+        "display_label": (
+            "Amortissements du matériel de bureau et informatique"
+        ),
+        "evidence_note": (
+            "Libellé de présentation corrigé d’après la nature du compte "
+            "28183 et le grand livre historique USL."
+        ),
+    },
+    "511100": {
+        "display_label": "Virements de plateformes à encaisser — Etsy",
+        "evidence_note": (
+            "Libellé de présentation USL ; le compte retrace les virements "
+            "Etsy en attente d’encaissement."
+        ),
+    },
+    "627100": {
+        "display_label": "Frais bancaires",
+        "evidence_note": (
+            "Libellé de présentation USL ; le compte porte les frais et "
+            "commissions bancaires."
+        ),
+    },
+    "631200": {
+        "display_label": "Taxe d’apprentissage",
+        "evidence_note": (
+            "Libellé de présentation USL conforme au contenu du compte "
+            "historique."
+        ),
+    },
+    "768000": {
+        "display_label": "Autres produits financiers",
+        "evidence_note": (
+            "Libellé générique du PCG retenu pour éviter l’intitulé "
+            "spécialisé sans rapport avec les écritures USL."
+        ),
+    },
+}
 
 LEGACY_STANDARD_REPORT_NAMES = {
     "trial_balance": "Trial Balance",
@@ -70,6 +141,9 @@ LEGACY_STANDARD_REPORT_NAMES = {
     "fixed_asset_group_account": "Fixed Asset Register by Account",
     "depreciation_schedule": "Depreciation Schedule",
     "deferred_schedule": "Deferred Expense and Revenue Schedule",
+    "french_balance_sheet_2024": "Bilan détaillé (PCG 2024)",
+    "french_profit_loss_2024": "Compte de résultat détaillé (PCG 2024)",
+    "sig_caf_2024": "SIG et CAF (PCG 2024)",
     "french_tax_package": "French Tax Package Mapping",
     "closing_package": "Closing Review Package",
 }
@@ -104,7 +178,7 @@ REPORT_ACTIONS = {
     "deferred_schedule": "rebuild_account_migration.action_rebuild_interactive_deferred_schedule",
     "french_annual": "rebuild_account_migration.action_rebuild_interactive_french_annual",
     "french_balance_sheet_2024": "rebuild_account_migration.action_rebuild_interactive_french_balance_sheet_2024",
-    "french_profit_loss_2024": "rebuild_account_migration.action_rebuild_interactive_french_profit_loss_2024",
+    "french_profit_loss_2024": "rebuild_account_migration.action_rebuild_interactive_profit_loss",
     "sig_caf_2024": "rebuild_account_migration.action_rebuild_interactive_sig_caf_2024",
     "french_tax_package": "rebuild_account_migration.action_rebuild_interactive_french_tax_package",
     "fec": "rebuild_account_migration.action_rebuild_account_report_export_fec",
@@ -113,6 +187,7 @@ REPORT_ACTIONS = {
 
 def _report_seed_values(report_type, name):
     french = report_type.startswith("french_") or report_type in {
+        "profit_loss",
         "sig_caf_2024",
         "fec",
     }
@@ -190,6 +265,7 @@ def _report_seed_values(report_type, name):
         "open_items": "partner",
         "balance_sheet": "section",
         "profit_loss": "section",
+        "executive_summary": "section",
         "french_annual": "section",
         "french_balance_sheet_2024": "section",
         "french_profit_loss_2024": "section",
@@ -211,8 +287,13 @@ def _report_seed_values(report_type, name):
             else "account_asset_management" if schedule
             else "rebuild_account_migration"
         ),
-        "definition_version": "saas~19.2.1",
-        "lifecycle": "current",
+        "definition_version": "saas~19.2.4",
+        "active": report_type != "french_profit_loss_2024",
+        "lifecycle": (
+            "deprecated"
+            if report_type == "french_profit_loss_2024"
+            else "current"
+        ),
         "business_purpose": (
             f"Provide the governed {name} used for accounting review, "
             "investigation, and evidence."
@@ -225,6 +306,11 @@ def _report_seed_values(report_type, name):
         "presentation_style": presentation,
         "navigation_group": family,
         "default_group_by": default_groups.get(report_type, "none"),
+        "default_amount_rounding": (
+            "whole"
+            if report_type in WHOLE_EURO_DEFAULT_REPORT_TYPES
+            else "cents"
+        ),
         "target_action_xmlid": REPORT_ACTIONS.get(report_type),
         "supports_comparison": report_type not in no_comparison,
         "supports_journals": not schedule,
@@ -236,6 +322,12 @@ def _report_seed_values(report_type, name):
         "supports_analytics": report_type not in no_analytics,
         "supports_pdf": report_type != "fec",
         "supports_xlsx": report_type != "fec",
+        "document_template": "usl_official",
+        "document_primary_color": "#111111",
+        "document_section_background_color": "#E9ECEF",
+        "document_section_text_color": "#111111",
+        "document_muted_color": "#666666",
+        "document_footer_label": "Document comptable",
         "technical_key": report_type,
         "technical_model": "rebuild.account.report.export.wizard",
         "technical_summary": (
@@ -312,6 +404,18 @@ class RebuildAccountReportDefinition(models.Model):
         ],
         default="none",
     )
+    default_amount_rounding = fields.Selection(
+        AMOUNT_ROUNDING_SELECTION,
+        required=True,
+        default="cents",
+        string="Arrondi par défaut",
+        help=(
+            "Précision proposée à l’ouverture du rapport. Elle affecte "
+            "uniquement la présentation ; les calculs et les données d’audit "
+            "conservent les montants comptables exacts. Avec une unité en "
+            "euros, sans décimales signifie un arrondi à l’euro."
+        ),
+    )
     hierarchy_guidance = fields.Text(
         default=(
             "Use explicit sections, groups, details, subtotals, totals, and "
@@ -325,6 +429,42 @@ class RebuildAccountReportDefinition(models.Model):
     supports_analytics = fields.Boolean(default=True)
     supports_pdf = fields.Boolean(default=True)
     supports_xlsx = fields.Boolean(default=True)
+    document_template = fields.Selection(
+        [
+            ("usl_official", "USL official A4"),
+            ("neutral_accounting", "Neutral accounting A4"),
+        ],
+        required=True,
+        default="usl_official",
+        help=(
+            "Shared document presentation used by the interactive statement "
+            "and its PDF export."
+        ),
+    )
+    document_primary_color = fields.Char(
+        required=True,
+        default="#111111",
+        help="Primary ink and rule color in hexadecimal notation.",
+    )
+    document_section_background_color = fields.Char(
+        required=True,
+        default="#E9ECEF",
+        help="Background used for principal financial-statement sections.",
+    )
+    document_section_text_color = fields.Char(
+        required=True,
+        default="#111111",
+        help="Text color used on principal financial-statement sections.",
+    )
+    document_muted_color = fields.Char(
+        required=True,
+        default="#666666",
+        help="Secondary text color used for metadata and document context.",
+    )
+    document_footer_label = fields.Char(
+        required=True,
+        default="Document comptable",
+    )
     target_action_xmlid = fields.Char(readonly=True)
     technical_key = fields.Char(readonly=True)
     customization_of_id = fields.Many2one(
@@ -378,8 +518,45 @@ class RebuildAccountReportDefinition(models.Model):
                 values = {}
                 if legacy_name and definition.name == legacy_name:
                     values["name"] = name
+                if legacy_name:
+                    legacy_seed_values = _report_seed_values(
+                        report_type,
+                        legacy_name,
+                    )
+                    if (
+                        definition.business_purpose
+                        == legacy_seed_values["business_purpose"]
+                    ):
+                        values["business_purpose"] = seed_values[
+                            "business_purpose"
+                        ]
                 if definition.origin != seed_values["origin"]:
                     values["origin"] = seed_values["origin"]
+                if (
+                    definition.definition_version
+                    != seed_values["definition_version"]
+                ):
+                    values["definition_version"] = seed_values[
+                        "definition_version"
+                    ]
+                    if (
+                        definition.default_group_by == "none"
+                        and seed_values["default_group_by"] != "none"
+                    ):
+                        values["default_group_by"] = seed_values[
+                            "default_group_by"
+                        ]
+                if (
+                    definition.default_amount_rounding
+                    != seed_values["default_amount_rounding"]
+                ):
+                    values["default_amount_rounding"] = seed_values[
+                        "default_amount_rounding"
+                    ]
+                if definition.active != seed_values["active"]:
+                    values["active"] = seed_values["active"]
+                if definition.lifecycle != seed_values["lifecycle"]:
+                    values["lifecycle"] = seed_values["lifecycle"]
                 if values:
                     definition.with_context(
                         accounting_definition_seed=True,
@@ -388,7 +565,81 @@ class RebuildAccountReportDefinition(models.Model):
             existing[report_type] = self.with_context(
                 accounting_definition_seed=True,
             ).create(_report_seed_values(report_type, name))
-        return self.search([("company_id", "=", False)])
+        return self.with_context(active_test=False).search([
+            ("company_id", "=", False),
+        ])
+
+    @staticmethod
+    def _hex_rgb(value):
+        if not re.fullmatch(r"#[0-9A-Fa-f]{6}", value or ""):
+            message = (
+                "Document colors must use six-digit hexadecimal notation "
+                "such as #111111."
+            )
+            raise UserError(message)
+        return tuple(
+            int(value[index:index + 2], 16) / 255
+            for index in (1, 3, 5)
+        )
+
+    @staticmethod
+    def _relative_luminance(rgb):
+        def channel(value):
+            return (
+                value / 12.92
+                if value <= 0.04045
+                else ((value + 0.055) / 1.055) ** 2.4
+            )
+
+        red, green, blue = (channel(value) for value in rgb)
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+    @api.constrains(
+        "document_primary_color",
+        "document_section_background_color",
+        "document_section_text_color",
+        "document_muted_color",
+    )
+    def _check_document_colors(self):
+        for definition in self:
+            primary = self._hex_rgb(definition.document_primary_color)
+            background = self._hex_rgb(
+                definition.document_section_background_color,
+            )
+            text = self._hex_rgb(definition.document_section_text_color)
+            self._hex_rgb(definition.document_muted_color)
+            lighter = max(
+                self._relative_luminance(background),
+                self._relative_luminance(text),
+            )
+            darker = min(
+                self._relative_luminance(background),
+                self._relative_luminance(text),
+            )
+            if (lighter + 0.05) / (darker + 0.05) < 4.5:
+                message = (
+                    "Section background and text colors must provide a "
+                    "WCAG contrast ratio of at least 4.5:1."
+                )
+                raise UserError(message)
+            # Evaluate the primary color as part of validation so malformed
+            # values cannot reach the browser or PDF renderer.
+            self._relative_luminance(primary)
+
+    def _definition_snapshot(self):
+        values = super()._definition_snapshot()
+        values["document"] = {
+            "template": self.document_template,
+            "primary_color": self.document_primary_color,
+            "section_background_color": (
+                self.document_section_background_color
+            ),
+            "section_text_color": self.document_section_text_color,
+            "muted_color": self.document_muted_color,
+            "footer_label": self.document_footer_label,
+        }
+        values["default_amount_rounding"] = self.default_amount_rounding
+        return values
 
     @api.model
     def _resolve(self, report_type, company, on_date=None):
@@ -496,6 +747,7 @@ class RebuildAccountReportDefinition(models.Model):
             "presentation_style",
             "navigation_group",
             "default_group_by",
+            "default_amount_rounding",
             "hierarchy_guidance",
             "supports_comparison",
             "supports_journals",
@@ -504,6 +756,12 @@ class RebuildAccountReportDefinition(models.Model):
             "supports_analytics",
             "supports_pdf",
             "supports_xlsx",
+            "document_template",
+            "document_primary_color",
+            "document_section_background_color",
+            "document_section_text_color",
+            "document_muted_color",
+            "document_footer_label",
         }
         if (
             protected_business_fields & set(vals)
@@ -530,3 +788,170 @@ class RebuildAccountReportDefinition(models.Model):
             ):
                 values["origin"] = "company"
         return super().create(vals_list)
+
+
+class RebuildAccountReportAccountPresentation(models.Model):
+    """Govern end-user account labels without rewriting ledger master data."""
+
+    _name = "rebuild.account.report.account.presentation"
+    _description = "Accounting Report Account Presentation"
+    _order = "account_code, report_type, company_id"
+
+    active = fields.Boolean(default=True)
+    company_id = fields.Many2one(
+        "res.company",
+        index=True,
+        help=(
+            "Leave empty for the shared presentation. A company-specific "
+            "record takes precedence."
+        ),
+    )
+    report_type = fields.Selection(
+        ACCOUNTING_REPORT_TYPES,
+        index=True,
+        help=(
+            "Leave empty to apply the label to every report containing this "
+            "account."
+        ),
+    )
+    account_code = fields.Char(required=True, index=True)
+    display_label = fields.Char(required=True, translate=True)
+    evidence_note = fields.Text(
+        help=(
+            "Documents why the report label differs from the imported "
+            "account master-data label."
+        ),
+    )
+
+    @api.constrains("company_id", "report_type", "account_code")
+    def _check_unique_scope(self):
+        for presentation in self:
+            domain = [
+                ("id", "!=", presentation.id),
+                ("account_code", "=", presentation.account_code),
+                ("report_type", "=", presentation.report_type or False),
+            ]
+            domain.append(
+                ("company_id", "=", presentation.company_id.id)
+                if presentation.company_id
+                else ("company_id", "=", False)
+            )
+            if self.with_context(active_test=False).search_count(domain):
+                raise UserError(
+                    "Only one account presentation is allowed for the same "
+                    "account, report and company scope."
+                )
+
+    @api.model
+    def _ensure_standard_presentations(self):
+        for account_code, values in STANDARD_ACCOUNT_PRESENTATIONS.items():
+            presentation = self.with_context(active_test=False).search([
+                ("company_id", "=", False),
+                ("report_type", "=", False),
+                ("account_code", "=", account_code),
+            ], limit=1)
+            seed_values = {
+                "active": True,
+                "company_id": False,
+                "report_type": False,
+                "account_code": account_code,
+                **values,
+            }
+            if presentation:
+                presentation.with_context(
+                    accounting_presentation_seed=True,
+                ).write(seed_values)
+            else:
+                self.with_context(
+                    accounting_presentation_seed=True,
+                ).create(seed_values)
+        return self.with_context(active_test=False).search([
+            ("company_id", "=", False),
+            ("account_code", "in", list(STANDARD_ACCOUNT_PRESENTATIONS)),
+        ])
+
+    @api.model
+    def _resolve_labels(self, company, report_type, account_codes):
+        company.ensure_one()
+        account_codes = {
+            str(account_code or "").strip()
+            for account_code in account_codes
+            if str(account_code or "").strip()
+        }
+        if not account_codes:
+            return {}
+        candidates = self.search([
+            ("active", "=", True),
+            ("company_id", "in", [False, company.id]),
+            ("report_type", "in", [False, report_type]),
+            ("account_code", "in", sorted(account_codes)),
+        ])
+        resolved = {}
+        priorities = {}
+        for presentation in candidates:
+            priority = (
+                1 if presentation.company_id else 0,
+                1 if presentation.report_type else 0,
+                presentation.id,
+            )
+            if priority > priorities.get(
+                presentation.account_code,
+                (-1, -1, -1),
+            ):
+                priorities[presentation.account_code] = priority
+                resolved[presentation.account_code] = (
+                    presentation.display_label
+                )
+        return resolved
+
+    def action_customize_for_company(self):
+        self.ensure_one()
+        if self.company_id:
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": self._name,
+                "res_id": self.id,
+                "view_mode": "form",
+                "target": "current",
+            }
+        presentation = self.search([
+            ("company_id", "=", self.env.company.id),
+            ("report_type", "=", self.report_type or False),
+            ("account_code", "=", self.account_code),
+        ], limit=1)
+        if not presentation:
+            presentation = self.copy({"company_id": self.env.company.id})
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "res_id": presentation.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def write(self, vals):
+        if (
+            not self.env.context.get("accounting_presentation_seed")
+            and self.filtered(lambda presentation: not presentation.company_id)
+        ):
+            raise UserError(
+                "Shared account presentations are upgrade-managed. "
+                "Customize the presentation for the company instead."
+            )
+        return super().write(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.context.get("accounting_presentation_seed"):
+            for values in vals_list:
+                if not values.get("company_id"):
+                    values["company_id"] = self.env.company.id
+        return super().create(vals_list)
+
+    def unlink(self):
+        if self.filtered(lambda presentation: not presentation.company_id):
+            raise UserError(
+                "Shared account presentations are upgrade-managed and "
+                "cannot be deleted."
+            )
+        return super().unlink()

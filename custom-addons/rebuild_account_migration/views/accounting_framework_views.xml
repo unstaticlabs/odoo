@@ -35,6 +35,7 @@
                 <field name="name"/>
                 <field name="family"/>
                 <field name="presentation_style"/>
+                <field name="default_amount_rounding" optional="show"/>
                 <field name="origin"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="definition_version"/>
@@ -92,9 +93,22 @@
                             <group>
                                 <field name="presentation_style" readonly="not company_id"/>
                                 <field name="default_group_by" readonly="not company_id"/>
+                                <field name="default_amount_rounding" readonly="not company_id"/>
                             </group>
                             <group string="Hierarchy">
                                 <field name="hierarchy_guidance" nolabel="1" readonly="not company_id"/>
+                            </group>
+                            <group string="Official document">
+                                <group>
+                                    <field name="document_template" readonly="not company_id"/>
+                                    <field name="document_footer_label" readonly="not company_id"/>
+                                </group>
+                                <group>
+                                    <field name="document_primary_color" placeholder="#111111" readonly="not company_id"/>
+                                    <field name="document_section_background_color" placeholder="#E9ECEF" readonly="not company_id"/>
+                                    <field name="document_section_text_color" placeholder="#111111" readonly="not company_id"/>
+                                    <field name="document_muted_color" placeholder="#666666" readonly="not company_id"/>
+                                </group>
                             </group>
                         </page>
                         <page string="Filters and Exports">
@@ -149,6 +163,79 @@
             <p class="o_view_nocontent_smiling_face">No report definitions are installed.</p>
             <p>Installed modules provide governed report engines; company configuration controls their purpose, presentation, filters, exports and navigation.</p>
         </field>
+    </record>
+
+    <record id="view_rebuild_account_report_account_presentation_list" model="ir.ui.view">
+        <field name="name">rebuild.account.report.account.presentation.list</field>
+        <field name="model">rebuild.account.report.account.presentation</field>
+        <field name="arch" type="xml">
+            <list create="true" delete="true" decoration-info="company_id">
+                <field name="active" widget="boolean_toggle" readonly="not company_id"/>
+                <field name="account_code"/>
+                <field name="display_label"/>
+                <field name="report_type" optional="show"/>
+                <field name="company_id" optional="show"/>
+                <button name="action_customize_for_company" type="object" string="Personnaliser" icon="fa-copy" invisible="company_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_account_presentation_form" model="ir.ui.view">
+        <field name="name">rebuild.account.report.account.presentation.form</field>
+        <field name="model">rebuild.account.report.account.presentation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_customize_for_company" type="object" string="Personnaliser pour la société" class="oe_highlight" invisible="company_id"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Partagé" bg_color="text-bg-secondary" invisible="company_id"/>
+                    <widget name="web_ribbon" title="Société" bg_color="text-bg-info" invisible="not company_id"/>
+                    <group>
+                        <group>
+                            <field name="active" readonly="not company_id"/>
+                            <field name="account_code" readonly="not company_id"/>
+                            <field name="display_label" readonly="not company_id"/>
+                        </group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="report_type" readonly="not company_id"/>
+                        </group>
+                    </group>
+                    <group string="Justification">
+                        <field name="evidence_note" nolabel="1" readonly="not company_id"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Ce libellé ne modifie ni le plan comptable ni les écritures. Il harmonise uniquement la présentation à l’écran et dans les exports.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_account_presentation_search" model="ir.ui.view">
+        <field name="name">rebuild.account.report.account.presentation.search</field>
+        <field name="model">rebuild.account.report.account.presentation</field>
+        <field name="arch" type="xml">
+            <search string="Libellés de comptes dans les rapports">
+                <field name="account_code"/>
+                <field name="display_label"/>
+                <field name="report_type"/>
+                <field name="company_id"/>
+                <filter name="shared" string="Partagés" domain="[('company_id', '=', False)]"/>
+                <filter name="company" string="Société" domain="[('company_id', '!=', False)]"/>
+                <filter name="group_report" string="Rapport" context="{'group_by': 'report_type'}"/>
+                <filter name="group_company" string="Société" context="{'group_by': 'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_report_account_presentation" model="ir.actions.act_window">
+        <field name="name">Libellés de comptes</field>
+        <field name="res_model">rebuild.account.report.account.presentation</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_rebuild_account_report_account_presentation_search"/>
+        <field name="context">{'search_default_shared': 1}</field>
     </record>
 
     <record id="view_rebuild_account_declaration_rule_list_framework" model="ir.ui.view">
@@ -253,6 +340,13 @@
         parent="menu_rebuild_account_framework"
         action="action_rebuild_account_report_definition"
         sequence="20"
+        groups="account.group_account_manager"/>
+    <menuitem
+        id="menu_rebuild_account_report_account_presentations"
+        name="Libellés de comptes"
+        parent="menu_rebuild_account_framework"
+        action="action_rebuild_account_report_account_presentation"
+        sequence="25"
         groups="account.group_account_manager"/>
 
     <record id="menu_rebuild_account_closing_control_configuration" model="ir.ui.menu">

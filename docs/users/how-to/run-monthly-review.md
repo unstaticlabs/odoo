@@ -3,7 +3,8 @@
 1. Open **Overview** and clear urgent document and bank queues.
 2. Review Accounting Hygiene and resolve or document focused issues.
 3. Reconcile bank, receivable, payable, suspense and clearing accounts.
-4. Review Balance générale, Grand livre, Grand livre auxiliaire, aging, Bilan, Compte de résultat, VAT and Revenue vs Spending.
+4. Review Balance générale, Grand livre, Grand livre auxiliaire, ageing, Bilan,
+   Compte de résultat, TVA et taxes and Compte de résultat analytique.
 5. Check assets, depreciation, deferrals, foreign currency and analytics.
 6. Open the month’s **Closing Workspace** and select **Refresh Readiness**.
 7. Open each Warning or Blocking control and follow its next action.

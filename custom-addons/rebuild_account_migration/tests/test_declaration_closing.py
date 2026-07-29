@@ -44,6 +44,7 @@ class TestDeclarationAndClosing(TransactionCase):
                 "rebuild_profit_tax_regime": "bic_simplified",
                 "rebuild_vat_regime": "simplified",
                 "rebuild_first_fiscalyear_start": "2024-01-10",
+                "rebuild_first_fiscalyear_end": "2025-09-30",
                 "rebuild_declaration_profile_evidence": "Unit-test confirmed French SASU profile.",
             })
         return self.env["res.company"].create(vals)
@@ -145,6 +146,10 @@ class TestDeclarationAndClosing(TransactionCase):
 
         first_year_is = first.filtered(
             lambda item: item.rule_id.code == "FR_2571" and item.fiscalyear_end == date(2025, 9, 30),
+        )
+        self.assertEqual(
+            set(first_year_is.mapped("fiscalyear_start")),
+            {date(2024, 1, 10)},
         )
         self.assertEqual(set(first_year_is.field_line_ids.mapped("amount")), {0.0})
         self.assertTrue(all(

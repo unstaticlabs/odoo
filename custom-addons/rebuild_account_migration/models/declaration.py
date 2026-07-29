@@ -4,8 +4,8 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, UserError
-from odoo.tools import date_utils, float_compare
+from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import float_compare
 
 from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 
@@ -85,9 +85,75 @@ class ResCompany(models.Model):
         string="First Reconstructed Fiscal-Year Start",
         help="Optional first-year exception used before the company's recurring fiscal-year cadence.",
     )
+    rebuild_first_fiscalyear_end = fields.Date(
+        string="First Reconstructed Fiscal-Year End",
+        help=(
+            "Optional end of the exceptional first fiscal year. Reports, "
+            "declarations and closing workspaces use this boundary before "
+            "the company's recurring fiscal-year cadence."
+        ),
+    )
     rebuild_declaration_profile_evidence = fields.Text(
         string="Declaration Profile Evidence",
     )
+
+    @api.constrains(
+        "rebuild_first_fiscalyear_start",
+        "rebuild_first_fiscalyear_end",
+    )
+    def _check_rebuild_first_fiscalyear_bounds(self):
+        for company in self:
+            first_start = company.rebuild_first_fiscalyear_start
+            first_end = company.rebuild_first_fiscalyear_end
+            if bool(first_start) != bool(first_end):
+                raise ValidationError(
+                    "Set both the start and end of the exceptional first "
+                    "fiscal year."
+                )
+            if first_start and first_start > first_end:
+                raise ValidationError(
+                    "The exceptional first fiscal-year start must be before "
+                    "or equal to its end."
+                )
+
+    def _rebuild_first_fiscalyear_dates(self):
+        self.ensure_one()
+        first_start = fields.Date.to_date(
+            self.rebuild_first_fiscalyear_start,
+        )
+        first_end = fields.Date.to_date(
+            self.rebuild_first_fiscalyear_end,
+        )
+        if first_start and not first_end and self.fiscalyear_lock_date:
+            lock_date = fields.Date.to_date(self.fiscalyear_lock_date)
+            lock_dates = super().compute_fiscalyear_dates(
+                lock_date,
+            )
+            if lock_dates["date_to"] == lock_date:
+                first_end = lock_date
+        return first_start, first_end
+
+    def compute_fiscalyear_dates(self, current_date):
+        """Extend Odoo's fiscal-year API with the exceptional first year."""
+        self.ensure_one()
+        fiscal_dates = super().compute_fiscalyear_dates(current_date)
+        anchor = fields.Date.to_date(current_date)
+        first_start, first_end = self._rebuild_first_fiscalyear_dates()
+        if (
+            first_start
+            and first_end
+            and first_start <= anchor <= first_end
+        ):
+            return {
+                "date_from": first_start,
+                "date_to": first_end,
+            }
+        return fiscal_dates
+
+    def rebuild_compute_fiscalyear_dates(self, anchor):
+        """Return the governed fiscal year as a tuple for USL workflows."""
+        fiscal_dates = self.compute_fiscalyear_dates(anchor)
+        return fiscal_dates["date_from"], fiscal_dates["date_to"]
 
     def action_sync_accounting_obligations(self):
         declarations = self.env["rebuild.account.declaration"]
@@ -520,20 +586,16 @@ class RebuildAccountDeclaration(models.Model):
         if not company.rebuild_declaration_profile_active:
             return self.browse()
         today = fields.Date.context_today(self)
-        current_start, current_end = date_utils.get_fiscal_year(
-            today,
-            day=company.fiscalyear_last_day,
-            month=int(company.fiscalyear_last_month),
+        current_start, current_end = (
+            company.rebuild_compute_fiscalyear_dates(today)
         )
         periods = [(current_start, current_end)]
         if company.fiscalyear_lock_date:
-            locked_start, locked_end = date_utils.get_fiscal_year(
-                company.fiscalyear_lock_date,
-                day=company.fiscalyear_last_day,
-                month=int(company.fiscalyear_last_month),
+            locked_start, locked_end = (
+                company.rebuild_compute_fiscalyear_dates(
+                    company.fiscalyear_lock_date,
+                )
             )
-            if company.rebuild_first_fiscalyear_start and locked_end == company.fiscalyear_lock_date:
-                locked_start = company.rebuild_first_fiscalyear_start
             if (locked_start, locked_end) not in periods:
                 periods.insert(0, (locked_start, locked_end))
         declarations = self.browse()

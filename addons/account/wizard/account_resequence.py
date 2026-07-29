@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from odoo.tools.date_utils import get_fiscal_year
 from odoo.tools.misc import format_date
 
 from collections import defaultdict
@@ -101,7 +100,9 @@ class AccountResequenceWizard(models.TransientModel):
         """
         def _get_move_key(move_id):
             company = move_id.company_id
-            date_start, date_end = get_fiscal_year(move_id.date, day=company.fiscalyear_last_day, month=int(company.fiscalyear_last_month))
+            fiscal_dates = company.compute_fiscalyear_dates(move_id.date)
+            date_start = fiscal_dates["date_from"]
+            date_end = fiscal_dates["date_to"]
             if self.sequence_number_reset == 'year':
                 return move_id.date.year
             elif self.sequence_number_reset == 'year_range':
