@@ -220,6 +220,40 @@ class TestPocketIDOidcSecurity(TransactionCase):
             ),
         )
 
+    def test_disabled_environment_disables_bundled_oauth_providers(self):
+        default_odoo_provider = self.env.ref("auth_oauth.provider_openerp")
+        default_odoo_provider.sudo().write({"enabled": True})
+        self.provider._usl_pocketid_environment_write(
+            {
+                "enabled": True,
+                "client_secret": False,
+            },
+        )
+
+        with patch.dict(
+            os.environ,
+            {"USL_POCKET_ID_ENABLED": "0"},
+            clear=False,
+        ):
+            self.provider._usl_pocketid_apply_environment()
+
+        self.assertFalse(default_odoo_provider.enabled)
+        self.assertFalse(self.provider.enabled)
+        self.assertFalse(self.provider.client_secret)
+        for provider, reason_code in (
+            (default_odoo_provider, "default_odoo_oauth_disabled"),
+            (self.provider, "environment_disabled"),
+        ):
+            self.assertTrue(
+                self.env["usl.oidc.audit.event"].search(
+                    [
+                        ("provider_id", "=", provider.id),
+                        ("event_type", "=", "configuration"),
+                        ("reason_code", "=", reason_code),
+                    ],
+                ),
+            )
+
     def test_environment_managed_provider_refuses_direct_changes(self):
         with self.assertRaises(ValidationError):
             self.provider.write({"client_id": "manual-change-is-forbidden"})
