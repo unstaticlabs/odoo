@@ -736,10 +736,40 @@ class ResUsers(models.Model):
 
     def _check_credentials(self, credential, env):
         self.ensure_one()
-        if (
-            credential.get("type") == "password"
+        pocketid_provider = self.env.ref(
+            "usl_pocketid.provider_pocketid",
+            raise_if_not_found=False,
+        ).sudo()
+        is_pocketid_governed = (
+            self.usl_pocketid_access
+            or self.usl_identity_classification == "active"
+            or self.oauth_provider_id == pocketid_provider
+        )
+        is_pocketid_oauth = (
+            credential.get("type") == "oauth_token"
             and self.usl_pocketid_access
-            and not self.usl_local_break_glass
-        ):
+            and pocketid_provider.enabled
+            and self.oauth_provider_id == pocketid_provider
+        )
+        if is_pocketid_governed and not is_pocketid_oauth:
             raise AccessDenied()
         return super()._check_credentials(credential, env)
+
+    def action_create_passkey(self):
+        pocketid_provider = self.env.ref(
+            "usl_pocketid.provider_pocketid",
+            raise_if_not_found=False,
+        ).sudo()
+        if any(
+            user.usl_pocketid_access
+            or user.usl_identity_classification == "active"
+            or user.oauth_provider_id == pocketid_provider
+            for user in self
+        ):
+            raise ValidationError(
+                _(
+                    "Pocket ID-managed users must register and use passkeys "
+                    "in Pocket ID, not in Odoo.",
+                ),
+            )
+        return super().action_create_passkey()

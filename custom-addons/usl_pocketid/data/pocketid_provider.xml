@@ -21,4 +21,3 @@
         model="auth.oauth.provider"
         name="_usl_pocketid_apply_environment"/>
 </odoo>
-

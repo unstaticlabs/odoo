@@ -1,3 +1,4 @@
+from odoo.exceptions import AccessError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -18,6 +19,9 @@ class TestPocketIDProductProfiles(TransactionCase):
             },
         )
         company = self.env.company
+        second_company = self.env["res.company"].create(
+            {"name": "Pocket ID Isolated Company"},
+        )
         administrator = {
             "login": "valentin.product@example.invalid",
             "name": "Valentin Product Test",
@@ -78,6 +82,10 @@ class TestPocketIDProductProfiles(TransactionCase):
 
         valentin = users.search([("login", "=", administrator["login"])])
         self.assertTrue(valentin.usl_pocketid_access)
+        self.assertEqual(
+            set(valentin.company_ids.ids),
+            set((company | second_company).ids),
+        )
         for group in (
             "base.group_system",
             "account.group_account_manager",
@@ -88,6 +96,7 @@ class TestPocketIDProductProfiles(TransactionCase):
 
         roger = users.search([("login", "=", collaborator["login"])])
         self.assertTrue(roger.usl_pocketid_access)
+        self.assertEqual(roger.company_ids, company)
         self.assertTrue(roger.has_group("project.group_project_user"))
         for group in (
             "base.group_system",
@@ -100,6 +109,7 @@ class TestPocketIDProductProfiles(TransactionCase):
 
         prosper = users.search([("login", "=", reviewer["login"])])
         self.assertTrue(prosper.usl_pocketid_access)
+        self.assertEqual(prosper.company_ids, company)
         self.assertTrue(
             prosper.has_group(
                 "rebuild_account_migration.group_rebuild_accountant_reviewer",
@@ -113,6 +123,28 @@ class TestPocketIDProductProfiles(TransactionCase):
         self.assertFalse(account_moves.has_access("write"))
         self.assertFalse(account_moves.has_access("create"))
         self.assertFalse(account_moves.has_access("unlink"))
+        for model_name in (
+            "account.payment",
+            "account.bank.statement.line",
+            "account.account.reconcile",
+            "account.reconcile.model",
+            "account.journal",
+        ):
+            protected_model = self.env[model_name].with_user(prosper)
+            self.assertFalse(
+                protected_model.has_access("write"),
+                model_name,
+            )
+            self.assertFalse(
+                protected_model.has_access("create"),
+                model_name,
+            )
+            self.assertFalse(
+                protected_model.has_access("unlink"),
+                model_name,
+            )
+        with self.assertRaises(AccessError):
+            valentin.with_user(prosper).write({"name": "Forbidden user edit"})
 
         break_glass = self.env.ref("base.user_admin")
         self.assertTrue(break_glass.usl_local_break_glass)

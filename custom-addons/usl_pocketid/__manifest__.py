@@ -8,6 +8,7 @@
     "depends": [
         "account",
         "auth_oidc",
+        "auth_passkey",
         "hr_expense",
         "mail",
         "project",

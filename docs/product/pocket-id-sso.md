@@ -32,6 +32,11 @@ https://<public-odoo-host>/auth_oauth/signin
 Pocket ID claims prove identity. They never add an Odoo company or group.
 Every successful login still resolves an existing, active, explicitly
 governed Odoo user and uses that user's Odoo groups and allowed companies.
+When Pocket ID is enabled, the default Odoo.com OAuth provider is disabled.
+Pocket ID-managed users cannot use an Odoo password, Odoo-local passkey or
+another local primary credential; their passkeys remain registered and
+verified only in Pocket ID. Existing portal authentication remains outside
+the internal Pocket ID perimeter.
 
 ## Alternatives considered
 
