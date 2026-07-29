@@ -1,5 +1,1 @@
-from . import auth_oauth_provider
-from . import oidc_audit_event
-from . import oidc_identity
-from . import res_users
-
+from . import auth_oauth_provider, oidc_audit_event, oidc_identity, res_users

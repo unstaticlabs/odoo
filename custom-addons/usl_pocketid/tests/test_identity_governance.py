@@ -11,7 +11,7 @@ class TestPocketIDIdentityGovernance(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.provider = cls.env.ref("usl_pocketid.provider_pocketid")
-        cls.provider.write(
+        cls.provider._usl_pocketid_environment_write(
             {
                 "enabled": True,
                 "client_id": "odoo-client",
@@ -115,7 +115,9 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         )
 
     def test_verified_unique_email_link_requires_explicit_preapproval(self):
-        self.provider.usl_allow_unique_email_link = True
+        self.provider._usl_pocketid_environment_write(
+            {"usl_allow_unique_email_link": True},
+        )
         with self.assertRaises(PocketIDAccessDenied):
             self.env["res.users"]._usl_pocketid_login(
                 self.provider,
@@ -133,7 +135,9 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         self.assertEqual(identity.link_method, "verified_unique_email")
 
     def test_ambiguous_verified_email_is_refused_without_link(self):
-        self.provider.usl_allow_unique_email_link = True
+        self.provider._usl_pocketid_environment_write(
+            {"usl_allow_unique_email_link": True},
+        )
         self.user.usl_pocketid_email_link = True
         second = self._user(
             login="second-user@example.test",
@@ -185,6 +189,9 @@ class TestPocketIDIdentityGovernance(TransactionCase):
 
     def test_disabling_identity_clears_oauth_credential_but_not_user(self):
         identity = self._identity()
+        self.assertEqual(identity.linked_by_id, self.env.user)
+        with self.assertRaises(ValidationError):
+            identity.write({"linked_by_id": self.user.id})
         self.env["res.users"]._usl_pocketid_login(
             self.provider,
             self._claims(),
@@ -194,6 +201,16 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         self.assertFalse(self.user.oauth_provider_id)
         self.assertFalse(self.user.oauth_uid)
         self.assertTrue(self.user.active)
+        identity.active = True
+        self.assertTrue(
+            self.env["usl.oidc.audit.event"].search(
+                [
+                    ("identity_id", "=", identity.id),
+                    ("event_type", "=", "identity_enabled"),
+                ],
+            ),
+        )
+        identity.active = False
         with self.assertRaises(ValidationError):
             identity.unlink()
 
@@ -216,3 +233,77 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                 },
             )
 
+    def _governed_user_configuration(self):
+        return [
+            {
+                "login": self.user.login,
+                "email": self.user.email,
+                "profile": "collaborator",
+                "companies": [self.env.company.name],
+                "subject": "configured-collaborator-subject",
+            },
+            {
+                "login": "local.break.glass",
+                "name": "Local Break Glass",
+                "email": "local.break.glass@example.invalid",
+                "profile": "break_glass",
+                "companies": "all",
+                "create_if_missing": True,
+            },
+        ]
+
+    def test_named_profiles_are_least_privilege_and_idempotent(self):
+        configuration = self._governed_user_configuration()
+        summary = self.env[
+            "res.users"
+        ]._usl_pocketid_apply_user_configuration(
+            configuration,
+            break_glass_password="safe-local-password-12345",
+            strict=False,
+        )
+        self.assertEqual(summary["configured_count"], 2)
+        self.assertTrue(self.user.usl_pocketid_access)
+        self.assertTrue(self.user.has_group("project.group_project_user"))
+        self.assertFalse(self.user.has_group("base.group_system"))
+        self.assertEqual(
+            self.user.usl_oidc_identity_ids.subject,
+            "configured-collaborator-subject",
+        )
+        break_glass = self.env["res.users"].search(
+            [("login", "=", "local.break.glass")],
+        )
+        self.assertTrue(break_glass.usl_local_break_glass)
+        self.assertFalse(break_glass.usl_pocketid_access)
+        self.assertTrue(break_glass.has_group("base.group_system"))
+        user_count = self.env["res.users"].with_context(
+            active_test=False,
+        ).search_count([])
+        self.env["res.users"]._usl_pocketid_apply_user_configuration(
+            configuration,
+            break_glass_password="safe-local-password-12345",
+            strict=False,
+        )
+        self.assertEqual(
+            self.env["res.users"].with_context(
+                active_test=False,
+            ).search_count([]),
+            user_count,
+        )
+
+    def test_strict_configuration_refuses_unclassified_human_users(self):
+        with self.assertRaisesRegex(ValidationError, "explicitly classified"):
+            self.env["res.users"]._usl_pocketid_apply_user_configuration(
+                self._governed_user_configuration(),
+                break_glass_password="safe-local-password-12345",
+                strict=True,
+            )
+
+    def test_configuration_refuses_login_email_mismatch(self):
+        configuration = self._governed_user_configuration()
+        configuration[0]["email"] = "different@example.invalid"
+        with self.assertRaisesRegex(ValidationError, "does not match"):
+            self.env["res.users"]._usl_pocketid_apply_user_configuration(
+                configuration,
+                break_glass_password="safe-local-password-12345",
+                strict=False,
+            )

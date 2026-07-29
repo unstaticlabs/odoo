@@ -11,7 +11,7 @@ from jose.exceptions import JWSError, JWTError
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
-from ..exceptions import PocketIDAccessDenied
+from ..exceptions import PocketIDAccessDenied, PocketIDReason
 
 _logger = logging.getLogger(__name__)
 
@@ -24,6 +24,26 @@ _SUPPORTED_TOKEN_AUTH_METHODS = {
 }
 _MAX_JWKS_BYTES = 1_048_576
 _MAX_JWKS_KEYS = 20
+_ENVIRONMENT_MANAGED_FIELDS = {
+    "auth_endpoint",
+    "body",
+    "client_id",
+    "client_secret",
+    "enabled",
+    "flow",
+    "jwks_uri",
+    "name",
+    "scope",
+    "token_endpoint",
+    "token_map",
+    "usl_allow_unique_email_link",
+    "usl_oidc_issuer",
+    "usl_pocketid",
+    "usl_public_base_url",
+    "usl_required_group",
+    "usl_token_auth_method",
+    "validation_endpoint",
+}
 
 
 def _env_enabled(name):
@@ -79,6 +99,36 @@ class AuthOauthProvider(models.Model):
         default="client_secret_basic",
     )
 
+    def write(self, values):
+        if (
+            _ENVIRONMENT_MANAGED_FIELDS.intersection(values)
+            and any(self.mapped("usl_pocketid"))
+        ):
+            raise ValidationError(
+                _(
+                    "The USL Pocket ID provider is environment-managed. "
+                    "Use the documented configuration helper.",
+                ),
+            )
+        return super().write(values)
+
+    def _usl_pocketid_environment_write(self, values):
+        self.ensure_one()
+        expected_provider = self.env.ref("usl_pocketid.provider_pocketid")
+        if self != expected_provider or not self.usl_pocketid:
+            raise ValidationError(_("This is not the governed Pocket ID provider."))
+        return super().write(values)
+
+    @api.ondelete(at_uninstall=False)
+    def _prevent_pocketid_provider_deletion(self):
+        if any(self.mapped("usl_pocketid")):
+            raise ValidationError(
+                _(
+                    "The USL Pocket ID provider must be disabled through "
+                    "environment configuration, not deleted.",
+                ),
+            )
+
     @api.constrains("usl_pocketid", "client_secret")
     def _check_pocketid_secret_not_stored(self):
         for provider in self:
@@ -86,7 +136,7 @@ class AuthOauthProvider(models.Model):
                 raise ValidationError(
                     _(
                         "Pocket ID client secrets must come from "
-                        "USL_POCKET_ID_CLIENT_SECRET and cannot be stored in Odoo."
+                        "USL_POCKET_ID_CLIENT_SECRET and cannot be stored in Odoo.",
                     ),
                 )
 
@@ -98,7 +148,14 @@ class AuthOauthProvider(models.Model):
             raise ValidationError(_("Only one USL Pocket ID provider is allowed."))
 
     @api.model
-    def _usl_validate_url(self, url, *, label, allow_path=True):
+    def _usl_validate_url(
+        self,
+        url,
+        *,
+        label,
+        allow_path=True,
+        allow_query=True,
+    ):
         parsed = urlsplit(url)
         if (
             not parsed.hostname
@@ -106,6 +163,7 @@ class AuthOauthProvider(models.Model):
             or parsed.password
             or parsed.fragment
             or (not allow_path and parsed.path not in ("", "/"))
+            or (not allow_query and parsed.query)
         ):
             raise ValidationError(_("%(label)s is not a safe absolute URL.", label=label))
         if parsed.scheme == "https":
@@ -124,7 +182,11 @@ class AuthOauthProvider(models.Model):
 
     @api.model
     def _usl_discover_pocketid(self, issuer):
-        issuer = self._usl_validate_url(issuer, label=_("Pocket ID issuer"))
+        issuer = self._usl_validate_url(
+            issuer,
+            label=_("Pocket ID issuer"),
+            allow_query=False,
+        )
         discovery_url = f"{issuer}/.well-known/openid-configuration"
         try:
             response = requests.get(discovery_url, timeout=10)
@@ -176,7 +238,14 @@ class AuthOauthProvider(models.Model):
     def _usl_pocketid_apply_environment(self):
         provider = self.env.ref("usl_pocketid.provider_pocketid").sudo()
         if not _env_enabled("USL_POCKET_ID_ENABLED"):
-            provider.write({"enabled": False, "client_secret": False})
+            provider._usl_pocketid_environment_write(
+                {"enabled": False, "client_secret": False},
+            )
+            self.env["usl.oidc.audit.event"]._record(
+                event_type="configuration",
+                reason_code="environment_disabled",
+                provider_id=provider.id,
+            )
             return False
 
         issuer = os.getenv("USL_POCKET_ID_ISSUER", "").strip()
@@ -210,6 +279,7 @@ class AuthOauthProvider(models.Model):
             public_base_url,
             label=_("Odoo public base URL"),
             allow_path=False,
+            allow_query=False,
         )
         discovery = self._usl_discover_pocketid(issuer)
         requested_auth_method = os.getenv(
@@ -234,7 +304,7 @@ class AuthOauthProvider(models.Model):
                 _("Pocket ID does not advertise the selected client authentication."),
             )
 
-        provider.write(
+        provider._usl_pocketid_environment_write(
             {
                 "name": "Pocket ID",
                 "flow": "id_token_code",
@@ -257,27 +327,32 @@ class AuthOauthProvider(models.Model):
                 "usl_token_auth_method": token_auth_method,
             },
         )
+        self.env["usl.oidc.audit.event"]._record(
+            event_type="configuration",
+            reason_code="environment_enabled",
+            provider_id=provider.id,
+        )
         return True
 
     def _usl_pocketid_redirect_uri(self):
         self.ensure_one()
         if not self.usl_public_base_url:
-            raise PocketIDAccessDenied("configuration")
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
         return f"{self.usl_public_base_url.rstrip('/')}/auth_oauth/signin"
 
     def _usl_pocketid_client_secret(self):
         self.ensure_one()
         secret = os.getenv("USL_POCKET_ID_CLIENT_SECRET", "")
         if not secret:
-            raise PocketIDAccessDenied("configuration")
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
         return secret
 
     def _usl_exchange_code(self, *, code, code_verifier, redirect_uri):
         self.ensure_one()
         if not self.usl_pocketid or not self.enabled:
-            raise PocketIDAccessDenied("configuration")
+            raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
         if not code or len(code) > 4096:
-            raise PocketIDAccessDenied("provider_denied")
+            raise PocketIDAccessDenied(PocketIDReason.PROVIDER_DENIED)
         data = {
             "client_id": self.client_id,
             "grant_type": "authorization_code",
@@ -307,9 +382,9 @@ class AuthOauthProvider(models.Model):
                 f" with HTTP {status}" if status else "",
             )
             reason = (
-                "provider_denied"
+                PocketIDReason.PROVIDER_DENIED
                 if status is not None and 400 <= status < 500
-                else "provider_unavailable"
+                else PocketIDReason.PROVIDER_UNAVAILABLE
             )
             raise PocketIDAccessDenied(reason) from error
         access_token = token_response.get("access_token")
@@ -320,7 +395,7 @@ class AuthOauthProvider(models.Model):
             or not isinstance(id_token, str)
             or str(token_type).lower() != "bearer"
         ):
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         return access_token, id_token
 
     def _usl_get_signing_keys(self, kid):
@@ -328,16 +403,29 @@ class AuthOauthProvider(models.Model):
         try:
             response = requests.get(self.jwks_uri, timeout=10)
             response.raise_for_status()
-            content_length = response.headers.get("Content-Length")
-            if content_length and int(content_length) > _MAX_JWKS_BYTES:
-                raise ValueError("JWKS response is too large")
-            content = response.content
-            if len(content) > _MAX_JWKS_BYTES:
-                raise ValueError("JWKS response is too large")
-            payload = response.json()
-        except (requests.RequestException, TypeError, ValueError) as error:
+        except requests.RequestException as error:
             _logger.warning("Pocket ID JWKS could not be loaded safely.")
-            raise PocketIDAccessDenied("provider_unavailable") from error
+            raise PocketIDAccessDenied(
+                PocketIDReason.PROVIDER_UNAVAILABLE,
+            ) from error
+        content_length = response.headers.get("Content-Length")
+        try:
+            declared_size = int(content_length) if content_length else 0
+        except (TypeError, ValueError) as error:
+            _logger.warning("Pocket ID JWKS returned an invalid content length.")
+            raise PocketIDAccessDenied(
+                PocketIDReason.PROVIDER_UNAVAILABLE,
+            ) from error
+        if declared_size > _MAX_JWKS_BYTES or len(response.content) > _MAX_JWKS_BYTES:
+            _logger.warning("Pocket ID JWKS exceeded the configured size limit.")
+            raise PocketIDAccessDenied(PocketIDReason.PROVIDER_UNAVAILABLE)
+        try:
+            payload = response.json()
+        except (TypeError, ValueError) as error:
+            _logger.warning("Pocket ID JWKS could not be loaded safely.")
+            raise PocketIDAccessDenied(
+                PocketIDReason.PROVIDER_UNAVAILABLE,
+            ) from error
         keys = payload.get("keys") if isinstance(payload, dict) else None
         if (
             not isinstance(keys, list)
@@ -345,9 +433,9 @@ class AuthOauthProvider(models.Model):
             or len(keys) > _MAX_JWKS_KEYS
             or any(not isinstance(key, dict) for key in keys)
         ):
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         if kid is None and len(keys) != 1:
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         matching_keys = [
             key
             for key in keys
@@ -359,7 +447,7 @@ class AuthOauthProvider(models.Model):
             )
         ]
         if not matching_keys:
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         return matching_keys
 
     def _usl_validate_id_token(self, *, id_token, access_token, nonce):
@@ -367,10 +455,10 @@ class AuthOauthProvider(models.Model):
         try:
             header = jwt.get_unverified_header(id_token)
         except JWTError as error:
-            raise PocketIDAccessDenied("token_invalid") from error
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID) from error
         algorithm = header.get("alg")
         if algorithm not in _SUPPORTED_SIGNING_ALGORITHMS:
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         keys = self._usl_get_signing_keys(header.get("kid"))
         last_error = None
         claims = None
@@ -400,16 +488,16 @@ class AuthOauthProvider(models.Model):
                 "Pocket ID ID-token validation failed: %s.",
                 type(last_error).__name__ if last_error else "no_matching_key",
             )
-            raise PocketIDAccessDenied("token_invalid") from last_error
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID) from last_error
         claim_nonce = claims.get("nonce")
         if (
             not isinstance(claim_nonce, str)
             or not secrets.compare_digest(claim_nonce, nonce)
         ):
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         subject = claims.get("sub")
         if not isinstance(subject, str) or not subject or len(subject) > 255:
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         audience = claims.get("aud")
         authorized_party = claims.get("azp")
         if (
@@ -417,9 +505,9 @@ class AuthOauthProvider(models.Model):
             and len(audience) > 1
             and authorized_party != self.client_id
         ):
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         if authorized_party and authorized_party != self.client_id:
-            raise PocketIDAccessDenied("token_invalid")
+            raise PocketIDAccessDenied(PocketIDReason.TOKEN_INVALID)
         groups = claims.get("groups", [])
         if isinstance(groups, str):
             groups = [groups]
@@ -427,5 +515,5 @@ class AuthOauthProvider(models.Model):
             not isinstance(groups, list)
             or self.usl_required_group not in groups
         ):
-            raise PocketIDAccessDenied("group_required")
+            raise PocketIDAccessDenied(PocketIDReason.GROUP_REQUIRED)
         return claims

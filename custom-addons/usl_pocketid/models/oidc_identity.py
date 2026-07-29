@@ -139,6 +139,11 @@ class OidcIdentity(models.Model):
         return identities
 
     def write(self, values):
+        immutable_fields = {"link_method", "linked_at", "linked_by_id"}
+        if immutable_fields.intersection(values):
+            raise ValidationError(
+                _("The original identity-link method, actor and time are immutable."),
+            )
         previous = {
             identity.id: (
                 identity.user_id,
@@ -173,6 +178,9 @@ class OidcIdentity(models.Model):
             if changed_link:
                 event_type = "identity_relinked"
                 reason_code = "explicit_relink"
+            elif not old_active and identity.active:
+                event_type = "identity_enabled"
+                reason_code = "explicit_enable"
             elif old_active and not identity.active:
                 event_type = "identity_disabled"
                 reason_code = "explicit_disable"
@@ -193,4 +201,3 @@ class OidcIdentity(models.Model):
         raise ValidationError(
             _("OIDC identity links must be disabled or relinked, not deleted."),
         )
-

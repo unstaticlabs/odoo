@@ -65,6 +65,7 @@
                 <field name="occurred_at"/>
                 <field name="event_type"/>
                 <field name="reason_code"/>
+                <field name="actor_id"/>
                 <field name="user_id"/>
                 <field name="subject_fingerprint"/>
                 <field name="provider_id" optional="hide"/>
@@ -93,4 +94,3 @@
         sequence="36"
         groups="base.group_system"/>
 </odoo>
-

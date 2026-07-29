@@ -1,3 +1,1 @@
-from . import test_identity_governance
-from . import test_oidc_security
-
+from . import test_identity_governance, test_oidc_security

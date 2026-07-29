@@ -18,8 +18,10 @@ class OidcAuditEvent(models.Model):
             ("login_denied", "Login denied"),
             ("identity_linked", "Identity linked"),
             ("identity_relinked", "Identity relinked"),
+            ("identity_enabled", "Identity enabled"),
             ("identity_disabled", "Identity disabled"),
             ("configuration", "Configuration changed"),
+            ("user_policy", "User policy applied"),
         ],
         required=True,
         readonly=True,
@@ -27,6 +29,11 @@ class OidcAuditEvent(models.Model):
     reason_code = fields.Char(required=True, readonly=True)
     provider_id = fields.Many2one(
         "auth.oauth.provider",
+        ondelete="set null",
+        readonly=True,
+    )
+    actor_id = fields.Many2one(
+        "res.users",
         ondelete="set null",
         readonly=True,
     )
@@ -40,10 +47,12 @@ class OidcAuditEvent(models.Model):
 
     @api.model
     def _record(self, *, event_type, reason_code, **values):
+        actor_id = values.pop("actor_id", self.env.user.id)
         return self.sudo().create(
             {
                 "event_type": event_type,
                 "reason_code": reason_code,
+                "actor_id": actor_id,
                 **values,
             },
         )
@@ -51,4 +60,3 @@ class OidcAuditEvent(models.Model):
     @api.ondelete(at_uninstall=False)
     def _prevent_audit_deletion(self):
         raise UserError(self.env._("OIDC audit events cannot be deleted."))
-
