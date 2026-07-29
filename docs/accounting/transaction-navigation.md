@@ -74,6 +74,8 @@ completed matches are kept read-only to protect their accounting links.
 - Restoring a line through browser Back selects that routed line without
   reloading the whole Accounting action or writing history again. Returning
   across an Accounting feature boundary still uses Odoo's normal action router.
+  If Back or Forward remounts Bank Matching, the routed line is carried through
+  that action remount instead of briefly opening an unselected queue.
   Automatic advancement after a completed match replaces the current line
   synchronously instead of creating a false user-navigation step.
 
