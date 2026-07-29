@@ -9,8 +9,13 @@ The test has two applications:
 - Odoo at `http://127.0.0.1:18080`
 - Paperless at `http://127.0.0.1:8010`
 
-Ask the environment owner for the local-only logins. Start in Odoo unless a
-step explicitly asks you to use Paperless.
+The local-only human logins follow the QA convention:
+
+- Odoo administrator: `admin` / `admin`
+- Odoo restricted user: `documents-restricted` / `admin`
+- Paperless archive administrator: `archive-admin` / `admin`
+
+Start in Odoo unless a step explicitly asks you to use Paperless.
 
 ## Start and stop this QA environment
 

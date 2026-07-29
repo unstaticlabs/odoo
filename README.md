@@ -300,6 +300,11 @@ Email/Login: admin
 Password: admin
 ```
 
+Disposable human QA accounts use the same simple convention:
+`admin` / `admin` for the administrator and `<login>` / `admin` for every
+named QA user. This convention must never be used in staging or production and
+does not apply to database passwords, API tokens, or application secret keys.
+
 The Compose Odoo service uses:
 
 ```ini
@@ -321,8 +326,8 @@ scripts/odoo-dev bootstrap-einvoice-qa
 ```
 
 The bootstrap refuses existing company identities and any enabled live guard.
-It makes no network call. Log in as `qa.manager` / `qa-manager` or
-`qa.reviewer` / `qa-reviewer`.
+It makes no network call. Log in as `qa.manager` / `admin` or
+`qa.reviewer` / `admin`.
 
 ### Helper commands
 

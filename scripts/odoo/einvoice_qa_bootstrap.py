@@ -121,7 +121,7 @@ def bootstrap(env):
         env,
         login="qa.manager",
         name="QA Accounting Manager",
-        password="qa-manager",
+        password="admin",
         groups=base_user | env.ref("account.group_account_manager"),
         company=company,
     )
@@ -129,7 +129,7 @@ def bootstrap(env):
         env,
         login="qa.reviewer",
         name="QA Read-Only Accountant",
-        password="qa-reviewer",
+        password="admin",
         groups=(
             base_user
             | env.ref("account.group_account_readonly")
