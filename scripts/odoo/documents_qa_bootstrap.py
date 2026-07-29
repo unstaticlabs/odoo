@@ -128,20 +128,23 @@ if not restricted_company:
 restricted_user = env["res.users"].with_context(no_reset_password=True).search(
     [("login", "=", "documents-restricted")], limit=1
 )
+restricted_user_values = {
+    "name": "Documents Restricted User",
+    "login": "documents-restricted",
+    "password": "admin",
+    "company_id": restricted_company.id,
+    "company_ids": [(6, 0, [restricted_company.id])],
+    "group_ids": [(6, 0, [
+        env.ref("base.group_user").id,
+        env.ref("usl_documents.group_documents_user").id,
+    ])],
+}
 if not restricted_user:
-    restricted_user = env["res.users"].with_context(no_reset_password=True).create({
-        "name": "Documents Restricted User",
-        "login": "documents-restricted",
-        "password": os.environ.get(
-            "ODOO_DOCUMENTS_QA_RESTRICTED_PASSWORD", "documents-local-only"
-        ),
-        "company_id": restricted_company.id,
-        "company_ids": [(6, 0, [restricted_company.id])],
-        "group_ids": [(6, 0, [
-            env.ref("base.group_user").id,
-            env.ref("usl_documents.group_documents_user").id,
-        ])],
-    })
+    restricted_user = env["res.users"].with_context(
+        no_reset_password=True
+    ).create(restricted_user_values)
+else:
+    restricted_user.write(restricted_user_values)
 env.cr.commit()
 print(
     "Documents QA ready:",
