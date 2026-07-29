@@ -471,6 +471,9 @@ class TestDeclarationAndClosing(TransactionCase):
             "Foreign exchange income",
             "income",
         )
+        # This test deliberately posts a wrong-way income balance to verify
+        # the downstream Hygiene detector rather than the posting guard.
+        income.rebuild_entry_direction_policy = "none"
         equity = self._account(
             company,
             "101991",
