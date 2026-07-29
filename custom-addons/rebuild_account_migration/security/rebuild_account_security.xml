@@ -157,4 +157,11 @@
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
+
+    <record id="rule_rebuild_account_hygiene_dismissal_company" model="ir.rule">
+        <field name="name">Accounting Hygiene dismissals: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_hygiene_dismissal"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
 </odoo>

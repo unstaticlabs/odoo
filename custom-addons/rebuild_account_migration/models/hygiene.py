@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 from odoo import api, fields, models
@@ -17,6 +18,15 @@ class RebuildAccountHygieneIssue(models.Model):
     )
 
     issue_key = fields.Char(required=True, index=True, readonly=True)
+    evidence_fingerprint = fields.Char(
+        index=True,
+        readonly=True,
+        copy=False,
+        help=(
+            "Deterministic identity of the records and material evidence "
+            "currently covered by this result."
+        ),
+    )
     definition_id = fields.Many2one(
         "rebuild.account.closing.control.definition",
         string="Accounting Control",
@@ -131,6 +141,12 @@ class RebuildAccountHygieneIssue(models.Model):
     resolved_at = fields.Datetime(readonly=True)
     dismissed_at = fields.Datetime(readonly=True)
     dismissed_by_id = fields.Many2one("res.users", readonly=True)
+    dismissal_ids = fields.One2many(
+        "rebuild.account.hygiene.dismissal",
+        "issue_id",
+        string="Dismissal History",
+        readonly=True,
+    )
 
     @staticmethod
     def _counted(count, singular, plural=None):
@@ -513,9 +529,68 @@ class RebuildAccountHygieneIssue(models.Model):
         return getattr(self, evaluator_name)(company)
 
     @api.model
+    def _evidence_fingerprint(self, values):
+        try:
+            target_res_ids = json.loads(
+                values.get("target_res_ids_json") or "[]",
+            )
+        except (TypeError, ValueError):
+            target_res_ids = []
+        payload = {
+            "control_code": values.get("control_code"),
+            "definition_version": values.get("definition_version"),
+            "issue_date": fields.Date.to_string(values.get("issue_date")),
+            "result_kind": values.get("result_kind") or "accounting",
+            "severity": values.get("severity"),
+            "target_model": values.get("target_model"),
+            "target_res_ids": sorted({int(record_id) for record_id in target_res_ids}),
+            "amount": f"{float(values.get('amount') or 0.0):.6f}",
+        }
+        if payload["result_kind"] == "technical":
+            payload["technical_evidence"] = values.get("evidence")
+        serialized = json.dumps(
+            payload,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        return hashlib.sha256(serialized.encode()).hexdigest()
+
+    def _record_legacy_dismissal(self, evidence_fingerprint):
+        self.ensure_one()
+        if not self.dismissed_at or self.dismissal_ids:
+            return None
+        return self.env["rebuild.account.hygiene.dismissal"].create(
+            self._dismissal_history_values(evidence_fingerprint),
+        )
+
+    def _dismissal_history_values(self, evidence_fingerprint=None):
+        self.ensure_one()
+        try:
+            target_res_ids = json.loads(self.target_res_ids_json or "[]")
+        except (TypeError, ValueError):
+            target_res_ids = []
+        related_count = len(set(target_res_ids)) or int(bool(self.target_res_id))
+        return {
+            "issue_id": self.id,
+            "company_id": self.company_id.id,
+            "evidence_fingerprint": (
+                evidence_fingerprint or self.evidence_fingerprint
+            ),
+            "dismissed_at": self.dismissed_at or fields.Datetime.now(),
+            "dismissed_by_id": self.dismissed_by_id.id or self.env.user.id,
+            "related_record_count": related_count,
+            "target_model": self.target_model,
+            "target_res_ids_json": self.target_res_ids_json,
+            "evidence_snapshot": self.evidence,
+        }
+
+    @api.model
     def sync_for_company(self, company):
         company.ensure_one()
         candidate_values = self._candidate_values(company)
+        for values in candidate_values:
+            values["evidence_fingerprint"] = self._evidence_fingerprint(values)
         candidates_by_key = {
             values["issue_key"]: values for values in candidate_values
         }
@@ -529,13 +604,52 @@ class RebuildAccountHygieneIssue(models.Model):
                 self.create(values)
                 continue
             if issue.status == "dismissed":
-                issue.write({"last_detected_at": values["last_detected_at"]})
-                continue
-            values.update({"status": "open", "resolved_at": False})
+                if not issue.evidence_fingerprint:
+                    issue._record_legacy_dismissal(
+                        values["evidence_fingerprint"],
+                    )
+                    issue.dismissal_ids.filtered(
+                        lambda dismissal: (
+                            not dismissal.superseded_at
+                            and not dismissal.evidence_fingerprint
+                        ),
+                    ).write({
+                        "evidence_fingerprint": values[
+                            "evidence_fingerprint"
+                        ],
+                    })
+                    issue.write({
+                        "evidence_fingerprint": values["evidence_fingerprint"],
+                        "last_detected_at": values["last_detected_at"],
+                    })
+                    continue
+                if (
+                    issue.evidence_fingerprint
+                    == values["evidence_fingerprint"]
+                ):
+                    issue.write({
+                        "last_detected_at": values["last_detected_at"],
+                    })
+                    continue
+                active_dismissals = issue.dismissal_ids.filtered(
+                    lambda dismissal: not dismissal.superseded_at,
+                )
+                active_dismissals.write({
+                    "superseded_at": fields.Datetime.now(),
+                })
+            values.update({
+                "status": "open",
+                "resolved_at": False,
+                "dismissed_at": False,
+                "dismissed_by_id": False,
+            })
             issue.write(values)
         resolved_at = fields.Datetime.now()
         for issue_key, issue in existing.items():
-            if issue_key not in candidates_by_key and issue.status != "resolved":
+            if (
+                issue_key not in candidates_by_key
+                and issue.status == "open"
+            ):
                 issue.write({"status": "resolved", "resolved_at": resolved_at})
         return self.search([("company_id", "=", company.id)])
 
@@ -598,9 +712,71 @@ class RebuildAccountHygieneIssue(models.Model):
     def action_dismiss(self):
         if not self.env.user.has_group("account.group_account_manager"):
             raise AccessError("Only an Accounting Manager can dismiss a Hygiene issue.")
-        self.write({
-            "status": "dismissed",
-            "dismissed_at": fields.Datetime.now(),
-            "dismissed_by_id": self.env.user.id,
-        })
-        return {"type": "ir.actions.client", "tag": "reload"}
+        for issue in self:
+            if issue.status != "open":
+                continue
+            dismissed_at = fields.Datetime.now()
+            issue.write({
+                "status": "dismissed",
+                "dismissed_at": dismissed_at,
+                "dismissed_by_id": self.env.user.id,
+            })
+            issue.env["rebuild.account.hygiene.dismissal"].create(
+                issue._dismissal_history_values(),
+            )
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Issue dismissed",
+                "message": (
+                    "This occurrence is hidden. The control remains active "
+                    "for new or changed records."
+                ),
+                "type": "success",
+                "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "reload"},
+            },
+        }
+
+
+class RebuildAccountHygieneDismissal(models.Model):
+    _name = "rebuild.account.hygiene.dismissal"
+    _description = "Accounting Hygiene Dismissal"
+    _order = "dismissed_at desc, id desc"
+
+    issue_id = fields.Many2one(
+        "rebuild.account.hygiene.issue",
+        required=True,
+        index=True,
+        ondelete="cascade",
+        readonly=True,
+    )
+    company_id = fields.Many2one(
+        "res.company",
+        required=True,
+        index=True,
+        readonly=True,
+    )
+    evidence_fingerprint = fields.Char(index=True, readonly=True)
+    dismissed_at = fields.Datetime(required=True, readonly=True)
+    dismissed_by_id = fields.Many2one(
+        "res.users",
+        required=True,
+        readonly=True,
+    )
+    related_record_count = fields.Integer(
+        string="Records",
+        readonly=True,
+    )
+    target_model = fields.Char(readonly=True)
+    target_res_ids_json = fields.Text(readonly=True)
+    evidence_snapshot = fields.Text(string="Evidence", readonly=True)
+    superseded_at = fields.Datetime(
+        string="Reopened On",
+        readonly=True,
+        help=(
+            "When set, new or materially changed evidence made the control "
+            "actionable again."
+        ),
+    )

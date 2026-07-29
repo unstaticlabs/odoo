@@ -62,6 +62,8 @@ definition only after historical results have frozen its provenance.
 ## Runtime use
 
 - Hygiene and Closing execute only enabled, current and effective Controls.
+- A Hygiene dismissal is scoped to the current material-evidence fingerprint;
+  it does not change Control configuration or suppress later evidence.
 - The report client resolves the active Report for the selected company and
   period. Its filter/export capabilities and default hierarchy govern the
   runtime session. The same resolved definition also supplies validated visual

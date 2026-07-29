@@ -3057,6 +3057,25 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(action["context"]["search_default_open"], 1)
 
+        issue_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_hygiene_issue_form",
+        )._get_combined_arch()
+        dismiss_button = issue_form.xpath(
+            "//button[@name='action_dismiss']",
+        )
+        self.assertEqual(len(dismiss_button), 1)
+        self.assertIn(
+            "only the current related-record scope",
+            dismiss_button[0].get("confirm"),
+        )
+        self.assertIn(
+            "control remains active",
+            dismiss_button[0].get("confirm"),
+        )
+        self.assertTrue(
+            issue_form.xpath("//field[@name='dismissal_ids']"),
+        )
+
     def test_journal_items_use_the_shared_matching_reference_chip(self):
         journal_items_view = self.env.ref(
             "account.view_move_line_tree",

@@ -877,6 +877,205 @@ class TestDeclarationAndClosing(TransactionCase):
             all(issue.resolved_at for issue in bill_issues),
         )
 
+    def test_hygiene_dismissal_is_scoped_to_material_evidence(self):
+        company = self._company("Scoped Hygiene Dismissal Company")
+        expense_account = self._account(
+            company,
+            "606200",
+            "Dismissal supplies",
+            "expense",
+        )
+        payable_account = self._account(
+            company,
+            "401200",
+            "Dismissal suppliers",
+            "liability_payable",
+            True,
+        )
+        journal = self.env["account.journal"].with_company(company).create({
+            "name": "Dismissal Purchases",
+            "code": "DISM",
+            "type": "purchase",
+            "company_id": company.id,
+            "default_account_id": expense_account.id,
+        })
+        partner = self.env["res.partner"].with_company(company).create({
+            "name": "Dismissal Supplier",
+            "company_id": company.id,
+            "property_account_payable_id": payable_account.id,
+        })
+
+        def create_bill(price_unit):
+            return self.env["account.move"].with_company(company).create({
+                "move_type": "in_invoice",
+                "company_id": company.id,
+                "journal_id": journal.id,
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.context_today(self.env.user),
+                "invoice_line_ids": [
+                    Command.create({
+                        "name": "Office supplies",
+                        "account_id": expense_account.id,
+                        "quantity": 1,
+                        "price_unit": price_unit,
+                    }),
+                ],
+            })
+
+        first_bill = create_bill(120.0)
+        Issue = self.env["rebuild.account.hygiene.issue"].with_company(company)
+        Issue.sync_for_company(company)
+        issue = Issue.search([
+            ("company_id", "=", company.id),
+            ("control_code", "=", "hygiene_vendor_evidence"),
+        ])
+        self.assertEqual(len(issue), 1)
+        original_fingerprint = issue.evidence_fingerprint
+        self.assertTrue(original_fingerprint)
+        self.assertTrue(issue.definition_id.enabled)
+
+        issue.write({
+            "status": "dismissed",
+            "dismissed_at": fields.Datetime.now(),
+            "dismissed_by_id": self.env.user.id,
+            "evidence_fingerprint": False,
+        })
+        Issue.sync_for_company(company)
+        self.assertEqual(issue.status, "dismissed")
+        self.assertEqual(issue.evidence_fingerprint, original_fingerprint)
+        self.assertEqual(len(issue.dismissal_ids), 1)
+        self.assertEqual(
+            issue.dismissal_ids.evidence_fingerprint,
+            original_fingerprint,
+        )
+        issue.dismissal_ids.unlink()
+        issue.write({
+            "status": "open",
+            "dismissed_at": False,
+            "dismissed_by_id": False,
+            "evidence_fingerprint": False,
+        })
+
+        notification = issue.action_dismiss()
+        self.assertEqual(issue.status, "dismissed")
+        self.assertEqual(len(issue.dismissal_ids), 1)
+        self.assertFalse(issue.dismissal_ids.superseded_at)
+        self.assertFalse(issue.dismissal_ids.evidence_fingerprint)
+        self.assertEqual(issue.dismissal_ids.related_record_count, 1)
+        self.assertEqual(notification["tag"], "display_notification")
+        self.assertIn(
+            "control remains active",
+            notification["params"]["message"],
+        )
+
+        Issue.sync_for_company(company)
+        self.assertEqual(issue.status, "dismissed")
+        self.assertEqual(issue.evidence_fingerprint, original_fingerprint)
+        self.assertEqual(
+            issue.dismissal_ids.evidence_fingerprint,
+            original_fingerprint,
+        )
+        self.assertEqual(len(issue.dismissal_ids), 1)
+
+        second_bill = create_bill(80.0)
+        Issue.sync_for_company(company)
+        self.assertEqual(issue.status, "open")
+        self.assertNotEqual(issue.evidence_fingerprint, original_fingerprint)
+        self.assertTrue(issue.dismissal_ids.superseded_at)
+        self.assertEqual(
+            set(json.loads(issue.target_res_ids_json)),
+            {first_bill.id, second_bill.id},
+        )
+
+        reopened_fingerprint = issue.evidence_fingerprint
+        Issue.sync_for_company(company)
+        self.assertEqual(issue.status, "open")
+        self.assertEqual(issue.evidence_fingerprint, reopened_fingerprint)
+        self.assertEqual(
+            Issue.search_count([
+                ("company_id", "=", company.id),
+                ("issue_key", "=", issue.issue_key),
+            ]),
+            1,
+        )
+
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Hygiene Dismissal Reviewer",
+            "login": "hygiene.dismissal.reviewer@example.invalid",
+            "email": "hygiene.dismissal.reviewer@example.invalid",
+            "company_id": company.id,
+            "company_ids": [Command.set([company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        with self.assertRaises(AccessError):
+            issue.with_user(reviewer).action_dismiss()
+
+        first_bill.button_cancel()
+        second_bill.button_cancel()
+        Issue.sync_for_company(company)
+        self.assertEqual(issue.status, "resolved")
+        self.assertTrue(issue.resolved_at)
+        self.assertEqual(len(issue.dismissal_ids), 1)
+
+    def test_hygiene_dismissal_is_company_scoped(self):
+        first_company = self._company("First Dismissal Company")
+        second_company = self._company("Second Dismissal Company")
+        Issue = self.env["rebuild.account.hygiene.issue"]
+        Definition = self.env[
+            "rebuild.account.closing.control.definition"
+        ]
+        first_definition = Definition._ensure_for_company(
+            first_company,
+        ).filtered(
+            lambda definition: (
+                definition.code == "hygiene_vendor_evidence"
+            ),
+        )
+        second_definition = Definition._ensure_for_company(
+            second_company,
+        ).filtered(
+            lambda definition: (
+                definition.code == "hygiene_vendor_evidence"
+            ),
+        )
+        common_values = {
+            "issue_key": "unit:company-scope",
+            "control_code": "hygiene_vendor_evidence",
+            "issue_type": "evidence",
+            "severity": "2_warning",
+            "title": "Company-scoped issue",
+            "description": "Company-scoped evidence.",
+            "why_it_matters": "Company boundaries matter.",
+            "recommended_action": "Review this company only.",
+            "accounting_consequence": "None outside this company.",
+            "evidence": "One unit-test record.",
+            "target_model": "res.company",
+            "target_res_ids_json": "[]",
+            "source_label": "Unit test",
+            "evidence_fingerprint": "company-scoped-fingerprint",
+        }
+        first_issue = Issue.create({
+            **common_values,
+            "company_id": first_company.id,
+            "definition_id": first_definition.id,
+            "target_res_id": first_company.id,
+        })
+        second_issue = Issue.create({
+            **common_values,
+            "company_id": second_company.id,
+            "definition_id": second_definition.id,
+            "target_res_id": second_company.id,
+        })
+
+        first_issue.action_dismiss()
+
+        self.assertEqual(first_issue.status, "dismissed")
+        self.assertEqual(second_issue.status, "open")
+        self.assertEqual(first_issue.dismissal_ids.company_id, first_company)
+        self.assertFalse(second_issue.dismissal_ids)
+
     def test_confirmed_vat_refund_reclassification_is_balanced_and_idempotent(self):
         company = self._company("VAT Reclassification Company")
         bank_account = self._account(company, "512TEST", "Test bank", "asset_cash")

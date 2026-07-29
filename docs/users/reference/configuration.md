@@ -161,6 +161,12 @@ naturally and a disabled Closing result disappears from the refreshed
 workspace; historical results remain available. Configuration never posts,
 reconciles, changes declarations or applies lock dates.
 
+Disabling a Control is different from dismissing a Hygiene occurrence.
+**Dismiss** acknowledges only the records and material evidence currently shown
+on one result. It leaves the Control enabled; new records or changed evidence
+can reopen that result. Disable a Control here only when the company no longer
+wants it evaluated in the selected workflows.
+
 Technical Administrators can inspect the installed evaluator key and technical
 boundary on **Advanced Logic**. The product deliberately uses whitelisted
 module evaluators instead of arbitrary Python entered in the UI.
