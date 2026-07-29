@@ -19,26 +19,19 @@ Runtime ownership inside the repository follows this order:
 3. isolated USL add-ons;
 4. a fork-level Odoo patch only when no stable extension point exists.
 
-The production add-on dependency direction is:
+The verified production add-on dependency direction is:
 
 ```text
 native Odoo + pinned OCA
           |
           v
    usl_accounting
-      /        \
-     v          v
-usl_accounting_controls   usl_accounting_einvoice
-     |
-     v
-usl_accounting_reports
-     \          /
-      v        v
-rebuild_account_migration
-  (compatibility, XML-ID ownership and reconstruction)
+          |
+          v
+rebuild_account_migration <--- usl_expense_batch <--- native hr_expense
+  (product compatibility, stable XML-ID ownership and reconstruction)
 
-usl_expense_batch -> native hr_expense
-rebuild_account_migration -> usl_expense_batch
+usl_bootstrap ---> native modules only (disposable test fixture)
 ```
 
 `rebuild_account_migration` remains the installed compatibility module during
@@ -59,10 +52,17 @@ extensions. Independent test and upgrade scope cannot be expressed.
 
 ### Extract cohesive feature modules while preserving database ownership
 
-This is selected. Python models, tests and non-database assets can move behind
-acyclic manifests. Existing `rebuild_account_migration.*` XML IDs stay where
-they are. Updating the compatibility module installs its new dependencies,
-then loads the same records against the same model and table names.
+This is selected only where extracted code extends existing native or OCA
+models and therefore does not take ownership of a new model. That proven
+boundary is `usl_accounting`. Existing `rebuild_account_migration.*` XML IDs
+stay where they are. Updating the compatibility module installs its new
+dependency, then loads the same records against the same native/OCA models.
+
+Controls, reports and electronic-invoice reception each define installed
+`rebuild.*` models. Extracting those Python classes would make Odoo generate
+new-module `ir.model` XML IDs even if table names stayed unchanged. They
+therefore remain compatibility-owned in this increment. Dedicated modules are
+a future option only with a separately rehearsed ownership migration.
 
 ### Replace the product with native or OCA modules
 
@@ -88,9 +88,9 @@ identifiers. It is explicitly rejected for this increment.
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference, reconciliation extensions and rule intelligence | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
-| Hygiene, Closing and Declarations | `usl_accounting_controls` | cohesive feature | focused lifecycle, ACL, company, period and idempotency tests |
-| Interactive reports, definitions, PDF/XLSX and OCA report defaults | `usl_accounting_reports` | cohesive feature | report screen/export parity and report presentation tests |
-| Electronic-invoice readiness and offline reception evidence | `usl_accounting_einvoice` | cohesive feature | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
+| Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |
+| Interactive reports, definitions, PDF/XLSX and OCA report defaults | compatibility module for this stage | stable report/wizard-model ownership, left unchanged | report screen/export parity and report presentation tests |
+| Electronic-invoice readiness and offline reception evidence | compatibility module for this stage | stable reception-model ownership, left unchanged | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
 | Expense claims/batches | `usl_expense_batch` | retained independent feature | clean module and browser tests |
 | Overview and cash projections | compatibility module for this stage | uncertain cross-feature boundary, left unchanged | depends on controls, reports and reconstructed evidence |
 | Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
@@ -157,12 +157,10 @@ This refactor does not modify either patch.
 
 - Extend native/OCA behavior in `usl_accounting` when it is a shared
   operational Accounting concern.
-- Extend one governed Control, Closing or Declaration lifecycle in
-  `usl_accounting_controls`.
-- Extend statement presentation, filters or exports in
-  `usl_accounting_reports`.
-- Extend offline readiness, reception evidence or activation safety in
-  `usl_accounting_einvoice`.
+- Extend a governed Control, report, declaration or e-invoice model in
+  `rebuild_account_migration` while it remains the compatibility owner. Keep
+  the code grouped by feature and do not introduce reconstruction dependencies
+  into runtime methods.
 - Extend expense-claim grouping in `usl_expense_batch`.
 - Put source extraction, source tracing, reconstruction and parity-only code
   in `rebuild_account_migration`; never expose it in ordinary UI.

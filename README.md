@@ -198,6 +198,21 @@ imported database.
 
 Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
 
+The production custom-module boundaries are:
+
+- `usl_accounting`: dependency-light extensions of native and pinned OCA
+  Accounting models;
+- `usl_expense_batch`: the independent Expenses claim-batch feature;
+- `rebuild_account_migration`: the historical compatibility owner for stable
+  product models, XML IDs and reconstruction entry points. Its technical name
+  is not exposed in normal Accounting navigation;
+- `usl_bootstrap`: a synthetic disposable test fixture, never a product
+  dependency.
+
+See
+[`docs/accounting/custom-addon-architecture.md`](docs/accounting/custom-addon-architecture.md)
+for dependency direction, ownership policy and future extraction rules.
+
 Useful commands inside the Dev Container:
 
 ```bash
