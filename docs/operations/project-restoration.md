@@ -35,16 +35,23 @@ The inspected snapshot contains:
 | Tasks and one task template | 1,793 |
 | Project stages / task stages | 4 / 99 |
 | Tags / milestones / recurrences / updates | 122 / 3 / 14 / 16 |
-| Task dependencies | 227 |
+| Task assignees / tags / parents / dependencies | 387 / 3,075 / 1,221 / 227 |
+| Project stage / tag / favourite links | 103 / 16 / 13 |
+| Task milestone / recurrence links | 66 / 9 |
 | Chatter messages / tracking values | 18,458 / 7,506 |
+| Message parents / recipients / attachment links | 14,432 / 48 / 13 |
 | Followers / activities | 2,051 / 658 |
-| Binary attachments | 38 |
+| Binary attachments | 38 (15,433,661 bytes) |
+| Project aliases / named local parts | 17 / 11 |
+| Analytic projects / linked expenses | 2 / 116 |
 
 Every imported model carries its source database, model, identifier, snapshot,
-status, and note. A repeat run updates that traced record. Followers use their
-native target uniqueness rule. Relationships are applied after record creation
-so parents, subtasks, blockers, message parents, attachments, and recipients
-can be resolved safely.
+status, and note. A newer snapshot or importer reconciliation revision updates
+that traced record. Repeating the same snapshot and reconciliation revision
+does not overwrite valid work continued in the target after cutover. Followers
+use their native target uniqueness rule. Relationships are applied after record
+creation so parents, subtasks, blockers, message parents, attachments, and
+recipients can be resolved safely.
 
 Existing target companies, partners, and users are matched conservatively by
 stable business identity before a record is created. Existing traced project
@@ -57,6 +64,12 @@ properties, updates, analytic account, chatter audit dates, followers,
 activities, and attachment bytes/checksums. A source activity without a user is
 assigned to the first task assignee, then the project manager, then the restore
 operator. Each such activity and the run issue log disclose the fallback.
+Readonly native task HTML revision history is reconciled after ORM creation so
+historical description revisions remain available. Project email-alias local
+parts and contact policies are retained while the target environment keeps its
+own mail domain. The source `odoo@unstaticlabs.com` ownership identity resolves
+to Valentin's existing target user through the shared partner identity; Roger
+retains his existing target account.
 
 ## Deliberate exclusions
 
@@ -114,8 +127,9 @@ Before product review:
    **Projects > Configuration > Restoration Runs**.
 2. Source and target counts match for every material perimeter in the table
    above.
-3. A second import has the same counts and creates no duplicate traced records,
-   messages, tracking values, activities, attachments, followers, or links.
+3. A second import has the same counts and hashes, creates no duplicate traced
+   records, messages, tracking values, activities, attachments, followers, or
+   links, and leaves post-cutover target edits intact.
 4. Two clean targets produce equivalent source-keyed project, task,
    relationship, mail, activity, and attachment checksums.
 5. Verify active and archived project/task actions, private-project rules,

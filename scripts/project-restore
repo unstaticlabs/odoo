@@ -77,6 +77,12 @@ import_projects() {
 
 validate_projects() {
     docker compose -p "$compose_project" --profile init run --rm \
+        -e PROJECT_SOURCE_DB_HOST="${PROJECT_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e PROJECT_SOURCE_DB_PORT="${PROJECT_SOURCE_DB_PORT:-5432}" \
+        -e PROJECT_SOURCE_DB_USER="${PROJECT_SOURCE_DB_USER:-odoo}" \
+        -e PROJECT_SOURCE_DB_PASSWORD="${PROJECT_SOURCE_DB_PASSWORD:-odoo}" \
+        -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-odoo-online-saas-19.2-projects}" \
         init-db \
         odoo shell --config=/etc/odoo/odoo.conf \
         --database="$target_database" \

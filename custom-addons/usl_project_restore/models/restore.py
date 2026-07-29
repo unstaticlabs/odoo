@@ -16,6 +16,7 @@ SOURCE_MODELS = (
     "project.update",
     "project.milestone",
 )
+RESTORE_REVISION = 6
 
 
 class UslProjectRestoreRun(models.Model):
@@ -100,10 +101,29 @@ class UslProjectRestoreRun(models.Model):
             "rebuild_source_snapshot": snapshot,
             "rebuild_import_status": status,
             "rebuild_import_note": (
-                f"Restored by Projects run {self.id} from "
+                f"Restored by Projects run {self.id}, revision "
+                f"{RESTORE_REVISION} from "
                 f"{self.source_database}."
             ),
         }
+
+    def _is_current_revision(self, record, snapshot):
+        return bool(
+            record
+            and record.rebuild_source_snapshot == snapshot
+            and f"revision {RESTORE_REVISION} " in (
+                record.rebuild_import_note or ""
+            ),
+        )
+
+    def _written_this_run(self, record):
+        return bool(
+            record
+            and (
+                f"Projects run {self.id}, revision {RESTORE_REVISION} "
+                in (record.rebuild_import_note or "")
+            ),
+        )
 
     def _traced(self, target_model, source_model, source_ids):
         source_ids = [source_id for source_id in source_ids if source_id]
@@ -148,9 +168,14 @@ class UslProjectRestoreRun(models.Model):
     ):
         traced = self._traced(target_model, source_model, [row["id"]])
         record = traced.get(row["id"])
+        trace_values = self._trace_values(
+            source_model,
+            row["id"],
+            snapshot,
+        )
         values = {
             **values,
-            **self._trace_values(source_model, row["id"], snapshot),
+            **trace_values,
         }
         model = (
             self.env[target_model]
@@ -163,9 +188,18 @@ class UslProjectRestoreRun(models.Model):
             )
         )
         if record:
+            if self._is_current_revision(record, snapshot):
+                return record
             record.with_context(tracking_disable=True).write(values)
         else:
             record = model.create(values)
+        if (
+            record.rebuild_source_model != source_model
+            or record.rebuild_source_id != row["id"]
+            or record.rebuild_source_snapshot != snapshot
+            or record.rebuild_import_note != trace_values["rebuild_import_note"]
+        ):
+            record.with_context(tracking_disable=True).write(trace_values)
         for field_name in translation_fields:
             translated = self._source_translation(row.get(field_name), "fr_FR")
             if translated and translated != self._source_text(row.get(field_name)):
@@ -175,6 +209,8 @@ class UslProjectRestoreRun(models.Model):
         return record
 
     def _stamp_audit(self, model_name, record, row, user_map):
+        if not self._written_this_run(record):
+            return
         table_by_model = {
             "project.project": "project_project",
             "project.project.stage": "project_project_stage",
@@ -184,6 +220,7 @@ class UslProjectRestoreRun(models.Model):
             "project.milestone": "project_milestone",
             "project.task.recurrence": "project_task_recurrence",
             "project.update": "project_update",
+            "ir.attachment": "ir_attachment",
             "mail.message": "mail_message",
             "mail.activity": "mail_activity",
         }
@@ -574,6 +611,43 @@ class UslProjectRestoreRun(models.Model):
             )
             projects[row["id"]] = record
             self._stamp_audit("project.project", record, row, users)
+            alias = record.alias_id
+            if (
+                row["alias_id"]
+                and alias
+                and self._written_this_run(record)
+            ):
+                source_alias_name = row["alias_name"] or False
+                conflict = self.env["mail.alias"].sudo().search(
+                    [
+                        ("id", "!=", alias.id),
+                        ("alias_name", "=", source_alias_name),
+                        ("alias_domain_id", "=", alias.alias_domain_id.id),
+                    ],
+                    limit=1,
+                )
+                if source_alias_name and conflict:
+                    self._issue(
+                        "error",
+                        "mail.alias",
+                        row["alias_id"],
+                        (
+                            f"Project alias {source_alias_name!r} conflicts "
+                            f"with target alias {conflict.id}."
+                        ),
+                    )
+                else:
+                    alias.sudo().write(
+                        {
+                            "alias_name": source_alias_name,
+                            "alias_contact": row["alias_contact"],
+                            **self._trace_values(
+                                "mail.alias",
+                                row["alias_id"],
+                                snapshot,
+                            ),
+                        },
+                    )
 
         stage_links = defaultdict(list)
         for row in payload["project_task_stage_rel"]:
@@ -590,15 +664,35 @@ class UslProjectRestoreRun(models.Model):
             if row["project_id"] in projects and row["user_id"] in users:
                 favorite_links[row["project_id"]].append(users[row["user_id"]].id)
         for source_id, project in projects.items():
-            project.with_context(tracking_disable=True).write(
-                {
-                    "type_ids": [Command.set(stage_links[source_id])],
-                    "tag_ids": [Command.set(tag_links[source_id])],
-                    "favorite_user_ids": [
-                        Command.set(favorite_links[source_id]),
-                    ],
-                },
+            missing_stage_ids = set(stage_links[source_id]) - set(
+                project.type_ids.ids,
             )
+            missing_tag_ids = set(tag_links[source_id]) - set(
+                project.tag_ids.ids,
+            )
+            missing_favorite_ids = set(favorite_links[source_id]) - set(
+                project.favorite_user_ids.ids,
+            )
+            relation_values = {}
+            if missing_stage_ids:
+                relation_values["type_ids"] = [
+                    Command.link(record_id)
+                    for record_id in missing_stage_ids
+                ]
+            if missing_tag_ids:
+                relation_values["tag_ids"] = [
+                    Command.link(record_id)
+                    for record_id in missing_tag_ids
+                ]
+            if missing_favorite_ids:
+                relation_values["favorite_user_ids"] = [
+                    Command.link(record_id)
+                    for record_id in missing_favorite_ids
+                ]
+            if relation_values:
+                project.with_context(tracking_disable=True).write(
+                    relation_values,
+                )
         return projects
 
     def _restore_tasks(
@@ -741,7 +835,10 @@ class UslProjectRestoreRun(models.Model):
                     row["id"],
                     f"Parent task {row['parent_id']} is unresolved.",
                 )
-            if task:
+            if task and (
+                self._written_this_run(task)
+                or (parent and not task.parent_id)
+            ):
                 task.with_context(tracking_disable=True).write(
                     {"parent_id": parent.id if parent else False},
                 )
@@ -762,49 +859,90 @@ class UslProjectRestoreRun(models.Model):
                     ),
                 )
         for source_id, blocker_ids in dependencies.items():
-            tasks[source_id].with_context(tracking_disable=True).write(
-                {"depend_on_ids": [Command.set(blocker_ids)]},
+            missing_blocker_ids = set(blocker_ids) - set(
+                tasks[source_id].depend_on_ids.ids,
             )
+            if missing_blocker_ids:
+                tasks[source_id].with_context(tracking_disable=True).write(
+                    {
+                        "depend_on_ids": [
+                            Command.link(blocker_id)
+                            for blocker_id in missing_blocker_ids
+                        ],
+                    },
+                )
 
-        # Creating a task directly in a folded stage makes Project stamp
-        # ``date_end`` with the current time.  That lifecycle convenience is
-        # correct for newly-created tasks, but not for restored history.  Do
-        # this final reconciliation after every ORM relationship write so the
-        # source lifecycle dates remain exact and clean restores are
-        # deterministic.
-        for row in payload["tasks"]:
-            task = tasks.get(row["id"])
-            if not task:
+        return tasks, milestones, recurrences
+
+    def _reconcile_volatile_history(
+        self,
+        payload,
+        projects,
+        tasks,
+        task_stages,
+    ):
+        # Project's ORM deliberately updates lifecycle fields as relationships,
+        # chatter and activities are created. Those conveniences are correct
+        # for live work, but restored history must retain its source values.
+        self.env.flush_all()
+        for row in payload["projects"]:
+            project = projects.get(row["id"])
+            if not project or not self._written_this_run(project):
                 continue
             self.env.cr.execute(
                 """
+                    UPDATE project_project
+                       SET date_last_stage_update = %s
+                     WHERE id = %s
+                """,
+                (row["date_last_stage_update"], project.id),
+            )
+            project.invalidate_recordset(["date_last_stage_update"])
+        for row in payload["tasks"]:
+            task = tasks.get(row["id"])
+            if not task or not self._written_this_run(task):
+                continue
+            stage = task_stages.get(row["stage_id"])
+            self.env.cr.execute(
+                """
                     UPDATE project_task
-                       SET date_end = %s,
+                       SET stage_id = %s,
+                           state = %s,
+                           description = %s,
+                           date_end = %s,
                            date_assign = %s,
                            date_deadline = %s,
                            date_last_stage_update = %s,
-                           planned_date_begin = %s
+                           planned_date_begin = %s,
+                           html_field_history = %s
                      WHERE id = %s
                 """,
                 (
+                    stage.id if stage else None,
+                    row["state"],
+                    row["description"],
                     row["date_end"],
                     row["date_assign"],
                     row["date_deadline"],
                     row["date_last_stage_update"],
                     row["planned_date_begin"],
+                    psycopg2.extras.Json(row["html_field_history"] or {}),
                     task.id,
                 ),
             )
             task.invalidate_recordset(
                 [
                     "date_end",
+                    "stage_id",
+                    "state",
+                    "description",
                     "date_assign",
                     "date_deadline",
                     "date_last_stage_update",
                     "planned_date_begin",
+                    "html_field_history",
                 ],
             )
-        return tasks, milestones
 
     def _restore_updates(
         self,
@@ -847,7 +985,10 @@ class UslProjectRestoreRun(models.Model):
         for row in payload["projects"]:
             project = projects.get(row["id"])
             update = updates.get(row["last_update_id"])
-            if project:
+            if project and (
+                self._written_this_run(project)
+                or (update and not project.last_update_id)
+            ):
                 project.with_context(tracking_disable=True).write(
                     {"last_update_id": update.id if update else False},
                 )
@@ -876,6 +1017,7 @@ class UslProjectRestoreRun(models.Model):
         snapshot,
         record_maps,
         filestore,
+        users,
     ):
         attachments = self._traced(
             "ir.attachment",
@@ -955,12 +1097,14 @@ class UslProjectRestoreRun(models.Model):
             }
             attachment = attachments.get(row["id"])
             if attachment:
-                immutable = dict(values)
-                immutable.pop("datas")
-                attachment.sudo().write(immutable)
+                if not self._is_current_revision(attachment, snapshot):
+                    immutable = dict(values)
+                    immutable.pop("datas")
+                    attachment.sudo().write(immutable)
             else:
                 attachment = self.env["ir.attachment"].sudo().create(values)
                 attachments[row["id"]] = attachment
+            self._stamp_audit("ir.attachment", attachment, row, users)
         return attachments
 
     def _restore_messages(
@@ -1045,7 +1189,8 @@ class UslProjectRestoreRun(models.Model):
             }
             message = existing.get(row["id"])
             if message:
-                message.sudo().write(values)
+                if not self._is_current_revision(message, snapshot):
+                    message.sudo().write(values)
             else:
                 message = (
                     self.env["mail.message"]
@@ -1062,7 +1207,10 @@ class UslProjectRestoreRun(models.Model):
         for row in payload["messages"]:
             message = messages.get(row["id"])
             parent = messages.get(row["parent_id"])
-            if message and parent:
+            if message and parent and (
+                self._written_this_run(message)
+                or not message.parent_id
+            ):
                 message.sudo().write({"parent_id": parent.id})
 
         existing_tracking = self._traced(
@@ -1112,7 +1260,8 @@ class UslProjectRestoreRun(models.Model):
             }
             tracking = existing_tracking.get(row["id"])
             if tracking:
-                tracking.sudo().write(values)
+                if not self._is_current_revision(tracking, snapshot):
+                    tracking.sudo().write(values)
             else:
                 existing_tracking[row["id"]] = (
                     self.env["mail.tracking.value"].sudo().create(values)
@@ -1138,7 +1287,13 @@ class UslProjectRestoreRun(models.Model):
             )
             if subtype:
                 follower_subtypes[row["follower_id"]].append(subtype.id)
+        existing_followers = self._traced(
+            "mail.followers",
+            "mail.followers",
+            [row["id"] for row in payload["followers"]],
+        )
         follower_count = 0
+        follower_subtype_count = 0
         for row in payload["followers"]:
             target_record = record_maps.get(row["res_model"], {}).get(
                 row["res_id"],
@@ -1152,14 +1307,16 @@ class UslProjectRestoreRun(models.Model):
                     "Follower record or partner is unresolved.",
                 )
                 continue
-            follower = self.env["mail.followers"].sudo().search(
-                [
-                    ("res_model", "=", row["res_model"]),
-                    ("res_id", "=", target_record.id),
-                    ("partner_id", "=", partner.id),
-                ],
-                limit=1,
-            )
+            follower = existing_followers.get(row["id"])
+            if not follower:
+                follower = self.env["mail.followers"].sudo().search(
+                    [
+                        ("res_model", "=", row["res_model"]),
+                        ("res_id", "=", target_record.id),
+                        ("partner_id", "=", partner.id),
+                    ],
+                    limit=1,
+                )
             values = {
                 "res_model": row["res_model"],
                 "res_id": target_record.id,
@@ -1167,12 +1324,20 @@ class UslProjectRestoreRun(models.Model):
                 "subtype_ids": [
                     Command.set(follower_subtypes[row["id"]]),
                 ],
+                **self._trace_values(
+                    "mail.followers",
+                    row["id"],
+                    snapshot,
+                ),
             }
             if follower:
-                follower.write(values)
+                if not self._is_current_revision(follower, snapshot):
+                    follower.write(values)
             else:
-                self.env["mail.followers"].sudo().create(values)
+                follower = self.env["mail.followers"].sudo().create(values)
+            existing_followers[row["id"]] = follower
             follower_count += 1
+            follower_subtype_count += len(follower_subtypes[row["id"]])
 
         activities = self._traced(
             "mail.activity",
@@ -1223,18 +1388,20 @@ class UslProjectRestoreRun(models.Model):
             }
             if not row["user_id"]:
                 values["rebuild_import_note"] = (
-                    "Source activity had no assigned user; assigned to the "
+                    values["rebuild_import_note"]
+                    + " Source activity had no assigned user; assigned to the "
                     "task assignee, project manager, or restore operator in "
                     "that order."
                 )
             activity = activities.get(row["id"])
             if activity:
-                activity.sudo().write(values)
+                if not self._is_current_revision(activity, snapshot):
+                    activity.sudo().write(values)
             else:
                 activity = self.env["mail.activity"].sudo().create(values)
                 activities[row["id"]] = activity
             self._stamp_audit("mail.activity", activity, row, users)
-            if not row["active"]:
+            if not row["active"] and self._written_this_run(activity):
                 self.env.cr.execute(
                     """
                         UPDATE mail_activity
@@ -1243,6 +1410,7 @@ class UslProjectRestoreRun(models.Model):
                     """,
                     (row["date_done"], activity.id),
                 )
+                activity.invalidate_recordset(["active", "date_done"])
         if fallback_assignment_count:
             self._issue(
                 "info",
@@ -1254,7 +1422,7 @@ class UslProjectRestoreRun(models.Model):
                     "task/project fallback rule."
                 ),
             )
-        return follower_count, len(activities)
+        return follower_count, follower_subtype_count, len(activities)
 
     def restore_from_payload(self, payload, *, filestore):
         self.ensure_one()
@@ -1281,7 +1449,7 @@ class UslProjectRestoreRun(models.Model):
             task_stages,
             tags,
         )
-        tasks, milestones = self._restore_tasks(
+        tasks, milestones, recurrences = self._restore_tasks(
             payload,
             snapshot,
             projects,
@@ -1308,6 +1476,7 @@ class UslProjectRestoreRun(models.Model):
             snapshot,
             record_maps,
             filestore,
+            users,
         )
         messages = self._restore_messages(
             payload,
@@ -1318,7 +1487,11 @@ class UslProjectRestoreRun(models.Model):
             users,
             attachments,
         )
-        follower_count, activity_count = self._restore_followers_activities(
+        (
+            follower_count,
+            follower_subtype_count,
+            activity_count,
+        ) = self._restore_followers_activities(
             payload,
             snapshot,
             record_maps,
@@ -1326,19 +1499,173 @@ class UslProjectRestoreRun(models.Model):
             users,
             activity_types,
         )
+        self._reconcile_volatile_history(
+            payload,
+            projects,
+            tasks,
+            task_stages,
+        )
+        project_ids = {record.id for record in projects.values()}
+        self.env.cr.execute(
+            """
+                SELECT count(DISTINCT expense.id)
+                  FROM hr_expense expense
+                  JOIN project_project project
+                    ON project.id = ANY(%s)
+                 WHERE project.account_id IS NOT NULL
+                   AND expense.rebuild_source_model = 'hr.expense'
+                   AND expense.rebuild_source_id = ANY(%s)
+                   AND expense.analytic_distribution
+                       ? project.account_id::text
+            """,
+            (
+                list(project_ids),
+                payload["linked_expense_ids"] or [0],
+            ),
+        )
+        linked_expense_count = self.env.cr.fetchone()[0]
         stats = {
             "source": payload["counts"],
             "target": {
+                "companies": len(companies),
+                "partners": len(partners),
+                "users": len(users),
                 "projects": len(projects),
                 "tasks": len(tasks),
                 "project_stages": len(project_stages),
                 "task_stages": len(task_stages),
                 "tags": len(tags),
+                "activity_types": len(activity_types),
                 "milestones": len(milestones),
                 "recurrences": len(payload["recurrences"]),
                 "updates": len(updates),
-                "dependencies": len(payload["dependencies"]),
+                "project_task_stage_links": sum(
+                    bool(
+                        projects.get(row["project_id"])
+                        and task_stages.get(row["type_id"])
+                        in projects[row["project_id"]].type_ids,
+                    )
+                    for row in payload["project_task_stage_rel"]
+                ),
+                "project_tag_links": sum(
+                    bool(
+                        projects.get(row["project_id"])
+                        and tags.get(row["tag_id"])
+                        in projects[row["project_id"]].tag_ids,
+                    )
+                    for row in payload["project_tag_rel"]
+                ),
+                "project_favorite_links": sum(
+                    bool(
+                        projects.get(row["project_id"])
+                        and users.get(row["user_id"])
+                        in projects[row["project_id"]].favorite_user_ids,
+                    )
+                    for row in payload["project_favorite_rel"]
+                ),
+                "task_user_links": sum(
+                    bool(
+                        tasks.get(row["task_id"])
+                        and users.get(row["user_id"])
+                        in tasks[row["task_id"]].user_ids,
+                    )
+                    for row in payload["task_user_rel"]
+                ),
+                "task_tag_links": sum(
+                    bool(
+                        tasks.get(row["task_id"])
+                        and tags.get(row["tag_id"])
+                        in tasks[row["task_id"]].tag_ids,
+                    )
+                    for row in payload["task_tag_rel"]
+                ),
+                "task_parent_links": sum(
+                    bool(
+                        row["parent_id"]
+                        and tasks.get(row["id"])
+                        and tasks.get(row["parent_id"])
+                        == tasks[row["id"]].parent_id,
+                    )
+                    for row in payload["tasks"]
+                ),
+                "dependencies": sum(
+                    bool(
+                        tasks.get(row["task_id"])
+                        and tasks.get(row["depends_on_id"])
+                        in tasks[row["task_id"]].depend_on_ids,
+                    )
+                    for row in payload["dependencies"]
+                ),
+                "task_milestone_links": sum(
+                    bool(
+                        row["milestone_id"]
+                        and tasks.get(row["id"])
+                        and milestones.get(row["milestone_id"])
+                        == tasks[row["id"]].milestone_id,
+                    )
+                    for row in payload["tasks"]
+                ),
+                "task_recurrence_links": sum(
+                    bool(
+                        row["recurrence_id"]
+                        and tasks.get(row["id"])
+                        and recurrences.get(row["recurrence_id"])
+                        == tasks[row["id"]].recurrence_id,
+                    )
+                    for row in payload["tasks"]
+                ),
+                "project_aliases": sum(
+                    bool(
+                        row["alias_id"]
+                        and projects.get(row["id"])
+                        and projects[row["id"]].alias_id,
+                    )
+                    for row in payload["projects"]
+                ),
+                "project_alias_names": sum(
+                    bool(
+                        row["alias_name"]
+                        and projects.get(row["id"])
+                        and projects[row["id"]].alias_id.alias_name
+                        == row["alias_name"],
+                    )
+                    for row in payload["projects"]
+                ),
+                "project_analytic_links": sum(
+                    bool(
+                        row["account_id"]
+                        and projects.get(row["id"])
+                        and projects[row["id"]].account_id,
+                    )
+                    for row in payload["projects"]
+                ),
+                "linked_expenses": linked_expense_count,
                 "messages": len(messages),
+                "message_parent_links": sum(
+                    bool(
+                        row["parent_id"]
+                        and messages.get(row["id"])
+                        and messages.get(row["parent_id"])
+                        == messages[row["id"]].parent_id,
+                    )
+                    for row in payload["messages"]
+                ),
+                "message_recipient_links": sum(
+                    bool(
+                        messages.get(row["message_id"])
+                        and partners.get(row["partner_id"])
+                        in messages[row["message_id"]].partner_ids,
+                    )
+                    for row in payload["message_partner_rel"]
+                ),
+                "message_attachment_links": sum(
+                    bool(
+                        messages.get(row["message_id"])
+                        and attachments.get(row["attachment_id"])
+                        in messages[row["message_id"]].attachment_ids,
+                    )
+                    for row in payload["message_attachment_rel"]
+                ),
                 "tracking_values": self.env[
                     "mail.tracking.value"
                 ].sudo().search_count(
@@ -1352,6 +1679,7 @@ class UslProjectRestoreRun(models.Model):
                     ],
                 ),
                 "followers": follower_count,
+                "follower_subtype_links": follower_subtype_count,
                 "activities": activity_count,
                 "attachments": len(attachments),
             },
@@ -1367,25 +1695,35 @@ class UslProjectRestoreRun(models.Model):
                     "Chatter recipients are retained, but historical delivery "
                     "queues and notification statuses are not replayed."
                 ),
+                "source_project_collaborators": payload[
+                    "project_collaborator_count"
+                ],
+                "source_project_documents": payload[
+                    "project_document_count"
+                ],
+                "source_project_sales_links": payload[
+                    "project_sales_link_count"
+                ],
             },
         }
+        unsupported_source_links = {
+            "project collaborators": payload["project_collaborator_count"],
+            "project Documents": payload["project_document_count"],
+            "project sales links": payload["project_sales_link_count"],
+        }
+        for description, count in unsupported_source_links.items():
+            if count:
+                self._issue(
+                    "error",
+                    "usl.project.restore.run",
+                    self.id,
+                    (
+                        f"Source contains {count} {description}; this "
+                        "perimeter requires an explicit restoration mapping."
+                    ),
+                )
         expected = payload["counts"]
-        material_keys = (
-            "projects",
-            "tasks",
-            "project_stages",
-            "task_stages",
-            "tags",
-            "milestones",
-            "recurrences",
-            "updates",
-            "dependencies",
-            "messages",
-            "tracking_values",
-            "followers",
-            "activities",
-            "attachments",
-        )
+        material_keys = tuple(expected)
         for key in material_keys:
             if stats["target"].get(key) != expected.get(key):
                 self._issue(
@@ -1522,41 +1860,172 @@ class ProjectSourceReader:
                 }
                 cursor.execute(
                     """
+                        WITH RECURSIVE roots AS (
+                            SELECT documents_folder_id AS id
+                              FROM project_project
+                             WHERE documents_folder_id IS NOT NULL
+                        ),
+                        descendants AS (
+                            SELECT document.id, document.folder_id, 0 AS depth
+                              FROM documents_document document
+                              JOIN roots ON roots.id = document.id
+                            UNION ALL
+                            SELECT child.id, child.folder_id,
+                                   parent.depth + 1
+                              FROM documents_document child
+                              JOIN descendants parent
+                                ON child.folder_id = parent.id
+                        )
                         SELECT count(*)
-                          FROM project_project
-                         WHERE documents_folder_id IS NOT NULL
-                           AND NOT EXISTS (
+                          FROM roots
+                         WHERE NOT EXISTS (
                                SELECT 1
-                                 FROM documents_document document
-                                WHERE document.res_model IN (
-                                    'project.project', 'project.task'
-                                )
-                                  AND document.res_id = project_project.id
-                           )
+                                 FROM descendants
+                                WHERE descendants.depth > 0
+                                  AND descendants.folder_id = roots.id
+                         )
                     """,
                 )
                 payload["empty_documents_folder_count"] = cursor.fetchone()[
                     "count"
                 ]
-        count_keys = {
+                cursor.execute(
+                    """
+                        WITH RECURSIVE roots AS (
+                            SELECT documents_folder_id AS id
+                              FROM project_project
+                             WHERE documents_folder_id IS NOT NULL
+                        ),
+                        descendants AS (
+                            SELECT document.id, document.folder_id, 0 AS depth
+                              FROM documents_document document
+                              JOIN roots ON roots.id = document.id
+                            UNION ALL
+                            SELECT child.id, child.folder_id,
+                                   parent.depth + 1
+                              FROM documents_document child
+                              JOIN descendants parent
+                                ON child.folder_id = parent.id
+                        )
+                        SELECT count(DISTINCT document_id)
+                          FROM (
+                                SELECT id AS document_id
+                                  FROM descendants
+                                 WHERE depth > 0
+                                UNION
+                                SELECT id
+                                  FROM documents_document
+                                 WHERE res_model IN (
+                                       'project.project', 'project.task'
+                                 )
+                          ) project_document
+                    """,
+                )
+                payload["project_document_count"] = cursor.fetchone()["count"]
+                cursor.execute("SELECT count(*) FROM project_collaborator")
+                payload["project_collaborator_count"] = cursor.fetchone()[
+                    "count"
+                ]
+                cursor.execute(
+                    """
+                        SELECT (
+                            SELECT count(*)
+                              FROM project_project
+                             WHERE sale_line_id IS NOT NULL
+                                OR reinvoiced_sale_order_id IS NOT NULL
+                        ) + (
+                            SELECT count(*)
+                              FROM project_task
+                             WHERE sale_order_id IS NOT NULL
+                                OR sale_line_id IS NOT NULL
+                        ) AS count
+                    """,
+                )
+                payload["project_sales_link_count"] = cursor.fetchone()[
+                    "count"
+                ]
+                payload["linked_expense_ids"] = [
+                    row["id"]
+                    for row in self._rows(
+                        cursor,
+                        """
+                            WITH project_accounts AS (
+                                SELECT account_id::text AS id
+                                  FROM project_project
+                                 WHERE account_id IS NOT NULL
+                            )
+                            SELECT DISTINCT expense.id
+                              FROM hr_expense expense
+                              JOIN project_accounts account
+                                ON expense.analytic_distribution ? account.id
+                             ORDER BY expense.id
+                        """,
+                    )
+                ]
+        list_count_keys = {
+            "companies": "companies",
+            "partners": "partners",
+            "users": "users",
             "projects": "projects",
             "tasks": "tasks",
             "project_stages": "project_stages",
             "task_stages": "task_stages",
             "tags": "tags",
+            "activity_types": "activity_types",
             "milestones": "milestones",
             "recurrences": "recurrences",
             "updates": "updates",
+            "project_task_stage_links": "project_task_stage_rel",
+            "project_tag_links": "project_tag_rel",
+            "project_favorite_links": "project_favorite_rel",
+            "task_user_links": "task_user_rel",
+            "task_tag_links": "task_tag_rel",
             "dependencies": "dependencies",
             "messages": "messages",
+            "message_recipient_links": "message_partner_rel",
+            "message_attachment_links": "message_attachment_rel",
             "tracking_values": "tracking_values",
             "followers": "followers",
+            "follower_subtype_links": "follower_subtype_rel",
             "activities": "activities",
             "attachments": "attachments",
         }
         payload["counts"] = {
-            name: len(payload[key]) for name, key in count_keys.items()
+            name: len(payload[key]) for name, key in list_count_keys.items()
         }
+        payload["counts"].update(
+            {
+                "task_parent_links": sum(
+                    bool(row["parent_id"])
+                    for row in payload["tasks"]
+                ),
+                "task_milestone_links": sum(
+                    bool(row["milestone_id"])
+                    for row in payload["tasks"]
+                ),
+                "task_recurrence_links": sum(
+                    bool(row["recurrence_id"])
+                    for row in payload["tasks"]
+                ),
+                "project_aliases": sum(
+                    bool(row["alias_id"])
+                    for row in payload["projects"]
+                ),
+                "project_alias_names": sum(
+                    bool(row["alias_name"])
+                    for row in payload["projects"]
+                ),
+                "project_analytic_links": sum(
+                    bool(row["account_id"])
+                    for row in payload["projects"]
+                ),
+                "linked_expenses": len(payload["linked_expense_ids"]),
+                "message_parent_links": sum(
+                    bool(row["parent_id"])
+                    for row in payload["messages"]
+                ),
+            },
+        )
         return payload
 
     def _read_core(self, cursor):
@@ -1602,7 +2071,17 @@ class ProjectSourceReader:
                            allow_recurring_tasks, is_template,
                            date_last_stage_update, create_uid, write_uid,
                            create_date, write_date, documents_folder_id,
-                           alias_id
+                           alias_id,
+                           (
+                               SELECT alias_name
+                                 FROM mail_alias
+                                WHERE id = project_project.alias_id
+                           ) AS alias_name,
+                           (
+                               SELECT alias_contact
+                                 FROM mail_alias
+                                WHERE id = project_project.alias_id
+                           ) AS alias_contact
                       FROM project_project
                      ORDER BY id
                 """,
@@ -1849,6 +2328,12 @@ class ProjectSourceReader:
                     SELECT author_id FROM mail_message
                      WHERE model = ANY(%s) AND author_id IS NOT NULL
                     UNION
+                    SELECT recipient.res_partner_id
+                      FROM mail_message_res_partner_rel recipient
+                      JOIN mail_message message
+                        ON message.id = recipient.mail_message_id
+                     WHERE message.model = ANY(%s)
+                    UNION
                     SELECT partner_id FROM mail_followers
                      WHERE res_model = ANY(%s)
                     UNION
@@ -1870,6 +2355,7 @@ class ProjectSourceReader:
                  ORDER BY partner.id
             """,
             (
+                list(SOURCE_MODELS),
                 list(SOURCE_MODELS),
                 list(SOURCE_MODELS),
                 list(SOURCE_MODELS),

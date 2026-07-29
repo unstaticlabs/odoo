@@ -26,6 +26,7 @@ class TestProjectRestore(TransactionCase):
         cls.source_activity_id = 9013
         cls.source_activity_type_id = 9014
         cls.source_message_subtype_id = 9015
+        cls.source_alias_id = 9016
 
     def _payload(self):
         start = datetime(2026, 8, 10, 9)
@@ -105,7 +106,9 @@ class TestProjectRestore(TransactionCase):
                     "create_date": start,
                     "write_date": start,
                     "documents_folder_id": None,
-                    "alias_id": None,
+                    "alias_id": self.source_alias_id,
+                    "alias_name": "restore-private",
+                    "alias_contact": "everyone",
                 },
             ],
             "recurrences": [],
@@ -297,24 +300,55 @@ class TestProjectRestore(TransactionCase):
                 ): "mail.mt_note",
             },
             "empty_documents_folder_count": 0,
+            "project_document_count": 0,
+            "project_collaborator_count": 0,
+            "project_sales_link_count": 0,
+            "linked_expense_ids": [],
         }
-        count_keys = (
-            "projects",
-            "tasks",
-            "project_stages",
-            "task_stages",
-            "tags",
-            "milestones",
-            "recurrences",
-            "updates",
-            "dependencies",
-            "messages",
-            "tracking_values",
-            "followers",
-            "activities",
-            "attachments",
+        list_count_keys = {
+            "companies": "companies",
+            "partners": "partners",
+            "users": "users",
+            "projects": "projects",
+            "tasks": "tasks",
+            "project_stages": "project_stages",
+            "task_stages": "task_stages",
+            "tags": "tags",
+            "activity_types": "activity_types",
+            "milestones": "milestones",
+            "recurrences": "recurrences",
+            "updates": "updates",
+            "project_task_stage_links": "project_task_stage_rel",
+            "project_tag_links": "project_tag_rel",
+            "project_favorite_links": "project_favorite_rel",
+            "task_user_links": "task_user_rel",
+            "task_tag_links": "task_tag_rel",
+            "dependencies": "dependencies",
+            "messages": "messages",
+            "message_recipient_links": "message_partner_rel",
+            "message_attachment_links": "message_attachment_rel",
+            "tracking_values": "tracking_values",
+            "followers": "followers",
+            "follower_subtype_links": "follower_subtype_rel",
+            "activities": "activities",
+            "attachments": "attachments",
+        }
+        rows["counts"] = {
+            name: len(rows[key])
+            for name, key in list_count_keys.items()
+        }
+        rows["counts"].update(
+            {
+                "task_parent_links": 0,
+                "task_milestone_links": 0,
+                "task_recurrence_links": 0,
+                "project_aliases": 1,
+                "project_alias_names": 1,
+                "project_analytic_links": 0,
+                "linked_expenses": 0,
+                "message_parent_links": 0,
+            },
         )
-        rows["counts"] = {key: len(rows[key]) for key in count_keys}
         return rows
 
     def _task_row(self, source_id, name, *, start, deadline):
@@ -368,7 +402,11 @@ class TestProjectRestore(TransactionCase):
     def test_restore_preserves_relationships_and_is_idempotent(self):
         payload = self._payload()
         first = self._run(deepcopy(payload))
-        self.assertEqual(first.status, "passed")
+        self.assertEqual(
+            first.status,
+            "passed",
+            first.issue_ids.mapped("description"),
+        )
         projects = self.env["project.project"].with_context(
             active_test=False,
         ).search(
@@ -398,7 +436,19 @@ class TestProjectRestore(TransactionCase):
         self.assertEqual(planned.depend_on_ids, blocker)
         self.assertTrue(planned.usl_dependency_date_warning)
         self.assertEqual(planned.project_id.last_update_status, "at_risk")
+        self.assertEqual(
+            planned.project_id.alias_id.alias_name,
+            "restore-private",
+        )
         self.assertFalse(planned.date_end)
+        planned.write(
+            {
+                "state": "1_done",
+                "date_end": datetime(2026, 8, 6, 10),
+                "description": "<p>Target workflow continuation</p>",
+            },
+        )
+        self.assertEqual(planned.state, "1_done")
 
         message_domain = [
             ("rebuild_source_model", "=", "mail.message"),
@@ -438,6 +488,10 @@ class TestProjectRestore(TransactionCase):
 
         second = self._run(deepcopy(payload))
         self.assertEqual(second.status, "passed")
+        planned.invalidate_recordset()
+        self.assertEqual(planned.state, "1_done")
+        self.assertTrue(planned.date_end)
+        self.assertIn("Target workflow continuation", planned.description)
         self.assertEqual(
             self.env["project.project"].with_context(
                 active_test=False,
@@ -508,5 +562,45 @@ class TestProjectRestore(TransactionCase):
             self.env["project.project"]
             .with_user(outsider)
             .search([("id", "=", project.id)])
+        )
+        self.assertFalse(visible)
+        project.write({"privacy_visibility": "portal"})
+        self.assertEqual(
+            self.env["project.project"]
+            .with_user(outsider)
+            .search([("id", "=", project.id)]),
+            project,
+        )
+
+    def test_project_company_boundary_uses_native_rules(self):
+        other_company = self.env["res.company"].create(
+            {"name": "Project Restore Other Company"},
+        )
+        cross_company_user = self.env["res.users"].create(
+            {
+                "name": "Cross Company Project User",
+                "login": "cross.company.project@example.com",
+                "email": "cross.company.project@example.com",
+                "company_id": other_company.id,
+                "company_ids": [Command.set([other_company.id])],
+                "group_ids": [
+                    Command.link(
+                        self.env.ref("project.group_project_user").id,
+                    ),
+                ],
+            },
+        )
+        company_project = self.env["project.project"].create(
+            {
+                "name": "Company Restricted Project",
+                "company_id": self.env.company.id,
+                "privacy_visibility": "employees",
+            },
+        )
+        visible = (
+            self.env["project.project"]
+            .with_user(cross_company_user)
+            .with_context(allowed_company_ids=[other_company.id])
+            .search([("id", "=", company_project.id)])
         )
         self.assertFalse(visible)

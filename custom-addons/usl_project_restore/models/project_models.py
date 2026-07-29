@@ -115,3 +115,13 @@ class MailActivityType(models.Model):
 class MailTrackingValue(models.Model):
     _name = "mail.tracking.value"
     _inherit = ["mail.tracking.value", "rebuild.source.trace.mixin"]
+
+
+class MailAlias(models.Model):
+    _name = "mail.alias"
+    _inherit = ["mail.alias", "rebuild.source.trace.mixin"]
+
+
+class MailFollowers(models.Model):
+    _name = "mail.followers"
+    _inherit = ["mail.followers", "rebuild.source.trace.mixin"]

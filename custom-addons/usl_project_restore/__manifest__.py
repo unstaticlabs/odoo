@@ -1,7 +1,7 @@
 {
     "name": "USL Project Restoration",
     "summary": "Repeatable restoration of Odoo Online projects and tasks",
-    "version": "saas~19.2.1.0.0",
+    "version": "saas~19.2.1.1.0",
     "category": "Services/Project",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
