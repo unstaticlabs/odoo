@@ -31,6 +31,11 @@ record; maintained OCA modules provide Community reconciliation, reporting,
 asset and statement-import capabilities. USL behavior extends those modules
 without modifying upstream Odoo core.
 
+The authenticated user guide at `/usl/user-docs` renders the repository files
+under `docs/users/` with the pinned CommonMark runtime. Common Markdown
+formatting, nested lists, tables, code blocks and repository-relative links are
+supported; raw HTML is displayed as text and generated HTML is sanitized.
+
 ## Development
 
 Use the repository workflow:

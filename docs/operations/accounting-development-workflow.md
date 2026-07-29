@@ -1,6 +1,6 @@
 # Accounting development workflow
 
-Last updated: 2026-07-25
+Last updated: 2026-07-28
 
 Audience: implementation agents and developers working on Milestone 13.
 

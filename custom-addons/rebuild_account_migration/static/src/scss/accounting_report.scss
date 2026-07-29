@@ -529,10 +529,23 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         display: inline-flex;
         align-items: center;
         padding: 0.2rem 0.48rem;
+        border: 0;
         border-radius: 999px;
+        cursor: pointer;
         font-size: 0.75rem;
         font-weight: 650;
+        line-height: inherit;
+        text-decoration: none;
         white-space: nowrap;
+
+        &:hover {
+            filter: brightness(0.96);
+        }
+
+        &:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
     }
 
     $matching-colors: (

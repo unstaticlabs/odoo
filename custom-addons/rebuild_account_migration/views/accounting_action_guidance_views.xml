@@ -185,9 +185,6 @@
             <xpath expr="//button[@name='clean_reconcile']" position="attributes">
                 <attribute name="title">Discard the current unvalidated matching proposal and start again.</attribute>
             </xpath>
-            <xpath expr="//button[@name='action_to_check']" position="attributes">
-                <attribute name="title">Flag this bank transaction for follow-up without reconciling it.</attribute>
-            </xpath>
             <xpath expr="//button[@name='action_checked']" position="attributes">
                 <attribute name="title">Mark the review as complete. This does not change the reconciliation.</attribute>
             </xpath>
@@ -346,13 +343,13 @@
     <record id="view_rebuild_bank_transaction_partner_action_guidance" model="ir.ui.view">
         <field name="name">account.bank.statement.line.partner.action.guidance</field>
         <field name="model">account.bank.statement.line</field>
-        <field name="inherit_id" ref="view_rebuild_bank_transaction_form_partner_suggestion"/>
+        <field name="inherit_id" ref="view_rebuild_bank_transaction_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_rebuild_apply_partner_suggestion']" position="attributes">
                 <attribute name="title">Set the suggested partner on this bank transaction. This does not reconcile or post anything.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_rebuild_refresh_partner_suggestions']" position="attributes">
-                <attribute name="title">Re-evaluate the partner from the current reference, amount, account, and transaction evidence.</attribute>
+                <attribute name="title">Re-evaluate the current bank evidence. A sufficiently reliable result may set the partner automatically.</attribute>
             </xpath>
         </field>
     </record>
@@ -511,7 +508,7 @@
                 <attribute name="title">Save the selected rate provider and schedule for this company.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_update_now']" position="attributes">
-                <attribute name="title">Retrieve the latest ECB reference rates now. Existing transaction-specific conversion rates are preserved.</attribute>
+                <attribute name="title">Fill every missing published ECB business-day rate from the coverage boundary through the latest available date. Restored, manual and transaction-specific rates are preserved.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_open_currency_rates']" position="attributes">
                 <attribute name="title">Open the company's dated currency-rate history and provider evidence.</attribute>

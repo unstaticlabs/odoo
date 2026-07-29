@@ -10,6 +10,7 @@ et-xmlfile==2.0.0
 isodate==0.7.2
 lxml-html-clean==0.4.4
 maxminddb==3.1.1
+mdurl==0.1.2
 platformdirs==4.10.0
 phonenumbers==8.13.55
 pyasn1==0.6.4

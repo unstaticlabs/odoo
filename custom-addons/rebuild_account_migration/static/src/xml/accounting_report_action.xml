@@ -323,9 +323,13 @@
                             <td t-att-class="amountClass(line.closing_balance, 'fw-semibold')" t-if="isTrialBalance" t-esc="formatAmount(line.closing_balance)"/>
                             <td t-att-class="amountClass(line.residual, 'fw-semibold')" t-if="isDetailedLedger and showResidual" t-esc="formatAmount(line.residual)"/>
                             <td t-if="isDetailedLedger and showMatching">
-                                <span t-if="line.matching_number"
-                                      t-att-class="'o_usl_matching_chip ' + matchingColor(line.matching_number)"
-                                      t-esc="line.matching_number"/>
+                                <button t-if="line.matching_number"
+                                        type="button"
+                                        t-att-class="'o_usl_matching_chip ' + matchingColor(line.matching_number)"
+                                        t-att-title="'Open all journal items matched under ' + line.matching_number"
+                                        t-att-aria-label="'Open matching ' + line.matching_number"
+                                        t-on-click.stop="() => this.openMatchingItems(line)"
+                                        t-esc="line.matching_number"/>
                             </td>
                             <td t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
                                 t-key="column.key"

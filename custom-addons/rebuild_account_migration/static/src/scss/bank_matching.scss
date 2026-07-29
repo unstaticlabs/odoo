@@ -1,0 +1,133 @@
+// OCA owns the opened-record state. USL adds a quiet visual distinction
+// without changing the matching component or its interaction behavior.
+.o_account_reconcile_oca
+    .o_account_reconcile_oca_selector
+    .o_kanban_record.o_kanban_record_reconcile_oca_selected {
+    background-color: $o-gray-200;
+}
+
+// Keep OCA's shared accounting-line presentation readable in both the
+// operational matching form and the read-only Transactions variant.
+.o_field_account_reconcile_oca_data .o_reconcile_widget_table {
+    min-width: 52rem;
+
+    th,
+    td {
+        padding-right: .5rem;
+        padding-left: .5rem;
+        vertical-align: middle;
+    }
+
+    .o_account_reconcile_oca_data_line_account,
+    .o_account_reconcile_oca_data_line_name {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .o_account_reconcile_oca_data_line_account {
+        min-width: 10rem;
+    }
+
+    .o_account_reconcile_oca_data_line_partner {
+        min-width: 7rem;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+        min-width: 6.5rem;
+        white-space: nowrap;
+    }
+
+    .o_account_reconcile_oca_data_line_name {
+        min-width: 13rem;
+    }
+}
+
+// Transactions is an investigation surface, not a second matching workbench.
+// Keep the bank description and amount dominant, with evidence below it.
+.o_rebuild_bank_transaction_form {
+    max-width: 1120px;
+
+    .o_rebuild_transaction_heading {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid $o-gray-200;
+    }
+
+    .o_rebuild_transaction_identity {
+        min-width: 0;
+
+        h1 {
+            max-width: 48rem;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    .o_rebuild_transaction_amount {
+        min-width: 13rem;
+    }
+
+    .o_rebuild_transaction_amount_value {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 600;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .o_rebuild_transaction_partner_empty .btn-link,
+    .o_rebuild_partner_suggestion .btn-link {
+        font-size: inherit;
+        line-height: inherit;
+        vertical-align: baseline;
+    }
+
+    .o_rebuild_transaction_panel {
+        min-width: 0;
+        padding: 1rem;
+        border: 1px solid $o-gray-200;
+        border-radius: $border-radius-lg;
+    }
+
+    .o_rebuild_transaction_section_title {
+        margin: 0 0 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .o_rebuild_transaction_partner .o_field_many2one {
+        width: 100%;
+    }
+
+    .o_rebuild_partner_evidence .o_field_widget,
+    .o_rebuild_partner_suggestion .o_field_widget {
+        display: inline;
+    }
+
+    .o_rebuild_transaction_core,
+    .o_rebuild_transaction_matching {
+        margin-bottom: 0;
+    }
+
+    .o_rebuild_transaction_more {
+        summary {
+            color: $o-gray-700;
+            cursor: pointer;
+            font-weight: 500;
+        }
+    }
+
+    .o_rebuild_transaction_reconcile_data {
+        display: block;
+        overflow-x: auto;
+    }
+
+    @include media-breakpoint-down(lg) {
+        .o_rebuild_transaction_amount {
+            min-width: 0;
+            text-align: start;
+        }
+
+        .o_rebuild_transaction_panel {
+            padding: .875rem;
+        }
+    }
+}

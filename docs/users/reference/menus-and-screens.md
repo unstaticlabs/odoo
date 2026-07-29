@@ -49,7 +49,20 @@ The native journal dashboard. Use journal cards to open entries, documents, full
 The complete bank-transaction history. Clicking a row opens the bank
 transaction. **Linked document or entry** opens the matched invoice, bill,
 refund or journal entry; **Open Entry** opens the bank transaction's own journal
-entry. **Match** opens an unreconciled line in Bank Matching.
+entry. **Match** opens an unreconciled or partially matched line in Bank
+Matching. A matching-reference chip opens every journal item in that matching
+group. Fully matched transactions offer **Undo Match** to Accounting users
+after confirmation.
+
+The transaction form keeps matching and review status separate. It places the
+bank transaction beside the same accounting-line presentation used in Bank
+Matching, including accounts, partners, dates, labels, debit, credit,
+currencies and any open balance. Accounting users can set or correct the
+partner directly before matching; suggestions remain optional shortcuts. The
+linked **Still to match** residual opens that transaction in Bank Matching;
+after completion it becomes **View matching**. The
+read-only accountant can inspect the same evidence but cannot select or remove
+proposed lines, match, undo or change the partner.
 
 ## Customers and Vendors
 
@@ -63,6 +76,27 @@ invoice. Removing either chip broadens the view to the other vendor document
 types without changing or duplicating the underlying accounting records.
 
 Employee expense claims remain in the separate **Expenses** application.
+
+## Expenses application
+
+Use **Expenses > My Expenses** for individual expense evidence and workflow.
+The list shows **Attachment status**, each expense's normal status and its
+optional **Expense Batch** link. It deliberately does not show a permanent
+**Batch readiness** column.
+
+The default **Not in a batch** filter keeps the working list limited to
+expenses that can still be grouped; remove it to review historical batched
+expenses. Use **Ready to submit**, **Needs information** and **Already in a
+batch** for more specific review. Select one or more unbatched Draft, Approved
+or Posted expenses, then use the single **Create expense batch** action. The
+former automatic **Submit ready expenses** action is not part of the product.
+The preview shows aggregate readiness, attachment and expense statuses, and
+missing information before the batch is saved or its Draft lines are
+submitted. Both completion actions close the preview and refresh the list.
+
+Managers use **My Expenses > Expense Batches** to review the shared purpose,
+period, totals, analytic context and individual evidence. Accounting entries
+retain a direct link back to the batch and its expenses.
 
 ## Action explanations
 

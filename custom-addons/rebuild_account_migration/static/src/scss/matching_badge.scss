@@ -1,0 +1,26 @@
+.o_usl_matching_badge_button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    line-height: inherit;
+
+    .badge {
+        transition:
+            filter 120ms ease,
+            box-shadow 120ms ease;
+    }
+
+    &:hover .badge {
+        filter: brightness(0.96);
+    }
+
+    &:focus-visible {
+        outline: none;
+
+        .badge {
+            box-shadow: 0 0 0 0.16rem rgba(#714b67, 0.2);
+        }
+    }
+}

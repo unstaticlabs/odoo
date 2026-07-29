@@ -600,6 +600,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return {
             "wizard_id": self.id,
             "title": self._report_type_label(),
+            "company_id": self.company_id.id,
             "company_name": self.company_id.display_name,
             # Accounting statements follow the French presentation contract
             # independently from the user's general Odoo interface language.

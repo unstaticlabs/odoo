@@ -6,7 +6,7 @@ Accounting managers use **Configuration** for:
 - journals and payment methods;
 - chart of accounts and account groups;
 - taxes, tax grids and fiscal positions;
-- currencies and historical rates;
+- currencies and daily reference rates;
 - analytic plans and accounts;
 - asset models;
 - governed Bank Matching Rules, including usage evidence and inert rule
@@ -68,6 +68,46 @@ bank's CSV or XLSX export, create a **Statement Sheet Mapping** in
 **Configuration > Accounting**, then select it on the bank journal's advanced
 settings. The mapping describes the date, amount, reference and partner columns;
 it does not post or reconcile transactions automatically.
+
+## Currency Rate Automation
+
+Open **Configuration > Currency Rate Automation** to govern ECB reference
+rates. **Fill Missing Rates** imports every missing ECB publication day from
+the displayed coverage boundary through the latest available date. The daily
+scheduled action checks the recent publication history as well, so a temporary
+outage does not leave a silent gap.
+
+USL's company currency is EUR. Odoo therefore treats EUR as the implicit rate
+`1.0` and does not require a generated EUR row. Automation creates native
+`res.currency.rate` rows only for active foreign currencies such as USD and
+GBP. Restored source rates and manager-entered manual rates are never
+overwritten.
+
+ECB rates are informational reference rates. Preserve the actual bank, card or
+platform conversion when it defines a transaction.
+
+## Employee expense payable account
+
+For an expense paid personally by an employee, Odoo uses the **Account
+Payable** configured on that employee's **Work Contact**.
+
+For Valentin:
+
+1. open **Contacts** and select the contact linked to Valentin's user and
+   employee;
+2. open the **Accounting** or **Invoicing** tab;
+3. under **General**, confirm **Account Payable** is `455100 — Associés -
+   Comptes courants - Valentin`;
+4. confirm `455100` allows reconciliation.
+
+The user contact, employee Work Contact and partner on the open `455100`
+journal items must be the same contact. Do not configure this on the Notes de
+frais journal, and do not change the company-wide supplier payable account:
+those settings serve other accounting purposes.
+
+After changing this setting, only newly posted expenses use the corrected
+account automatically. Ask the accountant how to correct an existing posted
+entry; do not edit a posted journal item directly.
 
 ## Accounting Controls
 

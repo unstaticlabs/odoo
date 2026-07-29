@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import re
 import tempfile
 from decimal import Decimal
 from email.message import EmailMessage
@@ -10,6 +11,7 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from lxml import etree
+from psycopg2 import IntegrityError
 
 try:
     from pypdf import PdfReader
@@ -18,8 +20,9 @@ except ImportError:
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import TransactionCase, tagged
-from odoo.tools import file_open, format_date
+from odoo.service.model import call_kw
+from odoo.tests import Form, TransactionCase, tagged
+from odoo.tools import file_open, format_date, mute_logger
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.controllers import user_docs
@@ -591,6 +594,18 @@ class TestRebuildAccountMigration(TransactionCase):
             partner_only_rule.with_user(
                 finance_operator,
             ).action_rebuild_archive_rule()
+        with self.assertRaisesRegex(
+            AccessError,
+            "Only an Accounting Manager",
+        ):
+            call_kw(
+                self.env["account.reconcile.model"].with_user(
+                    finance_operator,
+                ),
+                "action_rebuild_analyze_rule_opportunities",
+                [[]],
+                {},
+            )
 
         proven_rule = self.env["account.reconcile.model"].create({
             "name": "Unit historically used rule",
@@ -640,6 +655,22 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             trigger_field.get("decoration-warning"),
             "trigger == 'auto_reconcile'",
+        )
+        find_buttons = list_arch.xpath(
+            "//list/header/button"
+            "[@name='action_rebuild_analyze_rule_opportunities']",
+        )
+        self.assertEqual(len(find_buttons), 1)
+        self.assertEqual(find_buttons[0].get("string"), "Find")
+        self.assertEqual(find_buttons[0].get("icon"), "fa-magic")
+        self.assertEqual(find_buttons[0].get("display"), "always")
+        self.assertEqual(
+            find_buttons[0].get("groups"),
+            "account.group_account_manager",
+        )
+        self.assertIn(
+            "never changes accounting or activates a rule",
+            find_buttons[0].get("title", "").lower(),
         )
 
         form_arch = self.env.ref(
@@ -709,7 +740,25 @@ class TestRebuildAccountMigration(TransactionCase):
                 opportunity_key: opportunity_groups[opportunity_key],
             },
         ):
-            rule_model.action_rebuild_analyze_rule_opportunities()
+            action = call_kw(
+                rule_model,
+                "action_rebuild_analyze_rule_opportunities",
+                [[]],
+                {},
+            )
+            repeated_action = call_kw(
+                rule_model,
+                "action_rebuild_analyze_rule_opportunities",
+                [[]],
+                {},
+            )
+        self.assertEqual(action["name"], "Rule Suggestions")
+        self.assertEqual(action["res_model"], "account.reconcile.model")
+        self.assertEqual(repeated_action["tag"], "display_notification")
+        self.assertEqual(
+            repeated_action["params"]["title"],
+            "No new suggestions",
+        )
         proposal_key = (
             f"{self.company.id}:{bank_journal.id}:{expense.id}:0:"
             "unit recurring platform fee"
@@ -718,7 +767,21 @@ class TestRebuildAccountMigration(TransactionCase):
             ("rebuild_proposal_key", "=", proposal_key),
         ])
         self.assertEqual(len(proposal), 1)
+        self.assertEqual(action["domain"], [("id", "in", proposal.ids)])
+        self.assertEqual(proposal.company_id, self.company)
         self.assertTrue(proposal.rebuild_is_proposal)
+        with (
+            self.assertRaises(IntegrityError),
+            self.cr.savepoint(),
+            mute_logger("odoo.sql_db"),
+        ):
+            self.env["account.reconcile.model"].create({
+                "name": "Unit duplicate evidence suggestion",
+                "company_id": self.company.id,
+                "trigger": "manual",
+                "rebuild_is_proposal": True,
+                "rebuild_proposal_key": proposal_key,
+            })
         self.assertEqual(proposal.rebuild_health_state, "suggested")
         self.assertTrue(proposal.rebuild_has_actionable_guidance)
         self.assertEqual(proposal.rebuild_proposal_source, "deterministic")
@@ -1288,6 +1351,16 @@ class TestRebuildAccountMigration(TransactionCase):
                 "//details[normalize-space(summary)='View projection details']",
             ),
         )
+        cca_card_links = home_arch.xpath(
+            "//div[contains(@class, 'o_usl_cca_position_card')]"
+            "/a[@name='action_open_cca_journal_items' and @type='object']"
+            "[.//field[@name='cca_projected_balance_display']]",
+        )
+        self.assertEqual(len(cca_card_links), 1)
+        self.assertEqual(
+            cca_card_links[0].get("invisible"),
+            "not cca_projection_ready",
+        )
         matching_stat_buttons = home_arch.xpath(
             "//div[contains(@class, 'oe_button_box')]"
             "/button[@name='action_open_bank_matching']"
@@ -1327,14 +1400,45 @@ class TestRebuildAccountMigration(TransactionCase):
             "bank_review_count == 0",
         )
 
-        customer_action = home.action_open_customer_documents()
-        vendor_action = home.action_open_vendor_documents()
-        for action in (customer_action, vendor_action):
-            self.assertIn(("state", "=", "draft"), action["domain"])
-            self.assertEqual(action["context"]["search_default_draft"], 1)
         expense_action = home.action_open_expenses()
         self.assertEqual(expense_action["view_mode"], "list,form,graph,pivot")
         self.assertEqual(expense_action["views"][0], (False, "list"))
+
+    def test_overview_drilldown_status_filters_are_removable(self):
+        home = self.env["rebuild.account.overview"].search([
+            ("company_id", "=", self.company.id),
+        ])
+        self.assertTrue(home)
+
+        document_actions = (
+            (
+                home.action_open_customer_documents(),
+                ("move_type", "in", ["out_invoice", "out_refund", "out_receipt"]),
+            ),
+            (
+                home.action_open_vendor_documents(),
+                ("move_type", "in", ["in_invoice", "in_refund", "in_receipt"]),
+            ),
+        )
+        for action, document_scope in document_actions:
+            self.assertIn(("company_id", "=", self.company.id), action["domain"])
+            self.assertIn(document_scope, action["domain"])
+            self.assertNotIn(("state", "=", "draft"), action["domain"])
+            self.assertEqual(action["context"]["search_default_draft"], 1)
+
+        bank_review_action = home.action_open_bank_review()
+        self.assertIn(
+            ("company_id", "=", self.company.id),
+            bank_review_action["domain"],
+        )
+        self.assertNotIn(
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+            bank_review_action["domain"],
+        )
+        self.assertEqual(
+            bank_review_action["context"]["search_default_to_review"],
+            1,
+        )
 
     def test_bank_statement_import_is_contextual_and_supports_real_formats(self):
         bank_journal = self._journal("bank")
@@ -1866,6 +1970,10 @@ class TestRebuildAccountMigration(TransactionCase):
             reconciliation_action["context"]["search_default_group_by_account"],
             1,
         )
+        self.assertNotIn(
+            "search_default_unreconciled",
+            reconciliation_action["context"],
+        )
         expense_action = home.action_open_cash_projection_unpaid_expenses()
         unpaid_expenses = self.env["hr.expense"].search(
             expense_action["domain"],
@@ -2200,6 +2308,23 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             len(set(clearing_lines.mapped("rebuild_matching_color"))),
             1,
+        )
+        matching_line = clearing_lines.filtered("matching_number")[0]
+        matching_action = (
+            matching_line.action_rebuild_open_matching_items()
+        )
+        matching_lines = self.env["account.move.line"].search(
+            matching_action["domain"],
+        )
+        self.assertTrue(matching_lines)
+        self.assertEqual(
+            set(matching_lines.mapped("matching_number")),
+            {matching_line.matching_number},
+        )
+        self.assertEqual(matching_lines.company_id, self.company)
+        self.assertEqual(
+            matching_action["name"],
+            f"Matching {matching_line.matching_number}",
         )
 
         undo_result = clearing_lines.action_rebuild_unreconcile()
@@ -2835,13 +2960,28 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(len(matching_fields), 1)
-        self.assertEqual(matching_fields[0].get("widget"), "badge")
+        self.assertEqual(
+            matching_fields[0].get("widget"),
+            "rebuild_matching_badge",
+        )
         self.assertEqual(
             safe_eval(matching_fields[0].get("options")),
             {"color_field": "rebuild_matching_color"},
         )
         self.assertEqual(len(color_fields), 1)
         self.assertEqual(color_fields[0].get("column_invisible"), "True")
+        reconciliation_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_move_line_reconciliation_result",
+        )._get_combined_arch()
+        reconciliation_matching = reconciliation_arch.xpath(
+            "//field[@name='matching_number']",
+        )
+        self.assertEqual(len(reconciliation_matching), 1)
+        self.assertEqual(
+            reconciliation_matching[0].get("widget"),
+            "rebuild_matching_badge",
+        )
 
     def test_hygiene_analytic_items_use_native_multi_edit(self):
         account_user_group = self.env.ref("account.group_account_user")
@@ -3157,12 +3297,11 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(
             combined_arch.xpath("//notebook/page/@name"),
-            ["reconcile_line", "manual", "narration", "chatter"],
+            ["reconcile_line", "manual", "chatter"],
         )
         expected_labels = {
             "unreconcile_bank_line": "Undo Match",
             "clean_reconcile": "Clear Selection",
-            "action_to_check": "Mark for Review",
             "action_checked": "Mark Reviewed",
             "action_show_move": "Open Entry",
         }
@@ -3176,6 +3315,38 @@ class TestRebuildAccountMigration(TransactionCase):
                 {label},
             )
             self.assertTrue(all(button.get("title") for button in buttons))
+        review_buttons = combined_arch.xpath(
+            "//button[@name='action_to_check']",
+        )
+        self.assertEqual(len(review_buttons), 2)
+        self.assertEqual(
+            {button.get("string") for button in review_buttons},
+            {"Reconcile & Review", "Mark for Review"},
+        )
+        review_buttons_by_label = {
+            button.get("string"): button
+            for button in review_buttons
+        }
+        self.assertIn(
+            "not rebuild_review_will_reconcile",
+            review_buttons_by_label["Reconcile & Review"].get("invisible"),
+        )
+        self.assertIn(
+            "rebuild_review_will_reconcile",
+            review_buttons_by_label["Mark for Review"].get("invisible"),
+        )
+        self.assertIn(
+            "reconcile",
+            review_buttons_by_label["Reconcile & Review"]
+            .get("title")
+            .lower(),
+        )
+        self.assertIn(
+            "without reconciling",
+            review_buttons_by_label["Mark for Review"]
+            .get("title")
+            .lower(),
+        )
         complete_match_buttons = combined_arch.xpath(
             "//button[@name='reconcile_bank_line']",
         )
@@ -3187,6 +3358,27 @@ class TestRebuildAccountMigration(TransactionCase):
             button.get("title")
             for button in complete_match_buttons
         ))
+        categorize_page = combined_arch.xpath(
+            "//page[@name='manual'][@string='Categorize']",
+        )
+        self.assertEqual(len(categorize_page), 1)
+        self.assertTrue(
+            categorize_page[0].xpath(
+                ".//group[@id='rebuild-transaction-details']"
+                "[@string='Transaction details']"
+                "//field[@name='payment_ref'][@string='Bank reference']",
+            ),
+        )
+        self.assertTrue(
+            categorize_page[0].xpath(
+                ".//group[@id='rebuild-transaction-details']"
+                "//field[@name='narration']",
+            ),
+        )
+        self.assertFalse(categorize_page[0].xpath(".//details"))
+        self.assertFalse(
+            combined_arch.xpath("//page[@name='narration']"),
+        )
         bank_matching_action = self.env.ref(
             "rebuild_account_migration."
             "action_rebuild_account_reconcile_bank_transactions",
@@ -3222,6 +3414,58 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bank_line.move_id.review_state, "reviewed")
         with self.assertRaises(AccessError):
             bank_line.move_id.with_user(reviewer).write({"ref": "forbidden"})
+
+    def test_bank_review_action_discloses_its_accounting_effect(self):
+        journal = self._journal("bank")
+        journal.reconcile_mode = "edit"
+        direct_account = self._account(
+            "T512901",
+            "Review Action Counterpart",
+            "asset_current",
+        )
+        rule = self.env["account.reconcile.model"].create({
+            "name": "Review action test",
+            "trigger": "manual",
+            "line_ids": [
+                Command.create({"account_id": direct_account.id}),
+            ],
+        })
+        ready_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "Prepared review match",
+            "amount": 30.0,
+        })
+        with Form(
+            ready_line,
+            view=(
+                "account_reconcile_oca."
+                "bank_statement_line_form_reconcile_view"
+            ),
+        ) as form:
+            form.manual_model_id = rule
+
+        self.assertTrue(ready_line.can_reconcile)
+        self.assertTrue(ready_line.rebuild_review_will_reconcile)
+        ready_line.action_to_check()
+        self.assertTrue(ready_line.is_reconciled)
+        self.assertEqual(ready_line.move_id.review_state, "todo")
+
+        open_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "Unprepared review match",
+            "amount": 45.0,
+        })
+        self.assertFalse(open_line.can_reconcile)
+        self.assertFalse(open_line.rebuild_review_will_reconcile)
+        open_line.action_to_check()
+        self.assertFalse(open_line.is_reconciled)
+        self.assertEqual(open_line.move_id.review_state, "todo")
 
     def test_bank_partner_inference_is_confident_explainable_and_safe(self):
         journal = self._journal("bank")
@@ -3634,12 +3878,29 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(counterpart), 1)
         counterpart.account_id.reconcile = True
         bank_line.invalidate_recordset()
-        self.assertIn(
-            bank_line.rebuild_transaction_status,
-            {"open", "review"},
-        )
+        self.assertEqual(bank_line.rebuild_transaction_status, "open")
         self.assertEqual(bank_line.rebuild_remaining_amount, 100.0)
         self.assertFalse(bank_line.rebuild_matching_reference)
+
+        manual_partner = self.env["res.partner"].create({
+            "name": "Transaction manual partner",
+        })
+        suggested_partner = self.env["res.partner"].create({
+            "name": "Transaction suggested partner",
+        })
+        bank_line.with_context(
+            rebuild_skip_partner_inference=True,
+        ).write({
+            "rebuild_partner_suggestion_id": suggested_partner.id,
+            "rebuild_partner_suggestion_confidence": 60,
+            "rebuild_partner_suggestion_source": "partner_name",
+            "rebuild_partner_suggestion_reason": "Counterparty name",
+        })
+        bank_line.partner_id = manual_partner
+        self.assertEqual(bank_line.partner_id, manual_partner)
+        self.assertEqual(bank_line.move_id.partner_id, manual_partner)
+        self.assertFalse(bank_line.rebuild_partner_suggestion_id)
+        bank_line.partner_id = False
 
         matching_action = bank_line.action_rebuild_open_bank_matching()
         self.assertEqual(matching_action["domain"], [("id", "=", bank_line.id)])
@@ -3654,6 +3915,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "asset_current",
         )
         counterpart_balance = counterpart.balance
+        first_match_balance = -counterpart_balance * 0.6
         clearing_move = self.env["account.move"].create({
             "move_type": "entry",
             "date": fields.Date.today(),
@@ -3662,14 +3924,14 @@ class TestRebuildAccountMigration(TransactionCase):
                 Command.create({
                     "name": "Transaction list counterpart",
                     "account_id": counterpart.account_id.id,
-                    "debit": max(-counterpart_balance, 0.0),
-                    "credit": max(counterpart_balance, 0.0),
+                    "debit": max(first_match_balance, 0.0),
+                    "credit": max(-first_match_balance, 0.0),
                 }),
                 Command.create({
                     "name": "Transaction list offset",
                     "account_id": offset.id,
-                    "debit": max(counterpart_balance, 0.0),
-                    "credit": max(-counterpart_balance, 0.0),
+                    "debit": max(-first_match_balance, 0.0),
+                    "credit": max(first_match_balance, 0.0),
                 }),
             ],
         })
@@ -3680,7 +3942,45 @@ class TestRebuildAccountMigration(TransactionCase):
         (counterpart | clearing_line).reconcile()
         bank_line.invalidate_recordset()
 
+        self.assertEqual(bank_line.rebuild_transaction_status, "partial")
+        self.assertEqual(bank_line.rebuild_remaining_amount, 40.0)
+        self.assertTrue(bank_line.rebuild_matching_reference)
+        matching_action = bank_line.action_rebuild_open_matching_items()
+        self.assertIn(
+            ("matching_number", "=", bank_line.rebuild_matching_reference),
+            matching_action["domain"],
+        )
+
+        remaining_balance = -counterpart.amount_residual
+        final_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": fields.Date.today(),
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Transaction list final counterpart",
+                    "account_id": counterpart.account_id.id,
+                    "debit": max(remaining_balance, 0.0),
+                    "credit": max(-remaining_balance, 0.0),
+                }),
+                Command.create({
+                    "name": "Transaction list final offset",
+                    "account_id": offset.id,
+                    "debit": max(-remaining_balance, 0.0),
+                    "credit": max(remaining_balance, 0.0),
+                }),
+            ],
+        })
+        final_move.action_post()
+        final_line = final_move.line_ids.filtered(
+            lambda line: line.account_id == counterpart.account_id,
+        )
+        (counterpart | final_line).reconcile()
+        bank_line.invalidate_recordset()
+        bank_line.move_id.review_state = "todo"
+
         self.assertEqual(bank_line.rebuild_transaction_status, "matched")
+        self.assertEqual(bank_line.rebuild_review_state, "todo")
         self.assertEqual(bank_line.rebuild_remaining_amount, 0.0)
         self.assertTrue(bank_line.rebuild_matching_reference)
         self.assertEqual(
@@ -3698,10 +3998,15 @@ class TestRebuildAccountMigration(TransactionCase):
         transaction_view = self.env.ref(
             "rebuild_account_migration.view_rebuild_bank_transaction_list",
         )
+        transaction_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_bank_transaction_form",
+        )
         transaction_arch = etree.fromstring(transaction_view.arch_db)
+        transaction_form_arch = etree.fromstring(transaction_form.arch_db)
         self.assertEqual(action.name, "Transactions")
         self.assertEqual(action.view_mode, "list,form")
         self.assertEqual(action.view_ids[0].view_id, transaction_view)
+        self.assertEqual(action.view_ids[1].view_id, transaction_form)
         self.assertEqual(transaction_arch.get("create"), "0")
         self.assertEqual(transaction_arch.get("edit"), "0")
         for field_name in (
@@ -3721,6 +4026,12 @@ class TestRebuildAccountMigration(TransactionCase):
             "//field[@name='rebuild_linked_move_id']",
         )
         self.assertEqual(linked_move_field[0].get("widget"), "many2one")
+        self.assertEqual(
+            transaction_arch.xpath(
+                "//field[@name='rebuild_matching_reference']",
+            )[0].get("widget"),
+            "rebuild_matching_badge",
+        )
         self.assertFalse(
             transaction_arch.xpath(
                 "//field[@name='rebuild_transaction_status']",
@@ -3738,6 +4049,116 @@ class TestRebuildAccountMigration(TransactionCase):
             "text-success",
             reconciled_entry_button[0].get("class"),
         )
+        self.assertEqual(
+            transaction_form_arch.xpath(
+                "//field[@name='rebuild_transaction_status']",
+            )[0].get("widget"),
+            "statusbar",
+        )
+        for field_name in (
+            "payment_ref",
+            "partner_id",
+            "amount",
+            "running_balance",
+            "rebuild_review_state",
+            "rebuild_linked_move_id",
+            "rebuild_matching_reference",
+            "rebuild_remaining_amount",
+            "transaction_type",
+            "partner_name",
+            "account_number",
+            "narration",
+            "move_id",
+            "reconcile_data_info",
+        ):
+            self.assertTrue(
+                transaction_form_arch.xpath(
+                    f"//field[@name='{field_name}']",
+                ),
+                field_name,
+            )
+        editable_partner = transaction_form_arch.xpath(
+            "//field[@name='partner_id']"
+            "[@groups='account.group_account_user']",
+        )
+        self.assertEqual(len(editable_partner), 1)
+        self.assertEqual(
+            editable_partner[0].get("readonly"),
+            "rebuild_transaction_status != 'open'",
+        )
+        entry_presentation = transaction_form_arch.xpath(
+            "//field[@name='reconcile_data_info']"
+            "[@widget='rebuild_reconcile_data_presentation']",
+        )
+        self.assertEqual(len(entry_presentation), 1)
+        self.assertEqual(entry_presentation[0].get("readonly"), "1")
+        self.assertFalse(
+            transaction_form_arch.xpath("//field[@name='line_ids']"),
+        )
+        self.assertEqual(
+            transaction_form_arch.xpath(
+                "//field[@name='rebuild_matching_reference']",
+            )[0].get("widget"),
+            "rebuild_matching_badge",
+        )
+        header_match_button = transaction_form_arch.xpath(
+            "//header/button[@name='action_rebuild_open_bank_matching']",
+        )
+        evidence_match_buttons = transaction_form_arch.xpath(
+            "//div[contains(@class, 'o_rebuild_transaction_matching')]"
+            "//button[@name='action_rebuild_open_bank_matching']",
+        )
+        undo_button = transaction_form_arch.xpath(
+            "//button[@name='action_undo_reconciliation']",
+        )
+        self.assertEqual(len(header_match_button), 1)
+        self.assertEqual(
+            {button.get("string") for button in evidence_match_buttons},
+            {"Still to match", "View matching"},
+        )
+        self.assertTrue(all(
+            button.get("groups")
+            == "account.group_account_user,account.group_account_readonly"
+            for button in evidence_match_buttons
+        ))
+        self.assertTrue(all(
+            button.get("title")
+            for button in evidence_match_buttons
+        ))
+        self.assertEqual(len(undo_button), 1)
+        self.assertEqual(
+            header_match_button[0].get("groups"),
+            "account.group_account_user",
+        )
+        self.assertEqual(
+            undo_button[0].get("groups"),
+            "account.group_account_user",
+        )
+        self.assertTrue(undo_button[0].get("confirm"))
+        self.assertFalse(
+            transaction_form_arch.xpath(
+                "//header/button[@name='action_open_journal_entry']",
+            ),
+        )
+        self.assertFalse(
+            transaction_form_arch.xpath(
+                "//*[normalize-space(.)='Technical Information']",
+            ),
+        )
+        generic_form_arch = self.env.ref(
+            "account_statement_base.account_bank_statement_line_form",
+        )._get_combined_arch()
+        compatibility_buttons = generic_form_arch.xpath(
+            "//button[@name='action_rebuild_refresh_partner_suggestions']"
+            " | //button[@name='action_rebuild_apply_partner_suggestion']",
+        )
+        self.assertEqual(len(compatibility_buttons), 2)
+        self.assertTrue(
+            all(
+                button.get("invisible") == "1"
+                for button in compatibility_buttons
+            ),
+        )
 
         transaction_action = bank_journal.action_rebuild_open_transactions()
         matching_action = bank_journal.action_rebuild_open_bank_matching()
@@ -3747,9 +4168,9 @@ class TestRebuildAccountMigration(TransactionCase):
             transaction_action["domain"],
             [("journal_id", "=", bank_journal.id)],
         )
-        self.assertEqual(
-            transaction_action["context"]["search_default_journal_id"],
-            bank_journal.id,
+        self.assertNotIn(
+            "search_default_journal_id",
+            transaction_action["context"],
         )
         self.assertIn(bank_journal.display_name, matching_action["name"])
         self.assertEqual(
@@ -3760,6 +4181,74 @@ class TestRebuildAccountMigration(TransactionCase):
             matching_action["context"]["search_default_not_reconciled"],
             1,
         )
+
+    def test_transaction_form_keeps_reviewer_journey_read_only(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Bank Transaction Reviewer",
+            "login": "bank.transaction.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set(self.company.ids)],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.reviewer_group.id,
+            ])],
+        })
+        transaction_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_bank_transaction_form",
+        )
+        reviewer_view = self.env[
+            "account.bank.statement.line"
+        ].with_user(reviewer).get_view(
+            transaction_form.id,
+            "form",
+        )
+        reviewer_arch = etree.fromstring(reviewer_view["arch"])
+        for access_attribute in ("create", "edit", "delete"):
+            self.assertIn(
+                str(reviewer_arch.get(access_attribute)).lower(),
+                {"0", "false"},
+            )
+
+        for forbidden_action in (
+            "action_undo_reconciliation",
+            "action_rebuild_apply_partner_suggestion",
+            "action_rebuild_refresh_partner_suggestions",
+        ):
+            self.assertFalse(
+                reviewer_arch.xpath(
+                    f"//button[@name='{forbidden_action}']",
+                ),
+                forbidden_action,
+            )
+        reviewer_matching_links = reviewer_arch.xpath(
+            "//div[contains(@class, 'o_rebuild_transaction_matching')]"
+            "//button[@name='action_rebuild_open_bank_matching']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in reviewer_matching_links},
+            {"Still to match", "View matching"},
+        )
+        self.assertTrue(
+            reviewer_arch.xpath(
+                "//field[@name='partner_id']",
+            ),
+        )
+        for evidence_field in (
+            "move_id",
+            "reconcile_data_info",
+            "rebuild_linked_move_id",
+            "rebuild_matching_reference",
+            "rebuild_remaining_amount",
+            "running_balance",
+        ):
+            self.assertTrue(
+                reviewer_arch.xpath(
+                    f"//field[@name='{evidence_field}']",
+                ),
+                evidence_field,
+            )
 
     def test_native_expenses_use_the_expenses_app_not_vendor_navigation(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
@@ -3905,6 +4394,17 @@ class TestRebuildAccountMigration(TransactionCase):
                     "action_to_check",
                     "action_checked",
                     "action_show_move",
+                ),
+            ),
+            (
+                "account.bank.statement.line",
+                "rebuild_account_migration.view_rebuild_bank_transaction_form",
+                "form",
+                (
+                    "action_rebuild_open_bank_matching",
+                    "action_undo_reconciliation",
+                    "action_rebuild_apply_partner_suggestion",
+                    "action_rebuild_refresh_partner_suggestions",
                 ),
             ),
             (
@@ -5571,8 +6071,8 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(result["status"], "passed")
         self.assertEqual(result["provider"], "ecb")
         self.assertEqual(result["reference_date"], "2026-07-22")
-        self.assertIn("USD", result["updated_currency_codes"])
-        self.assertIn("GBP", result["updated_currency_codes"])
+        self.assertIn("USD", result["covered_currency_codes"])
+        self.assertIn("GBP", result["covered_currency_codes"])
         usd_rate = self.env["res.currency.rate"].search([
             ("company_id", "=", company.id),
             ("currency_id", "=", usd.id),
@@ -5607,21 +6107,112 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(repeated["created_count"], 0)
-        self.assertGreaterEqual(repeated["updated_count"], 2)
+        self.assertEqual(repeated["updated_count"], 0)
+        self.assertGreaterEqual(repeated["unchanged_count"], 2)
+        self.assertIn("USD", repeated["covered_currency_codes"])
+        self.assertIn("GBP", repeated["covered_currency_codes"])
         self.assertEqual(self.env["res.currency.rate"].search_count([
             ("company_id", "=", company.id),
             ("name", "=", "2026-07-22"),
             ("currency_id", "in", [usd.id, gbp.id]),
         ]), 2)
 
+    def test_ecb_reference_rate_provider_fills_every_missing_published_day(self):
+        eur = self.env.ref("base.EUR")
+        usd = self.env.ref("base.USD")
+        gbp = self.env.ref("base.GBP")
+        usd.active = True
+        gbp.active = True
+        company = self.env["res.company"].create({
+            "name": "Unit ECB missing-rate company",
+            "currency_id": eur.id,
+            "rebuild_currency_rate_provider": "ecb",
+        })
+        source_rates = self.env["res.currency.rate"].create([
+            {
+                "name": "2026-07-24",
+                "currency_id": currency.id,
+                "company_id": company.id,
+                "rate": rate,
+                "rebuild_source_model": "res.currency.rate",
+                "rebuild_source_id": source_id,
+                "rebuild_rate_provider": "ecb",
+            }
+            for currency, rate, source_id in (
+                (usd, 1.1377, 9900241),
+                (gbp, 0.85388, 9900242),
+            )
+        ])
+        payload = b"""<gesmes:Envelope
+    xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
+    xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+  <Cube>
+    <Cube time="2026-07-28">
+      <Cube currency="USD" rate="1.1367"/>
+      <Cube currency="GBP" rate="0.85550"/>
+    </Cube>
+    <Cube time="2026-07-24">
+      <Cube currency="USD" rate="1.1377"/>
+      <Cube currency="GBP" rate="0.85388"/>
+    </Cube>
+    <Cube time="2026-07-27">
+      <Cube currency="USD" rate="1.1389"/>
+      <Cube currency="GBP" rate="0.85524"/>
+    </Cube>
+  </Cube>
+</gesmes:Envelope>"""
+
+        first = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at="2026-07-28 16:05:00",
+            backfill=True,
+        )
+
+        self.assertEqual(first["coverage_start_date"], "2026-07-25")
+        self.assertEqual(first["reference_date"], "2026-07-28")
+        self.assertEqual(first["processed_reference_date_count"], 2)
+        self.assertEqual(first["created_count"], 4)
+        self.assertEqual(first["updated_count"], 0)
+        self.assertEqual(source_rates.mapped("rate"), [1.1377, 0.85388])
+        self.assertEqual(
+            self.env["res.currency.rate"].search_count([
+                ("company_id", "=", company.id),
+                ("currency_id", "=", eur.id),
+                ("name", "in", ["2026-07-27", "2026-07-28"]),
+            ]),
+            0,
+        )
+        self.assertEqual(
+            self.env["res.currency.rate"].search_count([
+                ("company_id", "=", company.id),
+                ("currency_id", "in", [usd.id, gbp.id]),
+                ("name", "in", ["2026-07-27", "2026-07-28"]),
+                ("rebuild_rate_provider", "=", "ecb"),
+            ]),
+            4,
+        )
+
+        repeated = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at="2026-07-28 16:10:00",
+            backfill=True,
+        )
+
+        self.assertEqual(repeated["created_count"], 0)
+        self.assertEqual(repeated["updated_count"], 0)
+        self.assertEqual(repeated["unchanged_count"], 4)
+
     def test_ecb_reference_rate_provider_preserves_source_traced_rate(self):
         eur = self.env.ref("base.EUR")
         usd = self.env.ref("base.USD")
+        gbp = self.env.ref("base.GBP")
         usd.active = True
+        gbp.active = True
         company = self.env["res.company"].create({
             "name": "Unit ECB source-preservation company",
             "currency_id": eur.id,
             "rebuild_currency_rate_provider": "ecb",
+            "rebuild_currency_rate_coverage_start": "2026-07-22",
         })
         source_rate = self.env["res.currency.rate"].create({
             "name": "2026-07-22",
@@ -5633,11 +6224,18 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_source_snapshot": "unit-source-rate",
             "rebuild_rate_provider": "ecb",
         })
+        manual_rate = self.env["res.currency.rate"].create({
+            "name": "2026-07-22",
+            "currency_id": gbp.id,
+            "company_id": company.id,
+            "rate": 0.85,
+        })
         payload = b"""<gesmes:Envelope
     xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
     xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
   <Cube><Cube time="2026-07-22">
     <Cube currency="USD" rate="1.1408"/>
+    <Cube currency="GBP" rate="0.85340"/>
   </Cube></Cube>
 </gesmes:Envelope>"""
 
@@ -5647,8 +6245,10 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(result["preserved_source_count"], 1)
+        self.assertEqual(result["preserved_manual_count"], 1)
         self.assertAlmostEqual(source_rate.rate, 1.1394)
         self.assertEqual(source_rate.rebuild_source_id, 990022)
+        self.assertAlmostEqual(manual_rate.rate, 0.85)
 
     def test_currency_rate_automation_menu_and_permissions(self):
         menu = self.env.ref(
@@ -5670,6 +6270,24 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(cron.active)
         self.assertEqual(cron.interval_number, 1)
         self.assertEqual(cron.interval_type, "days")
+        rate_list = self.env.ref(
+            "base.view_currency_rate_tree",
+        )._get_combined_arch()
+        currency_columns = rate_list.xpath(
+            "./field[@name='currency_id']",
+        )
+        self.assertEqual(len(currency_columns), 1)
+        self.assertEqual(
+            currency_columns[0].get("column_invisible"),
+            "context.get('default_currency_id')",
+        )
+        rate_search = self.env.ref(
+            "base.view_currency_rate_search",
+        )._get_combined_arch()
+        self.assertEqual(
+            len(rate_search.xpath("./field[@name='currency_id']")),
+            1,
+        )
         reviewer = self.env["res.users"].with_context(
             no_reset_password=True,
         ).create({
@@ -8892,13 +9510,33 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action.target, "self")
 
         rendered = user_docs.render_markdown(
-            "# Guide\n\nOpen [reports](reference/reports-and-filters.md).\n\n| A | B |\n| --- | --- |\n| `one` | two |\n",
+            "# Guide\n\n"
+            "Open **finished** [reports](reference/reports-and-filters.md#periods).\n\n"
+            "1. Review the bill.\n"
+            "   - Keep the *supporting evidence*.\n"
+            "   - Open `one` entry.\n\n"
+            "> Accounting evidence remains traceable.\n\n"
+            "| A | B |\n"
+            "| --- | --- |\n"
+            "| `one` | two |\n\n"
+            "<script>alert('unsafe')</script>\n"
+            "[Unsafe](javascript:alert('unsafe'))\n",
             "README.md",
         )
         self.assertIn("<h1", rendered)
-        self.assertIn("/usl/user-docs/reference/reports-and-filters.md", rendered)
+        self.assertIn("<strong>finished</strong>", rendered)
+        self.assertIn("<em>supporting evidence</em>", rendered)
+        self.assertIn(
+            "/usl/user-docs/reference/reports-and-filters.md#periods",
+            rendered,
+        )
+        self.assertIsNotNone(re.search(r"<ol>.*<ul>", rendered, re.DOTALL))
+        self.assertRegex(rendered, r"<blockquote(?:\s|>)")
         self.assertIn("<table>", rendered)
         self.assertIn("<code>one</code>", rendered)
+        self.assertIn("&lt;script&gt;", rendered)
+        self.assertNotIn("<script>", rendered)
+        self.assertNotIn('href="javascript:', rendered)
 
     def test_source_report_parity_levels_are_explicit(self):
         mandatory = self.env["rebuild.account.source.report"].create({
