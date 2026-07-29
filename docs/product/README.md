@@ -13,6 +13,7 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Lightweight expense batches](expense-batches.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
+- [Canonical navigation state](canonical-navigation-state.md)
 
 Date-specific delivery handoffs are archived under `docs/archive/accounting/`;
 they are not evergreen product specifications.
