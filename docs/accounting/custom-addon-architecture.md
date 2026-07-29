@@ -85,7 +85,7 @@ identifiers. It is explicitly rejected for this increment.
 
 | Component | Resulting owner | Classification | Safety evidence |
 | --- | --- | --- | --- |
-| Shared definition mixin, fiscal-year API, currency automation | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
+| Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference, reconciliation extensions and rule intelligence | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | `usl_accounting_controls` | cohesive feature | focused lifecycle, ACL, company, period and idempotency tests |
@@ -93,8 +93,10 @@ identifiers. It is explicitly rejected for this increment.
 | Electronic-invoice readiness and offline reception evidence | `usl_accounting_einvoice` | cohesive feature | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
 | Expense claims/batches | `usl_expense_batch` | retained independent feature | clean module and browser tests |
 | Overview and cash projections | compatibility module for this stage | uncertain cross-feature boundary, left unchanged | depends on controls, reports and reconstructed evidence |
+| Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
 | Source trace, importer, native replay, parity evidence and reconstruction models | `rebuild_account_migration` | migration-only | canonical harness and idempotent reconstruction gates |
 | Existing security, views, actions, menus and seeded definitions | `rebuild_account_migration` | compatibility ownership | XML-ID continuity characterization test |
+| Configurable-definition mixin | compatibility module for this stage | generated model XML-ID ownership, left unchanged | XML-ID continuity characterization test |
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
@@ -181,4 +183,3 @@ Every architecture change must pass:
    changed;
 8. canonical reconstruction only when importer, source fields or ownership
    changed materially.
-

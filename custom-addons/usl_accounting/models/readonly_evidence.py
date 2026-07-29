@@ -17,11 +17,14 @@ def _is_persistent_accounting_evidence_model(env, model_name):
 
 def _is_scoped_reviewer(env):
     user = env.user
-    return (
-        user.has_group(
-            "rebuild_account_migration.group_rebuild_accountant_reviewer",
-        )
-        and not user.has_group("account.group_account_user")
+    reviewer_group = env.ref(
+        "rebuild_account_migration.group_rebuild_accountant_reviewer",
+        raise_if_not_found=False,
+    )
+    return bool(
+        reviewer_group
+        and reviewer_group in user.group_ids
+        and not user.has_group("account.group_account_user"),
     )
 
 

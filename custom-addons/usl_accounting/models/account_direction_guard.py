@@ -64,7 +64,7 @@ class AccountMove(models.Model):
         if (
             self.move_type in {"out_refund", "in_refund"}
             or self.reversed_entry_id
-            or self.rebuild_source_id
+            or getattr(self, "rebuild_source_id", False)
             or self.env.context.get("no_exchange_difference")
         ):
             return True
