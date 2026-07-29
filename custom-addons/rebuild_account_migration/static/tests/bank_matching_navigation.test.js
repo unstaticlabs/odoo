@@ -73,6 +73,16 @@ test("Bank Matching finds the line restored by browser history", () => {
             selectedRecordId: 3045,
         }),
     ).toBe(null);
+    expect(
+        getBankMatchingHistoryRecord({
+            initialLoad: true,
+            record: undefined,
+            records,
+            restoreInitialRoute: true,
+            routedId: 3046,
+            selectedRecordId: false,
+        }),
+    ).toBe(first);
 });
 
 test("automatic first selection waits for the Bank Matching action to mount", () => {

@@ -7,6 +7,7 @@ import { patch } from "@web/core/utils/patch";
 
 const BANK_MATCHING_HISTORY_MARKER = "rebuildBankMatching";
 let activeBankMatchingController;
+let pendingBankMatchingHistoryId;
 
 export function getBankMatchingHistoryMode({
     initialLoad,
@@ -29,13 +30,14 @@ export function getBankMatchingHistoryRecord({
     initialLoad,
     record,
     records,
+    restoreInitialRoute = false,
     routedId,
     selectedRecordId,
 }) {
     const normalizedRoutedId = Number(routedId);
     if (
         record !== undefined ||
-        initialLoad ||
+        (initialLoad && !restoreInitialRoute) ||
         !normalizedRoutedId ||
         normalizedRoutedId === selectedRecordId
     ) {
@@ -57,7 +59,11 @@ function setCurrentBankMatchingHistoryEntry(enabled) {
         delete historyState[BANK_MATCHING_HISTORY_MARKER];
         delete historyState.skipRouteChange;
     }
-    browser.history.replaceState(historyState, "", browser.location.href);
+    browser.history.replaceState(
+        historyState,
+        "",
+        browser.location.href,
+    );
 }
 
 // Odoo reloads ordinary window actions on popstate. Transaction-to-transaction
@@ -70,6 +76,7 @@ browser.addEventListener("popstate", (event) => {
     if (activeBankMatchingController) {
         activeBankMatchingController.restoreBankMatchingHistory();
     } else {
+        pendingBankMatchingHistoryId = Number(event.state?.nextState?.id);
         routerBus.trigger("ROUTE_CHANGE");
     }
 });
@@ -129,12 +136,16 @@ patch(ReconcileController.prototype, {
             initialLoad: this.initialLoad,
             record,
             records: this.model.root.records,
-            routedId: router.current?.id,
+            restoreInitialRoute: Boolean(pendingBankMatchingHistoryId),
+            routedId: pendingBankMatchingHistoryId || router.current?.id,
             selectedRecordId: this.state.selectedRecordId,
         });
         try {
             return await super.selectRecord(historyRecord || record);
         } finally {
+            if (pendingBankMatchingHistoryId) {
+                pendingBankMatchingHistoryId = undefined;
+            }
             if (this.rebuildHistorySelectionId === requestedByUserId) {
                 this.rebuildHistorySelectionId = false;
             }
