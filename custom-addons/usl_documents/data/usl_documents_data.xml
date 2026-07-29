@@ -18,5 +18,70 @@
         <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
-</odoo>
 
+    <record id="smart_view_needs_review" model="usl.document.smart.view">
+        <field name="name">Needs review</field>
+        <field name="key">attention</field>
+        <field name="icon">fa-exclamation-circle</field>
+        <field name="sequence">10</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">attention</field>
+    </record>
+    <record id="smart_view_recent" model="usl.document.smart.view">
+        <field name="name">Recently added</field>
+        <field name="key">recent</field>
+        <field name="icon">fa-clock-o</field>
+        <field name="sequence">20</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">recent</field>
+        <field name="days">30</field>
+    </record>
+    <record id="smart_view_accounting" model="usl.document.smart.view">
+        <field name="name">Accounting</field>
+        <field name="key">accounting</field>
+        <field name="icon">fa-calculator</field>
+        <field name="sequence">30</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">accounting</field>
+    </record>
+    <record id="smart_view_contracts" model="usl.document.smart.view">
+        <field name="name">Contracts &amp; legal</field>
+        <field name="key">contracts</field>
+        <field name="icon">fa-file-text-o</field>
+        <field name="sequence">40</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">metadata</field>
+    </record>
+    <record id="smart_view_banking" model="usl.document.smart.view">
+        <field name="name">Banking</field>
+        <field name="key">banking</field>
+        <field name="icon">fa-bank</field>
+        <field name="sequence">50</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">metadata</field>
+    </record>
+    <record id="smart_view_tax" model="usl.document.smart.view">
+        <field name="name">Tax &amp; reporting</field>
+        <field name="key">tax</field>
+        <field name="icon">fa-balance-scale</field>
+        <field name="sequence">60</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">metadata</field>
+    </record>
+    <record id="smart_view_hr" model="usl.document.smart.view">
+        <field name="name">HR</field>
+        <field name="key">hr</field>
+        <field name="icon">fa-lock</field>
+        <field name="sequence">70</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">hr</field>
+    </record>
+    <record id="smart_view_all" model="usl.document.smart.view">
+        <field name="name">All documents</field>
+        <field name="key">all</field>
+        <field name="icon">fa-archive</field>
+        <field name="sequence">80</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">all</field>
+    </record>
+</odoo>

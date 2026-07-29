@@ -4,18 +4,18 @@
         <field name="name">usl.document.search</field>
         <field name="model">usl.document</field>
         <field name="arch" type="xml">
-            <search string="Archived Documents">
+            <search string="Document Register">
                 <field name="name"/>
                 <field name="paperless_id"/>
-                <field name="correspondent_name"/>
-                <field name="document_type_name"/>
-                <field name="tag_names"/>
+                <field name="correspondent_id"/>
+                <field name="document_type_id"/>
+                <field name="tag_ids"/>
                 <filter name="needs_attention" string="Needs attention" domain="[('review_state', '=', 'needs_attention')]"/>
                 <filter name="accounting" string="Accounting evidence" domain="[('accounting_evidence', '=', True)]"/>
                 <filter name="missing" string="Missing or trashed" domain="[('availability_state', 'in', ('missing', 'trashed'))]"/>
                 <separator/>
                 <filter name="company" string="Company" context="{'group_by': 'company_id'}"/>
-                <filter name="document_type" string="Document type" context="{'group_by': 'document_type_name'}"/>
+                <filter name="document_type" string="Document type" context="{'group_by': 'document_type_id'}"/>
                 <filter name="confidentiality" string="Confidentiality" context="{'group_by': 'confidentiality'}"/>
             </search>
         </field>
@@ -25,14 +25,15 @@
         <field name="name">usl.document.list</field>
         <field name="model">usl.document</field>
         <field name="arch" type="xml">
-            <list string="Archived Documents"
+            <list string="Document Register"
                   decoration-warning="review_state == 'needs_attention'"
                   decoration-danger="availability_state in ('missing', 'trashed', 'failed', 'permission_error')">
                 <field name="name"/>
                 <field name="document_date"/>
                 <field name="company_id"/>
-                <field name="document_type_name"/>
-                <field name="correspondent_name"/>
+                <field name="document_type_id"/>
+                <field name="correspondent_id"/>
+                <field name="tag_ids" widget="many2many_tags" optional="show"/>
                 <field name="confidentiality"/>
                 <field name="review_state"/>
                 <field name="availability_state"/>
@@ -50,8 +51,8 @@
                 <field name="name"/>
                 <field name="document_date"/>
                 <field name="company_id"/>
-                <field name="document_type_name"/>
-                <field name="correspondent_name"/>
+                <field name="document_type_id"/>
+                <field name="correspondent_id"/>
                 <field name="review_state"/>
                 <field name="availability_state"/>
                 <templates>
@@ -64,7 +65,7 @@
                             <div class="flex-grow-1 overflow-hidden">
                                 <strong class="d-block text-truncate"><field name="name"/></strong>
                                 <div class="text-muted"><field name="document_date"/></div>
-                                <div class="text-muted text-truncate"><field name="correspondent_name"/></div>
+                                <div class="text-muted text-truncate"><field name="correspondent_id"/></div>
                                 <div class="mt-2">
                                     <span t-if="record.review_state.raw_value === 'needs_attention'" class="badge text-bg-warning">Needs attention</span>
                                     <span t-if="record.availability_state.raw_value !== 'available'" class="badge text-bg-danger"><field name="availability_state"/></span>
@@ -100,6 +101,11 @@
                     </div>
                     <widget name="web_ribbon" title="Unavailable" bg_color="text-bg-danger"
                             invisible="availability_state == 'available'"/>
+                    <div class="alert alert-danger" role="alert"
+                         invisible="permission_sync_state != 'failed'">
+                        <strong>Document access needs attention.</strong>
+                        <span>The file is blocked until its archive access can be verified.</span>
+                    </div>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name"/></h1>
@@ -114,30 +120,30 @@
                         </group>
                         <group>
                             <field name="availability_state"/>
-                            <field name="permission_sync_state"/>
-                            <field name="paperless_id"/>
                             <field name="original_filename"/>
                             <field name="mime_type"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Preview and download" name="preview">
+                        <page string="Document" name="preview">
                             <div class="alert alert-warning" role="status" invisible="availability_state == 'available'">
                                 The archived evidence is temporarily unavailable. The Odoo record remains usable.
                             </div>
                             <div class="d-flex gap-2" invisible="availability_state != 'available'">
                                 <button name="action_preview" type="object" string="Open preview" class="btn-primary" icon="fa-eye"/>
-                                <button name="action_download_original" type="object" string="Download received original" icon="fa-download"/>
-                                <button name="action_download_archive" type="object" string="Download archival derivative" icon="fa-file-pdf-o"/>
+                                <button name="action_download_original" type="object" string="Download original"
+                                        class="btn-primary" icon="fa-download"
+                                        title="Download the file that was received or uploaded."/>
+                                <button name="action_download_archive" type="object" string="Download searchable PDF"
+                                        icon="fa-file-pdf-o"
+                                        title="Download Paperless's processed copy. The original is unchanged."/>
                             </div>
                         </page>
-                        <page string="Archive metadata" name="metadata">
+                        <page string="Classification" name="metadata">
                             <group>
-                                <field name="correspondent_name"/>
-                                <field name="document_type_name"/>
-                                <field name="tag_names"/>
-                                <field name="checksum"/>
-                                <field name="archive_checksum"/>
+                                <field name="correspondent_id"/>
+                                <field name="document_type_id"/>
+                                <field name="tag_ids" widget="many2many_tags"/>
                                 <field name="current_version_label"/>
                                 <field name="paperless_created"/>
                                 <field name="paperless_modified"/>
@@ -154,17 +160,20 @@
                                     <field name="original_filename"/>
                                     <field name="mime_type"/>
                                     <field name="page_count"/>
-                                    <field name="checksum"/>
+                                    <field name="checksum" optional="hide"/>
                                     <button name="action_preview" type="object" icon="fa-eye"
                                             title="Preview this version"/>
                                     <button name="action_download_original" type="object" icon="fa-download"
-                                            title="Download received version"/>
+                                            title="Download this original file"/>
                                     <button name="action_download_archive" type="object" icon="fa-file-pdf-o"
-                                            title="Download archival derivative"/>
+                                            title="Download this searchable PDF"/>
+                                    <button name="action_restore_as_current" type="object"
+                                            icon="fa-history" title="Restore as current"
+                                            invisible="is_current"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Linked Odoo records" name="links">
+                        <page string="Linked records" name="links">
                             <field name="link_ids" context="{'default_document_id': id}">
                                 <list create="0" edit="0">
                                     <field name="record_name"/>
@@ -178,8 +187,13 @@
                         </page>
                         <page string="Diagnostics" name="diagnostics" groups="usl_documents.group_documents_manager">
                             <group>
+                                <field name="paperless_id"/>
+                                <field name="permission_sync_state"/>
+                                <field name="permission_checked_at"/>
                                 <field name="permission_sync_error"/>
                                 <field name="last_error"/>
+                                <field name="checksum"/>
+                                <field name="archive_checksum"/>
                                 <field name="custom_fields_json"/>
                             </group>
                         </page>
@@ -194,7 +208,7 @@
         <field name="name">usl.document.link.list</field>
         <field name="model">usl.document.link</field>
         <field name="arch" type="xml">
-            <list string="Document Relationships">
+            <list string="Linked Records">
                 <field name="document_id"/>
                 <field name="record_name"/>
                 <field name="res_model"/>
@@ -211,7 +225,7 @@
         <field name="name">usl.document.link.form</field>
         <field name="model">usl.document.link</field>
         <field name="arch" type="xml">
-            <form string="Document Relationship">
+            <form string="Linked Record">
                 <header>
                     <button name="action_open_record" type="object" string="Open Odoo record" class="oe_highlight"/>
                 </header>
@@ -233,7 +247,7 @@
     </record>
 
     <record id="action_usl_documents" model="ir.actions.act_window">
-        <field name="name">Archive</field>
+        <field name="name">Document register</field>
         <field name="res_model">usl.document</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_usl_document_search"/>
@@ -245,7 +259,7 @@
     </record>
 
     <record id="action_usl_document_links" model="ir.actions.act_window">
-        <field name="name">Relationships</field>
+        <field name="name">Linked records</field>
         <field name="res_model">usl.document.link</field>
         <field name="view_mode">list,form</field>
     </record>
@@ -294,7 +308,7 @@
     </record>
 
     <record id="action_usl_paperless_user_mappings" model="ir.actions.act_window">
-        <field name="name">Paperless identities</field>
+        <field name="name">User access</field>
         <field name="res_model">usl.paperless.user.mapping</field>
         <field name="view_mode">list,form</field>
     </record>
@@ -313,12 +327,19 @@
               groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant,usl_documents.group_documents_manager"/>
     <menuitem id="menu_usl_documents_workspace" name="Documents" parent="menu_usl_documents_root"
               action="action_documents_workspace" sequence="10"/>
-    <menuitem id="menu_usl_documents_archive" name="Archive records" parent="menu_usl_documents_root"
-              action="action_usl_documents" sequence="20"/>
-    <menuitem id="menu_usl_documents_links" name="Relationships" parent="menu_usl_documents_root"
-              action="action_usl_document_links" sequence="30"
+    <menuitem id="menu_usl_documents_configuration" name="Configuration"
+              parent="menu_usl_documents_root" sequence="90"
+              groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_archive" name="Document register"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_documents" sequence="60"
               groups="usl_documents.group_documents_manager"/>
-    <menuitem id="menu_usl_documents_identities" name="Paperless identities" parent="menu_usl_documents_root"
-              action="action_usl_paperless_user_mappings" sequence="40"
+    <menuitem id="menu_usl_documents_links" name="Linked records"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_links" sequence="70"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_identities" name="User access"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_paperless_user_mappings" sequence="80"
               groups="usl_documents.group_documents_manager"/>
 </odoo>

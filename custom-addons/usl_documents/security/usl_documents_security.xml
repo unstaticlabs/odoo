@@ -206,4 +206,11 @@
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[Command.link(ref('group_documents_manager'))]"/>
     </record>
+
+    <record id="rule_document_smart_view_scope" model="ir.rule">
+        <field name="name">Documents smart views: shared or personal</field>
+        <field name="model_id" ref="model_usl_document_smart_view"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|', ('scope', '=', 'shared'), ('user_id', '=', user.id)]</field>
+    </record>
 </odoo>

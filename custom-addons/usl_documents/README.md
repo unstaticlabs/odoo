@@ -11,16 +11,32 @@ before proxying server-side. `usl.document` is the synchronized metadata cache;
 asynchronous ingestion. Synchronization is stable on `paperless_id`.
 
 API v10 document payloads carry correspondent, document-type, and tag IDs.
-Synchronization hydrates those IDs from the supported metadata endpoints before
-writing the cache. Paperless remains authoritative for those values.
+`usl.paperless.tag`, `usl.paperless.correspondent`, and
+`usl.paperless.document.type` cache those catalogs by stable Paperless ID.
+Synchronization hydrates the catalogs before document rows. User writes call
+the supported Paperless endpoint first and cache its returned representation.
+The compatibility name fields on `usl.document` remain read-only during
+migration; new filters and smart views use relations.
+
+`usl.document.smart.view` provides manager-owned shared views and private saved
+filters. Shared metadata views reference relational IDs, so Paperless renames
+do not break navigation. Odoo business rules still own company,
+confidentiality, accounting evidence, HR, and review state.
+
 Incremental synchronization saves a page and timestamp checkpoint before each
 bounded run, resumes after interruption, and uses full reconciliation to mark
 missing roots without deleting relationships.
 
 File versions are persisted as `usl.document.version`: the first API version is
-current and `is_root` identifies the received original. Version download routes
-verify that the requested version belongs to the Odoo-authorized root before
-proxying bytes.
+current and `is_root` identifies the received original. Version preview and
+download routes verify that the requested version belongs to the
+Odoo-authorized root before proxying bytes. Restore downloads an authorized old
+version server-side and submits it to Paperless's supported update-version API,
+creating a new current version instead of mutating history.
+
+The workspace does not expose healthy synchronization state. It returns a
+document-level access error only when permission synchronization failed.
+Checksums, archive IDs, and last access checks are manager diagnostics.
 
 Configuration keys use the `usl_documents.*` namespace. The service URL and
 token are server-only; the public URL is used solely for permission-synchronized

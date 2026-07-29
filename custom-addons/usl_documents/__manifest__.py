@@ -12,6 +12,7 @@
         "security/ir.model.access.csv",
         "data/usl_documents_data.xml",
         "views/usl_document_views.xml",
+        "views/usl_document_metadata_views.xml",
         "views/business_record_views.xml",
         "views/res_config_settings_views.xml",
     ],
