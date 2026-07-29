@@ -4,7 +4,6 @@ from urllib.parse import quote, urlencode
 from odoo import _, api, models
 from odoo.exceptions import AccessError, ValidationError
 
-
 NAVIGATION_VERSION = 1
 MAX_DIRECT_URL_LENGTH = 1800
 MAX_DIRECT_SELECTION = 40
@@ -175,7 +174,7 @@ class UslNavigationLink(models.AbstractModel):
 
     @api.model
     def _normalize_query_value(self, key, value):
-        if value is None or value is False or value == "":
+        if not value:
             return None
         if key in JSON_QUERY_KEYS:
             if key == "domain" and isinstance(value, str):
@@ -203,7 +202,7 @@ class UslNavigationLink(models.AbstractModel):
         unknown = set(state) - ALLOWED_QUERY_KEYS
         if unknown:
             raise ValidationError(
-                _("Unsupported navigation state: %(keys)s", keys=", ".join(sorted(unknown)))
+                _("Unsupported navigation state: %(keys)s", keys=", ".join(sorted(unknown))),
             )
         values = {
             "nv": NAVIGATION_VERSION,
@@ -261,17 +260,17 @@ class UslNavigationLink(models.AbstractModel):
             selection_count = len(
                 direct_selection
                 if isinstance(direct_selection, (list, tuple, set))
-                else str(direct_selection).split(",")
+                else str(direct_selection).split(","),
             )
             if selection_count > MAX_DIRECT_SELECTION:
                 raise ValidationError(
                     _(
-                        "This selection requires a durable workspace instead of a direct URL."
-                    )
+                        "This selection requires a durable workspace instead of a direct URL.",
+                    ),
                 )
         if not workspace and len(relative.encode()) > MAX_DIRECT_URL_LENGTH:
             raise ValidationError(
-                _("This navigation state requires a durable workspace instead of a direct URL.")
+                _("This navigation state requires a durable workspace instead of a direct URL."),
             )
         if not absolute:
             return relative
@@ -337,7 +336,7 @@ class UslNavigationLink(models.AbstractModel):
                 raise ValidationError(_("The report company is malformed.")) from error
             if report_company_id != normalized_companies[0]:
                 raise ValidationError(
-                    _("The report company must match the canonical company scope.")
+                    _("The report company must match the canonical company scope."),
                 )
         state = {"report": report_type, **filters}
         return self.build_action_url(

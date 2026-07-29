@@ -15,6 +15,7 @@
         "web.assets_backend": [
             "usl_canonical_navigation/static/src/navigation_state.js",
             "usl_canonical_navigation/static/src/navigation_service.js",
+            "usl_canonical_navigation/static/src/company_selector.js",
             "usl_canonical_navigation/static/src/view_state.js",
             "usl_canonical_navigation/static/src/recovery_action.js",
             "usl_canonical_navigation/static/src/recovery_action.xml",

@@ -1,9 +1,12 @@
 import { expect, test } from "@odoo/hoot";
+import { browser } from "@web/core/browser/browser";
 import { router } from "@web/core/browser/router";
+import { redirect } from "@web/core/utils/urls";
 
 import {
     canonicalCompanyValue,
     canonicalizeUrl,
+    companyTransitionPatch,
     normalizeIds,
     parsePanelState,
     parseCompanyIds,
@@ -23,6 +26,21 @@ test("unknown backward-compatible parameters sort after the contract", () => {
     expect(canonicalizeUrl("/odoo?z=2&nv=1&a=1")).toBe("/odoo?nv=1&a=1&z=2");
 });
 
+test("scoped app routes normalize without recursively parsing the visible route", () => {
+    redirect(
+        "/scoped_app/action-base.action_partner_form?nv=1&cids=1&view_type=list"
+    );
+    const scopedUrl = new URL(browser.location.href);
+
+    expect(router.urlToState(scopedUrl)).toMatchObject({
+        action: "base.action_partner_form",
+        cids: 1,
+        nv: 1,
+        view_type: "list",
+    });
+    expect(scopedUrl.pathname).toBe("/odoo/action-base.action_partner_form");
+});
+
 test("semantic JSON serialization sorts object keys without reordering arrays", () => {
     expect(stableJson({ z: 2, a: [{ desc: true, name: "date" }] })).toBe(
         '{"a":[{"desc":true,"name":"date"}],"z":2}'
@@ -35,6 +53,29 @@ test("company and selection identifiers normalize deterministically", () => {
     expect(parseCompanyIds("3-x")).toBe(null);
     expect(canonicalCompanyValue([3, 2, 1])).toBe("3-1-2");
     expect(normalizeIds("9,2,9,bad")).toEqual([2, 9]);
+});
+
+test("company transitions clear scoped selections and retarget reports", () => {
+    expect(
+        companyTransitionPatch(
+            {
+                report: "trial_balance",
+                company: 1,
+                period: "custom",
+                selection: "4,8",
+                ws: "private-workspace",
+            },
+            [2]
+        )
+    ).toEqual({
+        nv: 1,
+        cids: "2",
+        report: "trial_balance",
+        company: 2,
+        period: "custom",
+        selection: undefined,
+        ws: undefined,
+    });
 });
 
 test("search-panel state uses stable field names and semantic values", () => {

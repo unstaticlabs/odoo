@@ -8,6 +8,7 @@ import {
     QUERY_ORDER,
     WORKSPACE_ONLY_KEYS,
     canonicalCompanyValue,
+    companyTransitionPatch,
     navigationPatch,
     parseCompanyIds,
     withPortableActionAlias,
@@ -32,7 +33,29 @@ export const canonicalNavigationService = {
     async start(_env, { action, orm }) {
         const loadOdooState = action.loadState.bind(action);
         const switchOdooView = action.switchView.bind(action);
+        const allowedCompanyIds = new Set(user.allowedCompanies.map((company) => company.id));
+        let internalCompanyChange = false;
+        let service;
         let restoringCanonicalState = false;
+        const activateRouteCompanies = async (nextCompanyIds) => {
+            if (
+                nextCompanyIds.length &&
+                nextCompanyIds.join(",") !== currentCompanyIds().join(",")
+            ) {
+                internalCompanyChange = true;
+                try {
+                    await user.activateCompanies(nextCompanyIds, {
+                        includeChildCompanies: false,
+                        reload: false,
+                    });
+                } finally {
+                    internalCompanyChange = false;
+                }
+            }
+            if (service) {
+                service.companyIds = [...currentCompanyIds()];
+            }
+        };
         action.switchView = async (viewType, props = {}, options = {}) => {
             const result = await switchOdooView(viewType, props, options);
             if (
@@ -56,6 +79,15 @@ export const canonicalNavigationService = {
             if (Number(state.nv) !== 1 || (!state.action && !state.model)) {
                 return loadOdooState(state);
             }
+            const routeCompanyIds = parseCompanyIds(state.cids);
+            if (
+                routeCompanyIds === null ||
+                routeCompanyIds.some((companyId) => !allowedCompanyIds.has(companyId))
+            ) {
+                redirectToUnavailable("company");
+                return true;
+            }
+            await activateRouteCompanies(routeCompanyIds);
             const options = {
                 clearBreadcrumbs: true,
                 viewType: state.resId ? "form" : state.view_type,
@@ -85,7 +117,6 @@ export const canonicalNavigationService = {
             }
             return true;
         };
-        const allowedCompanyIds = new Set(user.allowedCompanies.map((company) => company.id));
         const requested = parseCompanyIds(router.current.cids);
         if (requested === null || requested?.some((companyId) => !allowedCompanyIds.has(companyId))) {
             redirectToUnavailable("company");
@@ -99,40 +130,45 @@ export const canonicalNavigationService = {
         }
 
         const companyIds = requested?.length ? requested : currentCompanyIds();
-        if (
-            companyIds.join(",") !== currentCompanyIds().join(",")
-        ) {
-            await user.activateCompanies(companyIds, {
-                includeChildCompanies: false,
-                reload: false,
-            });
-        }
-        let internalCompanyChange = false;
+        await activateRouteCompanies(companyIds);
         userBus.addEventListener("ACTIVE_COMPANIES_CHANGED", () => {
             if (
                 !internalCompanyChange &&
                 Number(router.current.nv) === 1
             ) {
-                const companyState = Object.fromEntries(
-                    [...EXPANDED_PORTABLE_KEYS]
-                        .filter((key) => router.current[key] !== undefined)
-                        .map((key) => [key, router.current[key]])
-                );
-                if (router.current.ws) {
-                    // A saved workspace has its own immutable company scope.
-                    // A deliberate native company switch opens the same safe
-                    // filtered view in the new scope and clears its selection.
-                    companyState.ws = undefined;
-                    companyState.selection = undefined;
+                const nextCompanyIds = currentCompanyIds();
+                if (service) {
+                    service.companyIds = [...nextCompanyIds];
+                }
+                if (
+                    parseCompanyIds(router.current.cids)?.join(",") ===
+                    nextCompanyIds.join(",")
+                ) {
+                    return;
                 }
                 writePortableRoute(() =>
                     router.pushState(
-                        navigationPatch(companyState, currentCompanyIds()),
+                        companyTransitionPatch(router.current, nextCompanyIds),
                         { sync: true }
                     )
                 );
             }
         });
+        browser.addEventListener(
+            "popstate",
+            async () => {
+                const visibleCompanyIds = parseCompanyIds(
+                    new URL(browser.location.href).searchParams.get("cids")
+                );
+                if (
+                    visibleCompanyIds?.length &&
+                    visibleCompanyIds.every((companyId) => allowedCompanyIds.has(companyId))
+                ) {
+                    await activateRouteCompanies(visibleCompanyIds);
+                }
+            },
+            { capture: true }
+        );
         if (Number(router.current.nv) === 1 && !router.current.ws) {
             if ([...WORKSPACE_ONLY_KEYS].some((key) => router.current[key] !== undefined)) {
                 redirectToUnavailable("state");
@@ -176,7 +212,7 @@ export const canonicalNavigationService = {
             { sync: true }
         );
 
-        return {
+        service = {
             blocked: false,
             companyIds,
             async setCompanies(nextCompanyIds) {
@@ -186,16 +222,7 @@ export const canonicalNavigationService = {
                 ) {
                     return { status: "unavailable" };
                 }
-                internalCompanyChange = true;
-                try {
-                    await user.activateCompanies(nextCompanyIds, {
-                        includeChildCompanies: false,
-                        reload: false,
-                    });
-                } finally {
-                    internalCompanyChange = false;
-                }
-                this.companyIds = [...nextCompanyIds];
+                await activateRouteCompanies(nextCompanyIds);
                 this.commit({}, { history: "replace" });
                 return { status: "ok" };
             },
@@ -217,10 +244,7 @@ export const canonicalNavigationService = {
                 if (result.company_ids.some((companyId) => !permitted.has(companyId))) {
                     return { status: "unavailable" };
                 }
-                await user.activateCompanies(result.company_ids, {
-                    includeChildCompanies: false,
-                    reload: false,
-                });
+                await activateRouteCompanies(result.company_ids);
                 const expandedState = navigationPatch(result.state, result.company_ids);
                 if (Array.isArray(result.state.selection)) {
                     expandedState.selection = result.state.selection;
@@ -300,6 +324,7 @@ export const canonicalNavigationService = {
                 return result;
             },
         };
+        return service;
     },
 };
 

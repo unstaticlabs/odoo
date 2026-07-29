@@ -1,2 +1,1 @@
-from . import navigation_link
-from . import navigation_workspace
+from . import navigation_link, navigation_workspace

@@ -158,7 +158,7 @@ class TestCanonicalNavigation(TransactionCase):
         )
 
         restored = self.workspace_model.with_user(self.reader).read_workspace(
-            result["public_id"]
+            result["public_id"],
         )
         self.assertEqual(restored["status"], "ok")
         self.assertFalse(restored["owner"])
@@ -177,7 +177,7 @@ class TestCanonicalNavigation(TransactionCase):
         )
         self.assertEqual(
             self.workspace_model.with_user(self.outsider).read_workspace(
-                owner_only["public_id"]
+                owner_only["public_id"],
             ),
             {"status": "unavailable"},
         )
@@ -189,7 +189,7 @@ class TestCanonicalNavigation(TransactionCase):
         )
         self.assertEqual(
             self.workspace_model.with_user(self.reader).read_workspace(
-                company_workspace["public_id"]
+                company_workspace["public_id"],
             ),
             {"status": "unavailable"},
         )

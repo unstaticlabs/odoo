@@ -231,6 +231,20 @@ export function navigationPatch(patch, companyIds) {
     return next;
 }
 
+export function companyTransitionPatch(sourceState, companyIds) {
+    const companyState = Object.fromEntries(
+        [...EXPANDED_PORTABLE_KEYS]
+            .filter((key) => sourceState[key] !== undefined)
+            .map((key) => [key, sourceState[key]])
+    );
+    companyState.ws = undefined;
+    companyState.selection = undefined;
+    if (companyState.report) {
+        companyState.company = companyIds[0];
+    }
+    return navigationPatch(companyState, companyIds);
+}
+
 export function installCanonicalRouter() {
     if (installed) {
         return;
@@ -238,6 +252,16 @@ export function installCanonicalRouter() {
     installed = true;
     const stateToUrl = router.stateToUrl.bind(router);
     const urlToState = router.urlToState.bind(router);
+    const visibleStateFromLocation = () => {
+        const visibleUrl = new URL(browser.location.href);
+        if (visibleUrl.pathname.startsWith("/scoped_app")) {
+            visibleUrl.pathname = visibleUrl.pathname.replace(
+                "/scoped_app",
+                "/odoo"
+            );
+        }
+        return urlToState(visibleUrl);
+    };
     let shadowAction = router.current.action;
     let portableShadow = Object.fromEntries(
         [...PORTABLE_STATE_KEYS, "ws"]
@@ -253,7 +277,7 @@ export function installCanonicalRouter() {
     browser.addEventListener(
         "popstate",
         (event) => {
-            const visibleState = urlToState(new URL(browser.location.href));
+            const visibleState = visibleStateFromLocation();
             const nextState = event.state?.nextState;
             if (Number(visibleState.nv) !== NAVIGATION_VERSION || !nextState) {
                 return;
@@ -278,6 +302,7 @@ export function installCanonicalRouter() {
         },
         { capture: true }
     );
+    const originalReplaceState = router.replaceState.bind(router);
     for (const method of ["pushState", "replaceState"]) {
         const original = router[method].bind(router);
         router[method] = (nextState, options) => {
@@ -286,7 +311,7 @@ export function installCanonicalRouter() {
                 Number(nextState.nv) === NAVIGATION_VERSION
             ) {
                 nextState = { ...nextState };
-                const visibleState = urlToState(new URL(browser.location.href));
+                const visibleState = visibleStateFromLocation();
                 const nextAction =
                     nextState.actionStack?.at(-1)?.action ??
                     nextState.action ??
@@ -323,7 +348,11 @@ export function installCanonicalRouter() {
                 }
                 browser.sessionStorage.removeItem("current_state");
             }
-            return original(nextState, options);
+            const writer =
+                method === "pushState" && portableActionAliasDepth > 0
+                    ? originalReplaceState
+                    : original;
+            return writer(nextState, options);
         };
     }
 
@@ -335,7 +364,7 @@ export function installCanonicalRouter() {
         // accidentally turn a canonical workspace back into a session-only URL.
         serializable.nv ??= router.current.nv ?? NAVIGATION_VERSION;
         serializable.cids ??=
-            router.current.cids ?? urlToState(new URL(browser.location.href)).cids;
+            router.current.cids ?? visibleStateFromLocation().cids;
         const sameAction =
             portableActionAliasDepth > 0 ||
             (
@@ -343,7 +372,7 @@ export function installCanonicalRouter() {
                 actionPath(serializable.action) === actionPath(shadowAction)
             );
         if (sameAction) {
-            const visibleState = urlToState(new URL(browser.location.href));
+            const visibleState = visibleStateFromLocation();
             const visibleSameAction =
                 actionPath(visibleState.action) === actionPath(serializable.action);
             for (const key of [...PORTABLE_STATE_KEYS, "ws"]) {
@@ -353,7 +382,10 @@ export function installCanonicalRouter() {
                     } else {
                         serializable[key] = visibleState[key];
                     }
-                } else if (!Object.hasOwn(serializable, key)) {
+                } else if (
+                    portableWriteDepth === 0 &&
+                    !Object.hasOwn(serializable, key)
+                ) {
                     if (visibleSameAction && visibleState[key] !== undefined) {
                         serializable[key] = visibleState[key];
                     } else if (portableShadow[key] !== undefined) {

@@ -8,7 +8,6 @@ from odoo.exceptions import AccessError, ValidationError
 
 from .navigation_link import ALLOWED_QUERY_KEYS, NAVIGATION_VERSION
 
-
 MAX_WORKSPACE_BYTES = 256 * 1024
 FORBIDDEN_KEY_PARTS = {
     "access_token",
@@ -114,7 +113,7 @@ class UslNavigationWorkspace(models.Model):
                 normalized_key = str(key).replace("_", "").lower()
                 if any(part.replace("_", "") in normalized_key for part in FORBIDDEN_KEY_PARTS):
                     raise ValidationError(
-                        _("Navigation state contains a forbidden value at %(path)s.", path=path)
+                        _("Navigation state contains a forbidden value at %(path)s.", path=path),
                     )
                 self._validate_json_value(
                     item,
@@ -131,7 +130,7 @@ class UslNavigationWorkspace(models.Model):
         unknown = set(state) - TARGET_KEYS
         if unknown:
             raise ValidationError(
-                _("Unsupported navigation state: %(keys)s", keys=", ".join(sorted(unknown)))
+                _("Unsupported navigation state: %(keys)s", keys=", ".join(sorted(unknown))),
             )
         state = dict(state)
         if state.get("selection_mode") not in (None, "domain"):
@@ -241,7 +240,7 @@ class UslNavigationWorkspace(models.Model):
                 if record_id not in (None, False, "")
             }
             accessible_ids = set(
-                self.env[model_name].search([("id", "in", list(selected_ids))]).ids
+                self.env[model_name].search([("id", "in", list(selected_ids))]).ids,
             )
             if selected_ids != accessible_ids:
                 raise AccessError(_("The saved selection is not fully available."))
@@ -259,7 +258,7 @@ class UslNavigationWorkspace(models.Model):
                 if record_id not in (None, False, "")
             }
             accessible_ids = set(
-                self.env[target_model].search([("id", "in", list(record_ids))]).ids
+                self.env[target_model].search([("id", "in", list(record_ids))]).ids,
             )
             if record_ids != accessible_ids:
                 raise AccessError(_("A saved workspace filter is not available."))

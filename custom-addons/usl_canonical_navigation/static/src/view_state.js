@@ -92,6 +92,14 @@ function searchStateMatchesRoute(state) {
     });
 }
 
+function canonicalSearchRouteSignature() {
+    return JSON.stringify(
+        ["domain", "groupBy", "orderBy", "favorite", "panel"].map(
+            (key) => router.current[key] ?? null
+        )
+    );
+}
+
 function markCanonicalSearchChange(searchModel) {
     if (!searchModel.blockNotification) {
         searchModel.canonicalCommitPending = true;
@@ -148,6 +156,7 @@ async function persistCanonicalSelection(controller) {
 async function restoreCanonicalCollection(controller, { restoreSearch = false } = {}) {
     if (
         controller.canonicalListRestoring ||
+        !controller.model.isReady ||
         Number(router.current.nv) !== NAVIGATION_VERSION ||
         (router.current.resId && router.current.resId !== "new")
     ) {
@@ -155,9 +164,15 @@ async function restoreCanonicalCollection(controller, { restoreSearch = false } 
     }
     controller.canonicalListRestoring = true;
     try {
-        if (restoreSearch) {
+        const searchRouteSignature = canonicalSearchRouteSignature();
+        if (
+            restoreSearch &&
+            controller.canonicalSearchRouteSignature !== searchRouteSignature
+        ) {
             await controller.env.searchModel.restoreCanonicalRoute?.();
             await new Promise((resolve) => browser.setTimeout(resolve, 0));
+            await controller.model.mutex.getUnlockedDef();
+            controller.canonicalSearchRouteSignature = searchRouteSignature;
         }
         const offset = Number(router.current.offset || 0);
         const limit = Number(router.current.limit);
@@ -177,7 +192,12 @@ async function restoreCanonicalCollection(controller, { restoreSearch = false } 
             routeLoad.limit = limit;
         }
         if (Object.keys(routeLoad).length) {
-            await controller.model.root.load(routeLoad);
+            const routedRoot = controller.model.root;
+            await routedRoot.load(routeLoad);
+            if (controller.model.root !== routedRoot) {
+                controller.canonicalRestoreAgain = true;
+                return;
+            }
         }
         if (router.current.selection_mode === "domain") {
             await controller.model.root.selectDomain(true);
@@ -197,7 +217,30 @@ async function restoreCanonicalCollection(controller, { restoreSearch = false } 
         controller.canonicalSelectionReady = true;
     } finally {
         controller.canonicalListRestoring = false;
+        if (controller.canonicalRestoreAgain) {
+            controller.canonicalRestoreAgain = false;
+            browser.setTimeout(
+                () => restoreCanonicalCollection(controller, { restoreSearch }),
+                0
+            );
+        }
     }
+}
+
+function withCanonicalRootLoadHook(controller, params, restore) {
+    const onRootLoaded = params.hooks?.onRootLoaded;
+    return {
+        ...params,
+        hooks: {
+            ...params.hooks,
+            async onRootLoaded(root) {
+                await onRootLoaded?.(root);
+                if (!controller.canonicalListRestoring) {
+                    browser.setTimeout(restore, 0);
+                }
+            },
+        },
+    };
 }
 
 patch(SearchModel.prototype, {
@@ -417,16 +460,16 @@ patch(SearchBarMenu.prototype, {
 
 patch(ListController.prototype, {
     get modelParams() {
-        const params = super.modelParams;
-        const offset = Number(router.current.offset);
+        let params = super.modelParams;
         const limit = Number(router.current.limit);
-        if (Number.isSafeInteger(offset) && offset >= 0) {
-            params.config = { ...params.config, offset };
-        }
         if (Number.isSafeInteger(limit) && limit > 0) {
             params.limit = limit;
-            params.config = { ...params.config, limit };
         }
+        params = withCanonicalRootLoadHook(
+            this,
+            params,
+            () => this.restoreCanonicalListState()
+        );
         return params;
     },
 
@@ -434,7 +477,6 @@ patch(ListController.prototype, {
         super.setup(...arguments);
         this.canonicalNavigation = useService("canonical_navigation");
         this.canonicalSelectionReady = false;
-        onMounted(() => this.restoreCanonicalListState());
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", () =>
             this.restoreCanonicalListState()
         );
@@ -452,11 +494,24 @@ patch(ListController.prototype, {
 });
 
 patch(KanbanController.prototype, {
+    get modelParams() {
+        let params = super.modelParams;
+        const limit = Number(router.current.limit);
+        if (Number.isSafeInteger(limit) && limit > 0) {
+            params.limit = limit;
+        }
+        params = withCanonicalRootLoadHook(
+            this,
+            params,
+            () => restoreCanonicalCollection(this, { restoreSearch: true })
+        );
+        return params;
+    },
+
     setup() {
         super.setup(...arguments);
         this.canonicalNavigation = useService("canonical_navigation");
         this.canonicalSelectionReady = false;
-        onMounted(() => restoreCanonicalCollection(this, { restoreSearch: true }));
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", () =>
             restoreCanonicalCollection(this, { restoreSearch: true })
         );

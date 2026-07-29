@@ -201,6 +201,11 @@ Option 3 is used. Option 1 cannot restore an address-bar URL in a closed or
 independent tab. Option 2 would fork actions, breadcrumbs, forms, security and
 mobile behavior. The semantic extension keeps standard `/odoo` paths, legacy
 `/web` hashes, menus, favorites and controller lifecycle.
+Native company switching commits an explicit per-tab `cids` history entry
+before remounting the current action, so Back and Forward reactivate the
+company shown by the URL. Browser use of `/scoped_app` is normalized through
+the equivalent `/odoo` state; installed PWA routing remains supported and copy
+or share operations expose the portable `/odoo` form.
 
 The latest public Odoo 19 branch was inspected through
 `upstream/19.0` at `fd9c4dc83c6`, and public master was inspected at
