@@ -27,6 +27,9 @@
                             <field name="paperless_health" readonly="1"/>
                             <button name="action_test_paperless" type="object" string="Test connection" class="btn-link"/>
                         </setting>
+                        <setting string="Fail-closed ingestion policy" help="All Paperless ingestion channels are owned by the service identity until Odoo synchronizes explicit object access.">
+                            <button name="action_install_paperless_policy" type="object" string="Install or repair policy" class="btn-link"/>
+                        </setting>
                         <setting string="Last successful synchronization">
                             <field name="paperless_last_sync" readonly="1"/>
                         </setting>

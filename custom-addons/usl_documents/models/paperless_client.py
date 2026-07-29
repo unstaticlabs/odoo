@@ -27,9 +27,14 @@ class PaperlessCompatibilityError(PaperlessError):
     pass
 
 
+class PaperlessNotFound(PaperlessError):
+    pass
+
+
 class PaperlessClient:
     API_VERSION = "10"
     SUPPORTED_SERVER_MAJOR = 3
+    FAIL_CLOSED_WORKFLOW_NAME = "USL Odoo fail-closed ingestion"
 
     def __init__(self, env):
         self.env = env
@@ -97,6 +102,10 @@ class PaperlessClient:
                 raise PaperlessAuthenticationError(
                     _("Paperless rejected the integration identity.")
                 ) from error
+            if error.code == 404:
+                raise PaperlessNotFound(
+                    _("The requested Paperless document or version no longer exists.")
+                ) from error
             if error.code == 406:
                 raise PaperlessCompatibilityError(
                     _("Paperless does not support required API version %s.")
@@ -137,11 +146,76 @@ class PaperlessClient:
             "document_count": payload.get("count", 0),
         }
 
-    def list_documents(self, *, page=1, page_size=100, modified_after=None):
+    def list_documents(
+        self, *, page=1, page_size=100, modified_after=None, modified_before=None
+    ):
         query = {"page": page, "page_size": page_size, "ordering": "id"}
         if modified_after:
             query["modified__gt"] = modified_after
+        if modified_before:
+            query["modified__lte"] = modified_before
         return self._request("GET", "/api/documents/", query=query)[0]
+
+    def metadata_catalog(self):
+        """Return the supported document metadata objects keyed by stable ID."""
+        catalog = {}
+        for key, endpoint in (
+            ("correspondents", "correspondents"),
+            ("document_types", "document_types"),
+            ("tags", "tags"),
+        ):
+            page = 1
+            values = {}
+            while True:
+                payload = self._request(
+                    "GET",
+                    f"/api/{endpoint}/",
+                    query={"page": page, "page_size": 100},
+                )[0]
+                results = (
+                    payload.get("results", [])
+                    if isinstance(payload, dict)
+                    else payload
+                )
+                values.update({
+                    int(item["id"]): item.get("name", "")
+                    for item in results
+                    if item.get("id") is not None
+                })
+                if not isinstance(payload, dict) or not payload.get("next"):
+                    break
+                page += 1
+            catalog[key] = values
+        return catalog
+
+    def ensure_document_type(self, name):
+        """Return a document type by name, creating it through the public API."""
+        payload = self._request(
+            "GET",
+            "/api/document_types/",
+            query={"name__iexact": name, "page_size": 20},
+        )[0]
+        results = payload.get("results", payload if isinstance(payload, list) else [])
+        existing = next(
+            (
+                item
+                for item in results
+                if item.get("name", "").casefold() == name.casefold()
+            ),
+            None,
+        )
+        if existing:
+            return existing
+        body = {"name": name}
+        if self.owner_user_id:
+            body["owner"] = self.owner_user_id
+        return self._request("POST", "/api/document_types/", body=body)[0]
+
+    def update_document_metadata(self, document_id, values):
+        """Update Paperless-authoritative metadata through API v10."""
+        return self._request(
+            "PATCH", f"/api/documents/{int(document_id)}/", body=values
+        )[0]
 
     def search(self, text, *, page=1, page_size=50, filters=None):
         query = {"page": page, "page_size": page_size}
@@ -159,6 +233,78 @@ class PaperlessClient:
     def get_versions(self, document_id):
         payload = self.get_document(document_id)
         return payload.get("versions") or []
+
+    def get_user(self, user_id):
+        return self._request("GET", f"/api/users/{int(user_id)}/")[0]
+
+    def ensure_fail_closed_ingestion_policy(self):
+        """Own every ingestion channel with the service identity until Odoo syncs.
+
+        This uses the supported Workflow API. Ordinary Paperless users must rely
+        on explicit document-object grants synchronized from Odoo, never global
+        document permissions.
+        """
+        if not self.owner_user_id:
+            raise PaperlessCompatibilityError(
+                _(
+                    "The dedicated Paperless service identity ID is not configured; "
+                    "the fail-closed ingestion workflow cannot be installed."
+                )
+            )
+        workflows = self._request(
+            "GET",
+            "/api/workflows/",
+            query={"name__iexact": self.FAIL_CLOSED_WORKFLOW_NAME, "page_size": 20},
+        )[0]
+        results = workflows.get(
+            "results", workflows if isinstance(workflows, list) else []
+        )
+        payload = {
+            "name": self.FAIL_CLOSED_WORKFLOW_NAME,
+            "order": -1000,
+            "enabled": True,
+            "triggers": [
+                {
+                    "type": 1,
+                    # Consume folder, API upload, mail fetch, and direct web UI.
+                    "sources": [1, 2, 3, 4],
+                    "filter_filename": "*",
+                }
+            ],
+            "actions": [
+                {
+                    "type": 1,
+                    "assign_owner": self.owner_user_id,
+                    "assign_view_users": [],
+                    "assign_view_groups": [],
+                    "assign_change_users": [],
+                    "assign_change_groups": [],
+                }
+            ],
+        }
+        existing = next(
+            (
+                workflow
+                for workflow in results
+                if workflow.get("name") == self.FAIL_CLOSED_WORKFLOW_NAME
+            ),
+            None,
+        )
+        if existing:
+            result = self._request(
+                "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload
+            )[0]
+            created = False
+        else:
+            result = self._request("POST", "/api/workflows/", body=payload)[0]
+            created = True
+        return {
+            "ok": True,
+            "created": created,
+            "workflow_id": result.get("id"),
+            "workflow_name": result.get("name", self.FAIL_CLOSED_WORKFLOW_NAME),
+            "owner_user_id": self.owner_user_id,
+        }
 
     def download(self, document_id, *, version_id=None, original=False):
         query = {}
@@ -236,6 +382,67 @@ class PaperlessClient:
         except (TimeoutError, urllib.error.URLError, OSError) as error:
             raise PaperlessUnavailable(
                 _("Paperless is unavailable. The upload was not archived.")
+            ) from error
+
+    def update_version(
+        self, document_id, content, filename, content_type, *, version_label=None
+    ):
+        if not self.configured:
+            raise PaperlessUnavailable(
+                _("Paperless is not configured. Ask a Documents administrator.")
+            )
+        boundary = f"----usl-{uuid.uuid4().hex}"
+        chunks = []
+        if version_label:
+            chunks.append(
+                (
+                    f"--{boundary}\r\n"
+                    'Content-Disposition: form-data; name="version_label"\r\n\r\n'
+                    f"{version_label}\r\n"
+                ).encode()
+            )
+        safe_filename = filename.replace('"', "")
+        chunks.extend(
+            [
+                (
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; name="document"; filename="{safe_filename}"\r\n'
+                    f"Content-Type: {content_type or 'application/octet-stream'}\r\n\r\n"
+                ).encode(),
+                content,
+                f"\r\n--{boundary}--\r\n".encode(),
+            ]
+        )
+        request = urllib.request.Request(
+            f"{self.base_url}/api/documents/{int(document_id)}/update_version/",
+            data=b"".join(chunks),
+            headers={
+                **self._headers(),
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                payload = json.loads(response.read().decode())
+                if isinstance(payload, dict):
+                    payload = payload.get("task_id") or payload.get("id")
+                return str(payload)
+        except urllib.error.HTTPError as error:
+            if error.code in (401, 403):
+                raise PaperlessAuthenticationError(
+                    _("Paperless rejected the integration identity.")
+                ) from error
+            if error.code == 404:
+                raise PaperlessNotFound(
+                    _("The Paperless root document no longer exists.")
+                ) from error
+            raise PaperlessError(
+                _("Paperless rejected the replacement version (%s).") % error.code
+            ) from error
+        except (TimeoutError, urllib.error.URLError, OSError) as error:
+            raise PaperlessUnavailable(
+                _("Paperless is unavailable. The replacement was not archived.")
             ) from error
 
     def task(self, task_id):

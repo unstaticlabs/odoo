@@ -10,6 +10,18 @@ before proxying server-side. `usl.document` is the synchronized metadata cache;
 `usl.document.link` is the generic business relationship; operations track
 asynchronous ingestion. Synchronization is stable on `paperless_id`.
 
+API v10 document payloads carry correspondent, document-type, and tag IDs.
+Synchronization hydrates those IDs from the supported metadata endpoints before
+writing the cache. Paperless remains authoritative for those values.
+Incremental synchronization saves a page and timestamp checkpoint before each
+bounded run, resumes after interruption, and uses full reconciliation to mark
+missing roots without deleting relationships.
+
+File versions are persisted as `usl.document.version`: the first API version is
+current and `is_root` identifies the received original. Version download routes
+verify that the requested version belongs to the Odoo-authorized root before
+proxying bytes.
+
 Configuration keys use the `usl_documents.*` namespace. The service URL and
 token are server-only; the public URL is used solely for permission-synchronized
 individual deep links. Extend supported business models through
@@ -33,3 +45,11 @@ docker compose --profile test run --rm test \
 
 Tests and fixtures must mock provider calls unless operating an explicitly
 isolated synthetic Paperless QA profile.
+
+Real-service validation uses `scripts/documents-acceptance` with an isolated
+Compose project/database. It verifies API compatibility, fail-closed workflow
+ownership, asynchronous upload, OCR search, checksum reuse, multi-link/unlink,
+version replacement, external ingestion, legal metadata hydration,
+Odoo-generated output retention, permissions, outage/resume, and integrity
+manifest generation. `scripts/documents-recovery-test` adds independent
+backup/restore proof under a new Compose project name.

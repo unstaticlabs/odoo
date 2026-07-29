@@ -12,6 +12,14 @@ class DocumentsController(http.Controller):
             return None
         return document
 
+    def _version(self, document, version):
+        if not version:
+            return None
+        cached = document.version_ids.filtered(
+            lambda item: item.paperless_version_id == str(version)
+        )
+        return str(version) if cached else False
+
     @http.route(
         "/usl_documents/<int:document_id>/preview",
         type="http",
@@ -21,6 +29,9 @@ class DocumentsController(http.Controller):
     def preview(self, document_id, version=None):
         document = self._document(document_id)
         if not document:
+            return request.not_found()
+        version = self._version(document, version)
+        if version is False:
             return request.not_found()
         try:
             content, headers = document._paperless().preview(
@@ -72,6 +83,9 @@ class DocumentsController(http.Controller):
         document = self._document(document_id)
         if not document:
             return request.not_found()
+        version = self._version(document, version)
+        if version is False:
+            return request.not_found()
         try:
             content, headers = document._paperless().download(
                 document.paperless_id,
@@ -95,4 +109,3 @@ class DocumentsController(http.Controller):
                 ("X-Content-Type-Options", "nosniff"),
             ],
         )
-
