@@ -1,6 +1,62 @@
 import { expect, getFixture, test } from "@odoo/hoot";
 
-import { AccountingReportAction } from "../src/js/accounting_report_action";
+import {
+    AccountingReportAction,
+    reportFiltersFromRoute,
+    reportRouteFromFilters,
+} from "../src/js/accounting_report_action";
+
+test("accounting report routes round-trip semantic filters without wizard ids", () => {
+    const route = reportRouteFromFilters("general_ledger", {
+        company_id: 3,
+        period_preset: "custom",
+        date_from: "2026-01-01",
+        date_to: "2026-06-30",
+        target_move: "posted",
+        comparison_mode: "previous_year",
+        group_by: "account",
+        journal_ids: [9, 2],
+        account_ids: [40],
+        partner_ids: [],
+        analytic_plan_ids: [4],
+        analytic_account_ids: [12, 3],
+        search_text: "review",
+        collapsed_group_keys: ["section:b", "section:a"],
+    });
+
+    expect(route.resId).toBe(undefined);
+    expect(route.journals).toBe("2,9");
+    expect(route.collapsed).toBe("section:a,section:b");
+    expect(reportFiltersFromRoute(route, "general_ledger")).toMatchObject({
+        company_id: 3,
+        date_from: "2026-01-01",
+        date_to: "2026-06-30",
+        journal_ids: [2, 9],
+        analytic_account_ids: [3, 12],
+        collapsed_group_keys: ["section:a", "section:b"],
+    });
+});
+
+test("accounting report route rejects a mismatched report identity", () => {
+    expect(
+        reportFiltersFromRoute(
+            { report: "balance_sheet", company: 1 },
+            "profit_loss",
+        ),
+    ).toBe(null);
+    expect(
+        reportFiltersFromRoute(
+            { report: "profit_loss", company: "invalid" },
+            "profit_loss",
+        ),
+    ).toBe(null);
+    expect(
+        reportFiltersFromRoute(
+            { report: "profit_loss", company: 1, journals: "2,invalid" },
+            "profit_loss",
+        ),
+    ).toBe(null);
+});
 
 const { DateTime } = luxon;
 

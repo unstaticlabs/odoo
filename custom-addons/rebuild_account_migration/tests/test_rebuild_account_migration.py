@@ -8922,6 +8922,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "display_unit": "thousands",
                 "amount_rounding": "whole",
                 "search_text": "",
+                "collapsed_group_keys": ["section:z", "section:a"],
             },
             trial["wizard_id"],
         )
@@ -8934,6 +8935,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             filtered["display_unit"]["short_label"],
             f"k{self.env.company.currency_id.symbol}",
+        )
+        self.assertEqual(
+            filtered["filters"]["collapsed_group_keys"],
+            ["section:a", "section:z"],
         )
         filtered_wizard = Report.browse(filtered["wizard_id"])
         group_line = filtered_wizard.preview_line_ids.filtered("is_group")[:1]
@@ -8978,6 +8983,7 @@ class TestRebuildAccountMigration(TransactionCase):
             }),
             "total",
         )
+
         self.assertEqual(
             filtered_wizard._report_presentation_role({
                 "line_code": "PASSIF_TOTAL_DETTES",
@@ -9718,6 +9724,34 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(schedule_action["res_model"], "account.asset")
         self.assertEqual(schedule_action["res_id"], asset.id)
+
+    def test_canonical_report_rejects_inaccessible_or_malformed_company(self):
+        other_company = self.env["res.company"].create({
+            "name": "Restricted report company",
+        })
+        Report = self.env["rebuild.account.report.export.wizard"].with_context(
+            allowed_company_ids=[self.env.company.id],
+        )
+        with self.assertRaises(AccessError):
+            Report.report_client_load(
+                "trial_balance",
+                {"company_id": other_company.id},
+            )
+        with self.assertRaises(AccessError):
+            Report.report_client_load(
+                "trial_balance",
+                {"company_id": "invalid"},
+            )
+        with self.assertRaises(AccessError):
+            Report.report_client_load(
+                "trial_balance",
+                {"journal_ids": [999_999_999]},
+            )
+        with self.assertRaises(AccessError):
+            Report.report_client_load(
+                "trial_balance",
+                {"journal_ids": ["invalid"]},
+            )
 
     def test_interactive_oca_report_actions_open_on_benchmark_period(self):
         expected_actions = {

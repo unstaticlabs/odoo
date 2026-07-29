@@ -1,14 +1,107 @@
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, useState } from "@odoo/owl";
+import { browser } from "@web/core/browser/browser";
 import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import {
     deserializeDate,
     serializeDate,
 } from "@web/core/l10n/dates";
+import { router } from "@web/core/browser/router";
 import { download } from "@web/core/network/download";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { useSetupAction } from "@web/search/action_hook";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
+
+const REPORT_QUERY_TO_FILTER = {
+    company: "company_id",
+    period: "period_preset",
+    anchor: "period_anchor_date",
+    date_from: "date_from",
+    date_to: "date_to",
+    moves: "target_move",
+    comparison: "comparison_mode",
+    comparison_from: "comparison_date_from",
+    comparison_to: "comparison_date_to",
+    group: "group_by",
+    journals: "journal_ids",
+    accounts: "account_ids",
+    partners: "partner_ids",
+    analytic_plans: "analytic_plan_ids",
+    analytics: "analytic_account_ids",
+    search: "search_text",
+    collapsed: "collapsed_group_keys",
+};
+const REPORT_ID_FILTERS = new Set([
+    "journal_ids",
+    "account_ids",
+    "partner_ids",
+    "analytic_plan_ids",
+    "analytic_account_ids",
+]);
+
+export function reportFiltersFromRoute(route, reportType) {
+    if (!route.report) {
+        return {};
+    }
+    if (route.report !== reportType) {
+        return null;
+    }
+    const filters = {};
+    for (const [queryKey, filterKey] of Object.entries(REPORT_QUERY_TO_FILTER)) {
+        const value = route[queryKey];
+        if (value === undefined || value === "") {
+            continue;
+        }
+        if (filterKey === "company_id") {
+            const companyId = Number(value);
+            if (!Number.isSafeInteger(companyId) || companyId <= 0) {
+                return null;
+            }
+            filters[filterKey] = companyId;
+        } else if (REPORT_ID_FILTERS.has(filterKey)) {
+            const rawIds = String(value).split(",");
+            const recordIds = rawIds.map(Number);
+            if (
+                recordIds.some(
+                    (recordId) => !Number.isSafeInteger(recordId) || recordId <= 0
+                ) ||
+                new Set(recordIds).size !== recordIds.length
+            ) {
+                return null;
+            }
+            filters[filterKey] = recordIds;
+        } else if (filterKey === "collapsed_group_keys") {
+            filters[filterKey] = String(value).split(",").filter(Boolean);
+        } else {
+            filters[filterKey] = value;
+        }
+    }
+    return filters;
+}
+
+export function reportRouteFromFilters(reportType, filters) {
+    return {
+        report: reportType,
+        company: filters.company_id,
+        period: filters.period_preset,
+        anchor: filters.period_anchor_date,
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        moves: filters.target_move,
+        comparison: filters.comparison_mode,
+        comparison_from: filters.comparison_date_from,
+        comparison_to: filters.comparison_date_to,
+        group: filters.group_by,
+        journals: filters.journal_ids?.slice().sort((a, b) => a - b).join(","),
+        accounts: filters.account_ids?.slice().sort((a, b) => a - b).join(","),
+        partners: filters.partner_ids?.slice().sort((a, b) => a - b).join(","),
+        analytic_plans: filters.analytic_plan_ids?.slice().sort((a, b) => a - b).join(","),
+        analytics: filters.analytic_account_ids?.slice().sort((a, b) => a - b).join(","),
+        search: filters.search_text,
+        collapsed: filters.collapsed_group_keys?.slice().sort().join(","),
+        resId: undefined,
+    };
+}
 
 export class AccountingReportAction extends Component {
     static template = "rebuild_account_migration.AccountingReportAction";
@@ -19,21 +112,68 @@ export class AccountingReportAction extends Component {
         this.orm = useService("orm");
         this.actionService = useService("action");
         this.notification = useService("notification");
+        this.navigation = useService("canonical_navigation");
         this.reportType = this.props.action.context.report_type;
         const previous = this.props.state || {};
+        let routeFilters = reportFiltersFromRoute(router.current, this.reportType);
+        if (
+            routeFilters?.company_id &&
+            routeFilters.company_id !== this.navigation.companyIds?.[0]
+        ) {
+            routeFilters = null;
+        }
         this.state = useState({
             loading: true,
-            data: previous.data || null,
-            filters: previous.filters || {},
+            data:
+                routeFilters === null || router.current.report
+                    ? null
+                    : previous.data || null,
+            filters:
+                routeFilters === null
+                    ? {}
+                    : router.current.report
+                    ? routeFilters
+                    : previous.filters || {},
             advancedOpen: previous.advancedOpen || false,
+            restorationError: routeFilters === null,
+            loadError: routeFilters === null,
         });
+        this.initialCanonicalLoad = true;
 
         onWillStart(async () => {
-            if (!this.state.data) {
+            if (this.state.restorationError) {
+                this.notification.add(
+                    "This link refers to another accounting report. No report was loaded.",
+                    { type: "danger", sticky: true },
+                );
+                this.state.loading = false;
+                return;
+            }
+            if (!this.state.data || router.current.report) {
                 await this.load();
             } else {
                 this.state.loading = false;
             }
+        });
+        onMounted(() => {
+            browser.setTimeout(async () => {
+                if (this.pendingCanonicalRoute) {
+                    try {
+                        await this.navigation.ensurePortable(this.pendingCanonicalRoute, {
+                            history: "replace",
+                        });
+                    } catch {
+                        this.state.data = null;
+                        this.state.loadError = true;
+                        this.notification.add(
+                            "This report workspace could not be made portable. No broader report was loaded.",
+                            { type: "danger", sticky: true },
+                        );
+                    } finally {
+                        this.pendingCanonicalRoute = null;
+                    }
+                }
+            }, 0);
         });
         useSetupAction({
             getLocalState: () => ({
@@ -46,6 +186,7 @@ export class AccountingReportAction extends Component {
 
     async load(changes = {}) {
         this.state.loading = true;
+        this.state.loadError = false;
         try {
             const filters = { ...this.state.filters, ...changes };
             const data = await this.orm.call(
@@ -59,11 +200,24 @@ export class AccountingReportAction extends Component {
             );
             this.state.data = data;
             this.state.filters = { ...data.filters };
-            this.props.updateActionState({ resId: data.wizard_id });
+            const canonicalRoute = {
+                ...reportRouteFromFilters(this.reportType, this.state.filters),
+                action: router.current.action,
+            };
+            if (this.initialCanonicalLoad) {
+                this.pendingCanonicalRoute = canonicalRoute;
+            } else {
+                await this.navigation.ensurePortable(canonicalRoute, {
+                    history: Object.keys(changes).length ? "push" : "replace",
+                });
+            }
+            this.initialCanonicalLoad = false;
         } catch (error) {
+            this.state.data = null;
+            this.state.loadError = true;
             this.notification.add(
-                error?.data?.message || error?.message || "The report could not be updated.",
-                { type: "danger" },
+                "This report workspace could not be fully restored. No broader report was loaded.",
+                { type: "danger", sticky: true },
             );
         } finally {
             this.state.loading = false;
@@ -78,6 +232,14 @@ export class AccountingReportAction extends Component {
                 : event.target.value;
         if (name === "company_id") {
             value = Number(value);
+            const activation = await this.navigation.setCompanies([value]);
+            if (activation.status !== "ok") {
+                this.notification.add(
+                    "The requested report company is not available.",
+                    { type: "danger", sticky: true },
+                );
+                return;
+            }
         }
         const changes = { [name]: value || false };
         if (["date_from", "date_to"].includes(name)) {
@@ -316,6 +478,14 @@ export class AccountingReportAction extends Component {
                 "rebuild.account.report.export.wizard",
                 "report_client_toggle_group",
                 [this.state.data.wizard_id, line.id],
+            );
+            this.state.filters = { ...this.state.data.filters };
+            await this.navigation.ensurePortable(
+                {
+                    ...reportRouteFromFilters(this.reportType, this.state.filters),
+                    action: router.current.action,
+                },
+                { history: "replace" },
             );
         } finally {
             this.state.loading = false;

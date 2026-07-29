@@ -26,6 +26,7 @@
         "partner_statement",
         "spreadsheet_account",
         "usl_accounting",
+        "usl_canonical_navigation",
         "usl_expense_batch",
     ],
     "data": [

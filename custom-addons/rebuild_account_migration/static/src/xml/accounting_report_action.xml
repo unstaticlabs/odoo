@@ -352,5 +352,12 @@
             <i class="fa fa-circle-o-notch fa-spin"/>
             <span>Actualisation du rapport…</span>
         </div>
+        <div class="o_view_nocontent d-flex flex-column align-items-center justify-content-center p-4"
+             t-if="state.loadError and !state.loading and !state.data">
+            <i class="fa fa-lock fa-2x mb-3" role="img" aria-label="Unavailable"/>
+            <h2>Report workspace unavailable</h2>
+            <p>The requested report configuration is stale or unavailable with your permissions.</p>
+            <p>No broader default report was opened.</p>
+        </div>
     </div>
 </templates>

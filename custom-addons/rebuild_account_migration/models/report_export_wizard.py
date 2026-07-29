@@ -378,8 +378,22 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             wizard.report_type = CANONICAL_REPORT_TYPES[
                 wizard.report_type
             ]
+        company_unavailable = (
+            "The requested report company is not available in this workspace."
+        )
+        filter_unavailable = (
+            "A requested report filter is not available in this workspace."
+        )
+        requested_company_id = filters.get("company_id")
+        if requested_company_id:
+            try:
+                requested_company_id = int(requested_company_id)
+            except (TypeError, ValueError) as error:
+                raise AccessError(company_unavailable) from error
+            if requested_company_id not in self.env.companies.ids:
+                raise AccessError(company_unavailable)
         requested_company = (
-            self.env["res.company"].browse(filters.get("company_id")).exists()
+            self.env["res.company"].browse(requested_company_id).exists()
             or wizard.company_id
             or self.env.company
         )
@@ -445,6 +459,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "partner_ids",
             "analytic_plan_ids",
             "analytic_account_ids",
+            "collapsed_group_keys",
         }
         values = {
             key: value
@@ -480,9 +495,31 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "analytic_plan_ids",
             "analytic_account_ids",
         } & values.keys():
+            target_model = self._fields[field_name].comodel_name
+            try:
+                record_ids = {
+                    int(record_id)
+                    for record_id in values[field_name]
+                    if record_id not in (None, False, "")
+                }
+            except (TypeError, ValueError) as error:
+                raise AccessError(filter_unavailable) from error
+            accessible_ids = set(
+                self.env[target_model].search([("id", "in", list(record_ids))]).ids,
+            )
+            if accessible_ids != record_ids:
+                raise AccessError(filter_unavailable)
             values[field_name] = [
-                Command.set([int(record_id) for record_id in values[field_name]]),
+                Command.set(sorted(record_ids)),
             ]
+        if "collapsed_group_keys" in values:
+            values["collapsed_group_keys"] = json.dumps(
+                sorted({
+                    str(group_key)
+                    for group_key in values["collapsed_group_keys"]
+                    if group_key not in (None, "")
+                }),
+            )
         if values.get("comparison_mode") == "custom":
             current_from = fields.Date.to_date(
                 values.get("date_from") or wizard.date_from,
@@ -659,6 +696,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "partner_ids": self.partner_ids.ids,
                 "analytic_plan_ids": self.analytic_plan_ids.ids,
                 "analytic_account_ids": self.analytic_account_ids.ids,
+                "collapsed_group_keys": sorted(
+                    self._collapsed_group_key_set(),
+                ),
             },
             "options": {
                 "companies": [
