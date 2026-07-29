@@ -24,6 +24,11 @@ Normal Accounting menus expose only operational concepts. Reconstruction,
 source comparison, parity review and import objects are restricted to technical
 administrators and remain outside the product navigation.
 
+The standard first-invoice walkthrough is recorded as consumed for the
+administrator when this module is installed or updated. Accounting therefore
+opens directly after a reconstruction or deployment, while unrelated Odoo
+tours remain available.
+
 ## Dependencies
 
 The manifest is authoritative. Standard Odoo models remain the system of
