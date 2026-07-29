@@ -106,6 +106,93 @@
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
 
+    <record id="rule_document_link_user_policy" model="ir.rule">
+        <field name="name">Document links: ordinary business access</field>
+        <field name="model_id" ref="model_usl_document_link"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_user'))]"/>
+        <field name="domain_force">[
+            ('document_id.company_id', '!=', False),
+            '|',
+            ('document_id.confidentiality', 'in', ('internal', 'accounting')),
+            '&amp;',
+            ('document_id.confidentiality', '=', 'private'),
+            ('document_id.create_uid', '=', user.id)
+        ]</field>
+    </record>
+
+    <record id="rule_document_link_accountant_policy" model="ir.rule">
+        <field name="name">Document links: approved accounting evidence only</field>
+        <field name="model_id" ref="model_usl_document_link"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_accountant'))]"/>
+        <field name="domain_force">[
+            ('document_id.company_id', '!=', False),
+            ('document_id.accounting_evidence', '=', True),
+            ('document_id.confidentiality', '=', 'accounting')
+        ]</field>
+    </record>
+
+    <record id="rule_document_link_hr_policy" model="ir.rule">
+        <field name="name">Document links: HR access</field>
+        <field name="model_id" ref="model_usl_document_link"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_hr'))]"/>
+        <field name="domain_force">[
+            ('document_id.company_id', '!=', False),
+            ('document_id.confidentiality', '=', 'hr')
+        ]</field>
+    </record>
+
+    <record id="rule_document_link_manager_policy" model="ir.rule">
+        <field name="name">Document links: administrator reconciliation access</field>
+        <field name="model_id" ref="model_usl_document_link"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_document_version_company" model="ir.rule">
+        <field name="name">Document versions: selected companies</field>
+        <field name="model_id" ref="model_usl_document_version"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|', ('document_id.company_id', '=', False), ('document_id.company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_document_version_user_policy" model="ir.rule">
+        <field name="name">Document versions: ordinary business access</field>
+        <field name="model_id" ref="model_usl_document_version"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_user'))]"/>
+        <field name="domain_force">[
+            ('document_id.company_id', '!=', False),
+            '|',
+            ('document_id.confidentiality', 'in', ('internal', 'accounting')),
+            '&amp;',
+            ('document_id.confidentiality', '=', 'private'),
+            ('document_id.create_uid', '=', user.id)
+        ]</field>
+    </record>
+
+    <record id="rule_document_version_accountant_policy" model="ir.rule">
+        <field name="name">Document versions: approved accounting evidence only</field>
+        <field name="model_id" ref="model_usl_document_version"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_accountant'))]"/>
+        <field name="domain_force">[
+            ('document_id.accounting_evidence', '=', True),
+            ('document_id.confidentiality', '=', 'accounting')
+        ]</field>
+    </record>
+
+    <record id="rule_document_version_hr_policy" model="ir.rule">
+        <field name="name">Document versions: HR access</field>
+        <field name="model_id" ref="model_usl_document_version"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_hr'))]"/>
+        <field name="domain_force">[('document_id.confidentiality', '=', 'hr')]</field>
+    </record>
+
+    <record id="rule_document_version_manager_policy" model="ir.rule">
+        <field name="name">Document versions: administrator reconciliation access</field>
+        <field name="model_id" ref="model_usl_document_version"/>
+        <field name="groups" eval="[Command.link(ref('group_documents_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
     <record id="rule_document_operation_owner" model="ir.rule">
         <field name="name">Document operations: submitting user</field>
         <field name="model_id" ref="model_usl_document_operation"/>

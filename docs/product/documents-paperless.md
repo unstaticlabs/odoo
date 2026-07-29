@@ -33,6 +33,13 @@ only after Paperless reports successful processing. An identical SHA-256
 checksum reuses the existing document. Removing a relationship never trashes or
 deletes the Paperless original.
 
+The detail drawer distinguishes the current file, the initially received
+original, archival derivatives, and later versions. It exposes the checksum,
+provenance, submitting identity, linked Odoo records, and permission state
+before offering authorized download or Paperless deep-link actions. Search
+state is retained when a user follows a linked record and returns through the
+Odoo breadcrumb.
+
 ## States and review
 
 Pending, processing, archived, duplicate, and failed operations remain
@@ -47,6 +54,18 @@ internal, HR, or private material. HR content requires the HR archive role.
 Paperless deep links are withheld until the user's individual Paperless identity
 and document object permissions are synchronized.
 
+External Paperless ingestion is discovered by resumable incremental
+synchronization. New items without an Odoo company or business decision enter
+**Needs attention**. Review assigns Odoo-authoritative company,
+confidentiality, evidence, and workflow state; Paperless-authoritative title,
+correspondent, type, tags, OCR, and versions continue to synchronize by stable
+archive identity.
+
+Direct Paperless work uses the mapped individual account. Supported metadata
+changes made there appear in Odoo after synchronization; bulk operations,
+classifier supervision, workflow administration, and archive recovery remain
+Paperless journeys.
+
 ## Deliberate boundaries
 
 This capability does not replace Odoo attachments, Paperless administration,
@@ -55,4 +74,3 @@ not iframe or copy the Paperless frontend. Existing Odoo attachments are
 retained when deliberately archived. Final Odoo-generated legal/accounting
 outputs may have an operational Odoo copy plus an immutable Paperless archival
 copy; their checksum and provenance make that deliberate duplication explicit.
-

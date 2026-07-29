@@ -14,6 +14,7 @@
                     <button t-foreach="[
                                 ['attention', 'fa-exclamation-circle', 'Needs attention'],
                                 ['recent', 'fa-clock-o', 'Recent documents'],
+                                ['ingested', 'fa-cloud-download', 'Recently ingested'],
                                 ['accounting', 'fa-calculator', 'Accounting evidence'],
                                 ['contracts', 'fa-file-text-o', 'Contracts &amp; legal'],
                                 ['banking', 'fa-bank', 'Banking'],
@@ -60,30 +61,55 @@
                             </button>
                             <button type="submit" class="btn btn-primary">Search archive</button>
                         </form>
-                        <select class="form-select w-auto" t-model="state.companyId" t-on-change="load">
+                        <select class="form-select w-auto" t-model="state.companyId"
+                                t-on-change="(event) => this.updateFilter('companyId', event)">
                             <option value="">All allowed companies</option>
                             <option t-foreach="state.companies" t-as="company" t-key="company.id"
-                                    t-att-value="company.id" t-esc="company.name"/>
+                                    t-att-value="company.id.toString()" t-esc="company.name"/>
                         </select>
-                        <select class="form-select w-auto" t-model="state.documentType" t-on-change="load">
+                        <select class="form-select w-auto" t-model="state.documentType"
+                                t-on-change="(event) => this.updateFilter('documentType', event)">
                             <option value="">All document types</option>
                             <option t-foreach="state.documentTypes" t-as="documentType" t-key="documentType"
                                     t-att-value="documentType" t-esc="documentType"/>
                         </select>
-                        <select class="form-select w-auto" t-model="state.sort" t-on-change="load">
-                            <option value="recent">Recently ingested</option>
+                        <select class="form-select w-auto" t-model="state.confidentiality"
+                                t-on-change="(event) => this.updateFilter('confidentiality', event)">
+                            <option value="">All confidentiality</option>
+                            <option value="internal">Internal</option>
+                            <option value="accounting">Accounting evidence</option>
+                            <option value="hr">HR restricted</option>
+                            <option value="private">Creator private</option>
+                        </select>
+                        <select class="form-select w-auto" t-model="state.reviewState"
+                                t-on-change="(event) => this.updateFilter('reviewState', event)">
+                            <option value="">All review states</option>
+                            <option value="needs_attention">Needs attention</option>
+                            <option value="classified">Classified</option>
+                            <option value="reviewed">Reviewed</option>
+                        </select>
+                        <select class="form-select w-auto" t-model="state.linkedRecord"
+                                t-on-change="(event) => this.updateFilter('linkedRecord', event)">
+                            <option value="">All business records</option>
+                            <option t-foreach="state.linkFacets" t-as="linkFacet" t-key="linkFacet.key"
+                                    t-att-value="linkFacet.key" t-esc="linkFacet.label"/>
+                        </select>
+                        <select class="form-select w-auto" t-model="state.sort"
+                                t-on-change="(event) => this.updateFilter('sort', event)">
+                            <option value="recent">Document date</option>
+                            <option value="ingested">Recently ingested</option>
                             <option value="date">Document date</option>
                             <option value="title">Title</option>
                         </select>
                         <div class="btn-group">
                             <button type="button"
                                     t-att-class="'btn btn-outline-secondary ' + (state.view === 'cards' ? 'active' : '')"
-                                    t-on-click="() => state.view = 'cards'" title="Card view">
+                                    t-on-click="() => this.setView('cards')" title="Card view">
                                 <i class="fa fa-th-large"/>
                             </button>
                             <button type="button"
                                     t-att-class="'btn btn-outline-secondary ' + (state.view === 'list' ? 'active' : '')"
-                                    t-on-click="() => state.view = 'list'" title="Compact list">
+                                    t-on-click="() => this.setView('list')" title="Compact list">
                                 <i class="fa fa-list"/>
                             </button>
                         </div>
@@ -105,6 +131,22 @@
                             <span t-if="state.operation.error" t-esc="state.operation.error"/>
                         </div>
                     </div>
+                </div>
+                <div t-if="state.operations.length &amp;&amp; !state.operation" class="px-3 pt-3">
+                    <details>
+                        <summary class="small text-muted">
+                            Recent ingestion activity (<t t-esc="state.operations.length"/>)
+                        </summary>
+                        <div class="list-group mt-2">
+                            <div t-foreach="state.operations" t-as="operation" t-key="operation.id"
+                                 class="list-group-item py-2 d-flex justify-content-between gap-3">
+                                <span class="text-truncate" t-esc="operation.name"/>
+                                <span t-att-class="'badge text-capitalize ' + (operation.state === 'failed' ? 'text-bg-danger' : operation.state === 'archived' ? 'text-bg-success' : operation.state === 'duplicate' ? 'text-bg-warning' : 'text-bg-info')"
+                                      t-esc="operation.state"/>
+                                <span t-if="operation.error" class="small text-danger" t-esc="operation.error"/>
+                            </div>
+                        </div>
+                    </details>
                 </div>
 
                 <section class="flex-grow-1 overflow-auto p-3"
@@ -132,6 +174,10 @@
                         </div>
                     </div>
                     <t t-else="">
+                        <div t-if="state.truncated" class="alert alert-warning">
+                            The archive search exceeded the configured safety limit. Refine the
+                            OCR phrase or metadata filters to see a complete result set.
+                        </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted"><t t-esc="state.count"/> accessible document(s)</span>
                             <span t-if="state.dragged" class="badge text-bg-primary fs-6">Drop to archive</span>
@@ -191,7 +237,7 @@
                 </header>
                 <div class="flex-grow-1 overflow-auto">
                     <iframe t-if="state.selected.availability_state === 'available'"
-                            t-att-src="'/usl_documents/' + state.selected.id + '/preview'"
+                            t-att-src="state.selected.preview_url"
                             title="Document preview"/>
                     <div t-else="" class="alert alert-warning m-3">
                         Preview is unavailable. The relationship and metadata remain visible.
@@ -201,17 +247,82 @@
                         <dt class="col-5">Type</dt><dd class="col-7" t-esc="state.selected.document_type || 'Unclassified'"/>
                         <dt class="col-5">Correspondent</dt><dd class="col-7" t-esc="state.selected.correspondent || 'Unknown'"/>
                         <dt class="col-5">Source file</dt><dd class="col-7 text-break" t-esc="state.selected.filename"/>
+                        <dt class="col-5">Archive source</dt><dd class="col-7" t-esc="state.selected.source"/>
+                        <dt class="col-5">Confidentiality</dt><dd class="col-7" t-esc="state.selected.confidentiality"/>
+                        <dt class="col-5">Permission sync</dt>
+                        <dd class="col-7">
+                            <span t-att-class="'badge ' + (state.selected.permission_sync_state === 'synchronized' ? 'text-bg-success' : state.selected.permission_sync_state === 'failed' ? 'text-bg-danger' : 'text-bg-warning')"
+                                  t-esc="state.selected.permission_sync_state"/>
+                        </dd>
+                        <dt class="col-5">Current checksum</dt><dd class="col-7 text-break font-monospace" t-esc="state.selected.checksum"/>
                         <dt class="col-5">Odoo links</dt><dd class="col-7" t-esc="state.selected.link_count"/>
                     </dl>
+                    <div t-if="state.selectedLoading" class="text-center text-muted p-3">
+                        <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading versions and relationships…
+                    </div>
+                    <section t-if="state.selected.versions?.length" class="border-top p-3">
+                        <h6>File versions</h6>
+                        <div class="list-group">
+                            <div t-foreach="state.selected.versions" t-as="version" t-key="version.id"
+                                    role="button" tabindex="0"
+                                    t-att-class="'list-group-item list-group-item-action ' + (state.selected.selected_version_id === version.paperless_version_id || (!state.selected.selected_version_id &amp;&amp; version.is_current) ? 'active' : '')"
+                                    t-on-click="() => this.selectVersion(version)">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <strong t-esc="version.label"/>
+                                    <span>
+                                        <span t-if="version.is_current" class="badge text-bg-primary">Current</span>
+                                        <span t-if="version.is_received_original" class="badge text-bg-secondary ms-1">Received original</span>
+                                    </span>
+                                </div>
+                                <small class="d-block text-truncate" t-esc="version.filename || 'Paperless file version'"/>
+                                <small t-if="version.submitted_by" class="d-block">
+                                    Submitted by <t t-esc="version.submitted_by"/>
+                                </small>
+                                <small class="d-block font-monospace text-break" t-esc="version.checksum"/>
+                                <div class="mt-2 d-flex gap-2">
+                                    <a t-att-href="version.original_url" class="btn btn-sm btn-outline-primary"
+                                       t-on-click.stop="() => {}">Original</a>
+                                    <a t-att-href="version.archive_url" class="btn btn-sm btn-outline-secondary"
+                                       t-on-click.stop="() => {}">Archival derivative</a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section t-if="state.selected.links?.length" class="border-top p-3">
+                        <h6>Linked Odoo records</h6>
+                        <div class="list-group">
+                            <button t-foreach="state.selected.links" t-as="link" t-key="link.id"
+                                    type="button" class="list-group-item list-group-item-action"
+                                    t-on-click="() => this.openLink(link)">
+                                <strong t-esc="link.record_name"/>
+                                <small class="d-block text-muted">
+                                    <t t-esc="link.model_label"/> · linked by <t t-esc="link.linked_by"/>
+                                </small>
+                            </button>
+                        </div>
+                    </section>
                 </div>
                 <footer class="p-3 border-top d-grid gap-2">
-                    <button t-if="recordContext" type="button" class="btn btn-success"
+                    <button t-if="recordContext &amp;&amp; !this.isLinkedToCurrent()" type="button" class="btn btn-success"
                             t-on-click="() => this.linkSelected()">
                         <i class="fa fa-link me-1"/>Link to current Odoo record
                     </button>
+                    <button t-if="recordContext &amp;&amp; this.isLinkedToCurrent()" type="button" class="btn btn-outline-danger"
+                            t-on-click="() => this.unlinkCurrent()">
+                        <i class="fa fa-unlink me-1"/>Remove this Odoo relationship
+                    </button>
                     <a t-att-href="'/usl_documents/' + state.selected.id + '/download'" class="btn btn-primary">
-                        <i class="fa fa-download me-1"/>Download received original
+                        <i class="fa fa-download me-1"/>Download current original
                     </a>
+                    <a t-att-href="'/usl_documents/' + state.selected.id + '/download?original=0'" class="btn btn-outline-primary">
+                        <i class="fa fa-file-pdf-o me-1"/>Download archival derivative
+                    </a>
+                    <label t-if="state.selected.can_manage" class="btn btn-outline-warning mb-0"
+                           t-att-class="state.uploading ? 'btn btn-outline-warning disabled' : 'btn btn-outline-warning'">
+                        <i class="fa fa-files-o me-1"/>Add replacement as new version
+                        <input type="file" class="d-none" t-on-change="onVersionFileChange"
+                               t-att-disabled="state.uploading"/>
+                    </label>
                     <button type="button" class="btn btn-outline-primary" t-on-click="() => this.openRecord(state.selected)">
                         Details, versions &amp; Odoo links
                     </button>

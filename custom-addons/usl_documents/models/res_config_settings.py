@@ -73,3 +73,24 @@ class ResConfigSettings(models.TransientModel):
                 "sticky": False,
             },
         }
+
+    def action_install_paperless_policy(self):
+        self.ensure_one()
+        result = PaperlessClient(self.env).ensure_fail_closed_ingestion_policy()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Paperless ingestion policy is active"),
+                "message": _(
+                    "Workflow %(workflow)s assigns every ingestion channel to "
+                    "service identity %(owner)s until Odoo synchronizes access."
+                )
+                % {
+                    "workflow": result["workflow_name"],
+                    "owner": result["owner_user_id"],
+                },
+                "type": "success",
+                "sticky": False,
+            },
+        }

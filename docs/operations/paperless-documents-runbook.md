@@ -5,9 +5,11 @@
 The `paperless` Compose profile pins `ghcr.io/paperless-ngx/paperless-ngx:3.0.4`
 (qualified image digest
 `sha256:3838b9a4260d23acc5bb63aed407138435e70b56e5806f4baa350ca184e57582`),
-PostgreSQL 16, and Valkey 8.1.3. Paperless 3.x REST API version 10 is the
-supported contract. Odoo rejects another API version or server major and shows
-the detected versions in Settings diagnostics.
+PostgreSQL 16, Valkey 8.1.3, Gotenberg 8.34, and Apache Tika 3.2.3.0-full.
+Paperless 3.0.4 was released on 28 July 2026 and was qualified against REST API
+version 10. Odoo rejects another API version or server major and shows the
+detected versions in Settings diagnostics. Never replace these pins with
+`latest` or allow an image pull to become an implicit upgrade.
 
 Start only this profile with:
 
@@ -36,6 +38,13 @@ identities**. Never map users to a shared administrator.
 Permission synchronization is fail closed: a failed sync blocks Paperless deep
 links and marks the document unsafe. Test actual document object permissions;
 tag or correspondent permissions alone are insufficient.
+
+Install the Odoo-created fail-closed Paperless workflow before enabling any
+consume, mail, API, or web ingestion channel. It assigns new documents to the
+dedicated service owner with no ordinary-user grants until Odoo has assigned
+company/confidentiality state and synchronized explicit document-object
+permissions. Reception and e-reporting live flags remain unrelated and disabled
+outside their production activation runbooks.
 
 ## Monitoring
 
@@ -91,3 +100,30 @@ timestamp in the backup inventory. Starting containers alone is not acceptance.
 
 During restore tests keep electronic invoice and e-reporting live flags at `0`.
 
+For a disposable synthetic environment, the repository executes the complete
+exercise with:
+
+```bash
+USL_DOCUMENTS_COMPOSE_PROJECT=documents-qa \
+USL_DOCUMENTS_DATABASE=odoo_usl_documents_test \
+USL_DOCUMENTS_RESTORE_PROJECT=documents-qa-restore \
+USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 \
+scripts/documents-recovery-test
+```
+
+The script exports the portable archive, captures both PostgreSQL databases and
+all required volumes, records SHA-256 manifests, proves Odoo starts without
+Paperless, proves Paperless starts independently, restores both under new names,
+and checks counts, relationships, previews, current and received-original
+checksums, object permissions, and orphan detection. Preserve its timestamped
+result in the backup inventory; its `/tmp` artifacts are test evidence, not a
+production backup destination.
+
+## Deletion and retention operations
+
+Unlinking closes only an Odoo relationship. Trashing or permanently deleting a
+Paperless root is a separate archive-administrator action and must follow the
+retention policy and audit procedure. A full reconciliation marks a missing
+Paperless root in Odoo without breaking the business record. Restore or repair
+the archive identity; never “fix” the condition by silently creating a new root
+with the same title.
