@@ -4,6 +4,9 @@ This runbook restores the useful Projects perimeter from the private Odoo
 Online dump into a disposable or approved Community target. It does not alter
 the source database and it never replays outgoing mail.
 
+For a plain-English product-review tour of a prepared local copy, see
+[Projects restoration: local QA guide](project-restoration-qa-guide.md).
+
 ## Design decision
 
 The implementation uses standard Community Projects plus the focused
