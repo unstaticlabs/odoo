@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_canonical_navigation.WorkspaceLoader">
+        <div class="o_view_nocontent d-flex flex-column align-items-center justify-content-center h-100 p-4">
+            <t t-if="state.status === 'loading'">
+                <i class="fa fa-spinner fa-spin fa-2x mb-3" role="img" aria-label="Loading"/>
+                <p>Restoring the workspace…</p>
+            </t>
+            <t t-elif="state.status === 'unavailable'">
+                <i class="fa fa-lock fa-2x mb-3" role="img" aria-label="Unavailable"/>
+                <h2>Workspace unavailable</h2>
+                <p>This workspace is missing, stale, or not available with your current permissions.</p>
+                <p>No broader default view was opened.</p>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="usl_canonical_navigation.NavigationUnavailable">
+        <div class="o_view_nocontent d-flex flex-column align-items-center justify-content-center h-100 p-4">
+            <i class="fa fa-lock fa-2x mb-3" role="img" aria-label="Unavailable"/>
+            <h2>Workspace could not be restored</h2>
+            <p>The requested company or navigation state is unavailable with your permissions.</p>
+            <p>No broader default view was opened.</p>
+            <button type="button" class="btn btn-primary mt-2" t-on-click="goHome">
+                Return to an accessible workspace
+            </button>
+        </div>
+    </t>
+</templates>

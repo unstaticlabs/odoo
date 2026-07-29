@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_usl_navigation_workspace" model="ir.actions.client">
+        <field name="name">Open workspace</field>
+        <field name="path">usl-workspace</field>
+        <field name="tag">usl_canonical_navigation.workspace_loader</field>
+    </record>
+
+    <record id="action_usl_navigation_unavailable" model="ir.actions.client">
+        <field name="name">Workspace unavailable</field>
+        <field name="path">usl-navigation-unavailable</field>
+        <field name="tag">usl_canonical_navigation.unavailable</field>
+    </record>
+</odoo>
