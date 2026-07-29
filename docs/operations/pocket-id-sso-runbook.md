@@ -11,8 +11,7 @@ Before changing a database:
 - take and verify a database and filestore backup;
 - confirm `USL_EINVOICE_LIVE_ENABLED=0` and
   `USL_EREPORTING_LIVE_ENABLED=0`;
-- complete the accounting reconstruction step that creates the intended
-  Valentin and Prosper users;
+- inspect the selected candidate's current users and reusable partner records;
 - obtain the exact Pocket ID issuer, client ID, client secret, required group,
   immutable subjects and Prosper identity details from the identity owner;
 - choose one maintenance window because the helper stops and recreates the
@@ -76,10 +75,12 @@ value with owner-confirmed data:
   },
   {
     "login": "valentin",
+    "name": "Valentin",
     "email": "valentin@unstaticlabs.com",
     "profile": "administrator",
     "companies": "all",
-    "subject": "<valentin-pocket-id-sub>"
+    "subject": "<valentin-pocket-id-sub>",
+    "create_if_missing": true
   },
   {
     "login": "roger",
@@ -92,9 +93,12 @@ value with owner-confirmed data:
   },
   {
     "login": "prosper",
+    "name": "Prosper",
+    "email": "<owner-confirmed-prosper-email>",
     "profile": "accountant_reviewer",
     "companies": ["Unstatic Labs"],
-    "subject": "<prosper-pocket-id-sub>"
+    "subject": "<prosper-pocket-id-sub>",
+    "create_if_missing": true
   }
 ]
 ```
@@ -110,8 +114,13 @@ If a target contains the inactive source-style `roger@xaic.cat` user, add:
 ```
 
 Do not create a historical identity only to make the list resemble the source.
-The configuration matches login first and exact email second, refuses
-ambiguity, and never silently merges users.
+The current candidate contains only framework users and `admin`; it retains an
+imported Valentin partner with the exact email above. Controlled creation
+therefore reuses Valentin's partner instead of duplicating it, while Roger and
+Prosper require complete owner-approved identity details. If a later
+reconstruction already created one of these users, the same configuration
+matches login first and exact email second. It refuses ambiguity and never
+silently merges users.
 
 Verified-email first link is an exception for a known existing user. Replace
 `subject` with `"email_link": true`, set both provider and per-user approval,
@@ -228,7 +237,8 @@ To stop new SSO while preserving evidence:
 USL_POCKET_ID_ENABLED=0
 ```
 
-Update `usl_pocketid` so the environment function disables the provider.
+Update `usl_pocketid` so the environment function disables the Pocket ID
+provider and keeps the bundled Odoo.com OAuth provider disabled.
 Disabling the provider does not by itself revoke already authenticated Odoo
 sessions. Disable the affected identities or archive users to rotate their
 session-security tokens.

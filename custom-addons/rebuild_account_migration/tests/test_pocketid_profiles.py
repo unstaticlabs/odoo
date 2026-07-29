@@ -31,6 +31,12 @@ class TestPocketIDProductProfiles(TransactionCase):
             "subject": "valentin-product-subject",
             "create_if_missing": True,
         }
+        imported_valentin_partner = self.env["res.partner"].create(
+            {
+                "name": administrator["name"],
+                "email": administrator["email"],
+            },
+        )
         collaborator = {
             "login": "roger.product@example.invalid",
             "name": "Roger Product Test",
@@ -82,6 +88,7 @@ class TestPocketIDProductProfiles(TransactionCase):
 
         valentin = users.search([("login", "=", administrator["login"])])
         self.assertTrue(valentin.usl_pocketid_access)
+        self.assertEqual(valentin.partner_id, imported_valentin_partner)
         self.assertEqual(
             set(valentin.company_ids.ids),
             set((company | second_company).ids),

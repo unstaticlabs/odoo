@@ -235,8 +235,24 @@ class AuthOauthProvider(models.Model):
         }
 
     @api.model
+    def _usl_disable_default_odoo_oauth(self):
+        default_odoo_provider = self.env.ref(
+            "auth_oauth.provider_openerp",
+            raise_if_not_found=False,
+        )
+        if not default_odoo_provider or not default_odoo_provider.enabled:
+            return
+        default_odoo_provider.sudo().write({"enabled": False})
+        self.env["usl.oidc.audit.event"]._record(
+            event_type="configuration",
+            reason_code="default_odoo_oauth_disabled",
+            provider_id=default_odoo_provider.id,
+        )
+
+    @api.model
     def _usl_pocketid_apply_environment(self):
         provider = self.env.ref("usl_pocketid.provider_pocketid").sudo()
+        self._usl_disable_default_odoo_oauth()
         if not _env_enabled("USL_POCKET_ID_ENABLED"):
             provider._usl_pocketid_environment_write(
                 {"enabled": False, "client_secret": False},
@@ -327,17 +343,6 @@ class AuthOauthProvider(models.Model):
                 "usl_token_auth_method": token_auth_method,
             },
         )
-        default_odoo_provider = self.env.ref(
-            "auth_oauth.provider_openerp",
-            raise_if_not_found=False,
-        )
-        if default_odoo_provider and default_odoo_provider.enabled:
-            default_odoo_provider.sudo().write({"enabled": False})
-            self.env["usl.oidc.audit.event"]._record(
-                event_type="configuration",
-                reason_code="default_odoo_oauth_disabled",
-                provider_id=default_odoo_provider.id,
-            )
         self.env["usl.oidc.audit.event"]._record(
             event_type="configuration",
             reason_code="environment_enabled",
