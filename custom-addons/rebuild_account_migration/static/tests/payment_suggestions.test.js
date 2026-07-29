@@ -1,16 +1,22 @@
 import { expect, test } from "@odoo/hoot";
+import { animationFrame } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
+import { Deferred } from "@web/core/utils/concurrency";
 import {
+    contains,
     defineModels,
     fields,
+    mockService,
     models,
     mountView,
+    onRpc,
 } from "@web/../tests/web_test_helpers";
 
 class AccountMove extends models.Model {
     _name = "account.move";
 
     invoice_outstanding_credits_debits_widget = fields.Json();
+    invoice_payments_widget = fields.Json();
 
     _records = [
         {
@@ -89,6 +95,81 @@ class AccountMove extends models.Model {
                 title: "Suggested existing payments",
             },
         },
+        {
+            id: 4,
+            invoice_outstanding_credits_debits_widget: {
+                content: [
+                    {
+                        id: 45,
+                        move_id: 87,
+                        move_name: "BNK1/25-26/0300",
+                        amount: 5,
+                        currency_id: 1,
+                        date: "2026-07-20",
+                        can_assign: true,
+                        can_immediate_settle: true,
+                        immediate_settlement_confidence: "high",
+                        immediate_settlement_reason:
+                            "Match this immediate payment at the bank's actual rate. No exchange gain or loss will be created.",
+                        show_immediate_settlement_reason: true,
+                    },
+                ],
+                move_id: 4,
+                outstanding: true,
+                title: "Outstanding debits",
+            },
+        },
+        {
+            id: 5,
+            invoice_outstanding_credits_debits_widget: {
+                content: [
+                    {
+                        id: 46,
+                        move_id: 88,
+                        move_name: "BNK1/25-26/0301",
+                        amount: 5,
+                        currency_id: 1,
+                        date: "2026-07-20",
+                        can_assign: true,
+                        can_immediate_settle: false,
+                        immediate_settlement_reason:
+                            "The payment is 8 days from the document, above the 3-day immediate-settlement policy.",
+                        show_immediate_settlement_reason: true,
+                    },
+                ],
+                move_id: 5,
+                outstanding: true,
+                title: "Outstanding debits",
+            },
+        },
+        {
+            id: 6,
+            invoice_payments_widget: {
+                content: [
+                    {
+                        id: 47,
+                        move_id: 89,
+                        name: "Settled at payment rate",
+                        amount: 5,
+                        currency_id: 1,
+                        date: "2026-07-20",
+                        partial_id: 99,
+                        is_exchange: false,
+                        is_refund: false,
+                        is_immediate_settlement: true,
+                        executed_pair: "5.00 USD = 4.40 EUR",
+                        executed_rate: 0.88,
+                        reference_rate: 0.9,
+                        provenance: "bank_statement",
+                        journal_name: "Immediate Settlements",
+                        ref: "IMS/2026/00001",
+                    },
+                ],
+                outstanding: false,
+                title: "Less Payment",
+                exchange_info: { line_ids: [] },
+            },
+        },
     ];
 }
 
@@ -158,7 +239,7 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
-        "Add this existing payment to the bill and reconcile the available amount."
+        "Add this existing payment using standard Odoo FX accounting. An exchange gain or loss may be created."
     );
     expect("[aria-disabled='true']").toHaveCount(0);
 });
@@ -190,6 +271,119 @@ test("bank suggestion keeps changes in the Add helper", async () => {
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
-        "Add this bank transaction to the bill. Odoo will use the bill supplier, move the outstanding amount to the payable account, and reconcile the available amount."
+        "Add this bank transaction to the document. Odoo will use the document partner, move the outstanding amount to its receivable or payable account, and reconcile it using standard Odoo FX accounting."
     );
+});
+
+test("eligible suggestion keeps Settle recommended beside native Add", async () => {
+    onRpc("js_settle_outstanding_line", ({ args, model }) => {
+        expect.step("settle");
+        expect(model).toBe("account.move");
+        expect(args).toEqual([4, 45]);
+        return { settlement_id: 7 };
+    });
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 4,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    expect(".immediate_settlement_assign").toHaveCount(1);
+    expect(".immediate_settlement_assign").toHaveText("Settle");
+    expect(".immediate_settlement_assign").toHaveClass("btn-primary");
+    expect(".immediate_settlement_assign").toHaveAttribute(
+        "title",
+        "Match this immediate payment at the bank's actual rate. No exchange gain or loss will be created."
+    );
+    expect(".outstanding_credit_assign").toHaveCount(1);
+    await contains(".immediate_settlement_assign").click();
+    expect.verifySteps(["settle"]);
+});
+
+test("blocked payment keeps only Add and a plain-language reason", async () => {
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 5,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    expect(".immediate_settlement_assign").toHaveCount(0);
+    expect(".outstanding_credit_assign").toHaveCount(1);
+    expect(".o_rebuild_payment_suggestion_settlement_blocker").toHaveText(
+        "Standard FX only"
+    );
+    expect(".o_rebuild_payment_suggestion_settlement_blocker").toHaveAttribute(
+        "title",
+        "The payment is 8 days from the document, above the 3-day immediate-settlement policy."
+    );
+});
+
+test("Settle prevents duplicate clicks and reports a server error", async () => {
+    const deferred = new Deferred();
+    mockService("notification", {
+        add(message, { type }) {
+            expect.step(`${type}:${message}`);
+        },
+    });
+    onRpc("js_settle_outstanding_line", async () => {
+        await deferred;
+        throw new Error("RPC error");
+    });
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 4,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    await contains(".immediate_settlement_assign").click();
+    expect(".immediate_settlement_assign").not.toBeEnabled();
+    expect(".immediate_settlement_assign").toHaveAttribute("aria-busy", "true");
+    expect(".immediate_settlement_assign .spinner-border").toHaveCount(1);
+    deferred.resolve();
+    await expect.waitForSteps(["danger:RPC error"]);
+    await animationFrame();
+    expect(".immediate_settlement_assign").toBeEnabled();
+});
+
+test("settled payment trace exposes executed-rate provenance", async () => {
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 6,
+        arch: `
+            <form>
+                <field name="invoice_payments_widget" widget="payment"/>
+            </form>
+        `,
+    });
+
+    expect(".o_payment_label").toHaveText(/Settled at payment rate on/);
+    await contains(".js_payment_info").click();
+    expect(".account_payment_popover").toHaveText(/Executed pair:/);
+    expect(".account_payment_popover").toHaveText(/5.00 USD = 4.40 EUR/);
+    expect(".account_payment_popover").toHaveText(/bank_statement/);
 });
