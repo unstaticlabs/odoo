@@ -154,8 +154,8 @@
     <menuitem
         id="menu_rebuild_analytic_reporting"
         name="Analyse analytique"
-        parent="account.menu_finance_reports"
+        parent="account.account_reports_management_menu"
         action="action_rebuild_analytic_reporting"
-        sequence="0"
+        sequence="4"
         groups="account.group_account_readonly"/>
 </odoo>

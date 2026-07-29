@@ -112,6 +112,11 @@ The estimate:
   reflected in cash and in the General Reconciliation projection;
 - avoids reserving an open credit liability on account 444 a second time.
 
+The fiscal-year start is resolved through the shared company boundary
+contract. During USL’s exceptional first exercise, the projection therefore
+starts on 10/01/2024 and prorates the reduced-rate ceiling through 30/09/2025;
+it must not restart on 01/10/2024.
+
 The configured profile is visible on **Settings > Companies > French
 Declaration Profile > Cash Projection IS Profile**. The French SME profile must
 only be selected after confirming the current turnover, fully paid capital and

@@ -1,6 +1,5 @@
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import date_utils
 
 
 class L10nFrFecExportWizard(models.TransientModel):
@@ -22,11 +21,11 @@ class L10nFrFecExportWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         values = super().default_get(fields_list)
-        fiscal_start, fiscal_end = date_utils.get_fiscal_year(
+        fiscal_dates = self.env.company.compute_fiscalyear_dates(
             fields.Date.context_today(self),
-            day=self.env.company.fiscalyear_last_day,
-            month=int(self.env.company.fiscalyear_last_month),
         )
+        fiscal_start = fiscal_dates["date_from"]
+        fiscal_end = fiscal_dates["date_to"]
         if "date_from" in fields_list and not values.get("date_from"):
             values["date_from"] = fiscal_start
         if "date_to" in fields_list and not values.get("date_to"):

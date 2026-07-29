@@ -3,18 +3,26 @@ import hashlib
 import json
 import re
 import tempfile
+from decimal import Decimal
 from email.message import EmailMessage
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
+from zipfile import ZipFile
 
 from lxml import etree
 from psycopg2 import IntegrityError
+
+try:
+    from pypdf import PdfReader
+except ImportError:
+    from PyPDF2 import PdfReader
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.service.model import call_kw
 from odoo.tests import Form, TransactionCase, tagged
-from odoo.tools import format_date, mute_logger
+from odoo.tools import file_open, format_date, mute_logger
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.controllers import user_docs
@@ -146,6 +154,29 @@ class TestRebuildAccountMigration(TransactionCase):
                 format_date(self.env, sample_date, lang_code=language_code),
                 "10/06/2026",
             )
+        Report = self.env["rebuild.account.report.export.wizard"]
+        self.assertEqual(
+            Report._report_export_row_value(
+                {"date": "2026-06-10"},
+                "date",
+            ),
+            "10/06/2026",
+        )
+        with file_open(
+            "rebuild_account_migration/static/src/xml/"
+            "accounting_report_action.xml",
+        ) as report_template:
+            template = etree.parse(report_template)
+        self.assertFalse(template.xpath("//input[@type='date']"))
+        date_inputs = template.xpath("//DateTimeInput")
+        self.assertEqual(len(date_inputs), 5)
+        self.assertEqual(
+            {
+                date_input.get("format")
+                for date_input in date_inputs
+            },
+            {"'dd/MM/yyyy'"},
+        )
 
     def test_native_email_gateway_creates_draft_bill_with_source_evidence(self):
         supplier = self.env["res.partner"].create({
@@ -2784,9 +2815,9 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             menu.parent_id,
-            self.env.ref("account.menu_finance_reports"),
+            self.env.ref("account.account_reports_management_menu"),
         )
-        self.assertEqual(menu.sequence, 0)
+        self.assertEqual(menu.sequence, 4)
         self.assertEqual(menu.action, action)
 
     def test_accounting_configuration_and_review_navigation(self):
@@ -7398,7 +7429,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(wizard.preview_row_count, 0)
         self.assertFalse(wizard.preview_truncated)
         self.assertEqual(len(wizard.preview_line_ids), 1)
-        self.assertEqual(wizard.preview_line_ids.label, "No rows for the selected report filters")
+        self.assertEqual(
+            wizard.preview_line_ids.label,
+            "Aucune ligne pour les filtres sélectionnés",
+        )
         metadata = json.loads(wizard.preview_metadata)
         self.assertEqual(metadata["report_type"], "trial_balance")
         self.assertEqual(metadata["report_name"], "Balance générale")
@@ -7526,6 +7560,34 @@ class TestRebuildAccountMigration(TransactionCase):
             {equity_account.id, retained_account.id},
         )
 
+        prefix_group_row = wizard._group_report_rows([
+            {
+                "section": "Capitaux propres",
+                "drilldown_account_prefixes": "T10",
+                "amount": "300.00",
+            },
+            {
+                "section": "Capitaux propres",
+                "drilldown_account_prefixes": "T11",
+                "amount": "700.00",
+            },
+        ])[0]
+        prefix_domain = wizard._preview_journal_item_domain(prefix_group_row)
+        self.assertEqual(
+            prefix_group_row["drilldown_account_prefixes"],
+            "T10,T11",
+        )
+        prefix_account_terms = [
+            term
+            for term in prefix_domain
+            if term[0] == "account_id" and term[1] == "in"
+        ]
+        self.assertEqual(len(prefix_account_terms), 1)
+        self.assertEqual(
+            set(prefix_account_terms[0][2]),
+            {equity_account.id, retained_account.id},
+        )
+
     def test_dynamic_report_workbench_period_comparison_and_native_scope(self):
         expense_account = self._account(
             "T625100",
@@ -7635,6 +7697,361 @@ class TestRebuildAccountMigration(TransactionCase):
             if row.get("account_code") == "T625100"
         ])
 
+    def test_fiscal_year_to_date_uses_exceptional_first_year_in_pdf(self):
+        self.company.write({
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "rebuild_first_fiscalyear_start": "2024-01-10",
+            "rebuild_first_fiscalyear_end": "2025-09-30",
+        })
+        Report = self.env["rebuild.account.report.export.wizard"]
+
+        report = Report.report_client_load(
+            "balance_sheet",
+            {
+                "period_preset": "year_to_date",
+                "period_anchor_date": "2025-07-28",
+            },
+        )
+        wizard = Report.browse(report["wizard_id"])
+
+        self.assertEqual(str(wizard.date_from), "2024-01-10")
+        self.assertEqual(str(wizard.date_to), "2025-07-28")
+        self.assertEqual(report["filters"]["date_from"], "2024-01-10")
+        self.assertEqual(report["filters"]["date_to"], "2025-07-28")
+        self.assertEqual(
+            wizard._fiscal_year_dates(fields.Date.to_date("2026-07-28")),
+            (
+                fields.Date.to_date("2025-10-01"),
+                fields.Date.to_date("2026-09-30"),
+            ),
+        )
+
+        Report.report_client_export(wizard.id, "pdf")
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(
+                BytesIO(base64.b64decode(wizard.export_file)),
+            ).pages
+        )
+        self.assertIn(
+            "Exercice du 10/01/2024 au 28/07/2025",
+            pdf_text,
+        )
+        self.assertNotIn(
+            "Exercice du 01/10/2024 au 28/07/2025",
+            pdf_text,
+        )
+
+    def test_exceptional_fiscal_year_is_shared_by_accounting_consumers(self):
+        self.company.write({
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "rebuild_first_fiscalyear_start": "2024-01-10",
+            "rebuild_first_fiscalyear_end": "2025-09-30",
+        })
+        anchor = fields.Date.to_date("2025-07-28")
+        expected = {
+            "date_from": fields.Date.to_date("2024-01-10"),
+            "date_to": fields.Date.to_date("2025-09-30"),
+        }
+        self.assertEqual(
+            self.company.compute_fiscalyear_dates(anchor),
+            expected,
+        )
+
+        with patch.object(
+            fields.Date,
+            "context_today",
+            return_value=anchor,
+        ):
+            overview = self.env["rebuild.account.overview"].search([
+                ("company_id", "=", self.company.id),
+            ], limit=1)
+            report_action = overview.action_open_report_export_wizard()
+            self.assertEqual(
+                report_action["context"]["default_date_from"],
+                expected["date_from"],
+            )
+            self.assertEqual(
+                report_action["context"]["default_date_to"],
+                anchor,
+            )
+
+            revenue_spending = self.env[
+                "rebuild.account.revenue.spending.month"
+            ]
+            self.assertEqual(
+                revenue_spending._current_fiscal_year_bounds(
+                    self.company,
+                ),
+                (expected["date_from"], expected["date_to"]),
+            )
+
+            analytic_domain = self.env[
+                "account.analytic.line"
+            ]._search_current_fiscal_year("=", True)
+            self.assertIn(
+                ("date", ">=", expected["date_from"]),
+                analytic_domain,
+            )
+            self.assertIn(
+                ("date", "<=", expected["date_to"]),
+                analytic_domain,
+            )
+
+            fec_defaults = self.env[
+                "l10n_fr.fec.export.wizard"
+            ].default_get(["date_from", "date_to"])
+            self.assertEqual(
+                fec_defaults["date_from"],
+                expected["date_from"],
+            )
+            self.assertEqual(
+                fec_defaults["date_to"],
+                expected["date_to"],
+            )
+
+            cash_domain = overview._cash_projection_tax_base_domain()
+            self.assertIn(
+                ("date", ">=", expected["date_from"]),
+                cash_domain,
+            )
+            self.assertIn(("date", "<=", anchor), cash_domain)
+            self.assertEqual(
+                overview._cash_tax_projection_data()["fiscal_year"],
+                expected,
+            )
+
+        self.assertEqual(
+            self.env["res.company"].get_fiscal_dates([{
+                "company_id": self.company.id,
+                "date": "2025-07-28",
+            }]),
+            [{
+                "start": expected["date_from"],
+                "end": expected["date_to"],
+            }],
+        )
+        spreadsheet_start, spreadsheet_end = self.env[
+            "account.account"
+        ]._get_date_period_boundaries(
+            {"range_type": "year", "year": 2024},
+            self.company,
+        )
+        self.assertEqual(
+            (spreadsheet_start, spreadsheet_end),
+            (expected["date_from"], expected["date_to"]),
+        )
+
+        journal = self._journal()
+        move_before_recurring_boundary = self.env["account.move"].new({
+            "company_id": self.company.id,
+            "date": "2024-07-28",
+            "journal_id": journal.id,
+        })
+        move_after_recurring_boundary = self.env["account.move"].new({
+            "company_id": self.company.id,
+            "date": "2024-11-28",
+            "journal_id": journal.id,
+        })
+        expected_sequence_range = (
+            expected["date_from"],
+            expected["date_to"],
+            None,
+            None,
+        )
+        self.assertEqual(
+            move_before_recurring_boundary._get_sequence_date_range(
+                "year_range",
+            ),
+            expected_sequence_range,
+        )
+        self.assertEqual(
+            move_after_recurring_boundary._get_sequence_date_range(
+                "year_range",
+            ),
+            expected_sequence_range,
+        )
+        self.assertIn(
+            "/24-25/",
+            move_before_recurring_boundary._get_starting_sequence(),
+        )
+        self.assertIn(
+            "/24-25/",
+            move_after_recurring_boundary._get_starting_sequence(),
+        )
+        move_first_exceptional_month = self.env["account.move"].new({
+            "company_id": self.company.id,
+            "date": "2024-01-28",
+            "journal_id": journal.id,
+        })
+        self.assertEqual(
+            move_first_exceptional_month._get_sequence_date_range(
+                "year_range_month",
+            ),
+            (
+                expected["date_from"],
+                fields.Date.to_date("2024-01-31"),
+                2024,
+                2025,
+            ),
+        )
+
+        sequence_moves = self.env["account.move"].create([
+            {
+                "move_type": "entry",
+                "journal_id": journal.id,
+                "date": "2024-07-28",
+                "name": "YR/2024-2025/0001",
+            },
+            {
+                "move_type": "entry",
+                "journal_id": journal.id,
+                "date": "2024-11-28",
+                "name": "YR/2024-2025/0002",
+            },
+        ])
+        resequence = self.env["account.resequence.wizard"].create({
+            "move_ids": [Command.set(sequence_moves.ids)],
+            "first_name": "YR/2024-2025/0001",
+            "ordering": "date",
+        })
+        self.assertEqual(resequence.sequence_number_reset, "year_range")
+        proposed_names = json.loads(resequence.new_values)
+        self.assertEqual(
+            {
+                values["server-year-start-date"]
+                for values in proposed_names.values()
+            },
+            {"2024-01-10"},
+        )
+        self.assertEqual(
+            len({
+                values["new_by_date"]
+                for values in proposed_names.values()
+            }),
+            2,
+        )
+
+        self.assertEqual(
+            self.company.compute_fiscalyear_dates(
+                fields.Date.to_date("2026-07-28"),
+            ),
+            {
+                "date_from": fields.Date.to_date("2025-10-01"),
+                "date_to": fields.Date.to_date("2026-09-30"),
+            },
+        )
+
+    def test_governed_fiscal_year_preserves_standard_company_cadence(self):
+        standard_company = self.env["res.company"].create({
+            "name": "Standard fiscal-year cadence",
+            "currency_id": self.company.currency_id.id,
+            "fiscalyear_last_day": 3,
+            "fiscalyear_last_month": "2",
+        })
+        anchor = fields.Date.to_date("2020-03-05")
+        expected = {
+            "date_from": fields.Date.to_date("2020-02-04"),
+            "date_to": fields.Date.to_date("2021-02-03"),
+        }
+
+        self.assertEqual(
+            standard_company.compute_fiscalyear_dates(anchor),
+            expected,
+        )
+        self.assertEqual(
+            self.env["res.company"].get_fiscal_dates([{
+                "company_id": standard_company.id,
+                "date": "2020-03-05",
+            }]),
+            [{
+                "start": expected["date_from"],
+                "end": expected["date_to"],
+            }],
+        )
+        standard_journal = self.env["account.journal"].create({
+            "name": "Standard cadence journal",
+            "code": "SCJ",
+            "type": "general",
+            "company_id": standard_company.id,
+        })
+        standard_move = self.env["account.move"].new({
+            "company_id": standard_company.id,
+            "journal_id": standard_journal.id,
+            "date": anchor,
+        })
+        self.assertIn(
+            "/20-21/",
+            standard_move._get_starting_sequence(),
+        )
+        calendar_company = self.env["res.company"].create({
+            "name": "Calendar fiscal-year cadence",
+            "currency_id": self.company.currency_id.id,
+        })
+        calendar_journal = self.env["account.journal"].create({
+            "name": "Calendar cadence journal",
+            "code": "CCJ",
+            "type": "general",
+            "company_id": calendar_company.id,
+        })
+        calendar_move = self.env["account.move"].new({
+            "company_id": calendar_company.id,
+            "journal_id": calendar_journal.id,
+            "date": anchor,
+        })
+        self.assertIn(
+            "/2020/",
+            calendar_move._get_starting_sequence(),
+        )
+
+    def test_exceptional_fiscal_year_requires_complete_valid_bounds(self):
+        company = self.env["res.company"].create({
+            "name": "Exceptional fiscal-year validation",
+            "currency_id": self.company.currency_id.id,
+        })
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            "Set both the start and end",
+        ):
+            company.rebuild_first_fiscalyear_start = "2024-01-10"
+        with self.assertRaisesRegex(
+            ValidationError,
+            "start must be before or equal to its end",
+        ):
+            company.write({
+                "rebuild_first_fiscalyear_start": "2025-09-30",
+                "rebuild_first_fiscalyear_end": "2024-01-10",
+            })
+
+    def test_accounting_models_do_not_bypass_governed_fiscal_year(self):
+        models_path = Path(__file__).parents[1] / "models"
+        bypasses = []
+        for model_path in models_path.glob("*.py"):
+            if model_path.name == "declaration.py":
+                continue
+            if "get_fiscal_year(" in model_path.read_text():
+                bypasses.append(model_path.name)
+        self.assertFalse(
+            bypasses,
+            "Accounting models must use res.company.compute_fiscalyear_dates "
+            f"instead of a recurring-cadence-only calculation: {bypasses}",
+        )
+        with file_open("account/models/account_move.py") as source:
+            account_move_source = source.read()
+        with file_open("account/wizard/account_resequence.py") as source:
+            resequence_source = source.read()
+        self.assertIn(
+            "compute_fiscalyear_dates(move_date)",
+            account_move_source,
+        )
+        self.assertIn(
+            "compute_fiscalyear_dates(move_id.date)",
+            resequence_source,
+        )
+
     def test_dynamic_report_workbench_multi_company_metadata(self):
         second_company = self.env["res.company"].create({
             "name": "Dynamic Report Second Company",
@@ -7694,7 +8111,10 @@ class TestRebuildAccountMigration(TransactionCase):
         wizard.action_preview_report()
         wizard.action_generate_export()
 
-        self.assertEqual(wizard.preview_line_ids.label, "No rows for the selected report filters")
+        self.assertEqual(
+            wizard.preview_line_ids.label,
+            "Aucune ligne pour les filtres sélectionnés",
+        )
         self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"PK"))
         analytic_wizard = Wizard.create({
             "company_id": self.company.id,
@@ -7708,7 +8128,7 @@ class TestRebuildAccountMigration(TransactionCase):
         analytic_wizard.action_preview_report()
         self.assertEqual(
             analytic_wizard.preview_line_ids.label,
-            "No rows for the selected report filters",
+            "Aucune ligne pour les filtres sélectionnés",
         )
 
     def test_report_launcher_actions_preselect_expected_report_types(self):
@@ -7766,6 +8186,30 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(standard.origin, "usl")
         self.assertFalse(standard.company_id)
         self.assertTrue(standard.business_purpose)
+        self.assertEqual(standard.document_template, "usl_official")
+        self.assertEqual(
+            standard._definition_snapshot()["document"],
+            {
+                "template": "usl_official",
+                "primary_color": "#111111",
+                "section_background_color": "#E9ECEF",
+                "section_text_color": "#111111",
+                "muted_color": "#666666",
+                "footer_label": "Document comptable",
+            },
+        )
+        self.assertEqual(standard.default_amount_rounding, "cents")
+        self.assertEqual(
+            standard._definition_snapshot()["default_amount_rounding"],
+            "cents",
+        )
+        balance_sheet_definition = definitions.filtered(
+            lambda definition: definition.code == "balance_sheet",
+        )
+        self.assertEqual(
+            balance_sheet_definition.default_amount_rounding,
+            "whole",
+        )
         with self.assertRaises(UserError):
             standard.write({"name": "Unsafe direct customization"})
         standard.with_context(accounting_definition_seed=True).write({
@@ -7775,6 +8219,26 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(standard.name, "Balance générale")
         self.assertEqual(standard.origin, "usl")
 
+        sig_definition = definitions.filtered(
+            lambda definition: definition.code == "sig_caf_2024",
+        )
+        sig_definition.with_context(accounting_definition_seed=True).write({
+            "name": "SIG et CAF (PCG 2024)",
+            "business_purpose": (
+                "Provide the governed SIG et CAF (PCG 2024) used for "
+                "accounting review, investigation, and evidence."
+            ),
+        })
+        Definition._ensure_standard_definitions()
+        self.assertEqual(sig_definition.name, "SIG et CAF")
+        self.assertEqual(
+            sig_definition.business_purpose,
+            (
+                "Provide the governed SIG et CAF used for accounting review, "
+                "investigation, and evidence."
+            ),
+        )
+
         action = standard.action_customize_for_company()
         company_definition = Definition.browse(action["res_id"])
         company_definition.write({
@@ -7783,6 +8247,11 @@ class TestRebuildAccountMigration(TransactionCase):
             "business_purpose": "Company-governed Trial Balance.",
             "supports_comparison": False,
         })
+        with self.assertRaises(UserError):
+            company_definition.write({
+                "document_section_background_color": "#FFFFFF",
+                "document_section_text_color": "#FFFFFF",
+            })
         Definition._ensure_standard_definitions()
         self.assertEqual(company_definition.name, "Balance USL personnalisée")
         self.assertEqual(company_definition.origin, "company")
@@ -7824,6 +8293,289 @@ class TestRebuildAccountMigration(TransactionCase):
             "trial_balance",
         )
 
+    def test_french_statement_classification_and_account_presentations(self):
+        Presentation = self.env[
+            "rebuild.account.report.account.presentation"
+        ]
+        shared_presentations = Presentation._ensure_standard_presentations()
+        self.assertEqual(
+            set(shared_presentations.mapped("account_code")),
+            {
+                "281540",
+                "281830",
+                "511100",
+                "627100",
+                "631200",
+                "768000",
+            },
+        )
+        with self.assertRaises(UserError):
+            shared_presentations.filtered(
+                lambda item: item.account_code == "627100",
+            ).write({"display_label": "Unsafe shared change"})
+
+        account_701 = self._account(
+            "701999",
+            "Test production vendue",
+            "income",
+        )
+        account_707 = self._account(
+            "707999",
+            "Test ventes de marchandises",
+            "income",
+        )
+        account_607 = self._account(
+            "607999",
+            "Test achats de marchandises",
+            "expense",
+        )
+        account_758 = self._account(
+            "758999",
+            "Test autres produits",
+            "income_other",
+        )
+        account_455 = self._account(
+            "455999",
+            "Test compte courant d’associé",
+            "liability_payable",
+        )
+        account_cash = self._account(
+            "512999",
+            "Test banque",
+            "asset_cash",
+        )
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2099-06-30",
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Production vendue",
+                    "account_id": account_701.id,
+                    "credit": 100,
+                }),
+                Command.create({
+                    "name": "Ventes de marchandises",
+                    "account_id": account_707.id,
+                    "credit": 30,
+                }),
+                Command.create({
+                    "name": "Achats de marchandises",
+                    "account_id": account_607.id,
+                    "debit": 20,
+                }),
+                Command.create({
+                    "name": "Autres produits",
+                    "account_id": account_758.id,
+                    "credit": 5,
+                }),
+                Command.create({
+                    "name": "Compte courant",
+                    "account_id": account_455.id,
+                    "credit": 7,
+                }),
+                Command.create({
+                    "name": "Contrepartie",
+                    "account_id": account_cash.id,
+                    "debit": 122,
+                }),
+            ],
+        })
+        move.action_post()
+
+        Report = self.env["rebuild.account.report.export.wizard"]
+        wizard = Report.create({
+            "report_type": "french_annual",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "none",
+        })
+        by_code = {
+            row["line_code"]: row
+            for row in wizard._french_annual_rows()
+        }
+        self.assertEqual(
+            by_code["SIG_VENTES_MARCHANDISES"]["amount"],
+            "30.00",
+        )
+        self.assertEqual(
+            by_code["SIG_MARGE_COMMERCIALE"]["amount"],
+            "10.00",
+        )
+        self.assertEqual(
+            by_code["SIG_PRODUCTION_EXERCICE"]["amount"],
+            "100.00",
+        )
+        self.assertEqual(
+            by_code["CR_AUTRES_PRODUITS_EXPLOITATION"]["amount"],
+            "5.00",
+        )
+        self.assertEqual(by_code["CR_TOTAL_PRODUITS"]["amount"], "135.00")
+        self.assertEqual(by_code["CR_TOTAL_CHARGES"]["amount"], "20.00")
+        self.assertEqual(by_code["CR_RESULTAT_NET"]["amount"], "115.00")
+        self.assertEqual(
+            by_code["PASSIF_DETTES_FINANCIERES"]["amount"],
+            "7.00",
+        )
+        self.assertEqual(
+            by_code["PASSIF_DETTES_FOURNISSEURS"]["amount"],
+            "0.00",
+        )
+        self.assertNotIn(
+            "account_breakdown",
+            by_code["PASSIF_CAPITAUX_PROPRES"],
+        )
+        self.assertIn(
+            "account_breakdown",
+            by_code["PASSIF_RESULTAT"],
+        )
+
+        wizard.group_by = "section"
+        grouped_rows = wizard._group_report_rows(
+            wizard._raw_report_rows(
+                wizard.date_from,
+                wizard.date_to,
+            ),
+        )
+        products_group = next(
+            row
+            for row in grouped_rows
+            if row.get("label") == "Produits d’exploitation"
+            and row.get("row_level") == 0
+        )
+        self.assertEqual(products_group["amount"], "135.00")
+
+        imported_label_account = self._account(
+            "627100",
+            "Obsolete imported label",
+            "expense",
+        )
+        label_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2099-07-01",
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Frais bancaires",
+                    "account_id": imported_label_account.id,
+                    "debit": 1,
+                }),
+                Command.create({
+                    "name": "Contrepartie",
+                    "account_id": account_cash.id,
+                    "credit": 1,
+                }),
+            ],
+        })
+        label_move.action_post()
+        trial = Report.create({
+            "report_type": "trial_balance",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "none",
+        })
+        presented_row = next(
+            row
+            for row in trial._raw_report_rows(
+                trial.date_from,
+                trial.date_to,
+            )
+            if row.get("account_code") == "627100"
+        )
+        self.assertEqual(presented_row["account_name"], "Frais bancaires")
+
+        company_presentation = Presentation.create({
+            "company_id": self.company.id,
+            "account_code": "627100",
+            "display_label": "Frais bancaires USL",
+        })
+        presented_row = next(
+            row
+            for row in trial._raw_report_rows(
+                trial.date_from,
+                trial.date_to,
+            )
+            if row.get("account_code") == "627100"
+        )
+        self.assertEqual(
+            presented_row["account_name"],
+            company_presentation.display_label,
+        )
+
+    def test_management_ratios_use_visible_values_and_defined_units(self):
+        Definition = self.env["rebuild.account.report.definition"]
+        definition = Definition._resolve(
+            "executive_summary",
+            self.company,
+            fields.Date.to_date("2099-12-31"),
+        )
+        definition.with_context(accounting_definition_seed=True).write({
+            "definition_version": "saas~19.2.3",
+            "default_group_by": "none",
+            "default_amount_rounding": "cents",
+        })
+        Definition._ensure_standard_definitions()
+        self.assertEqual(definition.definition_version, "saas~19.2.4")
+        self.assertEqual(definition.default_group_by, "section")
+        self.assertEqual(definition.default_amount_rounding, "whole")
+
+        Report = self.env["rebuild.account.report.export.wizard"]
+        wizard = Report.create({
+            "report_type": "executive_summary",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "section",
+            "hide_zero_accounts": True,
+        })
+        rows = wizard._management_summary_rows("executive_summary")
+        self.assertEqual(
+            {row["section"] for row in rows},
+            {"Indicateurs clés", "Ratios de gestion"},
+        )
+        self.assertTrue(
+            all(row.get("unit") for row in rows),
+        )
+        self.assertTrue(
+            all(
+                row.get("metric_value") not in (None, "")
+                for row in rows
+                if row["metric_type"] == "currency"
+            ),
+        )
+        self.assertEqual(
+            [column["key"] for column in wizard._report_client_columns()],
+            ["metric_value", "unit", "details"],
+        )
+        self.assertEqual(
+            wizard._hide_zero_account_rows(rows),
+            rows,
+        )
+        payload = Report.report_client_load(
+            "executive_summary",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(payload["filters"]["group_by"], "section")
+        self.assertEqual(payload["lines"][0]["label"], "Indicateurs clés")
+        self.assertEqual(
+            payload["lines"][1]["label"],
+            "Chiffre d’affaires net",
+        )
+
     def test_canonical_report_client_loads_filters_and_downloads(self):
         Report = self.env["rebuild.account.report.export.wizard"]
         self._journal()
@@ -7849,11 +8601,20 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(trial["options"]["journals"])
         self.assertIn("analytic_accounts", trial["options"])
         self.assertTrue(trial["capabilities"]["period_presets"])
+        self.assertTrue(trial["capabilities"]["display_unit"])
+        self.assertTrue(trial["capabilities"]["amount_rounding"])
+        self.assertTrue(trial["capabilities"]["hide_zero_accounts"])
         self.assertTrue(trial["capabilities"]["comparison"])
         self.assertTrue(trial["capabilities"]["analytics"])
+        self.assertEqual(trial["filters"]["display_unit"], "units")
+        self.assertEqual(trial["filters"]["amount_rounding"], "cents")
+        self.assertFalse(trial["filters"]["hide_zero_accounts"])
+        self.assertEqual(trial["display_unit"]["factor"], 1)
+        self.assertEqual(trial["amount_rounding"]["decimal_places"], 2)
+        self.assertEqual(trial["variant"]["key"], "standard")
         self.assertEqual(
             trial["lines"][0]["label"],
-            "No rows for the selected report filters",
+            "Aucune ligne pour les filtres sélectionnés",
         )
         self.assertFalse(trial["lines"][0]["can_drilldown"])
         self.assertEqual(trial["lines"][0]["presentation_role"], "empty")
@@ -7872,12 +8633,22 @@ class TestRebuildAccountMigration(TransactionCase):
             {
                 "journal_ids": [journal.id],
                 "target_move": "all",
+                "display_unit": "thousands",
+                "amount_rounding": "whole",
                 "search_text": "",
             },
             trial["wizard_id"],
         )
         self.assertEqual(filtered["filters"]["journal_ids"], [journal.id])
         self.assertEqual(filtered["filters"]["target_move"], "all")
+        self.assertEqual(filtered["filters"]["display_unit"], "thousands")
+        self.assertEqual(filtered["filters"]["amount_rounding"], "whole")
+        self.assertEqual(filtered["display_unit"]["factor"], 1000)
+        self.assertEqual(filtered["amount_rounding"]["decimal_places"], 0)
+        self.assertEqual(
+            filtered["display_unit"]["short_label"],
+            f"k{self.env.company.currency_id.symbol}",
+        )
         filtered_wizard = Report.browse(filtered["wizard_id"])
         group_line = filtered_wizard.preview_line_ids.filtered("is_group")[:1]
         if group_line:
@@ -7888,6 +8659,18 @@ class TestRebuildAccountMigration(TransactionCase):
                 group_line.id,
             )
             self.assertEqual(folded["summary"], summary_before_fold)
+            Report.report_client_export(
+                filtered_wizard.id,
+                "xlsx",
+            )
+            folded_metadata = json.loads(
+                filtered_wizard.export_metadata,
+            )
+            self.assertEqual(
+                folded_metadata["collapsed_group_keys"],
+                [group_key],
+            )
+            self.assertEqual(folded_metadata["display_unit_factor"], 1000)
             folded_group_line = filtered_wizard.preview_line_ids.filtered(
                 lambda line: line.group_key == group_key,
             )[:1]
@@ -7940,9 +8723,44 @@ class TestRebuildAccountMigration(TransactionCase):
             )
             wizard = Report.browse(filtered["wizard_id"])
             self.assertEqual(download["field"], "export_file")
+            exported_file = base64.b64decode(wizard.export_file)
             self.assertTrue(
-                base64.b64decode(wizard.export_file).startswith(signature),
+                exported_file.startswith(signature),
             )
+            if export_format == "pdf":
+                exported_text = "\n".join(
+                    page.extract_text() or ""
+                    for page in PdfReader(BytesIO(exported_file)).pages
+                )
+                self.assertIn(
+                    "Milliers "
+                    f"(k{self.env.company.currency_id.symbol})",
+                    exported_text,
+                )
+                self.assertIn("Au millier d’euros", exported_text)
+                self.assertIn("01/01/2099", exported_text)
+                self.assertIn("31/12/2099", exported_text)
+                self.assertRegex(
+                    exported_text,
+                    r"Généré le \d{2}/\d{2}/\d{4} \d{2}:\d{2}",
+                )
+            else:
+                with ZipFile(BytesIO(exported_file)) as workbook:
+                    shared_strings = workbook.read(
+                        "xl/sharedStrings.xml",
+                    )
+                self.assertIn(b"01/01/2099", shared_strings)
+                self.assertIn(b"31/12/2099", shared_strings)
+                self.assertIn(
+                    "Au millier d’euros".encode(),
+                    shared_strings,
+                )
+                self.assertNotIn(b"2099-01-01", shared_strings)
+                self.assertNotIn(b"2099-12-31", shared_strings)
+                self.assertNotIn(
+                    "Écritures comptabilisées".encode(),
+                    shared_strings,
+                )
             metadata = json.loads(wizard.export_metadata)
             self.assertEqual(
                 metadata["report_definition_version"],
@@ -7952,6 +8770,137 @@ class TestRebuildAccountMigration(TransactionCase):
                 metadata["report_definition"]["code"],
                 "trial_balance",
             )
+            self.assertEqual(metadata["display_unit"], "thousands")
+            self.assertEqual(metadata["display_unit_factor"], 1000)
+            self.assertEqual(metadata["amount_rounding"], "whole")
+            self.assertEqual(metadata["amount_decimal_places"], 0)
+
+        sig_caf = Report.report_client_load(
+            "sig_caf_2024",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(sig_caf["filters"]["amount_rounding"], "whole")
+        sig_labels = {
+            line["label"]
+            for line in sig_caf["lines"]
+        }
+        self.assertGreaterEqual(len(sig_caf["lines"]), 40)
+        self.assertIn("Marge commerciale (I)", sig_labels)
+        self.assertIn("Production de l’exercice (II)", sig_labels)
+        self.assertIn("Résultat courant avant impôts", sig_labels)
+        self.assertIn("CAF — Résultat net comptable", sig_labels)
+        self.assertIn("Capacité d’autofinancement", sig_labels)
+        self.assertIn(
+            "subtotal",
+            {
+                line["presentation_role"]
+                for line in sig_caf["lines"]
+            },
+        )
+        Report.report_client_export(sig_caf["wizard_id"], "pdf")
+        sig_pdf = base64.b64decode(
+            Report.browse(sig_caf["wizard_id"]).export_file,
+        )
+        self.assertEqual(len(PdfReader(BytesIO(sig_pdf)).pages), 2)
+
+        profit_loss = Report.report_client_load(
+            "profit_loss",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(profit_loss["title"], "Compte de résultat")
+        self.assertEqual(profit_loss["report_type"], "profit_loss")
+        self.assertEqual(profit_loss["definition"]["code"], "profit_loss")
+        self.assertEqual(profit_loss["variant"]["key"], "pcg_fr")
+        self.assertEqual(
+            profit_loss["summary"]["cards"][0]["label"],
+            "Résultat net de l’exercice",
+        )
+        self.assertEqual(
+            profit_loss["document"]["section_background_color"],
+            "#E9ECEF",
+        )
+        profit_loss_labels = {
+            line["label"]
+            for line in profit_loss["lines"]
+        }
+        self.assertIn("Produits d’exploitation", profit_loss_labels)
+        self.assertIn("Charges d’exploitation", profit_loss_labels)
+        self.assertIn("Résultat net de l’exercice", profit_loss_labels)
+        self.assertIn("Autres produits d’exploitation", profit_loss_labels)
+        self.assertIn("Total des produits", profit_loss_labels)
+        self.assertIn("Total des charges", profit_loss_labels)
+        legacy_alias = Report.report_client_load(
+            "french_profit_loss_2024",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(legacy_alias["report_type"], "profit_loss")
+        self.assertEqual(legacy_alias["definition"]["code"], "profit_loss")
+        Report.report_client_export(profit_loss["wizard_id"], "pdf")
+        profit_loss_pdf = base64.b64decode(
+            Report.browse(profit_loss["wizard_id"]).export_file,
+        )
+        profit_loss_pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(profit_loss_pdf)).pages
+        )
+        self.assertIn("DOCUMENT COMPTABLE OFFICIEL", profit_loss_pdf_text)
+        self.assertIn("Charges d’exploitation", profit_loss_pdf_text)
+        self.assertIn(
+            f"Monnaie {self.env.company.currency_id.name}",
+            profit_loss_pdf_text,
+        )
+        self.assertNotIn(
+            f"Unités ({self.env.company.currency_id.symbol})",
+            profit_loss_pdf_text,
+        )
+        self.assertNotIn("Périmètre", profit_loss_pdf_text)
+        self.assertNotIn(
+            "Présentation française résolue",
+            profit_loss_pdf_text,
+        )
+        self.assertNotIn(
+            "écritures comptabilisées",
+            profit_loss_pdf_text,
+        )
+
+        french_annual = Report.report_client_load(
+            "french_annual",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(
+            [column["key"] for column in french_annual["columns"]],
+            ["gross_amount", "depreciation_amount", "net_amount"],
+        )
+        Report.report_client_export(french_annual["wizard_id"], "pdf")
+        french_annual_pdf = base64.b64decode(
+            Report.browse(french_annual["wizard_id"]).export_file,
+        )
+        french_annual_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(french_annual_pdf)).pages
+        )
+        self.assertIn(
+            "COMPTES PRÉPARÉS PAR LA SOCIÉTÉ — NON ATTESTÉS",
+            french_annual_text,
+        )
+        self.assertIn("Sommaire", french_annual_text)
+        self.assertIn("Ratios de gestion", french_annual_text)
+        self.assertNotIn(
+            "DOCUMENT COMPTABLE OFFICIEL",
+            french_annual_text,
+        )
 
         compared = Report.report_client_load(
             "trial_balance",
@@ -8015,6 +8964,11 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertAlmostEqual(control["value"], 0.0, places=2)
         self.assertEqual(control["status"], "success")
+        self.assertEqual(french_balance["variant"]["key"], "pcg_fr")
+        self.assertEqual(
+            french_balance["variant"]["label"],
+            "Présentation française (PCG)",
+        )
         self.assertIn(
             "total",
             {
@@ -8035,6 +8989,336 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(
                 base64.b64decode(wizard.export_file).startswith(signature),
             )
+
+    def test_report_rounding_matches_screen_pdf_xlsx_and_preserves_audit_data(self):
+        Report = self.env["rebuild.account.report.export.wizard"]
+        wizard = Report.create({
+            "report_type": "balance_sheet",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "section",
+            "display_unit": "units",
+            "amount_rounding": "whole",
+            "export_format": "pdf",
+        })
+        rows = [{
+            "label": "Contrôle d’arrondi",
+            "amount": Decimal("125.50"),
+            "presentation_role": "detail",
+        }]
+
+        self.assertEqual(
+            wizard._report_export_columns(rows),
+            [
+                ("label", "Libellé"),
+                (
+                    "amount",
+                    f"Solde ({self.company.currency_id.symbol})",
+                ),
+            ],
+        )
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(wizard._pdf_payload(rows))).pages
+        )
+        self.assertIn("À l’euro", pdf_text)
+        self.assertIn("126", pdf_text)
+        self.assertNotIn("125,50", pdf_text)
+
+        with ZipFile(BytesIO(wizard._xlsx_payload(rows))) as workbook:
+            report_sheet = workbook.read("xl/worksheets/sheet2.xml")
+            audit_sheet = workbook.read("xl/worksheets/sheet3.xml")
+        self.assertIn(b"<v>126</v>", report_sheet)
+        self.assertIn(b"<v>125.5</v>", audit_sheet)
+
+        wizard.amount_rounding = "cents"
+        cents_pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(wizard._pdf_payload(rows))).pages
+        )
+        self.assertIn("Au centime", cents_pdf_text)
+        self.assertIn("125,50", cents_pdf_text)
+
+    def test_hide_zero_accounts_filters_screen_and_live_pdf_state(self):
+        Report = self.env["rebuild.account.report.export.wizard"]
+        payload = Report.report_client_load(
+            "trial_balance",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+                "group_by": "none",
+            },
+        )
+        wizard = Report.browse(payload["wizard_id"])
+        report_rows = [
+            {
+                "account_code": "T000000",
+                "account_name": "Compte entièrement nul",
+                "opening_balance": "0.00",
+                "debit": "0.00",
+                "credit": "0.00",
+                "closing_balance": "0.00",
+            },
+            {
+                "account_code": "T100000",
+                "account_name": "Compte soldé avec activité",
+                "opening_balance": "0.00",
+                "debit": "100.00",
+                "credit": "100.00",
+                "closing_balance": "0.00",
+            },
+            {
+                "account_code": "T200000",
+                "account_name": "Compte avec solde",
+                "opening_balance": "0.00",
+                "debit": "25.00",
+                "credit": "0.00",
+                "closing_balance": "25.00",
+            },
+        ]
+
+        with patch.object(
+            type(wizard),
+            "_raw_report_rows",
+            return_value=report_rows,
+        ):
+            download = Report.report_client_export(
+                wizard.id,
+                "pdf",
+                {
+                    **payload["filters"],
+                    "hide_zero_accounts": True,
+                    "group_by": "none",
+                },
+            )
+
+        refreshed_line_ids = [
+            line["id"]
+            for line in download["report_payload"]["lines"]
+        ]
+        self.assertTrue(refreshed_line_ids)
+        self.assertEqual(
+            self.env["rebuild.account.report.preview.line"].browse(
+                refreshed_line_ids,
+            ).exists().ids,
+            refreshed_line_ids,
+        )
+        self.assertTrue(wizard.hide_zero_accounts)
+        self.assertEqual(
+            wizard.preview_line_ids.mapped("account_code"),
+            ["T100000", "T200000"],
+        )
+        metadata = json.loads(wizard.export_metadata)
+        self.assertTrue(metadata["hide_zero_accounts"])
+        self.assertEqual(metadata["row_count"], 2)
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(
+                BytesIO(base64.b64decode(wizard.export_file)),
+            ).pages
+        )
+        self.assertIn(
+            "Lignes à zéro masquées",
+            " ".join(pdf_text.split()),
+        )
+        self.assertNotIn("Compte entièrement nul", pdf_text)
+        self.assertIn("Compte soldé avec activité", pdf_text)
+        self.assertIn("Compte avec solde", pdf_text)
+
+        hierarchy_rows = [
+            {
+                "label": "Ligne de détail nulle",
+                "amount": "0.00",
+            },
+            {
+                "label": "Sous-total nul masqué",
+                "presentation_role": "subtotal",
+                "amount": "0.00",
+            },
+            {
+                "label": "Total nul conservé",
+                "presentation_role": "total",
+                "amount": "0.00",
+            },
+            {
+                "label": "Poste",
+                "is_group": "true",
+                "group_key": "statement",
+                "hierarchy_kind": "statement",
+                "amount": "0.00",
+            },
+            {
+                "label": "Groupe nul",
+                "is_group": "true",
+                "group_key": "statement|zero",
+                "parent_group_key": "statement",
+                "hierarchy_kind": "pcg_group",
+                "amount": "0.00",
+            },
+            {
+                "label": "Compte nul",
+                "account_code": "T000001",
+                "parent_group_key": "statement|zero",
+                "hierarchy_kind": "account",
+                "amount": "0.00",
+            },
+            {
+                "label": "Groupe compensé",
+                "is_group": "true",
+                "group_key": "statement|offset",
+                "parent_group_key": "statement",
+                "hierarchy_kind": "pcg_group",
+                "amount": "0.00",
+            },
+            {
+                "label": "Compte débiteur",
+                "account_code": "T100001",
+                "parent_group_key": "statement|offset",
+                "hierarchy_kind": "account",
+                "amount": "100.00",
+            },
+            {
+                "label": "Compte créditeur",
+                "account_code": "T100002",
+                "parent_group_key": "statement|offset",
+                "hierarchy_kind": "account",
+                "amount": "-100.00",
+            },
+        ]
+        filtered_hierarchy = wizard._hide_zero_account_rows(
+            hierarchy_rows,
+        )
+        self.assertEqual(
+            [row["label"] for row in filtered_hierarchy],
+            [
+                "Total nul conservé",
+                "Poste",
+                "Groupe compensé",
+                "Compte débiteur",
+                "Compte créditeur",
+            ],
+        )
+
+    def test_profit_loss_unfolds_through_pcg_groups_to_account_number(self):
+        expense = self._account(
+            "604991",
+            "PCG hierarchy test services",
+            "expense",
+        )
+        bank = self._account(
+            "512991",
+            "PCG hierarchy test bank",
+            "asset_cash",
+        )
+        expense.invalidate_recordset(["group_id"])
+        if not expense.group_id:
+            self.env["account.group"].create({
+                "name": "PCG hierarchy test group",
+                "code_prefix_start": "604991",
+                "code_prefix_end": "604991",
+                "company_id": self.company.root_id.id,
+            })
+            expense.invalidate_recordset(["group_id"])
+        self.assertTrue(expense.group_id)
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2099-06-30",
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "PCG hierarchy test",
+                    "account_id": expense.id,
+                    "debit": 123.45,
+                    "credit": 0.0,
+                }),
+                Command.create({
+                    "name": "PCG hierarchy test",
+                    "account_id": bank.id,
+                    "debit": 0.0,
+                    "credit": 123.45,
+                }),
+            ],
+        })
+        move.action_post()
+
+        Report = self.env["rebuild.account.report.export.wizard"]
+        payload = Report.report_client_load(
+            "profit_loss",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        wizard = Report.browse(payload["wizard_id"])
+        statement_line = wizard.preview_line_ids.filtered(
+            lambda line: line.line_code == "CR_CHARGES_EXTERNES",
+        )
+        self.assertEqual(len(statement_line), 1)
+        self.assertTrue(statement_line.is_group)
+        self.assertIn(
+            statement_line.group_key,
+            wizard._collapsed_group_key_set(),
+        )
+        self.assertFalse(
+            any(line["account_code"] == "604991" for line in payload["lines"]),
+        )
+
+        unfolded = Report.report_client_toggle_group(
+            wizard.id,
+            statement_line.id,
+        )
+        account_line = next(
+            line
+            for line in unfolded["lines"]
+            if line["account_code"] == "604991"
+        )
+        pcg_groups = [
+            line
+            for line in unfolded["lines"]
+            if line["is_group"]
+            and line["level"] >= 2
+            and line["account_code"]
+        ]
+        self.assertTrue(pcg_groups)
+        self.assertGreater(
+            account_line["level"],
+            min(line["level"] for line in pcg_groups),
+        )
+        self.assertAlmostEqual(account_line["balance"], 123.45)
+
+        account_preview = wizard.preview_line_ids.filtered(
+            lambda line: line.account_code == "604991",
+        )
+        source_action = Report.report_client_open_sources(
+            wizard.id,
+            account_preview.id,
+        )
+        self.assertEqual(source_action["res_model"], "account.move.line")
+        self.assertIn(("account_id", "in", [expense.id]), source_action["domain"])
+
+        Report.report_client_export(wizard.id, "pdf")
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(
+                BytesIO(base64.b64decode(wizard.export_file)),
+            ).pages
+        )
+        self.assertIn("604991", pdf_text)
+        Report.report_client_export(wizard.id, "xlsx")
+        with ZipFile(
+            BytesIO(base64.b64decode(wizard.export_file)),
+        ) as workbook:
+            readable_xml = b"\n".join(
+                workbook.read(name)
+                for name in workbook.namelist()
+                if name == "xl/sharedStrings.xml"
+                or name.startswith("xl/worksheets/sheet")
+            )
+        self.assertIn(b"604991", readable_xml)
 
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(
@@ -8180,6 +9464,27 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
 
     def test_primary_report_menus_open_canonical_interactive_reports(self):
+        reporting_root = self.env.ref("account.menu_finance_reports")
+        menu_families = {
+            "rebuild_account_migration.menu_rebuild_account_reports_accounting_books":
+                ("Comptes et journaux", 1),
+            "account.account_reports_legal_statements_menu":
+                ("États financiers", 2),
+            "account.account_reports_partners_reports_menu":
+                ("Tiers et échéances", 3),
+            "account.account_reports_taxes_and_fiscal_menu":
+                ("Fiscalité", 4),
+            "account.account_reports_management_menu":
+                ("Pilotage", 5),
+            "rebuild_account_migration.menu_rebuild_account_reports_periods_assets":
+                ("Immobilisations et périodes", 6),
+        }
+        for menu_xmlid, (name, sequence) in menu_families.items():
+            family = self.env.ref(menu_xmlid)
+            self.assertEqual(family.parent_id, reporting_root)
+            self.assertEqual(family.name, name)
+            self.assertEqual(family.sequence, sequence)
+
         expected_menus = {
             "menu_rebuild_account_report_trial_balance_launcher": "rebuild_account_migration.action_rebuild_interactive_trial_balance",
             "menu_rebuild_account_report_general_ledger_launcher": "rebuild_account_migration.action_rebuild_interactive_general_ledger",
@@ -8210,6 +9515,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_account_migration.menu_rebuild_account_report_ec_sales_launcher",
             "rebuild_account_migration.menu_rebuild_account_report_oss_sales_launcher",
             "rebuild_account_migration.menu_rebuild_account_report_oss_imports_launcher",
+            "rebuild_account_migration.menu_rebuild_account_revenue_spending_reporting",
+            "rebuild_account_migration.menu_rebuild_account_report_french_tax_package_launcher",
+            "account.menu_action_account_invoice_report_all",
+            "l10n_fr_pdp.l10n_fr_pdp_reports_menu_flows",
         ]
         for menu_xmlid in hidden_competitors:
             self.assertFalse(self.env.ref(menu_xmlid).active)
@@ -8234,6 +9543,20 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(balance_export_menu.sequence, 4)
         self.assertEqual(profit_export_menu.sequence, 5)
+        legacy_profit_menu = self.env.ref(
+            "rebuild_account_migration."
+            "menu_rebuild_account_report_french_profit_loss_2024_launcher",
+        )
+        legacy_profit_action = self.env.ref(
+            "rebuild_account_migration."
+            "action_rebuild_interactive_french_profit_loss_2024",
+        )
+        self.assertFalse(legacy_profit_menu.active)
+        self.assertEqual(legacy_profit_action.name, "Compte de résultat")
+        self.assertEqual(
+            safe_eval(legacy_profit_action.context)["report_type"],
+            "profit_loss",
+        )
 
     def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
         receivable = self._account("411900", "Unit receivable report default", "asset_receivable")
@@ -8807,8 +10130,8 @@ class TestRebuildAccountMigration(TransactionCase):
             },
         ]))
 
-        self.assertEqual(columns["quantity"], "Quantity")
-        self.assertEqual(columns["value_text"], "Value / note")
+        self.assertEqual(columns["quantity"], "Quantité")
+        self.assertEqual(columns["value_text"], "Valeur / note")
 
     def test_accountant_reviewer_can_prepare_test_fec_through_standard_and_custom_paths(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({

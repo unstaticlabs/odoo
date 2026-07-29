@@ -4,7 +4,7 @@
         "USL Accounting cockpit, controls, reports, declarations, "
         "and audit evidence."
     ),
-    "version": "saas~19.2.1.7.50",
+    "version": "saas~19.2.1.7.51",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -24,6 +24,7 @@
         "l10n_fr_account",
         "l10n_fr_pdp",
         "partner_statement",
+        "spreadsheet_account",
         "usl_expense_batch",
     ],
     "data": [

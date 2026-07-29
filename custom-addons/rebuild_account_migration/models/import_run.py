@@ -1454,6 +1454,7 @@ class RebuildAccountImportRun(models.Model):
                     "rebuild_profit_tax_regime": "bic_simplified",
                     "rebuild_vat_regime": "simplified",
                     "rebuild_first_fiscalyear_start": "2024-01-10",
+                    "rebuild_first_fiscalyear_end": "2025-09-30",
                     "rebuild_declaration_profile_evidence": (
                         "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS tax package: "
                         "Unstatic Labs is a French SASU subject to IS, using the simplified BIC/IS "

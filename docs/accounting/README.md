@@ -4,11 +4,13 @@ These documents define the accounting truths that implementations and migrations
 
 - [Accounting invariants](accounting-invariants.md)
 - [Parity standard](parity-standard.md)
+- [Previous-accountant plaquette parity, 30 September 2025](accountant-plaquette-parity-2025-09-30.md)
 - [Evidence catalogue](parity-evidence.md)
 - [Migration and release gates](migration-gates.md)
 - [Configurable Accounting Controls](configurable-accounting-controls.md)
 - [Configurable Accounting Framework](configurable-accounting-framework.md)
 - [Accounting report presentation](accounting-report-presentation.md)
+- [Fiscal-year boundary contract](fiscal-year-boundaries.md)
 - [Analytic pivot reporting](analytic-pivot-reporting.md)
 - [French electronic-invoicing reception readiness](french-electronic-invoicing-readiness.md)
 - [French electronic-invoicing validation evidence](french-electronic-invoicing-validation.md)

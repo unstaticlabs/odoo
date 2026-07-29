@@ -36,6 +36,16 @@ Valentin and the accountant must be able to:
 
 - Standard accounting records form the authoritative ledger.
 - Custom workflows orchestrate accounting; they do not create parallel ledgers.
+- Every Accounting feature resolves a fiscal year through the same
+  company-governed boundary contract. The exceptional first USL exercise is
+  10/01/2024–30/09/2025; recurring exercises then run from 1 October to
+  30 September. Reports, exports, FEC defaults, cash/tax projections,
+  analytics, spreadsheets, declarations, closings and fiscal sequence ranges
+  must agree for the same reference date.
+- Financial statements and declaration-oriented reports open with whole-euro
+  presentation; reconciliation-oriented ledgers retain cents by default. The
+  user may change presentation rounding, but screen, PDF and readable XLSX
+  must agree while calculations and audit data retain exact ledger amounts.
 - Smart recommendations expose their scored source facts and intended ledger
   effects. Low-confidence partner inference may inform a harmless suggestion,
   but never silently authorizes an accounting action. A user-approved bank
@@ -54,6 +64,27 @@ Valentin and the accountant must be able to:
 - Interactive reports are statement-first: one shared filter and interaction
   system presents explicit sections, groups, details, subtotals, totals and
   controls consistently on screen, in PDF and in the readable XLSX sheet.
+- Financial statement source lines unfold through the company's native PCG
+  `account.group` hierarchy to full account numbers. An account breakdown is
+  displayed only when its signed contributions reconcile to the statement
+  value; screen, source drill-down, PDF and readable XLSX retain the same
+  codes, labels and amounts.
+- Applicable reports can hide fully zero-valued detail and account rows
+  without hiding accounts that have debit, credit or comparison activity.
+  Sections, subtotals and totals remain visible. The setting is part of the
+  shared report session, visible scope and export metadata; PDF/XLSX generation
+  refreshes from the current client filters before rendering.
+- Each accounting need has one canonical end-user report. **Compte de
+  résultat** is the single French performance statement; historical generic
+  and detailed aliases may remain for migration compatibility but are not
+  separate menu choices.
+- Designed statements use a restrained A4-like reading width on screen.
+  Headline figures state their unit, and every section/hover state must retain
+  accessible contrast.
+- Report definitions also govern the official document template, primary and
+  muted colors, section colors and footer label. Screen, PDF and readable XLSX
+  consume that configuration; company overrides must satisfy a minimum 4.5:1
+  section contrast ratio.
 - Exploratory analysis uses Odoo's native pivot/list/graph framework over
   authoritative analytic items. It remains distinct from designed financial
   statements while reconciling to the same accounting population.
