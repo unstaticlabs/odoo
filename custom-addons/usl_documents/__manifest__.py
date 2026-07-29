@@ -1,0 +1,30 @@
+{
+    "name": "USL Documents",
+    "summary": "Native Odoo document work backed by Paperless-ngx",
+    "description": "Native Odoo document workflows backed by the Paperless-ngx archive.",
+    "version": "saas~19.2.1.0.0",
+    "category": "Productivity/Documents",
+    "author": "Unstatic Labs",
+    "license": "LGPL-3",
+    "depends": ["web", "mail", "account", "hr_expense", "project", "hr"],
+    "data": [
+        "security/usl_documents_security.xml",
+        "security/ir.model.access.csv",
+        "data/usl_documents_data.xml",
+        "views/usl_document_views.xml",
+        "views/business_record_views.xml",
+        "views/res_config_settings_views.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "usl_documents/static/src/documents_app.js",
+            "usl_documents/static/src/documents_app.xml",
+            "usl_documents/static/src/documents_app.scss",
+        ],
+        "web.assets_unit_tests": [
+            "usl_documents/static/tests/documents_app.test.js",
+        ],
+    },
+    "application": True,
+    "installable": True,
+}
