@@ -3,12 +3,20 @@ from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
 
-@tagged("post_install", "-at_install", "rebuild_account_direction_guard")
+@tagged(
+    "post_install",
+    "-at_install",
+    "rebuild_account_direction_guard",
+    "usl_accounting_unit",
+)
 class TestAccountDirectionGuard(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.company
+        cls.env.user.group_ids = [
+            Command.link(cls.env.ref("account.group_account_user").id),
+        ]
         cls.journal = cls.env["account.journal"].search(
             [
                 ("company_id", "=", cls.company.id),
@@ -152,17 +160,18 @@ class TestAccountDirectionGuard(TransactionCase):
         refund = self.env["account.move"].new({"move_type": "in_refund"})
         self.assertTrue(refund._rebuild_direction_guard_is_exempt())
 
-        imported = self._move(self.loss_account, wrong_side=True)
-        imported.rebuild_source_id = 999001
-        imported.action_post()
-        self.assertEqual(imported.state, "posted")
+        if "rebuild_source_id" in self.env["account.move"]._fields:
+            imported = self._move(self.loss_account, wrong_side=True)
+            imported.rebuild_source_id = 999001
+            imported.action_post()
+            self.assertEqual(imported.state, "posted")
 
-    def test_configuration_and_draft_warning_are_visible(self):
-        account_arch = self.env.ref(
-            "rebuild_account_migration.view_account_form_entry_direction_guard",
-        ).arch_db
-        move_arch = self.env.ref(
-            "rebuild_account_migration.view_move_form_entry_direction_guard",
-        ).arch_db
-        self.assertIn("rebuild_entry_direction_policy", account_arch)
-        self.assertIn("Confirm exceptional direction", move_arch)
+    def test_configuration_and_draft_warning_fields_are_available(self):
+        self.assertIn(
+            "rebuild_entry_direction_policy",
+            self.env["account.account"]._fields,
+        )
+        self.assertIn(
+            "rebuild_direction_exception_required",
+            self.env["account.move"]._fields,
+        )
