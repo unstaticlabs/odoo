@@ -1,0 +1,30 @@
+<odoo>
+    <record id="project_task_form_restore_planning" model="ir.ui.view">
+        <field name="name">project.task.form.restore.planning</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <field name="date_deadline" position="before">
+                <field name="planned_date_begin"/>
+            </field>
+            <field name="date_deadline" position="after">
+                <field name="usl_dependency_date_warning"
+                       class="text-warning"
+                       readonly="1"
+                       invisible="not usl_dependency_date_warning"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="project_task_list_restore_planning" model="ir.ui.view">
+        <field name="name">project.task.list.restore.planning</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="arch" type="xml">
+            <field name="date_deadline" position="before">
+                <field name="planned_date_begin" optional="hide"/>
+            </field>
+        </field>
+    </record>
+</odoo>
+

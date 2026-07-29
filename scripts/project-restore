@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+target_database="${PROJECT_TARGET_DATABASE:-odoo_projects_candidate_01}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+
+case "$target_database" in
+    odoo_dev|odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)
+        if [[ "${PROJECT_RESTORE_ALLOW_PROTECTED_TARGET:-0}" != "1" ]]; then
+            echo "Refusing protected database $target_database."
+            echo "Set PROJECT_RESTORE_ALLOW_PROTECTED_TARGET=1 only for an intentional in-place import."
+            exit 2
+        fi
+        ;;
+esac
+
+if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+    echo "Source dump or filestore is missing under $source_dump_dir."
+    exit 2
+fi
+
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+install_module() {
+    module_operation="--init=usl_project_restore"
+    if docker compose -p "$compose_project" exec -T db \
+        psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
+        "SELECT 1 FROM ir_module_module WHERE name = 'usl_project_restore' AND state = 'installed'" \
+        | grep -qx 1; then
+        module_operation="--update=usl_project_restore"
+    fi
+    docker compose -p "$compose_project" --profile init run --rm \
+        -e ODOO_INIT_DB="$target_database" \
+        init-db \
+        odoo --config=/etc/odoo/odoo.conf \
+        --database="$target_database" \
+        "$module_operation" \
+        --without-demo=true \
+        --stop-after-init
+}
+
+import_projects() {
+    docker compose -p "$compose_project" --profile init run --rm \
+        -e PROJECT_SOURCE_DB_HOST="${PROJECT_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e PROJECT_SOURCE_DB_PORT="${PROJECT_SOURCE_DB_PORT:-5432}" \
+        -e PROJECT_SOURCE_DB_USER="${PROJECT_SOURCE_DB_USER:-odoo}" \
+        -e PROJECT_SOURCE_DB_PASSWORD="${PROJECT_SOURCE_DB_PASSWORD:-odoo}" \
+        -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-odoo-online-saas-19.2-projects}" \
+        -e PROJECT_SOURCE_FILESTORE=/mnt/accounting-source/filestore \
+        -e PROJECT_RESTORE_DEFAULT_PASSWORD="${PROJECT_RESTORE_DEFAULT_PASSWORD:-}" \
+        init-db \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --database="$target_database" \
+        --shell-interface=python \
+        < custom-addons/usl_project_restore/scripts/run_restore.py
+}
+
+validate_projects() {
+    docker compose -p "$compose_project" --profile init run --rm \
+        init-db \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --database="$target_database" \
+        --shell-interface=python \
+        < custom-addons/usl_project_restore/scripts/validate_restore.py
+}
+
+case "$command_name" in
+    install)
+        install_module
+        ;;
+    import)
+        import_projects
+        ;;
+    validate)
+        validate_projects
+        ;;
+    all)
+        install_module
+        import_projects
+        validate_projects
+        ;;
+    *)
+        echo "Usage: scripts/project-restore [install|import|validate|all]"
+        exit 2
+        ;;
+esac
