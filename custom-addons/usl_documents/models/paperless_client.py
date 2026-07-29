@@ -6,7 +6,7 @@ import urllib.request
 import uuid
 
 from odoo import _
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -42,11 +42,11 @@ class PaperlessClient:
         self.base_url = params.get_str("usl_documents.paperless_url", "").rstrip("/")
         self.token = params.get_str("usl_documents.paperless_token", "")
         self.public_url = params.get_str(
-            "usl_documents.paperless_public_url", self.base_url
+            "usl_documents.paperless_public_url", self.base_url,
         ).rstrip("/")
         self.timeout = params.get_int("usl_documents.paperless_timeout", 20)
         self.owner_user_id = params.get_int(
-            "usl_documents.paperless_service_user_id", 0
+            "usl_documents.paperless_service_user_id", 0,
         )
 
     @property
@@ -75,7 +75,7 @@ class PaperlessClient:
     ):
         if not self.configured:
             raise PaperlessUnavailable(
-                _("Paperless is not configured. Ask a Documents administrator.")
+                _("Paperless is not configured. Ask a Documents administrator."),
             )
         url = f"{self.base_url}{path}"
         if query:
@@ -84,7 +84,7 @@ class PaperlessClient:
         request_headers.update(headers or {})
         data = json.dumps(body).encode() if body is not None else None
         request = urllib.request.Request(
-            url, data=data, headers=request_headers, method=method
+            url, data=data, headers=request_headers, method=method,
         )
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
@@ -100,24 +100,24 @@ class PaperlessClient:
             payload = error.read().decode(errors="replace")[:1000]
             if error.code in (401, 403):
                 raise PaperlessAuthenticationError(
-                    _("Paperless rejected the integration identity.")
+                    _("Paperless rejected the integration identity."),
                 ) from error
             if error.code == 404:
                 raise PaperlessNotFound(
-                    _("The requested Paperless document or version no longer exists.")
+                    _("The requested Paperless document or version no longer exists."),
                 ) from error
             if error.code == 406:
                 raise PaperlessCompatibilityError(
                     _("Paperless does not support required API version %s.")
-                    % self.API_VERSION
+                    % self.API_VERSION,
                 ) from error
             raise PaperlessError(
                 _("Paperless request failed (%(status)s): %(detail)s")
-                % {"status": error.code, "detail": payload}
+                % {"status": error.code, "detail": payload},
             ) from error
         except (TimeoutError, urllib.error.URLError, OSError) as error:
             raise PaperlessUnavailable(
-                _("Paperless is unavailable. Odoo remains usable; retry later.")
+                _("Paperless is unavailable. Odoo remains usable; retry later."),
             ) from error
 
     def compatibility(self):
@@ -128,7 +128,7 @@ class PaperlessClient:
         if api_version != self.API_VERSION:
             raise PaperlessCompatibilityError(
                 _("Expected Paperless API %(expected)s, received %(actual)s.")
-                % {"expected": self.API_VERSION, "actual": api_version or _("unknown")}
+                % {"expected": self.API_VERSION, "actual": api_version or _("unknown")},
             )
         try:
             major = int(server_version.split(".", 1)[0])
@@ -137,7 +137,7 @@ class PaperlessClient:
         if major != self.SUPPORTED_SERVER_MAJOR:
             raise PaperlessCompatibilityError(
                 _("Paperless server %(version)s is outside the qualified 3.x series.")
-                % {"version": server_version or _("unknown")}
+                % {"version": server_version or _("unknown")},
             )
         return {
             "ok": True,
@@ -147,7 +147,7 @@ class PaperlessClient:
         }
 
     def list_documents(
-        self, *, page=1, page_size=100, modified_after=None, modified_before=None
+        self, *, page=1, page_size=100, modified_after=None, modified_before=None,
     ):
         query = {"page": page, "page_size": page_size, "ordering": "id"}
         if modified_after:
@@ -159,34 +159,53 @@ class PaperlessClient:
     def metadata_catalog(self):
         """Return the supported document metadata objects keyed by stable ID."""
         catalog = {}
-        for key, endpoint in (
-            ("correspondents", "correspondents"),
-            ("document_types", "document_types"),
-            ("tags", "tags"),
-        ):
-            page = 1
-            values = {}
-            while True:
-                payload = self._request(
-                    "GET",
-                    f"/api/{endpoint}/",
-                    query={"page": page, "page_size": 100},
-                )[0]
-                results = (
-                    payload.get("results", [])
-                    if isinstance(payload, dict)
-                    else payload
-                )
-                values.update({
-                    int(item["id"]): item.get("name", "")
-                    for item in results
-                    if item.get("id") is not None
-                })
-                if not isinstance(payload, dict) or not payload.get("next"):
-                    break
-                page += 1
-            catalog[key] = values
+        for key in ("correspondents", "document_types", "tags"):
+            catalog[key] = {
+                int(item["id"]): item.get("name", "")
+                for item in self.list_metadata(key)
+            }
         return catalog
+
+    @staticmethod
+    def _metadata_endpoint(kind):
+        if kind not in {"correspondents", "document_types", "tags"}:
+            raise ValueError(f"Unsupported Paperless metadata kind: {kind}")
+        return kind
+
+    def list_metadata(self, kind):
+        """Return complete metadata objects through Paperless's public API."""
+        endpoint = self._metadata_endpoint(kind)
+        page = 1
+        values = []
+        while True:
+            payload = self._request(
+                "GET",
+                f"/api/{endpoint}/",
+                query={"page": page, "page_size": 100, "ordering": "name"},
+            )[0]
+            results = (
+                payload.get("results", []) if isinstance(payload, dict) else payload
+            )
+            values.extend(results)
+            if not isinstance(payload, dict) or not payload.get("next"):
+                return values
+            page += 1
+
+    def create_metadata(self, kind, values):
+        endpoint = self._metadata_endpoint(kind)
+        return self._request("POST", f"/api/{endpoint}/", body=values)[0]
+
+    def update_metadata(self, kind, metadata_id, values):
+        endpoint = self._metadata_endpoint(kind)
+        return self._request(
+            "PATCH", f"/api/{endpoint}/{int(metadata_id)}/", body=values,
+        )[0]
+
+    def delete_metadata(self, kind, metadata_id):
+        endpoint = self._metadata_endpoint(kind)
+        return self._request(
+            "DELETE", f"/api/{endpoint}/{int(metadata_id)}/",
+        )[0]
 
     def ensure_document_type(self, name):
         """Return a document type by name, creating it through the public API."""
@@ -214,7 +233,7 @@ class PaperlessClient:
     def update_document_metadata(self, document_id, values):
         """Update Paperless-authoritative metadata through API v10."""
         return self._request(
-            "PATCH", f"/api/documents/{int(document_id)}/", body=values
+            "PATCH", f"/api/documents/{int(document_id)}/", body=values,
         )[0]
 
     def search(self, text, *, page=1, page_size=50, filters=None):
@@ -227,7 +246,7 @@ class PaperlessClient:
     def get_document(self, document_id, *, version_id=None):
         query = {"version": version_id} if version_id else None
         return self._request(
-            "GET", f"/api/documents/{int(document_id)}/", query=query
+            "GET", f"/api/documents/{int(document_id)}/", query=query,
         )[0]
 
     def get_versions(self, document_id):
@@ -248,8 +267,8 @@ class PaperlessClient:
             raise PaperlessCompatibilityError(
                 _(
                     "The dedicated Paperless service identity ID is not configured; "
-                    "the fail-closed ingestion workflow cannot be installed."
-                )
+                    "the fail-closed ingestion workflow cannot be installed.",
+                ),
             )
         workflows = self._request(
             "GET",
@@ -257,7 +276,7 @@ class PaperlessClient:
             query={"name__iexact": self.FAIL_CLOSED_WORKFLOW_NAME, "page_size": 20},
         )[0]
         results = workflows.get(
-            "results", workflows if isinstance(workflows, list) else []
+            "results", workflows if isinstance(workflows, list) else [],
         )
         payload = {
             "name": self.FAIL_CLOSED_WORKFLOW_NAME,
@@ -269,7 +288,7 @@ class PaperlessClient:
                     # Consume folder, API upload, mail fetch, and direct web UI.
                     "sources": [1, 2, 3, 4],
                     "filter_filename": "*",
-                }
+                },
             ],
             "actions": [
                 {
@@ -279,7 +298,7 @@ class PaperlessClient:
                     "assign_view_groups": [],
                     "assign_change_users": [],
                     "assign_change_groups": [],
-                }
+                },
             ],
         }
         existing = next(
@@ -292,7 +311,7 @@ class PaperlessClient:
         )
         if existing:
             result = self._request(
-                "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload
+                "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload,
             )[0]
             created = False
         else:
@@ -330,13 +349,13 @@ class PaperlessClient:
 
     def thumbnail(self, document_id):
         return self._request(
-            "GET", f"/api/documents/{int(document_id)}/thumb/", raw=True
+            "GET", f"/api/documents/{int(document_id)}/thumb/", raw=True,
         )
 
     def upload_multipart(self, content, filename, content_type, *, title=None):
         if not self.configured:
             raise PaperlessUnavailable(
-                _("Paperless is not configured. Ask a Documents administrator.")
+                _("Paperless is not configured. Ask a Documents administrator."),
             )
         boundary = f"----usl-{uuid.uuid4().hex}"
         chunks = []
@@ -346,7 +365,7 @@ class PaperlessClient:
                     f"--{boundary}\r\n"
                     'Content-Disposition: form-data; name="title"\r\n\r\n'
                     f"{title}\r\n"
-                ).encode()
+                ).encode(),
             )
         safe_filename = filename.replace('"', "")
         chunks.extend([
@@ -374,22 +393,22 @@ class PaperlessClient:
         except urllib.error.HTTPError as error:
             if error.code in (401, 403):
                 raise PaperlessAuthenticationError(
-                    _("Paperless rejected the integration identity.")
+                    _("Paperless rejected the integration identity."),
                 ) from error
             raise PaperlessError(
-                _("Paperless rejected the upload (%s).") % error.code
+                _("Paperless rejected the upload (%s).") % error.code,
             ) from error
         except (TimeoutError, urllib.error.URLError, OSError) as error:
             raise PaperlessUnavailable(
-                _("Paperless is unavailable. The upload was not archived.")
+                _("Paperless is unavailable. The upload was not archived."),
             ) from error
 
     def update_version(
-        self, document_id, content, filename, content_type, *, version_label=None
+        self, document_id, content, filename, content_type, *, version_label=None,
     ):
         if not self.configured:
             raise PaperlessUnavailable(
-                _("Paperless is not configured. Ask a Documents administrator.")
+                _("Paperless is not configured. Ask a Documents administrator."),
             )
         boundary = f"----usl-{uuid.uuid4().hex}"
         chunks = []
@@ -399,7 +418,7 @@ class PaperlessClient:
                     f"--{boundary}\r\n"
                     'Content-Disposition: form-data; name="version_label"\r\n\r\n'
                     f"{version_label}\r\n"
-                ).encode()
+                ).encode(),
             )
         safe_filename = filename.replace('"', "")
         chunks.extend(
@@ -411,7 +430,7 @@ class PaperlessClient:
                 ).encode(),
                 content,
                 f"\r\n--{boundary}--\r\n".encode(),
-            ]
+            ],
         )
         request = urllib.request.Request(
             f"{self.base_url}/api/documents/{int(document_id)}/update_version/",
@@ -431,23 +450,23 @@ class PaperlessClient:
         except urllib.error.HTTPError as error:
             if error.code in (401, 403):
                 raise PaperlessAuthenticationError(
-                    _("Paperless rejected the integration identity.")
+                    _("Paperless rejected the integration identity."),
                 ) from error
             if error.code == 404:
                 raise PaperlessNotFound(
-                    _("The Paperless root document no longer exists.")
+                    _("The Paperless root document no longer exists."),
                 ) from error
             raise PaperlessError(
-                _("Paperless rejected the replacement version (%s).") % error.code
+                _("Paperless rejected the replacement version (%s).") % error.code,
             ) from error
         except (TimeoutError, urllib.error.URLError, OSError) as error:
             raise PaperlessUnavailable(
-                _("Paperless is unavailable. The replacement was not archived.")
+                _("Paperless is unavailable. The replacement was not archived."),
             ) from error
 
     def task(self, task_id):
         payload = self._request(
-            "GET", "/api/tasks/", query={"task_id": task_id}
+            "GET", "/api/tasks/", query={"task_id": task_id},
         )[0]
         results = payload.get("results", payload if isinstance(payload, list) else [])
         return results[0] if results else None
@@ -457,8 +476,8 @@ class PaperlessClient:
             raise PaperlessCompatibilityError(
                 _(
                     "The dedicated Paperless service identity ID is not configured; "
-                    "permission synchronization is blocked."
-                )
+                    "permission synchronization is blocked.",
+                ),
             )
         permissions = {
             "view": {"users": sorted(set(view_users)), "groups": []},

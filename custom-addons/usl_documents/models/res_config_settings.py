@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 
 from .paperless_client import PaperlessClient, PaperlessError
 
@@ -48,7 +48,7 @@ class ResConfigSettings(models.TransientModel):
             try:
                 compatibility = client.compatibility()
                 settings.paperless_health = _(
-                    "Healthy — Paperless %(server)s, API %(api)s"
+                    "Healthy — Paperless %(server)s, API %(api)s",
                 ) % {
                     "server": compatibility["server_version"],
                     "api": compatibility["api_version"],
@@ -84,7 +84,7 @@ class ResConfigSettings(models.TransientModel):
                 "title": _("Paperless ingestion policy is active"),
                 "message": _(
                     "Workflow %(workflow)s assigns every ingestion channel to "
-                    "service identity %(owner)s until Odoo synchronizes access."
+                    "service identity %(owner)s until Odoo synchronizes access.",
                 )
                 % {
                     "workflow": result["workflow_name"],

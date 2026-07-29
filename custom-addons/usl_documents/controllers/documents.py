@@ -1,3 +1,5 @@
+import html
+
 from odoo import http
 from odoo.http import request
 
@@ -5,6 +7,25 @@ from ..models.paperless_client import PaperlessError
 
 
 class DocumentsController(http.Controller):
+    @staticmethod
+    def _browser_preview(content, content_type):
+        if not content_type.lower().startswith("text/"):
+            return content, content_type
+        escaped = html.escape(content.decode("utf-8", errors="replace"))
+        page = f"""<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    body {{ margin: 0; padding: 1.25rem; font: 14px/1.5 sans-serif; }}
+    pre {{ margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }}
+  </style>
+</head>
+<body><pre>{escaped}</pre></body>
+</html>"""
+        return page.encode(), "text/html; charset=utf-8"
+
     def _document(self, document_id):
         document = request.env["usl.document"].browse(int(document_id)).exists()
         document.check_access("read")
@@ -16,7 +37,7 @@ class DocumentsController(http.Controller):
         if not version:
             return None
         cached = document.version_ids.filtered(
-            lambda item: item.paperless_version_id == str(version)
+            lambda item: item.paperless_version_id == str(version),
         )
         return str(version) if cached else False
 
@@ -35,16 +56,28 @@ class DocumentsController(http.Controller):
             return request.not_found()
         try:
             content, headers = document._paperless().preview(
-                document.paperless_id, version_id=version
+                document.paperless_id, version_id=version,
             )
         except PaperlessError as error:
             return request.make_response(
-                str(error), status=503, headers=[("Content-Type", "text/plain")]
+                str(error), status=503, headers=[("Content-Type", "text/plain")],
             )
+        preview_mime = document.mime_type
+        if version:
+            cached_version = document.version_ids.filtered(
+                lambda item: item.paperless_version_id == version,
+            )
+            preview_mime = cached_version[:1].mime_type or preview_mime
+        content_type = (
+            headers.get("Content-Type")
+            or preview_mime
+            or "application/octet-stream"
+        )
+        content, content_type = self._browser_preview(content, content_type)
         return request.make_response(
             content,
             headers=[
-                ("Content-Type", headers.get("Content-Type", "application/pdf")),
+                ("Content-Type", content_type),
                 ("Cache-Control", "private, no-store"),
                 ("X-Content-Type-Options", "nosniff"),
             ],
@@ -94,7 +127,7 @@ class DocumentsController(http.Controller):
             )
         except PaperlessError as error:
             return request.make_response(
-                str(error), status=503, headers=[("Content-Type", "text/plain")]
+                str(error), status=503, headers=[("Content-Type", "text/plain")],
             )
         filename = document.original_filename or f"document-{document.paperless_id}"
         return request.make_response(

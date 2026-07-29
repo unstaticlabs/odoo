@@ -1,5 +1,1 @@
-from . import paperless_client
-from . import document
-from . import business_record
-from . import res_config_settings
-
+from . import business_record, document, metadata, paperless_client, res_config_settings

@@ -7,7 +7,7 @@ class DocumentLinkMixin(models.AbstractModel):
     _description = "Archived Document Link Mixin"
 
     archived_document_count = fields.Integer(
-        string="Archived Documents", compute="_compute_archived_document_count"
+        string="Archived Documents", compute="_compute_archived_document_count",
     )
 
     def _compute_archived_document_count(self):
@@ -67,7 +67,9 @@ class DocumentLinkMixin(models.AbstractModel):
             raise AccessError(_("This attachment does not belong to the current record."))
         if attachment.type != "binary" or not attachment.datas:
             raise UserError(_("Only stored binary attachments can be archived."))
-        result = self.env["usl.document"].upload_from_odoo(
+        # Existing attachments are intentionally retained. The checksum associates
+        # both copies while Paperless processing completes.
+        return self.env["usl.document"].upload_from_odoo(
             attachment.name,
             attachment.datas.decode()
             if isinstance(attachment.datas, bytes)
@@ -78,9 +80,6 @@ class DocumentLinkMixin(models.AbstractModel):
             company_id=self._document_company().id,
             source=source,
         )
-        # Existing attachments are intentionally retained. The checksum associates
-        # both copies while Paperless processing completes.
-        return result
 
 
 class AccountMove(models.Model):
@@ -128,10 +127,10 @@ class IrAttachment(models.Model):
             attachment.check_access("read")
             if attachment.res_model not in allowed_models or not attachment.res_id:
                 raise UserError(
-                    _("Select an attachment belonging to a supported business record.")
+                    _("Select an attachment belonging to a supported business record."),
                 )
             record = self.env[attachment.res_model].browse(
-                attachment.res_id
+                attachment.res_id,
             ).exists()
             if not record:
                 raise UserError(_("The attachment's business record no longer exists."))
@@ -144,7 +143,7 @@ class IrAttachment(models.Model):
                 source = "odoo_generated"
             results.append(
                 record.action_archive_attachment(attachment.id, source=source)
-                | {"archive_source": source}
+                | {"archive_source": source},
             )
         return {
             "type": "ir.actions.client",
@@ -152,7 +151,7 @@ class IrAttachment(models.Model):
             "params": {
                 "title": _("Archive request created"),
                 "message": _(
-                    "%(count)s attachment(s) sent to Paperless. Odoo copies were retained."
+                    "%(count)s attachment(s) sent to Paperless. Odoo copies were retained.",
                 ) % {"count": len(results)},
                 "type": "success",
                 "sticky": False,
