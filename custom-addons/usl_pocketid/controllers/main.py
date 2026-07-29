@@ -13,12 +13,11 @@ from odoo.http import request, route
 from odoo.http.router import db_filter
 from odoo.http.session import authenticate
 
+from ..exceptions import PocketIDAccessDenied, PocketIDReason
+from ..models.oidc_identity import identity_fingerprint
 from odoo.addons.auth_oauth.controllers.main import OAuthController
 from odoo.addons.auth_oidc.controllers.main import OpenIDLogin
 from odoo.addons.web.controllers.utils import _get_login_redirect_url, ensure_db
-
-from ..exceptions import PocketIDAccessDenied
-from ..models.oidc_identity import identity_fingerprint
 
 _logger = logging.getLogger(__name__)
 
@@ -27,33 +26,40 @@ _TRANSACTIONS_KEY = "usl_pocketid_transactions"
 _TRANSACTION_MAX_AGE = 300
 _TRANSACTION_LIMIT = 5
 
-_ERROR_MESSAGES = {
-    "configuration": _(
-        "Pocket ID is not configured for this Odoo environment. "
-        "Contact an administrator."
-    ),
-    "group_required": _(
-        "Your Pocket ID account is not authorized for this Odoo environment."
-    ),
-    "identity_conflict": _(
-        "Your Pocket ID identity cannot be linked safely. "
-        "Contact an administrator and mention an identity conflict."
-    ),
-    "identity_disabled": _("This Pocket ID identity has been disabled in Odoo."),
-    "identity_unlinked": _(
-        "Your Pocket ID identity is not linked to an approved Odoo user."
-    ),
-    "provider_denied": _("Pocket ID did not authorize this sign-in."),
-    "provider_unavailable": _(
-        "Pocket ID is temporarily unavailable. Please try again later."
-    ),
-    "state": _(
-        "This Pocket ID sign-in request expired or was already used. "
-        "Please start again."
-    ),
-    "token_invalid": _("Pocket ID returned a sign-in response Odoo could not validate."),
-    "user_disabled": _("The linked Odoo user is not enabled for Pocket ID login."),
-}
+
+def _error_message(error_code):
+    if error_code == "configuration":
+        return _(
+            "Pocket ID is not configured for this Odoo environment. "
+            "Contact an administrator.",
+        )
+    if error_code == "group_required":
+        return _(
+            "Your Pocket ID account is not authorized for this Odoo environment.",
+        )
+    if error_code == "identity_conflict":
+        return _(
+            "Your Pocket ID identity cannot be linked safely. "
+            "Contact an administrator and mention an identity conflict.",
+        )
+    if error_code == "identity_disabled":
+        return _("This Pocket ID identity has been disabled in Odoo.")
+    if error_code == "identity_unlinked":
+        return _("Your Pocket ID identity is not linked to an approved Odoo user.")
+    if error_code == "provider_denied":
+        return _("Pocket ID did not authorize this sign-in.")
+    if error_code == "provider_unavailable":
+        return _("Pocket ID is temporarily unavailable. Please try again later.")
+    if error_code == "state":
+        return _(
+            "This Pocket ID sign-in request expired or was already used. "
+            "Please start again.",
+        )
+    if error_code == "token_invalid":
+        return _("Pocket ID returned a sign-in response Odoo could not validate.")
+    if error_code == "user_disabled":
+        return _("The linked Odoo user is not enabled for Pocket ID login.")
+    return _("Pocket ID sign-in failed safely. Please try again.")
 
 
 def _safe_redirect_path(value):
@@ -111,6 +117,33 @@ def _consume_transaction(state):
     return transaction
 
 
+def _validate_callback_provider(provider, transaction, callback_parameters):
+    if (
+        not provider
+        or not provider.enabled
+        or not provider.usl_pocketid
+        or transaction["redirect_uri"] != provider._usl_pocketid_redirect_uri()
+        or callback_parameters.get("error")
+    ):
+        raise PocketIDAccessDenied(PocketIDReason.PROVIDER_DENIED)
+
+
+def _audit_state_denial():
+    dbname = request.session.db
+    if not dbname or not db_filter([dbname]):
+        return
+    try:
+        ensure_db(db=dbname)
+        request.env["usl.oidc.audit.event"]._record(
+            event_type="login_denied",
+            reason_code="state",
+        )
+        request.env.cr.commit()
+    except Exception:
+        request.env.cr.rollback()
+        _logger.exception("Pocket ID state denial could not be audited.")
+
+
 class PocketIDLogin(OpenIDLogin):
     def list_providers(self):
         providers = super().list_providers()
@@ -149,10 +182,7 @@ class PocketIDLogin(OpenIDLogin):
         if response.is_qweb:
             error_code = request.params.get("sso_error")
             if error_code:
-                response.qcontext["error"] = _ERROR_MESSAGES.get(
-                    error_code,
-                    _("Pocket ID sign-in failed safely. Please try again."),
-                )
+                response.qcontext["error"] = _error_message(error_code)
         return response
 
 
@@ -164,6 +194,7 @@ class PocketIDController(OAuthController):
             return super().signin(**kwargs)
         transaction = _consume_transaction(state)
         if not transaction:
+            _audit_state_denial()
             return request.redirect("/web/login?sso_error=state", 303)
         dbname = transaction.get("db")
         if not dbname or not db_filter([dbname]):
@@ -178,15 +209,7 @@ class PocketIDController(OAuthController):
                 provider = request.env["auth.oauth.provider"].with_user(
                     SUPERUSER_ID,
                 ).browse(transaction["provider_id"]).exists()
-                if (
-                    not provider
-                    or not provider.enabled
-                    or not provider.usl_pocketid
-                    or transaction["redirect_uri"]
-                    != provider._usl_pocketid_redirect_uri()
-                    or kwargs.get("error")
-                ):
-                    raise PocketIDAccessDenied("provider_denied")
+                _validate_callback_provider(provider, transaction, kwargs)
                 access_token, id_token = provider._usl_exchange_code(
                     code=kwargs.get("code"),
                     code_verifier=transaction["code_verifier"],
@@ -197,21 +220,22 @@ class PocketIDController(OAuthController):
                     access_token=access_token,
                     nonce=transaction["nonce"],
                 )
-                db, login, key, identity = request.env["res.users"].with_user(
+                _db, login, key, identity = request.env["res.users"].with_user(
                     SUPERUSER_ID,
                 )._usl_pocketid_login(provider, claims, access_token)
-                request.env["usl.oidc.audit.event"]._record(
-                    event_type="login_success",
-                    reason_code="validated_oidc",
-                    provider_id=provider.id,
-                    identity_id=identity.id,
-                    user_id=identity.user_id.id,
-                    subject_fingerprint=identity.subject_fingerprint,
-                )
             request.env.cr.commit()
 
             credential = {"login": login, "token": key, "type": "oauth_token"}
             auth_info = authenticate(request.session, request.env, credential)
+            request.env["usl.oidc.audit.event"]._record(
+                event_type="login_success",
+                reason_code="validated_oidc",
+                provider_id=provider.id,
+                identity_id=identity.id,
+                user_id=identity.user_id.id,
+                subject_fingerprint=identity.subject_fingerprint,
+            )
+            request.env.cr.commit()
             target = transaction["redirect_path"]
             response = request.redirect(
                 _get_login_redirect_url(auth_info["uid"], target),
@@ -252,4 +276,3 @@ class PocketIDController(OAuthController):
         )
         response.autocorrect_location_header = False
         return response
-

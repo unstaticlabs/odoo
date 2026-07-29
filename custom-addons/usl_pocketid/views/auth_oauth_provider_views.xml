@@ -17,7 +17,39 @@
                 <attribute name="readonly">usl_pocketid</attribute>
                 <attribute name="invisible">usl_pocketid</attribute>
             </field>
+            <field name="name" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="enabled" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="body" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="flow" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="token_map" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="client_id" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="auth_endpoint" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="scope" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="validation_endpoint" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="token_endpoint" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
+            <field name="jwks_uri" position="attributes">
+                <attribute name="readonly">usl_pocketid</attribute>
+            </field>
         </field>
     </record>
 </odoo>
-

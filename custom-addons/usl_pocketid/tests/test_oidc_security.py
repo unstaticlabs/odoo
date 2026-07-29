@@ -11,13 +11,12 @@ from requests import Timeout
 from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
 
-from odoo.addons.http_routing.tests.common import MockRequest
-
 from ..controllers.main import (
     PocketIDLogin,
     _consume_transaction,
 )
 from ..exceptions import PocketIDAccessDenied
+from odoo.addons.http_routing.tests.common import MockRequest
 
 
 @tagged("post_install", "-at_install", "usl_pocketid")
@@ -26,7 +25,7 @@ class TestPocketIDOidcSecurity(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.provider = cls.env.ref("usl_pocketid.provider_pocketid")
-        cls.provider.write(
+        cls.provider._usl_pocketid_environment_write(
             {
                 "enabled": True,
                 "client_id": "odoo-client",
@@ -185,6 +184,21 @@ class TestPocketIDOidcSecurity(TransactionCase):
             self.provider.usl_token_auth_method,
             "client_secret_post",
         )
+        self.assertTrue(
+            self.env["usl.oidc.audit.event"].search(
+                [
+                    ("provider_id", "=", self.provider.id),
+                    ("event_type", "=", "configuration"),
+                    ("reason_code", "=", "environment_enabled"),
+                ],
+            ),
+        )
+
+    def test_environment_managed_provider_refuses_direct_changes(self):
+        with self.assertRaises(ValidationError):
+            self.provider.write({"client_id": "manual-change-is-forbidden"})
+        with self.assertRaises(ValidationError):
+            self.provider.unlink()
 
     def test_discovery_rejects_cross_origin_endpoints(self):
         response = Mock()
@@ -205,6 +219,19 @@ class TestPocketIDOidcSecurity(TransactionCase):
             self.assertRaises(ValidationError),
         ):
             self.provider._usl_discover_pocketid("https://id.example.test")
+
+    def test_issuer_and_public_base_url_reject_query_components(self):
+        with self.assertRaises(ValidationError):
+            self.provider._usl_discover_pocketid(
+                "https://id.example.test?tenant=unsafe",
+            )
+        with self.assertRaises(ValidationError):
+            self.provider._usl_validate_url(
+                "https://odoo.example.test?db=unsafe",
+                label="Odoo public base URL",
+                allow_path=False,
+                allow_query=False,
+            )
 
     def test_jwks_requires_bounded_valid_rsa_key_selection(self):
         second_key = {**self.jwk, "kid": "second-key"}

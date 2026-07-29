@@ -6,8 +6,11 @@
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": [
+        "account",
         "auth_oidc",
+        "hr_expense",
         "mail",
+        "project",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -19,4 +22,3 @@
     "application": False,
     "installable": True,
 }
-
