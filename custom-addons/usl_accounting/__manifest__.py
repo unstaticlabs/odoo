@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.2.1.0.0",
+    "version": "saas~19.2.1.1.0",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -13,6 +13,12 @@
         "hr_expense",
         "spreadsheet_account",
     ],
+    "data": [
+        "security/immediate_settlement_security.xml",
+        "security/ir.model.access.csv",
+        "data/immediate_settlement_sequence.xml",
+    ],
+    "post_init_hook": "post_init_hook",
     "application": False,
     "installable": True,
 }

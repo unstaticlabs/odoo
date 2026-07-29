@@ -4,6 +4,7 @@ from . import (
     analytic_reporting,
     bank_partner_suggestion,
     fiscal_year,
+    immediate_settlement,
     payment_suggestion,
     readonly_evidence,
 )
