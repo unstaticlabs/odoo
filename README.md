@@ -331,6 +331,12 @@ make deploy    # apply ordinary custom add-on changes
 make rebuild   # rebuild images, then deploy
 ```
 
+These helpers serve the database selected by `ODOO_DEV_DB` (default:
+`odoo_dev`), apply the same value to Odoo's database filter and verify the
+effective runtime filter before printing the login URL. If you invoke
+`docker compose` directly instead, keep `ODOO_DB_FILTER` in the local `.env`
+aligned with the database you intend to serve.
+
 ### Optional bootstrap fixture
 
 `custom-addons/usl_bootstrap` remains available for isolated module tests and

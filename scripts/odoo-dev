@@ -8,10 +8,34 @@ COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT")
 DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
 DEV_MODULE="${ODOO_DEV_MODULE:-rebuild_account_migration}"
-export ODOO_INIT_DB="${ODOO_INIT_DB:-$DEV_DB}"
+case "$DEV_DB" in
+  ""|*[!A-Za-z0-9_]*)
+    printf 'Refusing unsafe development database name: %s\n' "$DEV_DB" >&2
+    exit 2
+    ;;
+esac
+export ODOO_INIT_DB="$DEV_DB"
+export ODOO_DB_FILTER="^${DEV_DB}$"
+
+verify_runtime_database_filter() {
+  local runtime_filter
+  runtime_filter="$(
+    "${COMPOSE[@]}" exec -T odoo sh -lc \
+      "sed -n 's/^dbfilter[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf" \
+      | tr -d '\r' \
+      | tail -n 1
+  )"
+  if [[ "$runtime_filter" != "$ODOO_DB_FILTER" ]]; then
+    printf \
+      'Development server database filter mismatch: expected %s, found %s\n' \
+      "$ODOO_DB_FILTER" "${runtime_filter:-<empty>}" >&2
+    return 1
+  fi
+}
 
 print_url() {
   local published_port
+  verify_runtime_database_filter
   published_port="$("${COMPOSE[@]}" port odoo 8069 2>/dev/null | tail -n 1)"
   published_port="${published_port##*:}"
   published_port="${published_port:-8069}"
