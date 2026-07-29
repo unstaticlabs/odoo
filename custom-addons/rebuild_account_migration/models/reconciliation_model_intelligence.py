@@ -80,6 +80,10 @@ class AccountReconcileModel(models.Model):
         copy=False,
         index=True,
     )
+    _unique_rebuild_proposal_key = models.UniqueIndex(
+        "(rebuild_proposal_key) WHERE rebuild_proposal_key IS NOT NULL",
+        "A Bank Matching Rule suggestion already uses this evidence key.",
+    )
     rebuild_evidence_statement_line_ids = fields.Many2many(
         comodel_name="account.bank.statement.line",
         relation="rebuild_reconcile_model_statement_evidence_rel",
@@ -583,8 +587,13 @@ class AccountReconcileModel(models.Model):
             groups[key].append((statement_line, counterpart, label))
         return groups
 
-    @api.model
     def action_rebuild_analyze_rule_opportunities(self):
+        """Create inert rule suggestions from repeated reconciled patterns.
+
+        Keep this public method record-style: list-header object actions send
+        the selected record IDs as their first RPC argument, even when the
+        button is displayed without a selection.
+        """
         self._rebuild_check_rule_manager()
         created = self.browse()
         groups = self._rebuild_rule_opportunity_groups()
@@ -681,7 +690,7 @@ class AccountReconcileModel(models.Model):
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("No new rule opportunity"),
+                "title": _("No new suggestions"),
                 "message": _(
                     "No repeated, consistently categorized bank pattern "
                     "without an existing rule was found.",

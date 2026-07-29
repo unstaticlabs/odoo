@@ -13,15 +13,33 @@
 7. Choose an existing invoice, bill, payment or journal item when it is the true counterpart.
 8. For a direct charge or receipt, deliberately choose a manual operation, then set partner, account, tax and label.
 9. Check the remaining difference before confirming.
-10. After matching, keep the result visible. Confirm the matching-reference chip, Full or Partial status, and residual.
-11. Use **Undo** if the counterpart is wrong. For a partial match, continue with the remaining residual later.
+10. Choose the action that matches your decision:
+    - **Complete Match** applies the prepared counterpart and reconciles the
+      transaction.
+    - **Reconcile & Review** applies the prepared match and reconciles the
+      transaction, but keeps its entry flagged **To Review** for a later
+      accounting check.
+    - **Mark for Review** appears when the proposal is incomplete. It records
+      the follow-up flag without changing the reconciliation.
+11. After matching, keep the result visible. Confirm the matching-reference chip, Full or Partial status, and residual.
+12. Use **Undo** if the counterpart is wrong. For a partial match, continue with the remaining residual later.
+
+Use **Reconcile** when an existing open item is the counterpart. Use
+**Categorize** for a direct account treatment such as a fee, transfer or bank
+feed. Reference and narration remain available in that same tab under
+**Transaction details**; there is no separate “Other Info” workflow.
 
 **Transactions** is the full-width bank history and investigation screen. **Bank Matching** is the operational queue. They are intentionally separate.
 
-In Transactions, click **Linked document or entry** to open the matched
-invoice, bill, refund or journal entry. Click **Open Entry** for the bank
-transaction's own journal entry. Clicking elsewhere on the row opens the bank
-transaction itself.
+In Transactions, clicking a row opens the bank transaction and the same
+accounting-line presentation used by Bank Matching. Before matching, set or
+correct the **Partner** directly when needed; an automatic suggestion is only
+a shortcut. Click the **Still to match** amount to open this exact transaction
+in Bank Matching. Once completed, use **View matching** from the same place to
+inspect the reconciled result. Click
+**Linked document or entry** to open the matched invoice, bill, refund or
+journal entry. The compact list also retains **Open Entry** as a direct shortcut
+to the full bank journal entry.
 
 Partner inference only identifies the counterparty. It never posts, reconciles,
 changes an amount or chooses a ledger account. The **Matching evidence** column

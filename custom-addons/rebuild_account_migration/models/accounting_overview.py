@@ -240,6 +240,12 @@ class RebuildAccountOverview(models.Model):
         }
 
     def _standard_company_action(self, xmlid, domain=None):
+        """Return an upstream action with only its non-removable scope.
+
+        Statuses presented as ``search_default_*`` facets belong in the
+        context only. Repeating them here makes a removed facet ineffective
+        and leaves the user trapped in an invisible filter.
+        """
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id(xmlid)
         if domain is not None:
@@ -264,7 +270,7 @@ class RebuildAccountOverview(models.Model):
     def action_open_bank_review(self):
         action = self._standard_company_action(
             "account_statement_base.account_bank_statement_line_action",
-            [("move_id.review_state", "in", ("todo", "anomaly"))],
+            [],
         )
         action["name"] = "Pending Review"
         context = action.get("context") or {}
@@ -288,7 +294,6 @@ class RebuildAccountOverview(models.Model):
             "account.action_move_out_invoice_type",
             [
                 ("move_type", "in", ["out_invoice", "out_refund", "out_receipt"]),
-                ("state", "=", "draft"),
             ],
         )
         context = action.get("context") or {}
@@ -305,7 +310,6 @@ class RebuildAccountOverview(models.Model):
             "account.action_move_in_invoice_type",
             [
                 ("move_type", "in", ["in_invoice", "in_refund", "in_receipt"]),
-                ("state", "=", "draft"),
             ],
         )
         context = action.get("context") or {}

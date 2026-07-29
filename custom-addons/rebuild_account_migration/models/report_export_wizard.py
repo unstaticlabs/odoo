@@ -600,6 +600,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return {
             "wizard_id": self.id,
             "title": self._report_type_label(),
+            "company_id": self.company_id.id,
             "company_name": self.company_id.display_name,
             # Accounting statements follow the French presentation contract
             # independently from the user's general Odoo interface language.
@@ -4495,13 +4496,23 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if key in seen_keys:
                 continue
             comparison_value = self._row_period_value(comparison_row)
-            row = {
-                **comparison_row,
+            row = dict(comparison_row)
+            current_amount_fields = (
+                MONETARY_REPORT_FIELDS
+                | self._summable_report_fields()
+            ) - {
+                "comparison_value",
+                "difference",
+            }
+            for field_name in current_amount_fields:
+                if field_name in row:
+                    row[field_name] = "0.00"
+            row.update({
                 "period_value": "0.00",
                 "comparison_value": _amount_text(comparison_value),
                 "difference": _amount_text(-comparison_value),
                 "comparison_only": "true",
-            }
+            })
             result.append(row)
         return result
 

@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tools.safe_eval import safe_eval
 
 
@@ -193,6 +193,51 @@ class AccountMoveLine(models.Model):
             "views": [(False, "form")],
         }
 
+    @api.model
+    def action_rebuild_open_matching_number(
+        self,
+        matching_number,
+        company_id,
+    ):
+        matching_number = (matching_number or "").strip()
+        company = self.env["res.company"].browse(company_id).exists()
+        if not matching_number:
+            raise UserError(
+                _("This journal item has no matching reference."),
+            )
+        if not company or company not in self.env.companies:
+            raise AccessError(
+                _("You cannot inspect matching items for this company."),
+            )
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "account.action_account_moves_all",
+        )
+        action.update({
+            "name": _("Matching %(reference)s", reference=matching_number),
+            "domain": [
+                ("company_id", "=", company.id),
+                ("matching_number", "=", matching_number),
+                (
+                    "display_type",
+                    "not in",
+                    ("line_section", "line_subsection", "line_note"),
+                ),
+            ],
+            "context": {
+                "allowed_company_ids": [company.id],
+                "create": False,
+                "delete": False,
+            },
+        })
+        return action
+
+    def action_rebuild_open_matching_items(self):
+        self.ensure_one()
+        return self.action_rebuild_open_matching_number(
+            self.matching_number,
+            self.company_id.id,
+        )
+
     def action_rebuild_unreconcile(self):
         matched_lines = self.filtered(
             lambda line: (
@@ -309,7 +354,7 @@ class AccountMoveLine(models.Model):
                     key.append(
                         abs(
                             abs(line.amount_residual)
-                            - abs(general_amount)
+                            - abs(general_amount),
                         ),
                     )
                 if general_closest_date and general_date:
@@ -364,6 +409,7 @@ class AccountMoveLine(models.Model):
             )
 
         candidates = self.search(domain, order=order)
+
         def ranking_key(line):
             key = []
             if closest_amount:
@@ -397,23 +443,39 @@ class AccountMoveLine(models.Model):
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
+    rebuild_review_will_reconcile = fields.Boolean(
+        compute="_compute_rebuild_review_will_reconcile",
+    )
+
+    @api.depends("can_reconcile", "journal_id.reconcile_mode")
+    def _compute_rebuild_review_will_reconcile(self):
+        for statement_line in self:
+            statement_line.rebuild_review_will_reconcile = (
+                statement_line.can_reconcile
+                and statement_line.journal_id.reconcile_mode == "edit"
+            )
+
     def _auto_reconcile(self):
         if self.env.context.get("rebuild_skip_auto_reconcile"):
             for statement_line in self:
                 statement_line.reconcile_data_info = (
                     statement_line._default_reconcile_data()
                 )
-            return
+            return None
         return super()._auto_reconcile()
 
     rebuild_transaction_status = fields.Selection(
         selection=[
             ("open", "To match"),
-            ("review", "To review"),
+            ("partial", "Partially matched"),
             ("matched", "Matched"),
         ],
         compute="_compute_rebuild_transaction_display",
         string="Matching status",
+    )
+    rebuild_review_state = fields.Selection(
+        related="move_id.review_state",
+        string="Review status",
     )
     rebuild_remaining_amount = fields.Monetary(
         compute="_compute_rebuild_transaction_display",
@@ -452,13 +514,6 @@ class AccountBankStatementLine(models.Model):
     )
     def _compute_rebuild_transaction_display(self):
         for statement_line in self:
-            if statement_line.is_reconciled:
-                statement_line.rebuild_transaction_status = "matched"
-            elif statement_line.move_id.review_state in {"todo", "anomaly"}:
-                statement_line.rebuild_transaction_status = "review"
-            else:
-                statement_line.rebuild_transaction_status = "open"
-
             move_lines = statement_line.move_id.line_ids
             liquidity_account = statement_line.journal_id.default_account_id
             counterpart_lines = move_lines.filtered(
@@ -482,6 +537,21 @@ class AccountBankStatementLine(models.Model):
                 counterpart_lines.matched_debit_ids
                 | counterpart_lines.matched_credit_ids
             )
+            if (
+                statement_line.is_reconciled
+                or (
+                    partials
+                    and statement_line.currency_id.is_zero(
+                        statement_line.rebuild_remaining_amount,
+                    )
+                )
+            ):
+                statement_line.rebuild_transaction_status = "matched"
+            elif partials:
+                statement_line.rebuild_transaction_status = "partial"
+            else:
+                statement_line.rebuild_transaction_status = "open"
+
             linked_lines = (
                 partials.debit_move_id | partials.credit_move_id
             ) - move_lines
@@ -498,6 +568,37 @@ class AccountBankStatementLine(models.Model):
                 statement_line.rebuild_linked_move_id.display_name
             )
 
+    def action_rebuild_open_matching_items(self):
+        self.ensure_one()
+        matching_references = [
+            reference.strip()
+            for reference in (self.rebuild_matching_reference or "").split(",")
+            if reference.strip()
+        ]
+        if not matching_references:
+            raise UserError(
+                _("This bank transaction has no matching reference."),
+            )
+
+        action = self.env["account.move.line"].action_rebuild_open_matching_number(
+            matching_references[0],
+            self.company_id.id,
+        )
+        if len(matching_references) > 1:
+            action.update({
+                "name": _("Matched items"),
+                "domain": [
+                    ("company_id", "=", self.company_id.id),
+                    ("matching_number", "in", matching_references),
+                    (
+                        "display_type",
+                        "not in",
+                        ("line_section", "line_subsection", "line_note"),
+                    ),
+                ],
+            })
+        return action
+
     def action_rebuild_open_bank_matching(self):
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id(
@@ -513,6 +614,7 @@ class AccountBankStatementLine(models.Model):
             ),
         }
         return action
+
 
 class AccountJournal(models.Model):
     _inherit = "account.journal"
@@ -549,7 +651,6 @@ class AccountJournal(models.Model):
             "active_ids": self.ids,
             "active_model": self._name,
             "default_journal_id": self.id,
-            "search_default_journal_id": self.id,
             "create": False,
             **({"search_default_not_reconciled": 1} if matching else {}),
         }

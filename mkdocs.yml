@@ -20,6 +20,7 @@ nav:
   - How-To Guides:
       - Process a Supplier Bill: how-to/process-vendor-bill.md
       - Process an Expense: how-to/process-expense.md
+      - Group Expenses into a Batch: guides/expense-batches.md
       - Create and Collect a Customer Invoice: how-to/process-customer-invoice.md
       - Match a Bank Transaction: how-to/reconcile-bank-transaction.md
       - Manage Bank Matching Rules: how-to/manage-bank-matching-rules.md

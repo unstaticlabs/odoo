@@ -28,7 +28,10 @@
 9. Match the payment or open bill. If an amount remains, confirm whether the result is a legitimate partial payment, a fee, an exchange difference or an error.
 10. Open **Grand livre**, Compte de résultat and VAT for the period to inspect the result.
 
-Use **Manual Operation** only when no existing document, payment or journal item is the correct counterpart—for example a bank fee, transfer or direct account category.
+Use **Categorize** only when no existing document, payment or journal item is
+the correct counterpart—for example a bank fee, transfer or direct account
+category. The same tab keeps the source reference and narration under
+**Transaction details**.
 
 On a posted bill, **Pay** opens payment registration; it does not initiate a
 bank transfer. **Credit Note** creates a linked draft supplier refund. Review

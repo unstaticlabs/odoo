@@ -13,6 +13,7 @@ These documents define the accounting truths that implementations and migrations
 - [Fiscal-year boundary contract](fiscal-year-boundaries.md)
 - [Analytic pivot reporting](analytic-pivot-reporting.md)
 - [French electronic-invoicing reception readiness](french-electronic-invoicing-readiness.md)
+- [Bank Matching Rule discovery](bank-matching-rule-discovery.md)
 - [Transactions navigation contract](transaction-navigation.md)
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
 - [Milestone 13 declaration and closing workflow](milestone-13-declaration-closing-workflow.md)

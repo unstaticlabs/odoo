@@ -1,11 +1,15 @@
 import html
 import os
+import posixpath
 import re
 from pathlib import Path
+from urllib.parse import quote, unquote, urlsplit
+
+from markdown_it import MarkdownIt
 
 from odoo import http
 from odoo.http import request
-
+from odoo.tools import html_sanitize
 
 DOCS_ROUTE = "/usl/user-docs"
 DOCS_ENV_VAR = "USL_USER_DOCS_PATH"
@@ -76,143 +80,77 @@ def _doc_records(root):
 
 
 def _slug(text):
-    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    slug = re.sub(r"[^\w]+", "-", text.lower(), flags=re.UNICODE).strip("-")
     return slug or "section"
 
 
-def _render_inline(text, current_doc):
-    escaped = html.escape(text)
-    escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
+def _prepare_rendered_tokens(current_doc):
+    current_dir = posixpath.dirname(current_doc)
 
-    def link(match):
-        label = match.group(1)
-        target = html.unescape(match.group(2))
-        if target.startswith(("http://", "https://", "mailto:", "#")):
-            href = target
-        else:
-            base = Path(current_doc).parent
-            doc_target, fragment = (target.split("#", 1) + [""])[:2] if "#" in target else (target, "")
-            normalized = (base / doc_target).as_posix()
-            fragment_suffix = f"#{fragment}" if fragment else ""
-            href = f"{DOCS_ROUTE}/{normalized}{fragment_suffix}"
-        return f'<a href="{html.escape(href, quote=True)}">{label}</a>'
+    def prepare(state):
+        slug_counts = {}
+        for index, token in enumerate(state.tokens):
+            if token.type == "heading_open":
+                title = state.tokens[index + 1].content
+                base_slug = _slug(title)
+                slug_counts[base_slug] = slug_counts.get(base_slug, 0) + 1
+                suffix = (
+                    f"-{slug_counts[base_slug]}"
+                    if slug_counts[base_slug] > 1
+                    else ""
+                )
+                token.attrSet("id", f"{base_slug}{suffix}")
+            if token.type != "inline" or not token.children:
+                continue
+            for child in token.children:
+                if child.type != "link_open":
+                    continue
+                href = (child.attrGet("href") or "").strip()
+                if not href or href.startswith("#"):
+                    continue
+                parsed = urlsplit(href)
+                if parsed.scheme:
+                    if parsed.scheme.lower() not in {"http", "https", "mailto"}:
+                        child.attrSet("href", "")
+                    continue
+                if href.startswith("//") or parsed.path.startswith("/"):
+                    child.attrSet("href", "")
+                    continue
 
-    return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link, escaped)
+                target = posixpath.normpath(
+                    posixpath.join(current_dir, unquote(parsed.path)),
+                )
+                if target == ".." or target.startswith("../"):
+                    child.attrSet("href", "")
+                    continue
+                rewritten = f"{DOCS_ROUTE}/{quote(target, safe='/')}"
+                if parsed.query:
+                    rewritten += f"?{quote(parsed.query, safe='=&')}"
+                if parsed.fragment:
+                    rewritten += f"#{quote(unquote(parsed.fragment), safe='-._~')}"
+                child.attrSet("href", rewritten)
+
+    return prepare
 
 
-def _render_table(lines, current_doc):
-    header = [cell.strip() for cell in lines[0].strip("|").split("|")]
-    body = lines[2:]
-    output = ["<table>", "<thead><tr>"]
-    output.extend(f"<th>{_render_inline(cell, current_doc)}</th>" for cell in header)
-    output.append("</tr></thead><tbody>")
-    for line in body:
-        cells = [cell.strip() for cell in line.strip("|").split("|")]
-        output.append("<tr>")
-        output.extend(f"<td>{_render_inline(cell, current_doc)}</td>" for cell in cells)
-        output.append("</tr>")
-    output.append("</tbody></table>")
-    return "\n".join(output)
-
-
-def render_markdown(markdown, current_doc="README.md"):
-    lines = markdown.splitlines()
-    output = []
-    in_code = False
-    in_ul = False
-    in_ol = False
-    code_lines = []
-    paragraph = []
-    i = 0
-
-    def flush_paragraph():
-        if paragraph:
-            output.append(f"<p>{_render_inline(' '.join(paragraph), current_doc)}</p>")
-            paragraph.clear()
-
-    def close_lists():
-        nonlocal in_ul, in_ol
-        if in_ul:
-            output.append("</ul>")
-            in_ul = False
-        if in_ol:
-            output.append("</ol>")
-            in_ol = False
-
-    while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
-        if stripped.startswith("```"):
-            if in_code:
-                output.append(f"<pre><code>{html.escape(chr(10).join(code_lines))}</code></pre>")
-                code_lines = []
-                in_code = False
-            else:
-                flush_paragraph()
-                close_lists()
-                in_code = True
-            i += 1
-            continue
-        if in_code:
-            code_lines.append(line)
-            i += 1
-            continue
-        if stripped == "":
-            flush_paragraph()
-            close_lists()
-            i += 1
-            continue
-        if stripped.startswith("|") and i + 1 < len(lines) and re.match(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$", lines[i + 1]):
-            flush_paragraph()
-            close_lists()
-            table_lines = [line, lines[i + 1]]
-            i += 2
-            while i < len(lines) and lines[i].strip().startswith("|"):
-                table_lines.append(lines[i])
-                i += 1
-            output.append(_render_table(table_lines, current_doc))
-            continue
-        heading = re.match(r"^(#{1,4})\s+(.+)$", stripped)
-        if heading:
-            flush_paragraph()
-            close_lists()
-            level = len(heading.group(1))
-            title = heading.group(2).strip()
-            output.append(f'<h{level} id="{_slug(title)}">{_render_inline(title, current_doc)}</h{level}>')
-            i += 1
-            continue
-        bullet = re.match(r"^-\s+(.+)$", stripped)
-        if bullet:
-            flush_paragraph()
-            if in_ol:
-                output.append("</ol>")
-                in_ol = False
-            if not in_ul:
-                output.append("<ul>")
-                in_ul = True
-            output.append(f"<li>{_render_inline(bullet.group(1), current_doc)}</li>")
-            i += 1
-            continue
-        numbered = re.match(r"^\d+\.\s+(.+)$", stripped)
-        if numbered:
-            flush_paragraph()
-            if in_ul:
-                output.append("</ul>")
-                in_ul = False
-            if not in_ol:
-                output.append("<ol>")
-                in_ol = True
-            output.append(f"<li>{_render_inline(numbered.group(1), current_doc)}</li>")
-            i += 1
-            continue
-        paragraph.append(stripped)
-        i += 1
-
-    if in_code:
-        output.append(f"<pre><code>{html.escape(chr(10).join(code_lines))}</code></pre>")
-    flush_paragraph()
-    close_lists()
-    return "\n".join(output)
+def render_markdown(markdown_text, current_doc="README.md"):
+    # Raw HTML is disabled even though the repository documentation is trusted.
+    # Odoo's sanitizer remains a second boundary for generated links and attrs.
+    renderer = MarkdownIt("commonmark", {"html": False}).enable("table")
+    renderer.core.ruler.after(
+        "inline",
+        "usl_user_docs_prepare",
+        _prepare_rendered_tokens(current_doc),
+    )
+    rendered = renderer.render(markdown_text)
+    return str(
+        html_sanitize(
+            rendered,
+            sanitize_attributes=True,
+            sanitize_style=True,
+            strip_style=True,
+        ),
+    )
 
 
 def _page_html(root, doc_path, title, body_html, records):
@@ -257,13 +195,17 @@ def _page_html(root, doc_path, title, body_html, records):
     h2 {{ margin-top: 34px; border-top: 1px solid var(--border); padding-top: 22px; }}
     h3, h4 {{ margin-top: 26px; }}
     a {{ color: var(--accent); }}
+    blockquote {{ margin: 18px 0; padding: 8px 16px; border-left: 4px solid var(--accent); color: var(--muted); background: #eef7f7; }}
+    hr {{ border: 0; border-top: 1px solid var(--border); margin: 28px 0; }}
     code {{ background: var(--code); border-radius: 4px; padding: 1px 4px; }}
     pre {{ background: #111827; color: #f9fafb; border-radius: 8px; padding: 14px; overflow: auto; }}
     pre code {{ background: transparent; padding: 0; color: inherit; }}
     table {{ border-collapse: collapse; width: 100%; margin: 16px 0; background: var(--panel); }}
     th, td {{ border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }}
     th {{ background: #eef2f7; }}
+    ul, ol {{ padding-left: 24px; }}
     li {{ margin: 4px 0; }}
+    li > ul, li > ol {{ margin: 4px 0 8px; }}
     @media (max-width: 820px) {{
       .layout {{ grid-template-columns: 1fr; }}
       aside {{ position: static; height: auto; }}
