@@ -1,4 +1,4 @@
-# ruff: file-ignore[undefined-name, print, unsorted-imports]
+# ruff: file-ignore[undefined-name, unsorted-imports, print]
 
 import hashlib
 import json

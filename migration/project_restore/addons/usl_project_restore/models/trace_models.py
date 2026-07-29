@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import fields, models
 
 
 class ProjectProject(models.Model):
@@ -25,51 +25,11 @@ class ProjectTask(models.Model):
     _name = "project.task"
     _inherit = ["project.task", "rebuild.source.trace.mixin"]
 
-    planned_date_begin = fields.Datetime(
-        string="Planned Start",
-        index=True,
-        copy=False,
-        tracking=True,
-        help=(
-            "Planned start restored from Odoo Online. Together with the "
-            "deadline it preserves the former Gantt planning range."
-        ),
-    )
     usl_source_task_properties = fields.Json(
         string="Source Task Properties",
         copy=False,
         groups="project.group_project_manager",
     )
-    usl_dependency_date_warning = fields.Char(
-        string="Dependency Schedule Warning",
-        compute="_compute_usl_dependency_date_warning",
-    )
-
-    @api.depends(
-        "planned_date_begin",
-        "depend_on_ids.date_deadline",
-        "depend_on_ids.state",
-    )
-    def _compute_usl_dependency_date_warning(self):
-        closed_states = {"1_done", "1_canceled"}
-        for task in self:
-            overlapping = task.depend_on_ids.filtered(
-                lambda blocker: (
-                    blocker.state not in closed_states
-                    and blocker.date_deadline
-                    and task.planned_date_begin
-                    and blocker.date_deadline > task.planned_date_begin
-                ),
-            )
-            task.usl_dependency_date_warning = (
-                _(
-                    "This task is planned to start before blocking task(s) "
-                    "finish: %s",
-                )
-                % ", ".join(overlapping.mapped("name")[:3])
-                if overlapping
-                else False
-            )
 
 
 class ProjectTaskType(models.Model):
