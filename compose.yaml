@@ -188,7 +188,6 @@ services:
       ODOO_GEVENT_PORT: 8072
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
-      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
