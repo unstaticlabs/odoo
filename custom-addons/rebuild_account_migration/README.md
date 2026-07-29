@@ -31,6 +31,12 @@ record; maintained OCA modules provide Community reconciliation, reporting,
 asset and statement-import capabilities. USL behavior extends those modules
 without modifying upstream Odoo core.
 
+Shared extensions of existing native and OCA models live in
+`usl_accounting`; expense claim batches live in `usl_expense_batch`. This
+module remains their compatibility consumer and retains installed
+`rebuild.*` models and stable XML/data ownership. See the
+[custom add-on architecture decision](../../docs/accounting/custom-addon-architecture.md).
+
 The authenticated user guide at `/usl/user-docs` renders the repository files
 under `docs/users/` with the pinned CommonMark runtime. Common Markdown
 formatting, nested lists, tables, code blocks and repository-relative links are
