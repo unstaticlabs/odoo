@@ -1,0 +1,116 @@
+.o_usl_documents {
+    --usl-sidebar-width: 240px;
+
+    .o_usl_documents_sidebar {
+        width: var(--usl-sidebar-width);
+        flex: 0 0 var(--usl-sidebar-width);
+        display: flex;
+        flex-direction: column;
+        background: var(--o-view-background-color, #fff);
+    }
+
+    .min-w-0 {
+        min-width: 0;
+    }
+
+    .o_usl_documents_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 1rem;
+    }
+
+    .o_usl_document_card {
+        min-width: 0;
+        cursor: pointer;
+        overflow: hidden;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--o-box-shadow, 0 0.5rem 1rem rgba(0, 0, 0, 0.12)) !important;
+        }
+    }
+
+    .o_usl_document_thumb {
+        height: 180px;
+        background: #eef0f2;
+        position: relative;
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+        }
+
+        .badge + .badge {
+            top: 2.25rem;
+        }
+    }
+
+    .o_usl_document_list_thumb {
+        width: 40px;
+        height: 52px;
+        object-fit: cover;
+        border-radius: 0.25rem;
+        background: #eef0f2;
+    }
+
+    .o_usl_documents_detail {
+        width: 42vw;
+        max-width: 620px;
+        flex: 0 0 42vw;
+
+        iframe {
+            width: 100%;
+            height: 55vh;
+            border: 0;
+            background: #eef0f2;
+        }
+    }
+
+    .o_usl_documents_dragged {
+        outline: 3px dashed var(--o-brand-primary, #714b67);
+        outline-offset: -8px;
+        background: color-mix(in srgb, var(--o-brand-primary, #714b67) 8%, transparent);
+    }
+
+    .o_usl_documents_empty {
+        max-width: 440px;
+    }
+}
+
+@media (max-width: 992px) {
+    .o_usl_documents {
+        .o_usl_documents_sidebar {
+            width: 76px;
+            flex-basis: 76px;
+
+            h4,
+            small,
+            .nav-link {
+                font-size: 0;
+            }
+
+            .nav-link i {
+                font-size: 1rem;
+                margin: 0 !important;
+            }
+        }
+
+        .o_usl_documents_detail {
+            position: absolute;
+            inset: 0 0 0 auto;
+            width: 90vw;
+            max-width: 620px;
+            z-index: 5;
+            box-shadow: -0.5rem 0 1rem rgba(0, 0, 0, 0.12);
+        }
+    }
+}
