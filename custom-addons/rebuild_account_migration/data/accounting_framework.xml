@@ -6,4 +6,7 @@
     <function
         model="rebuild.account.declaration.rule"
         name="_ensure_governance_metadata"/>
+    <function
+        model="res.company"
+        name="_rebuild_apply_cca_projection_defaults"/>
 </odoo>

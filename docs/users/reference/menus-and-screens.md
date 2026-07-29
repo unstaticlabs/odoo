@@ -31,6 +31,10 @@ owes the shareholder or the shareholder owes USL. Expand **View projection
 details** to reconcile the posted account 455 balance with unpaid expenses
 that are not already posted to that account. The estimate is read-only and
 does not reimburse, post or reclassify anything.
+When configuration is missing, an administrator can use **Configure in
+Accounting Settings** directly from the card. A unique shareholder on account
+455100 is restored automatically during reconstruction; ambiguous cases remain
+an explicit choice.
 
 The tax figure is planning guidance, not the final 2065 result. Unposted
 expenses do not reduce it, and fiscal adjustments, losses and credits remain

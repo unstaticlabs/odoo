@@ -2041,7 +2041,16 @@
                                         </div>
                                         <div class="o_usl_overview_detail" invisible="cca_projection_ready">
                                             <h4 class="o_usl_overview_card_title">Compte Courant Associé</h4>
-                                            Select the account and shareholder in Accounting Settings to enable this estimate.
+                                            <p class="mb-2">
+                                                Select the account and shareholder to enable this estimate.
+                                            </p>
+                                            <button
+                                                name="action_open_cca_settings"
+                                                type="object"
+                                                string="Configure in Accounting Settings"
+                                                class="btn btn-link p-0"
+                                                groups="base.group_system"
+                                                title="Open the Accounting setting where the shareholder current account and expense owner are selected."/>
                                         </div>
                                     </div>
                                 </div>

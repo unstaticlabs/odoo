@@ -199,6 +199,14 @@ projection for the shareholder selected in **Accounting > Configuration >
 Settings > Management Projections**. It is not part of Cash on banks and it
 does not post or reclassify an entry.
 
+On a reconstructed database, the product safely fills this configuration when
+there is one exact `455100` account and its posted entries identify one unique
+partner. It restores the matching employee/expense-owner business record when
+needed. It never clones a production login or its access rights: users remain
+an explicit deployment and identity-management decision. Ambiguous accounts or
+partners are left unconfigured, and the empty card links administrators
+directly to Accounting Settings.
+
 French PCG account 455 records at credit the funds an associate temporarily
 makes available to the entity. The card therefore normalizes the accounting
 sign into plain-language direction:
