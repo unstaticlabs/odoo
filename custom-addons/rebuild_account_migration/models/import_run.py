@@ -3284,19 +3284,19 @@ class RebuildAccountImportRun(models.Model):
         PaymentMethodLine = self.env["account.payment.method.line"]
         for row in rows:
             journal = journals.get(row["journal_id"])
-            if not journal:
-                continue
             method = PaymentMethod.search([
                 ("code", "=", row["payment_method_code"]),
                 ("payment_type", "=", row["payment_method_type"]),
             ], limit=1)
             if not method:
                 continue
-            line = PaymentMethodLine.search([
-                ("journal_id", "=", journal.id),
-                ("payment_method_id", "=", method.id),
-            ], limit=1)
+            line_domain = [("payment_method_id", "=", method.id)]
+            if journal:
+                line_domain.append(("journal_id", "=", journal.id))
+            line = PaymentMethodLine.search(line_domain, order="id", limit=1)
             if not line:
+                if not journal:
+                    continue
                 vals = {
                     "name": row["name"] or method.name,
                     "sequence": row["sequence"] or 10,
@@ -3595,33 +3595,53 @@ class RebuildAccountImportRun(models.Model):
             if not target_model or not target_record:
                 unmapped_targets.append(row)
                 continue
-            if not row["store_fname"]:
-                missing_files.append({**row, "missing_reason": "source attachment has no store_fname"})
-                continue
-            source_path = os.path.join(filestore_path, row["store_fname"])
-            if not os.path.isfile(source_path):
-                missing_files.append({**row, "missing_reason": f"file not found at {source_path}"})
-                continue
-            with open(source_path, "rb") as handle:
-                raw = handle.read()
-            actual_checksum = hashlib.sha1(raw).hexdigest()
-            actual_size = len(raw)
-            if row["checksum"] and actual_checksum != row["checksum"]:
-                checksum_mismatches.append({
-                    **row,
-                    "expected_checksum": row["checksum"],
-                    "actual_checksum": actual_checksum,
-                    "actual_size": actual_size,
-                })
-                continue
-            if row["file_size"] is not None and actual_size != row["file_size"]:
-                checksum_mismatches.append({
-                    **row,
-                    "expected_size": row["file_size"],
-                    "actual_size": actual_size,
-                    "actual_checksum": actual_checksum,
-                })
-                continue
+            raw = None
+            actual_checksum = row["checksum"]
+            actual_size = row["file_size"]
+            if row["type"] == "binary":
+                if not row["store_fname"]:
+                    missing_files.append({
+                        **row,
+                        "missing_reason": (
+                            "source attachment has no store_fname"
+                        ),
+                    })
+                    continue
+                source_path = os.path.join(
+                    filestore_path,
+                    row["store_fname"],
+                )
+                if not os.path.isfile(source_path):
+                    missing_files.append({
+                        **row,
+                        "missing_reason": (
+                            f"file not found at {source_path}"
+                        ),
+                    })
+                    continue
+                with open(source_path, "rb") as handle:
+                    raw = handle.read()
+                actual_checksum = hashlib.sha1(raw).hexdigest()
+                actual_size = len(raw)
+                if row["checksum"] and actual_checksum != row["checksum"]:
+                    checksum_mismatches.append({
+                        **row,
+                        "expected_checksum": row["checksum"],
+                        "actual_checksum": actual_checksum,
+                        "actual_size": actual_size,
+                    })
+                    continue
+                if (
+                    row["file_size"] is not None
+                    and actual_size != row["file_size"]
+                ):
+                    checksum_mismatches.append({
+                        **row,
+                        "expected_size": row["file_size"],
+                        "actual_size": actual_size,
+                        "actual_checksum": actual_checksum,
+                    })
+                    continue
 
             self.env.cr.execute(
                 """
@@ -3645,7 +3665,8 @@ class RebuildAccountImportRun(models.Model):
                 "name": row["name"] or f"Source attachment {row['id']}",
                 "res_model": target_model,
                 "res_id": target_record.id,
-                "type": "binary",
+                "type": row["type"],
+                "url": row["url"] if row["type"] == "url" else False,
                 "mimetype": row["mimetype"],
                 "description": row["description"],
                 "public": bool(row["public"]),
@@ -3666,20 +3687,41 @@ class RebuildAccountImportRun(models.Model):
                     else getattr(target_record, "company_id", self.env.company).id
                 ),
                 "rebuild_import_note": (
-                    f"Imported from source filestore path {row['store_fname']}; "
-                    f"source checksum {row['checksum']} and size {row['file_size']} verified before import."
+                    (
+                        "Imported from source URL attachment."
+                        if row["type"] == "url"
+                        else (
+                            "Imported from source filestore path "
+                            f"{row['store_fname']}; source checksum "
+                            f"{row['checksum']} and size "
+                            f"{row['file_size']} verified before import."
+                        )
+                    )
                 ),
                 **self._trace_values("ir.attachment", row["id"], options),
             }
             if row["res_field"]:
                 vals["res_field"] = row["res_field"]
-            if not attachment or attachment.checksum != actual_checksum or attachment.file_size != actual_size:
+            if (
+                row["type"] == "binary"
+                and (
+                    not attachment
+                    or attachment.checksum != actual_checksum
+                    or attachment.file_size != actual_size
+                )
+            ):
                 vals["raw"] = raw
             if attachment:
                 attachment.write(vals)
             else:
                 attachment = Attachment.create(vals)
-            if attachment.checksum != actual_checksum or attachment.file_size != actual_size:
+            if (
+                row["type"] == "binary"
+                and (
+                    attachment.checksum != actual_checksum
+                    or attachment.file_size != actual_size
+                )
+            ):
                 checksum_mismatches.append({
                     **row,
                     "target_attachment_id": attachment.id,
@@ -4001,7 +4043,7 @@ class RebuildAccountImportRun(models.Model):
                     ORDER BY message.date, message.id
                     LIMIT 1
               ) source_message ON TRUE
-             WHERE attachment.type = 'binary'
+             WHERE attachment.type IN ('binary', 'url')
                AND expense.company_id = ANY(%(source_company_ids)s)
                AND expense.date BETWEEN %(date_from)s AND %(date_to)s
              ORDER BY attachment.id
@@ -4311,6 +4353,40 @@ class RebuildAccountImportRun(models.Model):
         def raw_bool(value):
             return "null" if value is None else str(value).lower()
 
+        def mismatched_values(record, values, field_names):
+            mismatches = {}
+            for field_name in field_names:
+                if field_name not in values:
+                    continue
+                field = record._fields[field_name]
+                actual = record[field_name]
+                expected = values[field_name]
+                if field.type == "many2one":
+                    actual = actual.id or False
+                    expected = expected or False
+                elif field.type == "date":
+                    actual = fields.Date.to_string(actual) if actual else False
+                    expected = (
+                        fields.Date.to_string(expected)
+                        if expected
+                        else False
+                    )
+                elif field.type in {"float", "monetary"}:
+                    actual = self._amount(actual)
+                    expected = self._amount(expected)
+                elif field.type == "boolean":
+                    actual = bool(actual)
+                    expected = bool(expected)
+                else:
+                    actual = actual or False
+                    expected = expected or False
+                if actual != expected:
+                    mismatches[field_name] = {
+                        "actual": actual,
+                        "expected": expected,
+                    }
+            return mismatches
+
         for row in rows:
             if not row["move_id"]:
                 source_state = row["state"] or "unknown"
@@ -4513,7 +4589,45 @@ class RebuildAccountImportRun(models.Model):
                     "recommendation": "Reset the disposable target and rerun import; if repeated, inspect source identity mapping.",
                 })
                 continue
-            if payment:
+            if payment and payment.expense_ids:
+                protected_fields = {
+                    "date",
+                    "amount",
+                    "payment_type",
+                    "partner_type",
+                    "payment_reference",
+                    "currency_id",
+                    "partner_id",
+                    "destination_account_id",
+                    "journal_id",
+                    "memo",
+                    "payment_method_line_id",
+                }
+                protected_mismatches = mismatched_values(
+                    payment,
+                    vals,
+                    protected_fields,
+                )
+                if protected_mismatches:
+                    raise ValueError(
+                        "Source payment %s is already linked to expense(s) "
+                        "%s and differs from the immutable target payment: %s"
+                        % (
+                            row["id"],
+                            payment.expense_ids.ids,
+                            json.dumps(
+                                protected_mismatches,
+                                sort_keys=True,
+                                default=str,
+                            ),
+                        ),
+                    )
+                payment.write({
+                    field_name: value
+                    for field_name, value in vals.items()
+                    if field_name not in protected_fields
+                })
+            elif payment:
                 payment.write(vals)
             else:
                 payment = Payment.create(vals)
@@ -5481,14 +5595,17 @@ class RebuildAccountImportRun(models.Model):
             """
             SELECT expense.id, expense.name, expense.state, expense.approval_state,
                    expense.payment_mode, expense.date, expense.employee_id,
+                   expense.department_id, expense.manager_id,
                    expense.company_id, expense.product_id, expense.product_uom_id,
                    expense.currency_id, expense.payment_method_line_id,
                    expense.account_move_id, expense.vendor_id, expense.account_id,
+                   expense.split_expense_origin_id, expense.former_sheet_id,
                    expense.quantity, expense.tax_amount_currency, expense.tax_amount,
                    expense.total_amount_currency, expense.total_amount,
                    expense.untaxed_amount_currency, expense.untaxed_amount,
                    expense.price_unit, expense.analytic_distribution,
                    expense.description, expense.approval_date,
+                   expense.last_notification_date,
                    COALESCE((
                        SELECT array_agg(relation.tax_id ORDER BY relation.tax_id)
                        FROM expense_tax relation
@@ -5674,13 +5791,162 @@ class RebuildAccountImportRun(models.Model):
             "archive_after_post_source_ids": archive_after_post,
         }
 
-    def _native_expense_employee_map(self, conn, options, companies, partners):
+    def _native_expense_department_map(self, conn, options, companies):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT department.id, department.name, department.company_id
+            FROM hr_department department
+            WHERE department.id IN (
+                SELECT DISTINCT expense.department_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.department_id IS NOT NULL
+            )
+            ORDER BY department.id
+            """,
+            options,
+        )
+        departments = {}
+        Department = self.env["hr.department"].sudo().with_context(
+            active_test=False,
+            tracking_disable=True,
+            mail_create_nolog=True,
+        )
+        for row in rows:
+            company = companies.get(row["company_id"])
+            name = self._source_text(row["name"])
+            if not company or not name:
+                continue
+            department = Department.search([
+                ("company_id", "=", company.id),
+                ("name", "=", name),
+            ], limit=1)
+            if not department:
+                department = Department.create({
+                    "name": name,
+                    "company_id": company.id,
+                })
+            departments[row["id"]] = department
+        return departments
+
+    def _native_expense_user_map(
+        self,
+        conn,
+        options,
+        companies,
+        partners,
+    ):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT source_user.id, source_user.login, source_user.partner_id,
+                   source_user.company_id, source_user.active,
+                   COALESCE((
+                       SELECT array_agg(relation.cid ORDER BY relation.cid)
+                       FROM res_company_users_rel relation
+                       WHERE relation.user_id = source_user.id
+                   ), ARRAY[]::integer[]) AS company_ids
+            FROM res_users source_user
+            WHERE source_user.id IN (
+                SELECT expense.manager_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.manager_id IS NOT NULL
+                UNION
+                SELECT employee.user_id
+                FROM hr_employee employee
+                WHERE employee.id IN (
+                    SELECT DISTINCT expense.employee_id
+                    FROM hr_expense expense
+                    WHERE expense.company_id = ANY(%(source_company_ids)s)
+                      AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                )
+                  AND employee.user_id IS NOT NULL
+                UNION
+                SELECT employee.expense_manager_id
+                FROM hr_employee employee
+                WHERE employee.id IN (
+                    SELECT DISTINCT expense.employee_id
+                    FROM hr_expense expense
+                    WHERE expense.company_id = ANY(%(source_company_ids)s)
+                      AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                )
+                  AND employee.expense_manager_id IS NOT NULL
+            )
+            ORDER BY source_user.id
+            """,
+            options,
+        )
+        users = {}
+        Users = self.env["res.users"].sudo().with_context(
+            no_reset_password=True,
+            mail_create_nosubscribe=True,
+            tracking_disable=True,
+        )
+        base_group = self.env.ref("base.group_user")
+        expense_manager_group = self.env.ref(
+            "hr_expense.group_hr_expense_manager",
+        )
+        for row in rows:
+            partner = partners.get(row["partner_id"])
+            company = companies.get(row["company_id"])
+            if not partner or not company:
+                continue
+            allowed_companies = self.env["res.company"].browse()
+            for source_company_id in row["company_ids"]:
+                if source_company_id in companies:
+                    allowed_companies |= companies[source_company_id]
+            if not allowed_companies:
+                allowed_companies = company
+            user = Users.search([
+                ("partner_id", "=", partner.id),
+            ], limit=1)
+            if not user:
+                user = Users.search([
+                    ("login", "=", row["login"]),
+                ], limit=1)
+            values = {
+                "login": row["login"],
+                "partner_id": partner.id,
+                "active": bool(row["active"]),
+                "share": False,
+                "company_id": company.id,
+                "company_ids": [Command.set(allowed_companies.ids)],
+            }
+            if user:
+                user.write(values)
+            else:
+                values["group_ids"] = [
+                    Command.set((
+                        base_group | expense_manager_group
+                    ).ids),
+                ]
+                user = Users.create(values)
+            users[row["id"]] = user
+        return users
+
+    def _native_expense_employee_map(
+        self,
+        conn,
+        options,
+        companies,
+        partners,
+        departments,
+        users,
+    ):
         rows = self._fetchall(
             conn,
             """
             SELECT employee.id, employee.name, employee.company_id,
-                   employee.work_contact_id, employee.work_email, employee.active
+                   employee.work_contact_id, employee.work_email,
+                   employee.user_id, employee.expense_manager_id,
+                   version.department_id, employee.active
             FROM hr_employee employee
+            LEFT JOIN hr_version version
+              ON version.id = employee.current_version_id
             WHERE employee.id IN (
                 SELECT DISTINCT expense.employee_id
                 FROM hr_expense expense
@@ -5696,6 +5962,9 @@ class RebuildAccountImportRun(models.Model):
         for row in rows:
             company = companies.get(row["company_id"])
             work_contact = partners.get(row["work_contact_id"])
+            department = departments.get(row["department_id"])
+            user = users.get(row["user_id"])
+            expense_manager = users.get(row["expense_manager_id"])
             if not company or not work_contact:
                 continue
             employee = Employee.search([
@@ -5713,6 +5982,11 @@ class RebuildAccountImportRun(models.Model):
                 "company_id": company.id,
                 "work_contact_id": work_contact.id,
                 "work_email": row["work_email"],
+                "department_id": department.id if department else False,
+                "user_id": user.id if user else False,
+                "expense_manager_id": (
+                    expense_manager.id if expense_manager else False
+                ),
                 "active": bool(row["active"]),
                 **self._trace_values("hr.employee", row["id"], options),
             }
@@ -5885,6 +6159,59 @@ class RebuildAccountImportRun(models.Model):
             "configured_payment_method_line_count": len(configured_method_line_ids),
         }
 
+    def _native_expense_restore_context(
+        self,
+        expense_rows,
+        expenses_by_source_id,
+        departments,
+        users,
+        blocked_cases,
+    ):
+        context_restored_count = 0
+        split_link_count = 0
+        for source_expense in expense_rows:
+            expense = expenses_by_source_id.get(source_expense["id"])
+            if not expense:
+                continue
+            department = departments.get(source_expense["department_id"])
+            manager = users.get(source_expense["manager_id"])
+            expense.with_context(
+                tracking_disable=True,
+                mail_create_nolog=True,
+            ).write({
+                "department_id": department.id if department else False,
+                "manager_id": manager.id if manager else False,
+                "approval_date": source_expense["approval_date"] or False,
+                "former_sheet_id": source_expense["former_sheet_id"],
+                "last_notification_date": (
+                    source_expense["last_notification_date"]
+                ),
+            })
+            context_restored_count += 1
+
+        for source_expense in expense_rows:
+            source_origin_id = source_expense["split_expense_origin_id"]
+            if not source_origin_id:
+                continue
+            expense = expenses_by_source_id.get(source_expense["id"])
+            origin = expenses_by_source_id.get(source_origin_id)
+            if not expense or not origin:
+                blocked_cases.append({
+                    "source_expense_id": source_expense["id"],
+                    "source_split_expense_origin_id": source_origin_id,
+                    "classification": "missing_split_expense_origin",
+                })
+                continue
+            expense.with_context(
+                tracking_disable=True,
+                mail_create_nolog=True,
+            ).write({"split_expense_origin_id": origin.id})
+            split_link_count += 1
+        return {
+            "context_restored_count": context_restored_count,
+            "split_link_count": split_link_count,
+        }
+
     def run_source_faithful_expense_materialization_from_source(self, options):
         """Materialize source expenses without duplicating imported accounting.
 
@@ -5980,11 +6307,24 @@ class RebuildAccountImportRun(models.Model):
                 analytic_plans,
             )
             expense_rows = self._native_expense_rows(conn, options)
+            departments = self._native_expense_department_map(
+                conn,
+                options,
+                companies,
+            )
+            users = self._native_expense_user_map(
+                conn,
+                options,
+                companies,
+                partners,
+            )
             employees = self._native_expense_employee_map(
                 conn,
                 options,
                 companies,
                 partners,
+                departments,
+                users,
             )
             products, current_standard_prices = self._native_expense_product_map(
                 conn,
@@ -6018,6 +6358,10 @@ class RebuildAccountImportRun(models.Model):
                 currency = currencies.get(source_expense["currency_id"])
                 account = accounts.get(source_expense["account_id"])
                 vendor = partners.get(source_expense["vendor_id"])
+                department = departments.get(
+                    source_expense["department_id"],
+                )
+                manager = users.get(source_expense["manager_id"])
                 payment_method_line = method_lines.get(
                     source_expense["payment_method_line_id"],
                 )
@@ -6040,6 +6384,10 @@ class RebuildAccountImportRun(models.Model):
                     blockers.append("product")
                 if source_expense["vendor_id"] and not vendor:
                     blockers.append("vendor")
+                if source_expense["department_id"] and not department:
+                    blockers.append("department")
+                if source_expense["manager_id"] and not manager:
+                    blockers.append("manager")
                 if missing_tax_ids:
                     blockers.append("taxes")
                 if blockers:
@@ -6167,6 +6515,14 @@ class RebuildAccountImportRun(models.Model):
                         "exception_message": str(exc),
                     })
 
+            context_stats = self._native_expense_restore_context(
+                expense_rows,
+                expenses_by_source_id,
+                departments,
+                users,
+                blocked_cases,
+            )
+
             source_move_ids = sorted({
                 row["account_move_id"]
                 for row in expense_rows
@@ -6281,13 +6637,118 @@ class RebuildAccountImportRun(models.Model):
                     "state",
                     "approval_state",
                     "account_move_id",
+                    "department_id",
+                    "manager_id",
+                    "former_sheet_id",
+                    "last_notification_date",
+                    "split_expense_origin_id",
                 ])
                 state_counts[expense.state] += 1
+                expected_product = products.get(
+                    source_expense["product_id"],
+                )
+                expected_vendor = partners.get(
+                    source_expense["vendor_id"],
+                )
+                expected_payment_method_line = method_lines.get(
+                    source_expense["payment_method_line_id"],
+                )
+                expected_analytic_distribution = (
+                    self._native_replay_analytic_distribution(
+                        source_expense["analytic_distribution"],
+                        analytic_accounts,
+                    )
+                )
+                expected_split_origin = expenses_by_source_id.get(
+                    source_expense["split_expense_origin_id"],
+                )
                 checks = {
                     "state": expense.state == source_expense["state"],
                     "approval_state": (
                         (expense.approval_state or False)
                         == (source_expense["approval_state"] or False)
+                    ),
+                    "name": (
+                        expense.name
+                        == (
+                            source_expense["name"]
+                            or f"Source expense {source_expense['id']}"
+                        )
+                    ),
+                    "date": expense.date == source_expense["date"],
+                    "employee": (
+                        expense.employee_id.id
+                        == getattr(
+                            employees.get(source_expense["employee_id"]),
+                            "id",
+                            False,
+                        )
+                    ),
+                    "department": (
+                        expense.department_id.id
+                        == getattr(
+                            departments.get(
+                                source_expense["department_id"],
+                            ),
+                            "id",
+                            False,
+                        )
+                    ),
+                    "manager": (
+                        expense.manager_id.id
+                        == getattr(
+                            users.get(source_expense["manager_id"]),
+                            "id",
+                            False,
+                        )
+                    ),
+                    "company": (
+                        expense.company_id.id
+                        == getattr(
+                            companies.get(source_expense["company_id"]),
+                            "id",
+                            False,
+                        )
+                    ),
+                    "product": expense.product_id.id
+                    == getattr(expected_product, "id", False),
+                    "currency": (
+                        expense.currency_id.id
+                        == getattr(
+                            currencies.get(source_expense["currency_id"]),
+                            "id",
+                            False,
+                        )
+                    ),
+                    "payment_mode": (
+                        expense.payment_mode
+                        == source_expense["payment_mode"]
+                    ),
+                    "payment_method_line": (
+                        expense.payment_method_line_id.id
+                        == getattr(
+                            expected_payment_method_line,
+                            "id",
+                            False,
+                        )
+                    ),
+                    "vendor": expense.vendor_id.id
+                    == getattr(expected_vendor, "id", False),
+                    "account": (
+                        expense.account_id.id
+                        == getattr(
+                            accounts.get(source_expense["account_id"]),
+                            "id",
+                            False,
+                        )
+                    ),
+                    "taxes": (
+                        set(expense.tax_ids.ids)
+                        == {
+                            taxes[source_tax_id].id
+                            for source_tax_id
+                            in source_expense["tax_ids"]
+                        }
                     ),
                     "account_move": (
                         (
@@ -6295,6 +6756,26 @@ class RebuildAccountImportRun(models.Model):
                             or None
                         )
                         == source_expense["account_move_id"]
+                    ),
+                    "quantity": round(expense.quantity, 6)
+                    == round(
+                        self._amount(source_expense["quantity"]),
+                        6,
+                    ),
+                    "tax_amount": round(expense.tax_amount, 2)
+                    == round(
+                        self._amount(source_expense["tax_amount"]),
+                        2,
+                    ),
+                    "tax_currency_amount": round(
+                        expense.tax_amount_currency,
+                        2,
+                    )
+                    == round(
+                        self._amount(
+                            source_expense["tax_amount_currency"],
+                        ),
+                        2,
                     ),
                     "amount": round(expense.total_amount, 2)
                     == round(
@@ -6310,6 +6791,56 @@ class RebuildAccountImportRun(models.Model):
                             source_expense["total_amount_currency"],
                         ),
                         2,
+                    ),
+                    "untaxed_amount": round(
+                        expense.untaxed_amount,
+                        2,
+                    )
+                    == round(
+                        self._amount(source_expense["untaxed_amount"]),
+                        2,
+                    ),
+                    "untaxed_currency_amount": round(
+                        expense.untaxed_amount_currency,
+                        2,
+                    )
+                    == round(
+                        self._amount(
+                            source_expense["untaxed_amount_currency"],
+                        ),
+                        2,
+                    ),
+                    "price_unit": round(expense.price_unit, 6)
+                    == round(
+                        self._amount(source_expense["price_unit"]),
+                        6,
+                    ),
+                    "analytic_distribution": (
+                        (expense.analytic_distribution or {})
+                        == (expected_analytic_distribution or {})
+                    ),
+                    "description": (
+                        (expense.description or False)
+                        == (source_expense["description"] or False)
+                    ),
+                    "approval_date": (
+                        (expense.approval_date or False)
+                        == (source_expense["approval_date"] or False)
+                    ),
+                    "former_sheet": (
+                        (expense.former_sheet_id or 0)
+                        == (source_expense["former_sheet_id"] or 0)
+                    ),
+                    "last_notification": (
+                        (expense.last_notification_date or False)
+                        == (
+                            source_expense["last_notification_date"]
+                            or False
+                        )
+                    ),
+                    "split_origin": (
+                        expense.split_expense_origin_id.id
+                        == getattr(expected_split_origin, "id", False)
                     ),
                 }
                 if all(checks.values()):
@@ -6347,6 +6878,12 @@ class RebuildAccountImportRun(models.Model):
                 "linked_account_move_count": linked_move_count,
                 "source_expense_line_link_count": len(source_line_links),
                 "linked_expense_line_count": linked_line_count,
+                "restored_context_count": context_stats[
+                    "context_restored_count"
+                ],
+                "restored_split_link_count": context_stats[
+                    "split_link_count"
+                ],
                 "passed_expense_count": passed_count,
                 "mismatch_expense_count": len(mismatch_cases),
                 "blocked_case_count": len(blocked_cases),
@@ -7687,6 +8224,20 @@ class RebuildAccountImportRun(models.Model):
                 [move_row["id"] for move_row in move_rows],
                 options,
             )
+            sequence_parameter_key = (
+                "sequence.mixin.constraint_start_date"
+            )
+            sequence_parameters = self.env[
+                "ir.config_parameter"
+            ].sudo()
+            previous_sequence_constraint = sequence_parameters.get_str(
+                sequence_parameter_key,
+                default=None,
+            )
+            sequence_parameters.set_str(
+                sequence_parameter_key,
+                options["date_to"],
+            )
             reused_native_move_representations = []
             for move_row in move_rows:
                 existing = existing_move_map.get(move_row["id"])
@@ -8147,6 +8698,16 @@ class RebuildAccountImportRun(models.Model):
                 "deferred_schedules": deferred_schedule_stats,
                 "warnings": warnings,
             }
+            if previous_sequence_constraint is None:
+                sequence_parameters.search([
+                    ("key", "=", sequence_parameter_key),
+                ]).unlink()
+            else:
+                sequence_parameters.set_str(
+                    sequence_parameter_key,
+                    previous_sequence_constraint,
+                )
+
             self.write({
                 "status": "passed",
                 "finished_at": fields.Datetime.now(),

@@ -652,12 +652,35 @@ class RebuildAccountImportRun(models.Model):
                         ).write({"move_id": exact_move.id})
                         reused_exact_move = True
                     if reused_exact_move:
-                        asset_line.move_id.line_ids.with_context(
-                            allow_asset=True,
-                        ).write({"asset_id": asset.id})
-                        linked_move_line_count += len(
-                            asset_line.move_id.line_ids,
+                        move_lines = asset_line.move_id.line_ids
+                        conflicting_lines = move_lines.filtered(
+                            lambda line: (
+                                line.asset_id
+                                and line.asset_id != asset
+                            ),
                         )
+                        if conflicting_lines:
+                            mismatches.append({
+                                "source_asset_id": source_row["asset_id"],
+                                "source_move_id": (
+                                    source_row["source_move_id"]
+                                ),
+                                "classification": (
+                                    "depreciation_move_linked_to_other_asset"
+                                ),
+                                "target_move_line_ids": (
+                                    conflicting_lines.ids
+                                ),
+                            })
+                            continue
+                        unlinked_lines = move_lines.filtered(
+                            lambda line: not line.asset_id,
+                        )
+                        if unlinked_lines:
+                            unlinked_lines.with_context(
+                                allow_asset=True,
+                            ).write({"asset_id": asset.id})
+                        linked_move_line_count += len(move_lines)
                     if asset_line.move_id:
                         reused_move_count += 1
                     else:

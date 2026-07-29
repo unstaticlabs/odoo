@@ -4742,6 +4742,141 @@ class TestRebuildAccountMigration(TransactionCase):
             ),
         )
 
+    def test_source_expense_context_restores_manager_split_and_history(self):
+        department = self.env["hr.department"].create({
+            "name": "Source Expense Department",
+            "company_id": self.company.id,
+        })
+        manager = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Source Expense Manager",
+            "login": "source.expense.manager@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.env.ref(
+                    "hr_expense.group_hr_expense_manager",
+                ).id,
+            ])],
+        })
+        employee = self.env["hr.employee"].create({
+            "name": "Source Expense Employee",
+            "company_id": self.company.id,
+        })
+        category = self.env["product.product"].create({
+            "name": "Source Expense Category",
+            "can_be_expensed": True,
+            "standard_price": 10.0,
+        })
+        expenses = self.env["hr.expense"].create([
+            {
+                "name": "Source split origin",
+                "employee_id": employee.id,
+                "product_id": category.id,
+                "company_id": self.company.id,
+                "payment_mode": "own_account",
+                "total_amount_currency": 10.0,
+            },
+            {
+                "name": "Source split child",
+                "employee_id": employee.id,
+                "product_id": category.id,
+                "company_id": self.company.id,
+                "payment_mode": "own_account",
+                "total_amount_currency": 5.0,
+            },
+        ])
+        notification_date = fields.Datetime.to_datetime(
+            "2026-06-17 22:58:52",
+        )
+        approval_date = fields.Datetime.to_datetime(
+            "2026-06-18 08:15:00",
+        )
+        source_rows = [
+            {
+                "id": 501,
+                "department_id": 11,
+                "manager_id": None,
+                "approval_date": approval_date,
+                "former_sheet_id": 0,
+                "last_notification_date": notification_date,
+                "split_expense_origin_id": None,
+            },
+            {
+                "id": 502,
+                "department_id": 11,
+                "manager_id": 77,
+                "approval_date": False,
+                "former_sheet_id": None,
+                "last_notification_date": False,
+                "split_expense_origin_id": 501,
+            },
+        ]
+        blocked_cases = []
+
+        stats = self.env[
+            "rebuild.account.import.run"
+        ]._native_expense_restore_context(
+            source_rows,
+            {501: expenses[0], 502: expenses[1]},
+            {11: department},
+            {77: manager},
+            blocked_cases,
+        )
+
+        self.assertEqual(stats["context_restored_count"], 2)
+        self.assertEqual(stats["split_link_count"], 1)
+        self.assertFalse(blocked_cases)
+        self.assertEqual(expenses[0].department_id, department)
+        self.assertFalse(expenses[0].manager_id)
+        self.assertEqual(expenses[0].approval_date, approval_date)
+        self.assertEqual(expenses[0].former_sheet_id, 0)
+        self.assertEqual(
+            expenses[0].last_notification_date,
+            notification_date,
+        )
+        self.assertEqual(expenses[1].department_id, department)
+        self.assertEqual(expenses[1].manager_id, manager)
+        self.assertFalse(expenses[1].approval_date)
+        self.assertEqual(expenses[1].split_expense_origin_id, expenses[0])
+
+    def test_global_source_payment_method_uses_native_method_default(self):
+        payment_method = self.env["account.payment.method"].search([
+            ("code", "=", "manual"),
+            ("payment_type", "=", "outbound"),
+        ], limit=1)
+        expected_line = self.env["account.payment.method.line"].search(
+            [("payment_method_id", "=", payment_method.id)],
+            order="id",
+            limit=1,
+        )
+        self.assertTrue(expected_line)
+        source_rows = [{
+            "id": 901,
+            "name": "Manual Payment",
+            "sequence": 10,
+            "journal_id": None,
+            "payment_account_id": None,
+            "payment_method_code": "manual",
+            "payment_method_type": "outbound",
+        }]
+        import_run_model = self.env["rebuild.account.import.run"]
+
+        with patch.object(
+            type(import_run_model),
+            "_fetchall",
+            return_value=source_rows,
+        ):
+            mapping = import_run_model._payment_method_line_map(
+                None,
+                {},
+                {},
+            )
+
+        self.assertEqual(mapping[901], expected_line)
+
     def test_accountant_reviewer_can_read_native_expenses_but_not_change_them(self):
         reviewer = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -4982,6 +5117,85 @@ class TestRebuildAccountMigration(TransactionCase):
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
         self.assertEqual(attachment.with_user(reviewer).raw, raw)
+
+    def test_native_expense_attachment_preserves_source_url_evidence(self):
+        snapshot = "unit-native-expense-url-attachment"
+        source_expense_id = 990031
+        source_attachment_id = 990032
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Native expense URL attachment replay",
+            "source_snapshot_id": snapshot,
+        })
+        employee = self.env["hr.employee"].create({
+            "name": "Native Expense URL Employee",
+            "company_id": self.company.id,
+        })
+        category = self.env["product.product"].create({
+            "name": "Native Expense URL Category",
+            "can_be_expensed": True,
+            "standard_price": 10.0,
+        })
+        expense = self.env["hr.expense"].create({
+            "name": "Native expense URL evidence",
+            "employee_id": employee.id,
+            "product_id": category.id,
+            "company_id": self.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 10.0,
+            "rebuild_source_model": "hr.expense",
+            "rebuild_source_id": source_expense_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+        source_url = "https://example.invalid/source-expense-receipt"
+
+        stats = import_run._import_attachments(
+            None,
+            {
+                "source_database": "unit_source",
+                "source_snapshot_id": snapshot,
+                "date_from": "2025-10-01",
+                "date_to": "2026-06-30",
+                "attachment_target_trace_models": {
+                    "hr.expense": ["hr.expense"],
+                },
+            },
+            {990001: self.company},
+            rows=[{
+                "id": source_attachment_id,
+                "res_model": "hr.expense",
+                "res_id": source_expense_id,
+                "company_id": 990001,
+                "name": "Source expense receipt link",
+                "res_field": None,
+                "type": "url",
+                "url": source_url,
+                "store_fname": None,
+                "checksum": None,
+                "file_size": 0,
+                "mimetype": "application/octet-stream",
+                "description": "Source receipt link",
+                "public": False,
+                "is_main": False,
+                "source_attachment_res_model": "hr.expense",
+                "source_attachment_res_id": source_expense_id,
+                "source_message_id": None,
+                "source_message_date": None,
+                "source_message_subject": None,
+            }],
+        )
+
+        attachment = self.env["ir.attachment"].search([
+            ("rebuild_source_model", "=", "ir.attachment"),
+            ("rebuild_source_id", "=", source_attachment_id),
+            ("rebuild_source_snapshot", "=", snapshot),
+        ])
+        self.assertEqual(stats["source_attachment_count"], 1)
+        self.assertEqual(stats["imported_attachment_count"], 1)
+        self.assertEqual(import_run._attachment_issue_count(stats), 0)
+        self.assertEqual(attachment.res_model, "hr.expense")
+        self.assertEqual(attachment.res_id, expense.id)
+        self.assertEqual(attachment.type, "url")
+        self.assertEqual(attachment.url, source_url)
 
     def test_company_import_preserves_source_legal_address(self):
         import_run = self.env["rebuild.account.import.run"].create({
