@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+PROJECT="${USL_DOCUMENTS_COMPOSE_PROJECT:?Set USL_DOCUMENTS_COMPOSE_PROJECT to an isolated QA Compose project}"
+DATABASE="${USL_DOCUMENTS_DATABASE:?Set USL_DOCUMENTS_DATABASE to an isolated QA database}"
+export ODOO_HTTP_PORT="${USL_DOCUMENTS_ODOO_HTTP_PORT:-18080}"
+export ODOO_GEVENT_PORT="${USL_DOCUMENTS_ODOO_GEVENT_PORT:-18072}"
+case "$PROJECT" in
+  usl-odoo-saas-19-2|odoo|production|prod|*canonical*)
+    printf 'Refusing shared or canonical Compose project: %s\n' "$PROJECT" >&2
+    exit 2
+    ;;
+esac
+case "$DATABASE" in
+  odoo_usl_documents_*_test|odoo_usl_documents_test) ;;
+  *)
+    printf 'Refusing non-QA Documents database: %s\n' "$DATABASE" >&2
+    exit 2
+    ;;
+esac
+
+COMPOSE=(docker compose -p "$PROJECT")
+PAPERLESS_SERVICES=(
+  paperless-preflight
+  paperless-db
+  paperless-broker
+  paperless-gotenberg
+  paperless-tika
+  paperless-webserver
+)
+
+restore_services() {
+  "${COMPOSE[@]}" --profile paperless up -d --wait "${PAPERLESS_SERVICES[@]}" >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" up -d --wait odoo >/dev/null 2>&1 || true
+}
+trap restore_services EXIT INT TERM
+
+run_shell() {
+  local script="$1"
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DATABASE" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DATABASE" < "$script"
+}
+
+"${COMPOSE[@]}" --profile paperless up -d --wait "${PAPERLESS_SERVICES[@]}"
+"${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+
+run_shell "$ROOT/scripts/odoo/documents_compose_acceptance.py"
+
+"${COMPOSE[@]}" stop paperless-webserver
+run_shell "$ROOT/scripts/odoo/documents_outage_acceptance.py"
+
+"${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+run_shell "$ROOT/scripts/odoo/documents_recovery_acceptance.py"
+
+restore_services
+trap - EXIT INT TERM
+printf 'DOCUMENTS_ACCEPTANCE_OK project=%s database=%s\n' "$PROJECT" "$DATABASE"

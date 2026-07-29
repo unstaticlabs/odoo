@@ -30,6 +30,7 @@ params.set_int(
     "usl_documents.paperless_service_user_id",
     int(os.environ.get("PAPERLESS_QA_SERVICE_USER_ID", "3")),
 )
+policy = env["usl.document"]._paperless().ensure_fail_closed_ingestion_policy()
 
 admin = env.ref("base.user_admin")
 mapping = env["usl.paperless.user.mapping"].search(
@@ -149,6 +150,8 @@ print(
     len(all_documents),
     "identity=",
     mapping.paperless_username,
+    "ingestion_policy=",
+    policy["workflow_id"],
     "bill_id=",
     bill.id,
     "project_id=",

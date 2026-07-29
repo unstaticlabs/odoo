@@ -86,7 +86,7 @@
                     <button name="action_mark_reviewed" type="object" string="Mark reviewed"
                             class="oe_highlight" invisible="review_state == 'reviewed'"/>
                     <button name="action_open_paperless" type="object" string="Open in Paperless"
-                            icon="fa-external-link" groups="usl_documents.group_documents_manager"/>
+                            icon="fa-external-link"/>
                     <button name="action_sync_permissions" type="object" string="Synchronize permissions"
                             icon="fa-shield" groups="usl_documents.group_documents_manager"
                             invisible="permission_sync_state == 'synchronized'"/>
@@ -128,6 +128,7 @@
                             <div class="d-flex gap-2" invisible="availability_state != 'available'">
                                 <button name="action_preview" type="object" string="Open preview" class="btn-primary" icon="fa-eye"/>
                                 <button name="action_download_original" type="object" string="Download received original" icon="fa-download"/>
+                                <button name="action_download_archive" type="object" string="Download archival derivative" icon="fa-file-pdf-o"/>
                             </div>
                         </page>
                         <page string="Archive metadata" name="metadata">
@@ -143,11 +144,29 @@
                             </group>
                         </page>
                         <page string="Versions" name="versions">
-                            <field name="version_data_json" nolabel="1" widget="text"/>
+                            <field name="version_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="0"
+                                      decoration-success="is_current">
+                                    <field name="label"/>
+                                    <field name="is_current"/>
+                                    <field name="is_received_original"/>
+                                    <field name="created_at"/>
+                                    <field name="original_filename"/>
+                                    <field name="mime_type"/>
+                                    <field name="page_count"/>
+                                    <field name="checksum"/>
+                                    <button name="action_preview" type="object" icon="fa-eye"
+                                            title="Preview this version"/>
+                                    <button name="action_download_original" type="object" icon="fa-download"
+                                            title="Download received version"/>
+                                    <button name="action_download_archive" type="object" icon="fa-file-pdf-o"
+                                            title="Download archival derivative"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Linked Odoo records" name="links">
                             <field name="link_ids" context="{'default_document_id': id}">
-                                <list editable="bottom">
+                                <list create="0" edit="0">
                                     <field name="record_name"/>
                                     <field name="res_model"/>
                                     <field name="company_id"/>
