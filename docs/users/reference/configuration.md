@@ -47,6 +47,22 @@ For Unstatic Labs, the exceptional first exercise is
 30 September. The report presets **Fiscal Year** and **Fiscal Year to Date**
 use these governed boundaries on screen and in PDF/XLSX exports.
 
+## Exchange gain and loss direction
+
+Open **Accounting > Configuration > Chart of Accounts**, then select an
+account to configure **Entry Direction Check**.
+
+The default **Automatic from French Account Code** warns when a draft credits
+an exchange-loss account `666…` or debits an exchange-gain account `766…`.
+Correct the line when it is a mistake. For a justified manual correction,
+select **Confirm exceptional direction** on the draft before posting. Editing
+the affected journal items requires confirmation again.
+
+Native exchange adjustments, supplier or customer refunds, formal reversals
+and reconstructed historical entries are handled without this manual
+confirmation. Use **No Direction Check** only when the account intentionally
+does not follow the configured normal direction.
+
 ## Bank Matching Rules
 
 Open **Configuration > Bank Matching Rules** to govern recurring direct

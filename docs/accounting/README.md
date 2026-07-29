@@ -11,6 +11,7 @@ These documents define the accounting truths that implementations and migrations
 - [Configurable Accounting Framework](configurable-accounting-framework.md)
 - [Accounting report presentation](accounting-report-presentation.md)
 - [Fiscal-year boundary contract](fiscal-year-boundaries.md)
+- [Exchange gain/loss entry-direction guard](exchange-direction-guard.md)
 - [Analytic pivot reporting](analytic-pivot-reporting.md)
 - [French electronic-invoicing reception readiness](french-electronic-invoicing-readiness.md)
 - [French electronic-invoicing validation evidence](french-electronic-invoicing-validation.md)
