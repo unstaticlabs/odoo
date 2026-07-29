@@ -1,62 +1,113 @@
-# Activate French Electronic-Invoice Reception
+# Activate, Verify and Suspend French Electronic-Invoice Reception
 
-Use this runbook only after the SaaS 19.2 Accounting fork is the production
-system and Valentin has approved the provider.
+Use this runbook only for the deployed production Accounting database after
+change approval. Never use it on development, staging, reconstruction, copied
+or restored databases.
 
-## Before activation
+The browser-accessible operator checklist is
+[Activate electronic-invoice reception in production](../users/how-to/activate-electronic-invoice-reception.md).
+Keep that page open during the change window; this document retains the
+maintainer-level activation and recovery contract.
 
-1. Open **Accounting > Configuration > Accounting Framework > Electronic
-   Invoicing**.
-2. Confirm **Reception Capability** is **Implemented and Validated**.
-3. Confirm the VAT number, SIREN/SIRET and French scheme `0225` identifier.
-4. Record the platform contact email and mobile number.
-5. Select the purchase journal for received draft bills.
-6. Select **Odoo Approved Platform (native integration)**. A different provider
-   requires its maintained adapter and separate validation.
-7. Confirm this is the deployed production system and set **Accounting
-   Deployment** to **Production**.
-8. Record the provider decision, support and rollback contacts in the
-   deployment change record.
-9. Select **Approve Production Activation**.
+## Production prerequisites
 
-Do not perform these steps on a reconstructed, validation, development or
-copied database.
+Before the change window:
 
-## Register and validate reception
+1. verify that the exact release commit and database upgrade passed;
+2. record the legal representative who will complete Odoo's identity
+   verification and accept the displayed platform terms;
+3. record the VAT number, SIREN/SIRET, scheme `0225` endpoint, platform contact
+   email and incoming purchase journal;
+4. run **Accounting > Configuration > Invoicing > E-Invoicing > Test
+   Reception** and inspect the resulting two-line €175 draft bill,
+   original XML and **Test passed** state;
+5. keep **Odoo Approved Platform** selected; **Production onboarding
+   required** is expected before activation;
+6. keep `USL_EREPORTING_LIVE_ENABLED=0`;
+7. take a recoverable database and filestore backup and record the operator,
+   Accounting Manager, platform support contact and rollback owner.
 
-1. In Accounting settings, open native **Activate Electronic Invoicing**.
-2. Complete the approved-platform identity and registration workflow.
-3. Confirm the status reaches receiver/connected and the French directory start
-   date is correct.
-4. Select **Enable Scheduled Exchange** from the readiness record.
-5. Arrange one controlled supplier invoice with a known supplier, reference,
-   amount and tax.
-6. Under **Review > Electronic Invoice Reception**, verify one **Draft Bill
-   Created** record, the provider message ID, SHA-256, structured attachment and
-   expected native draft bill.
-7. Review and post the bill normally, then continue through payment and bank
-   reconciliation.
+If any item is uncertain, stop. The correct state is **Not yet verified** or
+**Configuration incomplete**, not Ready.
 
-## Diagnose
+Module installation and upgrades preserve the configured provider and company
+identity, but deliberately suspend every exchange job. Treat an application
+upgrade like a fresh activation window: recheck the items above before
+resuming reception.
 
-- **Technical Failure**: inspect the original attachment, processing summary
-  and bill chatter. Correct transport, schema or mapping problems before
-  posting.
-- **Rejected by Provider**: retain the status and payload, then follow the
-  platform lifecycle/support process.
-- **Duplicate**: no second bill was created. Compare the linked reception,
-  message ID and SHA-256 before treating it as a correction.
-- **Registration Pending**: verify the platform account and French directory
-  effective date; do not work around it with standalone Peppol registration.
+## Deliberate activation
 
-## Suspend or roll back
+1. Deploy with `USL_EINVOICE_LIVE_ENABLED=1` and
+   `USL_EREPORTING_LIVE_ENABLED=0`.
+2. Set **Accounting Deployment** to **Production** on the readiness record.
+3. Confirm no other company in the database has an unapproved connected
+   receiver.
+4. Select **Approve Production Activation**. This records who approved and
+   when; it does not register or poll.
+5. From Accounting settings, open the native approved-platform registration,
+   complete legal-representative authentication, accept the displayed terms,
+   and validate receiver registration.
+6. Confirm **Production onboarding** reads **Identity verified**.
+7. Confirm the connection reads **Connected — reception suspended** and the
+   French directory effective date is correct.
+8. Select **Enable Scheduled Reception**. This enables reception, status,
+   participant-status and webhook-health jobs only.
+9. Confirm auto-registration, regulatory-document, lifecycle and e-reporting
+   jobs remain inactive.
 
-1. Select **Suspend Scheduled Exchange** to disable all Peppol/PDP jobs.
-2. Preserve received bills, payloads and reception evidence.
-3. Use native disconnect only after the provider confirms directory and routing
-   consequences.
-4. Select **Revoke Approval and Suspend** to prevent re-registration.
-5. Record the incident, last successful message and invoices needing follow-up.
+Do not enable a generic Peppol registration as a workaround. Do not change the
+e-reporting guard as part of this procedure.
 
-Never delete reception evidence or substitute email PDFs for regulated
-electronic invoices during an outage.
+## First-invoice verification
+
+Arrange one controlled supplier invoice with an agreed supplier, reference,
+currency, net amount, VAT rates and total.
+
+1. Confirm exactly one new item under **Accounting > Review > Electronic
+   Invoice Reception**.
+2. Confirm it reads **Draft Bill Created**, not a raw provider state.
+3. Compare supplier, reference, date, currency, lines, VAT rates and total with
+   the supplier control.
+4. Download/open the original structured file from the evidence. For Factur-X,
+   confirm the original PDF is retained and the embedded structured invoice is
+   attached to the native bill.
+5. Confirm the platform message reference and fingerprint are present.
+6. Re-poll once and confirm no second bill appears.
+7. Review and post the native draft, pay it through the normal workflow, and
+   reconcile the bank transaction.
+8. Record the bill, reception evidence and last successful connection check in
+   the production change record.
+
+The rollout is complete only after these checks pass.
+
+## Recovery
+
+- **Action Required**: read the friendly recovery category, correct the
+  supplier/tax/journal or temporary condition, then select **Retry Processing**.
+  The retained original is reused and attempts are visible.
+- **Duplicate Controlled**: open the linked original reception. Do not create
+  another bill unless the supplier confirms a distinct legal document.
+- **Rejected by Platform**: preserve the evidence, check the platform incident
+  and supplier status, and do not replace the document blindly.
+- **Authentication required**: suspend reception, repair credentials or the
+  database/platform association, verify the connection, then resume.
+- **Platform temporarily unavailable**: keep the evidence and retry after
+  recovery. Do not fall back to treating an emailed PDF as the regulated
+  invoice.
+
+## Immediate suspension and rollback
+
+1. Select **Suspend Scheduled Reception**. Confirm all reception jobs are
+   inactive.
+2. For a stronger stop, select **Revoke Approval and Suspend** and deploy with
+   `USL_EINVOICE_LIVE_ENABLED=0`.
+3. Preserve all received bills and evidence; never delete them during rollback.
+4. Record the last successful message and all supplier documents requiring
+   follow-up.
+5. Use native deregistration only with provider support and an understood
+   French directory/routing consequence.
+6. Restore a backup only when the incident procedure proves that forward
+   repair cannot preserve accounting and reception evidence.
+
+Reactivation repeats the full prerequisites, deliberate activation and
+first-invoice verification. There is no automatic re-registration.

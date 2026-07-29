@@ -996,12 +996,16 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(rejected_evidence.status, "rejected")
         self.assertEqual(rejected_evidence.failure_kind, "technical")
 
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "prod",
+        )
         settings = self.env["res.config.settings"].create({
             "company_id": self.company.id,
         })
         with self.assertRaisesRegex(
             UserError,
-            "Electronic invoicing cannot be activated",
+            "Electronic invoicing cannot contact a live platform",
         ):
             settings.action_open_peppol_form()
         registration = self.env["pdp.registration"].new({
@@ -1009,21 +1013,21 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         with self.assertRaisesRegex(
             UserError,
-            "Electronic invoicing cannot be activated",
+            "Electronic invoicing cannot contact a live platform",
         ):
             registration.button_register_pdp_participant()
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
         self.assertEqual(
             self.company.rebuild_einvoice_connection_status,
-            "not_connected",
+            "inactive",
         )
         self.assertEqual(
             self.company.rebuild_einvoice_capability_status,
-            "implemented_validated",
+            "not_verified",
         )
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
-            "configuration_required",
+            "not_verified",
         )
         manager = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -1066,23 +1070,31 @@ class TestRebuildAccountMigration(TransactionCase):
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
             "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_test_status": "passed",
         })
-        self.company.with_user(manager).action_rebuild_approve_einvoice_activation()
-        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
-        self.assertEqual(
-            self.company.rebuild_einvoice_readiness_status,
-            "ready",
-        )
-        self.assertEqual(
-            self.company.rebuild_einvoice_connection_status,
-            "not_connected",
-        )
-        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
-        with self.assertRaisesRegex(
-            UserError,
-            "Complete approved-platform registration",
+        with patch.dict(
+            "os.environ",
+            {"USL_EINVOICE_LIVE_ENABLED": "1"},
+            clear=False,
         ):
-            self.company.action_rebuild_enable_einvoice_exchange()
+            self.company.with_user(
+                manager,
+            ).action_rebuild_approve_einvoice_activation()
+            self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "activation_required",
+            )
+            self.assertEqual(
+                self.company.rebuild_einvoice_connection_status,
+                "inactive",
+            )
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+            with self.assertRaisesRegex(
+                UserError,
+                "Complete production identity verification",
+            ):
+                self.company.action_rebuild_enable_einvoice_exchange()
         self.company.with_user(manager).action_rebuild_revoke_einvoice_activation()
         self.assertFalse(self.company.rebuild_einvoice_activation_approved)
 
@@ -8214,6 +8226,23 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn("&lt;script&gt;", rendered)
         self.assertNotIn("<script>", rendered)
         self.assertNotIn('href="javascript:', rendered)
+
+        docs_root = user_docs._docs_root()
+        self.assertTrue(docs_root)
+        activation_path = user_docs._safe_doc_path(
+            docs_root,
+            "how-to/activate-electronic-invoice-reception.md",
+        )
+        self.assertTrue(activation_path)
+        activation_rendered = user_docs.render_markdown(
+            activation_path.read_text(encoding="utf-8"),
+            activation_path.relative_to(docs_root).as_posix(),
+        )
+        self.assertIn("Authorize production onboarding", activation_rendered)
+        self.assertIn("USL_EINVOICE_LIVE_ENABLED=1", activation_rendered)
+        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", activation_rendered)
+        self.assertIn("Verify the first real invoice", activation_rendered)
+        self.assertIn("Suspend or roll back", activation_rendered)
 
     def test_source_report_parity_levels_are_explicit(self):
         mandatory = self.env["rebuild.account.source.report"].create({

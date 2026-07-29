@@ -486,7 +486,7 @@ Final evidence and residual advisories are recorded in
 - [ ] Define environment naming conventions.
 - [ ] Add unmistakable environment banners.
 - [ ] Prevent staging and test environments from sending production email.
-- [ ] Prevent staging and test environments from sending Peppol/e-invoicing traffic.
+- [x] Prevent staging and test environments from sending Peppol/e-invoicing traffic through default-off reception and e-reporting guards.
 - [ ] Prevent staging and test environments from initiating real payments.
 - [ ] Prevent staging and test environments from notifying real customers or suppliers.
 - [ ] Prevent staging agents from acting on production systems.

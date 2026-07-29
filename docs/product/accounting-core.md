@@ -58,10 +58,12 @@ Valentin and the accountant must be able to:
   authoritative analytic items. It remains distinct from designed financial
   statements while reconciling to the same accounting population.
 - French electronic-invoice reception uses Odoo's maintained approved-platform
-  and UBL/CII capabilities behind an explicit production activation gate.
-  Readiness, live connection and scheduled exchange are separate states;
-  received payloads retain immutable processing evidence and enter the normal
-  native vendor-bill workflow.
+  and UBL/CII/Factur-X capabilities behind an explicit production activation
+  gate. Company configuration, safe-test verification, production onboarding,
+  live connection and scheduled reception are separate states. Received
+  payloads retain company-scoped original-file and duplicate/retry evidence,
+  then enter the normal native vendor-bill, posting, payment and reconciliation
+  workflow. Reception activation never enables e-reporting.
 - Controls, Reports and Declarations are governed definitions with shared
   origin, lifecycle, company, effective-date and version semantics. Runtime
   issues, report sessions/exports and filing instances freeze the definition

@@ -72,6 +72,27 @@ test_tag() {
     --log-level=test
 }
 
+bootstrap_einvoice_qa() {
+  local status=0
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_EINVOICE_QA_BOOTSTRAP=1 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < "$ROOT/scripts/odoo/einvoice_qa_bootstrap.py" \
+    || status=$?
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  print_url
+  if ((status)); then
+    return "$status"
+  fi
+  printf '\nFrench e-invoicing QA is ready but inactive.\n'
+  printf 'Manager: qa.manager / qa-manager\n'
+  printf 'Read-only: qa.reviewer / qa-reviewer\n'
+}
+
 cleanup_test_database() {
   local database="$1"
   case "$database" in
@@ -192,6 +213,9 @@ case "${1:-help}" in
   test-tag)
     test_tag "${2:?Usage: scripts/odoo-dev test-tag TEST_TAG}"
     ;;
+  bootstrap-einvoice-qa)
+    bootstrap_einvoice_qa
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -222,6 +246,8 @@ Commands:
   test [mod]   Run Odoo tests for a module
   test-js [mod] Run one module's frontend unit tests on odoo_dev
   test-tag TAG  Run one installed Odoo test tag on odoo_dev
+  bootstrap-einvoice-qa
+                Prepare safe e-invoicing QA data and local test accounts
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

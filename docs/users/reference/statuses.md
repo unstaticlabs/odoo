@@ -58,3 +58,24 @@ Readiness is separate from filing. A declaration can be prepared and reviewed
 before it is marked filed, paid, refunded or credited. A Closing result can
 pass, inform, warn, block or report a technical failure without locking the
 period automatically.
+
+## Electronic-invoice reception
+
+- **Configuration incomplete** — required company identity or purchase-journal
+  information is missing.
+- **Not yet verified** — configuration exists, but the safe representative
+  reception test has not passed.
+- **Test passed** — the maintained fixture created a correct native draft bill.
+- **Ready but inactive** — safe preparation passed and no live reception is
+  running.
+- **Production activation required** — the production deployment still needs
+  deliberate approval, onboarding, registration or reception startup.
+- **Active** — the production receiver is connected and scheduled reception is
+  running.
+
+Connection states are separate: **Safe test ready** is Demo only;
+**Connected; retrieval suspended** is registered but not polling; **Connected
+and receiving** is live.
+
+See [Activate electronic-invoice reception in production](../how-to/activate-electronic-invoice-reception.md)
+before changing a production connection.

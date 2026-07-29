@@ -2,6 +2,12 @@
 
 Status date: 26 July 2026
 
+This is retained as historical reconstruction evidence. For the current
+electronic-invoice product and activation state, use
+`french-electronic-invoicing-readiness.md` and
+`../operations/activate-french-electronic-invoicing.md`; their verified
+readiness terms supersede the snapshot wording in this record.
+
 Branch: `saas-19.2-usl-feat-accounting`
 
 Upstream baseline: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
@@ -93,11 +99,13 @@ disposable proofs, not product ledgers.
 - The Accounting Manager retains operational actions. The scoped accountant
   can inspect, filter, drill down and export but cannot create, post, match,
   undo, configure, lock or suspend services.
-- French electronic-invoice reception is implemented and representative
-  valid, duplicate, malformed and rejected documents are regression-tested.
-  The readiness screen says **Implemented and Validated**,
-  **Configuration Required** and **Not Connected**. Production provider
-  registration, endpoints and scheduled exchange remain inactive.
+- French electronic-invoice reception now covers UBL, CII and Factur-X
+  invoices and credit notes, duplicates, malformed/rejected documents,
+  retained evidence and visible retry recovery. The current readiness screen
+  uses **Configuration incomplete**, **Not yet verified**, **Test passed**,
+  **Ready but inactive** and **Production activation required**. Provider
+  eligibility, live registration, directory activation, scheduled reception
+  and e-reporting remain inactive pending the production runbook.
 - Import and comparison infrastructure is not exposed in normal Accounting
   navigation.
 
