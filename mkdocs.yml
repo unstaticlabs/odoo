@@ -23,6 +23,7 @@ nav:
       - Group Expenses into a Batch: guides/expense-batches.md
       - Create and Collect a Customer Invoice: how-to/process-customer-invoice.md
       - Match a Bank Transaction: how-to/reconcile-bank-transaction.md
+      - Settle an Immediate Foreign Payment: how-to/settle-immediate-foreign-payment.md
       - Manage Bank Matching Rules: how-to/manage-bank-matching-rules.md
       - Reconcile a Non-Bank Account: how-to/reconcile-clearing-account.md
       - Investigate a Report Value: how-to/investigate-report-value.md
