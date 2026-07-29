@@ -8099,6 +8099,9 @@ class RebuildAccountImportRun(models.Model):
                     ),
                 })
 
+            cca_configuration_stats = (
+                self.env["res.company"]._rebuild_apply_cca_projection_defaults()
+            )
             stats = {
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
@@ -8126,6 +8129,7 @@ class RebuildAccountImportRun(models.Model):
                 "fiscal_positions": fiscal_position_stats,
                 "reconciliation_models": reconciliation_model_stats,
                 "partner_accounting_properties": partner_property_stats,
+                "cca_configuration": cca_configuration_stats,
                 "reconciliations": reconciliation_stats,
                 "payments": payment_stats,
                 "native_documents": native_document_stats,

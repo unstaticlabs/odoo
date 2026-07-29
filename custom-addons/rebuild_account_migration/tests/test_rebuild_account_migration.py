@@ -1342,6 +1342,16 @@ class TestRebuildAccountMigration(TransactionCase):
             cca_card_links[0].get("invisible"),
             "not cca_projection_ready",
         )
+        cca_settings_links = home_arch.xpath(
+            "//div[contains(@class, 'o_usl_cca_position_card')]"
+            "//div[@invisible='cca_projection_ready']"
+            "/button[@name='action_open_cca_settings' and @type='object']",
+        )
+        self.assertEqual(len(cca_settings_links), 1)
+        self.assertEqual(
+            cca_settings_links[0].get("groups"),
+            "base.group_system",
+        )
         matching_stat_buttons = home_arch.xpath(
             "//div[contains(@class, 'oe_button_box')]"
             "/button[@name='action_open_bank_matching']"
@@ -1560,6 +1570,93 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         with self.assertRaises(AccessError):
             hidden.with_user(reviewer).read(["company_id"])
+
+    def test_cca_defaults_restore_unique_employee_without_cloning_user(self):
+        company = self.env["res.company"].create({
+            "name": "CCA default company",
+            "currency_id": self.company.currency_id.id,
+        })
+        Account = self.env["account.account"].sudo().with_company(company)
+        cca_account = Account.create({
+            "code": "455100",
+            "name": "Shareholder current account",
+            "account_type": "liability_current",
+            "reconcile": True,
+            "company_ids": [Command.set(company.ids)],
+        })
+        offset_account = Account.create({
+            "code": "471CCA",
+            "name": "CCA default offset",
+            "account_type": "asset_current",
+            "company_ids": [Command.set(company.ids)],
+        })
+        journal = self.env["account.journal"].sudo().with_company(
+            company,
+        ).create({
+            "name": "CCA defaults",
+            "code": "CCAD",
+            "type": "general",
+            "company_id": company.id,
+        })
+        shareholder = self.env["res.partner"].sudo().create({
+            "name": "Unique CCA shareholder",
+            "email": "shareholder@example.invalid",
+            "company_id": company.id,
+        })
+        move = self.env["account.move"].sudo().with_company(company).create({
+            "journal_id": journal.id,
+            "company_id": company.id,
+            "date": fields.Date.context_today(self),
+            "line_ids": [
+                Command.create({
+                    "name": "CCA credit",
+                    "account_id": cca_account.id,
+                    "partner_id": shareholder.id,
+                    "credit": 100.0,
+                }),
+                Command.create({
+                    "name": "CCA offset",
+                    "account_id": offset_account.id,
+                    "debit": 100.0,
+                }),
+            ],
+        })
+        move.action_post()
+
+        user_count = self.env["res.users"].sudo().search_count([])
+        stats = self.env[
+            "res.company"
+        ]._rebuild_apply_cca_projection_defaults()
+        company.invalidate_recordset()
+        self.assertEqual(company.rebuild_overview_cca_account_id, cca_account)
+        self.assertEqual(
+            company.rebuild_overview_cca_employee_id.work_contact_id,
+            shareholder,
+        )
+        self.assertEqual(
+            company.rebuild_overview_cca_employee_id.work_email,
+            shareholder.email,
+        )
+        self.assertEqual(stats["configured_account_count"], 1)
+        self.assertEqual(stats["configured_employee_count"], 1)
+        self.assertEqual(stats["created_employee_count"], 1)
+        self.assertEqual(
+            self.env["res.users"].sudo().search_count([]),
+            user_count,
+        )
+
+        rerun_stats = self.env[
+            "res.company"
+        ]._rebuild_apply_cca_projection_defaults()
+        self.assertEqual(rerun_stats["configured_account_count"], 0)
+        self.assertEqual(rerun_stats["configured_employee_count"], 0)
+        self.assertEqual(rerun_stats["created_employee_count"], 0)
+
+        overview = self.env["rebuild.account.overview"].search([], limit=1)
+        settings_action = overview.action_open_cca_settings()
+        self.assertEqual(settings_action["res_model"], "res.config.settings")
+        self.assertEqual(settings_action["context"]["module"], "account")
+        self.assertEqual(settings_action["target"], "current")
 
     def test_accounting_home_cash_position_uses_real_bank_and_settlement_items(self):
         company = self.env["res.company"].create({

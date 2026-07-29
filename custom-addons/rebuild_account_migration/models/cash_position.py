@@ -53,6 +53,72 @@ class ResCompany(models.Model):
         ),
     )
 
+    @api.model
+    def _rebuild_apply_cca_projection_defaults(self):
+        """Complete only unambiguous CCA configuration from posted entries.
+
+        Exact ledger replay intentionally does not clone login accounts. It
+        can restore the employee/expense-owner business record when one unique
+        partner is used on the company's exact 455100 account. Existing
+        governed configuration always wins.
+        """
+        stats = {
+            "configured_account_count": 0,
+            "configured_employee_count": 0,
+            "created_employee_count": 0,
+        }
+        Employee = self.env["hr.employee"].sudo().with_context(
+            active_test=False,
+        )
+        MoveLine = self.env["account.move.line"].sudo()
+        for company in self.sudo().search([]):
+            values = {}
+            account = company.rebuild_overview_cca_account_id
+            if not account:
+                accounts = self.env["account.account"].sudo().with_company(
+                    company,
+                ).search([
+                    ("company_ids", "in", company.id),
+                    ("code", "=", "455100"),
+                ])
+                if len(accounts) == 1:
+                    account = accounts
+                    values["rebuild_overview_cca_account_id"] = account.id
+                    stats["configured_account_count"] += 1
+            if not account or company not in account.company_ids:
+                continue
+
+            employee = company.rebuild_overview_cca_employee_id
+            if not employee:
+                partners = MoveLine.with_company(company).search([
+                    ("company_id", "=", company.id),
+                    ("account_id", "=", account.id),
+                    ("parent_state", "=", "posted"),
+                    ("partner_id", "!=", False),
+                ]).partner_id
+                if len(partners) == 1:
+                    partner = partners
+                    employees = Employee.search([
+                        ("company_id", "=", company.id),
+                        ("work_contact_id", "=", partner.id),
+                    ])
+                    if len(employees) == 1:
+                        employee = employees
+                    elif not employees:
+                        employee = Employee.create({
+                            "name": partner.name,
+                            "company_id": company.id,
+                            "work_contact_id": partner.id,
+                            "work_email": partner.email,
+                        })
+                        stats["created_employee_count"] += 1
+                    if employee:
+                        values["rebuild_overview_cca_employee_id"] = employee.id
+                        stats["configured_employee_count"] += 1
+            if values:
+                company.write(values)
+        return stats
+
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
@@ -723,7 +789,7 @@ class RebuildAccountReviewSummary(models.Model):
             )
             summary.cca_projection_ready = bool(
                 cca_projection["account"]
-                and cca_projection["employee"]
+                and cca_projection["employee"],
             )
             summary.cca_projection_uses_inferred_config = (
                 cca_projection["inferred"]
@@ -924,4 +990,19 @@ class RebuildAccountReviewSummary(models.Model):
                 "delete": False,
             },
         })
+        return action
+
+    def action_open_cca_settings(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "account.action_account_config",
+        )
+        action.update({
+            "name": "Configure shareholder current account",
+            "target": "current",
+        })
+        action["context"] = {
+            "module": "account",
+            "bin_size": False,
+        }
         return action
