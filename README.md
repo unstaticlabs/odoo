@@ -31,6 +31,10 @@ Primary entry points:
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
   for reconstruction and parity evidence.
+- [Projects restoration runbook](docs/operations/project-restoration.md) for
+  repeatable Odoo Online project and task recovery.
+- [Product and migration boundary](docs/agents/product-migration-boundary.md)
+  for keeping reconstruction machinery out of the delivered Odoo runtime.
 
 The integration baseline is upstream commit
 `8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
