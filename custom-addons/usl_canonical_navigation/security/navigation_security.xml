@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="rule_usl_navigation_workspace_read" model="ir.rule">
+        <field name="name">Navigation workspaces: permitted readers</field>
+        <field name="model_id" ref="model_usl_navigation_workspace"/>
+        <field name="domain_force">[
+            '&amp;',
+                ('company_ids', 'in', company_ids),
+                '|', '|',
+                    ('owner_id', '=', user.id),
+                    '&amp;',
+                        ('share_mode', '=', 'users'),
+                        ('permitted_user_ids', 'in', user.id),
+                    ('share_mode', '=', 'internal')
+        ]</field>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_usl_navigation_workspace_owner" model="ir.rule">
+        <field name="name">Navigation workspaces: owner changes</field>
+        <field name="model_id" ref="model_usl_navigation_workspace"/>
+        <field name="domain_force">[('owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>
