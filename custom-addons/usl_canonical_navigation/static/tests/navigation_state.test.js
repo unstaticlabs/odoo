@@ -10,6 +10,7 @@ import {
     normalizeIds,
     parsePanelState,
     parseCompanyIds,
+    portableRouteMatchesAction,
     stableJson,
     withPortableActionAlias,
 } from "../src/navigation_state";
@@ -119,4 +120,84 @@ test("a genuinely different action does not inherit collection state", () => {
     expect(router.stateToUrl({ action: "vendors", nv: 1, cids: 1 })).toBe(
         "/odoo/vendors?nv=1&cids=1"
     );
+});
+
+test("repeated serialization of a new action never adopts the previous action state", () => {
+    router.urlToState(
+        new URL(
+            "https://odoo.example.test/odoo/customers" +
+                "?nv=1&cids=1&domain=%5B%5B%22is_company%22%2C%22%3D%22%2Ctrue%5D%5D" +
+                "&groupBy=%5B%22country_id%22%5D&columns=email%2Cphone"
+        )
+    );
+    const transitionState = {
+        action: "expenses",
+        nv: 1,
+        cids: 1,
+        domain: '[["is_company","=",true]]',
+        groupBy: '["country_id"]',
+        columns: "email,phone",
+    };
+
+    expect(router.stateToUrl(transitionState)).toBe("/odoo/expenses?nv=1&cids=1");
+    expect(router.stateToUrl(transitionState)).toBe("/odoo/expenses?nv=1&cids=1");
+});
+
+test("normal action navigation strips portable state already merged by core", () => {
+    redirect(
+        "/odoo/customers?nv=1&cids=1" +
+            "&domain=%5B%5B%22is_company%22%2C%22%3D%22%2Ctrue%5D%5D" +
+            "&groupBy=%5B%22country_id%22%5D&columns=email%2Cphone"
+    );
+    router.pushState(
+        {
+            action: "expenses",
+            nv: 1,
+            cids: 1,
+            domain: '[["is_company","=",true]]',
+            groupBy: '["country_id"]',
+            columns: "email,phone",
+        },
+        { sync: true }
+    );
+    const destination = new URL(browser.location.href);
+
+    expect(destination.pathname).toBe("/odoo/expenses");
+    expect(destination.search).toBe("?nv=1&cids=1");
+});
+
+test("portable state is consumed only by the action that owns its route", () => {
+    const customerRoute = {
+        nv: 1,
+        action: 55,
+        domain: '[["is_company","=",true]]',
+    };
+    const customers = {
+        actionId: 55,
+        actionXmlId: "base.action_partner_form",
+        resModel: "res.partner",
+    };
+    const expenses = {
+        actionId: 421,
+        actionXmlId: "hr_expense.hr_expense_actions_my_all",
+        resModel: "hr.expense",
+    };
+
+    expect(portableRouteMatchesAction(customerRoute, customers)).toBe(true);
+    expect(portableRouteMatchesAction(customerRoute, expenses)).toBe(false);
+    expect(
+        portableRouteMatchesAction(
+            { nv: 1, action: "expenses" },
+            {
+                ...expenses,
+                currentAction: { id: 421, path: "expenses" },
+            }
+        )
+    ).toBe(true);
+    expect(
+        portableRouteMatchesAction(
+            { nv: 1, model: "res.partner" },
+            { resModel: "res.partner" }
+        )
+    ).toBe(true);
 });

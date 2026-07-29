@@ -60,7 +60,7 @@ defineModels([
 test("canonical list URL restores page, selection, and optional columns", async () => {
     const domain = encodeURIComponent('[["name","ilike","Navigation"]]');
     redirect(
-        `/odoo/navigation-partners?nv=1&cids=1&domain=${domain}` +
+        `/odoo/navigation.partner?nv=1&cids=1&domain=${domain}` +
             "&columns=email&offset=2&limit=2&selection=3%2C4"
     );
     mockService("canonical_navigation", {
@@ -107,4 +107,37 @@ test("canonical list URL restores page, selection, and optional columns", async 
 
     expect(router.current.selection).toBe(undefined);
     expect(new URL(browser.location.href).searchParams.has("selection")).toBe(false);
+});
+
+test("a destination view ignores portable state owned by the previous action", async () => {
+    const domain = encodeURIComponent('[["name","=","Navigation Three"]]');
+    redirect(
+        `/odoo/previous-action?nv=1&cids=1&domain=${domain}` +
+            "&columns=email&offset=2&limit=2&selection=3%2C4"
+    );
+    mockService("canonical_navigation", {
+        blocked: false,
+        async ensurePortable() {},
+    });
+    startRouter();
+
+    await mountView({
+        resModel: "navigation.partner",
+        type: "list",
+        arch: `
+            <list>
+                <field name="name"/>
+                <field name="email" optional="show"/>
+                <field name="phone" optional="show"/>
+            </list>
+        `,
+        searchViewArch: "<search/>",
+    });
+    await animationFrame();
+
+    expect(".o_data_row").toHaveCount(4);
+    expect(".o_data_row:eq(0)").toHaveText(/Navigation One/);
+    expect(".o_data_row .o_list_record_selector input:checked").toHaveCount(0);
+    expect("th[data-name='email']").toHaveCount(1);
+    expect("th[data-name='phone']").toHaveCount(1);
 });

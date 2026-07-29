@@ -18,6 +18,7 @@ import {
     navigationPatch,
     normalizeIds,
     parsePanelState,
+    portableRouteMatchesAction,
     writePortableRoute,
 } from "./navigation_state";
 
@@ -30,6 +31,15 @@ function commit(patchValue, { history = "replace" } = {}) {
     writePortableRoute(() =>
         router[method](navigationPatch(patchValue, activeCompanyIds()), { sync: true })
     );
+}
+
+function portableRouteOwnsView(env, resModel) {
+    return portableRouteMatchesAction(router.current, {
+        actionId: env.config.actionId,
+        actionXmlId: env.config.actionXmlId,
+        resModel,
+        currentAction: env.services.action.currentAction,
+    });
 }
 
 function canonicalPanelState(searchModel) {
@@ -157,6 +167,7 @@ async function restoreCanonicalCollection(controller, { restoreSearch = false } 
     if (
         controller.canonicalListRestoring ||
         !controller.model.isReady ||
+        !portableRouteOwnsView(controller.env, controller.model.root.resModel) ||
         Number(router.current.nv) !== NAVIGATION_VERSION ||
         (router.current.resId && router.current.resId !== "new")
     ) {
@@ -250,8 +261,10 @@ patch(SearchModel.prototype, {
     },
 
     async load(config) {
-        const panel = parsePanelState(router.current.panel);
-        if (Number(router.current.nv) === NAVIGATION_VERSION && router.current.panel !== undefined) {
+        const ownsRoute = portableRouteOwnsView(this.env, config.resModel);
+        this.canonicalOwnsRouteDuringLoad = ownsRoute;
+        const panel = ownsRoute ? parsePanelState(router.current.panel) : undefined;
+        if (ownsRoute && router.current.panel !== undefined) {
             const context = Object.fromEntries(
                 Object.entries(config.context || {}).filter(
                     ([key]) => !key.startsWith("searchpanel_default_")
@@ -270,7 +283,7 @@ patch(SearchModel.prototype, {
             config = { ...config, context };
         }
         this.canonicalLoadConfig = { ...config, state: undefined };
-        if (Number(router.current.nv) === NAVIGATION_VERSION && config.state) {
+        if (ownsRoute && config.state) {
             // Browser history state is an optimization only.  A canonical URL is
             // authoritative, including when it intentionally contains no custom
             // search facets and should therefore restore the action defaults.
@@ -278,7 +291,7 @@ patch(SearchModel.prototype, {
         }
         const result = await super.load(config);
         if (
-            Number(router.current.nv) === NAVIGATION_VERSION &&
+            ownsRoute &&
             router.current.panel !== undefined
         ) {
             await this.sectionsPromise;
@@ -313,6 +326,7 @@ patch(SearchModel.prototype, {
     async restoreCanonicalRoute() {
         if (
             this.canonicalRestoring ||
+            !portableRouteOwnsView(this.env, this.resModel) ||
             Number(router.current.nv) !== NAVIGATION_VERSION ||
             searchStateMatchesRoute(canonicalSearchState(this))
         ) {
@@ -328,6 +342,12 @@ patch(SearchModel.prototype, {
     },
 
     _tryApplySharedFilters(urlDomain, urlGroupBy, urlOrderBy) {
+        if (this.canonicalOwnsRouteDuringLoad === false) {
+            // The action service creates the destination search model before it
+            // commits the destination route.  At that point router.current still
+            // belongs to the action being left and must be ignored.
+            return false;
+        }
         if (Number(router.current.nv) !== NAVIGATION_VERSION) {
             return super._tryApplySharedFilters(...arguments);
         }
@@ -361,7 +381,12 @@ patch(SearchModel.prototype, {
         const shouldCommit = this.canonicalCommitPending;
         this.canonicalCommitPending = false;
         const result = await super._notify(...arguments);
-        if (shouldCommit && !this.blockNotification && !this.canonicalNavigation.blocked) {
+        if (
+            shouldCommit &&
+            portableRouteOwnsView(this.env, this.resModel) &&
+            !this.blockNotification &&
+            !this.canonicalNavigation.blocked
+        ) {
             const state = canonicalSearchState(this);
             if (!searchStateMatchesRoute(state)) {
                 await this.canonicalNavigation.ensurePortable(state, { history: "push" });
@@ -462,7 +487,11 @@ patch(ListController.prototype, {
     get modelParams() {
         let params = super.modelParams;
         const limit = Number(router.current.limit);
-        if (Number.isSafeInteger(limit) && limit > 0) {
+        if (
+            portableRouteOwnsView(this.env, this.props.resModel) &&
+            Number.isSafeInteger(limit) &&
+            limit > 0
+        ) {
             params.limit = limit;
         }
         params = withCanonicalRootLoadHook(
@@ -497,7 +526,11 @@ patch(KanbanController.prototype, {
     get modelParams() {
         let params = super.modelParams;
         const limit = Number(router.current.limit);
-        if (Number.isSafeInteger(limit) && limit > 0) {
+        if (
+            portableRouteOwnsView(this.env, this.props.resModel) &&
+            Number.isSafeInteger(limit) &&
+            limit > 0
+        ) {
             params.limit = limit;
         }
         params = withCanonicalRootLoadHook(
@@ -527,13 +560,15 @@ patch(KanbanController.prototype, {
 patch(DynamicList.prototype, {
     async load(params = {}) {
         const result = await super.load(...arguments);
-        if (this.config.isRoot && Array.isArray(this.records)) {
+        const ownsRoute = portableRouteOwnsView(this.model.env, this.resModel);
+        if (ownsRoute && this.config.isRoot && Array.isArray(this.records)) {
             const selectedIds = new Set(normalizeIds(router.current.selection));
             for (const record of this.records) {
                 record._toggleSelection(selectedIds.has(record.resId));
             }
         }
         if (
+            ownsRoute &&
             this.config.isRoot &&
             (Object.hasOwn(params, "offset") || Object.hasOwn(params, "limit")) &&
             (
@@ -574,6 +609,7 @@ patch(ListRenderer.prototype, {
         super.setup(...arguments);
         onMounted(() => {
             if (
+                portableRouteOwnsView(this.env, this.props.list.resModel) &&
                 Number(router.current.nv) === NAVIGATION_VERSION &&
                 this.props.list.config.isRoot &&
                 router.current.columns === undefined
@@ -586,6 +622,7 @@ patch(ListRenderer.prototype, {
     computeOptionalActiveFields() {
         const fields = super.computeOptionalActiveFields(...arguments);
         if (
+            !portableRouteOwnsView(this.env, this.props.list.resModel) ||
             !this.props.list.config.isRoot ||
             router.current.columns === undefined
         ) {
@@ -622,7 +659,11 @@ patch(ListRenderer.prototype, {
 patch(Notebook.prototype, {
     setup() {
         super.setup(...arguments);
-        if (!this.env.inDialog && router.current.tab) {
+        if (
+            !this.env.inDialog &&
+            portableRouteOwnsView(this.env, this.env.model?.root?.resModel) &&
+            router.current.tab
+        ) {
             const page = String(router.current.tab);
             if (this.pages.some(([pageId]) => pageId === page)) {
                 this.state.currentPage = page;
@@ -642,10 +683,15 @@ patch(Notebook.prototype, {
 patch(CalendarModel.prototype, {
     setup(params) {
         super.setup(...arguments);
-        if (router.current.scale && this.meta.scales.includes(router.current.scale)) {
+        const ownsRoute = portableRouteOwnsView(this.env, params.resModel);
+        if (
+            ownsRoute &&
+            router.current.scale &&
+            this.meta.scales.includes(router.current.scale)
+        ) {
             this.meta.scale = router.current.scale;
         }
-        if (router.current.date) {
+        if (ownsRoute && router.current.date) {
             const restoredDate = luxon.DateTime.fromISO(String(router.current.date));
             if (restoredDate.isValid) {
                 this.meta.date = restoredDate.startOf("day");

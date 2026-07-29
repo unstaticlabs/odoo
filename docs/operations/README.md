@@ -7,4 +7,5 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Backup and recovery runbook](backup-and-recovery-runbook.md)
 - [Run imported accounting data in development](run-imported-accounting-dev.md)
 - [Accounting development workflow](accounting-development-workflow.md)
+- [Canonical navigation QA guide](canonical-navigation-qa-guide.md)
 - [Activate French electronic-invoice reception](activate-french-electronic-invoicing.md)

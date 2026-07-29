@@ -90,6 +90,37 @@ export async function withPortableActionAlias(callback) {
     }
 }
 
+export function portableRouteMatchesAction(
+    routeState,
+    { actionId, actionXmlId, resModel, currentAction } = {}
+) {
+    if (Number(routeState.nv) !== NAVIGATION_VERSION) {
+        return false;
+    }
+    if (portableActionAliasDepth > 0) {
+        return true;
+    }
+    if (routeState.action !== undefined) {
+        const identifiers = [actionId, actionXmlId];
+        if (
+            currentAction &&
+            actionId !== undefined &&
+            String(currentAction.id) === String(actionId)
+        ) {
+            identifiers.push(
+                currentAction.id,
+                currentAction.xml_id,
+                currentAction.path,
+                currentAction.tag
+            );
+        }
+        return identifiers
+            .filter((identifier) => identifier !== undefined && identifier !== false)
+            .some((identifier) => String(identifier) === String(routeState.action));
+    }
+    return Boolean(routeState.model && resModel && routeState.model === resModel);
+}
+
 export function stableJson(value) {
     if (Array.isArray(value)) {
         return `[${value.map(stableJson).join(",")}]`;
@@ -262,7 +293,6 @@ export function installCanonicalRouter() {
         }
         return urlToState(visibleUrl);
     };
-    let shadowAction = router.current.action;
     let portableShadow = Object.fromEntries(
         [...PORTABLE_STATE_KEYS, "ws"]
             .filter((key) => router.current[key] !== undefined)
@@ -337,6 +367,15 @@ export function installCanonicalRouter() {
                             }
                         }
                     }
+                } else if (portableWriteDepth === 0) {
+                    // Core action transitions may already contain the current
+                    // router query.  A normal menu/app navigation owns a new
+                    // workspace and must not carry search/view state from the
+                    // action it is leaving.  Explicit configured navigation
+                    // uses writePortableRoute() and is preserved.
+                    for (const key of [...PORTABLE_STATE_KEYS, "ws"]) {
+                        delete nextState[key];
+                    }
                 }
                 delete nextState.globalState;
                 if (nextState.actionStack) {
@@ -365,16 +404,12 @@ export function installCanonicalRouter() {
         serializable.nv ??= router.current.nv ?? NAVIGATION_VERSION;
         serializable.cids ??=
             router.current.cids ?? visibleStateFromLocation().cids;
-        const sameAction =
-            portableActionAliasDepth > 0 ||
-            (
-                actionPath(serializable.action) !== undefined &&
-                actionPath(serializable.action) === actionPath(shadowAction)
-            );
+        const visibleState = visibleStateFromLocation();
+        const visibleSameAction =
+            actionPath(serializable.action) !== undefined &&
+            actionPath(visibleState.action) === actionPath(serializable.action);
+        const sameAction = portableActionAliasDepth > 0 || visibleSameAction;
         if (sameAction) {
-            const visibleState = visibleStateFromLocation();
-            const visibleSameAction =
-                actionPath(visibleState.action) === actionPath(serializable.action);
             for (const key of [...PORTABLE_STATE_KEYS, "ws"]) {
                 if (visibleSameAction && portableWriteDepth === 0) {
                     if (visibleState[key] === undefined) {
@@ -395,6 +430,11 @@ export function installCanonicalRouter() {
             }
         } else {
             portableShadow = {};
+            if (portableWriteDepth === 0) {
+                for (const key of [...PORTABLE_STATE_KEYS, "ws"]) {
+                    delete serializable[key];
+                }
+            }
         }
         for (const key of [...PORTABLE_STATE_KEYS, "ws"]) {
             if (Object.hasOwn(serializable, key)) {
@@ -405,7 +445,6 @@ export function installCanonicalRouter() {
                 }
             }
         }
-        shadowAction = serializable.action;
         if (serializable.ws) {
             for (const key of [...EXPANDED_PORTABLE_KEYS, ...WORKSPACE_ONLY_KEYS]) {
                 delete serializable[key];
@@ -420,7 +459,6 @@ export function installCanonicalRouter() {
     };
     router.urlToState = (url) => {
         const state = urlToState(url);
-        shadowAction = state.action;
         portableShadow = Object.fromEntries(
             [...PORTABLE_STATE_KEYS, "ws"]
                 .filter((key) => state[key] !== undefined)
