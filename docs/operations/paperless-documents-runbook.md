@@ -32,12 +32,15 @@ authoritative media, portable export, and consume staging. Odoo has no
 Create a non-human Paperless integration owner with only the API model
 permissions required for documents, tasks, metadata reads, and document object
 permission updates. Store its token only in Odoo system parameters/secret
-injection. Map every direct Paperless user under **Documents > Paperless
-identities**. Never map users to a shared administrator.
+injection. Map every direct Paperless user under **Documents > Configuration >
+User access**. Never map users to a shared administrator. The technical model
+remains `usl.paperless.user.mapping`; only its user-facing name changed.
 
 Permission synchronization is fail closed: a failed sync blocks Paperless deep
-links and marks the document unsafe. Test actual document object permissions;
-tag or correspondent permissions alone are insufficient.
+links and marks the document unsafe. Healthy checks are quiet in the workspace;
+failures surface there and the check timestamp/error remain in diagnostics.
+Test actual document object permissions; tag or correspondent permissions alone
+are insufficient.
 
 Install the Odoo-created fail-closed Paperless workflow before enabling any
 consume, mail, API, or web ingestion channel. It assigns new documents to the
@@ -46,12 +49,29 @@ company/confidentiality state and synchronized explicit document-object
 permissions. Reception and e-reporting live flags remain unrelated and disabled
 outside their production activation runbooks.
 
+## Metadata catalogs and smart views
+
+Full and incremental reconciliation refresh Paperless tags, correspondents, and
+document types before document rows. Catalog records are cache entries keyed by
+Paperless IDs. Renaming a Paperless item therefore keeps assignments, filters,
+and smart views stable.
+
+Users create and edit metadata from Odoo through REST API v10. Paperless is
+updated first and the returned representation refreshes the cache. Deletion is
+manager-only. Matching patterns and algorithms are Paperless concepts; Odoo
+does not invent a second classifier or confidence score.
+
+Shared smart views are manager-maintained under **Documents > Configuration >
+Smart views**. Metadata-backed views reference stable IDs. Personal saved
+filters are visible only to their owner. After catalog drift, run a full
+reconciliation rather than editing cache rows directly.
+
 ## Monitoring
 
 Monitor the Odoo and Paperless health endpoints, worker queue depth, failed
 tasks, consume errors, storage capacity, last successful Odoo sync, permission
-sync failures, missing documents, and backup age. A Paperless outage must page
-the archive owner but must not restart or block Odoo.
+sync failures, catalog drift, missing documents, and backup age. A Paperless
+outage must page the archive owner but must not restart or block Odoo.
 
 ## Upgrade and rollback
 

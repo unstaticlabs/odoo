@@ -18,6 +18,19 @@ version-specific checksum. A new version changes the document cache's current
 checksum without losing the received-original checksum or stable Odoo
 relationships.
 
+In the Odoo Documents interface, **Download original** is the primary evidence
+action. Paperless's processed/searchable PDF remains available under **More**
+and is clearly described as a derivative. The compact **File versions** section
+labels **Current** and **Received original**. Restoring an older file creates a
+new current Paperless version and retains the full sequence; it never replaces
+the received evidence. Version checksums and access-sync timestamps remain in
+technical details unless an integrity or permission problem needs action.
+
+Paperless tags, correspondents, and document types help users find and classify
+evidence but do not grant accounting, company, or HR access. Accounting smart
+views combine Paperless metadata with Odoo's authoritative
+`accounting_evidence`, company, confidentiality, and record rules.
+
 Posted invoice PDFs, finalized reports, FEC exports, and tax packages may need
 both an Odoo operational copy and a Paperless archival copy. This is deliberate:
 the relationship records source `odoo_generated`, checksum, filename, user,
