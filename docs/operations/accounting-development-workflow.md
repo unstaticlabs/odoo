@@ -135,6 +135,28 @@ the normal development service afterward:
 scripts/odoo-dev test-js rebuild_account_migration
 ```
 
+Installed test tags use the same browser-capable image. This matters for OCA
+modules whose Python wrapper launches Hoot tests: the base runtime image does
+not include Chromium or `websocket-client`, so using it would skip browser
+coverage while appearing successful.
+
+```bash
+scripts/odoo-dev test-tag /account_reconcile_oca
+```
+
+For a clean disposable module install, provide a database name other than
+`odoo_dev`; the helper removes its database, filestore and container and then
+restores the development server:
+
+```bash
+scripts/odoo-dev test account_reconcile_oca odoo_test_account_reconcile_oca
+```
+
+`test-tag` forwards `ODOO_DEV_DB` and its exact `ODOO_DB_FILTER`, so explicitly
+selected candidate clones remain testable without falling back to `odoo_dev`.
+`test` gives its disposable database an exact temporary filter of its own, so
+the browser wrappers cannot be redirected to the development database.
+
 For the Transactions navigation contract and its narrower server-side command,
 see [Transactions navigation contract](../accounting/transaction-navigation.md).
 

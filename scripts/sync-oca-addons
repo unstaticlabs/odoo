@@ -116,6 +116,7 @@ apply_saas_patch "account-reconcile" "account_reconcile_oca-next-day-rates.patch
 apply_saas_patch "account-reconcile" "account_reconcile_oca-dashboard-owl.patch"
 apply_saas_patch "account-reconcile" "account_reconcile_oca-partner-bank-fields.patch"
 apply_saas_patch "account-reconcile" "account_reconcile_oca-browser-assets.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-test-compat.patch"
 apply_saas_patch "bank-statement-import" "bank_statement_import-sanitize-import.patch"
 apply_saas_patch "bank-statement-import" "bank_statement_import-partner-bank-fields.patch"
 

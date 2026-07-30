@@ -1,0 +1,97 @@
+diff --git a/account_reconcile_oca/static/tests/components/account_reconcile_oca_chatter.test.js b/account_reconcile_oca/static/tests/components/account_reconcile_oca_chatter.test.js
+index 88dd0be..3e7c63e 100644
+--- a/account_reconcile_oca/static/tests/components/account_reconcile_oca_chatter.test.js
++++ b/account_reconcile_oca/static/tests/components/account_reconcile_oca_chatter.test.js
+@@ -1,11 +1,9 @@
+ import {animationFrame, click, expect, test} from "@odoo/hoot";
+ import {
+-    asyncStep,
+     defineModels,
+     fields,
+     models,
+     mountView,
+-    waitForSteps,
+ } from "@web/../tests/web_test_helpers";
+ import {
+     contains,
+@@ -44,7 +42,7 @@ defineModels([MainElement, ChildElement]);
+ 
+ test("Check Chatter from Child Model", async () => {
+     onRpcBefore("/mail/message/post", (args) => {
+-        asyncStep("/mail/message/post");
++        expect.step("/mail/message/post");
+         const expected = {
+             context: args.context,
+             post_data: {
+@@ -82,5 +80,5 @@ test("Check Chatter from Child Model", async () => {
+     await animationFrame();
+     await insertText(".o-mail-Composer-input", "hey");
+     await click(".o-mail-Composer-send:enabled");
+-    await waitForSteps(["/mail/message/post"]);
++    await expect.waitForSteps(["/mail/message/post"]);
+ });
+diff --git a/account_reconcile_oca/tests/test_bank_account_reconcile.py b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+index 338eefd..126e9ef 100644
+--- a/account_reconcile_oca/tests/test_bank_account_reconcile.py
++++ b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+@@ -1413,7 +1413,11 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+         self.assertEqual(bank_stmt_line.partner_id, partner)
+ 
+     def test_bank_partner_match_partner(self):
+-        partner = self.env["res.partner"].create({"name": "Dixmit Consulting"})
++        partner = self.env["res.partner"].create(
++            {"name": "Temporary OCA test partner"}
++        )
++        partner_name = f"OCA Test Partner {partner.id} Consulting"
++        partner.name = partner_name
+         bank_stmt = self.acc_bank_stmt_model.create(
+             {
+                 "journal_id": self.bank_journal_usd.id,
+@@ -1427,7 +1431,7 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+                 "journal_id": self.bank_journal_usd.id,
+                 "statement_id": bank_stmt.id,
+                 "amount": 100,
+-                "partner_name": "Dixmit",
++                "partner_name": partner_name,
+                 "date": time.strftime("%Y-07-16"),
+             }
+         )
+@@ -1672,7 +1676,11 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             }
+         )
+         self.assertEqual(bank_stmt_line.aggregate_id, 739447)
+-        self.assertEqual(bank_stmt_line.aggregate_name, "07/15/2025")
++        lang = self.env["res.lang"]._lang_get(self.env.user.lang)
++        expected_name = time.strftime(
++            lang.date_format, time.strptime(date, "%Y-%m-%d")
++        )
++        self.assertEqual(bank_stmt_line.aggregate_name, expected_name)
+ 
+     def test_reconcile_aggregate_week(self):
+         self.bank_journal_euro.reconcile_aggregate = "week"
+@@ -1695,7 +1703,11 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             }
+         )
+         self.assertEqual(bank_stmt_line.aggregate_id, 739445)
+-        self.assertEqual(bank_stmt_line.aggregate_name, "07/13/2025")
++        lang = self.env["res.lang"]._lang_get(self.env.user.lang)
++        expected_name = time.strftime(
++            lang.date_format, time.strptime("2025-07-13", "%Y-%m-%d")
++        )
++        self.assertEqual(bank_stmt_line.aggregate_name, expected_name)
+ 
+     def test_reconcile_aggregate_month(self):
+         self.bank_journal_euro.reconcile_aggregate = "month"
+@@ -1718,7 +1730,11 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             }
+         )
+         self.assertEqual(bank_stmt_line.aggregate_id, 739433)
+-        self.assertEqual(bank_stmt_line.aggregate_name, "07/01/2025")
++        lang = self.env["res.lang"]._lang_get(self.env.user.lang)
++        expected_name = time.strftime(
++            lang.date_format, time.strptime("2025-07-01", "%Y-%m-%d")
++        )
++        self.assertEqual(bank_stmt_line.aggregate_name, expected_name)
+ 
+     def test_add_statement(self):
+         bank_stmt_line_01 = self.acc_bank_stmt_line_model.create(

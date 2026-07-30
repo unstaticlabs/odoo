@@ -31,6 +31,10 @@ Primary entry points:
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
   for reconstruction and parity evidence.
+- [Projects restoration runbook](docs/operations/project-restoration.md) for
+  repeatable Odoo Online project and task recovery.
+- [Product and migration boundary](docs/agents/product-migration-boundary.md)
+  for keeping reconstruction machinery out of the delivered Odoo runtime.
 
 The integration baseline is upstream commit
 `8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
@@ -227,10 +231,23 @@ From the host, run:
 scripts/odoo-dev test your_module odoo_test_your_module
 ```
 
-This performs a clean, module-scoped install/test run. The helper stops and
-restores the normal development server and removes the named test database,
-filestore and container afterward. It refuses to use `odoo_dev` as a test
-database.
+This performs a clean, module-scoped backend and browser test run in the
+Chromium-enabled `test` image. The helper stops and restores the normal
+development server and removes the named test database, filestore and
+container afterward. It refuses to use `odoo_dev` as a test database.
+
+Build the user-documentation site with its separate pinned toolchain:
+
+```bash
+python3 -m venv .venv-docs
+.venv-docs/bin/python -m pip install -r requirements-docs.txt
+make USER_DOCS_PYTHON=.venv-docs/bin/python user-docs-build
+```
+
+MkDocs is intentionally not a production Odoo dependency. A plain
+`make user-docs-build` therefore expects MkDocs to be installed in the selected
+host Python; use `USER_DOCS_PYTHON` to select the disposable documentation
+environment explicitly.
 
 Debug configurations are available in `.devcontainer/launch.json`:
 

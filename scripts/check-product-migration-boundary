@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+# ruff: noqa: I001, T201
+
+import ast
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PRODUCT_ADDONS = ROOT / "custom-addons"
+MIGRATION_ADDONS = ROOT / "migration" / "project_restore" / "addons"
+
+
+def manifest(path):
+    return ast.literal_eval(path.read_text())
+
+
+errors = []
+if not (MIGRATION_ADDONS / "usl_project_restore" / "__manifest__.py").is_file():
+    errors.append("The project restoration add-on is not migration-isolated.")
+
+for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
+    addon_name = addon_manifest.parent.name
+    values = manifest(addon_manifest)
+    dependencies = set(values.get("depends", []))
+    if addon_name == "usl_project_restore" or "restore" in addon_name:
+        errors.append(
+            f"Migration-only add-on {addon_name} is on the product add-ons path.",
+        )
+    if "usl_project_restore" in dependencies:
+        errors.append(
+            f"Product add-on {addon_name} depends on usl_project_restore.",
+        )
+
+compose = (ROOT / "compose.yaml").read_text()
+restore_harness = (ROOT / "scripts/project-restore").read_text()
+default_addons_path = (
+    "/opt/odoo/addons,/opt/odoo/odoo/addons,"
+    "/mnt/custom-addons,/mnt/oca-addons"
+)
+if default_addons_path not in compose:
+    errors.append("The expected production add-ons path guard is missing.")
+if "/mnt/project-migration-addons" not in compose:
+    errors.append("The dedicated migration add-ons mount is missing.")
+if (
+    "--addons-path="
+    + default_addons_path
+    + ",/mnt/project-migration-addons"
+    not in compose
+):
+    errors.append(
+        "The migration add-ons path is not confined to the migration service.",
+    )
+if '--addons-path="$migration_addons_path"' not in restore_harness:
+    errors.append(
+        "The project restoration harness does not explicitly pass the "
+        "migration-only add-ons path.",
+    )
+
+runtime_project = PRODUCT_ADDONS / "usl_project"
+for path in runtime_project.rglob("*"):
+    if (
+        not path.is_file()
+        or "__pycache__" in path.parts
+        or "tests" in path.parts
+    ):
+        continue
+    text = path.read_text(errors="ignore")
+    for forbidden in (
+        "restore",
+        "usl.project.restore",
+        "rebuild_source_",
+        "source_snapshot",
+        "Restoration Runs",
+    ):
+        if forbidden in text:
+            errors.append(
+                f"Product file {path.relative_to(ROOT)} contains {forbidden!r}.",
+            )
+
+if errors:
+    raise SystemExit("\n".join(f"- {error}" for error in errors))
+
+print("Product/migration boundary: PASS")
