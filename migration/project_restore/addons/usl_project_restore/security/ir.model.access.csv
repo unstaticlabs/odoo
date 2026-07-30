@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_usl_project_restore_run_system,usl.project.restore.run system,model_usl_project_restore_run,base.group_system,1,1,1,0
+access_usl_project_restore_issue_system,usl.project.restore.issue system,model_usl_project_restore_issue,base.group_system,1,1,1,0

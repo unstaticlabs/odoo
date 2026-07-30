@@ -1,6 +1,6 @@
 # Accounting development workflow
 
-Last updated: 2026-07-28
+Last updated: 2026-07-30
 
 Audience: implementation agents and developers working on Milestone 13.
 
@@ -19,7 +19,9 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 ## Database roles during development
 
 Normal development, module updates and browser QA use one disposable database:
-`odoo_dev`.
+`odoo_dev`. It is the canonical production-shaped target, not a source-only
+mirror: business data is reconstructed from Odoo Online, then target-only
+configuration such as Pocket ID is applied in a separate finalization stage.
 
 The reconstruction harness creates `odoo_saas_19_2_validation_exact` and
 `odoo_saas_19_2_validation_native` only when their explicit pipeline stages
@@ -31,6 +33,21 @@ extraction.
 Do not enter durable business data in any local database. Recreate `odoo_dev`
 from the harness when import or reconstruction behavior changes; for ordinary
 code and UI work, update it in place.
+
+The complete canonical lifecycle is:
+
+```text
+Online dump → Accounting import/parity → Projects import/parity
+→ migration finalization/product-boundary check → target configuration
+```
+
+Run it with `make target-reconstruct`. Reapply only the final target
+configuration with `make target-finalize`. The source contains no SSO
+configuration; Pocket ID is therefore intentionally absent from source parity
+and added only after the imported business state passes its controls.
+The orchestrator keeps the web process stopped between reset, import,
+validation and Project restoration so browser traffic and scheduled jobs
+cannot observe or mutate an intermediate target.
 
 ## Fast iteration matrix
 
@@ -45,6 +62,7 @@ code and UI work, update it in place.
 | Future currency-rate provider changes | module update, targeted provider tests, `accounting-currency-rate-provider`, then manager/reviewer browser journeys | source restore, extract, native validation replay |
 | Importer mapping changes | `accounting-validation-exact-reset`, `accounting-validation-exact-import`, `accounting-validation-exact-validate` | source restore if snapshot unchanged |
 | Product expense reconstruction changes | clean disposable `accounting-dev-reset`, `accounting-dev-import`, then `accounting-dev-validate`; promote the same verified flow to the canonical development database only after it passes | source restore when the restored snapshot and filestore are unchanged; broad browser QA when no expense UI changed |
+| Company-paid expense bank matching | `/usl_accounting:TestExpenseBankMatching`, module update, one manager and one read-only form check; when source-cache classification changes, also run the clean `accounting-dev-reset`, `accounting-dev-import`, `accounting-dev-validate` sequence | native-validation replay and broad browser QA when native expense/payment/reconciliation behavior is unchanged |
 | Attachment/filestore replay changes | `accounting-dev-attachments`, `accounting-attachment-audit`, focused attachment and draft-regeneration tests | ledger reset or full native replay when record mappings are unchanged |
 | Source extraction mapping changes | `accounting-extract`, target reset/import/validate | source restore if source DB still running and unchanged |
 | native validation expense/document mapping changes | `accounting-validation-native-reset`, `accounting-validation-native-expenses`, `accounting-validation-native-documents` | source restore, exact-validation reset/import |
@@ -73,13 +91,14 @@ make deploy
 `rebuild_account_migration` in `odoo_dev`, recreates the web service and waits
 for it to become healthy. The compatibility module update also installs or
 updates its declared `usl_accounting` and `usl_expense_batch` dependencies. It
-does not restore source data or rebuild the image.
+does not restore source data or rebuild the image. Both commands use the local
+Pocket ID overlay and keep the canonical target SSO configuration active.
 
 Use `make rebuild` only after Dockerfile, dependency, system or
 core-source changes. Both commands print the development URL:
 
 ```text
-http://localhost:8069/web/login?db=odoo_dev
+http://odoo.localhost:8069/web/login?db=odoo_dev
 ```
 
 ## Module and browser refresh contract
@@ -134,6 +153,28 @@ the normal development service afterward:
 ```bash
 scripts/odoo-dev test-js rebuild_account_migration
 ```
+
+Installed test tags use the same browser-capable image. This matters for OCA
+modules whose Python wrapper launches Hoot tests: the base runtime image does
+not include Chromium or `websocket-client`, so using it would skip browser
+coverage while appearing successful.
+
+```bash
+scripts/odoo-dev test-tag /account_reconcile_oca
+```
+
+For a clean disposable module install, provide a database name other than
+`odoo_dev`; the helper removes its database, filestore and container and then
+restores the development server:
+
+```bash
+scripts/odoo-dev test account_reconcile_oca odoo_test_account_reconcile_oca
+```
+
+`test-tag` forwards `ODOO_DEV_DB` and its exact `ODOO_DB_FILTER`, so explicitly
+selected candidate clones remain testable without falling back to `odoo_dev`.
+`test` gives its disposable database an exact temporary filter of its own, so
+the browser wrappers cannot be redirected to the development database.
 
 For the Transactions navigation contract and its narrower server-side command,
 see [Transactions navigation contract](../accounting/transaction-navigation.md).

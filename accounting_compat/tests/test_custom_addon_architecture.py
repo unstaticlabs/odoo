@@ -68,24 +68,27 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             manifests["usl_accounting"].get("depends", ()),
         )
 
-    def test_foundation_does_not_take_ownership_of_new_models(self):
-        named_models = []
+    def test_foundation_owns_only_documented_runtime_models(self):
+        named_models = {}
         for path in (CUSTOM_ADDONS / "usl_accounting" / "models").glob("*.py"):
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             for node in ast.walk(tree):
-                if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                if not isinstance(node, ast.Assign):
                     continue
-                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
                 if any(
                     isinstance(target, ast.Name) and target.id == "_name"
-                    for target in targets
-                ):
-                    named_models.append(path.name)
+                    for target in node.targets
+                ) and isinstance(node.value, ast.Constant):
+                    named_models.setdefault(path.name, []).append(node.value.value)
 
         self.assertEqual(
             named_models,
-            [],
-            "foundation extraction must not reassign generated model XML IDs",
+            {
+                "expense_bank_matching.py": [
+                    "usl.expense.bank.match.candidate",
+                ],
+            },
+            "foundation model ownership must stay runtime-only and documented",
         )
 
     def test_obsolete_placeholder_is_absent(self):

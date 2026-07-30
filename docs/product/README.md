@@ -10,11 +10,13 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Experience principles](experience-principles.md)
 - [Structured operational memory](structured-operational-memory.md)
 - [Accounting core](accounting-core.md)
+- [Company-paid expense bank matching](expense-bank-matching.md)
 - [Lightweight expense batches](expense-batches.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
 - [Paperless-backed Documents](documents-paperless.md)
 - [Documents and Paperless architecture](documents-paperless-architecture.md)
+- [Pocket ID SSO architecture](pocket-id-sso.md)
 
 Date-specific delivery handoffs are archived under `docs/archive/accounting/`;
 they are not evergreen product specifications.

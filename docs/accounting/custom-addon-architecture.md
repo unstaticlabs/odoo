@@ -22,13 +22,9 @@ Runtime ownership inside the repository follows this order:
 The verified production add-on dependency direction is:
 
 ```text
-native Odoo + pinned OCA
-          |
-          v
-   usl_accounting
-          |
-          v
-rebuild_account_migration <--- usl_expense_batch <--- native hr_expense
+ pinned OCA auth_oidc ---> usl_pocketid -------------------+
+ native/OCA Accounting -> usl_accounting -----------------+--> rebuild_account_migration
+ native hr_expense -----> usl_expense_batch --------------+
   (product compatibility, stable XML-ID ownership and reconstruction)
 
 usl_bootstrap ---> native modules only (disposable test fixture)
@@ -87,6 +83,7 @@ identifiers. It is explicitly rejected for this increment.
 | --- | --- | --- | --- |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
+| Company-paid expense bank matching | `usl_accounting` | runtime foundation over native expenses and OCA reconciliation | ranked-candidate, ACL, native lifecycle, rollback and reconciliation tests |
 | Reconciliation-model intelligence | compatibility module for this stage | source-trace dependency, left unchanged | rule behavior and replay tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |
@@ -99,6 +96,9 @@ identifiers. It is explicitly rejected for this increment.
 | Existing security, views, actions, menus and seeded definitions | `rebuild_account_migration` | compatibility ownership | XML-ID continuity characterization test |
 | Configurable-definition mixin | compatibility module for this stage | generated model XML-ID ownership, left unchanged | XML-ID continuity characterization test |
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
+| Pocket ID authentication and identity governance | `usl_pocketid` over pinned OCA `auth_oidc` | runtime authentication boundary | issuer/audience/nonce/PKCE/JWKS, identity lifecycle and named-profile tests |
+| Pocket ID accountant-reviewer profile | compatibility extension over `usl_pocketid` | the stable reviewer group XML ID is still owned here; the base SSO module has no reverse Accounting dependency | clean `usl_pocketid` install plus product-profile integration test |
+| Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project finalization, product-boundary guard and target-finalization order tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
 
@@ -114,6 +114,10 @@ menus.
   change as part of source extraction.
 - Existing XML/data files stay in `rebuild_account_migration` until a separate
   rehearsed ownership migration proves install, upgrade and uninstall safety.
+- Source parity and target environment policy are separate. Odoo Online has no
+  Pocket ID state; canonical `odoo_dev` receives SSO only after imported
+  Accounting and Projects data pass their controls and temporary migration
+  modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or
@@ -129,6 +133,7 @@ menus.
 
 | Repository | Commit |
 | --- | --- |
+| `server-auth` | `f51fe1b36965b78ac935e80c6b95d7115440a1b4` |
 | `account-financial-reporting` | `aa34bf33fc96fbae7fb5a2b9609b807b4e20514c` |
 | `account-reconcile` | `a9bbab67e42f3b762e9c34b30b6c1a77f9c373fb` |
 | `bank-statement-import` | `7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c` |
@@ -138,7 +143,11 @@ menus.
 
 Tracked patches under `oca-patches/saas-19.2/` are part of that exact
 integration. A manifest version adaptation alone is not compatibility
-evidence.
+evidence. OCA compatibility tests must also be independent of restored
+candidate data: partner fixtures use unique exact evidence, date assertions
+follow the configured `res.lang`, and browser tests use the current Hoot step
+API. The complete `/account_reconcile_oca` tag must run in the
+Chromium-enabled `test` image so browser wrappers cannot be silently skipped.
 
 ## Upstream core patches
 

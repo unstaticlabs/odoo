@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if [[ "${ODOO_DEV_DB:-odoo_dev}" != "odoo_dev" ]]; then
+  printf 'Canonical reconstruction is reserved for odoo_dev.\n' >&2
+  exit 2
+fi
+
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+export COMPOSE_IGNORE_ORPHANS=1
+
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+stop_product() {
+  docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
+}
+
+stop_product
+scripts/sync-oca-addons
+scripts/accounting-compat dev-reset
+stop_product
+scripts/accounting-compat dev-import
+stop_product
+scripts/accounting-compat dev-validate
+stop_product
+scripts/project-restore all
+scripts/target-finalize
+
+printf '\nCanonical reconstruction complete: source parity plus target configuration.\n'

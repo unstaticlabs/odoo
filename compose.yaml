@@ -253,6 +253,15 @@ services:
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
       PAPERLESS_INTERNAL_URL: ${PAPERLESS_INTERNAL_URL:-http://paperless-webserver:8000}
+      USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
+      USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
+      USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
+      USL_POCKET_ID_CLIENT_SECRET: ${USL_POCKET_ID_CLIENT_SECRET:-}
+      USL_POCKET_ID_ODOO_BASE_URL: ${USL_POCKET_ID_ODOO_BASE_URL:-}
+      USL_POCKET_ID_REQUIRED_GROUP: ${USL_POCKET_ID_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
+      USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
     ports:
       - "${ODOO_HTTP_PORT:-8069}:8069"
       - "${ODOO_GEVENT_PORT:-8072}:8072"
@@ -284,12 +293,25 @@ services:
       ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_MAX_CRON_THREADS: 0
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
+      USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
+      USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
+      USL_POCKET_ID_CLIENT_SECRET: ${USL_POCKET_ID_CLIENT_SECRET:-}
+      USL_POCKET_ID_ODOO_BASE_URL: ${USL_POCKET_ID_ODOO_BASE_URL:-}
+      USL_POCKET_ID_REQUIRED_GROUP: ${USL_POCKET_ID_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
+      USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
+      USL_POCKET_ID_USERS_JSON: ${USL_POCKET_ID_USERS_JSON:-}
+      USL_POCKET_ID_BREAK_GLASS_PASSWORD: ${USL_POCKET_ID_BREAK_GLASS_PASSWORD:-}
+      USL_POCKET_ID_APPLY: ${USL_POCKET_ID_APPLY:-0}
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
@@ -304,7 +326,44 @@ services:
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
-      - ./usl-online-dump:/mnt/accounting-source:ro
+      - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
+
+  project-migration:
+    profiles: ["project-migration"]
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_MAX_CRON_THREADS: 0
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+      USL_EINVOICE_LIVE_ENABLED: 0
+      USL_EREPORTING_LIVE_ENABLED: 0
+    command:
+      - odoo
+      - --config=/etc/odoo/odoo.conf
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons
+      - --database=${ODOO_INIT_DB:-odoo_dev}
+      - --without-demo=true
+      - --stop-after-init
+    restart: "no"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons:ro
+      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
 
   test:
     profiles: ["test"]
@@ -326,12 +385,22 @@ services:
       ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_MAX_CRON_THREADS: 0
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
+      USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
+      USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
+      USL_POCKET_ID_CLIENT_SECRET: ${USL_POCKET_ID_CLIENT_SECRET:-}
+      USL_POCKET_ID_ODOO_BASE_URL: ${USL_POCKET_ID_ODOO_BASE_URL:-}
+      USL_POCKET_ID_REQUIRED_GROUP: ${USL_POCKET_ID_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
+      USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
     restart: "no"
     volumes:
       - odoo-data:/var/lib/odoo
@@ -367,6 +436,15 @@ services:
       ODOO_DEV_MODE: ${ODOO_DEV_MODE:-reload,xml,qweb}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/workspace/odoo/docs/users}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
+      USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
+      USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
+      USL_POCKET_ID_CLIENT_SECRET: ${USL_POCKET_ID_CLIENT_SECRET:-}
+      USL_POCKET_ID_ODOO_BASE_URL: ${USL_POCKET_ID_ODOO_BASE_URL:-}
+      USL_POCKET_ID_REQUIRED_GROUP: ${USL_POCKET_ID_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
+      USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
     command: sleep infinity
     volumes:
