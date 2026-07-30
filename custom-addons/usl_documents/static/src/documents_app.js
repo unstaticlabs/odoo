@@ -11,6 +11,7 @@ import {
 import { browser } from "@web/core/browser/browser";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
@@ -46,16 +47,20 @@ export class DocumentsWorkspace extends Component {
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
                 : null;
         this.listScroller = useRef("documentList");
-        this.globalStorageKey = "usl_documents.workspace.global";
-        this.storageKey = `usl_documents.workspace.${
+        const storagePrefix = `usl_documents.workspace.${user.userId}`;
+        this.globalStorageKey = `${storagePrefix}.global`;
+        this.storageKey = `${storagePrefix}.${
             this.recordContext
                 ? `${this.recordContext.resModel}.${this.recordContext.resId}`
                 : "global"
         }`;
         let restored = {};
+        let hasRecordState = false;
         try {
+            const recordState = browser.sessionStorage.getItem(this.storageKey);
+            hasRecordState = Boolean(this.recordContext && recordState);
             restored = JSON.parse(
-                browser.sessionStorage.getItem(this.storageKey) ||
+                recordState ||
                     browser.sessionStorage.getItem(this.globalStorageKey) ||
                     "{}"
             );
@@ -67,6 +72,20 @@ export class DocumentsWorkspace extends Component {
             restored = { ...restored, ...urlState.filters };
         }
         if (this.recordContext) {
+            if (!hasRecordState && !urlState.filters) {
+                restored.query = "";
+                for (const [key, value] of Object.entries(FILTER_DEFAULTS)) {
+                    restored[key] = Array.isArray(value) ? [] : value;
+                }
+            }
+            if (!hasRecordState && !urlState.documentId) {
+                restored.selectedDocumentId = null;
+                restored.selectedVersionId = null;
+            }
+            if (params.linked_filter) {
+                restored.workspace = "all";
+                restored.page = 1;
+            }
             restored.linkedRecord = params.linked_filter
                 ? `${this.recordContext.resModel}:${this.recordContext.resId}`
                 : "";
@@ -75,8 +94,10 @@ export class DocumentsWorkspace extends Component {
                 ? String(params.mapped_partner_id)
                 : "";
         }
-        this.initialDocumentId = urlState.documentId;
-        this.initialVersionId = urlState.versionId;
+        this.initialDocumentId =
+            urlState.documentId || Number(restored.selectedDocumentId) || null;
+        this.initialVersionId =
+            urlState.versionId || this.stringValue(restored.selectedVersionId) || null;
         this.hasLocalListHistory = false;
         this.state = useState({
             loading: true,
@@ -133,8 +154,13 @@ export class DocumentsWorkspace extends Component {
         });
         onMounted(() => {
             browser.addEventListener("popstate", this.onPopState);
-            this.replaceNavigationState();
-            this.restoreScroll();
+            // Odoo's host router may normalize the action URL immediately after
+            // mounting. Reassert the document state on the following frame so a
+            // copied link and subsequent reload remain stable.
+            browser.requestAnimationFrame(() => {
+                this.replaceNavigationState();
+                this.restoreScroll();
+            });
         });
         onWillUnmount(() => browser.removeEventListener("popstate", this.onPopState));
     }
@@ -336,6 +362,14 @@ export class DocumentsWorkspace extends Component {
         );
     }
 
+    documentPreviewUrl(document) {
+        const current = document?.versions?.find((version) => version.is_current);
+        return (
+            current?.preview_url ||
+            `/usl_documents/${document.id}/preview`
+        );
+    }
+
     persistState() {
         const serialized = JSON.stringify({
             query: this.state.query,
@@ -347,6 +381,9 @@ export class DocumentsWorkspace extends Component {
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
             scrollTop: this.listScroller.el?.scrollTop || 0,
+            selectedDocumentId: this.state.selected?.id || null,
+            selectedVersionId:
+                this.state.selected?.selected_version_id || null,
         });
         browser.sessionStorage.setItem(this.storageKey, serialized);
         browser.sessionStorage.setItem(this.globalStorageKey, serialized);
@@ -428,6 +465,7 @@ export class DocumentsWorkspace extends Component {
             this.state.selected = null;
             this.state.editingMetadata = false;
             this.state.tagPickerOpen = false;
+            this.persistState();
             this.restoreScroll();
             return;
         }
@@ -701,10 +739,19 @@ export class DocumentsWorkspace extends Component {
 
     async openDocumentById(documentId, versionId = null) {
         const document =
-            this.state.documents.find((item) => item.id === Number(documentId)) || {
-                id: Number(documentId),
-                name: "Document",
-            };
+            this.state.documents.find((item) => item.id === Number(documentId)) ||
+            (this.state.selected?.id === Number(documentId)
+                ? this.state.selected
+                : {
+                      id: Number(documentId),
+                      name: "Document",
+                      tags: [],
+                      links: [],
+                      versions: [],
+                      can_edit: false,
+                      can_restore: false,
+                      can_manage: false,
+                  });
         this.state.selected = {
             ...document,
             preview_url: `/usl_documents/${document.id}/preview`,
@@ -718,7 +765,7 @@ export class DocumentsWorkspace extends Component {
             if (this.state.selected?.id === document.id) {
                 this.state.selected = {
                     ...detail,
-                    preview_url: `/usl_documents/${document.id}/preview`,
+                    preview_url: this.documentPreviewUrl(detail),
                 };
                 if (versionId) {
                     const version = detail.versions?.find(
@@ -730,6 +777,7 @@ export class DocumentsWorkspace extends Component {
                             version.paperless_version_id;
                     }
                 }
+                this.persistState();
             }
         } catch (error) {
             this.notification.add(
@@ -757,6 +805,7 @@ export class DocumentsWorkspace extends Component {
             this.state.selected = null;
             this.state.editingMetadata = false;
             this.state.tagPickerOpen = false;
+            this.persistState();
             this.writeNavigationState("replace");
             this.restoreScroll();
         }
@@ -798,7 +847,7 @@ export class DocumentsWorkspace extends Component {
             );
             this.state.selected = {
                 ...detail,
-                preview_url: `/usl_documents/${detail.id}/preview`,
+                preview_url: this.documentPreviewUrl(detail),
             };
             this.state.tagQuery = "";
             await this.load();
@@ -881,7 +930,7 @@ export class DocumentsWorkspace extends Component {
             );
             this.state.selected = {
                 ...detail,
-                preview_url: `/usl_documents/${detail.id}/preview`,
+                preview_url: this.documentPreviewUrl(detail),
             };
             this.state.editingMetadata = false;
             this.notification.add("Document updated.", { type: "success" });
@@ -906,6 +955,7 @@ export class DocumentsWorkspace extends Component {
             this.state.selected.id,
             version.paperless_version_id
         );
+        this.persistState();
     }
 
     restoreVersion(version) {

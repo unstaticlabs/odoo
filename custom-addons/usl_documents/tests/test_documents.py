@@ -128,6 +128,37 @@ class TestDocuments(TransactionCase):
             self.env["usl.document.operation"].search_count([]), operation_count,
         )
 
+    def test_duplicate_checksum_reuses_root_when_file_is_an_earlier_version(self):
+        content = b"received supplier evidence"
+        checksum = __import__("hashlib").sha256(content).hexdigest()
+        existing = self._document(139, checksum="f" * 64)
+        self.env["usl.document.version"].create({
+            "document_id": existing.id,
+            "paperless_version_id": "received-139",
+            "label": "Received original",
+            "checksum": checksum,
+            "is_received_original": True,
+        })
+
+        with patch.object(PaperlessClient, "upload_multipart") as upload:
+            result = (
+                self.env["usl.document"]
+                .with_user(self.user)
+                .upload_from_odoo(
+                    "supplier-original.pdf",
+                    base64.b64encode(content).decode(),
+                    "application/pdf",
+                    res_model="res.partner",
+                    res_id=self.partner_a.id,
+                    company_id=self.company_a.id,
+                )
+            )
+
+        self.assertEqual(result["state"], "duplicate")
+        self.assertEqual(result["document_id"], existing.id)
+        self.assertEqual(existing.link_count, 1)
+        upload.assert_not_called()
+
     def test_unfiltered_remote_checksum_response_does_not_false_duplicate(self):
         content = b"genuinely new evidence"
         with (
@@ -516,6 +547,73 @@ class TestDocuments(TransactionCase):
             values["correspondent_archive_name"], "Archive Supplier",
         )
 
+    def test_workspace_hides_inaccessible_correspondent_contact_mapping(self):
+        restricted_user = mail_new_test_user(
+            self.env,
+            login="documents-restricted-workspace",
+            name="Documents Restricted Workspace User",
+            company_id=self.company_b.id,
+            company_ids=[Command.set(self.company_b.ids)],
+            groups="usl_documents.group_documents_user",
+        )
+        correspondent = self._correspondent(
+            337,
+            "Archive-only safe name",
+            partner_id=self.partner_a.id,
+        )
+        document = self._document(
+            338,
+            company_id=self.company_b.id,
+            correspondent_id=correspondent.id,
+            correspondent_name=correspondent.name,
+        )
+
+        result = (
+            self.env["usl.document"]
+            .with_user(restricted_user)
+            .workspace_data(workspace="all")
+        )
+
+        self.assertEqual(result["count"], 1)
+        self.assertEqual(result["documents"][0]["id"], document.id)
+        self.assertEqual(
+            result["documents"][0]["correspondent"],
+            "Archive-only safe name",
+        )
+        self.assertFalse(result["documents"][0]["correspondent_partner_id"])
+        catalog = next(
+            item
+            for item in result["correspondents"]
+            if item["id"] == correspondent.id
+        )
+        self.assertEqual(catalog["name"], "Archive-only safe name")
+        self.assertFalse(catalog["partner_id"])
+        self.assertFalse(
+            correspondent.with_user(restricted_user).partner_visible_id,
+        )
+        self.assertEqual(
+            correspondent.with_user(self.user).partner_visible_id,
+            self.partner_a,
+        )
+        with self.assertRaises(AccessError):
+            correspondent.with_user(restricted_user).write(
+                {"partner_visible_id": False},
+            )
+        self.assertEqual(correspondent.partner_id, self.partner_a)
+
+    def test_visible_correspondent_contact_mapping_can_be_edited(self):
+        correspondent = self._correspondent(339, "Visible Contact Mapping")
+
+        correspondent.with_user(self.user).write(
+            {"partner_visible_id": self.partner_a.id},
+        )
+
+        self.assertEqual(correspondent.partner_id, self.partner_a)
+        self.assertEqual(
+            correspondent.with_user(self.user).partner_visible_id,
+            self.partner_a,
+        )
+
     def test_contact_documents_combine_mapping_and_explicit_links_without_duplicates(self):
         correspondent = self._correspondent(
             334,
@@ -621,6 +719,11 @@ class TestDocuments(TransactionCase):
             linked_id=self.partner_a.id,
         )
         self.assertEqual(linked["documents"][0]["availability_state"], "trashed")
+        detail = self.env["usl.document"].with_user(self.manager).document_detail(
+            document.id,
+        )
+        self.assertFalse(detail["can_edit"])
+        self.assertTrue(detail["can_restore"])
 
         restored_payload = {**trash_payload, "modified": "2026-07-29T11:00:00Z"}
         with (
@@ -999,6 +1102,9 @@ class TestDocuments(TransactionCase):
 
     def test_integrity_manifest_reports_versions_links_and_checksums(self):
         document = self._document(112, checksum="d" * 64)
+        document.with_context(usl_documents_cache_write=True).write(
+            {"availability_state": "trashed"},
+        )
         document.link_to_record("res.partner", self.partner_a.id)
         with (
             patch.object(
@@ -1007,29 +1113,38 @@ class TestDocuments(TransactionCase):
                 return_value={
                     "server_version": "3.0.4",
                     "api_version": "10",
-                    "document_count": 1,
+                    "document_count": 0,
                 },
             ),
             patch.object(
                 PaperlessClient,
                 "list_documents",
                 return_value={
-                    "count": 1,
+                    "count": 0,
                     "next": None,
-                    "results": [
-                        {
-                            "id": 112,
-                            "checksum": "d" * 64,
-                            "versions": [],
-                        },
-                    ],
+                    "results": [],
                 },
+            ),
+            patch.object(
+                PaperlessClient,
+                "list_trashed_documents",
+                return_value=[
+                    {
+                        "id": 112,
+                        "checksum": "d" * 64,
+                        "versions": [],
+                    },
+                ],
             ),
         ):
             manifest = self.env["usl.document"].integrity_manifest("qa-backup")
         self.assertEqual(manifest["schema"], "usl-documents-integrity-v1")
         self.assertEqual(manifest["backup_id"], "qa-backup")
         self.assertEqual(manifest["paperless_version"], "3.0.4")
+        self.assertEqual(manifest["paperless_trash_count"], 1)
+        self.assertEqual(manifest["paperless_total_count"], 1)
+        self.assertFalse(manifest["missing_document_ids"])
+        self.assertTrue(manifest["integrity_ok"])
         self.assertGreaterEqual(manifest["relationship_count"], 1)
         self.assertIn(
             "d" * 64,

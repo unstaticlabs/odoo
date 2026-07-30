@@ -29,11 +29,12 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         string="Paperless ID", required=True, index=True, readonly=True, copy=False,
     )
     match = fields.Char(
-        string="Matching pattern",
+        string="Words to look for",
         help="Text or pattern Paperless uses when automatically classifying documents.",
     )
     matching_algorithm = fields.Selection(
         MATCHING_ALGORITHMS,
+        string="How documents match",
         default="0",
         required=True,
         help="Automatic learns from existing documents. The other options apply the matching pattern directly.",
@@ -259,12 +260,30 @@ class UslPaperlessCorrespondent(models.Model):
 
     partner_id = fields.Many2one(
         "res.partner",
-        string="Odoo Contact",
+        string="Mapped Contact",
         index=True,
         ondelete="set null",
         help=(
             "Optional business-identity mapping. It does not link documents or grant "
             "access. Paperless remains responsible for archive matching."
+        ),
+    )
+    partner_visible_id = fields.Many2one(
+        "res.partner",
+        string="Odoo Contact",
+        compute="_compute_partner_visible",
+        inverse="_inverse_partner_visible",
+        search="_search_partner_visible",
+        help=(
+            "The mapped Contact, when it is accessible in the current user's "
+            "companies. Hidden mappings never grant or reveal Contact access."
+        ),
+    )
+    partner_mapping_hidden = fields.Boolean(
+        compute="_compute_partner_visible",
+        help=(
+            "The correspondent is already mapped to a Contact outside the current "
+            "user's accessible companies."
         ),
     )
     rejected_partner_id = fields.Many2one(
@@ -286,6 +305,79 @@ class UslPaperlessCorrespondent(models.Model):
             "partner_id",
             "rejected_partner_id",
         }
+
+    @api.depends("partner_id")
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_partner_visible(self):
+        visible_ids = set(
+            self.env["res.partner"].search(
+                [("id", "in", self.mapped("partner_id").ids)],
+            ).ids,
+        )
+        for correspondent in self:
+            correspondent.partner_visible_id = (
+                correspondent.partner_id
+                if correspondent.partner_id.id in visible_ids
+                else False
+            )
+            correspondent.partner_mapping_hidden = bool(
+                correspondent.partner_id
+                and correspondent.partner_id.id not in visible_ids
+            )
+
+    def _inverse_partner_visible(self):
+        for correspondent in self:
+            if correspondent.partner_mapping_hidden:
+                raise AccessError(
+                    _(
+                        "This correspondent is already mapped to a Contact outside "
+                        "your accessible companies. Ask a Documents administrator "
+                        "to review the mapping."
+                    ),
+                )
+            correspondent.partner_id = correspondent.partner_visible_id
+
+    @api.model
+    def _search_partner_visible(self, operator, value):
+        return [("partner_id", operator, value)]
+
+    @api.model
+    def _check_visible_partner_value(self, value):
+        if not value:
+            return
+        partner = self.env["res.partner"].browse(int(value)).exists()
+        if not partner:
+            raise ValidationError(_("The selected Odoo Contact no longer exists."))
+        partner.check_access("read")
+
+    @api.model_create_multi
+    def create(self, values_list):
+        for values in values_list:
+            self._check_visible_partner_value(
+                values.get("partner_visible_id") or values.get("partner_id"),
+            )
+            if "partner_visible_id" in values:
+                values["partner_id"] = values.pop("partner_visible_id")
+        return super().create(values_list)
+
+    def write(self, values):
+        values = dict(values)
+        mapping_requested = (
+            "partner_visible_id" in values or "partner_id" in values
+        )
+        if mapping_requested and any(self.mapped("partner_mapping_hidden")):
+            raise AccessError(
+                _(
+                    "This correspondent is already mapped to a Contact outside "
+                    "your accessible companies. Ask a Documents administrator "
+                    "to review the mapping."
+                ),
+            )
+        if "partner_visible_id" in values:
+            values["partner_id"] = values.pop("partner_visible_id")
+        if "partner_id" in values:
+            self._check_visible_partner_value(values["partner_id"])
+        return super().write(values)
 
     @api.depends("name", "partner_id", "rejected_partner_id")
     def _compute_suggested_partner(self):
@@ -330,14 +422,14 @@ class UslPaperlessCorrespondent(models.Model):
 
     def action_open_partner(self):
         self.ensure_one()
-        if not self.partner_id:
+        if not self.partner_visible_id:
             raise ValidationError(_("Map an Odoo Contact first."))
-        self.partner_id.check_access("read")
+        self.partner_visible_id.check_access("read")
         return {
             "type": "ir.actions.act_window",
-            "name": self.partner_id.display_name,
+            "name": self.partner_visible_id.display_name,
             "res_model": "res.partner",
-            "res_id": self.partner_id.id,
+            "res_id": self.partner_visible_id.id,
             "views": [(False, "form")],
             "target": "current",
         }
