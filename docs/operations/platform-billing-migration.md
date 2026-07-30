@@ -81,11 +81,12 @@ graph and importer mappings changed.
 
 ## Blocking preflight
 
-The importer stops before product writes when it finds missing source
-identities, duplicate payout references or bank links, invalid amounts/rates,
-cross-company platform ambiguity, missing generated moves, attachment checksum
-differences or canonical digest drift. It never silently merges an untraced
-target platform.
+The importer stops before platform/session/payout writes when it finds missing source
+identities, duplicate payout references, invalid bank allocations or
+amounts/rates, cross-company platform ambiguity, missing generated moves,
+attachment checksum differences or canonical digest drift. Shared bank links
+are preserved as pooled receipt allocations. It never silently merges an
+untraced target platform.
 
 Two source products used only by the historical platform application are not
 part of the general Accounting product scope. The dedicated importer restores
@@ -125,8 +126,10 @@ benchmark slice remained balanced at debit and credit `1,064,045.02`.
 
 - **Missing mapping:** rerun only the Accounting stage that restores the named
   dependency; do not recreate the native record in this importer.
-- **Duplicate identity/reference/bank link:** correct the source mapping or
-  target trace conflict and rerun preflight. Do not merge automatically.
+- **Duplicate identity/reference:** correct the source mapping or target trace
+  conflict and rerun preflight. Do not merge automatically.
+- **Invalid pooled bank allocation:** correct the payout shares so their total
+  does not exceed the native bank transaction amount.
 - **Attachment checksum mismatch:** verify source filestore availability and
   rerun the Accounting attachment stage.
 - **Digest drift:** stop. Compare the generated move/line evidence before any

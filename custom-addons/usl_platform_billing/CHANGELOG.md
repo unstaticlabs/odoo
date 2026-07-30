@@ -1,5 +1,15 @@
 # Changelog
 
+## saas~19.2.1.1.0
+
+- Keep posted sessions open when platform payments are delayed.
+- Allocate one pooled bank receipt across payouts from several sessions.
+- Warn, without blocking, when posting omits an active platform.
+- Replace generic Accounting access with opt-in Reader, Operator and
+  Administrator roles.
+- Use partner payment terms unless the session has an explicit due-date
+  override.
+
 ## saas~19.2.1.0.0
 
 - Replace the Studio/server-action bootstrap with a standalone application.

@@ -16,12 +16,19 @@ The temporary Odoo Online importer lives only under
 2. Create a monthly session and enter or import its payouts.
 3. Check the session, generate drafts and review native taxes, accounts,
    payment terms, fiscal positions and analytic distributions.
-4. Post the documents and optional compensation entries.
-5. Select incoming bank transactions and reconcile them.
+4. Confirm any warning about an active platform missing from the month, then
+   post the documents and optional compensation entries.
+5. Select incoming bank transactions and reconcile them. A delayed payout
+   stays as an open customer receivable; one later pooled receipt can be
+   allocated across several payouts and sessions.
 
 Auto-posting is off by default. Posted entries cannot be reset or deleted from
 the application. Mixed platform currencies are summarized separately, while
 the session bank total remains in one declared bank currency.
+
+Access is explicit. A user needs the Platform Billing Reader, Operator or
+Administrator role. The standard Odoo Accountant role alone does not expose
+this application.
 
 See:
 
