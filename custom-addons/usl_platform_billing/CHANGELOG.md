@@ -1,5 +1,14 @@
 # Changelog
 
+## saas~19.2.1.1.1
+
+- Show every billing session by default while retaining the optional Open
+  filter.
+- Name new sessions from their period using the historical French format.
+- Accept harmless workflow defaults sent by Odoo forms without allowing direct
+  state changes.
+- Cover fresh operator session creation and delayed settlement in browser QA.
+
 ## saas~19.2.1.1.0
 
 - Keep posted sessions open when platform payments are delayed.

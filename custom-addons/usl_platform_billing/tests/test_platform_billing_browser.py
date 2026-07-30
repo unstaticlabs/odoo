@@ -59,6 +59,15 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
                 "account.group_validate_bank_account"
             ),
             company_id=cls.company.id,
+            lang="en_US",
+        )
+        cls.operator = new_test_user(
+            cls.env,
+            login="platform_billing_browser_operator",
+            password="platform_billing_browser_operator",
+            groups="usl_platform_billing.group_platform_billing_operator",
+            company_id=cls.company.id,
+            lang="en_US",
         )
         cls.reviewer = new_test_user(
             cls.env,
@@ -66,6 +75,7 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             password="platform_billing_browser_reviewer",
             groups="usl_platform_billing.group_platform_billing_reader",
             company_id=cls.company.id,
+            lang="en_US",
         )
         cls.billing_session = cls.env["usl.platform.billing.session"].create(
             {
@@ -109,6 +119,43 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
                 "bank_received_amount": 80.0,
             },
         )
+
+    def test_operator_creates_and_posts_delayed_monthly_session(self):
+        closed_session = self.env["usl.platform.billing.session"].create(
+            {
+                "name": "Browser closed session",
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-06-01"),
+                "invoice_date": fields.Date.from_string("2026-06-30"),
+                "bank_currency_id": self.currency.id,
+            },
+        )
+        closed_session._workflow_write({"state": "cancelled"})
+        self.platform.copy({"name": "Browser platform without August payout"})
+        action = self.env.ref(
+            "usl_platform_billing.action_platform_billing_sessions",
+        )
+
+        self.start_tour(
+            f"/odoo/action-{action.id}",
+            "usl_platform_billing_operator_creation_journey",
+            login=self.operator.login,
+        )
+
+        session = self.env["usl.platform.billing.session"].search(
+            [
+                ("company_id", "=", self.company.id),
+                ("name", "=", "Août 2026"),
+            ],
+        )
+        self.assertEqual(len(session), 1)
+        self.assertEqual(session.state, "posted")
+        self.assertEqual(len(session.payout_ids), 1)
+        self.assertFalse(session.payout_ids.bank_statement_line_id)
+        self.assertEqual(session.customer_invoice_ids.state, "posted")
+        self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
+        self.assertNotEqual(session.customer_invoice_ids.payment_state, "paid")
+        self.assertEqual(session.vendor_bill_ids.payment_state, "paid")
 
     def test_manager_document_and_bank_journey(self):
         action = self.env.ref(

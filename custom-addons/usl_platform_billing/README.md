@@ -13,7 +13,8 @@ The temporary Odoo Online importer lives only under
 
 1. Configure the platform's partners, products, journals, currency,
    commission rate and bank-recognition rules.
-2. Create a monthly session and enter or import its payouts.
+2. Create a monthly session. Its name follows the historical French format,
+   such as `Août 2026`; enter or import the payouts.
 3. Check the session, generate drafts and review native taxes, accounts,
    payment terms, fiscal positions and analytic distributions.
 4. Confirm any warning about an active platform missing from the month, then

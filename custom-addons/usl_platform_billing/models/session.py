@@ -1,10 +1,31 @@
 from collections import defaultdict
 
+from babel.dates import format_date as babel_format_date
 from dateutil.relativedelta import relativedelta
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import float_is_zero
+
+SESSION_WORKFLOW_DEFAULTS = {
+    "state": "draft",
+    "generated_at": False,
+    "generated_by_id": False,
+}
+FRENCH_MONTH_NAMES = {
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+}
 
 
 class UslPlatformBillingSession(models.Model):
@@ -110,8 +131,52 @@ class UslPlatformBillingSession(models.Model):
 
     @api.model
     def _default_name(self):
-        today = fields.Date.context_today(self)
-        return _("Platform billing — %(month)s", month=today.strftime("%Y-%m"))
+        today = fields.Date.context_today(self).replace(day=1)
+        return self._format_period_name(today)
+
+    @api.model
+    def _format_period_name(self, period_month):
+        period_month = fields.Date.to_date(period_month)
+        if not period_month:
+            return False
+        return babel_format_date(
+            period_month,
+            format="MMMM y",
+            locale="fr_FR",
+        ).capitalize()
+
+    @api.model
+    def _is_automatic_name(self, name, period_month):
+        return (
+            not name
+            or name.startswith("Platform billing —")
+            or name == self._format_period_name(period_month)
+        )
+
+    @api.model
+    def _is_french_period_name(self, name):
+        month_name, separator, year = (name or "").rpartition(" ")
+        return bool(
+            separator
+            and month_name in FRENCH_MONTH_NAMES
+            and len(year) == 4
+            and year.isdigit(),
+        )
+
+    @api.onchange("period_month")
+    def _onchange_period_month_name(self):
+        for session in self:
+            origin_period = session._origin.period_month if session._origin else False
+            is_automatic = session._is_automatic_name(
+                session.name,
+                origin_period,
+            )
+            if not origin_period:
+                is_automatic = is_automatic or session._is_french_period_name(
+                    session.name,
+                )
+            if is_automatic:
+                session.name = session._format_period_name(session.period_month)
 
     @api.depends("generated_move_ids.move_type")
     def _compute_document_links(self):
@@ -246,27 +311,84 @@ class UslPlatformBillingSession(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.su and any(
-            {"state", "generated_at", "generated_by_id"} & set(values)
-            for values in vals_list
-        ):
-            raise AccessError(_("Workflow fields can only be changed by app actions."))
-        sessions = super().create(vals_list)
+        normalized_values = []
+        default_period = fields.Date.context_today(self).replace(day=1)
+        for incoming_values in vals_list:
+            values = dict(incoming_values)
+            if not self.env.su:
+                for field_name, default_value in SESSION_WORKFLOW_DEFAULTS.items():
+                    if field_name not in values:
+                        continue
+                    submitted_value = values[field_name]
+                    is_default = (
+                        submitted_value == default_value
+                        if default_value
+                        else not submitted_value
+                    )
+                    if not is_default:
+                        raise AccessError(
+                            _("Workflow fields can only be changed by app actions."),
+                        )
+                    values.pop(field_name)
+            period_month = fields.Date.to_date(
+                values.get("period_month") or default_period,
+            )
+            if self._is_automatic_name(values.get("name"), default_period):
+                values["name"] = self._format_period_name(period_month)
+            normalized_values.append(values)
+        sessions = super().create(normalized_values)
         for session in sessions:
             session.action_prefill()
         return sessions
 
+    def _strip_unchanged_workflow_values(self, values):
+        values = dict(values)
+        if self.env.su:
+            return values
+        for field_name in SESSION_WORKFLOW_DEFAULTS.keys() & values.keys():
+            field = self._fields[field_name]
+            for session in self:
+                session[field_name]
+                submitted = field.convert_to_cache(values[field_name], session)
+                current = session._cache[field_name]
+                if submitted != current and (submitted or current):
+                    raise AccessError(
+                        _("Workflow fields can only be changed by app actions."),
+                    )
+            values.pop(field_name)
+        return values
+
     def write(self, vals):
-        if (
-            not self.env.su
-            and {"state", "generated_at", "generated_by_id"} & set(vals)
-        ):
-            raise AccessError(_("Workflow fields can only be changed by app actions."))
+        vals = self._strip_unchanged_workflow_values(vals)
         basis = {"company_id", "period_month", "invoice_date", "due_date", "bank_currency_id"}
         if basis & set(vals) and self.filtered(
             lambda session: session.state not in {"draft", "ready"},
         ):
             raise UserError(_("Generated sessions cannot change their accounting basis."))
+        if "period_month" in vals and "name" not in vals:
+            automatic_sessions = self.filtered(
+                lambda session: session._is_automatic_name(
+                    session.name,
+                    session.period_month,
+                ),
+            )
+            manual_sessions = self - automatic_sessions
+            result = True
+            for session in automatic_sessions:
+                session_values = {
+                    **vals,
+                    "name": session._format_period_name(vals["period_month"]),
+                }
+                result = (
+                    super(UslPlatformBillingSession, session).write(session_values)
+                    and result
+                )
+            if manual_sessions:
+                result = (
+                    super(UslPlatformBillingSession, manual_sessions).write(vals)
+                    and result
+                )
+            return result
         return super().write(vals)
 
     def _workflow_write(self, values):
@@ -324,11 +446,12 @@ class UslPlatformBillingSession(models.Model):
             values = {}
             if not session.invoice_date:
                 values["invoice_date"] = end
-            if not session.name or session.name.startswith("Platform billing —"):
-                values["name"] = _(
-                    "Platform billing — %(month)s",
-                    month=session.period_month.strftime("%Y-%m"),
-                )
+            desired_name = session._format_period_name(session.period_month)
+            if (
+                session._is_automatic_name(session.name, session.period_month)
+                and session.name != desired_name
+            ):
+                values["name"] = desired_name
             if values:
                 session.write(values)
             for payout in session.payout_ids:

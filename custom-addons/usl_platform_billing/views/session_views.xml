@@ -172,7 +172,7 @@
         <field name="res_model">usl.platform.billing.session</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_platform_billing_session_search"/>
-        <field name="context">{'search_default_open': 1}</field>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create a monthly billing session</p>
             <p>Review platform payouts before generating invoices and commission bills.</p>

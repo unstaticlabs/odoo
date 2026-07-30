@@ -4,8 +4,9 @@ from psycopg2 import IntegrityError
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import new_test_user, tagged
+from odoo.tests import Form, new_test_user, tagged
 from odoo.tools import mute_logger
+from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -148,6 +149,145 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 "date": fields.Date.from_string(bank_date),
             },
         )
+
+    def test_session_list_defaults_to_all_records(self):
+        action = self.env.ref(
+            "usl_platform_billing.action_platform_billing_sessions",
+        )
+        search_view = self.env.ref(
+            "usl_platform_billing.view_platform_billing_session_search",
+        )
+
+        self.assertEqual(safe_eval(action.context or "{}"), {})
+        self.assertIn('name="open"', search_view.arch_db)
+
+    def test_french_period_name_tracks_only_automatic_names(self):
+        session_form = Form(
+            self.env["usl.platform.billing.session"].with_user(self.operator),
+        )
+        session_form.period_month = fields.Date.from_string("2026-08-01")
+        self.assertEqual(session_form.name, "Août 2026")
+        session_form.name = "Monthly creator billing"
+        session_form.period_month = fields.Date.from_string("2026-09-01")
+        self.assertEqual(session_form.name, "Monthly creator billing")
+
+        session = self.env["usl.platform.billing.session"].with_user(
+            self.operator,
+        ).create(
+            {
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-08-01"),
+                "invoice_date": fields.Date.from_string("2026-08-31"),
+                "bank_currency_id": self.currency.id,
+                "state": "draft",
+                "generated_at": False,
+                "generated_by_id": False,
+            },
+        )
+
+        self.assertEqual(session.name, "Août 2026")
+        session.write({"period_month": fields.Date.from_string("2026-09-01")})
+        self.assertEqual(session.name, "Septembre 2026")
+
+        session.write({"name": "Quarter-end creator billing"})
+        session.write({"period_month": fields.Date.from_string("2026-10-01")})
+        self.assertEqual(session.name, "Quarter-end creator billing")
+
+        legacy = self.env["usl.platform.billing.session"].with_user(
+            self.operator,
+        ).create(
+            {
+                "name": "Platform billing — 2026-11",
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-11-01"),
+                "invoice_date": fields.Date.from_string("2026-11-30"),
+                "bank_currency_id": self.currency.id,
+            },
+        )
+        self.assertEqual(legacy.name, "Novembre 2026")
+
+    def test_web_workflow_defaults_are_harmless_but_transitions_are_blocked(self):
+        session = self.env["usl.platform.billing.session"].with_user(
+            self.operator,
+        ).create(
+            {
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-12-01"),
+                "invoice_date": fields.Date.from_string("2026-12-31"),
+                "bank_currency_id": self.currency.id,
+                "state": "draft",
+                "generated_at": False,
+                "generated_by_id": False,
+            },
+        )
+        session.with_user(self.operator).write(
+            {
+                "state": "draft",
+                "generated_at": False,
+                "generated_by_id": False,
+            },
+        )
+        payout = self.env["usl.platform.billing.payout"].with_user(
+            self.operator,
+        ).create(
+            {
+                "session_id": session.id,
+                "platform_id": self.platform.id,
+                "payout_date": fields.Date.from_string("2026-12-15"),
+                "platform_reference": "WEB-2026-12-001",
+                "net_platform_amount": 80.0,
+                "state": "draft",
+                "customer_invoice_id": False,
+                "vendor_bill_id": False,
+                "compensation_move_id": False,
+                "bank_match_status": "unmatched",
+                "bank_match_score": 0,
+                "bank_amount_difference": 0.0,
+                "bank_date_difference": 0,
+                "bank_detection_reason": False,
+            },
+        )
+        payout.with_user(self.operator).write(
+            {
+                "state": "draft",
+                "customer_invoice_id": False,
+                "vendor_bill_id": False,
+                "compensation_move_id": False,
+                "bank_match_status": "unmatched",
+                "bank_match_score": 0,
+                "bank_amount_difference": 0.0,
+                "bank_date_difference": 0,
+                "bank_detection_reason": False,
+            },
+        )
+
+        with self.assertRaises(AccessError):
+            session.with_user(self.operator).write({"state": "ready"})
+        with self.assertRaises(AccessError):
+            payout.with_user(self.operator).write({"bank_match_status": "selected"})
+        unrelated_invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.platform_partner,
+            invoice_date="2026-12-31",
+            products=self.product_a,
+        )
+        with self.assertRaises(AccessError):
+            payout.with_user(self.operator).write(
+                {"customer_invoice_id": unrelated_invoice.id},
+            )
+        with self.assertRaises(AccessError):
+            self.env["usl.platform.billing.payout"].with_user(
+                self.operator,
+            ).create(
+                {
+                    "session_id": session.id,
+                    "platform_id": self.platform.id,
+                    "payout_date": fields.Date.from_string("2026-12-16"),
+                    "platform_reference": "WEB-2026-12-002",
+                    "net_platform_amount": 80.0,
+                    "state": "posted",
+                },
+            )
 
     def test_commission_formula_and_validation_constraints(self):
         session = self._session()

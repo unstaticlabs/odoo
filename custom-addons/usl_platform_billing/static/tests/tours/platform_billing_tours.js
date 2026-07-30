@@ -1,5 +1,161 @@
 import { registry } from "@web/core/registry";
 
+registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_journey", {
+    steps: () => [
+        {
+            content: "No session filter is selected by default",
+            trigger: ".o_control_panel:not(:has(.o_searchview_facet))",
+        },
+        {
+            content: "Closed sessions remain visible in the unfiltered list",
+            trigger:
+                ".o_list_view .o_data_row td[name='name']:contains('Browser closed session')",
+        },
+        {
+            content: "Create a monthly platform billing session",
+            trigger: ".o_list_button_add",
+            run: "click",
+        },
+        {
+            content: "Open the billing period picker",
+            trigger: ".o_field_widget[name='period_month'] button",
+            run: "click",
+        },
+        {
+            content: "Move the billing period picker to August",
+            trigger: ".o_datetime_picker_header .o_next",
+            run: "click",
+        },
+        {
+            content: "The billing period picker shows August",
+            trigger: ".o_datetime_picker_header button:contains('Aug 2026')",
+        },
+        {
+            content: "Select the first day of August",
+            trigger:
+                '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^1$/")',
+            run: "click",
+        },
+        {
+            content: "The August period is committed",
+            trigger: ".o_field_widget[name='period_month'] button",
+            run() {
+                const value = this.anchor.textContent.trim();
+                if (!value.includes("Aug") || !value.includes("1")) {
+                    throw new Error(`Expected the August period, got "${value}"`);
+                }
+            },
+        },
+        {
+            content: "The historical French session name is suggested",
+            trigger: ".o_field_widget[name='name'] input:value('Août 2026')",
+        },
+        {
+            content: "Open the invoice date picker",
+            trigger: ".o_field_widget[name='invoice_date'] button",
+            run: "click",
+        },
+        {
+            content: "Move the invoice date picker to August",
+            trigger: ".o_datetime_picker_header .o_next",
+            run: "click",
+        },
+        {
+            content: "The invoice date picker shows August",
+            trigger: ".o_datetime_picker_header button:contains('Aug 2026')",
+        },
+        {
+            content: "Use the August month-end invoice date",
+            trigger:
+                '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^31$/")',
+            run: "click",
+        },
+        {
+            content: "Add the platform payout",
+            trigger: "div[name='payout_ids'] .o_field_x2many_list_row_add button",
+            run: "click",
+        },
+        {
+            content: "Select the configured platform",
+            trigger:
+                ".o_selected_row .o_field_widget[name='platform_id'] input",
+            run: "edit Browser CreatorHub",
+        },
+        {
+            content: "Confirm the configured platform",
+            trigger: ".dropdown-item:contains('Browser CreatorHub')",
+            run: "click",
+        },
+        {
+            content: "Open the payout date picker",
+            trigger:
+                ".o_selected_row .o_field_widget[name='payout_date'] input",
+            run: "click",
+        },
+        {
+            content: "Move the payout date picker to August",
+            trigger: ".o_datetime_picker_header .o_next",
+            run: "click",
+        },
+        {
+            content: "The payout date picker shows August",
+            trigger: ".o_datetime_picker_header button:contains('Aug 2026')",
+        },
+        {
+            content: "Enter the payout date",
+            trigger:
+                '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^15$/")',
+            run: "click",
+        },
+        {
+            content: "Enter the platform payout reference",
+            trigger:
+                ".o_selected_row .o_field_widget[name='platform_reference'] input",
+            run: "edit BROWSER-NEW-2026-08-001",
+        },
+        {
+            content: "Enter the platform net amount",
+            trigger:
+                ".o_selected_row .o_field_widget[name='net_platform_amount'] input",
+            run: "edit 80",
+        },
+        {
+            content: "Save through the real form and run the accounting checks",
+            trigger: "button[name='action_check']",
+            run: "click",
+        },
+        {
+            content: "Generate customer invoice and commission bill drafts",
+            trigger: "button[name='action_generate_documents']",
+            run: "click",
+        },
+        {
+            content: "Post the monthly accounting documents",
+            trigger: "button[name='action_post_documents']",
+            run: "click",
+        },
+        {
+            content: "Incomplete active-platform coverage is clearly identified",
+            trigger:
+                ".modal .alert:contains('Browser platform without August payout')",
+        },
+        {
+            content: "Confirm the deliberate monthly coverage exception",
+            trigger: ".modal button[name='action_confirm']",
+            run: "click",
+        },
+        {
+            content: "The delayed payout stays posted and open",
+            trigger:
+                ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current",
+        },
+        {
+            content: "Bank reconciliation remains available for the later receipt",
+            trigger: "button[name='action_reconcile_bank']",
+        },
+    ],
+});
+
 registry.category("web_tour.tours").add("usl_platform_billing_manager_journey", {
     steps: () => [
         {

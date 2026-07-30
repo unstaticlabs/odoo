@@ -2,6 +2,18 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import float_compare, float_is_zero
 
+PAYOUT_WORKFLOW_DEFAULTS = {
+    "state": "draft",
+    "customer_invoice_id": False,
+    "vendor_bill_id": False,
+    "compensation_move_id": False,
+    "bank_match_status": "unmatched",
+    "bank_match_score": False,
+    "bank_amount_difference": False,
+    "bank_date_difference": False,
+    "bank_detection_reason": False,
+}
+
 
 class UslPlatformBillingPayout(models.Model):
     _name = "usl.platform.billing.payout"
@@ -352,18 +364,24 @@ class UslPlatformBillingPayout(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.su and any(
-            {
-                "state",
-                "customer_invoice_id",
-                "vendor_bill_id",
-                "compensation_move_id",
-            }
-            & set(values)
-            for values in vals_list
-        ):
-            raise AccessError(_("Workflow fields can only be changed by app actions."))
-        for values in vals_list:
+        normalized_values = []
+        for incoming_values in vals_list:
+            values = dict(incoming_values)
+            if not self.env.su:
+                for field_name, default_value in PAYOUT_WORKFLOW_DEFAULTS.items():
+                    if field_name not in values:
+                        continue
+                    submitted_value = values[field_name]
+                    is_default = (
+                        submitted_value == default_value
+                        if default_value
+                        else not submitted_value
+                    )
+                    if not is_default:
+                        raise AccessError(
+                            _("Workflow fields can only be changed by app actions."),
+                        )
+                    values.pop(field_name)
             platform = self.env["usl.platform.billing.platform"].browse(
                 values.get("platform_id"),
             )
@@ -378,7 +396,8 @@ class UslPlatformBillingPayout(models.Model):
                     raise UserError(
                         _("A reconciled bank transaction cannot be allocated."),
                     )
-        payouts = super().create(vals_list)
+            normalized_values.append(values)
+        payouts = super().create(normalized_values)
         selected = payouts.filtered("bank_statement_line_id").filtered(
             lambda payout: payout.bank_match_status == "unmatched",
         )
@@ -386,20 +405,25 @@ class UslPlatformBillingPayout(models.Model):
             selected._workflow_write({"bank_match_status": "selected"})
         return payouts
 
+    def _strip_unchanged_workflow_values(self, values):
+        values = dict(values)
+        if self.env.su:
+            return values
+        for field_name in PAYOUT_WORKFLOW_DEFAULTS.keys() & values.keys():
+            field = self._fields[field_name]
+            for payout in self:
+                payout[field_name]
+                submitted = field.convert_to_cache(values[field_name], payout)
+                current = payout._cache[field_name]
+                if submitted != current and (submitted or current):
+                    raise AccessError(
+                        _("Workflow fields can only be changed by app actions."),
+                    )
+            values.pop(field_name)
+        return values
+
     def write(self, vals):
-        workflow_fields = {
-            "state",
-            "customer_invoice_id",
-            "vendor_bill_id",
-            "compensation_move_id",
-            "bank_match_status",
-            "bank_match_score",
-            "bank_amount_difference",
-            "bank_date_difference",
-            "bank_detection_reason",
-        }
-        if not self.env.su and workflow_fields & set(vals):
-            raise AccessError(_("Workflow fields can only be changed by app actions."))
+        vals = self._strip_unchanged_workflow_values(vals)
         protected = {
             "session_id",
             "platform_id",
