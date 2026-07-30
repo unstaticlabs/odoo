@@ -318,6 +318,8 @@ scripts/odoo-dev test base    # run an Odoo module test pass
 scripts/odoo-dev test-js rebuild_account_migration  # frontend unit tests
 scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
+scripts/odoo-dev bootstrap-immediate-settlement-qa
+                                      # exact foreign-amount settlement QA cases
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes

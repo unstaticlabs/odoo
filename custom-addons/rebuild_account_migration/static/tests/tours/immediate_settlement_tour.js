@@ -8,7 +8,12 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
                 ".o_form_view .o_immediate_settlement_actions:has(.immediate_settlement_assign):has(.outstanding_credit_assign)",
         },
         {
-            content: "Settle the payment at its executed rate",
+            content: "The exact amount and discarded estimate are visible",
+            trigger:
+                ".o_form_view .o_rebuild_payment_suggestion_detail:contains('FX loss'):contains('Odoo estimated payment')",
+        },
+        {
+            content: "Settle the exact invoice amount",
             trigger:
                 ".o_form_view .immediate_settlement_assign:not([disabled])",
             run: "click",
@@ -16,18 +21,18 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
         {
             content: "The invoice shows one concise settlement trace",
             trigger:
-                ".o_form_view .o_payment_label:contains('Settled at payment rate')",
+                ".o_form_view .o_payment_label:contains('Settled ·'):contains('FX loss')",
         },
         {
             content: "Open the settlement accounting detail",
             trigger:
-                ".o_form_view tr:has(.o_payment_label:contains('Settled at payment rate')) .js_payment_info",
+                ".o_form_view tr:has(.o_payment_label:contains('Settled ·')) .js_payment_info",
             run: "click",
         },
         {
-            content: "The executed pair and provenance remain inspectable",
+            content: "The source facts and discarded estimate remain inspectable",
             trigger:
-                ".account_payment_popover:contains('5.00 EUR = 4.40 USD'):contains('journal_item')",
+                ".account_payment_popover:contains('from the document'):contains('Discarded Odoo estimate'):contains('FX loss')",
         },
         {
             content: "Reverse the whole linked settlement",

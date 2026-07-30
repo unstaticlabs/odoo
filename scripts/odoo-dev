@@ -117,6 +117,29 @@ bootstrap_einvoice_qa() {
   printf 'Read-only: qa.reviewer / qa-reviewer\n'
 }
 
+bootstrap_immediate_settlement_qa() {
+  local status=0
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_IMMEDIATE_SETTLEMENT_QA_BOOTSTRAP=1 \
+    -e ODOO_IMMEDIATE_SETTLEMENT_QA_DATABASE="$DEV_DB" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < \
+    "$ROOT/scripts/odoo/immediate_settlement_qa_bootstrap.py" \
+    || status=$?
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  print_url
+  if ((status)); then
+    return "$status"
+  fi
+  printf '\nExact Foreign-Amount Settlement QA is ready.\n'
+  printf 'Accountant: qa.settlement / qa-settlement\n'
+  printf 'Read-only: qa.viewer / qa-viewer\n'
+}
+
 cleanup_test_database() {
   local database="$1"
   case "$database" in
@@ -240,6 +263,9 @@ case "${1:-help}" in
   bootstrap-einvoice-qa)
     bootstrap_einvoice_qa
     ;;
+  bootstrap-immediate-settlement-qa)
+    bootstrap_immediate_settlement_qa
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -272,6 +298,8 @@ Commands:
   test-tag TAG  Run one installed Odoo test tag on odoo_dev
   bootstrap-einvoice-qa
                 Prepare safe e-invoicing QA data and local test accounts
+  bootstrap-immediate-settlement-qa
+                Prepare exact foreign-amount settlement QA cases
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

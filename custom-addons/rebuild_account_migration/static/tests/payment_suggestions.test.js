@@ -103,14 +103,18 @@ class AccountMove extends models.Model {
                         id: 45,
                         move_id: 87,
                         move_name: "BNK1/25-26/0300",
-                        amount: 5,
+                        amount: 5.03,
                         currency_id: 1,
                         date: "2026-07-20",
                         can_assign: true,
                         can_immediate_settle: true,
                         immediate_settlement_confidence: "high",
                         immediate_settlement_reason:
-                            "Match this immediate payment at the bank's actual rate. No exchange gain or loss will be created.",
+                            "Match the exact document amount against the actual bank amount and record the resulting company-currency settlement difference.",
+                        immediate_settlement_preview:
+                            "Settle $5.00 against €4.40 · records €0.02 FX loss",
+                        immediate_settlement_synthetic_preview:
+                            "Odoo estimated payment: $5.03",
                         show_immediate_settlement_reason: true,
                     },
                 ],
@@ -133,7 +137,7 @@ class AccountMove extends models.Model {
                         can_assign: true,
                         can_immediate_settle: false,
                         immediate_settlement_reason:
-                            "The payment is 8 days from the document, above the 3-day immediate-settlement policy.",
+                            "The bank transaction is 8 days from the document, above the 3-day exact-settlement policy.",
                         show_immediate_settlement_reason: true,
                     },
                 ],
@@ -149,7 +153,7 @@ class AccountMove extends models.Model {
                     {
                         id: 47,
                         move_id: 89,
-                        name: "Settled at payment rate",
+                        name: "Exact foreign-amount settlement",
                         amount: 5,
                         currency_id: 1,
                         date: "2026-07-20",
@@ -157,17 +161,53 @@ class AccountMove extends models.Model {
                         is_exchange: false,
                         is_refund: false,
                         is_immediate_settlement: true,
-                        executed_pair: "5.00 USD = 4.40 EUR",
+                        settlement_summary: "$5.00 · €0.02 FX loss",
+                        executed_pair:
+                            "$5.00 from the document = €4.40 reported on the bank statement",
+                        synthetic_estimate: "$5.03",
+                        carrying_value: "€4.38",
+                        settlement_difference_label: "€0.02 FX loss",
+                        exchange_account_name: "656000 Commercial FX loss",
+                        exchange_move_names: "EXCH/2026/00001",
                         executed_rate: 0.88,
-                        reference_rate: 0.9,
-                        provenance: "bank_statement",
-                        journal_name: "Immediate Settlements",
+                        reference_rate: 0.874,
+                        provenance:
+                            "EUR amount from bank statement; foreign amount from selected document residual",
+                        journal_name: "Shine EUR",
                         ref: "IMS/2026/00001",
                     },
                 ],
                 outstanding: false,
                 title: "Less Payment",
                 exchange_info: { line_ids: [] },
+            },
+        },
+        {
+            id: 7,
+            invoice_outstanding_credits_debits_widget: {
+                content: [
+                    {
+                        id: 48,
+                        move_id: 90,
+                        move_name: "BNK1/25-26/0302",
+                        amount: 5,
+                        currency_id: 1,
+                        date: "2026-07-20",
+                        can_assign: true,
+                        can_immediate_settle: true,
+                        immediate_settlement_confidence: "normal",
+                        immediate_settlement_reason:
+                            "Match the exact document amount against the actual bank amount and record the resulting company-currency settlement difference.",
+                        immediate_settlement_preview:
+                            "Settle $5.00 against €4.38 · no settlement difference",
+                        immediate_settlement_synthetic_preview:
+                            "Odoo estimated payment: $5.00",
+                        show_immediate_settlement_reason: true,
+                    },
+                ],
+                move_id: 7,
+                outstanding: true,
+                title: "Outstanding debits",
             },
         },
     ];
@@ -239,7 +279,7 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
-        "Add this existing payment using standard Odoo FX accounting. An exchange gain or loss may be created."
+        "Add this existing payment to the bill and reconcile the available amount."
     );
     expect("[aria-disabled='true']").toHaveCount(0);
 });
@@ -271,7 +311,7 @@ test("bank suggestion keeps changes in the Add helper", async () => {
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
-        "Add this bank transaction to the document. Odoo will use the document partner, move the outstanding amount to its receivable or payable account, and reconcile it using standard Odoo FX accounting."
+        "Add this bank transaction to the bill. Odoo will use the bill supplier, move the outstanding amount to the payable account, and reconcile the available amount."
     );
 });
 
@@ -301,11 +341,39 @@ test("eligible suggestion keeps Settle recommended beside native Add", async () 
     expect(".immediate_settlement_assign").toHaveClass("btn-primary");
     expect(".immediate_settlement_assign").toHaveAttribute(
         "title",
-        "Match this immediate payment at the bank's actual rate. No exchange gain or loss will be created."
+        "Match the exact document amount against the actual bank amount and record the resulting company-currency settlement difference."
+    );
+    expect(".o_rebuild_payment_suggestion_settlement_preview").toHaveText(
+        "Settle $5.00 against €4.40 · records €0.02 FX loss"
+    );
+    expect(".o_rebuild_payment_suggestion_settlement_estimate").toHaveText(
+        "Odoo estimated payment: $5.03"
     );
     expect(".outstanding_credit_assign").toHaveCount(1);
+    expect(".o_immediate_settlement_actions").toHaveClass("flex-wrap");
     await contains(".immediate_settlement_assign").click();
     expect.verifySteps(["settle"]);
+});
+
+test("zero company-currency difference is explained without an FX claim", async () => {
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 7,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    expect(".immediate_settlement_assign").toHaveClass("btn-outline-primary");
+    expect(".o_rebuild_payment_suggestion_settlement_preview").toHaveText(
+        "Settle $5.00 against €4.38 · no settlement difference"
+    );
 });
 
 test("blocked payment keeps only Add and a plain-language reason", async () => {
@@ -326,11 +394,11 @@ test("blocked payment keeps only Add and a plain-language reason", async () => {
     expect(".immediate_settlement_assign").toHaveCount(0);
     expect(".outstanding_credit_assign").toHaveCount(1);
     expect(".o_rebuild_payment_suggestion_settlement_blocker").toHaveText(
-        "Standard FX only"
+        "Settle unavailable"
     );
     expect(".o_rebuild_payment_suggestion_settlement_blocker").toHaveAttribute(
         "title",
-        "The payment is 8 days from the document, above the 3-day immediate-settlement policy."
+        "The bank transaction is 8 days from the document, above the 3-day exact-settlement policy."
     );
 });
 
@@ -369,7 +437,7 @@ test("Settle prevents duplicate clicks and reports a server error", async () => 
     expect(".immediate_settlement_assign").toBeEnabled();
 });
 
-test("settled payment trace exposes executed-rate provenance", async () => {
+test("settled payment trace distinguishes bank facts from Odoo's estimate", async () => {
     await mountView({
         type: "form",
         resModel: "account.move",
@@ -381,9 +449,17 @@ test("settled payment trace exposes executed-rate provenance", async () => {
         `,
     });
 
-    expect(".o_payment_label").toHaveText(/Settled at payment rate on/);
+    expect(".o_payment_label").toHaveText(
+        /Settled · \$5.00 · €0.02 FX loss on/
+    );
     await contains(".js_payment_info").click();
-    expect(".account_payment_popover").toHaveText(/Executed pair:/);
-    expect(".account_payment_popover").toHaveText(/5.00 USD = 4.40 EUR/);
-    expect(".account_payment_popover").toHaveText(/bank_statement/);
+    expect(".account_payment_popover").toHaveText(/Settlement pair:/);
+    expect(".account_payment_popover").toHaveText(
+        /\$5.00 from the document = €4.40 reported on the bank statement/
+    );
+    expect(".account_payment_popover").toHaveText(/Discarded Odoo estimate:/);
+    expect(".account_payment_popover").toHaveText(/\$5.03/);
+    expect(".account_payment_popover").toHaveText(/€0.02 FX loss/);
+    expect(".account_payment_popover").toHaveText(/656000 Commercial FX loss/);
+    expect(".account_payment_popover").toHaveText(/EXCH\/2026\/00001/);
 });
