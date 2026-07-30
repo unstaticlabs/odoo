@@ -4,16 +4,14 @@ from odoo import SUPERUSER_ID, api
 def migrate(cr, version):
     env = api.Environment(cr, SUPERUSER_ID, {})
 
-    legacy_settlements = env["account.immediate.settlement"].search(
-        [("adjustment_move_id", "!=", False)],
+    cr.execute(
+        """
+        UPDATE account_immediate_settlement
+           SET mechanism = 'legacy_adjustment',
+               source_line_id_snapshot = payment_line_id
+         WHERE adjustment_move_id IS NOT NULL
+        """,
     )
-    for settlement in legacy_settlements:
-        settlement.write(
-            {
-                "mechanism": "legacy_adjustment",
-                "source_line_id_snapshot": settlement.payment_line_id.id,
-            },
-        )
 
     cr.execute(
         """
