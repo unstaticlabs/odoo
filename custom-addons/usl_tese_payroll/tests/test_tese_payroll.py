@@ -4,6 +4,7 @@ from datetime import date
 from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
+from odoo.tools.safe_eval import safe_eval
 
 from ..models.constants import TESE_COMPONENTS
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
@@ -385,6 +386,46 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         created.with_user(self.readonly_user).check_access("read")
         with self.assertRaises(AccessError):
             created.with_user(self.hr_only_user).check_access("read")
+
+    def test_navigation_opens_all_payroll_and_dedicated_configuration(self):
+        payroll_action = self.env.ref(
+            "usl_tese_payroll.action_tese_payslips",
+        )
+        self.assertNotIn(
+            "search_default_needs_attention",
+            safe_eval(payroll_action.context or "{}"),
+        )
+
+        configuration_menu = self.env.ref(
+            "usl_tese_payroll.menu_tese_payroll_configuration",
+        )
+        self.assertFalse(configuration_menu.action)
+        for menu_xmlid in (
+            "menu_tese_payroll_settings",
+            "menu_tese_payroll_diagnostics",
+            "menu_tese_payroll_run_diagnostics",
+        ):
+            self.assertEqual(
+                self.env.ref(f"usl_tese_payroll.{menu_xmlid}").parent_id,
+                configuration_menu,
+            )
+
+        settings_action = self.env.ref(
+            "usl_tese_payroll.action_open_tese_settings",
+        ).with_user(self.config_user)
+        result = settings_action.run()
+        self.assertEqual(result["res_model"], "res.company")
+        self.assertEqual(result["res_id"], self.company.id)
+        self.assertEqual(
+            result["views"][0][0],
+            self.env.ref(
+                "usl_tese_payroll.view_company_form_tese_configuration",
+            ).id,
+        )
+        with self.assertRaisesRegex(AccessError, "Accounting Administrator"):
+            self.company.with_user(
+                self.workflow_user,
+            ).action_open_tese_configuration()
 
     def test_diagnostics_retain_resolved_history(self):
         payslip = self._new_payslip()

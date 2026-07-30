@@ -391,8 +391,8 @@ msgstr "Société"
 
 #. module: usl_tese_payroll
 #: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_company_configuration
-msgid "Company Configuration"
-msgstr "Configuration de l'entreprise"
+msgid "TESE Companies"
+msgstr "Sociétés TESE"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1653,6 +1653,11 @@ msgid "Severity"
 msgstr "Gravité"
 
 #. module: usl_tese_payroll
+#: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_settings
+msgid "Settings"
+msgstr "Paramètres"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__side
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__side
 msgid "Side"
@@ -1845,6 +1850,14 @@ msgstr "Paies TESE"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__tese_reference
 msgid "TESE Reference"
 msgstr "Référence TESE"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/res_company.py:0
+#: model:ir.actions.server,name:usl_tese_payroll.action_open_tese_settings
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_configuration
+msgid "TESE Settings"
+msgstr "Paramètres TESE"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__tese_settlement_move_id
@@ -2200,6 +2213,7 @@ msgid "The settlement bridge suspense line is invalid."
 msgstr "La ligne de suspension du pont de règlement n'est pas valide."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_configuration
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_payroll
 msgid ""
 "These settings select existing accounting and partner\n"

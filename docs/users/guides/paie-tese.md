@@ -65,8 +65,9 @@ statut importé ne suffit pas.
 
 ## Contrôler les anomalies
 
-Dans l’application **Paie TESE**, cliquez sur **Exécuter les diagnostics**,
-puis ouvrez **Diagnostics**. Les anomalies bloquantes signalent notamment :
+Dans l’application **Paie TESE**, ouvrez **Configuration**, cliquez sur
+**Exécuter les diagnostics**, puis ouvrez **Diagnostics**. Les anomalies
+bloquantes signalent notamment :
 
 - un PDF absent ou d’un mauvais type ;
 - un journal, un collecteur ou un compte manquant ;

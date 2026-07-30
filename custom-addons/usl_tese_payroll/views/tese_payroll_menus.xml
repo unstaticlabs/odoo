@@ -20,23 +20,28 @@
               groups="account.group_account_manager"
               sequence="20"/>
 
-    <menuitem id="menu_tese_payroll_diagnostics"
-              name="Diagnostics"
-              parent="menu_tese_payroll_root"
-              action="action_tese_diagnostics"
-              sequence="30"/>
-
-    <menuitem id="menu_tese_payroll_run_diagnostics"
-              name="Run Diagnostics"
-              parent="menu_tese_payroll_root"
-              action="action_run_tese_diagnostics"
-              groups="account.group_account_user"
-              sequence="31"/>
-
     <menuitem id="menu_tese_payroll_configuration"
               name="Configuration"
               parent="menu_tese_payroll_root"
-              action="action_tese_company_configuration"
-              groups="account.group_account_manager"
               sequence="90"/>
+
+    <menuitem id="menu_tese_payroll_settings"
+              name="Settings"
+              parent="menu_tese_payroll_configuration"
+              action="action_open_tese_settings"
+              groups="account.group_account_manager"
+              sequence="10"/>
+
+    <menuitem id="menu_tese_payroll_diagnostics"
+              name="Diagnostics"
+              parent="menu_tese_payroll_configuration"
+              action="action_tese_diagnostics"
+              sequence="20"/>
+
+    <menuitem id="menu_tese_payroll_run_diagnostics"
+              name="Run Diagnostics"
+              parent="menu_tese_payroll_configuration"
+              action="action_run_tese_diagnostics"
+              groups="account.group_account_user"
+              sequence="30"/>
 </odoo>

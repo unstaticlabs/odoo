@@ -143,6 +143,11 @@ Diagnostics retain issue history instead of deleting a warning when it
 disappears. Each issue has a stable key, severity, category, affected object,
 message, suggested correction, last-seen time and resolution time.
 
+The application keeps diagnostics and their run action under
+**Configuration**. **Configuration → Settings** opens a dedicated TESE form
+for the current company; it does not reuse the generic Company form or expose
+unrelated settings such as electronic invoicing.
+
 Blocking checks include missing or non-PDF evidence, invalid profile
 components, missing journal or collector, unbalanced snapshots, missing
 posted moves and broken move links. Reconciliation observations distinguish
