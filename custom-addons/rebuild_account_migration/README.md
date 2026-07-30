@@ -27,7 +27,10 @@ administrators and remain outside the product navigation.
 The standard first-invoice walkthrough is recorded as consumed for the
 administrator when this module is installed or updated. Accounting therefore
 opens directly after a reconstruction or deployment, while unrelated Odoo
-tours remain available.
+tours remain available in production. The development helper additionally
+marks every installed tour as completed for all internal users in `odoo_dev`
+and other explicitly operated QA targets. This runs after `make dev`,
+`make deploy`, and `make rebuild`; `make dismiss-tours` reapplies it directly.
 
 ## Dependencies
 
