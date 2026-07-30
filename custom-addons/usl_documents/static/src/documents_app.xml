@@ -465,7 +465,7 @@
                                         </span>
                                     </div>
                                     <div class="small text-muted mt-3 d-flex justify-content-between gap-2">
-                                        <span t-esc="document.date || 'No date'"/>
+                                        <span t-esc="this.formatDocumentDate(document.date) || 'No date'"/>
                                         <span t-if="document.primary_link"
                                               class="text-truncate" style="max-width:55%">
                                             <i class="fa fa-link me-1"/>
@@ -540,7 +540,7 @@
                                             </div>
                                         </td>
                                         <td class="text-nowrap text-muted"
-                                            t-esc="document.date || '—'"/>
+                                            t-esc="this.formatDocumentDate(document.date) || '—'"/>
                                         <td class="text-truncate"
                                             t-esc="document.correspondent || '—'"/>
                                         <td class="text-truncate"
@@ -587,14 +587,32 @@
                    class="o_usl_documents_detail border-start bg-white d-flex flex-column"
                    aria-label="Document details">
                 <header class="d-flex justify-content-between align-items-start p-3 border-bottom">
-                    <div class="min-w-0">
-                        <h5 class="text-truncate mb-1" t-esc="state.selected.name"/>
+                    <div class="min-w-0 flex-grow-1 me-3">
+                        <label t-if="state.selected.can_edit"
+                               for="usl_document_title" class="visually-hidden">
+                            Document title
+                        </label>
+                        <input t-if="state.selected.can_edit"
+                               id="usl_document_title"
+                               class="o_input o_usl_detail_title_input"
+                               type="text"
+                               t-att-value="state.selected.name"
+                               t-att-disabled="state.savingFields.name"
+                               t-on-blur="saveTitle"
+                               t-on-keydown="onTitleKeydown"/>
+                        <h3 t-else=""
+                            class="o_usl_detail_title text-break mb-1"
+                            t-esc="state.selected.name"/>
                         <small class="text-muted">
                             <t t-esc="state.selected.document_type || 'Unclassified'"/>
                             <t t-if="state.selected.date">
-                                · <t t-esc="state.selected.date"/>
+                                · <t t-esc="selectedDocumentDateDisplay"/>
                             </t>
                         </small>
+                        <span t-if="state.savingFields.name"
+                              class="small text-muted ms-2" role="status">
+                            <i class="fa fa-spinner fa-spin me-1"/>Saving…
+                        </span>
                     </div>
                     <button class="btn-close" type="button" t-on-click="closeDetail"
                             aria-label="Close"/>
@@ -638,25 +656,11 @@
                     </div>
 
                     <section class="p-3">
-                        <div class="d-flex align-items-center gap-2 mb-3">
-                            <h6 class="mb-0">Classification</h6>
-                            <span t-if="isSavingMetadata"
-                                  class="small text-muted" role="status">
-                                <i class="fa fa-spinner fa-spin me-1"/>Saving…
-                            </span>
+                        <div t-if="isSavingMetadata &amp;&amp; !state.savingFields.name"
+                             class="small text-muted text-end mb-2" role="status">
+                            <i class="fa fa-spinner fa-spin me-1"/>Saving…
                         </div>
                         <div class="o_usl_inline_metadata">
-                            <div class="o_usl_inline_field">
-                                <label for="usl_document_title"
-                                       class="small fw-semibold">Title</label>
-                                <input id="usl_document_title"
-                                       class="o_input"
-                                       type="text"
-                                       t-att-value="state.selected.name"
-                                       t-att-disabled="!state.selected.can_edit || state.savingFields.name"
-                                       t-on-blur="saveTitle"
-                                       t-on-keydown="onTitleKeydown"/>
-                            </div>
                             <div class="o_usl_inline_field">
                                 <label for="usl_document_type"
                                        class="small fw-semibold">Document type</label>
@@ -671,12 +675,18 @@
                                 <label for="usl_document_date"
                                        class="small fw-semibold">Document date</label>
                                 <DateTimeInput
+                                    t-if="!state.selectedLoading"
+                                    t-key="'document-date-' + state.selected.id + '-' + (state.selected.can_edit ? 'editable' : 'readonly')"
                                     id="'usl_document_date'"
                                     type="'date'"
+                                    format="'dd/MM/yyyy'"
                                     value="documentDateValue"
                                     disabled="!state.selected.can_edit || state.savingFields.document_date"
                                     placeholder="'Choose a date…'"
                                     onApply.bind="saveDocumentDate"/>
+                                <span t-else=""
+                                      class="o_usl_readonly_value"
+                                      t-esc="selectedDocumentDateDisplay || 'Loading…'"/>
                             </div>
                             <div class="o_usl_inline_field">
                                 <span class="small fw-semibold">Company</span>

@@ -119,12 +119,14 @@ context, supports hierarchy and large catalogs, and permits inline tag
 creation. A failed Paperless write rolls the visible state back and reports the
 problem.
 
-Title, correspondent, document type, date, and tags are edited directly in the
-document detail: there is no separate classification edit mode. Relational
-values use Odoo's autocomplete, Search More, quick-create, outside-click, and
-Escape behavior; the date uses Odoo's locale-aware picker. A Contact may be
-selected as the source for a correspondent, but that explicit action creates
-or reuses only the Paperless correspondent and mapping.
+The document title is the detail panel's primary heading and is editable in
+place. Correspondent, document type, date, and tags follow directly without a
+redundant “Classification” heading or separate edit mode. Relational values
+use Odoo's autocomplete, Search More, quick-create, outside-click, and Escape
+behavior. The date uses Odoo's calendar picker and the product-wide
+`DD/MM/YYYY` presentation. A Contact may be selected as the source for a
+correspondent, but that explicit action creates or reuses only the Paperless
+correspondent and mapping.
 
 Compact mode follows Odoo list conventions. Every labelled column—Document,
 Date, Correspondent, Type, Company, Tags, and Status—can be sorted from its

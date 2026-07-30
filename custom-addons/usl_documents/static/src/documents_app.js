@@ -1117,6 +1117,21 @@ export class DocumentsWorkspaceView extends Component {
             : false;
     }
 
+    get selectedDocumentDateDisplay() {
+        return this.formatDocumentDate(this.state.selected?.date);
+    }
+
+    formatDocumentDate(value) {
+        if (!value) {
+            return "";
+        }
+        try {
+            return deserializeDate(value).toFormat("dd/MM/yyyy");
+        } catch {
+            return value;
+        }
+    }
+
     get pagerProps() {
         return {
             offset: (this.state.page - 1) * this.state.pageSize,

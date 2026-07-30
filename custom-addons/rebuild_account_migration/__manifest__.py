@@ -30,7 +30,6 @@
         "usl_pocketid",
     ],
     "data": [
-        "data/european_date_format.xml",
         "security/rebuild_account_security.xml",
         "security/ir.model.access.csv",
         "data/currency_rate_provider.xml",
@@ -51,7 +50,6 @@
             "rebuild_account_migration/static/src/js/account_move_upload_controls.js",
             "rebuild_account_migration/static/src/js/accounting_home_action.js",
             "rebuild_account_migration/static/src/js/accounting_report_action.js",
-            "rebuild_account_migration/static/src/js/european_date_format.js",
             "rebuild_account_migration/static/src/js/expense_upload_navigation.js",
             "rebuild_account_migration/static/src/js/matching_badge_field.js",
             "rebuild_account_migration/static/src/js/reconcile_data_presentation.js",
@@ -75,7 +73,6 @@
         "web.assets_unit_tests": [
             "rebuild_account_migration/static/tests/bank_matching_navigation.test.js",
             "rebuild_account_migration/static/tests/bank_matching_selection.test.js",
-            "rebuild_account_migration/static/tests/european_date_format.test.js",
             "rebuild_account_migration/static/tests/interaction_cursors.test.js",
             "rebuild_account_migration/static/tests/matching_badge.test.js",
             "rebuild_account_migration/static/tests/reconcile_data_presentation.test.js",
