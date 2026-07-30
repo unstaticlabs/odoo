@@ -25,6 +25,9 @@ beforeEach(() => {
     url.searchParams.delete("usl_document");
     url.searchParams.delete("usl_version");
     url.searchParams.delete("usl_filters");
+    url.searchParams.delete("domain");
+    url.searchParams.delete("groupBy");
+    url.searchParams.delete("orderBy");
     browser.history.replaceState({}, "", url.toString());
 });
 
@@ -65,12 +68,75 @@ const emptyWorkspace = {
     link_facets: [],
 };
 
+const searchViewArch = `
+    <search>
+        <field name="archive_text"/>
+        <field name="custom_field_text"/>
+        <field name="tag_ids"/>
+        <field name="company_id"/>
+        <field name="document_type_id"/>
+        <field name="correspondent_id"/>
+        <filter name="needs_review" string="Needs review"
+                domain="[('review_state', '=', 'needs_attention')]"/>
+        <group>
+            <filter name="group_company" string="Company"
+                    context="{'group_by': 'company_id'}"/>
+        </group>
+    </search>
+`;
+
+const searchViewFields = {
+    archive_text: { name: "archive_text", string: "Document content", type: "char" },
+    custom_field_text: {
+        name: "custom_field_text",
+        string: "Additional details",
+        type: "char",
+    },
+    tag_ids: {
+        name: "tag_ids",
+        string: "Tags",
+        type: "many2many",
+        relation: "usl.paperless.tag",
+    },
+    company_id: {
+        name: "company_id",
+        string: "Company",
+        type: "many2one",
+        relation: "res.company",
+    },
+    document_type_id: {
+        name: "document_type_id",
+        string: "Document type",
+        type: "many2one",
+        relation: "usl.paperless.document.type",
+    },
+    correspondent_id: {
+        name: "correspondent_id",
+        string: "Correspondent",
+        type: "many2one",
+        relation: "usl.paperless.correspondent",
+    },
+    review_state: {
+        name: "review_state",
+        string: "Review status",
+        type: "selection",
+        selection: [
+            ["needs_attention", "Needs review"],
+            ["classified", "Classified"],
+        ],
+    },
+};
+
 function action(params = {}) {
     return {
         name: "Documents",
         tag: "usl_documents.workspace",
         type: "ir.actions.client",
-        params,
+        params: {
+            search_view_arch: searchViewArch,
+            search_view_fields: searchViewFields,
+            ...params,
+        },
     };
 }
 
@@ -201,9 +267,8 @@ test("workspace search state survives record navigation", async () => {
         })
     );
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
-        expect(kwargs.query).toBe("embedded cobalt phrase");
-        expect(kwargs.company_id).toBe("4");
-        expect(kwargs.document_type_id).toBe("8");
+        expect(kwargs.query).toBe("");
+        expect(kwargs.search_domain).toEqual([]);
         expect(kwargs.page).toBe(2);
         return emptyWorkspace;
     });
@@ -214,7 +279,7 @@ test("workspace search state survives record navigation", async () => {
         },
     });
 
-    expect("input[type=search]").toHaveValue("embedded cobalt phrase");
+    expect(".o_searchview_input").toHaveCount(1);
     expect(
         JSON.parse(
             browser.sessionStorage.getItem(storageKey("global"))
@@ -236,9 +301,10 @@ test("a record smart button starts from an uncluttered linked-record view", asyn
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
         expect(kwargs.workspace).toBe("all");
         expect(kwargs.query).toBe("");
-        expect(kwargs.tag_ids).toEqual([]);
-        expect(kwargs.linked_model).toBe("account.move");
-        expect(kwargs.linked_id).toBe(12);
+        expect(kwargs.shortcut_tag_ids).toEqual([]);
+        expect(kwargs.search_domain).toEqual([
+            ["linked_record_ref", "=", "account.move:12"],
+        ]);
         return emptyWorkspace;
     });
 
@@ -252,7 +318,7 @@ test("a record smart button starts from an uncluttered linked-record view", asyn
         },
     });
 
-    expect("input[type=search]").toHaveValue("");
+    expect(".o_searchview_input").toHaveValue("");
 });
 
 test("detail prioritizes original, classification, versions, and linked records", async () => {
@@ -429,31 +495,53 @@ test("selected document survives a reload after the host router normalizes the U
     ).toBe("12");
 });
 
-test("search suggestions create removable native-style facets", async () => {
+test("top tag shortcuts compose with native search facets", async () => {
     const tags = [
         { id: 21, name: "Tax & reporting", color: "#31a354" },
         { id: 22, name: "Contracts & legal", color: "#8c6bb1" },
     ];
     let lastTagIds = [];
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
-        lastTagIds = kwargs.tag_ids;
+        lastTagIds = kwargs.shortcut_tag_ids;
         return { ...emptyWorkspace, tags };
     });
     await mountWithCleanup(DocumentsWorkspace, {
         props: { action: action() },
     });
 
-    await contains(".o_usl_documents_search input").click();
-    await contains(".o_usl_documents_search input").fill("tag:tax", {
-        confirm: false,
-    });
-    expect(".o_usl_search_suggestions").toHaveText(/Tax & reporting/);
-    await contains(".o_usl_search_suggestions button").click();
+    expect(".o_cp_searchview").toHaveCount(1);
+    await contains(".o_usl_filter_shortcuts .o_usl_tag_chip", {
+        text: "Tax & reporting",
+    }).click();
     expect(lastTagIds).toEqual([21]);
-    expect(".o_usl_active_facets").toHaveText(/Tag: Tax & reporting/);
-    await contains(".o_usl_active_facets button").click();
+    expect(".o_usl_filter_shortcuts .is-selected").toHaveText(/Tax & reporting/);
+    await contains(".o_usl_filter_shortcuts .is-selected").click();
     expect(lastTagIds).toEqual([]);
-    expect(".o_usl_active_facets").toHaveCount(0);
+    expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(0);
+});
+
+test("native search offers OCR content and Paperless custom-field facets", async () => {
+    let lastDomain = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        lastDomain = kwargs.search_domain;
+        return emptyWorkspace;
+    });
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    await contains(".o_searchview_input").fill("heliotrope");
+    expect(".o_searchview_autocomplete").toHaveText(/Document content/);
+    expect(".o_searchview_autocomplete").toHaveText(/Additional details/);
+    await contains(
+        ".o_searchview_autocomplete .o-dropdown-item:nth-child(2)"
+    ).click();
+
+    expect(lastDomain).toEqual([
+        ["custom_field_text", "ilike", "heliotrope"],
+    ]);
+    expect(".o_searchview_facet").toHaveText(/Additional details/);
+    expect(".o_searchview_facet").toHaveText(/heliotrope/);
 });
 
 test("tags are searchable, removable, and creatable from document details", async () => {
@@ -521,7 +609,7 @@ test("tags are searchable, removable, and creatable from document details", asyn
     expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
 });
 
-test("tag chips filter results and advanced filters stay tucked away", async () => {
+test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", async () => {
     const tags = [
         { id: 1, name: "Banking", color: "#225588", text_color: "#ffffff" },
         { id: 2, name: "Tax", color: "#228855", text_color: "#ffffff" },
@@ -536,10 +624,38 @@ test("tag chips filter results and advanced filters stay tucked away", async () 
         return {
             ...emptyWorkspace,
             tags,
-            custom_fields: [
-                { id: 30, name: "Invoice reference", data_type: "string" },
-                { id: 31, name: "Invoice date", data_type: "date" },
-            ],
+            smart_views: emptyWorkspace.smart_views.map((view) => ({
+                ...view,
+                quick_filters:
+                    view.key === "recent"
+                        ? [
+                              {
+                                  id: 1,
+                                  key: "group_company",
+                                  name: "Group by company",
+                                  icon: "fa-building-o",
+                                  kind: "group",
+                                  group_by: "company_id",
+                                  domain: [],
+                              },
+                              {
+                                  id: 2,
+                                  key: "needs_review",
+                                  name: "Needs review",
+                                  icon: "fa-exclamation-circle",
+                                  kind: "filter",
+                                  group_by: false,
+                                  domain: [
+                                      [
+                                          "review_state",
+                                          "=",
+                                          "needs_attention",
+                                      ],
+                                  ],
+                              },
+                          ]
+                        : [],
+            })),
             documents: [
                 {
                     id: 10,
@@ -566,21 +682,231 @@ test("tag chips filter results and advanced filters stay tucked away", async () 
     expect(".o_usl_document_card .o_usl_tag_chip").toHaveCount(3);
     expect(".o_usl_document_card").toHaveText(/\+1/);
     expect(".o_usl_more_filters").toHaveCount(0);
-    await contains("button", { text: "More filters" }).click();
-    expect(".o_usl_more_filters").toHaveCount(1);
-    expect(".o_usl_custom_field_value").toHaveAttribute("type", "text");
-    await contains(".o_usl_custom_field_select").select("31");
-    expect(".o_usl_custom_field_value").toHaveAttribute("type", "date");
-    await contains(".o_usl_custom_field_select").select("30");
-    await contains(".o_usl_custom_field_value").edit("INV-QA-0042", {
-        confirm: "enter",
-    });
+    await contains(".o_searchview_dropdown_toggler").click();
+    expect(".o_search_bar_menu").toHaveText(/Filters/);
+    expect(".o_search_bar_menu").toHaveText(/Group By/);
+    expect(".o_search_bar_menu").toHaveText(/Favorites/);
+    await contains(".o_searchview_dropdown_toggler").click();
+    await contains(".o_usl_filter_shortcuts button", {
+        text: "Group by company",
+    }).click();
     expect(calls).toBe(2);
-    expect(workspaces.at(-1).custom_field_id).toBe("30");
-    expect(workspaces.at(-1).custom_field_value).toBe("INV-QA-0042");
+    expect(workspaces.at(-1).group_by).toEqual(["company_id"]);
     await contains(".o_usl_document_card .o_usl_tag_chip").click();
     expect(calls).toBe(3);
-    expect(workspaces.at(-1).tag_ids).toEqual([1]);
+    expect(workspaces.at(-1).shortcut_tag_ids).toEqual([1]);
+    await contains(".o_usl_filter_shortcuts button", {
+        text: "Needs review",
+    }).click();
+    expect(calls).toBe(4);
+    expect(workspaces.at(-1).search_domain).toEqual([
+        ["review_state", "=", "needs_attention"],
+    ]);
+    expect(
+        ".o_usl_filter_shortcuts [data-shortcut-key='needs_review']"
+    ).toHaveClass("btn-primary");
+    await contains(
+        ".o_usl_filter_shortcuts [data-shortcut-key='needs_review']"
+    ).click();
+    expect(calls).toBe(5);
+    expect(workspaces.at(-1).search_domain).toEqual([]);
+});
+
+test("Trash shows attribution and keeps linked documents recoverable", async () => {
+    let availabilityState = "available";
+    let moveCalled = false;
+    const document = {
+        id: 54,
+        name: "Signed supplier agreement",
+        paperless_id: 154,
+        date: "2026-07-18",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: availabilityState,
+        access_error: false,
+        correspondent: "Alpine Office Supplies",
+        document_type: "Contract",
+        tags: [],
+        link_count: 2,
+        primary_link: false,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [{ ...document, availability_state: availabilityState }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        availability_state: availabilityState,
+        can_edit: true,
+        can_trash: availabilityState === "available",
+        can_restore: availabilityState === "trashed",
+        can_manage: true,
+        archive_available: true,
+        trashed_by:
+            availabilityState === "trashed" ? "Administrator" : false,
+        trashed_at:
+            availabilityState === "trashed" ? "2026-07-30 12:30:00" : false,
+        permanent_delete_blocker:
+            availabilityState === "trashed"
+                ? "Remove 2 active Odoo links before permanent deletion."
+                : false,
+        versions: [],
+        links: [],
+    }));
+    onRpc("usl.document", "move_to_trash", () => {
+        moveCalled = true;
+        availabilityState = "trashed";
+        return {
+            document_id: document.id,
+            message: "Document moved to Trash. Its Odoo links were kept.",
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    await contains(".o_usl_action_menu summary").click();
+    await contains("button", { text: "Move to Trash" }).click();
+
+    expect(".modal").toHaveText(/2 Odoo links will remain visible/);
+    expect(".modal").toHaveText(/cannot be permanently deleted while linked/);
+    await contains(".modal-footer .btn-danger").click();
+    await animationFrame();
+
+    expect(moveCalled).toBe(true);
+    expect(".o_usl_documents_detail").toHaveText(/In Trash/);
+    expect(".o_usl_documents_detail").toHaveText(/Administrator/);
+    expect(".o_usl_documents_detail").toHaveText(/2026-07-30 12:30:00/);
+    expect(".o_usl_documents_detail footer .btn-primary").toHaveText(
+        /Restore document/
+    );
+    expect(
+        ".o_usl_documents_detail footer .btn-outline-danger"
+    ).not.toBeEnabled();
+    expect(".o_usl_documents_detail").toHaveText(
+        /Remove 2 active Odoo links before permanent deletion/
+    );
+});
+
+test("authorized permanent deletion requires a reason and keeps an audit flow", async () => {
+    const document = {
+        id: 55,
+        name: "Expired temporary scan",
+        paperless_id: 155,
+        date: "2020-01-01",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: "trashed",
+        access_error: false,
+        correspondent: "",
+        document_type: "Temporary",
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    const calls = [];
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        can_edit: false,
+        can_trash: false,
+        can_restore: true,
+        can_manage: true,
+        archive_available: true,
+        trashed_by: "Administrator",
+        trashed_at: "2026-07-30 12:45:00",
+        permanent_delete_blocker: false,
+        retention_hold: false,
+        retention_until: "2025-01-01",
+        versions: [],
+        links: [],
+    }));
+    onRpc("usl.document", "approve_permanent_deletion", ({ args }) => {
+        calls.push(["approve", args]);
+        return true;
+    });
+    onRpc("usl.document", "permanently_delete_from_trash", ({ args }) => {
+        calls.push(["delete", args]);
+        return true;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action({ initial_workspace: "trash" }) },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    await contains(
+        ".o_usl_documents_detail footer .btn-outline-danger"
+    ).click();
+
+    expect(".modal-footer .btn-danger").not.toBeEnabled();
+    await contains("#usl_delete_reason").fill(
+        "Retention expired; duplicate temporary scan."
+    );
+    expect(".modal-footer .btn-danger").toBeEnabled();
+    await contains(".modal-footer .btn-danger").click();
+    await animationFrame();
+
+    expect(calls).toEqual([
+        [
+            "approve",
+            [[55], "Retention expired; duplicate temporary scan."],
+        ],
+        ["delete", [[55]]],
+    ]);
+    expect(".o_usl_documents_detail").toHaveCount(0);
+});
+
+test("workspace and open document detail do not overflow their viewport", async () => {
+    const evidence = {
+        id: 56,
+        name: "Responsive evidence",
+        paperless_id: 156,
+        date: "2026-07-30",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "Example Bank",
+        document_type: "Statement",
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [evidence],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...evidence,
+        can_edit: true,
+        can_trash: true,
+        can_restore: false,
+        can_manage: true,
+        archive_available: true,
+        versions: [],
+        links: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    const workspace = document.querySelector(".o_usl_documents");
+    expect(workspace.scrollWidth <= workspace.clientWidth).toBe(true);
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    expect(workspace.scrollWidth <= workspace.clientWidth).toBe(true);
+    expect(".o_usl_documents_detail footer .btn-primary").toHaveText(
+        /Download original/
+    );
 });
 
 test("permission failures are actionable while healthy state stays quiet", async () => {

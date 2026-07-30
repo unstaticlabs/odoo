@@ -1,4 +1,5 @@
 import json
+import shlex
 from datetime import timedelta
 
 from odoo import Command, _, api, fields, models
@@ -13,7 +14,7 @@ MATCHING_ALGORITHMS = [
     ("3", "Exact match"),
     ("4", "Regular expression"),
     ("5", "Fuzzy word"),
-    ("6", "Automatic"),
+    ("6", "Learn automatically"),
 ]
 
 
@@ -32,6 +33,13 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         string="Words to look for",
         help="Text or pattern Paperless uses when automatically classifying documents.",
     )
+    rule_lines = fields.Text(
+        string="Matching terms",
+        help=(
+            "For Any word or All words, enter one word or phrase per line. "
+            "Odoo writes the equivalent supported Paperless match expression."
+        ),
+    )
     matching_algorithm = fields.Selection(
         MATCHING_ALGORITHMS,
         string="How documents match",
@@ -44,6 +52,11 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         help="Match upper- and lower-case text in the same way.",
     )
     document_count = fields.Integer(readonly=True)
+    accessible_document_count = fields.Integer(
+        string="Documents",
+        compute="_compute_accessible_document_count",
+        help="Documents carrying this metadata that the current Odoo user may access.",
+    )
     active = fields.Boolean(default=True)
     last_synced_at = fields.Datetime(readonly=True)
     last_error = fields.Text(readonly=True)
@@ -57,7 +70,13 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
 
     @api.model
     def _payload_fields(self):
-        return {"name", "match", "matching_algorithm", "is_insensitive"}
+        return {
+            "name",
+            "match",
+            "rule_lines",
+            "matching_algorithm",
+            "is_insensitive",
+        }
 
     @api.model
     def _local_write_fields(self):
@@ -65,6 +84,17 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
 
     @api.model
     def _paperless_payload(self, values):
+        values = dict(values)
+        if "rule_lines" in values:
+            algorithm = str(
+                values.get("matching_algorithm")
+                or (self[:1].matching_algorithm if self else "0")
+                or "0",
+            )
+            values["match"] = self._compile_rule_lines(
+                values.pop("rule_lines"),
+                algorithm,
+            )
         payload = {}
         for key in self._payload_fields():
             if key not in values:
@@ -72,21 +102,61 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
             value = values[key]
             if key == "matching_algorithm":
                 value = int(value or 0)
+            elif key == "match":
+                # Odoo represents an empty Char as ``False``. Paperless's
+                # public serializers require a string, including when matching
+                # is disabled or set to Automatic.
+                value = value or ""
             payload[key] = value
-        # Tags, correspondents, and document types are shared archive catalogs.
-        # Paperless treats an object without an owner as visible to users who
-        # have the corresponding global model permission. Document object
-        # permissions remain independent and are synchronized separately.
-        payload.setdefault("owner", None)
         return payload
 
     @api.model
+    def _compile_rule_lines(self, rule_lines, algorithm):
+        lines = [
+            line.strip()
+            for line in (rule_lines or "").splitlines()
+            if line.strip()
+        ]
+        if algorithm in ("1", "2"):
+            expression = " ".join(
+                json.dumps(line, ensure_ascii=False)
+                if any(character.isspace() for character in line)
+                else line
+                for line in lines
+            )
+        else:
+            expression = "\n".join(lines)
+        if len(expression) > 256:
+            raise ValidationError(
+                _("Paperless matching expressions are limited to 256 characters."),
+            )
+        return expression
+
+    @api.model
+    def _rule_lines_from_match(self, match, algorithm):
+        if not match:
+            return False
+        if str(algorithm or 0) not in ("1", "2"):
+            return match
+        try:
+            return "\n".join(shlex.split(match))
+        except ValueError:
+            # Preserve an expression Paperless accepts even if it cannot be
+            # losslessly presented as individual phrases.
+            return match
+
+    @api.model
     def _cache_values(self, payload):
+        matching_algorithm = str(payload.get("matching_algorithm") or 0)
         return {
             "name": payload.get("name") or _("Unnamed"),
             "paperless_id": int(payload["id"]),
             "match": payload.get("match") or False,
-            "matching_algorithm": str(payload.get("matching_algorithm") or 0),
+            "rule_lines": self._rule_lines_from_match(
+                payload.get("match"),
+                matching_algorithm,
+            ),
+            "matching_algorithm": matching_algorithm,
             "is_insensitive": bool(payload.get("is_insensitive")),
             "document_count": int(payload.get("document_count") or 0),
             "active": True,
@@ -100,8 +170,17 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
             return super().create(values_list)
         records = self.browse()
         for values in values_list:
+            payload = self._paperless_payload(values)
+            # Paperless's create serializers require a string.  Keep this
+            # create-only: defaulting it during a name-only update would erase
+            # an existing matching expression.
+            payload.setdefault("match", "")
+            # Tags, correspondents, and document types created from Odoo are
+            # shared archive catalogs. Keep this create-only as well: an
+            # Odoo-only Contact mapping must not produce an empty remote patch.
+            payload.setdefault("owner", None)
             remote = self._paperless().create_metadata(
-                self._paperless_kind, self._paperless_payload(values),
+                self._paperless_kind, payload,
             )
             cache_values = self._cache_values(remote)
             cache_values.update(
@@ -201,6 +280,53 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
     def action_refresh_catalog(self):
         self.synchronize_catalog()
         return {"type": "ir.actions.client", "tag": "reload"}
+
+    def _compute_accessible_document_count(self):
+        counts = {record.id: 0 for record in self}
+        documents = self.env["usl.document"].search(
+            [
+                (
+                    "availability_state",
+                    "not in",
+                    ("trashed", "permanently_deleted"),
+                ),
+            ],
+        )
+        if self._paperless_kind == "tags":
+            for document in documents:
+                for tag_id in document.tag_ids.ids:
+                    if tag_id in counts:
+                        counts[tag_id] += 1
+        else:
+            field_name = {
+                "correspondents": "correspondent_id",
+                "document_types": "document_type_id",
+            }[self._paperless_kind]
+            for document in documents:
+                metadata_id = document[field_name].id
+                if metadata_id in counts:
+                    counts[metadata_id] += 1
+        for record in self:
+            record.accessible_document_count = counts[record.id]
+
+    def action_open_documents(self):
+        """Open the native workspace with a removable native search facet."""
+        self.ensure_one()
+        field_by_kind = {
+            "tags": "tag_ids",
+            "correspondents": "correspondent_id",
+            "document_types": "document_type_id",
+        }
+        field_name = field_by_kind[self._paperless_kind]
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "usl_documents.action_documents_workspace",
+        )
+        action["context"] = {
+            **dict(self.env.context),
+            f"search_default_{field_name}": self.ids,
+        }
+        action["params"] = {"initial_workspace": "all"}
+        return action
 
 
 class UslPaperlessTag(models.Model):
@@ -480,6 +606,62 @@ class UslPaperlessDocumentType(models.Model):
     _paperless_kind = "document_types"
 
 
+class UslDocumentQuickFilter(models.Model):
+    _name = "usl.document.quick.filter"
+    _description = "Documents One-click Filter"
+    _order = "sequence, name, id"
+
+    name = fields.Char(required=True, translate=True)
+    key = fields.Char(required=True, index=True)
+    icon = fields.Char(default="fa-filter")
+    sequence = fields.Integer(default=10)
+    kind = fields.Selection(
+        [("filter", "Filter"), ("group", "Group by")],
+        required=True,
+        default="filter",
+    )
+    field_name = fields.Selection(
+        [
+            ("company_id", "Company"),
+            ("correspondent_id", "Correspondent"),
+            ("document_type_id", "Document type"),
+            ("linked_employee_id", "Employee"),
+            ("document_date:month", "Document month"),
+            ("paperless_created:month", "Archive month"),
+        ],
+        string="Group field",
+    )
+    active = fields.Boolean(default=True)
+
+    _quick_filter_key_unique = models.Constraint(
+        "UNIQUE(key)", "A Documents shortcut key must be unique.",
+    )
+
+    def workspace_values(self):
+        self.ensure_one()
+        domains = {
+            "my_uploads": [("submitted_by_id", "=", self.env.user.id)],
+            "unlinked": [("has_linked_record", "=", False)],
+            "needs_review": [("review_state", "=", "needs_attention")],
+            "last_30_days": [
+                (
+                    "paperless_created",
+                    ">=",
+                    fields.Datetime.now() - timedelta(days=30),
+                ),
+            ],
+        }
+        return {
+            "id": self.id,
+            "key": self.key,
+            "name": self.name,
+            "icon": self.icon or "fa-filter",
+            "kind": self.kind,
+            "domain": domains.get(self.key, []),
+            "group_by": self.field_name or False,
+        }
+
+
 class UslDocumentSmartView(models.Model):
     _name = "usl.document.smart.view"
     _description = "Documents Smart View"
@@ -532,6 +714,17 @@ class UslDocumentSmartView(models.Model):
         "view_id",
         "correspondent_id",
         string="Correspondents",
+    )
+    quick_filter_ids = fields.Many2many(
+        "usl.document.quick.filter",
+        "usl_document_smart_view_quick_filter_rel",
+        "view_id",
+        "filter_id",
+        string="One-click shortcuts",
+        help=(
+            "Useful filters shown below the search bar for this view. "
+            "They compose with normal search facets and tag shortcuts."
+        ),
     )
     filter_json = fields.Text(readonly=True)
     archive_native = fields.Boolean(
@@ -684,6 +877,20 @@ class UslDocumentSmartView(models.Model):
     def workspace_values(self):
         self.ensure_one()
         filters = json.loads(self.filter_json or "{}")
+        quick_filters = self.quick_filter_ids.filtered("active")
+        if not quick_filters:
+            defaults = {
+                "attention": ["needs_review", "unlinked"],
+                "recent": ["last_30_days", "group_document_month"],
+                "accounting": ["group_correspondent", "group_document_type"],
+                "metadata": ["group_correspondent", "group_document_type"],
+                "hr": ["group_employee", "group_document_month"],
+                "trash": ["group_document_type", "group_correspondent"],
+                "all": ["my_uploads", "unlinked", "group_company"],
+            }
+            quick_filters = self.env["usl.document.quick.filter"].search(
+                [("key", "in", defaults.get(self.system_rule, []))],
+            )
         return {
             "id": self.id,
             "key": self.key or f"view:{self.id}",
@@ -693,6 +900,10 @@ class UslDocumentSmartView(models.Model):
             "filters": filters,
             "archive_native": self.archive_native,
             "needs_attention": self.paperless_sync_state == "failed",
+            "quick_filters": [
+                item.workspace_values()
+                for item in quick_filters.sorted("sequence")
+            ],
         }
 
     def _paperless_filter_rules(self):

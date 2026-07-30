@@ -5,6 +5,7 @@ from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
+from ..controllers import documents as documents_controller_module
 from ..controllers.documents import DocumentsController
 from ..models.document import UslDocument
 from ..models.paperless_client import (
@@ -490,6 +491,7 @@ class TestDocuments(TransactionCase):
             )
         create_metadata.assert_called_once()
         self.assertIsNone(create_metadata.call_args.args[1]["owner"])
+        self.assertEqual(create_metadata.call_args.args[1]["match"], "")
         self.assertEqual(tag.paperless_id, 304)
         with patch.object(
             PaperlessClient,
@@ -502,6 +504,67 @@ class TestDocuments(TransactionCase):
             tag.with_user(self.user).unlink()
         with patch.object(PaperlessClient, "delete_metadata", return_value={}):
             tag.with_user(self.manager).unlink()
+
+    def test_metadata_create_normalizes_empty_match_and_compiles_rule_lines(self):
+        correspondent_response = {
+            "id": 1304,
+            "name": "Test Correspondent",
+            "match": "",
+            "matching_algorithm": 0,
+        }
+        with patch.object(
+            PaperlessClient,
+            "create_metadata",
+            return_value=correspondent_response,
+        ) as create_metadata:
+            self.env["usl.paperless.correspondent"].with_user(self.user).create(
+                {"name": "Test Correspondent"},
+            )
+        payload = create_metadata.call_args.args[1]
+        self.assertEqual(payload["match"], "")
+        self.assertNotIn(False, payload.values())
+
+        tag_response = {
+            "id": 1305,
+            "name": "Tax evidence",
+            "match": '"tax return" VAT',
+            "matching_algorithm": 1,
+            "color": "#225588",
+        }
+        with patch.object(
+            PaperlessClient,
+            "create_metadata",
+            return_value=tag_response,
+        ) as create_tag:
+            tag = self.env["usl.paperless.tag"].with_user(self.user).create(
+                {
+                    "name": "Tax evidence",
+                    "matching_algorithm": "1",
+                    "rule_lines": "tax return\nVAT",
+                },
+            )
+        self.assertEqual(
+            create_tag.call_args.args[1]["match"],
+            '"tax return" VAT',
+        )
+        self.assertEqual(tag.rule_lines, "tax return\nVAT")
+
+    def test_metadata_count_and_open_action_only_use_accessible_documents(self):
+        tag = self._tag(1306, "Daily shortcut")
+        self._document(1307, tag_ids=[Command.set(tag.ids)])
+        self._document(
+            1308,
+            company_id=self.company_b.id,
+            tag_ids=[Command.set(tag.ids)],
+        )
+        restricted_tag = tag.with_user(self.user)
+        self.assertEqual(restricted_tag.accessible_document_count, 1)
+        action = restricted_tag.action_open_documents()
+        self.assertEqual(action["params"]["initial_workspace"], "all")
+        self.assertEqual(
+            action["context"]["search_default_tag_ids"],
+            tag.ids,
+        )
 
     def test_document_metadata_updates_paperless_then_refreshes_cache(self):
         tag = self._tag(305, "Reviewed")
@@ -839,6 +902,77 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.paperless_id, 333)
         self.assertEqual(document.link_count, 1)
 
+    def test_direct_restore_clears_old_trash_attribution_before_retrash(self):
+        document = self._document(343, name="Archive policy")
+        document.with_context(usl_documents_cache_write=True).write(
+            {
+                "availability_state": "trashed",
+                "trashed_at": "2026-07-29 09:00:00",
+                "trashed_by_id": self.manager.id,
+                "trashed_by_label": self.manager.display_name,
+                "retention_until": "2026-08-28 09:00:00",
+                "deletion_approved_by_id": self.manager.id,
+                "deletion_approved_at": "2026-07-29 09:05:00",
+                "deletion_reason": "Superseded",
+            },
+        )
+        active_payload = {
+            "id": 343,
+            "title": "Archive policy",
+            "created": "2026-07-01",
+            "modified": "2026-07-29T10:00:00Z",
+            "tags": [],
+            "versions": [],
+        }
+        active_page = {"next": None, "results": [active_payload]}
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(PaperlessClient, "list_documents", return_value=active_page),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            self.env["usl.document"].with_user(self.manager).sync_from_paperless(
+                full=True,
+            )
+        self.assertEqual(document.availability_state, "available")
+        self.assertFalse(document.trashed_at)
+        self.assertFalse(document.trashed_by_id)
+        self.assertFalse(document.trashed_by_label)
+        self.assertFalse(document.retention_until)
+        self.assertFalse(document.deletion_approved_by_id)
+        self.assertFalse(document.deletion_approved_at)
+        self.assertFalse(document.deletion_reason)
+
+        retrash_payload = {
+            **active_payload,
+            "deleted_at": "2026-07-29T11:00:00Z",
+        }
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(
+                PaperlessClient,
+                "list_documents",
+                return_value={"next": None, "results": []},
+            ),
+            patch.object(
+                PaperlessClient,
+                "list_trashed_documents",
+                return_value=[retrash_payload],
+            ),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            self.env["usl.document"].with_user(self.manager).sync_from_paperless(
+                full=True,
+            )
+        self.assertEqual(document.availability_state, "trashed")
+        self.assertFalse(document.trashed_by_id)
+        self.assertEqual(
+            document.trashed_by_label,
+            "Moved in Paperless (user not provided by its API)",
+        )
+
     def test_interrupted_incremental_sync_resumes_from_saved_checkpoint(self):
         page_one = {
             "next": "http://paperless/api/documents/?page=2",
@@ -934,6 +1068,60 @@ class TestDocuments(TransactionCase):
         self.assertEqual(result["count"], 2)
         self.assertEqual(len(result["documents"]), 1)
         self.assertEqual(search.call_count, 2)
+
+    def test_native_search_domain_combines_ocr_and_structured_filters(self):
+        visible = self._document(1182, name="Visible OCR match")
+        self._document(1183, company_id=self.company_b.id)
+        with patch.object(
+            PaperlessClient,
+            "search",
+            return_value={
+                "count": 2,
+                "next": None,
+                "results": [{"id": 1182}, {"id": 1183}],
+            },
+        ) as search:
+            result = self.env["usl.document"].with_user(self.user).workspace_data(
+                workspace="all",
+                search_domain=[
+                    ["archive_text", "ilike", "embedded cobalt phrase"],
+                    ["company_id", "=", self.company_a.id],
+                ],
+            )
+        self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
+        search.assert_called_once()
+        self.assertEqual(search.call_args.args[0], "embedded cobalt phrase")
+
+    def test_native_search_bar_searches_paperless_custom_field_values(self):
+        visible = self._document(1184, name="Invoice reference match")
+        self._document(1185, company_id=self.company_b.id)
+        self.env["ir.config_parameter"].sudo().set_str(
+            "usl_documents.paperless_custom_fields",
+            '[{"id": 7, "name": "Invoice reference", "data_type": "string"}]',
+        )
+        with patch.object(
+            PaperlessClient,
+            "search",
+            return_value={
+                "count": 2,
+                "next": None,
+                "results": [{"id": 1184}, {"id": 1185}],
+            },
+        ) as search:
+            result = self.env["usl.document"].with_user(self.user).workspace_data(
+                workspace="all",
+                search_domain=[
+                    ["custom_field_text", "ilike", "INV-QA-2026-0042"],
+                    ["company_id", "=", self.company_a.id],
+                ],
+            )
+        self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
+        search.assert_called_once()
+        self.assertEqual(search.call_args.args[0], "")
+        self.assertEqual(
+            search.call_args.kwargs["filters"]["custom_field_query"],
+            '["Invoice reference", "icontains", "INV-QA-2026-0042"]',
+        )
 
     def test_archive_id_and_custom_field_filters_keep_odoo_authorization(self):
         visible = self._document(420)
@@ -1335,6 +1523,36 @@ class TestDocuments(TransactionCase):
                 )["documents"]
             ],
         )
+
+    def test_move_to_trash_records_actor_preserves_links_and_blocks_deletion(self):
+        document = self._document(1412)
+        document.link_to_record("res.partner", self.partner_a.id)
+        with patch.object(
+            PaperlessClient,
+            "trash_document",
+            return_value={},
+        ) as trash:
+            result = document.with_user(self.user).move_to_trash()
+        trash.assert_called_once_with(1412)
+        self.assertEqual(result["state"], "trashed")
+        self.assertEqual(document.availability_state, "trashed")
+        self.assertEqual(document.trashed_by_id, self.user)
+        self.assertEqual(document.link_count, 1)
+        detail = document.with_user(self.manager).document_detail(document.id)
+        self.assertEqual(detail["trashed_by"], self.user.display_name)
+        self.assertIn("active Odoo link", detail["permanent_delete_blocker"])
+        document.with_user(self.manager).approve_permanent_deletion(
+            "Synthetic QA cleanup",
+        )
+        with self.assertRaisesRegex(UserError, "Odoo relationship"):
+            document.with_user(self.manager).permanently_delete_from_trash()
+
+    def test_download_controller_uses_odoo_19_content_disposition_helper(self):
+        disposition = documents_controller_module.content_disposition(
+            "supplier invoice.pdf",
+        )
+        self.assertIn("attachment", disposition)
+        self.assertIn("filename", disposition)
 
     def test_permission_sync_failure_blocks_paperless_deep_link(self):
         self.env["ir.config_parameter"].sudo().set_str(

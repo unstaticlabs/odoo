@@ -57,6 +57,56 @@ check(
     "interrupted acceptance state reconciled before fixture reuse",
 )
 
+# Prove the exact catalog-create contract against Paperless, not only a mock.
+# Empty Odoo Char values must be sent as strings and multi-term matching rules
+# must remain readable in Odoo while using Paperless's supported expression.
+catalog_suffix = f"{marker}-{int(time.time())}"
+catalog_records = []
+try:
+    acceptance_tag = env["usl.paperless.tag"].with_user(admin).create(
+        {
+            "name": f"Acceptance tag {catalog_suffix}",
+            "matching_algorithm": "1",
+            "rule_lines": "acceptance phrase\narchive proof",
+            "color": "#4b6f8a",
+        },
+    )
+    acceptance_correspondent = env[
+        "usl.paperless.correspondent"
+    ].with_user(admin).create(
+        {"name": f"Acceptance correspondent {catalog_suffix}"},
+    )
+    catalog_records.extend([acceptance_tag, acceptance_correspondent])
+    remote_tag = next(
+        (
+            item
+            for item in client.list_metadata("tags")
+            if int(item["id"]) == acceptance_tag.paperless_id
+        ),
+        None,
+    )
+    remote_correspondent = next(
+        (
+            item
+            for item in client.list_metadata("correspondents")
+            if int(item["id"]) == acceptance_correspondent.paperless_id
+        ),
+        None,
+    )
+    check(
+        bool(remote_tag)
+        and remote_tag.get("match") == '"acceptance phrase" "archive proof"',
+        "Odoo created a multi-term Paperless tag rule through the live API",
+    )
+    check(
+        bool(remote_correspondent)
+        and remote_correspondent.get("match", "") == "",
+        "Odoo created a Paperless correspondent with a valid empty match",
+    )
+finally:
+    for catalog_record in catalog_records:
+        catalog_record.with_user(admin).unlink()
+
 bill = env["account.move"].search(
     [("ref", "=", "USL-DOCS-CEO-QA-BILL"), ("move_type", "=", "in_invoice")],
     limit=1,
@@ -205,6 +255,16 @@ download, _headers = client.download(
     original=True,
 )
 check(hashlib.sha256(download).hexdigest() == checksum, "original download integrity")
+processed_download, processed_headers = client.download(
+    document.paperless_id,
+    version_id=received_version.paperless_version_id,
+    original=False,
+)
+check(bool(processed_download), "processed archive download returned content")
+check(
+    "content-type" in {key.lower() for key in processed_headers},
+    "processed archive download returned a content type",
+)
 preview, preview_headers = client.preview(document.paperless_id)
 check(bool(preview), "Paperless preview generated")
 check(
@@ -314,8 +374,16 @@ external = (
     "Needs Odoo company and business classification.\n"
 ).encode()
 external_document = documents.search(
-    [("name", "=", f"External ingestion {marker}")], limit=1
+    [
+        ("name", "=", f"External ingestion {marker}"),
+        ("availability_state", "in", ("available", "trashed")),
+    ],
+    limit=1,
 )
+if external_document.availability_state == "trashed":
+    external_document.with_user(admin).restore_from_trash()
+    external_document.invalidate_recordset()
+    check(True, "existing external ingestion restored before lifecycle check")
 if not external_document:
     external_task_id = client.upload_multipart(
         external,
@@ -343,7 +411,11 @@ if not external_document:
     sync_result = documents.sync_from_paperless(full=True)
     check(sync_result["complete"], "external ingestion reconciliation completed")
     external_document = documents.search(
-        [("name", "=", f"External ingestion {marker}")], limit=1
+        [
+            ("name", "=", f"External ingestion {marker}"),
+            ("availability_state", "=", "available"),
+        ],
+        limit=1,
     )
 else:
     check(True, "existing external ingestion reused")
@@ -352,6 +424,29 @@ check(
     external_document.review_state == "needs_attention"
     and external_document.source == "paperless",
     "unclassified external document surfaced in Needs attention",
+)
+external_identity = external_document.paperless_id
+trash_result = external_document.with_user(admin).move_to_trash()
+external_document.invalidate_recordset()
+check(
+    trash_result["state"] == "trashed"
+    and external_document.availability_state == "trashed"
+    and external_document.trashed_by_id == admin,
+    "Odoo Trash records the initiating user and preserves the archive identity",
+)
+trash_detail = documents.document_detail(external_document.id)
+check(
+    trash_detail["trashed_by"] == admin.display_name
+    and bool(trash_detail["trashed_at"]),
+    "Trash detail exposes who moved the document and when",
+)
+restore_result = external_document.with_user(admin).restore_from_trash()
+external_document.invalidate_recordset()
+check(
+    restore_result["state"] == "restored"
+    and external_document.availability_state == "available"
+    and external_document.paperless_id == external_identity,
+    "Odoo restored the same Paperless identity from Trash",
 )
 
 matching_tag = env["usl.paperless.tag"].search(

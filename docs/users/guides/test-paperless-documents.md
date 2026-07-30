@@ -34,19 +34,41 @@ archive. Do not run `down --volumes`, `scripts/odoo-dev reset`, or a bare
 
 ## 1. Find text inside a document
 
-1. In Documents, search for `Net VAT payable`.
-2. Choose the suggested **Tax & reporting** tag.
-3. Set type to **Tax filing** and company to **My Company**.
-4. Open **Synthetic VAT return — July 2026**.
+1. In Documents, type `heliotrope`.
+2. Choose **Search Document content for: heliotrope**. It becomes a removable
+   **Document content** facet.
+3. Click the top **Accounting** tag chip. It is applied on top of the search,
+   leaving **Alpine Office Supplies — Invoice SI-2026-0715**.
+4. Open the document and confirm the preview contains the OCR-only sentence.
 
 You should get one authorized result. The preview contains the searched words.
 The panel immediately explains the date, correspondent, type, tags, company,
 and Odoo links. Healthy synchronization and checksum messages are absent.
 
-Open **More filters** and try the seeded **Invoice reference** additional
-detail with value `SI-2026-0715`. You can also type `id:` in the main search
-and choose an exact Paperless archive ID. Both are normal removable facets and
-still pass through Odoo authorization.
+Open the search dropdown. It must be Odoo's normal three-column menu:
+
+- **Filters** includes My uploads, Needs review, Linked/Not linked,
+  Accounting, HR, availability, date ranges, and Custom Filter;
+- **Group By** includes Company, Correspondent, Type, Employee, Privacy,
+  Review status, and document/archive month;
+- **Favorites** saves the current search for the signed-in user.
+
+There is no separate **More filters** form.
+
+For another structured search, type `INV-QA-2026-0042` and choose
+**Additional details**. This searches synchronized Paperless custom fields.
+Type a Paperless ID and choose **Archive ID** to create an exact identity
+facet. Type a tag, correspondent, type, company, employee, source, privacy, or
+review value and choose the matching suggestion. Every choice is a normal
+removable Odoo facet and still passes through Odoo authorization.
+
+The small chips below the search bar are deliberate shortcuts:
+
+- the first group comes from the active Smart View, such as **Last 30 days** or
+  **Group by employee** in HR;
+- the colored group is made from the most-used tags the current user can
+  access;
+- every shortcut composes with the search facets already present.
 
 Try Back and Forward:
 
@@ -73,15 +95,37 @@ appear in Paperless after saving.
 
 Use the top **Tags**, **Correspondents**, and **Document types** menus.
 
-Open a tag such as **Tax & reporting**. The form should explain:
+First prove that live creation works:
+
+1. Create `CEO QA test tag` in Tags.
+2. Create `CEO QA test correspondent` in Correspondents.
+3. Confirm each saves without an Odoo Server Error and also appears in
+   Paperless.
+4. Delete the two empty test catalog values as the administrator.
+
+Each list has a **Documents** count and **Open documents** action. Open
+**Tax & reporting** from Tags and use that action. Documents must open with a
+removable Tag facet. Repeat from a correspondent and a document type.
+
+The classification form explains:
 
 - how documents match;
-- which words or pattern Paperless looks for;
+- which words, phrases, or pattern Paperless looks for;
 - whether matching ignores letter case.
 
-Change only a harmless synthetic rule. Ingest a synthetic text file containing
-that pattern in Paperless, wait for processing/synchronization, and confirm the
-assigned tag appears in Odoo. Odoo should not show a made-up confidence score.
+For **Any word** or **All words**, enter one word or phrase per line. Paperless
+supports one matching expression per metadata value, and Odoo turns those
+lines into that supported expression; it does not create a competing stack of
+rules. Exact, regex, and fuzzy methods use the full expression.
+
+Choose **Learn automatically** to use Paperless's local probabilistic
+classifier. It learns from corrected, reviewed, non-inbox examples and
+re-trains periodically. It does not expose a truthful list of generated
+heuristics, so Odoo does not invent one or show a made-up confidence score.
+
+Change only a harmless synthetic deterministic rule. Ingest a synthetic text
+file containing that pattern in Paperless, wait for
+processing/synchronization, and confirm the assigned tag appears in Odoo.
 
 ## 4. Map a correspondent to a Contact
 
@@ -167,6 +211,14 @@ historical pin.
    views that this Paperless user has chosen to favorite.
 5. Make a harmless archive-native change, synchronize, and check Odoo again.
 
+The **One-click filters** on the Odoo Smart View are Odoo interaction
+shortcuts, not Paperless Saved View fields. A manager can choose useful
+shortcuts such as Last 30 days, Not linked, Needs review, or Group by employee.
+They appear immediately before the top tag chips. Archive-native tag/type/
+correspondent criteria remain synchronized with the Paperless Saved View by
+stable ID; Odoo-only company, confidentiality, links, and group shortcuts are
+clearly kept in Odoo.
+
 Company, confidentiality, accounting-evidence, HR, or linked-record
 restrictions are labelled as Odoo policy and are not claimed to be identical
 Paperless Saved Views. Shared views have no Paperless owner and are visible to
@@ -179,17 +231,23 @@ personal Odoo views likewise remain private to their Odoo owner.
 1. Upload a harmless file directly in Paperless.
 2. Wait for processing and Odoo synchronization (normally within five minutes).
 3. Find it in **Needs review**, classify it, and link it.
-4. Move that Paperless document to Trash.
-5. Synchronize and open its linked Odoo record.
+4. In Odoo, use **More > Move to Trash**.
+5. Open Trash and confirm the detail shows who moved it and when.
+6. Open its linked Odoo record, then Restore it.
 
 The document should be **In Trash**. Its relationships remain, normal
-edit/download actions are unavailable, and an authorized **Restore document**
+edit/download actions are unavailable, and an authorized **Restore**
 action returns the same stable identity and links.
 
-Managers can inspect the retention date and hold in the technical Document
-register. Permanent deletion is deliberately unavailable while a relationship,
-hold, or retention window remains. It requires a recorded reason and approval
-and leaves an audit tombstone; do not use it during normal QA.
+If the move happens directly in Paperless, Odoo can display Paperless's
+deletion time, but Paperless 3.0.4 does not return the deleting user through its
+supported API. Odoo says that the actor was not provided rather than guessing.
+
+Administrators see **Delete permanently** in Trash. It stays disabled with a
+plain-language reason while any Odoo relationship, retention hold, or
+unexpired retention window remains. Once every gate is cleared, it requires an
+audit reason and leaves an Odoo tombstone. Do not permanently delete a seeded
+business document during ordinary QA.
 
 The seeded **Retention review sample — in Trash** lets you test Restore without
 creating another item. Run `make documents-qa-bootstrap` afterward to return it
@@ -220,7 +278,10 @@ make documents-qa-acceptance
 
 It stops only the isolated QA Paperless web service, proves an Odoo vendor bill
 still opens, restores Paperless, resumes synchronization, and verifies counts
-do not change.
+do not change. The same real-service run creates live temporary tag and
+correspondent records, checks multi-term matching, tests original and processed
+downloads, moves/restores a document through Trash, and removes its temporary
+catalog records.
 
 For interactive review, keep the vendor bill open while that target is running.
 During the Paperless stop, Documents shows one actionable unavailable message;

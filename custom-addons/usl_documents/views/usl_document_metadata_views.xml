@@ -10,9 +10,10 @@
                 <field name="parent_id"/>
                 <field name="matching_algorithm"/>
                 <field name="is_inbox_tag" optional="show"/>
-                <field name="document_count" optional="hide"
-                       groups="usl_documents.group_documents_manager"/>
+                <field name="accessible_document_count" string="Documents"/>
                 <field name="active" optional="hide"/>
+                <button name="action_open_documents" type="object"
+                        string="Open documents" icon="fa-folder-open-o"/>
             </list>
         </field>
     </record>
@@ -23,6 +24,13 @@
         <field name="arch" type="xml">
             <form string="Tag">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o">
+                            <field name="accessible_document_count"
+                                   widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="For example: Banking"/></h1>
@@ -36,19 +44,27 @@
                             <field name="active" groups="usl_documents.group_documents_manager"/>
                         </group>
                         <group string="Automatic classification">
-                            <field name="matching_algorithm"/>
-                            <field name="match" placeholder="Words or pattern to recognize"
+                            <field name="matching_algorithm" string="Method"/>
+                            <field name="rule_lines"
+                                   placeholder="One word or phrase per line"
                                    invisible="matching_algorithm in ('0', '6')"/>
                             <field name="is_insensitive"
-                                   invisible="matching_algorithm == '0'"/>
+                                   invisible="matching_algorithm in ('0', '6')"/>
                             <field name="document_count" readonly="1"
                                    groups="usl_documents.group_documents_manager"/>
                         </group>
                     </group>
-                    <div class="alert alert-info" role="status">
-                        Paperless can add this tag automatically. Choose <b>Automatic</b>
-                        to learn from examples, or choose a text rule and enter the words
-                        to recognize.
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm != '6'">
+                        <b>Learn automatically</b> uses Paperless’s local classifier.
+                        Correctly tag reviewed documents and remove inbox tags; Paperless
+                        retrains periodically and learns when to apply this tag.
+                    </div>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm in ('0', '6')">
+                        Add as many terms or phrases as needed. <b>Any word</b> matches
+                        one line; <b>All words</b> requires every line. Exact, regex,
+                        and fuzzy methods use the full expression shown above.
                     </div>
                     <group string="Diagnostics" groups="usl_documents.group_documents_manager">
                         <field name="paperless_id"/>
@@ -69,9 +85,10 @@
                 <field name="partner_visible_id" optional="show"/>
                 <field name="matching_algorithm"/>
                 <field name="match" optional="hide"/>
-                <field name="document_count" optional="hide"
-                       groups="usl_documents.group_documents_manager"/>
+                <field name="accessible_document_count" string="Documents"/>
                 <field name="active" optional="hide"/>
+                <button name="action_open_documents" type="object"
+                        string="Open documents" icon="fa-folder-open-o"/>
             </list>
         </field>
     </record>
@@ -93,6 +110,13 @@
                             invisible="not partner_visible_id"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o">
+                            <field name="accessible_document_count"
+                                   widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="For example: Acme Supplies"/></h1>
@@ -117,11 +141,12 @@
                             </div>
                         </group>
                         <group string="Automatic classification">
-                            <field name="matching_algorithm"/>
-                            <field name="match" placeholder="Words or pattern to recognize"
+                            <field name="matching_algorithm" string="Method"/>
+                            <field name="rule_lines"
+                                   placeholder="One word or phrase per line"
                                    invisible="matching_algorithm in ('0', '6')"/>
                             <field name="is_insensitive"
-                                   invisible="matching_algorithm == '0'"/>
+                                   invisible="matching_algorithm in ('0', '6')"/>
                         </group>
                         <group>
                             <field name="document_count" readonly="1"
@@ -129,6 +154,11 @@
                             <field name="active" groups="usl_documents.group_documents_manager"/>
                         </group>
                     </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm != '6'">
+                        Paperless learns this correspondent from reviewed, non-inbox
+                        examples and retrains its local classifier periodically.
+                    </div>
                     <group string="Diagnostics" groups="usl_documents.group_documents_manager">
                         <field name="paperless_id"/>
                         <field name="last_synced_at"/>
@@ -147,9 +177,10 @@
                 <field name="name"/>
                 <field name="matching_algorithm"/>
                 <field name="match" optional="hide"/>
-                <field name="document_count" optional="hide"
-                       groups="usl_documents.group_documents_manager"/>
+                <field name="accessible_document_count" string="Documents"/>
                 <field name="active" optional="hide"/>
+                <button name="action_open_documents" type="object"
+                        string="Open documents" icon="fa-folder-open-o"/>
             </list>
         </field>
     </record>
@@ -160,17 +191,25 @@
         <field name="arch" type="xml">
             <form string="Document Type">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o">
+                            <field name="accessible_document_count"
+                                   widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="For example: Supplier invoice"/></h1>
                     </div>
                     <group>
                         <group string="Automatic classification">
-                            <field name="matching_algorithm"/>
-                            <field name="match" placeholder="Words or pattern to recognize"
+                            <field name="matching_algorithm" string="Method"/>
+                            <field name="rule_lines"
+                                   placeholder="One word or phrase per line"
                                    invisible="matching_algorithm in ('0', '6')"/>
                             <field name="is_insensitive"
-                                   invisible="matching_algorithm == '0'"/>
+                                   invisible="matching_algorithm in ('0', '6')"/>
                         </group>
                         <group>
                             <field name="document_count" readonly="1"
@@ -178,6 +217,11 @@
                             <field name="active" groups="usl_documents.group_documents_manager"/>
                         </group>
                     </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm != '6'">
+                        Paperless learns this type from reviewed, non-inbox examples
+                        and retrains its local classifier periodically.
+                    </div>
                     <group string="Diagnostics" groups="usl_documents.group_documents_manager">
                         <field name="paperless_id"/>
                         <field name="last_synced_at"/>
@@ -224,6 +268,8 @@
                             <field name="icon"/>
                             <field name="sequence"/>
                             <field name="key" readonly="1"/>
+                            <field name="quick_filter_ids" widget="many2many_tags"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                         </group>
                     </group>
                     <group string="Paperless metadata"

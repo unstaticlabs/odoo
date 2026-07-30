@@ -44,12 +44,20 @@ The detailed integration contract is in
 
 ## Find and navigate
 
-The main search accepts ordinary OCR/title text and structured suggestions such
-as tag, correspondent, document type, company, date, linked record,
-confidentiality, review state, archive ID, and synchronized Paperless custom
-fields. Suggestions become removable facets. Common company/type/correspondent
-controls remain one click away; less common fields are under **More filters**.
-A user can save a personal view without changing company navigation.
+The workspace uses Odoo's native search model and SearchBar rather than a
+Documents-only filter form. Ordinary text can target OCR/document content,
+title, tags, correspondent, type, company, source, privacy, review state,
+availability, mapped Contact, employee, archive ID, or Paperless custom-field
+values. Chosen suggestions become normal removable facets. The dropdown
+provides the familiar **Filters**, **Group By**, and **Favorites** columns,
+including date ranges, custom domains, personal saved searches, and practical
+defaults such as My uploads, Needs review, Linked/Not linked, Accounting, HR,
+Company, Correspondent, Type, Employee, Privacy, and month.
+
+Immediately below it, each Smart View may expose a small manager-configured set
+of one-click filters or groupings. The most-used accessible Paperless tags are
+shown next as direct chips. These shortcuts compose with every native search
+facet; they never replace or hide the active query.
 
 Selected document, selected version, filters, sort, card/list layout, page, and
 scroll position are represented in navigation state. Back closes the detail
@@ -78,6 +86,20 @@ Documents app. Users can inspect and edit Paperless matching behavior in plain
 language: how a value matches, words or patterns to look for, and whether case
 matters. Odoo uses the supported Paperless behavior; it does not implement a
 parallel classifier or confidence score.
+
+Paperless exposes one matching expression and one algorithm per tag,
+correspondent, or document type. Odoo does not invent a second rule engine.
+For **Any word** and **All words**, the form presents that expression as one
+word or phrase per line so several alternatives or requirements are practical
+to edit. Exact, regular-expression, and fuzzy modes retain their full
+expression. **Learn automatically** selects Paperless's local neural
+classifier: users teach it by correcting reviewed, non-inbox examples, and
+Paperless retrains periodically. It is probabilistic and local, but it does not
+create an inspectable list of heuristic rules that either application could
+truthfully display.
+
+Each catalog row and form shows the number of non-Trash documents the current
+user may access and opens those documents with a removable native facet.
 
 The tag picker is searchable and keyboard-friendly, keeps assigned values in
 context, supports hierarchy and large catalogs, and permits inline tag
@@ -129,6 +151,12 @@ administrator and retention decision: it requires a reason and approval,
 cannot bypass a hold, active Odoo relationship, or unexpired retention window,
 and leaves an auditable Odoo tombstone rather than converting the item into an
 unexplained missing reference.
+
+When Trash is initiated from Odoo, the detail shows the initiating Odoo user
+and time. Paperless 3.0.4's supported Trash response provides `deleted_at` but
+does not identify the deleting user; a direct Paperless action is therefore
+labelled honestly as moved in Paperless with the actor unavailable, rather
+than guessing an audit identity.
 
 The deployment effectively disables Paperless's automatic Trash expiry with a
 100-year delay, leaving Odoo's audited retention decision in control. A direct

@@ -1,6 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="usl_documents.PermanentDeleteDialog">
+        <Dialog title="'Permanently delete document?'" size="'md'">
+            <p>
+                This permanently removes <strong t-esc="props.documentName"/> from
+                Paperless. It cannot be restored. Odoo keeps an audit tombstone.
+            </p>
+            <label class="form-label fw-semibold" for="usl_delete_reason">
+                Why is permanent deletion authorized?
+            </label>
+            <textarea id="usl_delete_reason" class="form-control" rows="3"
+                      placeholder="Required for the audit trail"
+                      t-model="state.reason"/>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-secondary"
+                        t-att-disabled="state.busy"
+                        t-on-click="props.close">Cancel</button>
+                <button type="button" class="btn btn-danger"
+                        t-att-disabled="state.busy || !state.reason.trim()"
+                        t-on-click="confirm">
+                    <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
+                    Permanently delete
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
     <t t-name="usl_documents.DocumentsWorkspace">
+        <WithSearch t-props="withSearchProps" t-slot-scope="search">
+            <DocumentsWorkspaceView t-props="this.props"
+                                    context="search.context"
+                                    domain="search.domain"
+                                    groupBy="search.groupBy"
+                                    orderBy="search.orderBy"
+                                    display="search.display"/>
+        </WithSearch>
+    </t>
+
+    <t t-name="usl_documents.DocumentsWorkspaceView">
         <div class="o_usl_documents d-flex h-100 bg-view">
             <aside class="o_usl_documents_sidebar border-end p-3">
                 <div class="d-flex align-items-center gap-2 mb-4">
@@ -21,26 +58,6 @@
                         <span class="o_usl_sidebar_label" t-esc="view.name"/>
                     </button>
                 </nav>
-                <div t-if="personalViews.length" class="mt-4">
-                    <small class="o_usl_sidebar_label text-uppercase text-muted fw-semibold px-2">
-                        My views
-                    </small>
-                    <nav class="nav nav-pills flex-column gap-1 mt-1">
-                        <button t-foreach="personalViews" t-as="view" t-key="view.id"
-                                type="button"
-                                t-att-class="'nav-link text-start d-flex align-items-center ' + (state.workspace === view.key ? 'active' : '')"
-                                t-att-title="view.name"
-                                t-att-aria-label="view.name"
-                                t-on-click="() => this.selectWorkspace(view)">
-                            <i class="fa fa-bookmark-o me-2"/>
-                            <span class="o_usl_sidebar_label text-truncate flex-grow-1"
-                                  t-esc="view.name"/>
-                            <i class="fa fa-times o_usl_sidebar_remove"
-                               title="Remove saved view"
-                               t-on-click="(event) => this.removePersonalView(view, event)"/>
-                        </button>
-                    </nav>
-                </div>
                 <div class="mt-auto pt-4">
                     <div t-if="state.degraded" class="alert alert-warning small mb-0">
                         <strong>Archive unavailable</strong>
@@ -56,40 +73,17 @@
                         this record.
                     </div>
                     <div class="d-flex flex-wrap align-items-center gap-2">
-                        <div class="flex-grow-1 o_usl_documents_search position-relative">
-                            <form class="input-group" t-on-submit="search">
-                                <span class="input-group-text bg-white border-end-0">
-                                    <i class="fa fa-search"/>
-                                </span>
-                                <input class="form-control border-start-0"
-                                       type="search"
-                                       placeholder="Search text, or try tag:tax, from:bank, type:invoice…"
-                                       aria-label="Search documents and add filters"
-                                       t-model="state.searchInput"
-                                       t-on-input="onSearchInput"
-                                       t-on-focus="() => state.searchFocused = true"/>
-                                <button t-if="state.query || state.searchInput"
-                                        type="button"
-                                        class="btn btn-outline-secondary"
-                                        t-on-click="clearSearch"
-                                        aria-label="Clear search">Clear</button>
-                                <button type="submit" class="btn btn-primary">Search</button>
-                            </form>
-                            <div t-if="searchSuggestions.length"
-                                 class="o_usl_search_suggestions list-group shadow"
-                                 role="listbox">
-                                <button t-foreach="searchSuggestions"
-                                        t-as="suggestion"
-                                        t-key="suggestion.kind + ':' + (suggestion.item?.id || suggestion.hint)"
-                                        type="button"
-                                        class="list-group-item list-group-item-action d-flex justify-content-between"
-                                        t-on-click="() => this.applySearchSuggestion(suggestion)">
-                                    <span t-esc="suggestion.label"/>
-                                    <small class="text-muted"
-                                           t-esc="suggestion.kind === 'hint' ? suggestion.hint : suggestion.kind"/>
-                                </button>
-                            </div>
+                        <div class="flex-grow-1 o_usl_documents_search">
+                            <SearchBar/>
                         </div>
+                        <select class="form-select o_usl_sort_select"
+                                t-model="state.sort"
+                                t-on-change="(event) => this.updateFilter('sort', event)"
+                                aria-label="Sort documents">
+                            <option value="recent">Document date</option>
+                            <option value="ingested">Recently added</option>
+                            <option value="title">Title</option>
+                        </select>
                         <div class="btn-group">
                             <button type="button"
                                     t-att-class="'btn btn-outline-secondary ' + (state.view === 'cards' ? 'active' : '')"
@@ -111,190 +105,35 @@
                                    t-att-disabled="state.uploading"/>
                         </label>
                     </div>
-
-                    <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-                        <select class="form-select form-select-sm o_usl_filter_pill"
-                                t-model="state.companyId"
-                                t-on-change="(event) => this.updateFilter('companyId', event)">
-                            <option value="">All companies</option>
-                            <option t-foreach="state.companies" t-as="company"
-                                    t-key="company.id" t-att-value="company.id.toString()"
-                                    t-esc="company.name"/>
-                        </select>
-                        <select class="form-select form-select-sm o_usl_filter_pill"
-                                t-model="state.documentTypeId"
-                                t-on-change="(event) => this.updateFilter('documentTypeId', event)">
-                            <option value="">All types</option>
-                            <option t-foreach="state.documentTypes" t-as="documentType"
-                                    t-key="documentType.id"
-                                    t-att-value="documentType.id.toString()"
-                                    t-esc="documentType.name"/>
-                        </select>
-                        <select class="form-select form-select-sm o_usl_filter_pill"
-                                t-model="state.correspondentId"
-                                t-on-change="(event) => this.updateFilter('correspondentId', event)">
-                            <option value="">All correspondents</option>
-                            <option t-foreach="state.correspondents" t-as="correspondent"
-                                    t-key="correspondent.id"
-                                    t-att-value="correspondent.id.toString()"
-                                    t-esc="correspondent.name"/>
-                        </select>
-                        <button type="button"
-                                t-att-class="'btn btn-sm rounded-pill ' + (state.linkedState === 'linked' ? 'btn-primary' : 'btn-outline-secondary')"
-                                t-on-click="toggleLinkedFilter">
-                            <i class="fa fa-link me-1"/>Linked
-                        </button>
-                        <button type="button"
-                                t-att-class="'btn btn-sm rounded-pill ' + (state.moreFilters ? 'btn-primary' : 'btn-outline-secondary')"
-                                t-on-click="() => state.moreFilters = !state.moreFilters">
-                            <i class="fa fa-sliders me-1"/>More filters
-                            <span t-if="activeFilterCount" class="badge rounded-pill text-bg-light ms-1"
-                                  t-esc="activeFilterCount"/>
-                        </button>
-                        <button t-if="activeFilterCount" type="button"
-                                class="btn btn-sm btn-link text-decoration-none"
-                                t-on-click="clearFilters">Clear filters</button>
-                    </div>
-
-                    <div t-if="activeFacets.length"
-                         class="o_usl_active_facets d-flex flex-wrap gap-2 mt-3">
-                        <button t-foreach="activeFacets" t-as="facet" t-key="facet.key"
+                    <div t-if="smartViewShortcuts.length || visibleTagShortcuts.length"
+                         class="o_usl_filter_shortcuts d-flex align-items-center gap-2 mt-3"
+                         aria-label="Useful document filters">
+                        <button t-foreach="smartViewShortcuts" t-as="shortcut"
+                                t-key="'shortcut:' + shortcut.id"
                                 type="button"
-                                class="btn btn-sm btn-light border rounded-pill"
-                                t-on-click="() => this.removeFacet(facet.key)"
-                                t-att-title="'Remove ' + facet.label">
-                            <span t-esc="facet.label"/>
-                            <i class="fa fa-times ms-2" aria-hidden="true"/>
+                                t-att-data-shortcut-key="shortcut.key"
+                                t-att-class="'btn btn-sm rounded-pill text-nowrap ' + (this.isSmartShortcutActive(shortcut) ? 'btn-primary' : 'btn-outline-secondary')"
+                                t-att-title="shortcut.name"
+                                t-on-click="() => this.toggleSmartShortcut(shortcut)">
+                            <i t-att-class="'fa ' + shortcut.icon + ' me-1'"/>
+                            <t t-esc="shortcut.name"/>
                         </button>
-                    </div>
-
-                    <div t-if="state.moreFilters" class="o_usl_more_filters mt-3 p-3 rounded border">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6 col-xl-3">
-                                <label class="form-label small fw-semibold">Document date</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="date" class="form-control"
-                                           t-model="state.dateFrom"
-                                           t-on-change="(event) => this.updateFilter('dateFrom', event)"/>
-                                    <span class="input-group-text">to</span>
-                                    <input type="date" class="form-control"
-                                           t-model="state.dateTo"
-                                           t-on-change="(event) => this.updateFilter('dateTo', event)"/>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6 col-xl-3">
-                                <label class="form-label small fw-semibold">Added to archive</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="date" class="form-control"
-                                           t-model="state.addedFrom"
-                                           t-on-change="(event) => this.updateFilter('addedFrom', event)"/>
-                                    <span class="input-group-text">to</span>
-                                    <input type="date" class="form-control"
-                                           t-model="state.addedTo"
-                                           t-on-change="(event) => this.updateFilter('addedTo', event)"/>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3 col-xl-2">
-                                <label class="form-label small fw-semibold">Source</label>
-                                <select class="form-select form-select-sm"
-                                        t-model="state.source"
-                                        t-on-change="(event) => this.updateFilter('source', event)">
-                                    <option value="">Any source</option>
-                                    <option value="odoo_upload">Odoo upload</option>
-                                    <option value="odoo_attachment">Odoo attachment</option>
-                                    <option value="odoo_generated">Odoo-generated</option>
-                                    <option value="paperless">Paperless intake</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-3 col-xl-2">
-                                <label class="form-label small fw-semibold">Review</label>
-                                <select class="form-select form-select-sm"
-                                        t-model="state.reviewState"
-                                        t-on-change="(event) => this.updateFilter('reviewState', event)">
-                                    <option value="">Any status</option>
-                                    <option value="needs_attention">Needs review</option>
-                                    <option value="classified">Classified</option>
-                                    <option value="reviewed">Reviewed</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-3 col-xl-2">
-                                <label class="form-label small fw-semibold">Privacy</label>
-                                <select class="form-select form-select-sm"
-                                        t-model="state.confidentiality"
-                                        t-on-change="(event) => this.updateFilter('confidentiality', event)">
-                                    <option value="">Any privacy</option>
-                                    <option value="internal">Internal</option>
-                                    <option value="accounting">Accounting</option>
-                                    <option value="hr">HR restricted</option>
-                                    <option value="private">Private</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <label class="form-label small fw-semibold">Linked record</label>
-                                <select class="form-select form-select-sm"
-                                        t-model="state.linkedRecord"
-                                        t-on-change="(event) => this.updateFilter('linkedRecord', event)">
-                                    <option value="">Any business record</option>
-                                    <option t-foreach="state.linkFacets" t-as="linkFacet"
-                                            t-key="linkFacet.key" t-att-value="linkFacet.key"
-                                            t-esc="linkFacet.label"/>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6 col-xl-4"
-                                 t-if="state.customFields.length">
-                                <label class="form-label small fw-semibold">Additional detail</label>
-                                <div class="input-group input-group-sm">
-                                    <select class="form-select o_usl_custom_field_select"
-                                            t-model="state.customFieldId"
-                                            t-on-change="selectCustomField">
-                                        <option value="">Choose field</option>
-                                        <option t-foreach="state.customFields"
-                                                t-as="field" t-key="field.id"
-                                                t-att-value="field.id.toString()"
-                                                t-esc="field.name"/>
-                                    </select>
-                                    <input class="form-control o_usl_custom_field_value"
-                                           t-att-type="customFieldInputType"
-                                           placeholder="Value"
-                                           t-model="state.customFieldValue"
-                                           t-on-input="scheduleCustomFieldFilter"
-                                           t-on-keydown="applyCustomFieldFilter"/>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3 col-xl-2">
-                                <label class="form-label small fw-semibold">Links</label>
-                                <select class="form-select form-select-sm"
-                                        t-model="state.linkedState"
-                                        t-on-change="(event) => this.updateFilter('linkedState', event)">
-                                    <option value="">Any</option>
-                                    <option value="linked">Linked</option>
-                                    <option value="unlinked">Not linked</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-3 col-xl-2">
-                                <label class="form-label small fw-semibold">Sort by</label>
-                                <select class="form-select form-select-sm"
-                                        t-model="state.sort"
-                                        t-on-change="(event) => this.updateFilter('sort', event)">
-                                    <option value="recent">Document date</option>
-                                    <option value="ingested">Recently added</option>
-                                    <option value="title">Title</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-xl-4">
-                                <label class="form-label small fw-semibold">Save these filters</label>
-                                <div class="input-group input-group-sm">
-                                    <input class="form-control" type="text"
-                                           placeholder="My useful view"
-                                           t-model="state.savedViewName"/>
-                                    <button class="btn btn-outline-primary" type="button"
-                                            t-att-disabled="state.savingView || !state.savedViewName.trim()"
-                                            t-on-click="savePersonalView">
-                                        <i class="fa fa-bookmark-o me-1"/>Save
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <span t-if="smartViewShortcuts.length &amp;&amp; visibleTagShortcuts.length"
+                              class="o_usl_filter_shortcut_divider" aria-hidden="true"/>
+                        <button t-foreach="visibleTagShortcuts" t-as="tag"
+                                t-key="'tag:' + tag.id"
+                                type="button"
+                                t-att-class="'o_usl_tag_chip btn btn-sm ' + (state.tagIds.includes(tag.id) ? 'is-selected' : '')"
+                                t-att-style="'--tag-color:' + tag.color"
+                                t-att-title="'Filter by tag: ' + tag.name"
+                                t-on-click="() => this.toggleTagFilter(tag.id)">
+                            <t t-esc="tag.name"/>
+                        </button>
+                        <span t-if="state.tags.length &gt; visibleTagShortcuts.length"
+                              class="small text-muted text-nowrap"
+                              title="Search for any other tag in the search bar">
+                            +<t t-esc="state.tags.length - visibleTagShortcuts.length"/> tags
+                        </span>
                     </div>
                 </header>
 
@@ -384,8 +223,14 @@
                             <span t-if="state.dragged"
                                   class="badge text-bg-primary fs-6">Drop to upload</span>
                         </div>
+                        <section t-foreach="documentGroups" t-as="documentGroup"
+                                 t-key="documentGroup.key"
+                                 class="o_usl_document_group mb-4">
+                            <h5 t-if="documentGroup.label"
+                                class="o_usl_document_group_title mb-2"
+                                t-esc="documentGroup.label"/>
                         <div t-if="state.view === 'cards'" class="o_usl_documents_grid">
-                            <article t-foreach="state.documents" t-as="document"
+                            <article t-foreach="documentGroup.documents" t-as="document"
                                      t-key="document.id"
                                      class="card o_usl_document_card shadow-sm"
                                      role="button" tabindex="0"
@@ -438,7 +283,7 @@
                             </article>
                         </div>
                         <div t-else="" class="list-group shadow-sm">
-                            <button t-foreach="state.documents" t-as="document"
+                            <button t-foreach="documentGroup.documents" t-as="document"
                                     t-key="document.id" type="button"
                                     class="list-group-item list-group-item-action d-flex align-items-center gap-3"
                                     t-on-click="() => this.select(document)">
@@ -477,6 +322,7 @@
                                       class="badge text-bg-secondary">In Trash</span>
                             </button>
                         </div>
+                        </section>
                         <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
                             <button class="btn btn-outline-secondary" type="button"
                                     t-on-click="previousPage"
@@ -731,6 +577,13 @@
                             This archive item keeps the same identity and Odoo links
                             while it is in Trash.
                         </p>
+                        <dl class="row small mb-2">
+                            <dt class="col-4">Moved by</dt>
+                            <dd class="col-8" t-esc="state.selected.trashed_by"/>
+                            <dt class="col-4">Moved on</dt>
+                            <dd class="col-8"
+                                t-esc="state.selected.trashed_at || 'Not reported'"/>
+                        </dl>
                         <p t-if="state.selected.retention_hold"
                            class="small text-warning mb-1">
                             A retention hold prevents permanent deletion.
@@ -896,6 +749,12 @@
                                    title="Open advanced document tools in Paperless.">
                                     <i class="fa fa-external-link me-2"/>Open in Paperless
                                 </a>
+                                <button t-if="state.selected.can_trash"
+                                        type="button"
+                                        class="dropdown-item text-danger"
+                                        t-on-click="moveToTrash">
+                                    <i class="fa fa-trash-o me-2"/>Move to Trash
+                                </button>
                                 <button t-if="state.selected.can_manage" type="button"
                                         class="dropdown-item"
                                         t-on-click="() => this.openRecord(state.selected)">
@@ -908,7 +767,18 @@
                                 t-on-click="restoreFromTrash">
                             <i class="fa fa-undo me-1"/>Restore document
                         </button>
+                        <button t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_manage"
+                                type="button"
+                                class="btn btn-outline-danger"
+                                t-att-disabled="state.selected.permanent_delete_blocker"
+                                t-att-title="state.selected.permanent_delete_blocker || 'Permanently delete from Paperless'"
+                                t-on-click="requestPermanentDelete">
+                            <i class="fa fa-trash me-1"/>Delete permanently
+                        </button>
                     </div>
+                    <div t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_manage &amp;&amp; state.selected.permanent_delete_blocker"
+                         class="small text-muted mt-2"
+                         t-esc="state.selected.permanent_delete_blocker"/>
                     <button t-if="recordContext &amp;&amp; !this.isLinkedToCurrent()"
                             type="button" class="btn btn-success w-100 mt-2"
                             t-on-click="() => this.linkSelected()">

@@ -19,6 +19,75 @@
         <field name="active" eval="True"/>
     </record>
 
+    <record id="quick_filter_my_uploads" model="usl.document.quick.filter">
+        <field name="name">My uploads</field>
+        <field name="key">my_uploads</field>
+        <field name="icon">fa-user-o</field>
+        <field name="kind">filter</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="quick_filter_unlinked" model="usl.document.quick.filter">
+        <field name="name">Not linked</field>
+        <field name="key">unlinked</field>
+        <field name="icon">fa-unlink</field>
+        <field name="kind">filter</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="quick_filter_needs_review" model="usl.document.quick.filter">
+        <field name="name">Needs review</field>
+        <field name="key">needs_review</field>
+        <field name="icon">fa-exclamation-circle</field>
+        <field name="kind">filter</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="quick_filter_last_30_days" model="usl.document.quick.filter">
+        <field name="name">Last 30 days</field>
+        <field name="key">last_30_days</field>
+        <field name="icon">fa-calendar</field>
+        <field name="kind">filter</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="quick_filter_group_company" model="usl.document.quick.filter">
+        <field name="name">Group by company</field>
+        <field name="key">group_company</field>
+        <field name="icon">fa-building-o</field>
+        <field name="kind">group</field>
+        <field name="field_name">company_id</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="quick_filter_group_correspondent" model="usl.document.quick.filter">
+        <field name="name">Group by correspondent</field>
+        <field name="key">group_correspondent</field>
+        <field name="icon">fa-address-card-o</field>
+        <field name="kind">group</field>
+        <field name="field_name">correspondent_id</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="quick_filter_group_document_type" model="usl.document.quick.filter">
+        <field name="name">Group by type</field>
+        <field name="key">group_document_type</field>
+        <field name="icon">fa-file-o</field>
+        <field name="kind">group</field>
+        <field name="field_name">document_type_id</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="quick_filter_group_employee" model="usl.document.quick.filter">
+        <field name="name">Group by employee</field>
+        <field name="key">group_employee</field>
+        <field name="icon">fa-user-circle-o</field>
+        <field name="kind">group</field>
+        <field name="field_name">linked_employee_id</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="quick_filter_group_document_month" model="usl.document.quick.filter">
+        <field name="name">Group by month</field>
+        <field name="key">group_document_month</field>
+        <field name="icon">fa-calendar-o</field>
+        <field name="kind">group</field>
+        <field name="field_name">document_date:month</field>
+        <field name="sequence">90</field>
+    </record>
+
     <record id="smart_view_needs_review" model="usl.document.smart.view">
         <field name="name">Needs review</field>
         <field name="key">attention</field>

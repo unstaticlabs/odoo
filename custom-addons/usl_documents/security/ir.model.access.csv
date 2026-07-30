@@ -23,3 +23,6 @@ access_usl_paperless_document_type_manager,usl.paperless.document.type.manager,m
 access_usl_document_smart_view_user,usl.document.smart.view.user,model_usl_document_smart_view,group_documents_user,1,1,1,1
 access_usl_document_smart_view_accountant,usl.document.smart.view.accountant,model_usl_document_smart_view,group_documents_accountant,1,0,0,0
 access_usl_document_smart_view_manager,usl.document.smart.view.manager,model_usl_document_smart_view,group_documents_manager,1,1,1,1
+access_usl_document_quick_filter_user,usl.document.quick.filter.user,model_usl_document_quick_filter,group_documents_user,1,0,0,0
+access_usl_document_quick_filter_accountant,usl.document.quick.filter.accountant,model_usl_document_quick_filter,group_documents_accountant,1,0,0,0
+access_usl_document_quick_filter_manager,usl.document.quick.filter.manager,model_usl_document_quick_filter,group_documents_manager,1,1,1,1
