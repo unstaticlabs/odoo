@@ -148,6 +148,12 @@ The application keeps diagnostics and their run action under
 for the current company; it does not reuse the generic Company form or expose
 unrelated settings such as electronic invoicing.
 
+**Configuration → Comptes de paie** reuses Odoo's native Chart of Accounts
+views with the fixed eleven TESE component codes as its action domain. It
+does not duplicate account records or introduce a payroll-specific account
+model. Accounting Administrators can use the focused list while changes
+remain changes to the native ledger accounts.
+
 Blocking checks include missing or non-PDF evidence, invalid profile
 components, missing journal or collector, unbalanced snapshots, missing
 posted moves and broken move links. Reconciliation observations distinguish

@@ -407,6 +407,11 @@ msgid "Configuration"
 msgstr "Configuration"
 
 #. module: usl_tese_payroll
+#: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_accounts
+msgid "Comptes de paie"
+msgstr "Comptes de paie"
+
+#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Configure a general TESE Payroll Journal on the company first."
@@ -1163,6 +1168,11 @@ msgstr "Période de paie"
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_profiles
 msgid "Payroll Profiles"
 msgstr "Profils de paie"
+
+#. module: usl_tese_payroll
+#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_payroll_accounts
+msgid "Paie TESE — Comptes de paie"
+msgstr "Paie TESE — Comptes de paie"
 
 #. module: usl_tese_payroll
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_records

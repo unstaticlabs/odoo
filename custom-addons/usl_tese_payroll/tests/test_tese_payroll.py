@@ -403,12 +403,45 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         for menu_xmlid in (
             "menu_tese_payroll_settings",
             "menu_tese_payroll_diagnostics",
+            "menu_tese_payroll_accounts",
             "menu_tese_payroll_run_diagnostics",
         ):
             self.assertEqual(
                 self.env.ref(f"usl_tese_payroll.{menu_xmlid}").parent_id,
                 configuration_menu,
             )
+
+        accounts_menu = self.env.ref(
+            "usl_tese_payroll.menu_tese_payroll_accounts",
+        )
+        self.assertIn(
+            self.env.ref("account.group_account_manager"),
+            accounts_menu.group_ids,
+        )
+        accounts_action = self.env.ref(
+            "usl_tese_payroll.action_tese_payroll_accounts",
+        )
+        self.assertEqual(accounts_action.res_model, "account.account")
+        self.assertEqual(accounts_action.view_mode, "list,form")
+        self.assertEqual(
+            accounts_action.view_id,
+            self.env.ref("account.view_account_list"),
+        )
+        self.assertEqual(
+            accounts_action.search_view_id,
+            self.env.ref("account.view_account_search"),
+        )
+        payroll_accounts = self.env["account.account"].with_user(
+            self.config_user,
+        ).search(safe_eval(accounts_action.domain))
+        self.assertEqual(
+            set(payroll_accounts.mapped("code")),
+            {component["code"] for component in TESE_COMPONENTS},
+        )
+        self.assertEqual(
+            set(payroll_accounts.ids),
+            {account.id for account in self.accounts_by_code.values()},
+        )
 
         settings_action = self.env.ref(
             "usl_tese_payroll.action_open_tese_settings",

@@ -38,10 +38,17 @@
               action="action_tese_diagnostics"
               sequence="20"/>
 
+    <menuitem id="menu_tese_payroll_accounts"
+              name="Comptes de paie"
+              parent="menu_tese_payroll_configuration"
+              action="action_tese_payroll_accounts"
+              groups="account.group_account_manager"
+              sequence="30"/>
+
     <menuitem id="menu_tese_payroll_run_diagnostics"
               name="Run Diagnostics"
               parent="menu_tese_payroll_configuration"
               action="action_run_tese_diagnostics"
               groups="account.group_account_user"
-              sequence="30"/>
+              sequence="40"/>
 </odoo>

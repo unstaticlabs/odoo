@@ -79,6 +79,13 @@ bloquantes signalent notamment :
 Une anomalie corrigée reste dans l’historique avec sa date de résolution. Elle
 n’est plus active et peut être filtrée.
 
+## Vérifier les comptes de paie
+
+Ouvrez **Configuration → Comptes de paie** pour afficher uniquement les onze
+comptes utilisés par les profils TESE. Cette vue réutilise le plan comptable
+Odoo : une modification faite ici est donc la même modification que dans
+**Comptabilité → Configuration → Plan comptable**.
+
 ## Droits
 
 Les données de paie exigent à la fois les droits **Administrateur RH** et un
