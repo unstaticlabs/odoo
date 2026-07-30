@@ -17,6 +17,9 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         super().setUpClass()
         cls.company = cls.company_data["company"]
         cls.currency = cls.company.currency_id
+        cls.env.user.group_ids += cls.env.ref(
+            "usl_platform_billing.group_platform_billing_manager",
+        )
         cls.product_a.write(
             {
                 "taxes_id": [Command.clear()],
@@ -52,28 +55,45 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 "auto_create_compensation": True,
             },
         )
-        cls.accountant = new_test_user(
+        cls.operator = new_test_user(
             cls.env,
-            login="platform_billing_accountant",
-            groups="account.group_account_user",
+            login="platform_billing_operator",
+            groups="usl_platform_billing.group_platform_billing_operator",
         )
         cls.reviewer = new_test_user(
             cls.env,
             login="platform_billing_reviewer",
-            groups="account.group_account_readonly",
+            groups="usl_platform_billing.group_platform_billing_reader",
+        )
+        cls.manager = new_test_user(
+            cls.env,
+            login="platform_billing_manager",
+            groups="usl_platform_billing.group_platform_billing_manager",
+        )
+        cls.accountant = new_test_user(
+            cls.env,
+            login="accountant_without_platform_billing",
+            groups="account.group_account_user",
         )
 
-    def _session(self, *, name="Creator platforms — July 2026"):
-        return self.env["usl.platform.billing.session"].create(
-            {
-                "name": name,
-                "company_id": self.company.id,
-                "period_month": fields.Date.from_string("2026-07-01"),
-                "invoice_date": fields.Date.from_string("2026-07-31"),
-                "due_date": fields.Date.from_string("2026-07-31"),
-                "bank_currency_id": self.currency.id,
-            },
-        )
+    def _session(
+        self,
+        *,
+        name="Creator platforms — July 2026",
+        period_month="2026-07-01",
+        invoice_date="2026-07-31",
+        due_date="2026-07-31",
+    ):
+        values = {
+            "name": name,
+            "company_id": self.company.id,
+            "period_month": fields.Date.from_string(period_month),
+            "invoice_date": fields.Date.from_string(invoice_date),
+            "bank_currency_id": self.currency.id,
+        }
+        if due_date:
+            values["due_date"] = fields.Date.from_string(due_date)
+        return self.env["usl.platform.billing.session"].create(values)
 
     def _payout(
         self,
@@ -82,13 +102,14 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         reference="CH-2026-07-001",
         amount=80.0,
         platform=None,
+        payout_date="2026-07-15",
     ):
         platform = platform or self.platform
         return self.env["usl.platform.billing.payout"].create(
             {
                 "session_id": session.id,
                 "platform_id": platform.id,
-                "payout_date": fields.Date.from_string("2026-07-15"),
+                "payout_date": fields.Date.from_string(payout_date),
                 "platform_reference": reference,
                 "net_platform_amount": amount,
             },
@@ -97,16 +118,24 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
     def _generate_and_post(self, session):
         session.action_check()
         session.action_generate_documents()
-        session.action_post_documents()
+        session.with_context(
+            skip_platform_coverage_warning=True,
+        ).action_post_documents()
         return session
 
-    def _bank_line(self, amount, *, label="CH payout CH-2026-07-001"):
+    def _bank_line(
+        self,
+        amount,
+        *,
+        label="CH payout CH-2026-07-001",
+        bank_date="2026-07-20",
+    ):
         journal = self.company_data["default_journal_bank"]
         statement = self.env["account.bank.statement"].create(
             {
                 "name": "CreatorHub July payouts",
                 "journal_id": journal.id,
-                "date": fields.Date.from_string("2026-07-20"),
+                "date": fields.Date.from_string(bank_date),
             },
         )
         return self.env["account.bank.statement.line"].create(
@@ -116,7 +145,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 "journal_id": journal.id,
                 "statement_id": statement.id,
                 "amount": amount,
-                "date": fields.Date.from_string("2026-07-20"),
+                "date": fields.Date.from_string(bank_date),
             },
         )
 
@@ -195,7 +224,6 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             {
                 "bank_statement_line_id": bank_line.id,
                 "bank_received_amount": 80.0,
-                "bank_match_status": "selected",
             },
         )
         original_bank_amount = bank_line.amount
@@ -273,11 +301,11 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(confidence, "ambiguous")
         self.assertIn("CreatorHub", reason)
 
-    def test_accounting_user_operates_and_readonly_user_cannot_mutate(self):
+    def test_platform_roles_are_opt_in_and_server_side_enforced(self):
         session = self._session()
-        self._payout(session)
+        payout = self._payout(session)
 
-        session.with_user(self.accountant).action_check()
+        session.with_user(self.operator).action_check()
         self.assertEqual(session.state, "ready")
         with self.assertRaises(AccessError):
             session.with_user(self.reviewer).action_generate_documents()
@@ -294,25 +322,149 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 },
             )
         with self.assertRaises(AccessError):
-            self.platform.with_user(self.accountant).write({"commission_rate": 21})
+            self.env["usl.platform.billing.session"].with_user(
+                self.accountant,
+            ).search([])
+        with self.assertRaises(AccessError):
+            session.with_user(self.accountant).action_generate_documents()
+        with self.assertRaises(AccessError):
+            self.platform.with_user(self.operator).write({"commission_rate": 21})
+        self.platform.with_user(self.manager).write({"commission_rate": 21})
+        with self.assertRaises(AccessError):
+            session.with_user(self.operator).write({"state": "paid"})
+        with self.assertRaises(AccessError):
+            payout.with_user(self.operator).write({"state": "paid"})
+        with self.assertRaises(AccessError):
+            payout.with_user(self.operator).write({"bank_match_status": "reconciled"})
+
+    def test_posted_unpaid_payout_remains_open_receivable(self):
+        session = self._session()
+        payout = self._payout(session)
+
+        self._generate_and_post(session)
+
+        self.assertEqual(session.state, "posted")
+        self.assertEqual(payout.state, "posted")
+        self.assertFalse(payout.bank_statement_line_id)
+        self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
+        self.assertNotEqual(session.customer_invoice_ids.payment_state, "paid")
+
+        session.action_reconcile_bank()
+        self.assertEqual(session.state, "posted")
+        self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
+
+    def test_delayed_pooled_receipt_reconciles_multiple_sessions(self):
+        july = self._session(name="Pooled receipt — July 2026")
+        july_payout = self._payout(july)
+        august = self._session(
+            name="Pooled receipt — August 2026",
+            period_month="2026-08-01",
+            invoice_date="2026-08-31",
+            due_date="2026-08-31",
+        )
+        august_payout = self._payout(
+            august,
+            reference="CH-2026-08-001",
+            amount=40.0,
+            payout_date="2026-08-15",
+        )
+        self._generate_and_post(july)
+        self._generate_and_post(august)
+        bank_line = self._bank_line(
+            120.0,
+            bank_date="2026-10-20",
+        )
+
+        july_wizard = self.env[
+            "usl.platform.billing.bank.import.wizard"
+        ].create({"session_id": july.id})
+        july_wizard._populate_candidates()
+        july_candidate = july_wizard.candidate_ids.filtered(
+            lambda candidate: candidate.bank_statement_line_id == bank_line,
+        )
+        self.assertEqual(len(july_candidate), 1)
+        self.assertEqual(july_candidate.allocated_bank_amount, 80.0)
+        july_candidate.selected = True
+        july_wizard.action_import()
+
+        august_wizard = self.env[
+            "usl.platform.billing.bank.import.wizard"
+        ].create({"session_id": august.id})
+        august_wizard._populate_candidates()
+        august_candidate = august_wizard.candidate_ids.filtered(
+            lambda candidate: candidate.bank_statement_line_id == bank_line,
+        )
+        self.assertEqual(len(august_candidate), 1)
+        self.assertEqual(august_candidate.allocated_bank_amount, 40.0)
+        august_candidate.selected = True
+        august_wizard.action_import()
+
+        self.assertEqual(july_payout.bank_statement_line_id, bank_line)
+        self.assertEqual(august_payout.bank_statement_line_id, bank_line)
+        july.action_reconcile_bank()
+
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(july.state, "paid")
+        self.assertEqual(august.state, "paid")
+        self.assertEqual(july.customer_invoice_ids.payment_state, "paid")
+        self.assertEqual(august.customer_invoice_ids.payment_state, "paid")
+
+    def test_posting_warns_when_an_active_platform_is_missing(self):
+        missing_platform = self.platform.copy({"name": "Missing CreatorHub"})
+        session = self._session()
+        self._payout(session)
+        session.action_check()
+        session.action_generate_documents()
+
+        action = session.action_post_documents()
+
+        self.assertEqual(session.state, "generated")
+        self.assertEqual(
+            action["res_model"],
+            "usl.platform.billing.post.confirm.wizard",
+        )
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertEqual(wizard.missing_platform_ids, missing_platform)
+        wizard.action_confirm()
+        self.assertEqual(session.state, "posted")
+
+    def test_partner_payment_term_is_used_without_session_override(self):
+        payment_term = self.env.ref("account.account_payment_term_30days")
+        self.platform.customer_partner.with_company(
+            self.company,
+        ).property_payment_term_id = payment_term
+        session = self._session(
+            name="Native payment terms — July 2026",
+            due_date=False,
+        )
+        self._payout(session)
+
+        session.action_check()
+        session.action_generate_documents()
+
+        invoice = session.customer_invoice_ids
+        self.assertEqual(invoice.invoice_payment_term_id, payment_term)
+        self.assertEqual(
+            invoice.invoice_date_due,
+            fields.Date.from_string("2026-08-30"),
+        )
 
     def test_blocked_bank_reconciliation_preserves_statement_amount(self):
         session = self._session()
         payout = self._payout(session)
         self._generate_and_post(session)
-        bank_line = self._bank_line(79.0)
+        bank_line = self._bank_line(80.0)
         payout.write(
             {
                 "bank_statement_line_id": bank_line.id,
-                "bank_received_amount": 80.0,
-                "bank_match_status": "selected",
+                "bank_received_amount": 79.0,
             },
         )
 
         session.action_reconcile_bank()
 
         self.assertFalse(bank_line.is_reconciled)
-        self.assertEqual(bank_line.amount, 79.0)
+        self.assertEqual(bank_line.amount, 80.0)
         self.assertEqual(payout.bank_match_status, "blocked")
         self.assertEqual(session.state, "posted")
 
@@ -351,7 +503,6 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             {
                 "bank_statement_line_id": bank_line.id,
                 "bank_received_amount": 40.0,
-                "bank_match_status": "selected",
             },
         )
 

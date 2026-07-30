@@ -15,6 +15,9 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
         super().setUpClass()
         cls.company = cls.company_data["company"]
         cls.currency = cls.company.currency_id
+        cls.env.user.group_ids += cls.env.ref(
+            "usl_platform_billing.group_platform_billing_manager",
+        )
         cls.product_a.write(
             {
                 "taxes_id": [Command.clear()],
@@ -52,8 +55,7 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             login="platform_billing_browser_manager",
             password="platform_billing_browser_manager",
             groups=(
-                "account.group_account_user,"
-                "account.group_account_manager,"
+                "usl_platform_billing.group_platform_billing_manager,"
                 "account.group_validate_bank_account"
             ),
             company_id=cls.company.id,
@@ -62,7 +64,7 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             cls.env,
             login="platform_billing_browser_reviewer",
             password="platform_billing_browser_reviewer",
-            groups="account.group_account_readonly",
+            groups="usl_platform_billing.group_platform_billing_reader",
             company_id=cls.company.id,
         )
         cls.billing_session = cls.env["usl.platform.billing.session"].create(
@@ -105,7 +107,6 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             {
                 "bank_statement_line_id": cls.bank_line.id,
                 "bank_received_amount": 80.0,
-                "bank_match_status": "selected",
             },
         )
 
