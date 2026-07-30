@@ -6,13 +6,18 @@ import {
     onWillStart,
     onWillUnmount,
     useRef,
+    useSubEnv,
     useState,
 } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { Dialog } from "@web/core/dialog/dialog";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
+import { SearchBar } from "@web/search/search_bar/search_bar";
+import { WithSearch } from "@web/search/with_search/with_search";
+import { getDefaultConfig } from "@web/views/view";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 const FILTER_DEFAULTS = {
@@ -35,15 +40,52 @@ const FILTER_DEFAULTS = {
     customFieldValue: "",
 };
 
-export class DocumentsWorkspace extends Component {
-    static template = "usl_documents.DocumentsWorkspace";
-    static props = { ...standardActionServiceProps };
+export class PermanentDeleteDialog extends Component {
+    static template = "usl_documents.PermanentDeleteDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        documentName: String,
+        confirm: Function,
+    };
+
+    setup() {
+        this.state = useState({ reason: "", busy: false });
+    }
+
+    async confirm() {
+        const reason = this.state.reason.trim();
+        if (!reason || this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            await this.props.confirm(reason);
+            this.props.close();
+        } finally {
+            this.state.busy = false;
+        }
+    }
+}
+
+export class DocumentsWorkspaceView extends Component {
+    static template = "usl_documents.DocumentsWorkspaceView";
+    static components = { SearchBar };
+    static props = {
+        ...standardActionServiceProps,
+        context: { type: Object, optional: true },
+        domain: { type: Array, optional: true },
+        groupBy: { type: Array, optional: true },
+        orderBy: { type: Array, optional: true },
+        display: { type: Object, optional: true },
+    };
 
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.dialog = useService("dialog");
         this.notification = useService("notification");
+        this.searchModel = this.env.searchModel;
         const params = this.props.action.params || {};
         this.recordContext =
             params.res_model && params.res_id
@@ -97,6 +139,10 @@ export class DocumentsWorkspace extends Component {
                 ? String(params.mapped_partner_id)
                 : "";
         }
+        if (params.initial_workspace) {
+            restored.workspace = params.initial_workspace;
+            restored.page = 1;
+        }
         this.initialDocumentId =
             urlState.documentId || Number(restored.selectedDocumentId) || null;
         this.initialVersionId =
@@ -148,14 +194,17 @@ export class DocumentsWorkspace extends Component {
             canUpload: false,
             truncated: false,
         });
+        this.searchReady = false;
         this.pollingOperationIds = new Set();
         this.customFieldFilterTimer = null;
         this.customFieldFilterApplied = Boolean(
             this.state.customFieldId && this.state.customFieldValue
         );
         this.onPopState = (event) => this.handlePopState(event);
+        useBus(this.searchModel, "update", () => this.onNativeSearchUpdate());
         onWillStart(async () => {
             await this.load();
+            this.searchReady = true;
             if (this.initialDocumentId) {
                 await this.openDocumentById(
                     this.initialDocumentId,
@@ -232,24 +281,97 @@ export class DocumentsWorkspace extends Component {
     }
 
     get activeFilterCount() {
-        return [
-            this.state.companyId,
-            this.state.tagIds.length,
-            this.state.correspondentId,
-            this.state.documentTypeId,
-            this.state.dateFrom,
-            this.state.dateTo,
-            this.state.addedFrom,
-            this.state.addedTo,
-            this.state.source,
-            this.state.confidentiality,
-            this.state.reviewState,
-            this.state.linkedState,
-            this.state.linkedRecord,
-            this.state.mappedPartnerId,
-            this.state.paperlessId,
-            this.state.customFieldId && this.state.customFieldValue,
-        ].filter(Boolean).length;
+        return this.searchModel.facets.length + this.state.tagIds.length;
+    }
+
+    get activeSmartView() {
+        return this.state.smartViews.find(
+            (view) => view.key === this.state.workspace
+        );
+    }
+
+    get smartViewShortcuts() {
+        return this.activeSmartView?.quick_filters || [];
+    }
+
+    get visibleTagShortcuts() {
+        const selected = new Set(this.state.tagIds);
+        return [...this.state.tags]
+            .sort(
+                (left, right) =>
+                    Number(selected.has(right.id)) - Number(selected.has(left.id)) ||
+                    (right.document_count || 0) - (left.document_count || 0) ||
+                    left.name.localeCompare(right.name)
+            )
+            .slice(0, 16);
+    }
+
+    get documentGroups() {
+        const groupBys = this.searchModel.groupBy;
+        if (!groupBys.length) {
+            return [{ key: "all", label: "", documents: this.state.documents }];
+        }
+        const values = {
+            company_id: (document) => document.company || "No company",
+            correspondent_id: (document) =>
+                document.correspondent || "No correspondent",
+            document_type_id: (document) =>
+                document.document_type || "No document type",
+            linked_employee_id: (document) =>
+                document.linked_employee?.name || "No linked employee",
+            confidentiality: (document) =>
+                ({
+                    internal: "Internal",
+                    accounting: "Accounting evidence",
+                    hr: "HR restricted",
+                    private: "Private",
+                }[document.confidentiality] || "No privacy level"),
+            review_state: (document) =>
+                ({
+                    needs_attention: "Needs review",
+                    classified: "Classified",
+                    reviewed: "Reviewed",
+                }[document.review_state] || "No review status"),
+            document_date: (document, interval) =>
+                this.groupDateLabel(document.date, interval),
+            paperless_created: (document, interval) =>
+                this.groupDateLabel(document.ingested_at, interval),
+        };
+        const grouped = new Map();
+        for (const document of this.state.documents) {
+            const labels = groupBys.map((raw) => {
+                const [field, interval] = raw.split(":");
+                return values[field]?.(document, interval) || "Other";
+            });
+            const key = JSON.stringify(labels);
+            if (!grouped.has(key)) {
+                grouped.set(key, {
+                    key,
+                    label: labels.join(" · "),
+                    documents: [],
+                });
+            }
+            grouped.get(key).documents.push(document);
+        }
+        return [...grouped.values()];
+    }
+
+    groupDateLabel(value, interval) {
+        if (!value) {
+            return "No date";
+        }
+        const text = String(value);
+        if (interval === "year") {
+            return text.slice(0, 4);
+        }
+        if (interval === "quarter") {
+            const month = Number(text.slice(5, 7)) || 1;
+            return `${text.slice(0, 4)} Q${Math.ceil(month / 3)}`;
+        }
+        if (interval === "day") {
+            return text.slice(0, 10);
+        }
+        return text.slice(0, 7);
     }
 
     get activeFacets() {
@@ -471,6 +593,15 @@ export class DocumentsWorkspace extends Component {
                 "usl_filters",
                 JSON.stringify(this.navigationFilters())
             );
+            for (const key of ["domain", "groupBy", "orderBy"]) {
+                url.searchParams.delete(key);
+            }
+            const nativeSearch = new URLSearchParams(
+                this.searchModel.generateQueryString()
+            );
+            for (const [key, value] of nativeSearch.entries()) {
+                url.searchParams.set(key, value);
+            }
             browser.history[`${mode}State`](
                 {
                     ...(browser.history.state || {}),
@@ -530,34 +661,24 @@ export class DocumentsWorkspace extends Component {
 
     workspaceKwargs() {
         return {
-            query: this.state.query,
+            query: "",
             workspace: this.state.workspace,
             page: this.state.page,
             page_size: this.state.pageSize,
             sort: this.state.sort,
-            company_id: this.state.companyId || null,
-            tag_ids: this.state.tagIds,
-            correspondent_id: this.state.correspondentId || null,
-            document_type_id: this.state.documentTypeId || null,
-            date_from: this.state.dateFrom || null,
-            date_to: this.state.dateTo || null,
-            added_from: this.state.addedFrom || null,
-            added_to: this.state.addedTo || null,
-            source: this.state.source || null,
-            confidentiality: this.state.confidentiality || null,
-            review_state: this.state.reviewState || null,
-            linked_state: this.state.linkedState || null,
-            linked_model: this.state.linkedRecord
-                ? this.state.linkedRecord.split(":", 1)[0]
-                : null,
-            linked_id: this.state.linkedRecord
-                ? Number(this.state.linkedRecord.split(":", 2)[1])
-                : null,
-            mapped_partner_id: this.state.mappedPartnerId || null,
-            paperless_id: this.state.paperlessId || null,
-            custom_field_id: this.state.customFieldId || null,
-            custom_field_value: this.state.customFieldValue || null,
+            search_domain: this.searchModel.domain,
+            shortcut_tag_ids: this.state.tagIds,
+            group_by: this.searchModel.groupBy,
         };
+    }
+
+    async onNativeSearchUpdate() {
+        if (!this.searchReady) {
+            return;
+        }
+        this.state.page = 1;
+        this.state.selected = null;
+        await this.load();
     }
 
     async load() {
@@ -615,12 +736,8 @@ export class DocumentsWorkspace extends Component {
 
     selectWorkspace(view) {
         this.state.workspace = view.key;
-        if (view.filters && Object.keys(view.filters).length) {
-            this.applySavedFilters(view.filters);
-        }
         this.state.page = 1;
         this.state.selected = null;
-        this.state.searchInput = this.state.query;
         return this.load();
     }
 
@@ -680,9 +797,8 @@ export class DocumentsWorkspace extends Component {
     }
 
     clearAll() {
-        this.state.query = "";
-        this.state.searchInput = "";
-        return this.clearFilters();
+        this.state.tagIds = [];
+        this.searchModel.clearQuery();
     }
 
     updateFilter(field, event) {
@@ -798,6 +914,57 @@ export class DocumentsWorkspace extends Component {
             : [...this.state.tagIds, tagId];
         this.state.page = 1;
         return this.load();
+    }
+
+    isSmartShortcutActive(shortcut) {
+        if (shortcut.kind === "group") {
+            return this.searchModel.groupBy.includes(shortcut.group_by);
+        }
+        return Object.values(this.searchModel.searchItems).some(
+            (item) =>
+                item.uslShortcutKey === shortcut.key &&
+                this.searchModel.query.some(
+                    (query) => query.searchItemId === item.id
+                )
+        );
+    }
+
+    toggleSmartShortcut(shortcut) {
+        if (shortcut.kind === "group") {
+            const [fieldName, interval] = shortcut.group_by.split(":");
+            const groupItem = Object.values(this.searchModel.searchItems).find(
+                (item) =>
+                    ["groupBy", "dateGroupBy"].includes(item.type) &&
+                    item.fieldName === fieldName
+            );
+            if (groupItem) {
+                if (groupItem.type === "dateGroupBy") {
+                    this.searchModel.toggleDateGroupBy(
+                        groupItem.id,
+                        interval || groupItem.defaultIntervalId
+                    );
+                } else {
+                    this.searchModel.toggleSearchItem(groupItem.id);
+                }
+            } else {
+                this.searchModel.createNewGroupBy(fieldName, { interval });
+            }
+            return;
+        }
+        const existing = Object.values(this.searchModel.searchItems).find(
+            (item) => item.uslShortcutKey === shortcut.key
+        );
+        if (existing) {
+            this.searchModel.toggleSearchItem(existing.id);
+            return;
+        }
+        this.searchModel.createNewFilters([
+            {
+                description: shortcut.name,
+                domain: shortcut.domain,
+                uslShortcutKey: shortcut.key,
+            },
+        ]);
     }
 
     async savePersonalView() {
@@ -1149,6 +1316,77 @@ export class DocumentsWorkspace extends Component {
         });
     }
 
+    moveToTrash() {
+        const links = this.state.selected?.link_count || 0;
+        this.dialog.add(ConfirmationDialog, {
+            title: "Move this document to Trash?",
+            body: links
+                ? `Its ${links} Odoo link${
+                      links === 1 ? "" : "s"
+                  } will remain visible. The document cannot be permanently deleted while linked.`
+                : "The document can be restored later. Permanent deletion is a separate administrator action.",
+            confirmLabel: "Move to Trash",
+            confirmClass: "btn-danger",
+            confirm: async () => {
+                try {
+                    const result = await this.orm.call(
+                        "usl.document",
+                        "move_to_trash",
+                        [[this.state.selected.id]]
+                    );
+                    this.notification.add(result.message, { type: "success" });
+                    await this.load();
+                    await this.openDocumentById(result.document_id);
+                } catch (error) {
+                    this.notification.add(
+                        error.data?.message ||
+                            error.message ||
+                            "The document could not be moved to Trash.",
+                        { type: "danger", sticky: true }
+                    );
+                }
+            },
+        });
+    }
+
+    requestPermanentDelete() {
+        const selected = this.state.selected;
+        if (!selected || selected.permanent_delete_blocker) {
+            return;
+        }
+        this.dialog.add(PermanentDeleteDialog, {
+            documentName: selected.name,
+            confirm: async (reason) => {
+                try {
+                    await this.orm.call(
+                        "usl.document",
+                        "approve_permanent_deletion",
+                        [[selected.id], reason]
+                    );
+                    await this.orm.call(
+                        "usl.document",
+                        "permanently_delete_from_trash",
+                        [[selected.id]]
+                    );
+                    this.state.selected = null;
+                    this.notification.add(
+                        "Document permanently deleted. An audit tombstone remains in Odoo.",
+                        { type: "success", sticky: true }
+                    );
+                    await this.load();
+                } catch (error) {
+                    this.notification.add(
+                        error.data?.message ||
+                            error.message ||
+                            "Permanent deletion failed.",
+                        { type: "danger", sticky: true }
+                    );
+                    throw error;
+                }
+            },
+        });
+    }
+
     openRecord(document) {
         this.persistState();
         return this.action.doAction({
@@ -1444,6 +1682,64 @@ export class DocumentsWorkspace extends Component {
         this.state.failedOperations = this.state.failedOperations.filter(
             (item) => item.id !== operation.id
         );
+    }
+}
+
+export class DocumentsWorkspace extends Component {
+    static template = "usl_documents.DocumentsWorkspace";
+    static components = { WithSearch, DocumentsWorkspaceView };
+    static props = { ...standardActionServiceProps };
+
+    setup() {
+        // Client actions do not pass through ``View.setup()``, while
+        // SearchModel intentionally relies on the same environment contract.
+        // Providing Odoo's native defaults keeps the real workspace and
+        // isolated OWL tests on that single supported path.
+        useSubEnv({
+            config: {
+                ...getDefaultConfig(),
+                ...(this.env.config || {}),
+            },
+        });
+    }
+
+    get withSearchProps() {
+        const params = this.props.action.params || {};
+        const dynamicFilters = [];
+        if (params.linked_filter && params.res_model && params.res_id) {
+            const reference = `${params.res_model}:${Number(params.res_id)}`;
+            const linkedDomain = [
+                ["linked_record_ref", "=", reference],
+            ];
+            dynamicFilters.push({
+                description: `Linked record: ${
+                    params.record_name || "current record"
+                }`,
+                domain:
+                    params.res_model === "res.partner"
+                        ? [
+                              "|",
+                              ["mapped_contact_id", "=", Number(params.res_id)],
+                              ...linkedDomain,
+                          ]
+                        : linkedDomain,
+            });
+        }
+        return {
+            resModel: "usl.document",
+            ...(params.search_view_arch
+                ? {
+                      searchViewArch: params.search_view_arch,
+                      searchViewFields: params.search_view_fields || {},
+                      irFilters: params.ir_filters || [],
+                      loadIrFilters: false,
+                  }
+                : { searchViewId: false, loadIrFilters: true }),
+            context: this.props.action.context || {},
+            domain: [],
+            dynamicFilters,
+            searchMenuTypes: ["filter", "groupBy", "favorite"],
+        };
     }
 }
 

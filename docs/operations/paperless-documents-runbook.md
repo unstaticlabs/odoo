@@ -209,9 +209,11 @@ make documents-qa-recovery-test
 Pre-production uses the corresponding `documents-preprod-*` targets after
 preflight. The real-service acceptance verifies Paperless 3.0.4/API v10,
 asynchronous upload, OCR-only search, current and historical checksum duplicate
-reuse, multi-link/unlink, generated-output retention, external ingestion,
-versions, a real automatic matching rule, direct mapped identities, shared
-Saved View visibility, permissions, outage/resume, and reconciliation.
+reuse, live tag/correspondent creation, multi-term matching expressions,
+original and processed downloads, multi-link/unlink, generated-output
+retention, external ingestion, versions, a real automatic matching rule,
+Odoo-initiated Trash attribution and stable restore, direct mapped identities,
+shared Saved View visibility, permissions, outage/resume, and reconciliation.
 
 The recovery target:
 
@@ -236,11 +238,16 @@ roots, permission failures, or checksum failures. The timestamped artifacts
 were written outside the repository under `/tmp`; that location is evidence
 for the disposable rehearsal, not a production backup destination.
 
-The final UI acceptance also exercised the live workspace at 1280×720,
-768×1024, and 390×844. The tablet and mobile runs opened a real document detail
-and reported no page overflow, clipped document actions, browser exceptions, or
-failed HTTP responses. The previously failing active-navigation and tag-chip
-states measured 7.23:1 and 12.26:1 contrast respectively.
+The final frontend acceptance passed both desktop and mobile QUnit variants:
+17 tests and 93 assertions in each, including native search suggestions, Smart
+View shortcuts, Trash attribution and deletion gates, and an open-detail
+no-overflow assertion. Live browser review exercised the native OCR facet,
+additive top tag chip, real document detail, preview, classification, and
+original download. Responsive review at 1280×720, 768×1024, and 390×844 opened
+a real document detail without page overflow, clipped document actions,
+browser exceptions, or failed HTTP responses. The previously failing
+active-navigation and tag-chip states measured 7.23:1 and 12.26:1 contrast
+respectively.
 
 The target stops the isolated restored project after evidence capture and
 preserves its volumes until review. Never pass `--volumes` to a manual cleanup
@@ -258,3 +265,9 @@ audit attribution. A missing root is reported; never repair it by silently
 creating a new document with the same title. Paperless automatic expiry is
 effectively disabled with the deployment's 100-year delay so that it cannot
 bypass these gates.
+
+Paperless 3.0.4 reports the Trash timestamp but not the deleting identity
+through its supported Trash/history APIs. Odoo therefore records exact
+attribution for Odoo-origin actions and an explicit unknown Paperless actor for
+direct archive actions. Do not substitute container logs or an administrator
+guess as legal audit attribution.

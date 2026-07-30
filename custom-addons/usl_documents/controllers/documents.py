@@ -2,6 +2,7 @@ import html
 
 from odoo import http
 from odoo.http import request
+from odoo.http.stream import content_disposition
 
 from ..models.paperless_client import PaperlessError
 
@@ -148,7 +149,7 @@ class DocumentsController(http.Controller):
                     "Content-Type",
                     headers.get("Content-Type", "application/octet-stream"),
                 ),
-                ("Content-Disposition", http.content_disposition(filename)),
+                ("Content-Disposition", content_disposition(filename)),
                 ("Cache-Control", "private, no-store"),
                 ("X-Content-Type-Options", "nosniff"),
             ],

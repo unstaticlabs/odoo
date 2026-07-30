@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.fields import Domain
 
 from .paperless_client import (
     PaperlessClient,
@@ -30,6 +31,18 @@ class UslDocument(models.Model):
     _order = "document_date desc, paperless_created desc, id desc"
 
     name = fields.Char(required=True, readonly=True, tracking=True)
+    archive_text = fields.Char(
+        string="Document content",
+        compute="_compute_search_helpers",
+        search="_search_archive_text",
+        help="Search title, OCR text, archive metadata, and Paperless identity.",
+    )
+    custom_field_text = fields.Char(
+        string="Additional details",
+        compute="_compute_search_helpers",
+        search="_search_custom_field_text",
+        help="Search across synchronized Paperless custom-field values.",
+    )
     paperless_id = fields.Integer(
         string="Paperless ID", required=True, index=True, readonly=True, copy=False,
     )
@@ -99,6 +112,28 @@ class UslDocument(models.Model):
         string="Tags",
         readonly=True,
     )
+    mapped_contact_id = fields.Many2one(
+        "res.partner",
+        string="Mapped Contact",
+        related="correspondent_id.partner_id",
+        readonly=True,
+    )
+    has_linked_record = fields.Boolean(
+        string="Linked to Odoo",
+        compute="_compute_search_helpers",
+        search="_search_has_linked_record",
+    )
+    linked_record_ref = fields.Char(
+        string="Linked record",
+        compute="_compute_search_helpers",
+        search="_search_linked_record_ref",
+    )
+    linked_employee_id = fields.Many2one(
+        "hr.employee",
+        string="Employee",
+        compute="_compute_linked_employee",
+        search="_search_linked_employee",
+    )
     # Kept during the relational metadata migration for reports and third-party
     # code that consumed the original text cache.
     correspondent_name = fields.Char(index=True, readonly=True)
@@ -132,6 +167,20 @@ class UslDocument(models.Model):
     permission_sync_error = fields.Text(readonly=True)
     permission_checked_at = fields.Datetime(readonly=True)
     trashed_at = fields.Datetime(readonly=True, tracking=True)
+    trashed_by_id = fields.Many2one(
+        "res.users",
+        string="Moved to Trash by",
+        readonly=True,
+        tracking=True,
+    )
+    trashed_by_label = fields.Char(
+        string="Trash source",
+        readonly=True,
+        help=(
+            "The Odoo user is recorded for actions made in Odoo. Paperless 3.0's "
+            "Trash API does not identify the user for actions made directly there."
+        ),
+    )
     retention_until = fields.Datetime(readonly=True)
     retention_hold = fields.Boolean(
         string="Retention hold",
@@ -155,6 +204,180 @@ class UslDocument(models.Model):
     def _compute_link_count(self):
         for document in self:
             document.link_count = len(document.link_ids)
+
+    def _compute_search_helpers(self):
+        for document in self:
+            document.archive_text = False
+            document.custom_field_text = False
+            document.has_linked_record = bool(document.link_ids.filtered("active"))
+            document.linked_record_ref = False
+
+    @api.depends("link_ids.active", "link_ids.res_model", "link_ids.res_id")
+    def _compute_linked_employee(self):
+        for document in self:
+            employee_link = document.link_ids.filtered(
+                lambda link: link.active and link.res_model == "hr.employee",
+            )[:1]
+            document.linked_employee_id = (
+                self.env["hr.employee"].browse(employee_link.res_id).exists()
+                if employee_link
+                else False
+            )
+
+    @api.model
+    def _search_archive_text(self, operator, value):
+        if operator not in ("=", "!=", "like", "not like", "ilike", "not ilike"):
+            raise ValidationError(_("Unsupported document-content search operator."))
+        if not value:
+            return []
+        ids, _truncated = self._paperless_search_ids(str(value))
+        negative = operator in ("!=", "not like", "not ilike")
+        return [("paperless_id", "not in" if negative else "in", ids)]
+
+    @api.model
+    def _custom_field_search_ids(self, value):
+        definitions = json.loads(
+            self.env["ir.config_parameter"].sudo().get_str(
+                "usl_documents.paperless_custom_fields",
+                "[]",
+            ),
+        )
+        matching_ids = set()
+        for definition in definitions[:100]:
+            data_type = definition.get("data_type") or "string"
+            parsed_value = value
+            operator = "icontains"
+            try:
+                if data_type == "integer":
+                    parsed_value = int(value)
+                    operator = "exact"
+                elif data_type in ("float", "monetary"):
+                    parsed_value = float(value)
+                    operator = "exact"
+                elif data_type == "boolean":
+                    normalized = str(value).strip().lower()
+                    if normalized not in ("1", "0", "true", "false", "yes", "no"):
+                        continue
+                    parsed_value = normalized in ("1", "true", "yes")
+                    operator = "exact"
+                elif data_type in ("date", "select", "documentlink"):
+                    operator = "exact"
+            except (TypeError, ValueError):
+                continue
+            ids, _truncated = self._paperless_search_ids(
+                "",
+                filters={
+                    "custom_field_query": json.dumps(
+                        [definition["name"], operator, parsed_value],
+                    ),
+                },
+            )
+            matching_ids.update(ids)
+        return sorted(matching_ids)
+
+    @api.model
+    def _search_custom_field_text(self, operator, value):
+        if operator not in ("=", "!=", "like", "not like", "ilike", "not ilike"):
+            raise ValidationError(_("Unsupported additional-detail search operator."))
+        if not value:
+            return []
+        ids = self._custom_field_search_ids(value)
+        negative = operator in ("!=", "not like", "not ilike")
+        return [("paperless_id", "not in" if negative else "in", ids)]
+
+    @api.model
+    def _resolve_remote_search_domain(self, domain):
+        """Resolve each Paperless text condition once before Odoo paginates.
+
+        ``search_count`` and ``search`` both expand custom search fields.  If
+        the raw domain reached both calls, one user search caused two archive
+        requests and could even observe different results between count and
+        page retrieval.
+        """
+
+        def resolve(condition):
+            if condition.field_expr not in ("archive_text", "custom_field_text"):
+                return condition
+            if not condition.value:
+                return Domain.TRUE
+            if condition.operator not in (
+                "=",
+                "!=",
+                "like",
+                "not like",
+                "ilike",
+                "not ilike",
+            ):
+                raise ValidationError(
+                    _("Unsupported document-content search operator."),
+                )
+            if condition.field_expr == "archive_text":
+                ids, _truncated = self._paperless_search_ids(
+                    str(condition.value),
+                )
+            else:
+                ids = self._custom_field_search_ids(condition.value)
+            negative = condition.operator in ("!=", "not like", "not ilike")
+            return Domain(
+                "paperless_id",
+                "not in" if negative else "in",
+                ids,
+            )
+
+        return domain.map_conditions(resolve)
+
+    @api.model
+    def _search_has_linked_record(self, operator, value):
+        if operator not in ("=", "!="):
+            raise ValidationError(_("Linked status supports equals and not equals."))
+        wanted = bool(value)
+        if operator == "!=":
+            wanted = not wanted
+        return [("link_ids", "!=" if wanted else "=", False)]
+
+    @api.model
+    def _search_linked_record_ref(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, str):
+            raise ValidationError(_("Choose a valid linked Odoo record."))
+        try:
+            model_name, record_id = value.rsplit(":", 1)
+            record_id = int(record_id)
+        except (TypeError, ValueError) as error:
+            raise ValidationError(_("Choose a valid linked Odoo record.")) from error
+        if model_name not in self.env["usl.document.link"]._allowed_models():
+            raise ValidationError(_("That type of Odoo record cannot carry documents."))
+        link_ids = self.env["usl.document.link"].search(
+            [
+                ("active", "=", True),
+                ("res_model", "=", model_name),
+                ("res_id", "=", record_id),
+            ],
+        ).mapped("document_id").ids
+        return [("id", "not in" if operator == "!=" else "in", link_ids)]
+
+    @api.model
+    def _search_linked_employee(self, operator, value):
+        if operator not in ("=", "!=", "in", "not in"):
+            raise ValidationError(_("Unsupported employee filter."))
+        employee_ids = (
+            [int(item) for item in value]
+            if operator in ("in", "not in")
+            else [int(value)]
+        )
+        document_ids = self.env["usl.document.link"].search(
+            [
+                ("active", "=", True),
+                ("res_model", "=", "hr.employee"),
+                ("res_id", "in", employee_ids),
+            ],
+        ).mapped("document_id").ids
+        return [
+            (
+                "id",
+                "not in" if operator in ("!=", "not in") else "in",
+                document_ids,
+            ),
+        ]
 
     @api.depends("paperless_id", "permission_sync_state")
     def _compute_paperless_url(self):
@@ -225,6 +448,8 @@ class UslDocument(models.Model):
             "permission_sync_error",
             "permission_checked_at",
             "trashed_at",
+            "trashed_by_id",
+            "trashed_by_label",
             "retention_until",
             "deletion_approved_by_id",
             "deletion_approved_at",
@@ -521,13 +746,16 @@ class UslDocument(models.Model):
             if not tag_model.search([("name", "=ilike", name)], limit=1):
                 client.create_metadata(
                     "tags",
-                    tag_model._paperless_payload({
-                        "name": name,
-                        "color": color,
-                        "matching_algorithm": 6,
-                        "match": "",
-                        "is_insensitive": True,
-                    }),
+                    {
+                        **tag_model._paperless_payload({
+                            "name": name,
+                            "color": color,
+                            "matching_algorithm": 6,
+                            "match": "",
+                            "is_insensitive": True,
+                        }),
+                        "owner": None,
+                    },
                 )
                 created = True
         if created:
@@ -614,6 +842,22 @@ class UslDocument(models.Model):
                     values = self._paperless_values(
                         item, metadata_catalog=metadata_catalog,
                     )
+                    # A document returned by the active endpoint has left
+                    # Paperless Trash. Clear the previous deletion event even
+                    # when it was restored directly in Paperless; otherwise a
+                    # later Trash event could be falsely attributed to the
+                    # Odoo user who performed the earlier one.
+                    values.update(
+                        {
+                            "trashed_at": False,
+                            "trashed_by_id": False,
+                            "trashed_by_label": False,
+                            "retention_until": False,
+                            "deletion_approved_by_id": False,
+                            "deletion_approved_at": False,
+                            "deletion_reason": False,
+                        },
+                    )
                     if document:
                         # Odoo-origin provenance is authoritative and must survive
                         # refreshes of the Paperless metadata cache.
@@ -653,6 +897,16 @@ class UslDocument(models.Model):
                     values["last_error"] = False
                     trashed_at = self._paperless_datetime(item.get("deleted_at"))
                     values["trashed_at"] = trashed_at
+                    if (
+                        not document
+                        or (
+                            not document.trashed_by_id
+                            and not document.trashed_by_label
+                        )
+                    ):
+                        values["trashed_by_label"] = _(
+                            "Moved in Paperless (user not provided by its API)",
+                        )
                     values["retention_until"] = (
                         fields.Datetime.to_datetime(trashed_at)
                         + timedelta(days=retention_days)
@@ -800,6 +1054,17 @@ class UslDocument(models.Model):
     @api.model
     def _workspace_document_values(self, item):
         active_links = item.link_ids.filtered("active")
+        employee_link = active_links.filtered(
+            lambda link: link.res_model == "hr.employee",
+        )[:1]
+        employee = (
+            self.env["hr.employee"].search(
+                [("id", "=", employee_link.res_id)],
+                limit=1,
+            )
+            if employee_link
+            else self.env["hr.employee"]
+        )
         correspondent = self._workspace_correspondent_values(
             item.correspondent_id,
         )
@@ -848,6 +1113,11 @@ class UslDocument(models.Model):
                 if active_links
                 else False
             ),
+            "linked_employee": (
+                {"id": employee.id, "name": employee.display_name}
+                if employee
+                else False
+            ),
             "paperless_url": item.paperless_url,
         }
 
@@ -878,6 +1148,9 @@ class UslDocument(models.Model):
         paperless_id=None,
         custom_field_id=None,
         custom_field_value=None,
+        search_domain=None,
+        shortcut_tag_ids=None,
+        group_by=None,
         sort="recent",
     ):
         page = max(1, int(page))
@@ -888,7 +1161,25 @@ class UslDocument(models.Model):
         )[:1]
         if not selected_view:
             selected_view = smart_views.filtered(lambda item: item.key == "recent")[:1]
-        domain = selected_view.document_domain() if selected_view else []
+        domain = list(selected_view.document_domain()) if selected_view else []
+        if search_domain:
+            if not isinstance(search_domain, list):
+                raise ValidationError(_("Invalid search filters."))
+        try:
+            native_domain = self._resolve_remote_search_domain(
+                Domain(search_domain or []),
+            )
+        except PaperlessError as error:
+            return {
+                "documents": [],
+                "count": 0,
+                "degraded": True,
+                "error": str(error),
+            }
+        if shortcut_tag_ids:
+            domain.append(
+                ("tag_ids", "in", [int(tag_id) for tag_id in shortcut_tag_ids]),
+            )
         if selected_view and selected_view.system_rule == "saved":
             saved = json.loads(selected_view.filter_json or "{}")
             query = query or saved.get("query", "")
@@ -1047,16 +1338,25 @@ class UslDocument(models.Model):
                     "degraded": True,
                     "error": str(error),
                 }
+        domain = Domain.AND([Domain(domain), native_domain])
         order = {
             "recent": "document_date desc, id desc",
             "ingested": "paperless_created desc, id desc",
             "date": "document_date desc, id desc",
             "title": "name asc, id asc",
         }.get(sort, "paperless_created desc, id desc")
-        count = self.search_count(domain)
-        documents = self.search(
-            domain, order=order, offset=(page - 1) * page_size, limit=page_size,
-        )
+        try:
+            count = self.search_count(domain)
+            documents = self.search(
+                domain, order=order, offset=(page - 1) * page_size, limit=page_size,
+            )
+        except PaperlessError as error:
+            return {
+                "documents": [],
+                "count": 0,
+                "degraded": True,
+                "error": str(error),
+            }
         accessible_documents = self.search([])
         link_facets = []
         seen_links = set()
@@ -1100,6 +1400,7 @@ class UslDocument(models.Model):
                     "text_color": tag.text_color,
                     "parent_id": tag.parent_id.id,
                     "is_inbox_tag": tag.is_inbox_tag,
+                    "document_count": tag.accessible_document_count,
                 }
                 for tag in self.env["usl.paperless.tag"].search(
                     [("active", "=", True)],
@@ -1187,6 +1488,11 @@ class UslDocument(models.Model):
                     else False
                 ),
                 "trashed_at": document.trashed_at,
+                "trashed_by": (
+                    document.trashed_by_id.display_name
+                    or document.trashed_by_label
+                    or _("Not reported")
+                ),
                 "retention_until": document.retention_until,
                 "retention_hold": document.retention_hold,
                 "archive_available": archive_available,
@@ -1195,8 +1501,30 @@ class UslDocument(models.Model):
                 "can_restore": (
                     can_write and document.availability_state == "trashed"
                 ),
+                "can_trash": (
+                    can_write and document.availability_state == "available"
+                ),
                 "can_manage": self.env.user.has_group(
                     "usl_documents.group_documents_manager",
+                ),
+                "permanent_delete_blocker": (
+                    _(
+                        "Remove the %(count)s active Odoo link(s) before permanent deletion.",
+                        count=len(document.link_ids.filtered("active")),
+                    )
+                    if document.link_ids.filtered("active")
+                    else (
+                        _("A retention hold prevents permanent deletion.")
+                        if document.retention_hold
+                        else (
+                            _("Retained until %s.") % document.retention_until
+                            if (
+                                document.retention_until
+                                and document.retention_until > fields.Datetime.now()
+                            )
+                            else False
+                        )
+                    )
                 ),
                 "versions": [
                     {
@@ -1780,6 +2108,8 @@ class UslDocument(models.Model):
         values.update(
             {
                 "trashed_at": False,
+                "trashed_by_id": False,
+                "trashed_by_label": False,
                 "retention_until": False,
                 "deletion_approved_by_id": False,
                 "deletion_approved_at": False,
@@ -1794,6 +2124,46 @@ class UslDocument(models.Model):
             "document_id": self.id,
             "message": _(
                 "Document restored. Its Odoo links and archive identity were preserved.",
+            ),
+        }
+
+    def move_to_trash(self):
+        """Move a document to Trash while retaining every Odoo relationship."""
+        self.ensure_one()
+        self.check_access("write")
+        if self.availability_state != "available":
+            raise ValidationError(_("Only an available document can be moved to Trash."))
+        self._paperless().trash_document(self.paperless_id)
+        now = fields.Datetime.now()
+        retention_days = self.env["ir.config_parameter"].sudo().get_int(
+            "usl_documents.paperless_trash_retention_days",
+            30,
+        )
+        self.with_context(usl_documents_cache_write=True).write(
+            {
+                "availability_state": "trashed",
+                "trashed_at": now,
+                "trashed_by_id": self.env.user.id,
+                "trashed_by_label": self.env.user.display_name,
+                "retention_until": now + timedelta(days=max(0, retention_days)),
+                "last_error": False,
+            },
+        )
+        self.message_post(
+            body=_(
+                "%(user)s moved this document to Paperless Trash. "
+                "Its %(count)s active Odoo relationship(s) were preserved.",
+            )
+            % {
+                "user": self.env.user.display_name,
+                "count": len(self.link_ids.filtered("active")),
+            },
+        )
+        return {
+            "state": "trashed",
+            "document_id": self.id,
+            "message": _(
+                "Document moved to Trash. Linked Odoo records were kept.",
             ),
         }
 

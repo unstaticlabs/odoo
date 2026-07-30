@@ -4,19 +4,68 @@
         <field name="name">usl.document.search</field>
         <field name="model">usl.document</field>
         <field name="arch" type="xml">
-            <search string="Document Register">
-                <field name="name"/>
-                <field name="paperless_id"/>
+            <search string="Search Documents">
+                <field name="archive_text"
+                       string="Document content"
+                       filter_domain="[('archive_text', 'ilike', self)]"/>
+                <field name="custom_field_text"
+                       string="Additional details"
+                       filter_domain="[('custom_field_text', 'ilike', self)]"/>
+                <field name="name" string="Title"/>
+                <field name="tag_ids"/>
                 <field name="correspondent_id"/>
                 <field name="document_type_id"/>
-                <field name="tag_ids"/>
-                <filter name="needs_attention" string="Needs attention" domain="[('review_state', '=', 'needs_attention')]"/>
-                <filter name="accounting" string="Accounting evidence" domain="[('accounting_evidence', '=', True)]"/>
-                <filter name="missing" string="Missing or trashed" domain="[('availability_state', 'in', ('missing', 'trashed'))]"/>
+                <field name="company_id"/>
+                <field name="source"/>
+                <field name="confidentiality" string="Privacy"/>
+                <field name="review_state" string="Review status"/>
+                <field name="availability_state" string="Availability"/>
+                <field name="has_linked_record"/>
+                <field name="document_date"/>
+                <field name="paperless_created" string="Added to archive"/>
+                <field name="mapped_contact_id"/>
+                <field name="linked_employee_id"/>
+                <field name="paperless_id" string="Archive ID"/>
+                <filter name="my_uploads" string="My uploads"
+                        domain="[('submitted_by_id', '=', uid)]"/>
+                <filter name="needs_attention" string="Needs review"
+                        domain="[('review_state', '=', 'needs_attention')]"/>
+                <filter name="linked" string="Linked to Odoo"
+                        domain="[('has_linked_record', '=', True)]"/>
+                <filter name="unlinked" string="Not linked"
+                        domain="[('has_linked_record', '=', False)]"/>
                 <separator/>
-                <filter name="company" string="Company" context="{'group_by': 'company_id'}"/>
-                <filter name="document_type" string="Document type" context="{'group_by': 'document_type_id'}"/>
-                <filter name="confidentiality" string="Confidentiality" context="{'group_by': 'confidentiality'}"/>
+                <filter name="accounting" string="Accounting evidence"
+                        domain="[('accounting_evidence', '=', True)]"/>
+                <filter name="hr" string="HR documents"
+                        domain="[('confidentiality', '=', 'hr')]"/>
+                <filter name="available" string="Available"
+                        domain="[('availability_state', '=', 'available')]"/>
+                <filter name="needs_access_attention" string="Access needs attention"
+                        domain="[('permission_sync_state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="document_date_filter" string="Document date"
+                        date="document_date"/>
+                <filter name="archive_date_filter" string="Added to archive"
+                        date="paperless_created"/>
+                <group>
+                    <filter name="group_company" string="Company"
+                            context="{'group_by': 'company_id'}"/>
+                    <filter name="group_correspondent" string="Correspondent"
+                            context="{'group_by': 'correspondent_id'}"/>
+                    <filter name="group_document_type" string="Document type"
+                            context="{'group_by': 'document_type_id'}"/>
+                    <filter name="group_employee" string="Employee"
+                            context="{'group_by': 'linked_employee_id'}"/>
+                    <filter name="group_privacy" string="Privacy"
+                            context="{'group_by': 'confidentiality'}"/>
+                    <filter name="group_review" string="Review status"
+                            context="{'group_by': 'review_state'}"/>
+                    <filter name="group_document_month" string="Document month"
+                            context="{'group_by': 'document_date:month'}"/>
+                    <filter name="group_archive_month" string="Archive month"
+                            context="{'group_by': 'paperless_created:month'}"/>
+                </group>
             </search>
         </field>
     </record>
