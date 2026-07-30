@@ -122,7 +122,7 @@ historical alignment evidence; they are not current deployment targets.
 | Adapted image build | same build command, with source-checkout execution | Passed; `odoo --version` reports `Odoo Server saas~19.2` |
 | Clean dependency install | fresh `odoo_saas_19_2_empty_01`; `--init=rebuild_account_migration --without-demo=true` | Passed with all declared Community and OCA dependencies |
 | USL module tests | `--update=rebuild_account_migration --test-tags=rebuild_account_migration_unit` | Passed: 99 tests |
-| OCA reconciliation tests | `--update=account_reconcile_oca --test-tags=/account_reconcile_oca` | Passed: 47 tests after explicit SaaS patches |
+| OCA reconciliation tests | Chromium-enabled `scripts/odoo-dev test-tag /account_reconcile_oca` on a restored candidate clone | Passed: 49 test methods, including desktop/mobile Hoot wrappers; configured locale and candidate partner state are covered by explicit SaaS test patches |
 | OCA browser assets | module update, then Bank Matching and Chatter in `debug=assets` | Passed with no browser warnings or errors after adapting `@mail/chatter/web_portal_project/chatter` and removing the obsolete `showButtons` prop |
 | Harness tests | `python -m pytest accounting_compat/tests` in the development image | Passed: 10 tests |
 | Source package | `scripts/accounting-compat source-validate` | Passed for dump SHA-256 `ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e` and 1,762 filestore files |
