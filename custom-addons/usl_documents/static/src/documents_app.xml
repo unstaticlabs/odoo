@@ -689,8 +689,14 @@
                                       t-esc="selectedDocumentDateDisplay || 'Loading…'"/>
                             </div>
                             <div class="o_usl_inline_field">
-                                <span class="small fw-semibold">Company</span>
-                                <span class="o_usl_readonly_value"
+                                <label t-if="state.selected.can_change_company"
+                                       for="usl_document_company"
+                                       class="small fw-semibold">Company</label>
+                                <span t-else="" class="small fw-semibold">Company</span>
+                                <Many2One t-if="state.selected.can_change_company"
+                                          t-props="companyProps"/>
+                                <span t-else=""
+                                      class="o_usl_readonly_value"
                                       t-esc="state.selected.company || 'Needs review'"/>
                             </div>
                         </div>
