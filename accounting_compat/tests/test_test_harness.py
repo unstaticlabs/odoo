@@ -41,7 +41,7 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"${COMPOSE[@]}" --profile test build test', test_tag)
         self.assertIn("run_with_odoo_stopped test test odoo", test_tag)
 
-    def test_dev_lifecycle_records_every_tour_as_completed(self):
+    def test_dev_lifecycle_disables_automatic_tours(self):
         helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
             encoding="utf-8",
         )
@@ -49,21 +49,22 @@ class OdooTestHarnessTest(unittest.TestCase):
         finalizer = (REPOSITORY_ROOT / "scripts" / "target-finalize").read_text(
             encoding="utf-8",
         )
-        dismiss_helper = (
-            REPOSITORY_ROOT / "scripts" / "odoo" / "dismiss_dev_tours.py"
+        disable_helper = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "disable_dev_tours.py"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("dismiss_dev_tours() {", helper)
-        self.assertGreaterEqual(helper.count("dismiss_dev_tours"), 5)
-        self.assertIn("-e USL_DISMISS_DEV_TOURS=1", helper)
-        self.assertIn('"$ROOT/scripts/odoo/dismiss_dev_tours.py"', helper)
-        self.assertIn("dismiss-tours:", makefile)
-        self.assertIn("scripts/odoo-dev dismiss-tours", finalizer)
-        self.assertIn("user_consumed_ids", dismiss_helper)
-        self.assertIn("Command.link", dismiss_helper)
-        self.assertIn("odoo_online_source_saas_19_2", dismiss_helper)
-        self.assertIn("USL_EINVOICE_LIVE_ENABLED", dismiss_helper)
-        self.assertIn("USL_EREPORTING_LIVE_ENABLED", dismiss_helper)
+        self.assertIn("disable_dev_tours() {", helper)
+        self.assertGreaterEqual(helper.count("disable_dev_tours"), 5)
+        self.assertIn("-e USL_DISABLE_DEV_TOURS=1", helper)
+        self.assertIn('"$ROOT/scripts/odoo/disable_dev_tours.py"', helper)
+        self.assertIn("disable-tours:", makefile)
+        self.assertIn("scripts/odoo-dev disable-tours", finalizer)
+        self.assertIn('users.write({"tour_enabled": False})', disable_helper)
+        self.assertNotIn("user_consumed_ids", disable_helper)
+        self.assertNotIn("Command.link", disable_helper)
+        self.assertIn("odoo_online_source_saas_19_2", disable_helper)
+        self.assertIn("USL_EINVOICE_LIVE_ENABLED", disable_helper)
+        self.assertIn("USL_EREPORTING_LIVE_ENABLED", disable_helper)
 
 
 if __name__ == "__main__":
