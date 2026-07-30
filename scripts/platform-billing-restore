@@ -7,6 +7,7 @@ cd "$repo_root"
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-}}"
 target_database="${PLATFORM_BILLING_TARGET_DATABASE:-odoo_dev}"
+test_database="${PLATFORM_BILLING_TEST_DATABASE:-odoo_test_platform_billing_restore}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 expected_dump_sha="ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/platform-billing-migration-addons"
@@ -23,6 +24,12 @@ case "$target_database" in
         ;;
     ""|*[!A-Za-z0-9_]*)
         echo "Refusing unsafe target database name: $target_database"
+        exit 2
+        ;;
+esac
+case "$test_database" in
+    ""|"$target_database"|*[!A-Za-z0-9_]*)
+        echo "Refusing unsafe platform billing test database: $test_database"
         exit 2
         ;;
 esac
@@ -180,6 +187,43 @@ validate_product_boundary() {
         < migration/platform_billing_restore/scripts/validate_product_boundary.py
 }
 
+cleanup_test_database() {
+    compose exec -T \
+        -e TEST_DATABASE="$test_database" \
+        db sh -c \
+        'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
+    compose --profile platform-billing-migration run --rm \
+        --entrypoint sh \
+        -e TEST_DATABASE="$test_database" \
+        platform-billing-migration -c '
+          directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+          if [ -d "$directory" ]; then
+            find "$directory" -mindepth 1 -delete
+            rmdir "$directory"
+          fi
+        '
+}
+
+test_restore() {
+    local status=0
+    cleanup_test_database
+    compose --profile platform-billing-migration run --rm \
+        -e ODOO_INIT_DB="$test_database" \
+        -e "ODOO_DB_FILTER=^${test_database}$" \
+        platform-billing-migration \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" \
+        --database="$test_database" \
+        --init=usl_platform_billing_restore \
+        --without-demo=true \
+        --test-enable \
+        --test-tags=/usl_platform_billing_restore \
+        --stop-after-init \
+        --log-level=test || status=$?
+    cleanup_test_database
+    return "$status"
+}
+
 case "$command_name" in
     install)
         install_modules
@@ -200,6 +244,9 @@ case "$command_name" in
     product-validate)
         validate_product_boundary
         ;;
+    test)
+        test_restore
+        ;;
     all)
         install_modules
         import_history
@@ -209,7 +256,7 @@ case "$command_name" in
         finalize_history
         ;;
     *)
-        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|product-validate|all]"
+        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|product-validate|test|all]"
         exit 2
         ;;
 esac

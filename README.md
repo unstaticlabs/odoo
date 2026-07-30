@@ -352,7 +352,10 @@ make rebuild   # rebuild images, then deploy
 
 These helpers serve the database selected by `ODOO_DEV_DB` (default:
 `odoo_dev`), apply the same value to Odoo's database filter and verify the
-effective runtime filter before printing the login URL. If you invoke
+effective runtime filter before printing the login URL. They also verify that
+existing Compose containers belong to the current project and worktree before
+every Compose operation. Set `ODOO_DEV_REQUIRE_ISOLATED_PROJECT=1` for work
+that must use a dedicated `usl-odoo-fp-*` project. If you invoke
 `docker compose` directly instead, keep `ODOO_DB_FILTER` in the local `.env`
 aligned with the database you intend to serve.
 

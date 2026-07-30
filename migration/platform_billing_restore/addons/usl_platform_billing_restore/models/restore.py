@@ -7,11 +7,12 @@ from decimal import Decimal
 
 import psycopg2
 import psycopg2.extras
+from dateutil.relativedelta import relativedelta
 
 from odoo import Command, fields, models
-from odoo.tools import float_is_zero
+from odoo.tools import float_compare, float_is_zero
 
-RESTORE_REVISION = 1
+RESTORE_REVISION = 2
 BOOTSTRAP_SHA256 = (
     "a7617a282cb812ae051f41b5a6c15047c950bf3e8b85ef3a4014757345053791"
 )
@@ -520,18 +521,6 @@ class UslPlatformBillingRestoreRun(models.Model):
                         f"source platform {platform_id}."
                     ),
                 )
-        bank_links = Counter(
-            row["x_bank_statement_line_id"]
-            for row in payload["payouts"]
-            if row["x_bank_statement_line_id"]
-        )
-        for bank_line_id, count in bank_links.items():
-            if count > 1:
-                self._issue(
-                    "account.bank.statement.line",
-                    bank_line_id,
-                    f"The source bank transaction is linked to {count} payouts.",
-                )
         session_ids = {row["id"] for row in payload["sessions"]}
         platform_ids = {row["id"] for row in payload["platforms"]}
         for row in payload["payouts"]:
@@ -573,6 +562,68 @@ class UslPlatformBillingRestoreRun(models.Model):
                     "The source commission rate is outside 0%–100%.",
                 )
 
+    def _preflight_bank_allocations(self, payload, maps):
+        session_rows = {row["id"]: row for row in payload["sessions"]}
+        allocations_by_bank_line = defaultdict(list)
+        for row in payload["payouts"]:
+            if row["x_bank_statement_line_id"]:
+                allocations_by_bank_line[row["x_bank_statement_line_id"]].append(
+                    row,
+                )
+        for source_bank_line_id, rows in allocations_by_bank_line.items():
+            bank_line = maps["bank_line"].get(source_bank_line_id)
+            if not bank_line:
+                continue
+            if bank_line.amount <= 0:
+                self._issue(
+                    "account.bank.statement.line",
+                    source_bank_line_id,
+                    "The mapped bank transaction is not incoming.",
+                )
+            total = 0.0
+            for row in rows:
+                amount = row["x_bank_received_amount"] or 0.0
+                if amount <= 0:
+                    self._issue(
+                        "x_content_payout_line",
+                        row["id"],
+                        "A linked payout has no positive bank allocation.",
+                    )
+                total += amount
+                session_row = session_rows.get(row["x_session_id"])
+                if not session_row:
+                    continue
+                company = maps["company"].get(session_row["x_company_id"])
+                currency = maps["currency"].get(session_row["x_bank_currency_id"])
+                if company and bank_line.company_id != company:
+                    self._issue(
+                        "x_content_payout_line",
+                        row["id"],
+                        "The mapped bank transaction belongs to another company.",
+                    )
+                if currency and bank_line.currency_id != currency:
+                    self._issue(
+                        "x_content_payout_line",
+                        row["id"],
+                        "The mapped bank transaction uses another bank currency.",
+                    )
+            if (
+                float_compare(
+                    total,
+                    bank_line.amount,
+                    precision_rounding=bank_line.currency_id.rounding,
+                )
+                > 0
+            ):
+                self._issue(
+                    "account.bank.statement.line",
+                    source_bank_line_id,
+                    (
+                        f"Source payout allocations total {total}, above the "
+                        f"mapped bank transaction amount {bank_line.amount}."
+                    ),
+                )
+
     def _has_errors(self):
         return bool(
             self.env["usl.platform.billing.restore.issue"].search_count(
@@ -584,10 +635,103 @@ class UslPlatformBillingRestoreRun(models.Model):
             ),
         )
 
-    def _upsert(self, target_model, source_model, row, values):
+    @staticmethod
+    def _target_value(record, field_name):
+        field = record._fields[field_name]
+        value = record[field_name]
+        if field.type == "many2one":
+            return value.id or False
+        if field.type in {"many2many", "one2many"}:
+            return sorted(value.ids)
+        return value
+
+    def _adopt_finalized_record(
+        self,
+        target_model,
+        source_model,
+        row,
+        domain,
+        expected_values,
+    ):
+        model = (
+            self.env[target_model]
+            .sudo()
+            .with_context(active_test=False, tracking_disable=True)
+        )
+        records = model.search(
+            [*domain, ("rebuild_source_id", "=", False)],
+            order="id",
+        )
+        if len(records) > 1:
+            self._issue(
+                source_model,
+                row["id"],
+                (
+                    "Multiple finalized target records match the durable "
+                    f"business identity {domain!r}."
+                ),
+            )
+            return model.browse()
+        if not records:
+            return None
+        record = records
+        differences = []
+        for field_name, expected in expected_values.items():
+            current = self._target_value(record, field_name)
+            field = record._fields[field_name]
+            if field.type in {"json", "many2many", "one2many"} and not (
+                current or expected
+            ):
+                continue
+            if _normalized(current) != _normalized(expected):
+                differences.append(field_name)
+        if differences:
+            self._issue(
+                source_model,
+                row["id"],
+                (
+                    "A finalized target record has the same durable business "
+                    "identity but differs in protected fields: "
+                    f"{', '.join(sorted(differences))}."
+                ),
+            )
+            return model.browse()
+        record.write(
+            self._trace_values(
+                source_model,
+                row["id"],
+                self.source_snapshot,
+            ),
+        )
+        return record
+
+    def _upsert(
+        self,
+        target_model,
+        source_model,
+        row,
+        values,
+        *,
+        finalized_domain=None,
+        finalized_values=None,
+    ):
         record = self._traced(target_model, source_model, [row["id"]]).get(
             row["id"],
         )
+        adopted = False
+        if not record and finalized_domain:
+            finalized_record = self._adopt_finalized_record(
+                target_model,
+                source_model,
+                row,
+                finalized_domain,
+                finalized_values or {},
+            )
+            if finalized_record is not None:
+                if not finalized_record:
+                    return finalized_record
+                record = finalized_record
+                adopted = True
         values = {
             **values,
             **self._trace_values(source_model, row["id"], self.source_snapshot),
@@ -602,6 +746,8 @@ class UslPlatformBillingRestoreRun(models.Model):
                 mail_create_nosubscribe=True,
             )
         )
+        if adopted:
+            return record
         if record:
             protected_by_model = {
                 "usl.platform.billing.session": {
@@ -645,7 +791,13 @@ class UslPlatformBillingRestoreRun(models.Model):
                             ),
                         )
                     values.pop(field_name)
-            record.write(values)
+            if target_model in {
+                "usl.platform.billing.session",
+                "usl.platform.billing.payout",
+            }:
+                record._workflow_write(values)
+            else:
+                record.write(values)
         else:
             record = model.create(values)
         return record
@@ -761,35 +913,19 @@ class UslPlatformBillingRestoreRun(models.Model):
                     row["x_auto_create_compensation"],
                 ),
             }
-            untraced = (
-                self.env["usl.platform.billing.platform"]
-                .sudo()
-                .with_context(active_test=False)
-                .search(
-                    [
-                        ("company_id", "=", company.id),
-                        ("name", "=", row["x_name"]),
-                        ("rebuild_source_id", "=", False),
-                    ],
-                    limit=1,
-                )
-            )
-            if untraced:
-                self._issue(
-                    "x_content_platform",
-                    row["id"],
-                    (
-                        f"Target platform {untraced.display_name!r} already "
-                        "exists without a source identity."
-                    ),
-                )
-                continue
-            restored[row["id"]] = self._upsert(
+            record = self._upsert(
                 "usl.platform.billing.platform",
                 "x_content_platform",
                 row,
                 values,
+                finalized_domain=[
+                    ("company_id", "=", company.id),
+                    ("name", "=", row["x_name"]),
+                ],
+                finalized_values=values,
             )
+            if record:
+                restored[row["id"]] = record
         return restored
 
     def _restore_sessions(self, payload, maps):
@@ -811,18 +947,64 @@ class UslPlatformBillingRestoreRun(models.Model):
                     maps["user"].get(row["x_generated_by_id"]),
                 ),
             }
-            # The current product prefill deliberately supplies the period end
-            # when the legacy Studio session has no due date.  Omitting the
-            # empty source value on every revision makes that canonical product
-            # default idempotent instead of trying to clear a protected date.
-            if row["x_due_date"]:
-                values["due_date"] = row["x_due_date"]
-            restored[row["id"]] = self._upsert(
+            # Preserve an explicit legacy override. When none exists, let each
+            # generated document use its partner's native payment term.
+            values["due_date"] = row["x_due_date"] or False
+            finalized_domain = [
+                ("company_id", "=", company.id),
+                ("period_month", "=", row["x_period_month"]),
+                ("name", "=", row["x_name"]),
+            ]
+            existing = self._traced(
+                "usl.platform.billing.session",
+                "x_content_billing_session",
+                [row["id"]],
+            ).get(row["id"])
+            if not existing:
+                existing = (
+                    self.env["usl.platform.billing.session"]
+                    .sudo()
+                    .with_context(active_test=False)
+                    .search(
+                        [
+                            *finalized_domain,
+                            ("rebuild_source_id", "=", False),
+                        ],
+                        limit=2,
+                    )
+                )
+            if not row["x_due_date"] and len(existing) == 1 and existing.due_date:
+                legacy_due_date = row["x_period_month"] + relativedelta(
+                    months=1,
+                    days=-1,
+                )
+                if existing.due_date == legacy_due_date:
+                    existing._workflow_write({"due_date": False})
+                else:
+                    self._issue(
+                        "x_content_billing_session",
+                        row["id"],
+                        (
+                            "The source has no due-date override, but the "
+                            "target due date is not the retired month-end "
+                            "default."
+                        ),
+                    )
+                    continue
+            record = self._upsert(
                 "usl.platform.billing.session",
                 "x_content_billing_session",
                 row,
                 values,
+                finalized_domain=finalized_domain,
+                finalized_values={
+                    field_name: value
+                    for field_name, value in values.items()
+                    if field_name != "state"
+                },
             )
+            if record:
+                restored[row["id"]] = record
         return restored
 
     def _restore_payouts(self, payload, maps, platforms, sessions):
@@ -836,40 +1018,65 @@ class UslPlatformBillingRestoreRun(models.Model):
             bank_line = maps["bank_line"].get(
                 row["x_bank_statement_line_id"],
             )
-            restored[row["id"]] = self._upsert(
+            values = {
+                "session_id": session.id,
+                "platform_id": platform.id,
+                "payout_date": row["x_payout_date"],
+                "platform_reference": (
+                    row["x_platform_reference"] or ""
+                ).strip(),
+                "platform_currency_id": currency.id,
+                "net_platform_amount": row["x_net_platform_amount"],
+                "commission_rate_snapshot": row[
+                    "x_commission_rate_snapshot"
+                ],
+                "bank_received_amount": row["x_bank_received_amount"],
+                "bank_statement_line_id": _record_id(bank_line),
+                "bank_match_score": int(row["x_bank_match_score"] or 0),
+                "bank_match_status": (
+                    "reconciled"
+                    if bank_line and bank_line.is_reconciled
+                    else "selected"
+                    if bank_line
+                    else "unmatched"
+                ),
+                "bank_amount_difference": row[
+                    "x_bank_amount_difference"
+                ],
+                "bank_date_difference": row["x_bank_date_difference"],
+                "bank_detection_reason": row["x_bank_detection_reason"],
+                "state": "draft",
+            }
+            record = self._upsert(
                 "usl.platform.billing.payout",
                 "x_content_payout_line",
                 row,
-                {
-                    "session_id": session.id,
-                    "platform_id": platform.id,
-                    "payout_date": row["x_payout_date"],
-                    "platform_reference": (
-                        row["x_platform_reference"] or ""
-                    ).strip(),
-                    "platform_currency_id": currency.id,
-                    "net_platform_amount": row["x_net_platform_amount"],
-                    "commission_rate_snapshot": row[
-                        "x_commission_rate_snapshot"
-                    ],
-                    "bank_received_amount": row["x_bank_received_amount"],
-                    "bank_statement_line_id": _record_id(bank_line),
-                    "bank_match_score": int(row["x_bank_match_score"] or 0),
-                    "bank_match_status": (
-                        "reconciled"
-                        if bank_line and bank_line.is_reconciled
-                        else "selected"
-                        if bank_line
-                        else "unmatched"
+                values,
+                finalized_domain=[
+                    ("company_id", "=", session.company_id.id),
+                    ("platform_id", "=", platform.id),
+                    (
+                        "platform_reference",
+                        "=",
+                        values["platform_reference"],
                     ),
-                    "bank_amount_difference": row[
-                        "x_bank_amount_difference"
-                    ],
-                    "bank_date_difference": row["x_bank_date_difference"],
-                    "bank_detection_reason": row["x_bank_detection_reason"],
-                    "state": "draft",
+                ],
+                finalized_values={
+                    field_name: value
+                    for field_name, value in values.items()
+                    if field_name
+                    not in {
+                        "bank_amount_difference",
+                        "bank_date_difference",
+                        "bank_detection_reason",
+                        "bank_match_score",
+                        "bank_match_status",
+                        "state",
+                    }
                 },
             )
+            if record:
+                restored[row["id"]] = record
         return restored
 
     @staticmethod
@@ -991,8 +1198,13 @@ class UslPlatformBillingRestoreRun(models.Model):
                 continue
             links[payout.id].append(attachment.id)
         for payout_id, attachment_ids in links.items():
-            self.env["usl.platform.billing.payout"].browse(payout_id).write(
-                {"attachment_ids": [Command.set(sorted(attachment_ids))]},
+            (
+                self.env["usl.platform.billing.payout"]
+                .sudo()
+                .browse(payout_id)
+                .write(
+                    {"attachment_ids": [Command.set(sorted(attachment_ids))]},
+                )
             )
 
     @staticmethod
@@ -1084,11 +1296,12 @@ class UslPlatformBillingRestoreRun(models.Model):
                 "Imported platform billing history "
                 f"[x_content_billing_session:{row['id']}:r{RESTORE_REVISION}]"
             )
+            subject_marker = f"[x_content_billing_session:{row['id']}:"
             message = self.env["mail.message"].sudo().search(
                 [
                     ("model", "=", session._name),
                     ("res_id", "=", session.id),
-                    ("subject", "=", subject),
+                    ("subject", "ilike", subject_marker),
                 ],
                 limit=1,
             )
@@ -1131,7 +1344,7 @@ class UslPlatformBillingRestoreRun(models.Model):
                 + "".join(sections)
             )
             if message:
-                message.write({"body": body})
+                message.write({"body": body, "subject": subject})
             else:
                 session.message_post(
                     body=body,
@@ -1167,7 +1380,7 @@ class UslPlatformBillingRestoreRun(models.Model):
             "account.move",
             [row["id"] for row in payload["moves"]],
         )
-        move_records = self.env["account.move"].browse(
+        move_records = self.env["account.move"].sudo().browse(
             [move.id for move in moves.values()],
         )
         ledger_after = canonical_digest(self._ledger_rows(move_records))
@@ -1306,7 +1519,8 @@ class UslPlatformBillingRestoreRun(models.Model):
         self.ensure_one()
         self._preflight(payload)
         maps = self._dependency_maps(payload)
-        move_records = self.env["account.move"].browse(
+        self._preflight_bank_allocations(payload, maps)
+        move_records = self.env["account.move"].sudo().browse(
             [record.id for record in maps["move"].values()],
         )
         ledger_before = canonical_digest(self._ledger_rows(move_records))

@@ -16,6 +16,22 @@ evidence = {
     "run_id": run.id,
     "status": run.status,
     "issues": run.issue_count,
+    "issue_details": [
+        {
+            "severity": issue.severity,
+            "source_model": issue.source_model,
+            "source_id": issue.source_id,
+            "description": issue.description,
+        }
+        for issue in run.issue_ids.sorted(
+            key=lambda item: (
+                item.severity,
+                item.source_model,
+                item.source_id,
+                item.id,
+            ),
+        )
+    ],
     "statistics": statistics,
 }
 evidence_path = os.getenv("PLATFORM_BILLING_EVIDENCE_PATH")

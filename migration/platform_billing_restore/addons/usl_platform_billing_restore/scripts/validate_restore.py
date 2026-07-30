@@ -85,17 +85,6 @@ duplicate_refs = env["usl.platform.billing.payout"].sudo()._read_group(
     having=[("__count", ">", 1)],
 )
 assert not duplicate_refs
-duplicate_banks = env["usl.platform.billing.payout"].sudo()._read_group(
-    [
-        ("rebuild_source_model", "=", "x_content_payout_line"),
-        ("bank_statement_line_id", "!=", False),
-    ],
-    ["bank_statement_line_id"],
-    ["__count"],
-    having=[("__count", ">", 1)],
-)
-assert not duplicate_banks
-
 application_digest = canonical_digest(
     {
         "platforms": [

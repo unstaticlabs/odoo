@@ -19,6 +19,9 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.company_data["company"]
+        cls.env.user.group_ids |= cls.env.ref(
+            "usl_platform_billing.group_platform_billing_manager",
+        )
         cls.partner = cls.partner_a
         cls.sale_journal = cls.company_data["default_journal_sale"]
         cls.purchase_journal = cls.company_data["default_journal_purchase"]
@@ -377,6 +380,52 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
             1,
         )
 
+    def test_restore_reenters_finalized_business_history(self):
+        payload = self._payload()
+        first, first_stats = self._restore(payload)
+        self.assertEqual(first.status, "passed")
+        records = [
+            self.env["usl.platform.billing.platform"].sudo().search(
+                [("rebuild_source_id", "=", self.source["platform"])],
+            ),
+            self.env["usl.platform.billing.session"].sudo().search(
+                [("rebuild_source_id", "=", self.source["session"])],
+            ),
+            self.env["usl.platform.billing.payout"].sudo().search(
+                [("rebuild_source_id", "=", self.source["payout"])],
+            ),
+        ]
+        original_ids = {
+            record._name: record.id
+            for record in records
+        }
+        trace_values = {
+            "rebuild_source_database": False,
+            "rebuild_source_model": False,
+            "rebuild_source_id": False,
+            "rebuild_source_snapshot": False,
+            "rebuild_import_status": False,
+            "rebuild_import_note": False,
+        }
+        for record in records:
+            record.write(trace_values)
+
+        second, second_stats = self._restore(payload)
+
+        self.assertEqual(second.status, "passed")
+        self.assertEqual(
+            first_stats["canonical_digest"],
+            second_stats["canonical_digest"],
+        )
+        for model_name, record_id in original_ids.items():
+            record = self.env[model_name].sudo().browse(record_id)
+            self.assertTrue(record.exists())
+            self.assertTrue(record.rebuild_source_id)
+            self.assertEqual(
+                self.env[model_name].sudo().search_count([]),
+                1,
+            )
+
     def test_missing_dependency_is_blocking(self):
         payload = self._payload()
         payload["platforms"][0]["x_partner_id"] = 999999
@@ -409,9 +458,27 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
             "\n".join(run.issue_ids.mapped("description")),
         )
 
-    def test_duplicate_source_bank_link_is_blocking(self):
+    def test_pooled_source_bank_link_is_restored(self):
         payload = self._payload()
-        payload["payouts"][0]["x_bank_statement_line_id"] = 999901
+        bank_source_id = 999901
+        statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Synthetic pooled payout",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "date": fields.Date.from_string("2026-07-20"),
+            },
+        )
+        bank_line = self.env["account.bank.statement.line"].create(
+            {
+                "name": "Synthetic pooled payout",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "statement_id": statement.id,
+                "amount": 160.0,
+                "date": fields.Date.from_string("2026-07-20"),
+            },
+        )
+        self._trace(bank_line, "account.bank.statement.line", bank_source_id)
+        payload["payouts"][0]["x_bank_statement_line_id"] = bank_source_id
         duplicate = deepcopy(payload["payouts"][0])
         duplicate["id"] += 100
         duplicate["x_platform_reference"] = "SYNTH-002"
@@ -420,13 +487,50 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
 
         run, _stats = self._restore(payload)
 
+        self.assertEqual(run.status, "passed")
+        restored = self.env["usl.platform.billing.payout"].search(
+            [
+                ("rebuild_source_id", "in", [self.source["payout"], duplicate["id"]]),
+            ],
+        )
+        self.assertEqual(len(restored), 2)
+        self.assertEqual(restored.bank_statement_line_id, bank_line)
+
+    def test_overallocated_pooled_source_bank_link_is_blocking(self):
+        payload = self._payload()
+        bank_source_id = 999902
+        statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Synthetic overallocated payout",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "date": fields.Date.from_string("2026-07-20"),
+            },
+        )
+        bank_line = self.env["account.bank.statement.line"].create(
+            {
+                "name": "Synthetic overallocated payout",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "statement_id": statement.id,
+                "amount": 100.0,
+                "date": fields.Date.from_string("2026-07-20"),
+            },
+        )
+        self._trace(bank_line, "account.bank.statement.line", bank_source_id)
+        payload["payouts"][0]["x_bank_statement_line_id"] = bank_source_id
+        duplicate = deepcopy(payload["payouts"][0])
+        duplicate["id"] += 100
+        duplicate["x_platform_reference"] = "SYNTH-OVERALLOCATED"
+        payload["payouts"].append(duplicate)
+
+        run, _stats = self._restore(payload)
+
         self.assertEqual(run.status, "failed")
         self.assertIn(
-            "linked to 2 payouts",
+            "allocations total",
             "\n".join(run.issue_ids.mapped("description")),
         )
 
-    def test_missing_legacy_due_date_uses_idempotent_product_default(self):
+    def test_missing_legacy_due_date_uses_native_payment_terms(self):
         payload = self._payload()
         payload["sessions"][0]["x_due_date"] = None
 
@@ -438,10 +542,7 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
 
         self.assertEqual(first.status, "passed")
         self.assertEqual(second.status, "passed")
-        self.assertEqual(
-            session.due_date,
-            fields.Date.from_string("2026-07-31"),
-        )
+        self.assertFalse(session.due_date)
         self.assertEqual(
             first_stats["canonical_digest"],
             second_stats["canonical_digest"],
