@@ -128,6 +128,14 @@ behavior. The date uses Odoo's calendar picker and the product-wide
 correspondent, but that explicit action creates or reuses only the Paperless
 correspondent and mapping.
 
+Company is editable inline by Documents administrators because it is Odoo-owned
+business policy, not immutable archive metadata. Choices are limited to
+companies currently selected in Odoo. Ordinary users see the value read-only,
+and an active Odoo-record link prevents moving the document to a conflicting
+company. Every accepted change immediately recalculates Paperless object
+permissions; a synchronization failure becomes a blocking document state
+instead of silently claiming that access is safe.
+
 Compact mode follows Odoo list conventions. Every labelled column—Document,
 Date, Correspondent, Type, Company, Tags, and Status—can be sorted from its
 header. Ordering, paging, layout, filters, and grouping share the same URL and

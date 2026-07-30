@@ -389,6 +389,52 @@ class TestDocuments(TransactionCase):
         with self.assertRaises(ValidationError):
             document.link_to_record("res.partner", partner.id)
 
+    def test_manager_changes_company_with_active_company_and_permission_refresh(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        document = self._document(1407, company_id=self.company_a.id)
+        manager_document = document.with_user(self.manager).with_context(
+            allowed_company_ids=[self.company_a.id, self.company_b.id],
+        )
+
+        manager_detail = manager_document.document_detail(document.id)
+        user_detail = document.with_user(self.user).document_detail(document.id)
+        self.assertTrue(manager_detail["can_change_company"])
+        self.assertFalse(user_detail["can_change_company"])
+        with self.assertRaises(AccessError):
+            document.with_user(self.user).set_company(self.company_a.id)
+        with self.assertRaisesRegex(AccessError, "company switcher"):
+            document.with_user(self.manager).with_context(
+                allowed_company_ids=[self.company_a.id],
+            ).set_company(self.company_b.id)
+
+        with patch.object(
+            UslDocument,
+            "action_sync_permissions",
+            return_value=True,
+        ) as sync_permissions:
+            detail = manager_document.set_company(self.company_b.id)
+
+        self.assertEqual(document.company_id, self.company_b)
+        self.assertEqual(detail["company_id"], self.company_b.id)
+        self.assertEqual(document.permission_sync_state, "pending")
+        sync_permissions.assert_called_once()
+
+    def test_company_change_cannot_conflict_with_an_active_business_link(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        document = self._document(1408, company_id=self.company_a.id)
+        document.link_to_record("res.partner", self.partner_a.id)
+        manager_document = document.with_user(self.manager).with_context(
+            allowed_company_ids=[self.company_a.id, self.company_b.id],
+        )
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            "Remove links to records from another company",
+        ):
+            manager_document.set_company(self.company_b.id)
+
+        self.assertEqual(document.company_id, self.company_a)
+
     def test_incremental_sync_is_idempotent_and_preserves_relationships(self):
         payload = {
             "count": 1,

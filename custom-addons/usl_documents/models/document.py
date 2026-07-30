@@ -1692,7 +1692,7 @@ class UslDocument(models.Model):
             "truncated": truncated,
             "companies": [
                 {"id": company.id, "name": company.display_name}
-                for company in self.env.user.company_ids
+                for company in self.env.companies
             ],
             "tags": [
                 {
@@ -1809,6 +1809,11 @@ class UslDocument(models.Model):
                 "archive_available": archive_available,
                 "custom_fields": custom_field_values,
                 "can_edit": can_write and document.availability_state == "available",
+                "can_change_company": (
+                    can_manage
+                    and can_write
+                    and document.availability_state == "available"
+                ),
                 "can_change_links": can_write,
                 "can_restore": (
                     can_write and document.availability_state == "trashed"
@@ -2073,6 +2078,52 @@ class UslDocument(models.Model):
                 usl_documents_cache_write=True,
             ).write(cache_values)
             self._synchronize_versions(refreshed.get("versions") or [])
+        return self.document_detail(self.id)
+
+    def set_company(self, company_id):
+        """Apply Odoo-owned company policy and immediately refresh permissions."""
+        self.ensure_one()
+        self.check_access("write")
+        self._require_manager()
+        if self.availability_state != "available":
+            raise UserError(
+                _("The company cannot be changed while the document is unavailable."),
+            )
+
+        company = self.env["res.company"]
+        if company_id:
+            company = company.browse(int(company_id)).exists()
+            if not company:
+                raise ValidationError(_("That company is no longer available."))
+            if company not in self.env.companies:
+                raise AccessError(
+                    _(
+                        "Select the target company in Odoo's company switcher "
+                        "before assigning this document.",
+                    ),
+                )
+        elif self.review_state != "needs_attention":
+            raise ValidationError(
+                _("Only a document that needs review may be left without a company."),
+            )
+
+        if self.company_id == company:
+            return self.document_detail(self.id)
+
+        active_links = self.sudo().link_ids.filtered("active")
+        if active_links and (
+            not company
+            or any(link.company_id != company for link in active_links)
+        ):
+            raise ValidationError(
+                _(
+                    "Remove links to records from another company before changing "
+                    "this document's company.",
+                ),
+            )
+
+        self.write({"company_id": company.id})
+        self.action_sync_permissions()
         return self.document_detail(self.id)
 
     @api.model

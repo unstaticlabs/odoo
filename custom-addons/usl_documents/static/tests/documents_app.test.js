@@ -880,6 +880,78 @@ test("correspondent and document type quick creation save inline without an edit
     expect(".o_usl_inline_metadata select").toHaveCount(0);
 });
 
+test.tags("desktop");
+test("a manager changes the Odoo-owned company inline", async () => {
+    const document = {
+        id: 34,
+        name: "Unlinked company evidence",
+        paperless_id: 134,
+        date: "2026-07-30",
+        company: "USL",
+        company_id: 1,
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        correspondent_id: false,
+        document_type: "",
+        document_type_id: false,
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    let detail = {
+        ...document,
+        can_edit: true,
+        can_change_company: true,
+        can_change_links: true,
+        can_manage: true,
+        versions: [],
+        links: [],
+    };
+    let selectedCompanyId = false;
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        companies: [
+            { id: 1, name: "USL" },
+            { id: 2, name: "Restricted Company" },
+        ],
+        documents: [{ ...document, ...detail }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail);
+    onRpc("res.company", "web_name_search", () => [
+        { id: 2, display_name: "Restricted Company" },
+    ]);
+    onRpc("usl.document", "set_company", ({ args }) => {
+        selectedCompanyId = args[1];
+        detail = {
+            ...detail,
+            company: "Restricted Company",
+            company_id: selectedCompanyId,
+        };
+        return detail;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    await contains("#usl_document_company").edit("Restricted", {
+        confirm: false,
+    });
+    await runAllTimers();
+    await contains(".o-autocomplete--dropdown-item", {
+        text: "Restricted Company",
+    }).click();
+    await animationFrame();
+
+    expect(selectedCompanyId).toBe(2);
+    expect("#usl_document_company").toHaveValue("Restricted Company");
+});
+
 test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", async () => {
     const tags = [
         { id: 1, name: "Banking", color: "#225588", text_color: "#ffffff" },

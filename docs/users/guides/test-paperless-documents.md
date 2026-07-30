@@ -129,6 +129,13 @@ dates must display as `DD/MM/YYYY` everywhere. Try:
 - choosing and clearing a date through Odoo's calendar picker, then confirming
   the result remains day-first after closing and reopening the document.
 
+As a Documents administrator, click **Company** on an unlinked document and
+choose another company that is active in Odoo's company switcher. The new
+company should save inline and access should be recalculated immediately.
+Ordinary users must see Company as read-only. A document linked to a business
+record in the original company must refuse the move until that relationship is
+removed; the error must leave the original company unchanged.
+
 ## 3. Understand and edit automatic classification
 
 Use the top **Tags**, **Correspondents**, and **Document types** menus.

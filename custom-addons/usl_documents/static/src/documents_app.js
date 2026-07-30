@@ -986,6 +986,41 @@ export class DocumentsWorkspaceView extends Component {
             : false;
     }
 
+    get companyValue() {
+        return this.state.selected?.company_id
+            ? {
+                  id: this.state.selected.company_id,
+                  display_name: this.state.selected.company || "Company",
+              }
+            : false;
+    }
+
+    get companyProps() {
+        return {
+            id: "usl_document_company",
+            relation: "res.company",
+            string: "Company",
+            value: this.companyValue,
+            update: (value) => this.selectCompany(value),
+            domain: () => [
+                [
+                    "id",
+                    "in",
+                    (this.state.companies || []).map((company) => company.id),
+                ],
+            ],
+            placeholder: "Choose a company…",
+            searchMoreLabel: "Search more companies…",
+            canCreate: false,
+            canQuickCreate: false,
+            canCreateEdit: false,
+            canOpen: false,
+            readonly:
+                !this.state.selected?.can_change_company ||
+                Boolean(this.state.savingFields.company_id),
+        };
+    }
+
     get correspondentProps() {
         return {
             id: "usl_document_correspondent",
@@ -2349,6 +2384,46 @@ export class DocumentsWorkspaceView extends Component {
             );
             return documentTypeId;
         });
+    }
+
+    selectCompany(value) {
+        const companyId = value?.id || value?.[0] || false;
+        const selectedId = this.state.selected?.id;
+        if (
+            !selectedId ||
+            this.state.savingFields.company_id ||
+            companyId === (this.state.selected?.company_id || false)
+        ) {
+            return Promise.resolve();
+        }
+        this.state.savingFields.company_id = true;
+        const save = async () => {
+            try {
+                const detail = await this.orm.call(
+                    "usl.document",
+                    "set_company",
+                    [[selectedId], companyId]
+                );
+                if (this.state.selected?.id === selectedId) {
+                    this.state.selected = {
+                        ...detail,
+                        preview_url: this.documentPreviewUrl(detail),
+                    };
+                    await this.load();
+                }
+            } catch (error) {
+                this.notification.add(
+                    error.data?.message ||
+                        error.message ||
+                        "The company could not be changed. The previous company was kept.",
+                    { type: "danger", sticky: true }
+                );
+            } finally {
+                this.state.savingFields.company_id = false;
+            }
+        };
+        this.metadataSaveQueue = this.metadataSaveQueue.then(save, save);
+        return this.metadataSaveQueue;
     }
 
     saveTitle(event) {
