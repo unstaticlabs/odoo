@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 import uuid as uuid_lib
 
@@ -14,29 +15,48 @@ EINVOICE_RECEPTION_CRON_XMLIDS = (
     "account_peppol.ir_cron_peppol_get_message_status",
     "account_peppol.ir_cron_peppol_get_participant_status",
     "account_peppol.ir_cron_peppol_webhook_keepalive",
-)
-EINVOICE_RESTRICTED_CRON_XMLIDS = (
-    "account_peppol_response.ir_cron_peppol_auto_register_services",
     "l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents",
-    "l10n_fr_pdp.ir_cron_pdp_send_lifecycles",
-    "l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows",
-)
-EINVOICE_ALL_CRON_XMLIDS = (
-    *EINVOICE_RECEPTION_CRON_XMLIDS,
-    *EINVOICE_RESTRICTED_CRON_XMLIDS,
 )
 EINVOICE_RECEPTION_STATUSES = [
     ("received", "Processing"),
-    ("bill_created", "Draft Bill Created"),
-    ("rejected", "Rejected by Platform"),
-    ("duplicate", "Duplicate Controlled"),
-    ("technical_error", "Action Required"),
+    ("bill_created", "Ready for Review"),
+    ("rejected", "Rejected"),
+    ("duplicate", "Duplicate Ignored"),
+    ("technical_error", "Needs Attention"),
 ]
 EINVOICE_TEST_TEMPLATE = (
     "rebuild_account_migration/static/src/einvoice/"
     "representative_ubl_invoice.xml"
 )
 TRUTHY_ENVIRONMENT_VALUES = {"1", "true", "yes", "on"}
+EINVOICE_SELF_CHECK_VERSION = "2026-07-31.1"
+_logger = logging.getLogger(__name__)
+
+
+class _EinvoiceSelfCheckRollback(Exception):
+    """Rollback a successful self-check without retaining business records."""
+
+
+def _rollback_einvoice_self_check():
+    raise _EinvoiceSelfCheckRollback
+
+
+def _ensure_einvoice_self_check_result(passed):
+    if not passed:
+        raise UserError(
+            _(
+                "The self-check did not create a complete draft vendor bill.",
+            ),
+        )
+
+
+def _ensure_einvoice_decoder_result(decoder_info, failure_reason=False):
+    if not decoder_info or decoder_info.get("priority", 0) <= 0:
+        raise UserError(
+            _("No supported decoder recognized the sample invoice."),
+        )
+    if failure_reason:
+        raise UserError(failure_reason)
 
 
 class RebuildEinvoiceReception(models.Model):
@@ -313,10 +333,24 @@ class ResCompany(models.Model):
         string="Last Tested At",
         readonly=True,
     )
+    rebuild_einvoice_test_fingerprint = fields.Char(
+        string="Tested Configuration",
+        readonly=True,
+        copy=False,
+    )
+    rebuild_einvoice_test_summary = fields.Char(
+        string="Self-Check Result",
+        readonly=True,
+        copy=False,
+    )
     rebuild_einvoice_test_reception_id = fields.Many2one(
         "rebuild.einvoice.reception",
         string="Last Test Evidence",
         readonly=True,
+    )
+    rebuild_einvoice_test_current = fields.Boolean(
+        compute="_compute_rebuild_einvoice_readiness",
+        string="Self-Check Current",
     )
     rebuild_einvoice_capability_status = fields.Selection(
         [
@@ -329,14 +363,15 @@ class ResCompany(models.Model):
     )
     rebuild_einvoice_readiness_status = fields.Selection(
         [
-            ("configuration_incomplete", "Configuration incomplete"),
-            ("not_verified", "Not yet verified"),
-            ("ready_inactive", "Ready but inactive"),
-            ("activation_required", "Production activation required"),
-            ("active", "Active"),
+            ("configuration_incomplete", "Needs setup"),
+            ("not_verified", "Ready to test"),
+            ("ready_inactive", "Ready for production"),
+            ("activation_required", "Activation in progress"),
+            ("active", "Receiving"),
+            ("needs_attention", "Needs attention"),
         ],
         compute="_compute_rebuild_einvoice_readiness",
-        string="Reception Readiness",
+        string="Status",
     )
     rebuild_einvoice_connection_status = fields.Selection(
         [
@@ -351,8 +386,10 @@ class ResCompany(models.Model):
         string="Live Reception",
     )
     rebuild_einvoice_exchange_enabled = fields.Boolean(
-        string="Scheduled Reception Enabled",
-        compute="_compute_rebuild_einvoice_exchange_enabled",
+        string="Incoming Invoices Enabled",
+        readonly=True,
+        tracking=True,
+        default=False,
     )
     rebuild_einvoice_blockers = fields.Text(
         string="Full Activation Checklist",
@@ -392,6 +429,33 @@ class ResCompany(models.Model):
         "company_id",
         string="Reception Evidence",
     )
+    rebuild_einvoice_reception_count = fields.Integer(
+        compute="_compute_rebuild_einvoice_counts",
+        string="Incoming E-Invoices",
+    )
+    rebuild_einvoice_attention_count = fields.Integer(
+        compute="_compute_rebuild_einvoice_counts",
+        string="Needs Attention",
+    )
+
+    def _compute_rebuild_einvoice_counts(self):
+        grouped = self.env["rebuild.einvoice.reception"].sudo()._read_group(
+            [("company_id", "in", self.ids)],
+            ["company_id", "status"],
+            ["__count"],
+        )
+        totals = {}
+        attention = {}
+        for company, status, count in grouped:
+            totals[company.id] = totals.get(company.id, 0) + count
+            if status in {"rejected", "technical_error"}:
+                attention[company.id] = attention.get(company.id, 0) + count
+        for company in self:
+            company.rebuild_einvoice_reception_count = totals.get(company.id, 0)
+            company.rebuild_einvoice_attention_count = attention.get(
+                company.id,
+                0,
+            )
 
     def _rebuild_einvoice_modules_ready(self):
         modules = self.env["ir.module.module"].sudo()
@@ -438,8 +502,94 @@ class ResCompany(models.Model):
                     "peppol_eas": "0225",
                     "peppol_endpoint": suggested_identifier,
                 })
+            if not company._rebuild_einvoice_runtime_guard_enabled():
+                values.update({
+                    "rebuild_einvoice_environment": "development",
+                    "rebuild_einvoice_activation_approved": False,
+                    "rebuild_einvoice_approved_by_id": False,
+                    "rebuild_einvoice_approved_at": False,
+                    "rebuild_einvoice_exchange_enabled": False,
+                    "l10n_fr_pdp_send_to_ppf": False,
+                    "l10n_fr_pdp_pilot_phase": False,
+                })
             if values:
                 company.write(values)
+        companies._rebuild_cleanup_legacy_einvoice_self_checks()
+
+    def _rebuild_cleanup_legacy_einvoice_self_checks(self):
+        """Remove only untouched draft bills retained by the former self-check."""
+        for company in self.sudo():
+            legacy_evidence = self.env[
+                "rebuild.einvoice.reception"
+            ].sudo().search([
+                ("company_id", "=", company.id),
+                ("is_test", "=", True),
+                ("provider_message_uuid", "=like", "offline-test-%"),
+            ])
+            candidate_bills = legacy_evidence.move_id
+            linked_bill_ids = [
+                evidence.attachment_id.res_id
+                for evidence in legacy_evidence
+                if evidence.attachment_id.res_model == "account.move"
+                and evidence.attachment_id.res_id
+            ]
+            candidate_bills |= self.env["account.move"].sudo().browse(
+                linked_bill_ids,
+            ).exists()
+            candidate_bills |= self.env["account.move"].sudo().search([
+                ("company_id", "=", company.id),
+                ("move_type", "=", "in_invoice"),
+                ("state", "=", "draft"),
+                ("ref", "=like", "USL-SAFE-TEST-%"),
+            ])
+            if not legacy_evidence and not candidate_bills:
+                continue
+            untouched_bills = candidate_bills.filtered(
+                lambda bill: (
+                    bill.state == "draft"
+                    and (bill.ref or "").startswith("USL-SAFE-TEST-")
+                    and bill.move_type == "in_invoice"
+                    and len(bill.invoice_line_ids) == 2
+                    and bill.ubl_cii_xml_id
+                    and (
+                        bill.ubl_cii_xml_id.name or ""
+                    ).startswith("USL-SAFE-TEST-")
+                    and bill.currency_id.compare_amounts(
+                        bill.amount_total,
+                        175.0,
+                    ) == 0
+                ),
+            )
+            modified_bills = candidate_bills - untouched_bills
+            company.write({
+                "rebuild_einvoice_test_status": "not_run",
+                "rebuild_einvoice_tested_at": False,
+                "rebuild_einvoice_test_fingerprint": False,
+                "rebuild_einvoice_test_reception_id": False,
+                "rebuild_einvoice_test_summary": (
+                    _(
+                        "A prior retained test bill was modified and remains "
+                        "available for manual review.",
+                    )
+                    if modified_bills
+                    else _(
+                        "Previous retained self-check data was removed. Run "
+                        "the non-polluting self-check again.",
+                    )
+                ),
+            })
+            removable_evidence = legacy_evidence.filtered(
+                lambda evidence: (
+                    not evidence.move_id
+                    or evidence.move_id in untouched_bills
+                    or (
+                        evidence.attachment_id.res_model == "account.move"
+                        and evidence.attachment_id.res_id in untouched_bills.ids
+                    )
+                ),
+            )
+            removable_evidence.unlink()
+            untouched_bills.with_context(force_delete=True).unlink()
 
     @api.onchange("account_fiscal_country_id")
     def _onchange_rebuild_einvoice_provider(self):
@@ -490,12 +640,38 @@ class ResCompany(models.Model):
                 )
         return blockers
 
+    def _rebuild_einvoice_configuration_fingerprint(self):
+        self.ensure_one()
+        values = (
+            EINVOICE_SELF_CHECK_VERSION,
+            self.id,
+            self.account_fiscal_country_id.id,
+            self.vat or "",
+            self.company_registry or "",
+            self.peppol_eas or "",
+            self.peppol_endpoint or "",
+            self.peppol_purchase_journal_id.id,
+            (self.account_peppol_contact_email or "").strip().lower(),
+            self.rebuild_einvoice_provider or "",
+        )
+        return hashlib.sha256(
+            "\x1f".join(map(str, values)).encode(),
+        ).hexdigest()
+
+    def _rebuild_einvoice_self_check_is_current(self):
+        self.ensure_one()
+        return bool(
+            self.rebuild_einvoice_test_status == "passed"
+            and self.rebuild_einvoice_test_fingerprint
+            == self._rebuild_einvoice_configuration_fingerprint(),
+        )
+
     def _rebuild_einvoice_production_blockers(self, *, include_onboarding=True):
         self.ensure_one()
         blockers = self._rebuild_einvoice_configuration_blockers()
         if not self._rebuild_einvoice_modules_ready():
             blockers.append(_("Install the required electronic-invoicing modules."))
-        if self.rebuild_einvoice_test_status != "passed":
+        if not self._rebuild_einvoice_self_check_is_current():
             blockers.append(_("Run the offline reception test and resolve any failure."))
         if (
             include_onboarding
@@ -531,10 +707,15 @@ class ResCompany(models.Model):
         if setup_steps:
             return _("Complete reception setup"), setup_steps
 
-        if self.rebuild_einvoice_test_status != "passed":
+        if not self._rebuild_einvoice_self_check_is_current():
             return (
-                _("Test invoice reception"),
-                [_("Run the offline reception test and inspect the draft bill.")],
+                _("Run the reception self-check"),
+                [
+                    _(
+                        "Verify that a representative electronic invoice can "
+                        "become a complete draft bill without contacting a provider.",
+                    ),
+                ],
             )
 
         platform_steps = self._rebuild_einvoice_configuration_blockers(
@@ -545,18 +726,18 @@ class ResCompany(models.Model):
 
         if self.rebuild_einvoice_environment != "production":
             return (
-                _("Continue during production deployment"),
+                _("Ready for production"),
                 [
                     _(
-                        "Deploy this release to production, rerun the offline "
-                        "test there, and follow the activation runbook.",
+                        "Reception is validated and remains safely disconnected "
+                        "until production activation.",
                     ),
                 ],
             )
 
         if not self._rebuild_einvoice_runtime_guard_enabled():
             return (
-                _("Authorize live reception on the production host"),
+                _("Authorize the production connection"),
                 [
                     _(
                         "Enable the deployment-level reception guard after the "
@@ -567,7 +748,7 @@ class ResCompany(models.Model):
 
         if not self.rebuild_einvoice_activation_approved:
             return (
-                _("Approve production activation"),
+                _("Activate reception"),
                 [
                     _(
                         "Ask an Accounting Manager to approve activation on "
@@ -578,7 +759,7 @@ class ResCompany(models.Model):
 
         if self.rebuild_einvoice_provider_contract_status != "verified":
             return (
-                _("Complete production onboarding"),
+                _("Complete platform activation"),
                 [
                     _(
                         "Authenticate the legal representative, accept the "
@@ -605,7 +786,7 @@ class ResCompany(models.Model):
             )
         if connection_status == "connected_suspended":
             return (
-                _("Start scheduled reception"),
+                _("Start receiving invoices"),
                 [
                     _(
                         "Verify the first-invoice plan, then enable scheduled "
@@ -631,6 +812,10 @@ class ResCompany(models.Model):
         "rebuild_einvoice_environment",
         "rebuild_einvoice_activation_approved",
         "rebuild_einvoice_test_status",
+        "rebuild_einvoice_test_fingerprint",
+        "rebuild_einvoice_exchange_enabled",
+        "rebuild_einvoice_last_poll_status",
+        "rebuild_einvoice_reception_ids.status",
         "account_peppol_proxy_state",
         "pdp_kyc_status",
         "account_edi_proxy_client_ids.active",
@@ -656,16 +841,18 @@ class ResCompany(models.Model):
             )
             configuration_blockers = (
                 company._rebuild_einvoice_configuration_blockers(
-                    include_provider=False,
+                    include_provider=True,
                 )
             )
             production_blockers = company._rebuild_einvoice_production_blockers()
             exchange_enabled = company.rebuild_einvoice_exchange_enabled
             raw_state = company.account_peppol_proxy_state
+            test_current = company._rebuild_einvoice_self_check_is_current()
+            company.rebuild_einvoice_test_current = test_current
 
             if not modules_ready:
                 company.rebuild_einvoice_capability_status = "module_missing"
-            elif company.rebuild_einvoice_test_status == "passed":
+            elif test_current:
                 company.rebuild_einvoice_capability_status = "test_passed"
             else:
                 company.rebuild_einvoice_capability_status = "not_verified"
@@ -683,7 +870,18 @@ class ResCompany(models.Model):
             else:
                 company.rebuild_einvoice_connection_status = "inactive"
 
-            if exchange_enabled and raw_state == "receiver" and production_user:
+            connection_needs_attention = (
+                raw_state == "rejected"
+                or company.rebuild_einvoice_last_poll_status
+                in {"authentication", "temporary_failure"}
+                or any(
+                    reception.status in {"rejected", "technical_error"}
+                    for reception in company.rebuild_einvoice_reception_ids
+                )
+            )
+            if connection_needs_attention:
+                company.rebuild_einvoice_readiness_status = "needs_attention"
+            elif exchange_enabled and raw_state == "receiver" and production_user:
                 company.rebuild_einvoice_readiness_status = "active"
             elif configuration_blockers:
                 company.rebuild_einvoice_readiness_status = (
@@ -691,7 +889,7 @@ class ResCompany(models.Model):
                 )
             elif (
                 not modules_ready
-                or company.rebuild_einvoice_test_status != "passed"
+                or not test_current
             ):
                 company.rebuild_einvoice_readiness_status = "not_verified"
             elif company.rebuild_einvoice_environment == "production":
@@ -716,17 +914,6 @@ class ResCompany(models.Model):
                 Markup("<li>%s</li>") % step
                 for step in dict.fromkeys(next_steps)
             )
-
-    @api.depends_context("uid")
-    def _compute_rebuild_einvoice_exchange_enabled(self):
-        crons = [
-            cron.sudo()
-            for xmlid in EINVOICE_RECEPTION_CRON_XMLIDS
-            if (cron := self.env.ref(xmlid, raise_if_not_found=False))
-        ]
-        enabled = any(cron.active for cron in crons)
-        for company in self:
-            company.rebuild_einvoice_exchange_enabled = enabled
 
     def _check_rebuild_einvoice_manager_access(self):
         if not self.env.user.has_group("account.group_account_manager"):
@@ -760,7 +947,7 @@ class ResCompany(models.Model):
         self.ensure_one()
         self._check_rebuild_einvoice_manager_access()
         blockers = self._rebuild_einvoice_configuration_blockers(
-            include_provider=False,
+            include_provider=True,
         )
         if blockers:
             raise UserError(
@@ -799,56 +986,119 @@ class ResCompany(models.Model):
             encoding="UTF-8",
         )
 
-        attachment = self.env["ir.attachment"].create({
-            "name": f"{test_id}.xml",
-            "raw": raw,
-            "mimetype": "application/xml",
-        })
-        message_reference = f"offline-test-{uuid_lib.uuid4()}"
-        proxy_user = self.env["account_edi_proxy_client.user"].sudo().new({
-            "company_id": self.id,
-            "proxy_type": "pdp",
-            "edi_mode": "demo",
-        })
-        result = proxy_user.with_context(
-            rebuild_einvoice_is_test=True,
-        )._peppol_import_invoice(
-            attachment,
-            "done",
-            message_reference,
-            journal=self.peppol_purchase_journal_id,
-        )
-        reception = self.env["rebuild.einvoice.reception"].search([
-            ("company_id", "=", self.id),
-            ("provider_message_uuid", "=", message_reference),
-        ], limit=1)
-        passed = bool(
-            reception.status == "bill_created"
-            and result.get("move")
-            and result["move"].state == "draft",
-        )
+        passed = False
+        failure_summary = False
+        try:
+            with self.env.cr.savepoint():
+                attachment = self.env["ir.attachment"].sudo().create({
+                    "name": f"{test_id}.xml",
+                    "raw": raw,
+                    "mimetype": "application/xml",
+                })
+                bill = self.env["account.move"].sudo().with_company(self).create({
+                    "journal_id": self.peppol_purchase_journal_id.id,
+                    "move_type": "in_invoice",
+                })
+                file_data = bill._to_files_data(attachment)[0]
+                decoder_info = bill._get_edi_decoder(file_data, new=True)
+                _ensure_einvoice_decoder_result(decoder_info)
+                reason_cannot_decode = decoder_info["decoder"](
+                    bill,
+                    file_data,
+                    True,
+                )
+                _ensure_einvoice_decoder_result(
+                    decoder_info,
+                    reason_cannot_decode,
+                )
+                attachment.write({
+                    "res_model": bill._name,
+                    "res_id": bill.id,
+                })
+                passed = bool(
+                    bill.state == "draft"
+                    and bill.move_type == "in_invoice"
+                    and bill.partner_id
+                    and len(bill.invoice_line_ids) == 2
+                    and bill.currency_id == self.currency_id
+                    and bill.invoice_line_ids.tax_ids
+                    and bill.ubl_cii_xml_id == attachment
+                    and attachment.res_model == bill._name
+                    and attachment.res_id == bill.id
+                    and self.currency_id.compare_amounts(
+                        bill.amount_total,
+                        175.0,
+                    ) == 0,
+                )
+                _ensure_einvoice_self_check_result(passed)
+                _rollback_einvoice_self_check()
+        except _EinvoiceSelfCheckRollback:
+            passed = True
+        except Exception:  # noqa: BLE001
+            _logger.exception(
+                "Electronic-invoice self-check failed for company %s",
+                self.id,
+            )
+            failure_summary = _(
+                "The representative invoice could not be validated. Review "
+                "the company identity, journal and accounting setup, then "
+                "try again.",
+            )
+
         self.sudo().write({
             "rebuild_einvoice_test_status": "passed" if passed else "failed",
             "rebuild_einvoice_tested_at": fields.Datetime.now(),
-            "rebuild_einvoice_test_reception_id": reception.id,
+            "rebuild_einvoice_test_fingerprint": (
+                self._rebuild_einvoice_configuration_fingerprint()
+                if passed
+                else False
+            ),
+            "rebuild_einvoice_test_summary": (
+                _("Reception self-check passed; no test bill was retained.")
+                if passed
+                else failure_summary or _("Reception self-check needs attention.")
+            ),
+            "rebuild_einvoice_test_reception_id": False,
         })
-        if not passed:
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": (
+                    _("Reception is ready")
+                    if passed
+                    else _("Reception self-check needs attention")
+                ),
+                "message": self.rebuild_einvoice_test_summary,
+                "type": "success" if passed else "warning",
+                "sticky": not passed,
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+            },
+        }
+
+    def action_rebuild_begin_einvoice_activation(self):
+        self.ensure_one()
+        self._check_rebuild_einvoice_manager_access()
+        if self.rebuild_einvoice_environment != "production":
             raise UserError(
                 _(
-                    "The offline test did not create a complete draft vendor bill. "
-                    "Open the retained reception evidence and resolve the failure.",
+                    "Activate reception only from the deployed production "
+                    "system. This development database remains safely inactive.",
                 ),
             )
-        return reception._get_records_action(
-            name=_("Offline Reception Test Passed"),
-            views=[(
-                self.env.ref(
-                    "rebuild_account_migration."
-                    "view_rebuild_einvoice_reception_form",
-                ).id,
-                "form",
-            )],
-        )
+        if not self._rebuild_einvoice_runtime_guard_enabled():
+            raise UserError(
+                _(
+                    "The production deployment has not authorized the "
+                    "connection yet.",
+                ),
+            )
+        if not self.rebuild_einvoice_activation_approved:
+            self.action_rebuild_approve_einvoice_activation()
+        settings = self.env["res.config.settings"].create({
+            "company_id": self.id,
+        })
+        return settings.action_open_peppol_form()
 
     def action_rebuild_approve_einvoice_activation(self):
         self.ensure_one()
@@ -884,22 +1134,17 @@ class ResCompany(models.Model):
 
     def action_rebuild_revoke_einvoice_activation(self):
         self._check_rebuild_einvoice_manager_access()
-        self._rebuild_set_einvoice_crons(False)
         self.sudo().write({
             "rebuild_einvoice_activation_approved": False,
             "rebuild_einvoice_approved_by_id": False,
             "rebuild_einvoice_approved_at": False,
+            "rebuild_einvoice_exchange_enabled": False,
         })
 
-    def _rebuild_set_einvoice_crons(self, active):
-        xmlids = (
-            EINVOICE_RECEPTION_CRON_XMLIDS
-            if active
-            else EINVOICE_ALL_CRON_XMLIDS
-        )
-        for xmlid in xmlids:
+    def _rebuild_ensure_einvoice_reception_crons(self):
+        for xmlid in EINVOICE_RECEPTION_CRON_XMLIDS:
             if cron := self.env.ref(xmlid, raise_if_not_found=False):
-                cron.sudo().write({"active": active})
+                cron.sudo().write({"active": True})
 
     def action_rebuild_enable_einvoice_exchange(self):
         self.ensure_one()
@@ -923,23 +1168,69 @@ class ResCompany(models.Model):
             raise UserError(
                 _("Complete the production approved-platform connection first."),
             )
-        connected_companies = self.search([
-            ("account_peppol_proxy_state", "=", "receiver"),
-        ])
-        unauthorized = connected_companies.filtered(
-            lambda company: not company._rebuild_einvoice_live_call_allowed(),
-        )
-        if unauthorized:
-            raise UserError(_(
-                "Scheduled reception is database-wide. Review and approve every "
-                "connected company first: %s",
-                ", ".join(unauthorized.mapped("display_name")),
-            ))
-        self._rebuild_set_einvoice_crons(True)
+        self.sudo().rebuild_einvoice_exchange_enabled = True
+        self._rebuild_ensure_einvoice_reception_crons()
 
     def action_rebuild_suspend_einvoice_exchange(self):
         self._check_rebuild_einvoice_manager_access()
-        self._rebuild_set_einvoice_crons(False)
+        self.sudo().rebuild_einvoice_exchange_enabled = False
+
+    def action_rebuild_check_einvoice_now(self):
+        self.ensure_one()
+        self._check_rebuild_einvoice_manager_access()
+        if (
+            not self.rebuild_einvoice_exchange_enabled
+            or self.account_peppol_proxy_state != "receiver"
+        ):
+            raise UserError(_("Incoming invoices are not active for this company."))
+        self.peppol_purchase_journal_id.button_fetch_in_einvoices()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Reception checked"),
+                "message": _(
+                    "New documents and status updates have been requested from "
+                    "the Approved Platform.",
+                ),
+                "type": "success",
+                "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+            },
+        }
+
+    def action_rebuild_review_einvoice_issues(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "rebuild_account_migration.action_rebuild_einvoice_reception",
+        )
+        action.update({
+            "domain": [
+                ("company_id", "=", self.id),
+                ("status", "in", ["rejected", "technical_error"]),
+            ],
+            "context": {
+                "search_default_attention": 1,
+                "create": False,
+                "delete": False,
+            },
+        })
+        return action
+
+    def action_rebuild_open_einvoice_history(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "rebuild_account_migration.action_rebuild_einvoice_reception",
+        )
+        action.update({
+            "domain": [("company_id", "=", self.id)],
+            "context": {
+                "search_default_attention": 0,
+                "create": False,
+                "delete": False,
+            },
+        })
+        return action
 
     def _rebuild_record_einvoice_poll_result(
         self,
@@ -1010,7 +1301,7 @@ class ResConfigSettings(models.TransientModel):
         self.ensure_one()
         self.company_id._check_rebuild_einvoice_activation_ready()
         result = super().button_peppol_deregister()
-        self.company_id._rebuild_set_einvoice_crons(False)
+        self.company_id.sudo().rebuild_einvoice_exchange_enabled = False
         return result
 
 
@@ -1044,10 +1335,16 @@ class PdpRegistration(models.TransientModel):
 
     def button_register_pdp_participant(self):
         self._rebuild_check_live_action()
-        return super(
+        result = super(
             PdpRegistration,
             self.sudo(),
         ).button_register_pdp_participant()
+        if self.company_id.account_peppol_proxy_state == "receiver":
+            self.company_id.sudo().write({
+                "rebuild_einvoice_exchange_enabled": True,
+            })
+            self.company_id._rebuild_ensure_einvoice_reception_crons()
+        return result
 
     def button_deregister_pdp_participant(self):
         self._rebuild_check_live_action()
@@ -1055,7 +1352,7 @@ class PdpRegistration(models.TransientModel):
             PdpRegistration,
             self.sudo(),
         ).button_deregister_pdp_participant()
-        self.company_id._rebuild_set_einvoice_crons(False)
+        self.company_id.sudo().rebuild_einvoice_exchange_enabled = False
         return result
 
 
@@ -1125,15 +1422,66 @@ class AccountEdiProxyClientUser(models.Model):
             )
         return result
 
+    @api.model
+    def _cron_peppol_get_new_documents(self):
+        edi_users = self.search([
+            ("company_id.account_peppol_proxy_state", "=", "receiver"),
+            ("company_id.rebuild_einvoice_exchange_enabled", "=", True),
+            ("proxy_type", "in", self._get_peppol_proxy_types()),
+        ])
+        edi_users._peppol_get_new_documents(skip_no_journal=True)
+
+    @api.model
+    def _cron_peppol_get_message_status(self):
+        edi_users = self.search([
+            (
+                "company_id.account_peppol_proxy_state",
+                "in",
+                self._get_can_send_domain(),
+            ),
+            ("company_id.rebuild_einvoice_exchange_enabled", "=", True),
+            ("proxy_type", "in", self._get_peppol_proxy_types()),
+        ])
+        edi_users._peppol_get_message_status()
+
+    @api.model
+    def _cron_peppol_get_participant_status(self):
+        edi_users = self.search([
+            ("company_id.rebuild_einvoice_activation_approved", "=", True),
+            ("proxy_type", "in", self._get_peppol_proxy_types()),
+        ])
+        edi_users._peppol_get_participant_status()
+
+    @api.model
+    def _cron_peppol_webhook_keepalive(self):
+        edi_users = self.search([
+            ("company_id.account_peppol_proxy_state", "in", ["sender", "receiver"]),
+            ("company_id.rebuild_einvoice_exchange_enabled", "=", True),
+        ])
+        edi_users._peppol_reset_webhook()
+
     def _pdp_get_regulatory_documents(self, batch_size=None):
-        if not self._rebuild_ereporting_live_enabled():
-            return None
         return super()._pdp_get_regulatory_documents(batch_size=batch_size)
+
+    @api.model
+    def _cron_pdp_get_regulatory_documents(self):
+        edi_users = self.search([
+            ("company_id.account_peppol_proxy_state", "=", "receiver"),
+            ("company_id.rebuild_einvoice_exchange_enabled", "=", True),
+            ("proxy_type", "=", "pdp"),
+        ])
+        edi_users._pdp_get_regulatory_documents()
 
     def _pdp_send_lifecycles(self, batch_size=None):
         if not self._rebuild_ereporting_live_enabled():
             return None
-        return super()._pdp_send_lifecycles(batch_size=batch_size)
+        enabled_users = self.filtered(
+            "company_id.rebuild_einvoice_exchange_enabled",
+        )
+        return super(
+            AccountEdiProxyClientUser,
+            enabled_users,
+        )._pdp_send_lifecycles(batch_size=batch_size)
 
     def _peppol_import_invoice(self, attachment, peppol_state, uuid, journal=None):
         self.ensure_one()
@@ -1459,6 +1807,10 @@ class AccountMove(models.Model):
         string="Reception Status",
         compute="_compute_rebuild_einvoice_reception_status",
     )
+    rebuild_einvoice_reception_count = fields.Integer(
+        string="Electronic Invoices",
+        compute="_compute_rebuild_einvoice_reception_status",
+    )
 
     @api.depends(
         "rebuild_einvoice_reception_ids",
@@ -1467,6 +1819,9 @@ class AccountMove(models.Model):
     )
     def _compute_rebuild_einvoice_reception_status(self):
         for move in self:
+            move.rebuild_einvoice_reception_count = len(
+                move.rebuild_einvoice_reception_ids,
+            )
             latest = move.rebuild_einvoice_reception_ids.sorted(
                 lambda reception: (
                     reception.received_at or fields.Datetime.from_string(
@@ -1477,3 +1832,41 @@ class AccountMove(models.Model):
                 reverse=True,
             )[:1]
             move.rebuild_einvoice_reception_status = latest.status
+
+    def action_open_rebuild_einvoice_reception(self):
+        self.ensure_one()
+        receptions = self.rebuild_einvoice_reception_ids
+        if len(receptions) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Electronic Invoice"),
+                "res_model": "rebuild.einvoice.reception",
+                "res_id": receptions.id,
+                "view_mode": "form",
+            }
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "rebuild_account_migration.action_rebuild_einvoice_reception",
+        )
+        action["domain"] = [("move_id", "=", self.id)]
+        action["context"] = {"create": False, "delete": False}
+        return action
+
+
+class AccountJournal(models.Model):
+    _inherit = "account.journal"
+
+    def button_fetch_in_einvoices(self):
+        inactive_companies = self.company_id.filtered(
+            lambda company: (
+                company.account_fiscal_country_id.code == "FR"
+                and not company.rebuild_einvoice_exchange_enabled
+            ),
+        )
+        if inactive_companies:
+            raise UserError(
+                _(
+                    "Incoming electronic invoices are paused for: %s",
+                    ", ".join(inactive_companies.mapped("display_name")),
+                ),
+            )
+        return super().button_fetch_in_einvoices()

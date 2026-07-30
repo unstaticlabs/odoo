@@ -75,6 +75,20 @@ ODOO_MAX_CRON_THREADS=0
 
 Why: imported or freshly initialized databases may contain scheduled jobs for mail, SMS, VIES, PEPPOL, PDP or other external services. The import pipeline neutralizes target cron records after import, but the safest development default is to prevent the Odoo server from running scheduler threads at all. Only change this value when you are intentionally testing scheduled-job behavior.
 
+### Electronic-invoice configuration mapping
+
+The accounting import preserves only safe business setup from the Online
+source: the accounting contact email and phone, and the mapped incoming
+purchase journal. For a French target company it derives the Approved Platform
+directory identity as scheme `0225` plus the SIREN.
+
+The import deliberately resets proxy registration state, proxy users, tokens,
+keys, KYC/approval state, receiver enablement, pilot mode and e-reporting. A
+generic Peppol receiver observed in the source is recorded only in external
+migration evidence; it is never treated as an active French Approved Platform
+connection. Repeated import must leave the company **Ready to test** or
+**Ready for production**, never **Receiving**.
+
 ## Step 3 - Stop the Normal Odoo Web Service
 
 Still in the host shell:
