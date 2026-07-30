@@ -165,6 +165,18 @@ created referenced user.
 
 ## Acceptance gates
 
+For the canonical production-shaped `odoo_dev` target, prefer the complete
+repository workflow:
+
+```bash
+make target-reconstruct
+```
+
+It runs Accounting reconstruction and parity first, then this Projects
+workflow, removes the temporary importer, validates the product boundary and
+applies target-only Pocket ID configuration last. Use the Project-specific
+commands below only when iterating on this migration stage in isolation.
+
 Before product review:
 
 1. The migration validator exits successfully; retain its counts, exclusions

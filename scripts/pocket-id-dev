@@ -18,14 +18,13 @@ load_environment() {
   set +a
   if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
       || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
-    printf 'Refusing Pocket ID preproduction while a live regulatory guard is enabled.\n' >&2
+    printf 'Refusing Pocket ID while a live regulatory guard is enabled.\n' >&2
     return 2
   fi
-  if [[ "${POCKET_ID_QA_CLONE:-0}" != "1" \
-      || ! "${ODOO_INIT_DB:-}" =~ ^odoo_dev_[A-Za-z0-9_]+_qa$ \
-      || "${POCKET_ID_SOURCE_DB:-}" != "odoo_dev" ]]; then
+  if [[ "${ODOO_INIT_DB:-}" != "odoo_dev" \
+      || "${ODOO_DB_FILTER:-}" != "^odoo_dev$" ]]; then
     printf \
-      'Refusing local Pocket ID QA outside a disposable odoo_dev_*_qa clone.\n' \
+      'Refusing local Pocket ID outside canonical odoo_dev.\n' \
       >&2
     return 2
   fi
@@ -36,71 +35,6 @@ load_environment() {
     --env-file "$ENV_FILE"
     "${COMPOSE_FILES[@]}"
   )
-  BASE_COMPOSE=(
-    docker compose
-    -p "$COMPOSE_PROJECT_NAME"
-    -f "$ROOT/compose.yaml"
-  )
-}
-
-prepare_qa_clone() {
-  local target_exists
-  load_environment
-  "${BASE_COMPOSE[@]}" up -d --wait db || return $?
-  "${BASE_COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
-  target_exists="$(
-    "${BASE_COMPOSE[@]}" exec -T \
-      -e PGPASSWORD="${POSTGRES_PASSWORD:-odoo}" \
-      -e SOURCE_DATABASE="$POCKET_ID_SOURCE_DB" \
-      -e TARGET_DATABASE="$ODOO_INIT_DB" \
-      db sh -eu -c '
-        source_exists="$(psql -U "$POSTGRES_USER" -d postgres -Atc \
-          "SELECT 1 FROM pg_database WHERE datname = '\''$SOURCE_DATABASE'\''")"
-        target_exists="$(psql -U "$POSTGRES_USER" -d postgres -Atc \
-          "SELECT 1 FROM pg_database WHERE datname = '\''$TARGET_DATABASE'\''")"
-        test "$source_exists" = 1
-        printf "%s" "$target_exists"
-      '
-  )" || return $?
-  if [[ "$target_exists" == "1" ]]; then
-    printf 'Reusing disposable Pocket ID QA clone: %s\n' "$ODOO_INIT_DB"
-    return
-  fi
-  "${BASE_COMPOSE[@]}" exec -T \
-    -e PGPASSWORD="${POSTGRES_PASSWORD:-odoo}" \
-    -e SOURCE_DATABASE="$POCKET_ID_SOURCE_DB" \
-    -e TARGET_DATABASE="$ODOO_INIT_DB" \
-    db sh -eu -c \
-    'createdb -U "$POSTGRES_USER" --template="$SOURCE_DATABASE" "$TARGET_DATABASE"' \
-    || return $?
-  if ! "${BASE_COMPOSE[@]}" --profile init run --rm \
-    --entrypoint sh \
-    -e SOURCE_DATABASE="$POCKET_ID_SOURCE_DB" \
-    -e TARGET_DATABASE="$ODOO_INIT_DB" \
-    init-db -eu -c '
-      source="/var/lib/odoo/filestore/$SOURCE_DATABASE"
-      target="/var/lib/odoo/filestore/$TARGET_DATABASE"
-      test ! -e "$target"
-      mkdir -p "$target"
-      if [ -d "$source" ]; then
-        cp -a "$source"/. "$target"/
-      fi
-    '; then
-    "${BASE_COMPOSE[@]}" exec -T \
-      -e PGPASSWORD="${POSTGRES_PASSWORD:-odoo}" \
-      -e TARGET_DATABASE="$ODOO_INIT_DB" \
-      db sh -eu -c \
-      'dropdb --if-exists --force -U "$POSTGRES_USER" "$TARGET_DATABASE"' \
-      || true
-    return 1
-  fi
-  printf 'Created disposable Pocket ID QA clone: %s\n' "$ODOO_INIT_DB"
-}
-
-restore_canonical_odoo() {
-  ODOO_INIT_DB="$POCKET_ID_SOURCE_DB" \
-    ODOO_DB_FILTER="^${POCKET_ID_SOURCE_DB}$" \
-    "${BASE_COMPOSE[@]}" up -d --force-recreate --wait odoo
 }
 
 start_idp() {
@@ -132,33 +66,26 @@ run_policy() {
 }
 
 configure_odoo() {
-  local status=0
-  if prepare_qa_clone; then
-    if provision; then
-      :
-    else
-      status=$?
-    fi
-  else
-    status=$?
-  fi
-  if ((status)); then
-    restore_canonical_odoo
-    return "$status"
-  fi
+  local module="${1:-usl_pocketid}"
+  local status=0 update_modules
+  provision
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  update_modules="usl_pocketid"
+  if [[ "$module" != "usl_pocketid" ]]; then
+    update_modules="$update_modules,$module"
+  fi
   if "${COMPOSE[@]}" --profile init run --rm \
     -e ODOO_INIT_DB="$ODOO_INIT_DB" \
     init-db odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$ODOO_INIT_DB" \
-    --update=rebuild_account_migration \
+    --update="$update_modules" \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn; then
     if run_policy 0; then
       if run_policy 1; then
-        :
+        run_policy 0 || status=$?
       else
         status=$?
       fi
@@ -169,10 +96,17 @@ configure_odoo() {
     status=$?
   fi
   if ((status)); then
-    restore_canonical_odoo
+    "${COMPOSE[@]}" up -d --wait odoo || true
     return "$status"
   fi
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+}
+
+start_runtime() {
+  provision
+  "${COMPOSE[@]}" up -d --wait db pocket-id odoo
   printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
   printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
 }
@@ -212,6 +146,16 @@ stop_idp() {
   "${COMPOSE[@]}" stop pocket-id
 }
 
+stop_stack() {
+  load_environment
+  "${COMPOSE[@]}" down
+}
+
+follow_logs() {
+  load_environment
+  "${COMPOSE[@]}" logs -f "$@"
+}
+
 status() {
   load_environment
   "${COMPOSE[@]}" ps
@@ -229,39 +173,6 @@ reset_idp() {
   docker volume rm "${COMPOSE_PROJECT_NAME}_pocket-id-data"
 }
 
-cleanup_qa_clone() {
-  local confirmation="${1:-}"
-  load_environment
-  if [[ "$confirmation" != "--confirm" ]]; then
-    printf 'This deletes the disposable Pocket ID QA clone and local IdP data.\n' >&2
-    printf 'Re-run with: scripts/pocket-id-dev cleanup-qa-clone --confirm\n' >&2
-    return 2
-  fi
-  "${COMPOSE[@]}" stop odoo pocket-id >/dev/null 2>&1 || true
-  "${BASE_COMPOSE[@]}" up -d --wait db
-  "${BASE_COMPOSE[@]}" exec -T \
-    -e PGPASSWORD="${POSTGRES_PASSWORD:-odoo}" \
-    -e TARGET_DATABASE="$ODOO_INIT_DB" \
-    db sh -eu -c \
-    'dropdb --if-exists --force -U "$POSTGRES_USER" "$TARGET_DATABASE"'
-  "${BASE_COMPOSE[@]}" --profile init run --rm \
-    --entrypoint sh \
-    -e TARGET_DATABASE="$ODOO_INIT_DB" \
-    init-db -eu -c '
-      target="/var/lib/odoo/filestore/$TARGET_DATABASE"
-      if [ -d "$target" ]; then
-        find "$target" -mindepth 1 -delete
-        rmdir "$target"
-      fi
-    '
-  "${COMPOSE[@]}" rm -sf pocket-id >/dev/null 2>&1 || true
-  docker volume rm "${COMPOSE_PROJECT_NAME}_pocket-id-data" >/dev/null 2>&1 || true
-  restore_canonical_odoo
-  printf 'Removed disposable Pocket ID QA clone: %s\n' "$ODOO_INIT_DB"
-  printf 'Restored canonical development URL: http://localhost:8069/web/login?db=%s\n' \
-    "$POCKET_ID_SOURCE_DB"
-}
-
 case "${1:-help}" in
   bootstrap)
     bootstrap
@@ -276,7 +187,10 @@ case "${1:-help}" in
     ensure_unlinked
     ;;
   configure-odoo)
-    configure_odoo
+    configure_odoo "${2:-usl_pocketid}"
+    ;;
+  start-runtime)
+    start_runtime
     ;;
   one-time-link)
     one_time_link "${2:-}"
@@ -293,14 +207,18 @@ case "${1:-help}" in
   stop-idp)
     stop_idp
     ;;
+  stop-stack)
+    stop_stack
+    ;;
+  logs)
+    shift
+    follow_logs "$@"
+    ;;
   status)
     status
     ;;
   reset-idp)
     reset_idp "${2:-}"
-    ;;
-  cleanup-qa-clone)
-    cleanup_qa_clone "${2:-}"
     ;;
   help|*)
     cat <<'EOF'
@@ -311,16 +229,18 @@ Commands:
   start-idp                  Start only the isolated Pocket ID service
   provision                  Idempotently configure users, group, and OIDC client
   ensure-unlinked            Add the Pocket-only lifecycle-denial identity
-  configure-odoo             Clone, configure, and start disposable SSO QA
+  configure-odoo [MODULE]    Configure canonical odoo_dev and start its SSO stack
+  start-runtime              Start the already-configured canonical target stack
   one-time-link USER         Generate a one-hour Pocket ID login link
   set-disabled USER BOOL     Enable or disable a named Pocket ID user
   set-profile USER EMAIL NAME
                              Change claims without changing the immutable subject
   set-group USER STATE       Add or remove a named user from the Odoo group
   stop-idp                   Stop Pocket ID for outage testing
+  stop-stack                 Stop the canonical Odoo/Pocket ID stack
+  logs [SERVICE]             Follow canonical target stack logs
   status                     Show this project's services
-  reset-idp --confirm        Delete only the disposable Pocket ID service data
-  cleanup-qa-clone --confirm Delete the QA clone/IdP and restore canonical Odoo
+  reset-idp --confirm        Delete only local Pocket ID service data
 EOF
     ;;
 esac

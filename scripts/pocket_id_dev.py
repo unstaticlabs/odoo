@@ -34,7 +34,6 @@ REQUIRED_ENV_KEYS = {
     "POCKET_ID_PROSPER_EMAIL",
     "POCKET_ID_PROSPER_ID",
     "POCKET_ID_ROGER_ID",
-    "POCKET_ID_SOURCE_DB",
     "POCKET_ID_STATIC_API_KEY",
     "POCKET_ID_VALENTIN_ID",
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
@@ -113,7 +112,7 @@ def _write_new_env(path: Path) -> None:
     ).strip()
     database = os.getenv(
         "USL_POCKET_ID_DEV_ODOO_DB",
-        "odoo_dev_pocketid_qa",
+        "odoo_dev",
     ).strip()
     odoo_port = os.getenv("USL_POCKET_ID_DEV_ODOO_PORT", "8069").strip()
     gevent_port = os.getenv("USL_POCKET_ID_DEV_GEVENT_PORT", "8072").strip()
@@ -126,10 +125,6 @@ def _write_new_env(path: Path) -> None:
         "USL_POCKET_ID_DEV_POCKET_HOSTNAME",
         "pocket-id.localhost",
     ).strip()
-    source_database = os.getenv(
-        "USL_POCKET_ID_DEV_SOURCE_DB",
-        "odoo_dev",
-    ).strip()
     prosper_odoo_email = os.getenv(
         "USL_POCKET_ID_DEV_PROSPER_ODOO_EMAIL",
         "",
@@ -138,12 +133,10 @@ def _write_new_env(path: Path) -> None:
         raise PocketIDError("The local Compose project name is unsafe.")
     if not SAFE_DATABASE_PATTERN.fullmatch(database):
         raise PocketIDError("The local Odoo database name is unsafe.")
-    if source_database != "odoo_dev":
-        raise PocketIDError("Local Pocket ID QA must clone the canonical odoo_dev.")
-    if database in {source_database, "odoo_online_source_saas_19_2"}:
-        raise PocketIDError("The canonical or source Odoo database is protected.")
-    if not re.fullmatch(r"odoo_dev_[A-Za-z0-9_]+_qa", database):
-        raise PocketIDError("A QA clone must use an odoo_dev_*_qa database name.")
+    if database != "odoo_dev":
+        raise PocketIDError(
+            "Local Pocket ID must target the canonical odoo_dev database.",
+        )
     ports = (odoo_port, gevent_port, pocket_port)
     if any(not port.isdigit() or not 1 <= int(port) <= 65535 for port in ports):
         raise PocketIDError("Local service ports must be between 1 and 65535.")
@@ -174,9 +167,7 @@ def _write_new_env(path: Path) -> None:
         "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
         "POCKET_ID_PROSPER_ODOO_EMAIL": prosper_odoo_email,
         "POCKET_ID_PROSPER_ID": str(uuid.uuid4()),
-        "POCKET_ID_QA_CLONE": "1",
         "POCKET_ID_ROGER_ID": str(uuid.uuid4()),
-        "POCKET_ID_SOURCE_DB": source_database,
         "POCKET_ID_STATIC_API_KEY": secrets.token_urlsafe(36),
         "POCKET_ID_VALENTIN_ID": str(uuid.uuid4()),
         "USL_EINVOICE_LIVE_ENABLED": "0",
@@ -184,7 +175,7 @@ def _write_new_env(path: Path) -> None:
         "USL_POCKET_ID_BREAK_GLASS_PASSWORD": secrets.token_urlsafe(36),
     }
     content = (
-        "# Generated local Pocket ID preproduction configuration. Do not commit.\n"
+        "# Generated local Pocket ID target configuration. Do not commit.\n"
         + "\n".join(f"{key}={value}" for key, value in values.items())
         + "\n"
     )

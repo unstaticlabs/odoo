@@ -20,17 +20,19 @@ accountant-reviewer profile because it still owns that stable group XML ID.
 Pocket ID is inert unless `USL_POCKET_ID_ENABLED=1` and the complete provider
 environment is deliberately applied. Client secrets never enter the database.
 
-Local validation uses a disposable clone of canonical `odoo_dev`:
+Local validation uses canonical `odoo_dev`, the disposable production-shaped
+target:
 
 ```bash
 scripts/pocket-id-dev bootstrap
 scripts/pocket-id-dev configure-odoo
 scripts/pocket-id-dev one-time-link valentin
-scripts/pocket-id-dev cleanup-qa-clone --confirm
 ```
 
-The cleanup command removes the QA clone and local Pocket ID data, then
-restores `http://localhost:8069/web/login?db=odoo_dev`.
+Normal `make dev`, `make deploy` and `make rebuild` preserve this target
+configuration. `make target-reconstruct` rebuilds source business data first,
+finalizes migration infrastructure out of the database, and applies Pocket ID
+last.
 
 Run clean module tests with:
 

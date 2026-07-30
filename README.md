@@ -239,15 +239,14 @@ container afterward. It refuses to use `odoo_dev` as a test database.
 Build the user-documentation site with its separate pinned toolchain:
 
 ```bash
-python3 -m venv .venv-docs
-.venv-docs/bin/python -m pip install -r requirements-docs.txt
-make USER_DOCS_PYTHON=.venv-docs/bin/python user-docs-build
+make user-docs-build
 ```
 
-MkDocs is intentionally not a production Odoo dependency. A plain
-`make user-docs-build` therefore expects MkDocs to be installed in the selected
-host Python; use `USER_DOCS_PYTHON` to select the disposable documentation
-environment explicitly.
+MkDocs is intentionally not a production Odoo dependency. The Make target
+creates and reuses the ignored `.venv-docs` environment from pinned
+`requirements-docs.txt`, so a clean checkout does not require a global MkDocs
+installation. Override `USER_DOCS_VENV` only when another isolated location is
+required.
 
 Debug configurations are available in `.devcontainer/launch.json`:
 
@@ -335,11 +334,11 @@ scripts/odoo-dev test base    # run an Odoo module test pass
 scripts/odoo-dev test-js rebuild_account_migration  # frontend unit tests
 scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
-scripts/odoo-dev configure-pocket-id  # dry-run/apply Pocket ID user policy
-scripts/pocket-id-dev bootstrap       # generate ignored local Pocket ID secrets
-scripts/pocket-id-dev configure-odoo  # clone odoo_dev and provision isolated SSO QA
-scripts/pocket-id-dev one-time-link valentin  # test-only named-user login
-scripts/pocket-id-dev cleanup-qa-clone --confirm  # restore canonical odoo_dev
+scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
+scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
+scripts/pocket-id-dev one-time-link valentin  # local passwordless login
+scripts/target-finalize               # apply target-only config after migration
+scripts/target-reconstruct            # rebuild canonical data and target config
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
@@ -351,21 +350,30 @@ The normal shorthand is:
 make dev       # start the existing environment
 make deploy    # apply ordinary custom add-on changes
 make rebuild   # rebuild images, then deploy
+make target-finalize    # reapply and validate target-only configuration
+make target-reconstruct # recreate odoo_dev from the dump, then finalize it
 ```
 
-These helpers serve the database selected by `ODOO_DEV_DB` (default:
-`odoo_dev`), apply the same value to Odoo's database filter and verify the
-effective runtime filter before printing the login URL. If you invoke
-`docker compose` directly instead, keep `ODOO_DB_FILTER` in the local `.env`
-aligned with the database you intend to serve.
+These helpers serve canonical `odoo_dev` by default. It is the disposable,
+production-shaped product target: reconstructed Online business data plus
+target-only configuration such as Pocket ID. `make dev`, `make deploy` and
+`make rebuild` use the pinned local Pocket ID overlay, keep the database filter
+at `^odoo_dev$`, provision stable local identities, and reapply the governed
+Odoo policy when configuration or modules are updated.
 
-The isolated local Pocket ID workflow is pinned in `compose.pocket-id.yaml`,
-binds Pocket ID only to loopback, creates one disposable
-`odoo_dev_pocketid_qa` clone from canonical `odoo_dev`, and generates its
-environment-only credentials in the ignored mode-0600 `.pocket-id.env`.
-Cleanup drops that clone and restores the normal `odoo_dev` service. Follow the
+Source parity and target configuration remain separate stages. The Online dump
+has no Pocket ID state, so `scripts/target-reconstruct` first validates the
+Accounting import, then restores Projects, finalizes every temporary migration
+module out of the product, and finally applies Pocket ID. Migration tooling is
+a maintained repository deliverable under `migration/` and `scripts/`; it is
+not installed or exposed in the normal Odoo UI.
+
+The local Pocket ID workflow is pinned in `compose.pocket-id.yaml`, binds only
+to loopback, and stores generated secrets and stable immutable subjects in the
+ignored mode-0600 `.pocket-id.env`. Follow the
 [Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
-the client secret, break-glass password or raw subjects in Git.
+the client secret, break-glass password or raw subjects in Git. Production
+uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
 
 ### Optional bootstrap fixture
 

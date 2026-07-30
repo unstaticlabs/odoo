@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "pocket_id_dev.py"
+ROOT = SCRIPT_PATH.parents[1]
 SPEC = importlib.util.spec_from_file_location("usl_pocket_id_dev", SCRIPT_PATH)
 POCKET_ID_DEV = importlib.util.module_from_spec(SPEC)
 assert SPEC and SPEC.loader
@@ -15,7 +16,7 @@ SPEC.loader.exec_module(POCKET_ID_DEV)
 
 
 class TestPocketIDDevEnvironment(unittest.TestCase):
-    def test_defaults_target_disposable_clone_of_canonical_odoo_dev(self):
+    def test_defaults_target_canonical_odoo_dev(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / ".pocket-id.env"
             with patch.dict(os.environ, {}, clear=True):
@@ -23,10 +24,8 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             values = POCKET_ID_DEV._read_env(path)
             mode = stat.S_IMODE(path.stat().st_mode)
 
-        self.assertEqual(values["ODOO_INIT_DB"], "odoo_dev_pocketid_qa")
-        self.assertEqual(values["ODOO_DB_FILTER"], "^odoo_dev_pocketid_qa$")
-        self.assertEqual(values["POCKET_ID_SOURCE_DB"], "odoo_dev")
-        self.assertEqual(values["POCKET_ID_QA_CLONE"], "1")
+        self.assertEqual(values["ODOO_INIT_DB"], "odoo_dev")
+        self.assertEqual(values["ODOO_DB_FILTER"], "^odoo_dev$")
         self.assertEqual(values["POCKET_ID_PROSPER_ODOO_EMAIL"], "")
         self.assertEqual(values["ODOO_HTTP_PORT"], "8069")
         self.assertEqual(values["ODOO_GEVENT_PORT"], "8072")
@@ -58,29 +57,13 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             users_by_profile["accountant_reviewer"]["create_if_missing"],
         )
 
-    def test_canonical_database_cannot_be_selected_as_qa_target(self):
+    def test_noncanonical_database_cannot_be_selected_as_target(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / ".pocket-id.env"
             with (
                 patch.dict(
                     os.environ,
-                    {"USL_POCKET_ID_DEV_ODOO_DB": "odoo_dev"},
-                    clear=True,
-                ),
-                self.assertRaisesRegex(
-                    POCKET_ID_DEV.PocketIDError,
-                    "protected",
-                ),
-            ):
-                POCKET_ID_DEV._write_new_env(path)
-
-    def test_source_database_cannot_be_redirected(self):
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            path = Path(temporary_directory) / ".pocket-id.env"
-            with (
-                patch.dict(
-                    os.environ,
-                    {"USL_POCKET_ID_DEV_SOURCE_DB": "another_database"},
+                    {"USL_POCKET_ID_DEV_ODOO_DB": "odoo_dev_sso_qa"},
                     clear=True,
                 ),
                 self.assertRaisesRegex(
@@ -90,6 +73,33 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             ):
                 POCKET_ID_DEV._write_new_env(path)
 
+    def test_canonical_reconstruction_applies_target_policy_last(self):
+        script = (ROOT / "scripts" / "target-reconstruct").read_text(
+            encoding="utf-8",
+        )
+        ordered_steps = [
+            "scripts/accounting-compat dev-reset",
+            "scripts/accounting-compat dev-import",
+            "scripts/accounting-compat dev-validate",
+            "scripts/project-restore all",
+            "scripts/target-finalize",
+        ]
+        positions = [script.index(step) for step in ordered_steps]
+
+        self.assertEqual(positions, sorted(positions))
+        self.assertGreaterEqual(script.count("stop_product"), 5)
+        self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", script)
+        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", script)
+
+    def test_local_pocket_helper_has_no_database_clone_lifecycle(self):
+        script = (ROOT / "scripts" / "pocket-id-dev").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertNotIn("cleanup-qa-clone", script)
+        self.assertNotIn("createdb", script)
+        self.assertNotIn("dropdb", script)
+        self.assertIn("canonical odoo_dev", script)
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,9 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 ## Database roles during development
 
 Normal development, module updates and browser QA use one disposable database:
-`odoo_dev`.
+`odoo_dev`. It is the canonical production-shaped target, not a source-only
+mirror: business data is reconstructed from Odoo Online, then target-only
+configuration such as Pocket ID is applied in a separate finalization stage.
 
 The reconstruction harness creates `odoo_saas_19_2_validation_exact` and
 `odoo_saas_19_2_validation_native` only when their explicit pipeline stages
@@ -31,6 +33,21 @@ extraction.
 Do not enter durable business data in any local database. Recreate `odoo_dev`
 from the harness when import or reconstruction behavior changes; for ordinary
 code and UI work, update it in place.
+
+The complete canonical lifecycle is:
+
+```text
+Online dump → Accounting import/parity → Projects import/parity
+→ migration finalization/product-boundary check → target configuration
+```
+
+Run it with `make target-reconstruct`. Reapply only the final target
+configuration with `make target-finalize`. The source contains no SSO
+configuration; Pocket ID is therefore intentionally absent from source parity
+and added only after the imported business state passes its controls.
+The orchestrator keeps the web process stopped between reset, import,
+validation and Project restoration so browser traffic and scheduled jobs
+cannot observe or mutate an intermediate target.
 
 ## Fast iteration matrix
 
@@ -74,13 +91,14 @@ make deploy
 `rebuild_account_migration` in `odoo_dev`, recreates the web service and waits
 for it to become healthy. The compatibility module update also installs or
 updates its declared `usl_accounting` and `usl_expense_batch` dependencies. It
-does not restore source data or rebuild the image.
+does not restore source data or rebuild the image. Both commands use the local
+Pocket ID overlay and keep the canonical target SSO configuration active.
 
 Use `make rebuild` only after Dockerfile, dependency, system or
 core-source changes. Both commands print the development URL:
 
 ```text
-http://localhost:8069/web/login?db=odoo_dev
+http://odoo.localhost:8069/web/login?db=odoo_dev
 ```
 
 ## Module and browser refresh contract
