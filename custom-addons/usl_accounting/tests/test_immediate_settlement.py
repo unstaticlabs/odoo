@@ -165,6 +165,11 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             4.38,
             places=2,
         )
+        self.assertAlmostEqual(
+            settlement.preview_settlement_difference,
+            0.02,
+            places=2,
+        )
         self.assertAlmostEqual(settlement.settlement_difference, 0.02, places=2)
         self.assertEqual(settlement.settlement_difference_type, "loss")
         self.assertEqual(
@@ -211,6 +216,12 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertAlmostEqual(abs(counterpart.amount_currency), 5.0, places=2)
         self.assertAlmostEqual(abs(counterpart.balance), 4.40, places=2)
         self.assertFalse(settlement.adjustment_move_id)
+        with self.assertRaisesRegex(UserError, "cannot be edited directly"):
+            settlement.exchange_line_ids[:1].write(
+                {"name": "Tampered native exchange line"},
+            )
+        with self.assertRaisesRegex(UserError, "cannot be reset to draft"):
+            settlement.exchange_move_ids.button_draft()
 
     def test_add_remains_the_existing_standard_path(self):
         bill = self._document()
@@ -226,6 +237,211 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertFalse(statement_line.foreign_currency_id)
         self.assertEqual(statement_line.amount_currency, 0.0)
         self.assertEqual(statement_line.amount, -4.40)
+
+    def test_use_payment_rate_adjusts_expense_without_exchange_entry(self):
+        bill = self._document()
+        term_line = self._term_lines(bill)
+        invoice_line = bill.invoice_line_ids
+        original_expense_balance = invoice_line.balance
+        statement_line, source_line = self._bank_candidate(bill)
+        liquidity_before = [
+            (line.id, line.balance, line.amount_currency, line.currency_id)
+            for line in statement_line._seek_for_lines()[0]
+        ]
+
+        eligibility = bill._get_payment_rate_settlement_eligibility(source_line)
+        self.assertTrue(eligibility["eligible"], eligibility["reason"])
+        self.assertEqual(eligibility["confidence"], "recommended")
+        result = bill.js_use_payment_rate_outstanding_line(source_line.id)
+        settlement = self.env["account.immediate.settlement"].browse(
+            result["settlement_id"],
+        )
+
+        self.assertEqual(settlement.mechanism, "payment_rate")
+        self.assertEqual(settlement.foreign_amount_source, "document_residual")
+        self.assertAlmostEqual(settlement.foreign_amount, 5.0, places=2)
+        self.assertAlmostEqual(settlement.company_amount, 4.40, places=2)
+        self.assertAlmostEqual(settlement.reference_company_amount, 4.38, places=2)
+        self.assertAlmostEqual(
+            settlement.preview_settlement_difference,
+            0.02,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            settlement.economic_adjustment_amount,
+            0.02,
+            places=2,
+        )
+        self.assertEqual(settlement.settlement_difference_type, "none")
+        self.assertFalse(settlement.exchange_move_ids)
+        self.assertFalse(settlement.exchange_line_ids)
+        self.assertFalse(settlement.exchange_account_id)
+        self.assertFalse(settlement.adjustment_move_id)
+        self.assertEqual(len(settlement.allocation_ids), 1)
+        allocation = settlement.allocation_ids
+        self.assertEqual(allocation.original_line_id, invoice_line)
+        self.assertEqual(
+            allocation.account_id_snapshot,
+            invoice_line.account_id,
+        )
+        self.assertEqual(
+            allocation.analytic_distribution_snapshot,
+            invoice_line.analytic_distribution,
+        )
+        adjustment_line = settlement.economic_adjustment_line_ids
+        counterpart = settlement.generated_line_ids.filtered(
+            lambda line: line.immediate_settlement_role == "bank_counterpart",
+        )
+        self.assertEqual(len(counterpart), 1)
+        self.assertAlmostEqual(abs(counterpart.amount_currency), 5.0, places=2)
+        self.assertAlmostEqual(abs(counterpart.balance), 4.38, places=2)
+        self.assertEqual(
+            settlement.generated_line_ids,
+            settlement.bank_move_id.line_ids.filtered(
+                lambda line: line.immediate_settlement_id == settlement,
+            ),
+        )
+        self.assertEqual(adjustment_line.account_id, invoice_line.account_id)
+        self.assertAlmostEqual(adjustment_line.balance, 0.02, places=2)
+        self.assertEqual(
+            adjustment_line.analytic_distribution,
+            invoice_line.analytic_distribution,
+        )
+        self.assertFalse(adjustment_line.tax_line_id)
+        self.assertFalse(adjustment_line.tax_ids)
+        self.assertFalse(adjustment_line.tax_tag_ids)
+        self.assertFalse(adjustment_line.tax_repartition_line_id)
+        self.assertEqual(adjustment_line.tax_base_amount, 0.0)
+        self.assertEqual(invoice_line.balance, original_expense_balance)
+        self.assertAlmostEqual(
+            original_expense_balance + adjustment_line.balance,
+            4.40,
+            places=2,
+        )
+        self.assertEqual(
+            [
+                (line.id, line.balance, line.amount_currency, line.currency_id)
+                for line in statement_line._seek_for_lines()[0]
+            ],
+            liquidity_before,
+        )
+        self.assertEqual(statement_line.amount, -4.40)
+        self.assertEqual(statement_line.amount_currency, -5.0)
+        self.assertFalse(statement_line._seek_for_lines()[1])
+        self.assertTrue(statement_line.is_reconciled)
+        self.assertTrue(bill.currency_id.is_zero(bill.amount_residual))
+        self.assertTrue(
+            term_line.currency_id.is_zero(term_line.amount_residual_currency),
+        )
+        self.assertTrue(
+            term_line.company_currency_id.is_zero(term_line.amount_residual),
+        )
+        with self.assertRaisesRegex(UserError, "cannot be edited directly"):
+            adjustment_line.write({"name": "Tampered payment-rate line"})
+        with self.assertRaisesRegex(UserError, "cannot be deleted directly"):
+            adjustment_line.unlink()
+        with self.assertRaisesRegex(UserError, "cannot be reset to draft"):
+            settlement.bank_move_id.button_draft()
+
+    def test_payment_rate_uses_same_engine_for_customer_and_refunds(self):
+        for move_type in ("out_invoice", "in_refund", "out_refund"):
+            document = self._document(move_type)
+            statement_line, source_line = self._bank_candidate(document)
+
+            document.js_use_payment_rate_outstanding_line(source_line.id)
+            settlement = document.immediate_settlement_ids
+
+            self.assertEqual(settlement.mechanism, "payment_rate", move_type)
+            self.assertTrue(statement_line.is_reconciled, move_type)
+            self.assertTrue(
+                document.currency_id.is_zero(document.amount_residual),
+                move_type,
+            )
+            self.assertFalse(settlement.exchange_move_ids, move_type)
+            self.assertFalse(settlement.exchange_line_ids, move_type)
+            self.assertAlmostEqual(
+                abs(settlement.economic_adjustment_amount),
+                0.02,
+                places=2,
+                msg=move_type,
+            )
+
+    def test_payment_rate_allocates_multiple_economic_lines_proportionally(self):
+        second_account = self.env["account.account"].create(
+            {
+                "name": "Second safe expense",
+                "code": "EXACT002",
+                "account_type": "expense",
+                "company_ids": [Command.set(self.company.ids)],
+            },
+        )
+        second_analytic = self.env["account.analytic.account"].create(
+            {
+                "name": "Second exact settlement analytic",
+                "plan_id": self.analytic_plan.id,
+            },
+        )
+        bill = self._create_invoice(
+            move_type="in_invoice",
+            partner_id=self.partner_a,
+            company_id=self.company,
+            currency_id=self.foreign_currency,
+            journal_id=self.company_data["default_journal_purchase"],
+            invoice_date=self.document_date,
+            date=self.document_date,
+            invoice_line_ids=[
+                self._prepare_invoice_line(
+                    name="First safe allocation",
+                    account_id=self.company_data["default_account_expense"],
+                    quantity=1.0,
+                    price_unit=2.0,
+                    tax_ids=self.env["account.tax"],
+                    analytic_distribution={
+                        str(self.analytic_account.id): 100.0,
+                    },
+                ),
+                self._prepare_invoice_line(
+                    name="Second safe allocation",
+                    account_id=second_account,
+                    quantity=1.0,
+                    price_unit=3.0,
+                    tax_ids=self.env["account.tax"],
+                    analytic_distribution={
+                        str(second_analytic.id): 100.0,
+                    },
+                ),
+            ],
+            post=True,
+        )
+        statement_line, source_line = self._bank_candidate(bill)
+
+        bill.js_use_payment_rate_outstanding_line(source_line.id)
+        settlement = bill.immediate_settlement_ids
+
+        self.assertEqual(len(settlement.allocation_ids), 2)
+        self.assertEqual(
+            settlement.allocation_ids.account_id_snapshot,
+            bill.invoice_line_ids.account_id,
+        )
+        self.assertAlmostEqual(
+            sum(settlement.allocation_ids.mapped("proportion")),
+            1.0,
+            places=8,
+        )
+        self.assertAlmostEqual(
+            sum(settlement.allocation_ids.mapped("company_amount")),
+            0.02,
+            places=2,
+        )
+        for allocation in settlement.allocation_ids:
+            self.assertEqual(
+                allocation.adjustment_line_id.analytic_distribution,
+                allocation.analytic_distribution_snapshot,
+            )
+            self.assertFalse(allocation.adjustment_line_id.tax_ids)
+            self.assertFalse(allocation.adjustment_line_id.tax_tag_ids)
+        self.assertTrue(statement_line.is_reconciled)
+        self.assertFalse(settlement.exchange_move_ids)
 
     def test_zero_company_difference_creates_no_exchange_line(self):
         bill = self._document()
@@ -276,7 +492,9 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         eligibility = bill._get_immediate_settlement_eligibility(source_line)
 
         self.assertFalse(eligibility["eligible"])
-        self.assertIn("authoritative foreign amount", eligibility["reason"])
+        self.assertIn("Add already uses the exact foreign amount", eligibility["reason"])
+        payment_rate = bill._get_payment_rate_settlement_eligibility(source_line)
+        self.assertTrue(payment_rate["eligible"], payment_rate["reason"])
 
     def test_integration_conflict_and_fee_facts_are_blocking(self):
         bill = self._document()
@@ -304,7 +522,7 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             self.assertFalse(eligibility["eligible"])
             self.assertIn(expected, eligibility["reason"])
 
-    def test_trusted_integration_date_replaces_generic_date_inference(self):
+    def test_trusted_integration_date_allows_payment_rate_policy(self):
         bill = self._document()
         _statement_line, source_line = self._bank_candidate(
             bill,
@@ -329,14 +547,18 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             source_facts,
         ):
             eligibility = bill._get_immediate_settlement_eligibility(source_line)
+            payment_rate = bill._get_payment_rate_settlement_eligibility(
+                source_line,
+            )
 
         self.assertTrue(eligibility["eligible"])
+        self.assertTrue(payment_rate["eligible"], payment_rate["reason"])
         self.assertEqual(
             eligibility["facts"]["provenance"],
             "trusted_card_transaction",
         )
 
-    def test_delay_and_rate_policy_block_settlement(self):
+    def test_delay_and_rate_warn_settle_but_block_payment_rate(self):
         delayed_bill = self._document()
         _statement, delayed_line = self._bank_candidate(
             delayed_bill,
@@ -345,8 +567,13 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         delayed = delayed_bill._get_immediate_settlement_eligibility(
             delayed_line,
         )
-        self.assertFalse(delayed["eligible"])
+        self.assertTrue(delayed["eligible"], delayed["reason"])
         self.assertIn("4 days", delayed["reason"])
+        delayed_payment_rate = (
+            delayed_bill._get_payment_rate_settlement_eligibility(delayed_line)
+        )
+        self.assertFalse(delayed_payment_rate["eligible"])
+        self.assertIn("limited to 3 days", delayed_payment_rate["reason"])
 
         rate_bill = self._document()
         _statement, rate_line = self._bank_candidate(
@@ -354,8 +581,13 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             company_amount=4.0,
         )
         rate = rate_bill._get_immediate_settlement_eligibility(rate_line)
-        self.assertFalse(rate["eligible"])
-        self.assertIn("3.00% rate policy", rate["reason"])
+        self.assertTrue(rate["eligible"], rate["reason"])
+        self.assertIn("from the reference rate", rate["reason"])
+        rate_payment_rate = rate_bill._get_payment_rate_settlement_eligibility(
+            rate_line,
+        )
+        self.assertFalse(rate_payment_rate["eligible"])
+        self.assertIn("above the 3.00% policy", rate_payment_rate["reason"])
 
     def test_journal_policy_override_is_respected(self):
         bill = self._document()
@@ -371,10 +603,17 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             },
         )
         self.assertTrue(
-            bill._get_immediate_settlement_eligibility(source_line)["eligible"],
+            bill._get_payment_rate_settlement_eligibility(source_line)[
+                "eligible"
+            ],
         )
         self.bank_journal.immediate_settlement_max_days = 3
         self.assertFalse(
+            bill._get_payment_rate_settlement_eligibility(source_line)[
+                "eligible"
+            ],
+        )
+        self.assertTrue(
             bill._get_immediate_settlement_eligibility(source_line)["eligible"],
         )
 
@@ -546,6 +785,205 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         )
         self.assertFalse(bill.immediate_settlement_ids.adjustment_move_id)
 
+    def test_payment_rate_leaves_document_tax_metadata_unchanged(self):
+        tax = self.env["account.tax"].create(
+            {
+                "name": "Payment-rate purchase tax",
+                "amount": 10.0,
+                "amount_type": "percent",
+                "type_tax_use": "purchase",
+                "company_id": self.company.id,
+            },
+        )
+        bill = self._document(tax_ids=tax)
+        tax_line = bill.line_ids.filtered("tax_line_id")
+        invoice_line = bill.invoice_line_ids
+        snapshot = bill._foreign_settlement_tax_snapshot()
+        company_amount = abs(self._term_lines(bill).amount_residual) + 0.02
+        _statement, source_line = self._bank_candidate(
+            bill,
+            company_amount=company_amount,
+        )
+
+        bill.js_use_payment_rate_outstanding_line(source_line.id)
+        settlement = bill.immediate_settlement_ids
+
+        self.assertEqual(
+            bill._foreign_settlement_tax_snapshot(),
+            snapshot,
+        )
+        self.assertEqual(invoice_line.tax_ids, tax)
+        self.assertEqual(tax_line.tax_line_id, tax)
+        self.assertTrue(settlement.economic_adjustment_line_ids)
+        self.assertFalse(settlement.economic_adjustment_line_ids.tax_ids)
+        self.assertFalse(settlement.economic_adjustment_line_ids.tax_tag_ids)
+        self.assertFalse(
+            settlement.economic_adjustment_line_ids.tax_repartition_line_id,
+        )
+        self.assertFalse(settlement.exchange_move_ids)
+
+    def test_payment_rate_keeps_native_cash_basis_tax_processing(self):
+        self.company.tax_exigibility = True
+        self.company.account_cash_basis_base_account_id = self.company_data[
+            "default_account_assets"
+        ]
+        transition_account = self.company_data[
+            "default_account_tax_purchase"
+        ].copy(
+            {
+                "name": "Payment-rate cash-basis transition",
+                "reconcile": True,
+            },
+        )
+        final_tax_account = self.company_data["default_account_tax_purchase"]
+        tax = self.env["account.tax"].create(
+            {
+                "name": "Payment-rate cash-basis purchase tax",
+                "amount": 10.0,
+                "amount_type": "percent",
+                "type_tax_use": "purchase",
+                "company_id": self.company.id,
+                "tax_exigibility": "on_payment",
+                "cash_basis_transition_account_id": transition_account.id,
+                "invoice_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "account_id": final_tax_account.id,
+                        },
+                    ),
+                ],
+                "refund_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "account_id": final_tax_account.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        bill = self._document(tax_ids=tax)
+        original_tax_snapshot = bill._foreign_settlement_tax_snapshot()
+        company_amount = abs(self._term_lines(bill).amount_residual) + 0.02
+        _statement, source_line = self._bank_candidate(
+            bill,
+            company_amount=company_amount,
+        )
+
+        bill.js_use_payment_rate_outstanding_line(source_line.id)
+        settlement = bill.immediate_settlement_ids
+        cash_basis_moves = self.env["account.move"].search(
+            [
+                (
+                    "tax_cash_basis_rec_id",
+                    "in",
+                    settlement.partial_reconcile_ids.ids,
+                ),
+            ],
+        )
+
+        self.assertTrue(cash_basis_moves)
+        self.assertTrue(all(move.state == "posted" for move in cash_basis_moves))
+        self.assertEqual(
+            bill._foreign_settlement_tax_snapshot(),
+            original_tax_snapshot,
+        )
+        self.assertTrue(
+            cash_basis_moves.line_ids.filtered(
+                lambda line: line.tax_repartition_line_id,
+            ),
+        )
+        self.assertFalse(settlement.economic_adjustment_line_ids.tax_ids)
+        self.assertFalse(settlement.economic_adjustment_line_ids.tax_tag_ids)
+        self.assertFalse(
+            settlement.economic_adjustment_line_ids.tax_repartition_line_id,
+        )
+        self.assertFalse(settlement.exchange_move_ids)
+
+    def test_unsafe_asset_account_keeps_add_and_settle_only(self):
+        asset_account = self.env["account.account"].create(
+            {
+                "name": "Unsupported fixed asset",
+                "code": "EXACTFA",
+                "account_type": "asset_fixed",
+                "company_ids": [Command.set(self.company.ids)],
+            },
+        )
+        bill = self._create_invoice(
+            move_type="in_invoice",
+            partner_id=self.partner_a,
+            company_id=self.company,
+            currency_id=self.foreign_currency,
+            journal_id=self.company_data["default_journal_purchase"],
+            invoice_date=self.document_date,
+            date=self.document_date,
+            invoice_line_ids=[
+                self._prepare_invoice_line(
+                    name="Unsupported asset purchase",
+                    account_id=asset_account,
+                    quantity=1.0,
+                    price_unit=5.0,
+                    tax_ids=self.env["account.tax"],
+                ),
+            ],
+            post=True,
+        )
+        _statement, source_line = self._bank_candidate(bill)
+
+        settle = bill._get_immediate_settlement_eligibility(source_line)
+        payment_rate = bill._get_payment_rate_settlement_eligibility(source_line)
+
+        self.assertTrue(settle["eligible"], settle["reason"])
+        self.assertFalse(payment_rate["eligible"])
+        self.assertIn("cannot safely be adjusted", payment_rate["reason"])
+
+    def test_mixed_safe_and_unsafe_lines_block_payment_rate(self):
+        asset_account = self.env["account.account"].create(
+            {
+                "name": "Mixed unsupported fixed asset",
+                "code": "EXACTFM",
+                "account_type": "asset_fixed",
+                "company_ids": [Command.set(self.company.ids)],
+            },
+        )
+        bill = self._create_invoice(
+            move_type="in_invoice",
+            partner_id=self.partner_a,
+            company_id=self.company,
+            currency_id=self.foreign_currency,
+            journal_id=self.company_data["default_journal_purchase"],
+            invoice_date=self.document_date,
+            date=self.document_date,
+            invoice_line_ids=[
+                self._prepare_invoice_line(
+                    name="Safe expense portion",
+                    account_id=self.company_data["default_account_expense"],
+                    quantity=1.0,
+                    price_unit=2.0,
+                    tax_ids=self.env["account.tax"],
+                ),
+                self._prepare_invoice_line(
+                    name="Unsupported asset portion",
+                    account_id=asset_account,
+                    quantity=1.0,
+                    price_unit=3.0,
+                    tax_ids=self.env["account.tax"],
+                ),
+            ],
+            post=True,
+        )
+        _statement, source_line = self._bank_candidate(bill)
+
+        settle = bill._get_immediate_settlement_eligibility(source_line)
+        payment_rate = bill._get_payment_rate_settlement_eligibility(source_line)
+
+        self.assertTrue(settle["eligible"], settle["reason"])
+        self.assertFalse(payment_rate["eligible"])
+        self.assertIn("cannot safely be adjusted", payment_rate["reason"])
+
     def test_reversal_restores_missing_foreign_amount_and_residuals(self):
         bill = self._document()
         term_line = self._term_lines(bill)
@@ -581,6 +1019,55 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertAlmostEqual(abs(term_line.amount_residual), 4.38, places=2)
         self.assertEqual(bill.payment_state, "not_paid")
 
+    def test_payment_rate_reversal_removes_generated_lines_and_keeps_snapshot(self):
+        bill = self._document()
+        term_line = self._term_lines(bill)
+        statement_line, source_line = self._bank_candidate(bill)
+        bill.js_use_payment_rate_outstanding_line(source_line.id)
+        settlement = bill.immediate_settlement_ids
+        generated_line_ids = settlement.economic_adjustment_line_ids.ids
+        allocation = settlement.allocation_ids
+        allocation_snapshot = {
+            "line_id": allocation.adjustment_line_id_snapshot,
+            "name": allocation.adjustment_line_name,
+            "account_id": allocation.account_id_snapshot.id,
+            "amount": allocation.company_amount,
+            "analytic": allocation.analytic_distribution_snapshot,
+        }
+
+        settlement.action_reverse()
+
+        statement_line.invalidate_recordset()
+        term_line.invalidate_recordset(
+            ["amount_residual", "amount_residual_currency", "reconciled"],
+        )
+        allocation.invalidate_recordset()
+        self.assertEqual(settlement.state, "reversed")
+        self.assertFalse(statement_line.foreign_currency_id)
+        self.assertEqual(statement_line.amount_currency, 0.0)
+        self.assertFalse(statement_line.is_reconciled)
+        self.assertFalse(
+            self.env["account.move.line"].browse(generated_line_ids).exists(),
+        )
+        self.assertFalse(allocation.adjustment_line_id)
+        self.assertEqual(
+            {
+                "line_id": allocation.adjustment_line_id_snapshot,
+                "name": allocation.adjustment_line_name,
+                "account_id": allocation.account_id_snapshot.id,
+                "amount": allocation.company_amount,
+                "analytic": allocation.analytic_distribution_snapshot,
+            },
+            allocation_snapshot,
+        )
+        self.assertAlmostEqual(
+            abs(term_line.amount_residual_currency),
+            5.0,
+            places=2,
+        )
+        self.assertAlmostEqual(abs(term_line.amount_residual), 4.38, places=2)
+        self.assertEqual(bill.payment_state, "not_paid")
+
     def test_unlinking_linked_partial_reverses_the_bank_settlement(self):
         bill = self._document()
         statement_line, source_line = self._bank_candidate(bill)
@@ -605,6 +1092,21 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(first, second)
         self.assertEqual(len(bill.immediate_settlement_ids), 1)
 
+    def test_payment_rate_repeated_click_is_idempotent_and_cross_action_is_blocked(
+        self,
+    ):
+        bill = self._document()
+        _statement, source_line = self._bank_candidate(bill)
+        source_line_id = source_line.id
+
+        first = bill.js_use_payment_rate_outstanding_line(source_line_id)
+        second = bill.js_use_payment_rate_outstanding_line(source_line_id)
+
+        self.assertEqual(first, second)
+        self.assertEqual(len(bill.immediate_settlement_ids), 1)
+        with self.assertRaisesRegex(UserError, "already settled using Use payment rate"):
+            bill.js_settle_outstanding_line(source_line_id)
+
     def test_stale_click_revalidates_changed_bank_facts(self):
         bill = self._document()
         statement_line, source_line = self._bank_candidate(bill)
@@ -617,7 +1119,7 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
 
         with self.assertRaisesRegex(
             UserError,
-            "authoritative foreign amount",
+            "Add already uses the exact foreign amount",
         ):
             bill.js_settle_outstanding_line(source_line.id)
 
@@ -762,6 +1264,15 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             ).create(
                 {
                     "name": "Fabricated",
+                    "company_id": self.company.id,
+                    "currency_id": self.foreign_currency.id,
+                    "document_id": self._document().id,
+                },
+            )
+        with self.assertRaises(AccessError):
+            self.env["account.immediate.settlement"].sudo().create(
+                {
+                    "name": "Fabricated by superuser RPC",
                     "company_id": self.company.id,
                     "currency_id": self.foreign_currency.id,
                     "document_id": self._document().id,
