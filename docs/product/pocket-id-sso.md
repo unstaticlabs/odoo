@@ -1,6 +1,6 @@
 # Pocket ID SSO architecture
 
-Status: accepted
+Status: implemented and locally validated
 
 Decision date: 2026-07-29
 
@@ -72,8 +72,9 @@ The callback:
 - emits a safe audit reason without storing the raw subject or token.
 
 Discovery must advertise the code flow and RS256. The issuer and authorization,
-token and JWKS endpoints must use the same HTTPS origin. Loopback HTTP is
-allowed only for offline tests.
+token and JWKS endpoints must use the same HTTPS origin. HTTP is accepted only
+for loopback addresses and RFC-reserved `.localhost` names in the isolated
+local preproduction topology; staging and production require HTTPS.
 
 ## Identity model
 
@@ -164,10 +165,17 @@ must be configured deliberately:
 [Allowed User Groups](https://pocket-id.org/docs/configuration/allowed-groups),
 [OIDC client authentication](https://pocket-id.org/docs/guides/oidc-client-authentication).
 
-## External prerequisites
+## Activation state
 
-Software validation cannot invent the real issuer, client ID/secret, immutable
-subjects, Prosper email, passkeys or Pocket ID group membership. Production or
-preproduction activation therefore remains blocked until the identity owner
-supplies those values and named users complete the journeys in the operations
-runbook.
+The repository now supplies an isolated, digest-pinned Pocket ID tenant,
+generated uncommitted credentials, stable local immutable subjects, a
+restricted OIDC client and an idempotent candidate-database policy. The named
+users and cross-application journeys have been validated with administrator
+one-time Pocket ID links; passkey-ceremony validation is intentionally outside
+the Odoo integration acceptance scope.
+
+This unblocks local preproduction. A future non-local deployment still needs
+owner-confirmed production issuer and subjects, an owner-confirmed Prosper
+email, HTTPS routing, approved secret storage, passkey enrollment and the
+production activation runbook. Local synthetic identifiers and
+`preproduction.invalid` addresses must not be promoted.
