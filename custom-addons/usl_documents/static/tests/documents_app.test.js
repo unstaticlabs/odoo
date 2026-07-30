@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "@odoo/hoot";
-import { animationFrame, tick } from "@odoo/hoot-mock";
+import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
 import {
@@ -71,12 +71,15 @@ const emptyWorkspace = {
 
 const searchViewArch = `
     <search>
+        <field name="all_text"/>
+        <field name="name"/>
         <field name="archive_text"/>
-        <field name="custom_field_text"/>
         <field name="tag_ids"/>
         <field name="company_id"/>
         <field name="document_type_id"/>
         <field name="correspondent_id"/>
+        <field name="document_date"/>
+        <field name="custom_field_text" invisible="1"/>
         <filter name="needs_review" string="Needs review"
                 domain="[('review_state', '=', 'needs_attention')]"/>
         <group>
@@ -87,6 +90,8 @@ const searchViewArch = `
 `;
 
 const searchViewFields = {
+    all_text: { name: "all_text", string: "Search everywhere", type: "char" },
+    name: { name: "name", string: "Title", type: "char" },
     archive_text: { name: "archive_text", string: "Document content", type: "char" },
     custom_field_text: {
         name: "custom_field_text",
@@ -116,6 +121,11 @@ const searchViewFields = {
         string: "Correspondent",
         type: "many2one",
         relation: "usl.paperless.correspondent",
+    },
+    document_date: {
+        name: "document_date",
+        string: "Document date",
+        type: "date",
     },
     review_state: {
         name: "review_state",
@@ -404,10 +414,12 @@ test("detail prioritizes original, classification, versions, and linked records"
     await animationFrame();
     expect(browser.history.length).toBe(listHistoryLength + 1);
 
-    await contains("button", { text: "Edit" }).click();
-    expect(".o_usl_metadata_document_type").toHaveValue("8");
-    expect(".o_usl_metadata_correspondent").toHaveValue("4");
-    await contains("button", { text: "Cancel" }).click();
+    expect(".o_usl_inline_metadata").toHaveCount(1);
+    expect(".o_usl_inline_metadata select").toHaveCount(0);
+    expect("#usl_document_title").toHaveValue("Supplier invoice");
+    expect("#usl_document_type").toHaveValue("Invoice");
+    expect("#usl_document_correspondent").toHaveValue("Supplier");
+    expect("#usl_document_date").toHaveCount(1);
     expect(".o_usl_detail_section h6").toHaveText(/File versions/);
     expect(".o_usl_detail_section .text-bg-primary").toHaveText(/Current/);
     expect(".o_usl_documents_detail").toHaveText(/Received original/);
@@ -670,7 +682,7 @@ test("Back from a record-context workspace returns to the linked record", async 
     expect(returnedOptions).toEqual({ clearBreadcrumbs: true });
 });
 
-test("native search offers OCR content and Paperless custom-field facets", async () => {
+test("native search defaults to broad archive search and keeps specialist fields advanced", async () => {
     let lastDomain = [];
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
         lastDomain = kwargs.search_domain;
@@ -681,19 +693,26 @@ test("native search offers OCR content and Paperless custom-field facets", async
     });
 
     await contains(".o_searchview_input").fill("heliotrope");
+    expect(".o_searchview_autocomplete").toHaveText(/Search everywhere/);
     expect(".o_searchview_autocomplete").toHaveText(/Document content/);
-    expect(".o_searchview_autocomplete").toHaveText(/Additional details/);
-    await contains(
-        ".o_searchview_autocomplete .o-dropdown-item:nth-child(2)"
-    ).click();
+    expect(".o_searchview_autocomplete").not.toHaveText(/Additional details/);
+    await contains(".o_searchview_autocomplete .o-dropdown-item").click();
 
     expect(lastDomain).toEqual([
-        ["custom_field_text", "ilike", "heliotrope"],
+        ["all_text", "ilike", "heliotrope"],
     ]);
-    expect(".o_searchview_facet").toHaveText(/Additional details/);
+    expect(".o_searchview_facet").toHaveText(/Search everywhere/);
     expect(".o_searchview_facet").toHaveText(/heliotrope/);
+    const encodedDomain = browser.location.href
+        .split("domain=")[1]
+        .split("&")[0];
+    expect(encodedDomain.includes("+")).toBe(false);
+    expect(decodeURIComponent(encodedDomain)).toBe(
+        '[("all_text", "ilike", "heliotrope")]'
+    );
 });
 
+test.tags("desktop");
 test("tags are searchable, removable, and creatable from document details", async () => {
     const existingTag = {
         id: 31,
@@ -738,6 +757,7 @@ test("tags are searchable, removable, and creatable from document details", asyn
     }));
     onRpc("usl.document", "document_detail", () => detail);
     onRpc("usl.paperless.tag", "create", () => [newTag.id]);
+    onRpc("usl.paperless.tag", "web_name_search", () => []);
     onRpc("usl.document", "update_archive_metadata", ({ args }) => {
         const tagIds = args[1].tag_ids;
         detail = {
@@ -752,12 +772,95 @@ test("tags are searchable, removable, and creatable from document details", asyn
     });
     await contains(".o_usl_document_card").click();
     await animationFrame();
-    await contains("button", { text: "Add tag" }).click();
-    await contains(".o_usl_tag_picker input").fill("Board approved");
-    await contains(".o_usl_tag_picker button.text-primary").click();
+    await contains(".o_usl_tag_autocomplete input").edit("Board approved", {
+        confirm: false,
+    });
+    await runAllTimers();
+    await contains(".o_m2o_dropdown_option_create").click();
     expect(".o_usl_detail_tags").toHaveText(/Board approved/);
+    await contains(".o_usl_tag_autocomplete input").click();
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(1);
+    await contains("section h6", { text: "Linked records" }).click();
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(0);
     await contains("button[aria-label='Remove tag Accounting']").click();
     expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
+});
+
+test.tags("desktop");
+test("correspondent and document type quick creation save inline without an edit mode", async () => {
+    const document = {
+        id: 33,
+        name: "Unclassified evidence",
+        paperless_id: 133,
+        date: "2026-07-30",
+        company: "USL",
+        review_state: "needs_attention",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        correspondent_id: false,
+        document_type: "",
+        document_type_id: false,
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    let detail = {
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: false,
+        versions: [],
+        links: [],
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [{ ...document, ...detail }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail);
+    onRpc("usl.paperless.document.type", "web_name_search", () => []);
+    onRpc("usl.paperless.correspondent", "web_name_search", () => []);
+    onRpc("res.partner", "web_name_search", () => []);
+    onRpc("usl.paperless.document.type", "create", () => [41]);
+    onRpc("usl.paperless.correspondent", "create", () => [42]);
+    onRpc("usl.document", "update_archive_metadata", ({ args }) => {
+        const values = args[1];
+        if (values.document_type_id === 41) {
+            detail = {
+                ...detail,
+                document_type_id: 41,
+                document_type: "Policy",
+            };
+        }
+        if (values.correspondent_id === 42) {
+            detail = {
+                ...detail,
+                correspondent_id: 42,
+                correspondent: "Archive sender",
+            };
+        }
+        return detail;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    await contains("#usl_document_type").edit("Policy", { confirm: false });
+    await runAllTimers();
+    await contains(".o_m2o_dropdown_option_create").click();
+    expect("#usl_document_type").toHaveValue("Policy");
+
+    await contains("#usl_document_correspondent").edit("Archive sender", {
+        confirm: false,
+    });
+    await runAllTimers();
+    await contains(".o_m2o_dropdown_option_create").click();
+    expect("#usl_document_correspondent").toHaveValue("Archive sender");
+    expect(".o_usl_inline_metadata select").toHaveCount(0);
 });
 
 test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", async () => {
@@ -786,7 +889,7 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
                                   name: "Group by company",
                                   icon: "fa-building-o",
                                   kind: "group",
-                                  group_by: "company_id",
+                                  group_by: ["company_id"],
                                   domain: [],
                               },
                               {
@@ -795,7 +898,7 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
                                   name: "Needs review",
                                   icon: "fa-exclamation-circle",
                                   kind: "filter",
-                                  group_by: false,
+                                  group_by: [],
                                   domain: [
                                       [
                                           "review_state",
@@ -866,6 +969,69 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
     expect(workspaces.at(-1).search_domain).toEqual([
         ["tag_ids", "in", [1]],
     ]);
+});
+
+test("Odoo-style list headers persist validated ordering in the URL", async () => {
+    browser.sessionStorage.setItem(
+        storageKey("global"),
+        JSON.stringify({ workspace: "all", view: "list" })
+    );
+    const orders = [];
+    const document = {
+        id: 81,
+        name: "Sortable evidence",
+        date: "2026-07-30",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "Supplier",
+        document_type: "Invoice",
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        orders.push(kwargs.order_by);
+        return {
+            ...emptyWorkspace,
+            selected_workspace: "all",
+            documents: [document],
+            count: 1,
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_list_table th", { text: "Document" }).click();
+
+    expect(orders.at(-1)).toEqual([{ name: "name", asc: true }]);
+    expect(
+        JSON.parse(
+            new URL(browser.location.href).searchParams.get("orderBy")
+        )
+    ).toEqual([{ name: "name", asc: true }]);
+
+    await contains(".o_list_table th", { text: "Document" }).click();
+    expect(orders.at(-1)).toEqual([{ name: "name", asc: false }]);
+
+    await contains("button[title='Card view']").click();
+    expect(".o_usl_documents_grid").toHaveCount(1);
+    expect(
+        JSON.parse(
+            new URL(browser.location.href).searchParams.get("usl_filters")
+        ).view
+    ).toBe("cards");
+    expect("select[aria-label='Sort documents']").toHaveValue("custom");
+
+    await contains("button[title='Compact list']").click();
+    expect(".o_list_table").toHaveCount(1);
+    expect(
+        JSON.parse(
+            new URL(browser.location.href).searchParams.get("usl_filters")
+        ).view
+    ).toBe("list");
 });
 
 test("Trash shows attribution and keeps linked documents recoverable", async () => {

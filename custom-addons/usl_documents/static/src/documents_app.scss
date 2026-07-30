@@ -183,23 +183,6 @@
         }
     }
 
-    .o_usl_tag_picker {
-        max-height: 320px;
-        overflow-y: auto;
-        background: #fff;
-
-        .list-group-item {
-            color: #172033;
-            background: #fff;
-
-            &:hover,
-            &:focus {
-                color: #172033;
-                background: #edf1f6;
-            }
-        }
-    }
-
     .o_usl_tag_color {
         display: inline-block;
         width: 0.75rem;
@@ -286,6 +269,89 @@
         object-fit: cover;
         border-radius: 0.25rem;
         background: #eef0f2;
+    }
+
+    .o_usl_inline_metadata {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0.75rem 1rem;
+    }
+
+    .o_usl_inline_field {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        &:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .o_input,
+        .o_input_dropdown {
+            width: 100%;
+        }
+    }
+
+    .o_usl_readonly_value {
+        min-height: 2rem;
+        padding: 0.35rem 0;
+        color: var(--o-main-text-color, #374151);
+    }
+
+    .o_usl_tag_autocomplete {
+        max-width: 32rem;
+    }
+
+    .o_list_table {
+        min-width: 920px;
+        table-layout: fixed;
+
+        th {
+            color: var(--o-main-text-color, #374151);
+            background: var(--o-list-header-bg-color, #f8f9fa);
+            vertical-align: middle;
+        }
+
+        th:nth-child(1) {
+            width: 25%;
+        }
+
+        th:nth-child(2) {
+            width: 10%;
+        }
+
+        th:nth-child(3),
+        th:nth-child(4),
+        th:nth-child(5) {
+            width: 13%;
+        }
+
+        th:nth-child(6) {
+            width: 16%;
+        }
+
+        th:nth-child(7) {
+            width: 10%;
+        }
+
+        .o_column_sortable {
+            cursor: pointer;
+            user-select: none;
+
+            i {
+                margin-left: 0.35rem;
+            }
+        }
+
+        td {
+            vertical-align: middle;
+        }
+    }
+
+    .o_usl_list_tags {
+        min-width: 0;
+        overflow: hidden;
     }
 
     .o_usl_documents_detail {

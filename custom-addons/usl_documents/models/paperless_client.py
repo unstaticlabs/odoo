@@ -350,10 +350,18 @@ class PaperlessClient:
             "PATCH", f"/api/documents/{int(document_id)}/", body=values,
         )[0]
 
-    def search(self, text, *, page=1, page_size=50, filters=None):
+    def search(
+        self,
+        text,
+        *,
+        page=1,
+        page_size=50,
+        filters=None,
+        full_text=False,
+    ):
         query = {"page": page, "page_size": page_size}
         if text:
-            query["text"] = text
+            query["query" if full_text else "text"] = text
         query.update(filters or {})
         return self._request("GET", "/api/documents/", query=query)[0]
 

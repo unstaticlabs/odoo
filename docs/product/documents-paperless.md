@@ -45,14 +45,19 @@ The detailed integration contract is in
 ## Find and navigate
 
 The workspace uses Odoo's native search model and SearchBar rather than a
-Documents-only filter form. Ordinary text can target OCR/document content,
-title, tags, correspondent, type, company, source, privacy, review state,
-availability, mapped Contact, employee, archive ID, or Paperless custom-field
-values. Chosen suggestions become normal removable facets. The dropdown
-provides the familiar **Filters**, **Group By**, and **Favorites** columns,
-including date ranges, custom domains, personal saved searches, and practical
-defaults such as My uploads, Needs review, Linked/Not linked, Accounting, HR,
-Company, Correspondent, Type, Employee, Privacy, and month.
+Documents-only filter form. **Search everywhere** is the first/default
+suggestion and searches Paperless OCR, title, correspondent, type, tags, and
+accessible custom fields together with authorized Odoo link labels. Frequent
+field-specific suggestions remain available for Title, Document content, Tags,
+Correspondent, Type, Company, and Date. Specialist fields such as archive
+identity, source, privacy, review state, availability, mapped Contact, and
+employee remain available through the native custom-filter menu without
+crowding the first suggestions. Chosen suggestions become normal removable
+facets. The dropdown provides the familiar **Filters**, **Group By**, and
+**Favorites** columns, including date ranges, custom domains, personal saved
+searches, and practical defaults such as My uploads, Needs review, Linked/Not
+linked, Accounting, HR, Company, Correspondent, Type, Employee, Privacy, and
+month.
 
 Immediately below it, each Smart View may expose a small manager-configured set
 of one-click filters or groupings. The most-used accessible Paperless tags are
@@ -61,7 +66,11 @@ facet; they never replace or hide the active query. Selecting several tag
 chips creates one native facet matching any selected tag, rather than requiring
 every tag simultaneously. Managers maintain reusable shortcuts under
 **Configuration > One-click shortcuts** and choose the Smart Views where each
-one appears.
+one appears. Each shortcut is a shared native Odoo saved search (`ir.filters`)
+containing the same domain, grouping, and ordering that the search bar uses.
+Managers can capture the current query from **Favorites > Save as one-click
+shortcut** or reopen a shortcut in Documents to edit it; personal Favorites
+remain private.
 
 Selected document, selected version, filters, sort, card/list layout, page, and
 scroll position are represented in navigation state. Back closes the detail
@@ -109,6 +118,18 @@ The tag picker is searchable and keyboard-friendly, keeps assigned values in
 context, supports hierarchy and large catalogs, and permits inline tag
 creation. A failed Paperless write rolls the visible state back and reports the
 problem.
+
+Title, correspondent, document type, date, and tags are edited directly in the
+document detail: there is no separate classification edit mode. Relational
+values use Odoo's autocomplete, Search More, quick-create, outside-click, and
+Escape behavior; the date uses Odoo's locale-aware picker. A Contact may be
+selected as the source for a correspondent, but that explicit action creates
+or reuses only the Paperless correspondent and mapping.
+
+Compact mode follows Odoo list conventions. Every labelled column—Document,
+Date, Correspondent, Type, Company, Tags, and Status—can be sorted from its
+header. Ordering, paging, layout, filters, and grouping share the same URL and
+favorite state used by the card view.
 
 An archive correspondent may optionally map to an Odoo Contact:
 

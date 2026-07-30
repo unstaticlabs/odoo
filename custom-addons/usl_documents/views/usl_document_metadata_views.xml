@@ -233,12 +233,16 @@
         <field name="name">usl.document.quick.filter.list</field>
         <field name="model">usl.document.quick.filter</field>
         <field name="arch" type="xml">
-            <list string="One-click Shortcuts" decoration-muted="not active">
+            <list string="One-click Shortcuts" decoration-muted="not active"
+                  create="0">
+                <header>
+                    <button name="action_open_builder" type="object"
+                            string="New shortcut" class="btn-primary"
+                            display="always"/>
+                </header>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="kind"/>
-                <field name="filter_type" optional="hide"/>
-                <field name="field_name" optional="hide"/>
+                <field name="ir_filter_id" string="Saved search"/>
                 <field name="smart_view_ids" widget="many2many_tags"
                        string="Smart views" optional="show"/>
                 <field name="active"/>
@@ -251,6 +255,11 @@
         <field name="model">usl.document.quick.filter</field>
         <field name="arch" type="xml">
             <form string="One-click Shortcut">
+                <header>
+                    <button name="action_edit_in_workspace" type="object"
+                            string="Edit search in Documents"
+                            class="btn-primary"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name"/>
@@ -258,13 +267,10 @@
                     </div>
                     <group>
                         <group>
-                            <field name="kind"/>
-                            <field name="filter_type" invisible="kind != 'filter'"/>
-                            <field name="days"
-                                   invisible="kind != 'filter' or filter_type != 'recent'"/>
-                            <field name="confidentiality"
-                                   invisible="kind != 'filter' or filter_type != 'privacy'"/>
-                            <field name="field_name" invisible="kind != 'group'"/>
+                            <field name="ir_filter_id" readonly="1"/>
+                            <field name="smart_view_ids" widget="many2many_tags"
+                                   domain="[('scope', '=', 'shared')]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                         </group>
                         <group>
                             <field name="icon"/>
@@ -273,26 +279,11 @@
                             <field name="key" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Paperless metadata"
-                           invisible="kind != 'filter' or filter_type not in ('tags', 'correspondents', 'document_types')">
-                        <field name="tag_ids" widget="many2many_tags"
-                               invisible="filter_type != 'tags'"/>
-                        <field name="correspondent_ids" widget="many2many_tags"
-                               invisible="filter_type != 'correspondents'"/>
-                        <field name="document_type_ids" widget="many2many_tags"
-                               invisible="filter_type != 'document_types'"/>
-                    </group>
-                    <group string="Placement">
-                        <field name="smart_view_ids" widget="many2many_tags"
-                               domain="[('scope', '=', 'shared')]"
-                               options="{'no_create': True, 'no_quick_create': True}"/>
-                    </group>
                     <div class="alert alert-info" role="status">
-                        Shortcuts are optional Odoo search controls attached to Smart
-                        Views. Tag, correspondent, and document-type choices use the
-                        synchronized Paperless catalogs. The Smart View’s base
-                        Paperless-compatible definition remains the shared Saved View;
-                        toggling a shortcut does not silently rewrite that definition.
+                        Build or update this shortcut with the same search bar used in
+                        Documents. It can combine filters, groupings, and sorting while
+                        the Smart View’s Paperless-compatible definition remains
+                        unchanged.
                     </div>
                 </sheet>
             </form>

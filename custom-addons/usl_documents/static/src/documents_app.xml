@@ -76,6 +76,79 @@
         </Dialog>
     </t>
 
+    <t t-name="usl_documents.ShortcutSaveDialog">
+        <Dialog title="props.shortcut ? 'Update one-click shortcut' : 'Save as one-click shortcut'"
+                size="'md'">
+            <div t-if="state.loading" class="text-center text-muted p-4">
+                <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading…
+            </div>
+            <div t-else="" class="d-flex flex-column gap-3">
+                <div>
+                    <label class="form-label fw-semibold"
+                           for="usl_shortcut_name">Name</label>
+                    <input id="usl_shortcut_name" class="o_input w-100"
+                           type="text" placeholder="For example: Supplier invoices to review"
+                           t-model.trim="state.name"/>
+                </div>
+                <div class="row g-3">
+                    <div class="col-8">
+                        <label class="form-label fw-semibold"
+                               for="usl_shortcut_icon">Icon</label>
+                        <input id="usl_shortcut_icon" class="o_input w-100"
+                               type="text" placeholder="fa-filter"
+                               t-model.trim="state.icon"/>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label fw-semibold"
+                               for="usl_shortcut_sequence">Order</label>
+                        <input id="usl_shortcut_sequence" class="o_input w-100"
+                               type="number" min="0" t-model="state.sequence"/>
+                    </div>
+                </div>
+                <div>
+                    <span class="form-label fw-semibold d-block">
+                        Show in Smart Views
+                    </span>
+                    <div class="border rounded p-2">
+                        <label t-foreach="state.smartViews" t-as="view"
+                               t-key="view.id"
+                               class="d-flex align-items-center gap-2 py-1">
+                            <input type="checkbox"
+                                   t-att-checked="state.selectedViewIds.includes(view.id)"
+                                   t-on-change="() => this.toggleView(view.id)"/>
+                            <span t-esc="view.name"/>
+                        </label>
+                    </div>
+                </div>
+                <p class="small text-muted mb-0">
+                    The current filters, grouping, and sorting are saved. The parent
+                    Smart View remains the Paperless-synchronized base view.
+                </p>
+            </div>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-secondary"
+                        t-att-disabled="state.saving"
+                        t-on-click="props.close">Cancel</button>
+                <button type="button" class="btn btn-primary"
+                        t-att-disabled="state.loading || state.saving || !state.name.trim()"
+                        t-on-click="save">
+                    <i t-if="state.saving"
+                       class="fa fa-circle-o-notch fa-spin me-1"/>
+                    Save shortcut
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="usl_documents.ShortcutFavoriteItem">
+        <DropdownItem t-if="state.allowed"
+                      class="'o_menu_item text-truncate'"
+                      onSelected.bind="open">
+            <i class="fa fa-bolt me-2 text-primary"/>
+            Save as one-click shortcut
+        </DropdownItem>
+    </t>
+
     <t t-name="usl_documents.DocumentsWorkspace">
         <WithSearch t-props="withSearchProps" t-slot-scope="search">
             <DocumentsWorkspaceView t-props="this.props"
@@ -118,6 +191,24 @@
 
             <main class="flex-grow-1 min-w-0 d-flex flex-column">
                 <header class="o_usl_documents_toolbar border-bottom bg-white p-3">
+                    <div t-if="state.shortcutBuilder"
+                         class="alert alert-info py-2 mb-3 d-flex flex-wrap align-items-center gap-2">
+                        <i class="fa fa-bolt"/>
+                        <div class="flex-grow-1">
+                            <strong>
+                                <t t-if="state.shortcutBuilderValues">Edit one-click shortcut</t>
+                                <t t-else="">Create a one-click shortcut</t>
+                            </strong>
+                            <div class="small">
+                                Build it with the search bar, Filters, Group By, and
+                                sortable list headers, then save.
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm"
+                                t-on-click="openShortcutSaveDialog">
+                            Save shortcut
+                        </button>
+                    </div>
                     <div t-if="recordContext" class="alert alert-info py-2 mb-3">
                         Upload a document or choose one from the archive to link it to
                         this record.
@@ -126,13 +217,26 @@
                         <div class="flex-grow-1 o_usl_documents_search">
                             <SearchBar/>
                         </div>
-                        <select class="form-select o_usl_sort_select"
-                                t-model="state.sort"
-                                t-on-change="(event) => this.updateFilter('sort', event)"
+                        <select t-if="state.view === 'cards'"
+                                class="form-select o_usl_sort_select"
+                                t-on-change="setCardSort"
                                 aria-label="Sort documents">
-                            <option value="recent">Document date</option>
-                            <option value="ingested">Recently added</option>
-                            <option value="title">Title</option>
+                            <option t-if="cardSort === 'custom'" value="custom"
+                                    disabled="disabled" selected="selected">
+                                Custom sorting
+                            </option>
+                            <option value="recent"
+                                    t-att-selected="cardSort === 'recent'">
+                                Document date
+                            </option>
+                            <option value="ingested"
+                                    t-att-selected="cardSort === 'ingested'">
+                                Recently added
+                            </option>
+                            <option value="title"
+                                    t-att-selected="cardSort === 'title'">
+                                Title
+                            </option>
                         </select>
                         <div class="btn-group">
                             <button type="button"
@@ -371,58 +475,110 @@
                                 </div>
                             </article>
                         </div>
-                        <div t-else="" class="list-group shadow-sm">
-                            <button t-foreach="documentGroup.documents" t-as="document"
-                                    t-key="document.id" type="button"
-                                    class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                                    t-on-click="() => this.select(document)">
-                                <img t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
-                                     class="o_usl_document_list_thumb" alt=""/>
-                                <div class="flex-grow-1 min-w-0">
-                                    <strong class="d-block text-truncate"
-                                            t-esc="document.name"/>
-                                    <small class="text-muted">
-                                        <t t-esc="document.correspondent || 'Unknown correspondent'"/>
-                                        <t t-if="document.document_type">
-                                            · <t t-esc="document.document_type"/>
-                                        </t>
-                                    </small>
-                                    <div t-if="document.tags.length"
-                                         class="d-flex flex-wrap gap-1 mt-1">
-                                        <span t-foreach="document.tags.slice(0, 3)"
-                                              t-as="tag" t-key="tag.id"
-                                              class="o_usl_tag_chip"
-                                              t-att-style="'--tag-color:' + tag.color + ';--tag-text:' + tag.text_color"
-                                              t-esc="tag.name"/>
-                                    </div>
-                                </div>
-                                <span t-if="document.primary_link"
-                                      class="small text-muted text-truncate d-none d-xl-inline"
-                                      style="max-width:220px">
-                                    <i class="fa fa-link me-1"/>
-                                    <t t-esc="document.primary_link.name"/>
-                                </span>
-                                <span class="text-muted" t-esc="document.date"/>
-                                <span t-if="document.review_state === 'needs_attention'"
-                                      class="badge text-bg-warning">Needs review</span>
-                                <span t-if="document.access_error"
-                                      class="badge text-bg-danger">Access error</span>
-                                <span t-if="document.availability_state === 'trashed'"
-                                      class="badge text-bg-secondary">In Trash</span>
-                            </button>
+                        <div t-else=""
+                             class="o_list_renderer table-responsive border rounded bg-white shadow-sm">
+                            <table class="o_list_table table table-sm table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('name')">
+                                            Document
+                                            <i t-att-class="sortIcon('name')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('document_date')">
+                                            Date
+                                            <i t-att-class="sortIcon('document_date')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('correspondent_id')">
+                                            Correspondent
+                                            <i t-att-class="sortIcon('correspondent_id')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('document_type_id')">
+                                            Type
+                                            <i t-att-class="sortIcon('document_type_id')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('company_id')">
+                                            Company
+                                            <i t-att-class="sortIcon('company_id')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('tag_sort_key')">
+                                            Tags
+                                            <i t-att-class="sortIcon('tag_sort_key')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('status_sort_key')">
+                                            Status
+                                            <i t-att-class="sortIcon('status_sort_key')"/>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="documentGroup.documents"
+                                        t-as="document" t-key="document.id"
+                                        class="o_data_row cursor-pointer"
+                                        tabindex="0"
+                                        t-on-click="() => this.select(document)"
+                                        t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                                <img t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
+                                                     class="o_usl_document_list_thumb" alt=""/>
+                                                <div class="min-w-0">
+                                                    <strong class="d-block text-truncate"
+                                                            t-esc="document.name"/>
+                                                    <small t-if="document.primary_link"
+                                                           class="d-block text-muted text-truncate">
+                                                        <i class="fa fa-link me-1"/>
+                                                        <t t-esc="document.primary_link.name"/>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-nowrap text-muted"
+                                            t-esc="document.date || '—'"/>
+                                        <td class="text-truncate"
+                                            t-esc="document.correspondent || '—'"/>
+                                        <td class="text-truncate"
+                                            t-esc="document.document_type || '—'"/>
+                                        <td class="text-truncate"
+                                            t-esc="document.company || '—'"/>
+                                        <td>
+                                            <div class="d-flex gap-1 o_usl_list_tags">
+                                                <span t-foreach="document.tags.slice(0, 2)"
+                                                      t-as="tag" t-key="tag.id"
+                                                      class="o_usl_tag_chip"
+                                                      t-att-style="'--tag-color:' + tag.color"
+                                                      t-esc="tag.name"/>
+                                                <span t-if="document.tags.length &gt; 2"
+                                                      class="badge rounded-pill text-bg-light">
+                                                    +<t t-esc="document.tags.length - 2"/>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span t-if="document.access_error"
+                                                  class="badge text-bg-danger">Access error</span>
+                                            <span t-elif="document.availability_state === 'trashed'"
+                                                  class="badge text-bg-secondary">In Trash</span>
+                                            <span t-elif="document.availability_state !== 'available'"
+                                                  class="badge text-bg-danger">Unavailable</span>
+                                            <span t-elif="document.review_state === 'needs_attention'"
+                                                  class="badge text-bg-warning">Needs review</span>
+                                            <span t-else="" class="badge text-bg-light">Ready</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                         </section>
-                        <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
-                            <button class="btn btn-outline-secondary" type="button"
-                                    t-on-click="previousPage"
-                                    t-att-disabled="state.page === 1">Previous</button>
-                            <span>Page <t t-esc="state.page"/></span>
-                            <button class="btn btn-outline-secondary" type="button"
-                                    t-on-click="nextPage"
-                                    t-att-disabled="state.page * state.pageSize >= state.count">
-                                Next
-                            </button>
-                        </nav>
+                        <div class="d-flex justify-content-center mt-4">
+                            <Pager t-props="pagerProps"/>
+                        </div>
                     </t>
                 </section>
             </main>
@@ -482,84 +638,52 @@
                     </div>
 
                     <section class="p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-3">
                             <h6 class="mb-0">Classification</h6>
-                            <button t-if="state.selected.can_edit &amp;&amp; !state.editingMetadata"
-                                    class="btn btn-sm btn-link text-decoration-none"
-                                    type="button" t-on-click="beginMetadataEdit">
-                                <i class="fa fa-pencil me-1"/>Edit
-                            </button>
+                            <span t-if="isSavingMetadata"
+                                  class="small text-muted" role="status">
+                                <i class="fa fa-spinner fa-spin me-1"/>Saving…
+                            </span>
                         </div>
-                        <t t-if="state.editingMetadata">
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold">Title</label>
-                                <input class="form-control form-control-sm" type="text"
-                                       t-att-value="state.metadataDraft.name"
-                                       t-on-input="(event) => this.updateMetadataDraft('name', event)"/>
+                        <div class="o_usl_inline_metadata">
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_title"
+                                       class="small fw-semibold">Title</label>
+                                <input id="usl_document_title"
+                                       class="o_input"
+                                       type="text"
+                                       t-att-value="state.selected.name"
+                                       t-att-disabled="!state.selected.can_edit || state.savingFields.name"
+                                       t-on-blur="saveTitle"
+                                       t-on-keydown="onTitleKeydown"/>
                             </div>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold">Document type</label>
-                                    <select class="form-select form-select-sm o_usl_metadata_document_type"
-                                            t-att-value="state.metadataDraft.document_type_id || ''"
-                                            t-on-change="(event) => this.updateMetadataDraft('document_type_id', event)">
-                                        <option value=""
-                                                t-att-selected="!state.metadataDraft.document_type_id">
-                                            Not set
-                                        </option>
-                                        <option t-foreach="state.documentTypes"
-                                                t-as="documentType" t-key="documentType.id"
-                                                t-att-value="documentType.id"
-                                                t-att-selected="state.metadataDraft.document_type_id === documentType.id"
-                                                t-esc="documentType.name"/>
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold">Correspondent</label>
-                                    <select class="form-select form-select-sm o_usl_metadata_correspondent"
-                                            t-att-value="state.metadataDraft.correspondent_id || ''"
-                                            t-on-change="(event) => this.updateMetadataDraft('correspondent_id', event)">
-                                        <option value=""
-                                                t-att-selected="!state.metadataDraft.correspondent_id">
-                                            Not set
-                                        </option>
-                                        <option t-foreach="state.correspondents"
-                                                t-as="correspondent" t-key="correspondent.id"
-                                                t-att-value="correspondent.id"
-                                                t-att-selected="state.metadataDraft.correspondent_id === correspondent.id"
-                                                t-esc="correspondent.name"/>
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold">Document date</label>
-                                    <input class="form-control form-control-sm" type="date"
-                                           t-att-value="state.metadataDraft.document_date || ''"
-                                           t-on-change="(event) => this.updateMetadataDraft('document_date', event)"/>
-                                </div>
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_type"
+                                       class="small fw-semibold">Document type</label>
+                                <Many2One t-props="documentTypeProps"/>
                             </div>
-                            <div class="d-flex justify-content-end gap-2 mt-3">
-                                <button type="button" class="btn btn-sm btn-outline-secondary"
-                                        t-on-click="cancelMetadataEdit">Cancel</button>
-                                <button type="button" class="btn btn-sm btn-primary"
-                                        t-att-disabled="state.savingMetadata"
-                                        t-on-click="saveMetadata">
-                                    <t t-if="state.savingMetadata">Saving…</t>
-                                    <t t-else="">Save</t>
-                                </button>
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_correspondent"
+                                       class="small fw-semibold">Correspondent</label>
+                                <Many2One t-props="correspondentProps"/>
                             </div>
-                        </t>
-                        <t t-else="">
-                            <dl class="row small mb-2">
-                                <dt class="col-4">Type</dt>
-                                <dd class="col-8" t-esc="state.selected.document_type || 'Not set'"/>
-                                <dt class="col-4">From</dt>
-                                <dd class="col-8" t-esc="state.selected.correspondent || 'Not set'"/>
-                                <dt class="col-4">Date</dt>
-                                <dd class="col-8" t-esc="state.selected.date || 'Not set'"/>
-                                <dt class="col-4">Company</dt>
-                                <dd class="col-8" t-esc="state.selected.company || 'Needs review'"/>
-                            </dl>
-                        </t>
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_date"
+                                       class="small fw-semibold">Document date</label>
+                                <DateTimeInput
+                                    id="'usl_document_date'"
+                                    type="'date'"
+                                    value="documentDateValue"
+                                    disabled="!state.selected.can_edit || state.savingFields.document_date"
+                                    placeholder="'Choose a date…'"
+                                    onApply.bind="saveDocumentDate"/>
+                            </div>
+                            <div class="o_usl_inline_field">
+                                <span class="small fw-semibold">Company</span>
+                                <span class="o_usl_readonly_value"
+                                      t-esc="state.selected.company || 'Needs review'"/>
+                            </div>
+                        </div>
                         <div class="o_usl_detail_tags mt-3">
                             <label class="form-label small fw-semibold mb-2">Tags</label>
                             <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -577,50 +701,14 @@
                                         <i class="fa fa-times"/>
                                     </button>
                                 </span>
-                                <button t-if="state.selected.can_edit"
-                                        type="button"
-                                        class="btn btn-sm btn-outline-primary rounded-pill"
-                                        t-on-click="() => state.tagPickerOpen = !state.tagPickerOpen">
-                                    <i class="fa fa-plus me-1"/>Add tag
-                                </button>
                             </div>
-                            <div t-if="!state.selected.tags.length &amp;&amp; !state.tagPickerOpen"
+                            <div t-if="state.selected.can_edit"
+                                 class="o_usl_tag_autocomplete mt-2">
+                                <Many2XAutocomplete t-props="tagAutocompleteProps"/>
+                            </div>
+                            <div t-if="!state.selected.tags.length &amp;&amp; !state.selected.can_edit"
                                  class="small text-muted mt-2">
-                                No tags yet. Add one to make this document easier to find.
-                            </div>
-                            <div t-if="state.tagPickerOpen"
-                                 class="o_usl_tag_picker border rounded p-2 mt-2">
-                                <input class="form-control form-control-sm"
-                                       type="search"
-                                       placeholder="Search tags…"
-                                       aria-label="Search tags"
-                                       t-model="state.tagQuery"/>
-                                <div class="list-group list-group-flush mt-2"
-                                     role="listbox">
-                                    <button t-foreach="tagPickerResults" t-as="tag"
-                                            t-key="tag.id"
-                                            type="button"
-                                            class="list-group-item list-group-item-action py-2"
-                                            t-on-click="() => this.addSelectedTag(tag)">
-                                        <span class="o_usl_tag_color"
-                                              t-att-style="'--tag-color:' + tag.color"/>
-                                        <span t-esc="tag.name"/>
-                                        <small t-if="tag.parent_id"
-                                               class="text-muted ms-1">Nested tag</small>
-                                    </button>
-                                    <button t-if="state.tagQuery.trim() &amp;&amp; !tagPickerResults.some((tag) => tag.name.toLowerCase() === state.tagQuery.trim().toLowerCase())"
-                                            type="button"
-                                            class="list-group-item list-group-item-action text-primary py-2"
-                                            t-att-disabled="state.creatingTag"
-                                            t-on-click="createAndAddTag">
-                                        <i class="fa fa-plus me-2"/>
-                                        Create “<t t-esc="state.tagQuery.trim()"/>”
-                                    </button>
-                                    <div t-if="!tagPickerResults.length &amp;&amp; !state.tagQuery.trim()"
-                                         class="small text-muted p-2">
-                                        Start typing to find a tag.
-                                    </div>
-                                </div>
+                                No tags assigned.
                             </div>
                         </div>
                         <div t-if="state.selected.custom_fields?.length"

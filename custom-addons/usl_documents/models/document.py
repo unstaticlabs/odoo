@@ -32,6 +32,15 @@ class UslDocument(models.Model):
     _order = "document_date desc, paperless_created desc, id desc"
 
     name = fields.Char(required=True, readonly=True, tracking=True)
+    all_text = fields.Char(
+        string="Search everywhere",
+        compute="_compute_search_helpers",
+        search="_search_all_text",
+        help=(
+            "Search OCR content, title, Paperless metadata, additional details, "
+            "and accessible linked Odoo records."
+        ),
+    )
     archive_text = fields.Char(
         string="Document content",
         compute="_compute_search_helpers",
@@ -111,6 +120,18 @@ class UslDocument(models.Model):
         "document_id",
         "tag_id",
         string="Tags",
+        readonly=True,
+    )
+    tag_sort_key = fields.Char(
+        compute="_compute_tag_sort_key",
+        store=True,
+        index=True,
+        readonly=True,
+    )
+    status_sort_key = fields.Char(
+        compute="_compute_status_sort_key",
+        store=True,
+        index=True,
         readonly=True,
     )
     mapped_contact_id = fields.Many2one(
@@ -256,10 +277,25 @@ class UslDocument(models.Model):
 
     def _compute_search_helpers(self):
         for document in self:
+            document.all_text = False
             document.archive_text = False
             document.custom_field_text = False
             document.has_linked_record = bool(document._accessible_active_links())
             document.linked_record_ref = False
+
+    @api.depends("tag_ids", "tag_ids.name")
+    def _compute_tag_sort_key(self):
+        for document in self:
+            document.tag_sort_key = " · ".join(
+                sorted(document.tag_ids.mapped("name"), key=str.casefold),
+            )
+
+    @api.depends("availability_state", "review_state")
+    def _compute_status_sort_key(self):
+        for document in self:
+            document.status_sort_key = (
+                f"{document.availability_state or ''}|{document.review_state or ''}"
+            )
 
     @api.depends("link_ids.active", "link_ids.res_model", "link_ids.res_id")
     def _compute_linked_employee(self):
@@ -280,6 +316,57 @@ class UslDocument(models.Model):
         if not value:
             return []
         ids, _truncated = self._paperless_search_ids(str(value))
+        negative = operator in ("!=", "not like", "not ilike")
+        return [("paperless_id", "not in" if negative else "in", ids)]
+
+    @api.model
+    def _accessible_local_text_ids(self, value):
+        """Supplement Paperless full text with Odoo-owned, authorized labels."""
+        needle = str(value or "").strip().casefold()
+        if not needle:
+            return []
+        matching = set()
+        documents = self.search([])
+        for document in documents:
+            searchable = [
+                document.name,
+                document.original_filename,
+                document.company_id.display_name,
+                document.correspondent_id.name,
+                document.document_type_id.name,
+                document.tag_sort_key,
+            ]
+            searchable.extend(
+                link.record_name
+                for link in document._accessible_active_links()
+            )
+            if any(needle in (item or "").casefold() for item in searchable):
+                matching.add(document.paperless_id)
+        return sorted(matching)
+
+    @api.model
+    def _all_text_search_ids(self, value):
+        ids, truncated = self._paperless_search_ids(
+            str(value),
+            full_text=True,
+        )
+        seen = set(ids)
+        for document_id in (
+            self._custom_field_search_ids(value)
+            + self._accessible_local_text_ids(value)
+        ):
+            if document_id not in seen:
+                ids.append(document_id)
+                seen.add(document_id)
+        return ids, truncated
+
+    @api.model
+    def _search_all_text(self, operator, value):
+        if operator not in ("=", "!=", "like", "not like", "ilike", "not ilike"):
+            raise ValidationError(_("Unsupported broad document search operator."))
+        if not value:
+            return []
+        ids, _truncated = self._all_text_search_ids(value)
         negative = operator in ("!=", "not like", "not ilike")
         return [("paperless_id", "not in" if negative else "in", ids)]
 
@@ -335,7 +422,7 @@ class UslDocument(models.Model):
         return [("paperless_id", "not in" if negative else "in", ids)]
 
     @api.model
-    def _resolve_remote_search_domain(self, domain):
+    def _resolve_remote_search_domain(self, domain, resolved_ids=None):
         """Resolve each Paperless text condition once before Odoo paginates.
 
         ``search_count`` and ``search`` both expand custom search fields.  If
@@ -345,7 +432,11 @@ class UslDocument(models.Model):
         """
 
         def resolve(condition):
-            if condition.field_expr not in ("archive_text", "custom_field_text"):
+            if condition.field_expr not in (
+                "all_text",
+                "archive_text",
+                "custom_field_text",
+            ):
                 return condition
             if not condition.value:
                 return Domain.TRUE
@@ -360,7 +451,14 @@ class UslDocument(models.Model):
                 raise ValidationError(
                     _("Unsupported document-content search operator."),
                 )
-            if condition.field_expr == "archive_text":
+            cache_key = (condition.field_expr, str(condition.value))
+            if resolved_ids and cache_key in resolved_ids:
+                ids = resolved_ids[cache_key]
+            elif condition.field_expr == "all_text":
+                ids, _truncated = self._all_text_search_ids(
+                    str(condition.value),
+                )
+            elif condition.field_expr == "archive_text":
                 ids, _truncated = self._paperless_search_ids(
                     str(condition.value),
                 )
@@ -1095,7 +1193,7 @@ class UslDocument(models.Model):
             return False
 
     @api.model
-    def _paperless_search_ids(self, query, filters=None):
+    def _paperless_search_ids(self, query, filters=None, *, full_text=False):
         """Collect a complete bounded search result before applying Odoo rules.
 
         Paperless is authoritative for text search, while Odoo is authoritative
@@ -1114,6 +1212,7 @@ class UslDocument(models.Model):
                 page=page,
                 page_size=100,
                 filters=filters,
+                full_text=full_text,
             )
             for item in payload.get("results", []):
                 ids.append(int(item["id"]))
@@ -1143,6 +1242,69 @@ class UslDocument(models.Model):
             "archive_name": correspondent.name,
             "partner_id": partner.id,
         }
+
+    @api.model
+    def _broad_search_terms(self, domain):
+        """Return positive Search-everywhere terms from a serialized domain."""
+        terms = []
+
+        def visit(node):
+            if not isinstance(node, (list, tuple)):
+                return
+            if (
+                len(node) >= 3
+                and node[0] == "all_text"
+                and node[1] in ("=", "like", "ilike")
+                and node[2]
+            ):
+                terms.append(str(node[2]))
+                return
+            for child in node:
+                visit(child)
+
+        visit(domain or [])
+        return terms
+
+    @api.model
+    def _workspace_order(self, order_by, legacy_sort):
+        allowed = {
+            "name",
+            "document_date",
+            "paperless_created",
+            "correspondent_id",
+            "document_type_id",
+            "company_id",
+            "tag_sort_key",
+            "status_sort_key",
+            "review_state",
+            "availability_state",
+        }
+        normalized = []
+        if order_by:
+            if not isinstance(order_by, list) or len(order_by) > 3:
+                raise ValidationError(_("Invalid document ordering."))
+            for term in order_by:
+                if not isinstance(term, dict) or term.get("name") not in allowed:
+                    raise ValidationError(_("Unsupported document ordering field."))
+                normalized.append(
+                    (
+                        term["name"],
+                        bool(term.get("asc", True)),
+                    ),
+                )
+        if not normalized:
+            return {
+                "recent": "document_date desc, id desc",
+                "ingested": "paperless_created desc, id desc",
+                "date": "document_date desc, id desc",
+                "title": "name asc, id asc",
+            }.get(legacy_sort, "paperless_created desc, id desc")
+        clauses = [
+            f"{field_name} {'asc' if ascending else 'desc'}"
+            for field_name, ascending in normalized
+        ]
+        clauses.append(f"id {'asc' if normalized[-1][1] else 'desc'}")
+        return ", ".join(clauses)
 
     @api.model
     def _workspace_document_values(self, item):
@@ -1248,6 +1410,7 @@ class UslDocument(models.Model):
         shortcut_tag_ids=None,
         group_by=None,
         sort="recent",
+        order_by=None,
     ):
         page = max(1, int(page))
         page_size = min(100, max(1, int(page_size)))
@@ -1261,9 +1424,21 @@ class UslDocument(models.Model):
         if search_domain:
             if not isinstance(search_domain, list):
                 raise ValidationError(_("Invalid search filters."))
+        broad_terms = self._broad_search_terms(search_domain)
+        resolved_ids = {}
+        relevance_paperless_ids = []
+        truncated = False
+        for term in broad_terms:
+            ids, term_truncated = self._all_text_search_ids(term)
+            resolved_ids[("all_text", term)] = ids
+            truncated = truncated or term_truncated
+            for paperless_document_id in ids:
+                if paperless_document_id not in relevance_paperless_ids:
+                    relevance_paperless_ids.append(paperless_document_id)
         try:
             native_domain = self._resolve_remote_search_domain(
                 Domain(search_domain or []),
+                resolved_ids=resolved_ids,
             )
         except PaperlessError as error:
             return {
@@ -1420,13 +1595,13 @@ class UslDocument(models.Model):
             paperless_filters["custom_field_query"] = json.dumps(
                 [custom_field["name"], operator, value],
             )
-        truncated = False
         if query or paperless_filters:
             try:
-                ids, truncated = self._paperless_search_ids(
+                ids, query_truncated = self._paperless_search_ids(
                     query,
                     filters=paperless_filters or None,
                 )
+                truncated = truncated or query_truncated
                 domain.append(("paperless_id", "in", ids))
             except PaperlessError as error:
                 return {
@@ -1436,17 +1611,44 @@ class UslDocument(models.Model):
                     "error": str(error),
                 }
         domain = Domain.AND([Domain(domain), native_domain])
-        order = {
-            "recent": "document_date desc, id desc",
-            "ingested": "paperless_created desc, id desc",
-            "date": "document_date desc, id desc",
-            "title": "name asc, id asc",
-        }.get(sort, "paperless_created desc, id desc")
+        order = self._workspace_order(order_by, sort)
         try:
-            count = self.search_count(domain)
-            documents = self.search(
-                domain, order=order, offset=(page - 1) * page_size, limit=page_size,
-            )
+            if relevance_paperless_ids and not order_by and not query:
+                matching = self.search(domain)
+                by_paperless_id = {
+                    document.paperless_id: document.id
+                    for document in matching
+                }
+                ordered_ids = [
+                    by_paperless_id[paperless_id]
+                    for paperless_id in relevance_paperless_ids
+                    if paperless_id in by_paperless_id
+                ]
+                ordered_id_set = set(ordered_ids)
+                ordered_ids.extend(
+                    document.id
+                    for document in matching.sorted(
+                        key=lambda item: (
+                            item.document_date or fields.Date.from_string("1970-01-01"),
+                            item.id,
+                        ),
+                        reverse=True,
+                    )
+                    if document.id not in ordered_id_set
+                )
+                count = len(ordered_ids)
+                page_ids = ordered_ids[
+                    (page - 1) * page_size : page * page_size
+                ]
+                documents = self.browse(page_ids)
+            else:
+                count = self.search_count(domain)
+                documents = self.search(
+                    domain,
+                    order=order,
+                    offset=(page - 1) * page_size,
+                    limit=page_size,
+                )
         except PaperlessError as error:
             return {
                 "documents": [],

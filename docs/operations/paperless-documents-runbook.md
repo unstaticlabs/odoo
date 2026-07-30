@@ -287,18 +287,15 @@ roots, permission failures, or checksum failures. The timestamped artifacts
 were written outside the repository under `/tmp`; that location is evidence
 for the disposable rehearsal, not a production backup destination.
 
-The final frontend acceptance passed both desktop and mobile QUnit variants:
-19 tests and 109 assertions in each, including native search suggestions,
-native tag facets, a bounded searchable large-tag picker, Smart View
-shortcuts, one-click detail history normalization, linked-record return
-navigation, Trash attribution and deletion gates, and an open-detail
-no-overflow assertion. Live browser review exercised the native OCR facet,
-additive top tag facet, real document detail, preview, classification, and
-original download. Responsive review at 1280×720, 768×1024, and 390×844 opened
-a real document detail without page overflow, clipped document actions,
-browser exceptions, or failed HTTP responses. The previously failing
-active-navigation and tag-chip states measured 7.23:1 and 12.26:1 contrast
-respectively.
+The frontend gate runs the Documents QUnit suite in both desktop and mobile
+presets. It covers native search suggestions and facets, shared native saved
+searches, inline classification, autocomplete quick creation and dismissal,
+native tag facets, large catalogs, Smart View shortcuts, sortable URL-backed
+list ordering, linked-record return navigation, Trash attribution/deletion
+gates, and open-detail overflow. Record the current passed test/assertion count
+from the command output instead of copying a historical count into a release
+claim. Browser review must additionally exercise real archive data at desktop,
+tablet, and mobile widths and report console/network failures honestly.
 
 The target stops the isolated restored project after evidence capture and
 preserves its volumes until review. Never pass `--volumes` to a manual cleanup

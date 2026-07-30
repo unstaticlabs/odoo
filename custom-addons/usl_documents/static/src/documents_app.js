@@ -16,12 +16,22 @@ import { Domain } from "@web/core/domain";
 import { router } from "@web/core/browser/router";
 import { loadPDFJSAssets } from "@web/core/utils/pdfjs";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import { Dialog } from "@web/core/dialog/dialog";
+import { DropdownItem } from "@web/core/dropdown/dropdown_item";
+import { deserializeDate, serializeDate } from "@web/core/l10n/dates";
+import { Pager } from "@web/core/pager/pager";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { SearchBar } from "@web/search/search_bar/search_bar";
 import { WithSearch } from "@web/search/with_search/with_search";
+import { useSetupAction } from "@web/search/action_hook";
+import { Many2One } from "@web/views/fields/many2one/many2one";
+import {
+    Many2XAutocomplete,
+    useSelectCreate,
+} from "@web/views/fields/relational_utils";
 import { getDefaultConfig } from "@web/views/view";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
@@ -259,9 +269,138 @@ export class PermanentDeleteDialog extends Component {
     }
 }
 
+export class ShortcutSaveDialog extends Component {
+    static template = "usl_documents.ShortcutSaveDialog";
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        shortcut: { type: [Object, { value: false }], optional: true },
+        onSaved: { type: Function, optional: true },
+    };
+
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.state = useState({
+            loading: true,
+            saving: false,
+            name: this.props.shortcut?.name || "",
+            icon: this.props.shortcut?.icon || "fa-filter",
+            sequence: this.props.shortcut?.sequence || 10,
+            selectedViewIds: [...(this.props.shortcut?.smart_view_ids || [])],
+            smartViews: [],
+        });
+        onWillStart(async () => {
+            const values = await this.orm.call(
+                "usl.document.quick.filter",
+                "builder_values",
+                [this.props.shortcut?.id || false]
+            );
+            this.state.smartViews = values.smart_views || [];
+            if (!this.props.shortcut && values.shortcut) {
+                Object.assign(this.state, {
+                    name: values.shortcut.name,
+                    icon: values.shortcut.icon,
+                    sequence: values.shortcut.sequence,
+                    selectedViewIds: values.shortcut.smart_view_ids,
+                });
+            }
+            this.state.loading = false;
+        });
+    }
+
+    toggleView(viewId) {
+        const selected = new Set(this.state.selectedViewIds);
+        if (selected.has(viewId)) {
+            selected.delete(viewId);
+        } else {
+            selected.add(viewId);
+        }
+        this.state.selectedViewIds = [...selected];
+    }
+
+    async save() {
+        const name = this.state.name.trim();
+        if (!name || this.state.saving) {
+            return;
+        }
+        this.state.saving = true;
+        try {
+            const nativeValues = this.env.searchModel.getIrFilterValues({
+                description: name,
+                isShared: true,
+            });
+            const shortcut = await this.orm.call(
+                "usl.document.quick.filter",
+                "save_from_search",
+                [name, {
+                    domain: nativeValues.domain,
+                    context: nativeValues.context,
+                    sort: nativeValues.sort,
+                }],
+                {
+                    shortcut_id: this.props.shortcut?.id || false,
+                    icon: this.state.icon,
+                    sequence: Number(this.state.sequence) || 10,
+                    smart_view_ids: this.state.selectedViewIds,
+                }
+            );
+            this.notification.add("One-click shortcut saved.", {
+                type: "success",
+            });
+            await this.props.onSaved?.(shortcut);
+            this.props.close();
+        } catch (error) {
+            this.notification.add(
+                error.data?.message ||
+                    error.message ||
+                    "The shortcut could not be saved.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.saving = false;
+        }
+    }
+}
+
+export class ShortcutFavoriteItem extends Component {
+    static template = "usl_documents.ShortcutFavoriteItem";
+    static components = { DropdownItem };
+    static props = {};
+
+    setup() {
+        this.dialog = useService("dialog");
+        this.state = useState({ allowed: false });
+        onWillStart(async () => {
+            this.state.allowed =
+                this.env.searchModel.resModel === "usl.document" &&
+                (await user.hasGroup(
+                    "usl_documents.group_documents_manager"
+                ));
+        });
+    }
+
+    open() {
+        this.dialog.add(ShortcutSaveDialog, {});
+    }
+}
+
+registry.category("favoriteMenu").add(
+    "usl-documents-one-click-shortcut",
+    { Component: ShortcutFavoriteItem, groupNumber: 4 },
+    { sequence: 10 }
+);
+
 export class DocumentsWorkspaceView extends Component {
     static template = "usl_documents.DocumentsWorkspaceView";
-    static components = { DocumentPreview, SearchBar };
+    static components = {
+        DateTimeInput,
+        DocumentPreview,
+        Many2One,
+        Many2XAutocomplete,
+        Pager,
+        SearchBar,
+    };
     static props = {
         ...standardActionServiceProps,
         context: { type: Object, optional: true },
@@ -277,7 +416,18 @@ export class DocumentsWorkspaceView extends Component {
         this.dialog = useService("dialog");
         this.notification = useService("notification");
         this.searchModel = this.env.searchModel;
+        this.selectContact = useSelectCreate({
+            resModel: "res.partner",
+            activeActions: { create: false },
+            onSelected: (partnerId) =>
+                this.createCorrespondentFromPartner(
+                    Array.isArray(partnerId) ? partnerId[0] : partnerId
+                ),
+            onCreateEdit: () => {},
+        });
         const params = this.props.action.params || {};
+        this.shortcutBuilderRequested = Boolean(params.shortcut_builder);
+        this.shortcutBuilderId = Number(params.shortcut_id) || false;
         this.recordContext =
             params.res_model && params.res_id
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
@@ -346,7 +496,6 @@ export class DocumentsWorkspaceView extends Component {
         this.state = useState({
             loading: true,
             uploading: false,
-            savingMetadata: false,
             savingView: false,
             dragged: false,
             degraded: false,
@@ -360,6 +509,14 @@ export class DocumentsWorkspaceView extends Component {
             sort: ["recent", "ingested", "date", "title"].includes(restored.sort)
                 ? restored.sort
                 : "recent",
+            orderBy: Array.isArray(restored.orderBy)
+                ? restored.orderBy.filter(
+                      (term) =>
+                          term &&
+                          typeof term.name === "string" &&
+                          typeof term.asc === "boolean"
+                  )
+                : this.searchModel.orderBy,
             ...this.restoreFilters(restored),
             moreFilters: false,
             savedViewName: "",
@@ -379,18 +536,32 @@ export class DocumentsWorkspaceView extends Component {
             documents: [],
             selected: null,
             selectedLoading: false,
-            editingMetadata: false,
-            metadataDraft: null,
-            tagPickerOpen: false,
-            tagQuery: "",
+            savingFields: {},
             tagShortcutQuery: "",
-            creatingTag: false,
             operation: null,
             failedOperations: [],
             canUpload: false,
             truncated: false,
+            shortcutBuilder: false,
+            shortcutBuilderValues: false,
         });
         this.searchReady = false;
+        this.metadataSaveQueue = Promise.resolve();
+        useSetupAction({
+            getOrderBy: () => this.state.orderBy,
+        });
+        onWillUpdateProps((nextProps) => {
+            const nextOrderBy = Array.isArray(nextProps.orderBy)
+                ? nextProps.orderBy
+                : [];
+            if (
+                JSON.stringify(nextOrderBy) !==
+                JSON.stringify(this.props.orderBy || [])
+            ) {
+                this.state.orderBy = nextOrderBy;
+                this.state.page = 1;
+            }
+        });
         this.pollingOperationIds = new Set();
         this.customFieldFilterTimer = null;
         this.closeHistoryTimer = null;
@@ -401,6 +572,9 @@ export class DocumentsWorkspaceView extends Component {
         this.onPopState = (event) => this.handlePopState(event);
         useBus(this.searchModel, "update", () => this.onNativeSearchUpdate());
         onWillStart(async () => {
+            if (this.shortcutBuilderRequested) {
+                await this.prepareShortcutBuilder();
+            }
             await this.load();
             if (this.migrateLegacyTagFilters()) {
                 await this.load();
@@ -482,6 +656,50 @@ export class DocumentsWorkspaceView extends Component {
 
     get sharedViews() {
         return this.state.smartViews.filter((view) => !view.personal);
+    }
+
+    async prepareShortcutBuilder() {
+        const values = await this.orm.call(
+            "usl.document.quick.filter",
+            "builder_values",
+            [this.shortcutBuilderId]
+        );
+        this.state.shortcutBuilder = true;
+        this.state.shortcutBuilderValues = values.shortcut || false;
+        const shortcut = values.shortcut;
+        if (!shortcut) {
+            return;
+        }
+        this.searchModel.clearQuery();
+        if (shortcut.domain?.length) {
+            this.searchModel.createNewFilters([
+                {
+                    description: shortcut.name,
+                    domain: shortcut.domain,
+                    uslShortcutBuilder: true,
+                },
+            ]);
+        }
+        for (const rawGroupBy of shortcut.group_by || []) {
+            const [fieldName, interval] = rawGroupBy.split(":");
+            this.searchModel.createNewGroupBy(fieldName, { interval });
+        }
+        this.state.orderBy = shortcut.order_by || [];
+    }
+
+    openShortcutSaveDialog() {
+        this.dialog.add(ShortcutSaveDialog, {
+            shortcut: this.state.shortcutBuilderValues || false,
+            onSaved: async () => {
+                await this.action.doAction(
+                    "usl_documents.action_usl_document_quick_filters"
+                );
+            },
+        });
+    }
+
+    get isSavingMetadata() {
+        return Object.values(this.state.savingFields).some(Boolean);
     }
 
     get personalViews() {
@@ -750,18 +968,184 @@ export class DocumentsWorkspaceView extends Component {
             .map((item) => ({ kind, item, label: item.name }));
     }
 
-    get tagPickerResults() {
-        const selected = new Set(
-            (this.state.selected?.tags || []).map((tag) => tag.id)
+    get correspondentValue() {
+        return this.state.selected?.correspondent_id
+            ? {
+                  id: this.state.selected.correspondent_id,
+                  display_name: this.state.selected.correspondent || "Correspondent",
+              }
+            : false;
+    }
+
+    get documentTypeValue() {
+        return this.state.selected?.document_type_id
+            ? {
+                  id: this.state.selected.document_type_id,
+                  display_name: this.state.selected.document_type || "Document type",
+              }
+            : false;
+    }
+
+    get correspondentProps() {
+        return {
+            id: "usl_document_correspondent",
+            relation: "usl.paperless.correspondent",
+            string: "Correspondent",
+            value: this.correspondentValue,
+            update: (value) => this.selectCorrespondent(value),
+            domain: () => [["active", "=", true]],
+            otherSources: [this.contactAutocompleteSource],
+            placeholder: "Choose or create a correspondent…",
+            searchMoreLabel: "Search more correspondents…",
+            canCreate: true,
+            canQuickCreate: true,
+            canCreateEdit: false,
+            canOpen: false,
+            readonly:
+                !this.state.selected?.can_edit ||
+                Boolean(this.state.savingFields.correspondent_id),
+        };
+    }
+
+    get documentTypeProps() {
+        return {
+            id: "usl_document_type",
+            relation: "usl.paperless.document.type",
+            string: "Document type",
+            value: this.documentTypeValue,
+            update: (value) => this.selectDocumentType(value),
+            domain: () => [["active", "=", true]],
+            placeholder: "Choose or create a document type…",
+            searchMoreLabel: "Search more document types…",
+            canCreate: true,
+            canQuickCreate: true,
+            canCreateEdit: false,
+            canOpen: false,
+            readonly:
+                !this.state.selected?.can_edit ||
+                Boolean(this.state.savingFields.document_type_id),
+        };
+    }
+
+    get contactAutocompleteSource() {
+        return {
+            placeholder: "Searching Contacts…",
+            options: async (request) => {
+                const records = await this.orm.call(
+                    "res.partner",
+                    "web_name_search",
+                    [],
+                    {
+                        name: request,
+                        operator: "ilike",
+                        domain: [["active", "=", true]],
+                        limit: 8,
+                        specification: {
+                            display_name: {},
+                            email: {},
+                            company_id: { fields: { display_name: {} } },
+                        },
+                    }
+                );
+                const options = records.map((record) => ({
+                    label: `Use Contact: ${record.display_name}`,
+                    onSelect: () =>
+                        this.createCorrespondentFromPartner(record.id),
+                }));
+                options.push({
+                    label: "Search Contacts…",
+                    cssClass: "o_m2o_dropdown_option o_m2o_dropdown_option_search_more",
+                    onSelect: () =>
+                        this.selectContact({
+                            domain: [["active", "=", true]],
+                            context: {},
+                            filters: request
+                                ? [
+                                      {
+                                          description: `Quick search: ${request}`,
+                                          domain: [
+                                              ["name", "ilike", request],
+                                          ],
+                                      },
+                                  ]
+                                : [],
+                            title: "Search: Contacts",
+                        }),
+                });
+                return options;
+            },
+        };
+    }
+
+    get tagAutocompleteProps() {
+        const selectedIds = (this.state.selected?.tags || []).map(
+            (tag) => tag.id
         );
-        const query = this.state.tagQuery.trim().toLowerCase();
-        return this.state.tags
-            .filter(
-                (tag) =>
-                    !selected.has(tag.id) &&
-                    (!query || tag.name.toLowerCase().includes(query))
-            )
-            .slice(0, 20);
+        return {
+            activeActions: {
+                create: true,
+                createEdit: false,
+                link: true,
+                write: true,
+            },
+            fieldString: "Tags",
+            getDomain: () => [
+                ["active", "=", true],
+                ["id", "not in", selectedIds],
+            ],
+            isToMany: true,
+            placeholder: "Add a tag…",
+            quickCreate: (name) => this.createAndAddTag(name),
+            resModel: "usl.paperless.tag",
+            searchMoreLabel: "Search more tags…",
+            update: (records) =>
+                Promise.all(
+                    (records || []).map((record) =>
+                        this.addSelectedTag({
+                            id: record.id,
+                            name: record.display_name || record.name,
+                        })
+                    )
+                ),
+            value: "",
+        };
+    }
+
+    get documentDateValue() {
+        return this.state.selected?.date
+            ? deserializeDate(this.state.selected.date)
+            : false;
+    }
+
+    get pagerProps() {
+        return {
+            offset: (this.state.page - 1) * this.state.pageSize,
+            limit: this.state.pageSize,
+            total: this.state.count,
+            onUpdate: ({ offset }) => {
+                this.state.page = Math.floor(offset / this.state.pageSize) + 1;
+                return this.load();
+            },
+        };
+    }
+
+    get cardSort() {
+        if (!this.state.orderBy.length) {
+            return this.state.sort;
+        }
+        const [term] = this.state.orderBy;
+        if (this.state.orderBy.length === 1) {
+            if (term.name === "document_date" && !term.asc) {
+                return "recent";
+            }
+            if (term.name === "paperless_created" && !term.asc) {
+                return "ingested";
+            }
+            if (term.name === "name" && term.asc) {
+                return "title";
+            }
+        }
+        return "custom";
     }
 
     get currentVersion() {
@@ -795,6 +1179,7 @@ export class DocumentsWorkspaceView extends Component {
             workspace: this.state.workspace,
             view: this.state.view,
             sort: this.state.sort,
+            orderBy: this.state.orderBy,
             page: this.state.page,
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
@@ -814,6 +1199,7 @@ export class DocumentsWorkspaceView extends Component {
             workspace: this.state.workspace,
             view: this.state.view,
             sort: this.state.sort,
+            orderBy: this.state.orderBy,
             page: this.state.page,
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
@@ -837,19 +1223,28 @@ export class DocumentsWorkspaceView extends Component {
             for (const key of ["domain", "groupBy", "orderBy"]) {
                 url.searchParams.delete(key);
             }
-            const nativeSearch = new URLSearchParams(
-                this.searchModel.generateQueryString()
+            // SearchModel intentionally serializes its shareable state with
+            // encodeURIComponent, matching Odoo's router. Do not pass this
+            // encoded query through URLSearchParams: it rewrites spaces as
+            // "+", while Odoo's router only decodes percent escapes. Repeated
+            // reloads would otherwise turn a valid domain into one containing
+            // accumulating unary "+" tokens.
+            const nativeSearch = this.searchModel.generateQueryString();
+            const navigationUrl = new URL(
+                nativeSearch
+                    ? `${url.href}${url.search ? "&" : "?"}${nativeSearch}`
+                    : url.href
             );
-            for (const [key, value] of nativeSearch.entries()) {
-                url.searchParams.set(key, value);
-            }
             const nextState = {
-                ...router.urlToState(url),
+                ...router.urlToState(navigationUrl),
                 usl_document: documentId || undefined,
                 usl_version: versionId || undefined,
-                domain: url.searchParams.get("domain") || undefined,
-                groupBy: url.searchParams.get("groupBy") || undefined,
-                orderBy: url.searchParams.get("orderBy") || undefined,
+                domain:
+                    navigationUrl.searchParams.get("domain") || undefined,
+                groupBy:
+                    navigationUrl.searchParams.get("groupBy") || undefined,
+                orderBy:
+                    navigationUrl.searchParams.get("orderBy") || undefined,
                 uslDocumentsWorkspace: true,
                 uslDocumentId: documentId || null,
                 uslVersionId: versionId || null,
@@ -874,10 +1269,13 @@ export class DocumentsWorkspaceView extends Component {
             // detail URL after this entry. A native Odoo-compatible history
             // entry gives one click one entry, while retaining deep links and
             // leaving the untouched Forward entry able to reopen the drawer.
-            if (mode === "push" && url.href !== browser.location.href) {
-                browser.history.pushState(historyState, "", url);
+            if (
+                mode === "push" &&
+                navigationUrl.href !== browser.location.href
+            ) {
+                browser.history.pushState(historyState, "", navigationUrl);
             } else {
-                browser.history.replaceState(historyState, "", url);
+                browser.history.replaceState(historyState, "", navigationUrl);
             }
         } catch {
             // Session storage remains the fallback for older embedded browsers.
@@ -958,8 +1356,7 @@ export class DocumentsWorkspaceView extends Component {
 
     clearDetailState() {
         this.state.selected = null;
-        this.state.editingMetadata = false;
-        this.state.tagPickerOpen = false;
+        this.state.savingFields = {};
     }
 
     requestHistoryBack() {
@@ -1138,6 +1535,7 @@ export class DocumentsWorkspaceView extends Component {
             page: this.state.page,
             page_size: this.state.pageSize,
             sort: this.state.sort,
+            order_by: this.state.orderBy,
             search_domain: this.searchModel.domain,
             // Legacy state is migrated into the native SearchModel before the
             // second load. Never apply a second hidden tag condition.
@@ -1375,6 +1773,9 @@ export class DocumentsWorkspaceView extends Component {
 
     updateFilter(field, event) {
         this.state[field] = event.target.value;
+        if (field === "sort") {
+            this.state.orderBy = [];
+        }
         this.state.page = 1;
         return this.load();
     }
@@ -1567,7 +1968,9 @@ export class DocumentsWorkspaceView extends Component {
 
     isSmartShortcutActive(shortcut) {
         if (shortcut.kind === "group") {
-            return this.searchModel.groupBy.includes(shortcut.group_by);
+            return (shortcut.group_by || []).every((groupBy) =>
+                this.searchModel.groupBy.includes(groupBy)
+            );
         }
         return Object.values(this.searchModel.searchItems).some(
             (item) =>
@@ -1578,25 +1981,67 @@ export class DocumentsWorkspaceView extends Component {
         );
     }
 
-    toggleSmartShortcut(shortcut) {
-        if (shortcut.kind === "group") {
-            const [fieldName, interval] = shortcut.group_by.split(":");
-            const groupItem = Object.values(this.searchModel.searchItems).find(
+    setShortcutGroups(shortcut, activate) {
+        for (const rawGroupBy of shortcut.group_by || []) {
+            const [fieldName, interval] = rawGroupBy.split(":");
+            let groupItem = Object.values(this.searchModel.searchItems).find(
                 (item) =>
                     ["groupBy", "dateGroupBy"].includes(item.type) &&
-                    item.fieldName === fieldName
+                    item.fieldName === fieldName &&
+                    (
+                        item.uslShortcutKey === shortcut.key ||
+                        !item.uslShortcutKey
+                    )
             );
-            if (groupItem) {
-                if (groupItem.type === "dateGroupBy") {
-                    this.searchModel.toggleDateGroupBy(
-                        groupItem.id,
-                        interval || groupItem.defaultIntervalId
-                    );
-                } else {
-                    this.searchModel.toggleSearchItem(groupItem.id);
-                }
-            } else {
+            if (groupItem && !groupItem.uslShortcutKey) {
+                groupItem.uslShortcutKey = shortcut.key;
+            }
+            if (!groupItem && activate) {
+                const beforeIds = new Set(
+                    Object.keys(this.searchModel.searchItems).map(Number)
+                );
                 this.searchModel.createNewGroupBy(fieldName, { interval });
+                groupItem = Object.values(this.searchModel.searchItems).find(
+                    (item) =>
+                        !beforeIds.has(item.id) &&
+                        ["groupBy", "dateGroupBy"].includes(item.type) &&
+                        item.fieldName === fieldName
+                );
+                if (groupItem) {
+                    groupItem.uslShortcutKey = shortcut.key;
+                }
+                continue;
+            }
+            if (!groupItem) {
+                continue;
+            }
+            const active = this.searchModel.query.some(
+                (query) => query.searchItemId === groupItem.id
+            );
+            if (active === activate) {
+                continue;
+            }
+            if (groupItem.type === "dateGroupBy") {
+                this.searchModel.toggleDateGroupBy(
+                    groupItem.id,
+                    interval || groupItem.defaultIntervalId
+                );
+            } else {
+                this.searchModel.toggleSearchItem(groupItem.id);
+            }
+        }
+    }
+
+    toggleSmartShortcut(shortcut) {
+        if (shortcut.kind === "group") {
+            this.setShortcutGroups(
+                shortcut,
+                !this.isSmartShortcutActive(shortcut)
+            );
+            if (shortcut.order_by?.length) {
+                this.state.orderBy = shortcut.order_by;
+                this.state.page = 1;
+                this.load();
             }
             return;
         }
@@ -1604,9 +2049,21 @@ export class DocumentsWorkspaceView extends Component {
             (item) => item.uslShortcutKey === shortcut.key
         );
         if (existing) {
+            if (
+                shortcut.order_by?.length &&
+                JSON.stringify(this.state.orderBy) ===
+                    JSON.stringify(shortcut.order_by)
+            ) {
+                this.state.orderBy = [];
+            }
+            this.setShortcutGroups(shortcut, false);
             this.searchModel.toggleSearchItem(existing.id);
             return;
         }
+        if (shortcut.order_by?.length) {
+            this.state.orderBy = shortcut.order_by;
+        }
+        this.setShortcutGroups(shortcut, true);
         this.searchModel.createNewFilters([
             {
                 description: shortcut.name,
@@ -1614,6 +2071,37 @@ export class DocumentsWorkspaceView extends Component {
                 uslShortcutKey: shortcut.key,
             },
         ]);
+    }
+
+    sortDocuments(fieldName) {
+        const current = this.state.orderBy[0];
+        const defaultAscending = [
+            "name",
+            "correspondent_id",
+            "document_type_id",
+            "company_id",
+            "tag_sort_key",
+            "status_sort_key",
+        ].includes(fieldName);
+        this.state.orderBy = [
+            {
+                name: fieldName,
+                asc:
+                    current?.name === fieldName
+                        ? !current.asc
+                        : defaultAscending,
+            },
+        ];
+        this.state.page = 1;
+        return this.load();
+    }
+
+    sortIcon(fieldName) {
+        const current = this.state.orderBy[0];
+        if (current?.name !== fieldName) {
+            return "fa fa-sort opacity-50";
+        }
+        return current.asc ? "fa fa-sort-asc" : "fa fa-sort-desc";
     }
 
     async savePersonalView() {
@@ -1694,7 +2182,6 @@ export class DocumentsWorkspaceView extends Component {
             preview_url: `/usl_documents/${document.id}/preview`,
         };
         this.state.selectedLoading = true;
-        this.state.editingMetadata = false;
         try {
             const detail = await this.orm.call(
                 "usl.document",
@@ -1761,56 +2248,128 @@ export class DocumentsWorkspaceView extends Component {
         }
     }
 
-    beginMetadataEdit() {
-        const selected = this.state.selected;
-        this.state.metadataDraft = {
-            name: selected.name || "",
-            document_date: selected.date || "",
-            correspondent_id: selected.correspondent_id || false,
-            document_type_id: selected.document_type_id || false,
+    saveMetadataField(field, value) {
+        return this.resolveMetadataField(field, async () => value);
+    }
+
+    resolveMetadataField(field, resolveValue) {
+        const selectedId = this.state.selected?.id;
+        if (!selectedId || this.state.savingFields[field]) {
+            return Promise.resolve();
+        }
+        this.state.savingFields[field] = true;
+        const save = async () => {
+            try {
+                const value = await resolveValue();
+                const detail = await this.orm.call(
+                    "usl.document",
+                    "update_archive_metadata",
+                    [[selectedId], { [field]: value }]
+                );
+                if (this.state.selected?.id === selectedId) {
+                    this.state.selected = {
+                        ...detail,
+                        preview_url: this.documentPreviewUrl(detail),
+                    };
+                    await this.load();
+                }
+            } catch (error) {
+                this.notification.add(
+                    error.data?.message ||
+                        error.message ||
+                        "The change could not be saved. The previous value was kept.",
+                    { type: "danger", sticky: true }
+                );
+            } finally {
+                this.state.savingFields[field] = false;
+            }
         };
-        this.state.editingMetadata = true;
+        this.metadataSaveQueue = this.metadataSaveQueue.then(save, save);
+        return this.metadataSaveQueue;
     }
 
-    cancelMetadataEdit() {
-        this.state.editingMetadata = false;
-        this.state.metadataDraft = null;
+    selectCorrespondent(value) {
+        const recordId = value?.id || value?.[0] || false;
+        if (recordId || !value) {
+            return this.saveMetadataField("correspondent_id", recordId);
+        }
+        const name = String(value.display_name || "").trim();
+        if (!name) {
+            return this.saveMetadataField("correspondent_id", false);
+        }
+        return this.resolveMetadataField("correspondent_id", async () => {
+            const [correspondentId] = await this.orm.create(
+                "usl.paperless.correspondent",
+                [
+                    {
+                        name,
+                        matching_algorithm: "0",
+                        is_insensitive: true,
+                    },
+                ]
+            );
+            return correspondentId;
+        });
     }
 
-    updateMetadataDraft(field, event) {
-        this.state.metadataDraft[field] =
-            ["correspondent_id", "document_type_id"].includes(field)
-                ? Number(event.target.value) || false
-                : event.target.value;
+    selectDocumentType(value) {
+        const recordId = value?.id || value?.[0] || false;
+        if (recordId || !value) {
+            return this.saveMetadataField("document_type_id", recordId);
+        }
+        const name = String(value.display_name || "").trim();
+        if (!name) {
+            return this.saveMetadataField("document_type_id", false);
+        }
+        return this.resolveMetadataField("document_type_id", async () => {
+            const [documentTypeId] = await this.orm.create(
+                "usl.paperless.document.type",
+                [
+                    {
+                        name,
+                        matching_algorithm: "0",
+                        is_insensitive: true,
+                    },
+                ]
+            );
+            return documentTypeId;
+        });
     }
 
-    async setSelectedTags(tagIds) {
-        if (!this.state.selected || this.state.savingMetadata) {
+    saveTitle(event) {
+        const value = event.target.value.trim();
+        if (!value) {
+            event.target.value = this.state.selected?.name || "";
+            this.notification.add("A document title is required.", {
+                type: "warning",
+            });
             return;
         }
-        this.state.savingMetadata = true;
-        try {
-            const detail = await this.orm.call(
-                "usl.document",
-                "update_archive_metadata",
-                [[this.state.selected.id], { tag_ids: tagIds }]
-            );
-            this.state.selected = {
-                ...detail,
-                preview_url: this.documentPreviewUrl(detail),
-            };
-            this.state.tagQuery = "";
-            await this.load();
-        } catch (error) {
-            this.notification.add(
-                error.data?.message ||
-                    error.message ||
-                    "Tags could not be updated. No change was kept.",
-                { type: "danger", sticky: true }
-            );
-        } finally {
-            this.state.savingMetadata = false;
+        if (value !== this.state.selected?.name) {
+            return this.saveMetadataField("name", value);
         }
+    }
+
+    onTitleKeydown(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            event.target.blur();
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            event.target.value = this.state.selected?.name || "";
+            event.target.blur();
+        }
+    }
+
+    saveDocumentDate(value) {
+        return this.saveMetadataField(
+            "document_date",
+            value ? serializeDate(value) : false
+        );
+    }
+
+    setSelectedTags(tagIds) {
+        return this.saveMetadataField("tag_ids", tagIds);
     }
 
     addSelectedTag(tag) {
@@ -1828,9 +2387,9 @@ export class DocumentsWorkspaceView extends Component {
         );
     }
 
-    async createAndAddTag() {
-        const name = this.state.tagQuery.trim();
-        if (!name || this.state.creatingTag) {
+    async createAndAddTag(requestedName) {
+        const name = String(requestedName || "").trim();
+        if (!name) {
             return;
         }
         const existing = this.state.tags.find(
@@ -1839,7 +2398,6 @@ export class DocumentsWorkspaceView extends Component {
         if (existing) {
             return this.addSelectedTag(existing);
         }
-        this.state.creatingTag = true;
         try {
             const [tagId] = await this.orm.create("usl.paperless.tag", [
                 {
@@ -1865,36 +2423,31 @@ export class DocumentsWorkspaceView extends Component {
                 error.data?.message || error.message || "The tag could not be created.",
                 { type: "danger", sticky: true }
             );
-        } finally {
-            this.state.creatingTag = false;
         }
     }
 
-    async saveMetadata() {
-        this.state.savingMetadata = true;
-        try {
-            const detail = await this.orm.call(
-                "usl.document",
-                "update_archive_metadata",
-                [[this.state.selected.id], this.state.metadataDraft]
-            );
-            this.state.selected = {
-                ...detail,
-                preview_url: this.documentPreviewUrl(detail),
-            };
-            this.state.editingMetadata = false;
-            this.notification.add("Document updated.", { type: "success" });
-            await this.load();
-        } catch (error) {
-            this.notification.add(
-                error.data?.message ||
-                    error.message ||
-                    "The document could not be updated.",
-                { type: "danger", sticky: true }
-            );
-        } finally {
-            this.state.savingMetadata = false;
+    createCorrespondentFromPartner(partnerId) {
+        if (!partnerId) {
+            return;
         }
+        return this.resolveMetadataField("correspondent_id", async () => {
+            const correspondent = await this.orm.call(
+                "usl.paperless.correspondent",
+                "create_from_partner",
+                [partnerId]
+            );
+            if (
+                !this.state.correspondents.some(
+                    (item) => item.id === correspondent.id
+                )
+            ) {
+                this.state.correspondents = [
+                    ...this.state.correspondents,
+                    correspondent,
+                ];
+            }
+            return correspondent.id;
+        });
     }
 
     selectVersion(version) {
@@ -2065,6 +2618,14 @@ export class DocumentsWorkspaceView extends Component {
     setView(view) {
         this.state.view = view;
         this.persistState();
+        this.replaceNavigationState();
+    }
+
+    setCardSort(event) {
+        this.state.sort = event.target.value;
+        this.state.orderBy = [];
+        this.state.page = 1;
+        return this.load();
     }
 
     onDragOver(event) {

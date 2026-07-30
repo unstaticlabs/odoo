@@ -35,8 +35,9 @@ persistent actionable failures and idempotent retry lineage.
 `usl.paperless.tag`, `usl.paperless.correspondent`, and
 `usl.paperless.document.type` are Paperless-ID-keyed catalogs.
 `usl.document.smart.view` stores shared/archive identities and personal Odoo
-filters. `usl.document.quick.filter` is a manager-configured catalog of
-one-click Odoo search/group shortcuts attached to shared Smart Views.
+filters. `usl.document.quick.filter` places manager-configured one-click
+controls on shared Smart Views, while its required `ir_filter_id` is the
+authoritative native Odoo domain, grouping, and ordering definition.
 `usl.paperless.user.mapping` maps an Odoo user to one individual Paperless
 user; no credential is sent to the client. In an SSO environment the mapping
 also references the same Odoo-governed `(issuer, subject)` identity used for
@@ -93,15 +94,26 @@ The client action mounts Odoo's supported `WithSearch`, `SearchModel`, and
 `SearchBar` components against the `usl.document` search view. Native facets,
 date filters, custom domains, grouping, and `ir.filters` favorites therefore
 use the same mechanism as ordinary Odoo views. Smart-View shortcut chips create
-normal SearchModel filters/groupings. Top tag chips update one SearchModel
-facet whose stable-ID `in` condition means “any selected tag”; the search bar
-and the chips therefore always describe the same query. Reusable shortcut
-records may use synchronized Paperless tag, correspondent, or document-type
-IDs, but remain optional Odoo presentation controls. The enclosing
+normal SearchModel filters/groupings and restore the saved Odoo ordering.
+Managers capture them from the active native search state; the add-on validates
+their domain, context, order fields, and shared Smart View scope server-side.
+Top tag chips update one SearchModel facet whose stable-ID `in` condition means
+“any selected tag”; the search bar and the chips therefore always describe the
+same query. Reusable shortcuts may use synchronized Paperless tag,
+correspondent, or document-type IDs, but remain optional Odoo presentation
+controls. The enclosing
 archive-native Smart View—not a transient shortcut state—is the definition
 synchronized to a Paperless Saved View. Remote OCR and custom-field conditions
 are resolved once before Odoo runs count and page queries, avoiding duplicate
 Paperless requests or inconsistent pagination.
+
+`all_text` is a virtual search field. It calls Paperless's supported full-text
+`query` contract for OCR and archive metadata, then adds only Odoo labels that
+the current user can already read. The combined stable IDs are passed back
+through normal `usl.document` record rules before names, counts, or snippets
+are serialized. When no explicit order is selected, the Paperless relevance
+order is preserved. Explicit compact-list ordering is accepted only through a
+server allowlist of synchronized stored fields.
 
 ## Write path
 
@@ -117,6 +129,14 @@ Title, date, tags, correspondent, type, catalog values, matching rules, Saved
 Views, versions, and Trash mutations call a supported Paperless endpoint first
 and refresh the cache from the returned/next authoritative representation. A
 failed call never leaves an optimistic Odoo value presented as saved.
+
+The document detail uses Odoo's relational autocomplete and date-input
+components but does not make those browser widgets authoritative. Every
+individual field mutation is a write-through request followed by an
+authoritative document refresh. Contact-backed correspondent creation first
+checks Contact read access, resolves protected mappings without revealing
+hidden-company identities, returns to the caller's environment, and then
+rechecks ordinary correspondent access before reuse or creation.
 
 Paperless metadata objects support one `match` expression and one algorithm
 (`None`, `Any`, `All`, `Exact`, `Regex`, `Fuzzy`, or `Auto`). The Odoo
