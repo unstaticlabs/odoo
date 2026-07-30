@@ -204,6 +204,9 @@ Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the c
 
 The production custom-module boundaries are:
 
+- `usl_locale`: the dependency-light presentation foundation that enforces
+  day-first (`DD/MM/YYYY`) dates through Odoo language formats and web-client
+  localization;
 - `usl_accounting`: dependency-light extensions of native and pinned OCA
   Accounting models;
 - `usl_expense_batch`: the independent Expenses claim-batch feature;

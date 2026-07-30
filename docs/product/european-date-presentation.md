@@ -30,18 +30,23 @@ Interface language and date convention are separate product choices:
   `DD/MM/YYYY` numeric convention.
 - Other installed languages keep their own configured Odoo convention.
 
-The `rebuild_account_migration` module governs the English and French
-`res.lang` date formats. Its backend date service maps only English-US
-human-readable rendering to European English ordering. This avoids hardcoded
-user changes and avoids a fork-level patch to Odoo's web client.
+The small, auto-installed `usl_locale` foundation governs the English and
+French `res.lang` date formats. Its backend date service maps only English-US
+human-readable rendering to European English ordering. Product modules that
+present accounting or archive dates depend on this foundation explicitly.
+This keeps the convention independent from transitional accounting modules,
+avoids hardcoded user changes, and avoids a fork-level patch to Odoo's web
+client.
 
 ## Upgrade and regression contract
 
 Module installation or update reapplies the supported-language configuration.
-The backend regression tests verify Odoo/QWeb formatting, report-export date
-cells and the absence of native HTML date controls from the report client. The
-frontend tests verify numeric dates, datetimes, report-filter serialization,
-day-first ordering and native current-year omission.
+The architecture regression test requires `usl_locale` ownership and rejects
+month-first placeholders or browser-native date inputs from all delivered
+custom add-on UI source. Backend tests verify Odoo/QWeb formatting and
+report-export date cells. Frontend tests verify numeric dates, datetimes,
+report-filter serialization, day-first ordering, native Odoo calendar
+selection, and current-year omission.
 
 Any deliberate future change must update both tests and this decision record.
 Per-view US month-first overrides are not permitted.

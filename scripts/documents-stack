@@ -80,7 +80,7 @@ SERVICES=(
   paperless-webserver
   odoo
 )
-UPDATE_MODULES="usl_pocketid,usl_documents,usl_documents_accounting"
+UPDATE_MODULES="usl_locale,usl_pocketid,usl_documents,usl_documents_accounting"
 [[ "$UPDATE_MODULES" =~ ^[A-Za-z0-9_,]+$ ]] || {
   printf 'Refusing unsafe Documents module update list: %s\n' "$UPDATE_MODULES" >&2
   exit 2
@@ -405,6 +405,19 @@ print(
   test-js)
     validate_config
     provision_qa_sso
+    test_modules="$(
+      "${COMPOSE[@]}" exec -T db psql \
+        -U odoo -d "$DATABASE" -Atqc \
+        "SELECT name || ':' || state FROM ir_module_module WHERE name IN ('usl_documents', 'usl_locale') ORDER BY name"
+    )"
+    [[ "$test_modules" = $'usl_documents:installed\nusl_locale:installed' ]] || {
+      printf '%s\n' \
+        "Documents frontend tests require installed usl_documents and usl_locale modules." \
+        "Run: scripts/documents-stack $ENVIRONMENT update" \
+        "Current module states:" \
+        "${test_modules:-<missing>}" >&2
+      exit 2
+    }
     "${COMPOSE[@]}" --profile test build test
     "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
     restore_qa_odoo() {

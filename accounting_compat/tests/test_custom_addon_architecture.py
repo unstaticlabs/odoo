@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import re
 import unittest
 from pathlib import Path
 
@@ -121,6 +122,58 @@ class CustomAddonArchitectureTest(unittest.TestCase):
                 for path in compatibility_paths
             ),
             "new settlement behavior must not return to the compatibility module",
+        )
+
+    def test_day_first_dates_are_owned_by_the_shared_locale_foundation(self):
+        manifests = _manifests()
+        locale_manifest = manifests["usl_locale"]
+
+        self.assertTrue(locale_manifest["auto_install"])
+        self.assertIn("web", locale_manifest["depends"])
+        self.assertIn("usl_locale", manifests["usl_accounting"]["depends"])
+        self.assertIn("usl_locale", manifests["usl_documents"]["depends"])
+
+        locale_data = (
+            CUSTOM_ADDONS / "usl_locale" / "data" / "european_date_format.xml"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(locale_data.count("%d/%m/%Y"), 2)
+
+        compatibility_manifest = manifests["rebuild_account_migration"]
+        compatibility_paths = {
+            path
+            for key in ("data", "assets")
+            for paths in (
+                [compatibility_manifest.get(key, ())]
+                if key == "data"
+                else compatibility_manifest.get(key, {}).values()
+            )
+            for path in paths
+        }
+        self.assertFalse(
+            any("european_date_format" in path for path in compatibility_paths),
+            "the product-wide date convention must not return to migration compatibility",
+        )
+
+        forbidden_patterns = {
+            "browser-native date input": re.compile(r"""\btype\s*=\s*["']date"""),
+            "month-first placeholder": re.compile(
+                r"MM/DD/YYYY|MM/dd/yyyy|%m/%d/%Y"
+            ),
+        }
+        violations = []
+        for suffix in ("*.js", "*.xml"):
+            for path in CUSTOM_ADDONS.glob(f"*/static/src/**/{suffix}"):
+                source = path.read_text(encoding="utf-8")
+                for label, pattern in forbidden_patterns.items():
+                    if pattern.search(source):
+                        violations.append(
+                            f"{path.relative_to(REPOSITORY_ROOT)}: {label}"
+                        )
+        self.assertEqual(
+            violations,
+            [],
+            "product UI must use Odoo date components and DD/MM/YYYY: "
+            + ", ".join(violations),
         )
 
     def test_obsolete_placeholder_is_absent(self):

@@ -335,7 +335,7 @@ test("a record smart button starts from an uncluttered linked-record view", asyn
     expect(".o_searchview_input").toHaveValue("");
 });
 
-test("detail prioritizes original, classification, versions, and linked records", async () => {
+test("detail prioritizes title, native day-first date, versions, and links", async () => {
     const document = {
         id: 7,
         name: "Supplier invoice",
@@ -372,37 +372,44 @@ test("detail prioritizes original, classification, versions, and linked records"
         documents: [document],
         count: 1,
     }));
-    onRpc("usl.document", "document_detail", () => ({
-        ...document,
-        checksum: "a".repeat(64),
-        can_edit: true,
-        can_change_links: true,
-        can_manage: true,
-        versions: [
-            {
-                id: 3,
-                paperless_version_id: "9",
-                label: "Received original",
-                filename: "invoice.pdf",
-                checksum: "a".repeat(64),
-                is_current: true,
-                is_received_original: true,
-                preview_url: "/usl_documents/7/preview?version=9",
-                original_url: "/usl_documents/7/download?original=1&version=9",
-                archive_url: "/usl_documents/7/download?original=0&version=9",
-            },
-        ],
-        links: [
-            {
-                id: 5,
-                record_name: "BILL/2026/0042",
-                model_label: "Journal Entry",
-                model: "account.move",
-                res_id: 12,
-                linked_by: "Valentin",
-            },
-        ],
-    }));
+    onRpc("usl.document", "document_detail", async () => {
+        // Reproduce the real workspace transition: the cached card renders
+        // before the permission-aware document detail is available.
+        await animationFrame();
+        return {
+            ...document,
+            checksum: "a".repeat(64),
+            can_edit: true,
+            can_change_links: true,
+            can_manage: true,
+            versions: [
+                {
+                    id: 3,
+                    paperless_version_id: "9",
+                    label: "Received original",
+                    filename: "invoice.pdf",
+                    checksum: "a".repeat(64),
+                    is_current: true,
+                    is_received_original: true,
+                    preview_url: "/usl_documents/7/preview?version=9",
+                    original_url:
+                        "/usl_documents/7/download?original=1&version=9",
+                    archive_url:
+                        "/usl_documents/7/download?original=0&version=9",
+                },
+            ],
+            links: [
+                {
+                    id: 5,
+                    record_name: "BILL/2026/0042",
+                    model_label: "Journal Entry",
+                    model: "account.move",
+                    res_id: 12,
+                    linked_by: "Valentin",
+                },
+            ],
+        };
+    });
 
     await mountWithCleanup(DocumentsWorkspace, {
         props: {
@@ -417,9 +424,18 @@ test("detail prioritizes original, classification, versions, and linked records"
     expect(".o_usl_inline_metadata").toHaveCount(1);
     expect(".o_usl_inline_metadata select").toHaveCount(0);
     expect("#usl_document_title").toHaveValue("Supplier invoice");
+    expect("#usl_document_title").toHaveClass("o_usl_detail_title_input");
+    expect(".o_usl_documents_detail").not.toHaveText(/Classification/);
     expect("#usl_document_type").toHaveValue("Invoice");
     expect("#usl_document_correspondent").toHaveValue("Supplier");
     expect("#usl_document_date").toHaveCount(1);
+    expect("#usl_document_date").toHaveValue("29/07/2026");
+    expect("#usl_document_date").toHaveAttribute("type", "text");
+    await contains("#usl_document_date").click();
+    expect(".o_datetime_picker").toHaveCount(1);
+    expect(".o_datetime_picker .o_selected").toHaveText("29");
+    await contains("#usl_document_date").press("Escape");
+    expect(".o_datetime_picker").toHaveCount(0);
     expect(".o_usl_detail_section h6").toHaveText(/File versions/);
     expect(".o_usl_detail_section .text-bg-primary").toHaveText(/Current/);
     expect(".o_usl_documents_detail").toHaveText(/Received original/);
@@ -520,7 +536,8 @@ test("selected document survives a reload after the host router normalizes the U
     });
     await animationFrame();
 
-    expect(".o_usl_documents_detail").toHaveText(/Reload-safe contract/);
+    expect("#usl_document_title").toHaveValue("Reload-safe contract");
+    expect(".o_usl_documents_detail header").toHaveText(/30\/07\/2026/);
     expect(
         new URL(browser.location.href).searchParams.get("usl_document")
     ).toBe("77");

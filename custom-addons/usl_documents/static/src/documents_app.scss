@@ -283,13 +283,31 @@
         flex-direction: column;
         gap: 0.25rem;
 
-        &:first-child {
-            grid-column: 1 / -1;
-        }
-
         .o_input,
         .o_input_dropdown {
             width: 100%;
+        }
+    }
+
+    .o_usl_detail_title,
+    .o_usl_detail_title_input {
+        color: var(--o-main-text-color, #111827);
+        font-size: clamp(1.25rem, 2vw, 1.75rem);
+        font-weight: 650;
+        line-height: 1.2;
+    }
+
+    .o_usl_detail_title_input {
+        width: 100%;
+        margin: -0.25rem 0 0.25rem;
+        padding: 0.2rem 0;
+        border: 0;
+        border-bottom: 1px solid transparent;
+        background: transparent;
+
+        &:hover,
+        &:focus {
+            border-bottom-color: var(--o-brand-primary, #714b67);
         }
     }
 

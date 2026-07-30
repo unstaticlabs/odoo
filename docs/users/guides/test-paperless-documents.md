@@ -115,16 +115,19 @@ practical without a separate edit screen. Paperless is updated first and Odoo
 reads the result back. If Paperless is unavailable, the visible value must
 roll back instead of pretending the change saved.
 
-Click the title, correspondent, document type, or date directly. There is no
-Edit/Save/Cancel mode. Confirm the field briefly shows that it is saving and
-the final value appears in Paperless. Try:
+The prominent document title is editable directly in the panel header. There
+is no Classification heading or Edit/Save/Cancel mode. Click the
+correspondent, document type, or date directly and confirm the field briefly
+shows that it is saving before the final value appears in Paperless. Document
+dates must display as `DD/MM/YYYY` everywhere. Try:
 
 - selecting an existing Paperless correspondent;
 - choosing an Odoo Contact from **Search Contacts** to create or reuse its
   mapped Paperless correspondent;
 - creating an archive-only correspondent inline;
 - creating a new document type inline;
-- choosing and clearing a date through Odoo's locale-aware date picker.
+- choosing and clearing a date through Odoo's calendar picker, then confirming
+  the result remains day-first after closing and reopening the document.
 
 ## 3. Understand and edit automatic classification
 
