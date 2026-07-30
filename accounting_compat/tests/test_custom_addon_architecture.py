@@ -4,7 +4,6 @@ import ast
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CUSTOM_ADDONS = REPOSITORY_ROOT / "custom-addons"
 
@@ -87,8 +86,41 @@ class CustomAddonArchitectureTest(unittest.TestCase):
                 "expense_bank_matching.py": [
                     "usl.expense.bank.match.candidate",
                 ],
+                "immediate_settlement.py": [
+                    "account.immediate.settlement",
+                    "account.immediate.settlement.allocation",
+                ],
             },
             "foundation model ownership must stay runtime-only and documented",
+        )
+
+    def test_payment_settlement_assets_belong_to_foundation(self):
+        manifests = _manifests()
+        foundation_assets = manifests["usl_accounting"]["assets"]
+        compatibility_assets = manifests["rebuild_account_migration"]["assets"]
+        foundation_paths = {
+            path
+            for paths in foundation_assets.values()
+            for path in paths
+        }
+        compatibility_paths = {
+            path
+            for paths in compatibility_assets.values()
+            for path in paths
+        }
+
+        self.assertTrue(
+            any("payment_suggestions" in path for path in foundation_paths),
+        )
+        self.assertTrue(
+            any("immediate_settlement" in path for path in foundation_paths),
+        )
+        self.assertFalse(
+            any(
+                "payment_suggestions" in path or "immediate_settlement" in path
+                for path in compatibility_paths
+            ),
+            "new settlement behavior must not return to the compatibility module",
         )
 
     def test_obsolete_placeholder_is_absent(self):

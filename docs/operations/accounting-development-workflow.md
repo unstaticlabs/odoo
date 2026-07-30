@@ -93,6 +93,11 @@ for it to become healthy. The compatibility module update also installs or
 updates its declared `usl_accounting` and `usl_expense_batch` dependencies. It
 does not restore source data or rebuild the image. Both commands use the local
 Pocket ID overlay and keep the canonical target SSO configuration active.
+After the target is healthy, the helper sets Odoo's native per-user
+`tour_enabled` setting to false for every interactive internal user. This is
+dev/QA state only: production tours are not disabled in delivered module code,
+and explicit automated browser tours continue to work. Run
+`make disable-tours` to reapply the setting without deploying.
 
 Use `make rebuild` only after Dockerfile, dependency, system or
 core-source changes. Both commands print the development URL:
