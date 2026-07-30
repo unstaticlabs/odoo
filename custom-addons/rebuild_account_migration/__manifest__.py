@@ -4,7 +4,7 @@
         "USL Accounting cockpit, controls, reports, declarations, "
         "and audit evidence."
     ),
-    "version": "saas~19.2.1.8.4",
+    "version": "saas~19.2.1.11.0",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -65,11 +65,9 @@
             "rebuild_account_migration/static/src/scss/bank_matching.scss",
             "rebuild_account_migration/static/src/scss/interaction_cursors.scss",
             "rebuild_account_migration/static/src/scss/matching_badge.scss",
-            "rebuild_account_migration/static/src/scss/payment_suggestions.scss",
             "rebuild_account_migration/static/src/scss/reconciliation_model.scss",
             "rebuild_account_migration/static/src/xml/account_review_state_selection_badge.xml",
             "rebuild_account_migration/static/src/xml/accounting_report_action.xml",
-            "rebuild_account_migration/static/src/xml/account_payment_suggestions.xml",
             "rebuild_account_migration/static/src/xml/hr_expense_reviewer_controls.xml",
             "rebuild_account_migration/static/src/xml/matching_badge_field.xml",
             "rebuild_account_migration/static/src/xml/reconcile_data_presentation.xml",
@@ -81,7 +79,6 @@
             "rebuild_account_migration/static/tests/european_date_format.test.js",
             "rebuild_account_migration/static/tests/interaction_cursors.test.js",
             "rebuild_account_migration/static/tests/matching_badge.test.js",
-            "rebuild_account_migration/static/tests/payment_suggestions.test.js",
             "rebuild_account_migration/static/tests/reconcile_data_presentation.test.js",
             "rebuild_account_migration/static/tests/report_presentation.test.js",
             "rebuild_account_migration/static/tests/review_state_badge.test.js",

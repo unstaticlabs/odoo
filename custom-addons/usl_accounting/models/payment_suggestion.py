@@ -47,7 +47,7 @@ class AccountMove(models.Model):
 
     def _rebuild_payment_partner_facts(self, line):
         self.ensure_one()
-        bill_partner = self.commercial_partner_id
+        document_partner = self.commercial_partner_id
         statement_line = line.move_id.statement_line_id
         assigned_partner = (
             line.partner_id or statement_line.partner_id
@@ -76,23 +76,19 @@ class AccountMove(models.Model):
         status = "missing"
         score = 0
         reassignment_required = not assigned_partner
-        if assigned_partner == bill_partner:
+        if assigned_partner == document_partner:
             status = (
-                "inferred"
-                if statement_line.rebuild_partner_auto_assigned
-                else "same"
+                "inferred" if statement_line.rebuild_partner_auto_assigned else "same"
             )
             score = (
-                min(20, 8 + suggestion_confidence // 10)
-                if status == "inferred"
-                else 20
+                min(20, 8 + suggestion_confidence // 10) if status == "inferred" else 20
             )
             reassignment_required = False
         elif assigned_partner:
             status = "different"
             score = -20
             reassignment_required = True
-        elif suggested_partner == bill_partner:
+        elif suggested_partner == document_partner:
             status = "suggested"
             score = min(15, 5 + suggestion_confidence // 10)
         elif suggested_partner:
@@ -102,36 +98,35 @@ class AccountMove(models.Model):
         if status == "inferred":
             evidence = _(
                 "Partner inferred from bank history: %(partner)s",
-                partner=bill_partner.display_name,
+                partner=document_partner.display_name,
             )
         elif status == "same":
             evidence = _(
                 "Assigned partner matches %(partner)s",
-                partner=bill_partner.display_name,
+                partner=document_partner.display_name,
             )
         elif status == "suggested":
             evidence = _(
                 "Bank history suggests partner %(partner)s",
-                partner=bill_partner.display_name,
+                partner=document_partner.display_name,
             )
         elif status == "different":
             evidence = _(
-                "Assigned partner %(candidate)s differs from bill supplier "
-                "%(supplier)s",
+                "Assigned partner %(candidate)s differs from document partner "
+                "%(partner)s",
                 candidate=assigned_partner.display_name,
-                supplier=bill_partner.display_name,
+                partner=document_partner.display_name,
             )
         elif status == "different_suggestion":
             evidence = _(
-                "Bank history suggests %(candidate)s, not bill supplier "
-                "%(supplier)s",
+                "Bank history suggests %(candidate)s, not document partner %(partner)s",
                 candidate=suggested_partner.display_name,
-                supplier=bill_partner.display_name,
+                partner=document_partner.display_name,
             )
         else:
             evidence = _(
                 "No partner assigned; selecting this match will set %(partner)s",
-                partner=bill_partner.display_name,
+                partner=document_partner.display_name,
             )
 
         return {
@@ -217,23 +212,27 @@ class AccountMove(models.Model):
                 summary.append(date_reason)
             elif distance <= 31:
                 score += 8
-                reasons.append(_(
-                    "Date within 31 days of %(reference)s",
-                    reference=date_facts["label"],
-                ))
+                reasons.append(
+                    _(
+                        "Date within 31 days of %(reference)s",
+                        reference=date_facts["label"],
+                    ),
+                )
             elif distance <= 45:
                 score += 4
-                reasons.append(_(
-                    "Date within 45 days of %(reference)s",
-                    reference=date_facts["label"],
-                ))
+                reasons.append(
+                    _(
+                        "Date within 45 days of %(reference)s",
+                        reference=date_facts["label"],
+                    ),
+                )
 
         if line.payment_id or line.move_id.statement_line_id:
             score += 5
             reasons.append(
                 _("Bank transaction")
                 if line.move_id.statement_line_id
-                else _("Native payment")
+                else _("Native payment"),
             )
 
         partner_facts = self._rebuild_payment_partner_facts(line)
@@ -256,7 +255,7 @@ class AccountMove(models.Model):
             lambda line: (
                 line.account_id.account_type
                 in ("asset_receivable", "liability_payable")
-            )
+            ),
         )
         target_account = payment_term_lines.account_id[:1]
         if not target_account or not target_amount:
@@ -275,23 +274,29 @@ class AccountMove(models.Model):
         date_from = min(reference_dates) - timedelta(days=45)
         date_to = max(reference_dates) + timedelta(days=45)
         direction_operator = "<" if self.is_inbound() else ">"
-        candidate_lines = self.env["account.move.line"].search([
-            ("move_id.statement_line_id", "!=", False),
-            ("parent_state", "=", "posted"),
-            *self._check_company_domain(self.company_id),
-            ("reconciled", "=", False),
-            ("balance", direction_operator, 0.0),
-            ("date", ">=", date_from),
-            ("date", "<=", date_to),
-            "|",
-            ("amount_residual", "!=", 0.0),
-            ("amount_residual_currency", "!=", 0.0),
-        ], order="date desc, id desc", limit=200)
-        candidate_lines.invalidate_recordset([
-            "amount_residual",
-            "amount_residual_currency",
-            "reconciled",
-        ])
+        candidate_lines = self.env["account.move.line"].search(
+            [
+                ("move_id.statement_line_id", "!=", False),
+                ("parent_state", "=", "posted"),
+                *self._check_company_domain(self.company_id),
+                ("reconciled", "=", False),
+                ("balance", direction_operator, 0.0),
+                ("date", ">=", date_from),
+                ("date", "<=", date_to),
+                "|",
+                ("amount_residual", "!=", 0.0),
+                ("amount_residual_currency", "!=", 0.0),
+            ],
+            order="date desc, id desc",
+            limit=200,
+        )
+        candidate_lines.invalidate_recordset(
+            [
+                "amount_residual",
+                "amount_residual_currency",
+                "reconciled",
+            ],
+        )
 
         candidates = []
         for line in candidate_lines:
@@ -317,25 +322,27 @@ class AccountMove(models.Model):
             if abs(amount - target_amount) > tolerance:
                 continue
 
-            candidates.append({
-                "move_name": line.move_id.name,
-                "amount": amount,
-                "currency_id": self.currency_id.id,
-                "id": line.id,
-                "move_id": line.move_id.id,
-                "date": fields.Date.to_string(line.date),
-                "account_payment_id": line.payment_id.id,
-                "ref": line.ref or statement_line.payment_ref or "",
-                "is_bank_statement_candidate": True,
-                "bank_statement_line_id": statement_line.id,
-                "target_account_id": target_account.id,
-                "target_account_name": target_account.display_name,
-                "source_account_id": line.account_id.id,
-                "source_account_name": line.account_id.display_name,
-                "account_reassignment_required": (
-                    line.account_id != target_account
-                ),
-            })
+            candidates.append(
+                {
+                    "move_name": line.move_id.name,
+                    "amount": amount,
+                    "currency_id": self.currency_id.id,
+                    "id": line.id,
+                    "move_id": line.move_id.id,
+                    "date": fields.Date.to_string(line.date),
+                    "account_payment_id": line.payment_id.id,
+                    "ref": line.ref or statement_line.payment_ref or "",
+                    "is_bank_statement_candidate": True,
+                    "bank_statement_line_id": statement_line.id,
+                    "target_account_id": target_account.id,
+                    "target_account_name": target_account.display_name,
+                    "source_account_id": line.account_id.id,
+                    "source_account_name": line.account_id.display_name,
+                    "account_reassignment_required": (
+                        line.account_id != target_account
+                    ),
+                },
+            )
         return candidates
 
     def _compute_payments_widget_to_reconcile_info(self):
@@ -343,16 +350,19 @@ class AccountMove(models.Model):
 
         for move in self.filtered(
             lambda item: (
-                item.move_type in ("in_invoice", "in_refund", "in_receipt")
+                item.is_invoice(include_receipts=True)
                 and item.state in ("draft", "posted")
                 and item.payment_state in ("not_paid", "partial")
-            )
+            ),
         ):
-            widget = dict(move.invoice_outstanding_credits_debits_widget or {
-                "outstanding": True,
-                "content": [],
-                "move_id": move.id,
-            })
+            widget = dict(
+                move.invoice_outstanding_credits_debits_widget
+                or {
+                    "outstanding": True,
+                    "content": [],
+                    "move_id": move.id,
+                },
+            )
             content = [dict(candidate) for candidate in widget.get("content", [])]
             target_amount = (
                 abs(move.amount_residual)
@@ -369,9 +379,11 @@ class AccountMove(models.Model):
             )
             lines_by_id = {
                 line.id: line
-                for line in self.env["account.move.line"].browse(
-                    [candidate["id"] for candidate in content]
-                ).exists()
+                for line in self.env["account.move.line"]
+                .browse(
+                    [candidate["id"] for candidate in content],
+                )
+                .exists()
             }
             for candidate in content:
                 line = lines_by_id.get(candidate["id"])
@@ -388,21 +400,23 @@ class AccountMove(models.Model):
                     target_amount,
                 )
                 partner_facts = move._rebuild_payment_partner_facts(line)
-                candidate.update({
-                    "can_assign": move.state == "posted",
-                    "match_confidence": confidence,
-                    "match_reason": reason,
-                    "match_summary": summary,
-                    "match_score": score,
-                    **partner_facts,
-                })
+                candidate.update(
+                    {
+                        "can_assign": move.state == "posted",
+                        "match_confidence": confidence,
+                        "match_reason": reason,
+                        "match_summary": summary,
+                        "match_score": score,
+                        **partner_facts,
+                    },
+                )
 
             content.sort(
                 key=lambda candidate: (
                     -candidate.get("match_score", 0),
                     candidate.get("date") or date.max.isoformat(),
                     candidate["id"],
-                )
+                ),
             )
             content = [
                 candidate
@@ -424,80 +438,94 @@ class AccountMove(models.Model):
         if self.is_invoice(include_receipts=True):
             if self.state != "posted":
                 raise UserError(
-                    _("Post the bill before matching an existing payment.")
+                    (
+                        _("Post the bill before matching an existing payment.")
+                        if self.move_type
+                        in ("in_invoice", "in_refund", "in_receipt")
+                        else _(
+                            "Post the invoice before matching an existing payment.",
+                        )
+                    ),
                 )
             candidates_by_id = {
                 item["id"]: item
-                for item in (
-                    self.invoice_outstanding_credits_debits_widget or {}
-                ).get("content", [])
+                for item in (self.invoice_outstanding_credits_debits_widget or {}).get(
+                    "content", [],
+                )
             }
             candidate = candidates_by_id.get(line_id)
             if not candidate:
                 raise UserError(
                     _(
                         "This payment is no longer an eligible suggestion. "
-                        "Refresh the bill and review the remaining amount."
-                    )
+                        "Refresh the bill and review the remaining amount.",
+                    ),
                 )
 
         line = self.env["account.move.line"].browse(line_id).exists()
         statement_line = line.move_id.statement_line_id
         reassignment_note = False
         if candidate and candidate.get("is_bank_statement_candidate"):
-            if (
-                not statement_line
-                or statement_line.is_reconciled
-                or line.reconciled
-            ):
-                raise UserError(_(
-                    "This bank transaction is no longer available. Refresh "
-                    "the bill and review the current suggestions."
-                ))
-            target_account = self.env["account.account"].browse(
-                candidate["target_account_id"],
-            ).exists()
-            bill_partner = self.commercial_partner_id
-            if not target_account or not bill_partner:
-                raise UserError(_(
-                    "The bill supplier or payable account is no longer "
-                    "available. Refresh the bill before matching."
-                ))
+            if not statement_line or statement_line.is_reconciled or line.reconciled:
+                raise UserError(
+                    _(
+                        "This bank transaction is no longer available. Refresh "
+                        "the bill and review the current suggestions.",
+                    ),
+                )
+            target_account = (
+                self.env["account.account"]
+                .browse(
+                    candidate["target_account_id"],
+                )
+                .exists()
+            )
+            document_partner = self.commercial_partner_id
+            if not target_account or not document_partner:
+                raise UserError(
+                    _(
+                        "The document partner or receivable/payable account is no "
+                        "longer available. Refresh the document before matching.",
+                    ),
+                )
             if (
                 line.account_id != target_account
-                and line.account_id
-                != statement_line.journal_id.suspense_account_id
+                and line.account_id != statement_line.journal_id.suspense_account_id
             ):
-                raise UserError(_(
-                    "The bank transaction has already been categorized to "
-                    "another account. Review it in Bank Matching."
-                ))
+                raise UserError(
+                    _(
+                        "The bank transaction has already been categorized to "
+                        "another account. Review it in Bank Matching.",
+                    ),
+                )
 
             previous_partner = (
                 line.partner_id or statement_line.partner_id
             ).commercial_partner_id
             previous_account = line.account_id
-            if statement_line.partner_id.commercial_partner_id != bill_partner:
+            if statement_line.partner_id.commercial_partner_id != document_partner:
                 statement_line.with_context(
                     rebuild_skip_partner_inference=True,
-                ).write({"partner_id": bill_partner.id})
+                ).write({"partner_id": document_partner.id})
             if line.account_id != target_account:
-                line.write({
-                    "account_id": target_account.id,
-                    "partner_id": bill_partner.id,
-                })
-            elif line.partner_id.commercial_partner_id != bill_partner:
-                line.write({"partner_id": bill_partner.id})
+                line.write(
+                    {
+                        "account_id": target_account.id,
+                        "partner_id": document_partner.id,
+                    },
+                )
+            elif line.partner_id.commercial_partner_id != document_partner:
+                line.write({"partner_id": document_partner.id})
 
             reassignment_note = _(
-                "Matched bank transaction %(transaction)s to %(bill)s. "
+                "Matched bank transaction %(transaction)s to %(document)s. "
                 "Partner: %(old_partner)s → %(new_partner)s. "
                 "Account: %(old_account)s → %(new_account)s. "
                 "The recommendation was based on %(evidence)s.",
                 transaction=statement_line.display_name,
-                bill=self.display_name,
+                document=self.display_name,
                 old_partner=previous_partner.display_name or _("Unassigned"),
-                new_partner=bill_partner.display_name,
+                new_partner=document_partner.display_name,
                 old_account=previous_account.display_name,
                 new_account=target_account.display_name,
                 evidence=candidate.get("match_reason") or _("matching facts"),

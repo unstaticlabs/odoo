@@ -7,6 +7,9 @@ Controls, Reports and the compatibility product module:
 
 - governed fiscal-year behavior;
 - payment and partner suggestions;
+- three-action foreign-currency settlement: native Add, exact Settle with
+  native FX, and immediate-event payment-rate valuation on the existing bank
+  move;
 - bank matching and reconciliation compatibility;
 - company-paid expense matching against unreconciled bank transactions;
 - analytic measures and entry-direction safeguards;
