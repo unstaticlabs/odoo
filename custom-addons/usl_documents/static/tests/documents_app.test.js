@@ -10,14 +10,17 @@ import {
 
 import { DocumentsWorkspace } from "../src/documents_app";
 import { browser } from "@web/core/browser/browser";
+import { user } from "@web/core/user";
 
 defineMailModels();
 
+function storageKey(suffix) {
+    return `usl_documents.workspace.${user.userId}.${suffix}`;
+}
+
 beforeEach(() => {
-    browser.sessionStorage.removeItem("usl_documents.workspace.global");
-    browser.sessionStorage.removeItem(
-        "usl_documents.workspace.account.move.12"
-    );
+    browser.sessionStorage.removeItem(storageKey("global"));
+    browser.sessionStorage.removeItem(storageKey("account.move.12"));
     const url = new URL(browser.location.href);
     url.searchParams.delete("usl_document");
     url.searchParams.delete("usl_version");
@@ -96,7 +99,7 @@ test("degraded state keeps Odoo available and offers retry", async () => {
 });
 
 test("workspace search state survives record navigation", async () => {
-    const key = "usl_documents.workspace.account.move.12";
+    const key = storageKey("account.move.12");
     browser.sessionStorage.setItem(
         key,
         JSON.stringify({
@@ -126,11 +129,42 @@ test("workspace search state survives record navigation", async () => {
     expect("input[type=search]").toHaveValue("embedded cobalt phrase");
     expect(
         JSON.parse(
-            browser.sessionStorage.getItem("usl_documents.workspace.global")
+            browser.sessionStorage.getItem(storageKey("global"))
         ).companyId
     ).toBe("4");
     browser.sessionStorage.removeItem(key);
-    browser.sessionStorage.removeItem("usl_documents.workspace.global");
+    browser.sessionStorage.removeItem(storageKey("global"));
+});
+
+test("a record smart button starts from an uncluttered linked-record view", async () => {
+    browser.sessionStorage.setItem(
+        storageKey("global"),
+        JSON.stringify({
+            workspace: "trash",
+            query: "unrelated search",
+            tagIds: [99],
+        })
+    );
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.workspace).toBe("all");
+        expect(kwargs.query).toBe("");
+        expect(kwargs.tag_ids).toEqual([]);
+        expect(kwargs.linked_model).toBe("account.move");
+        expect(kwargs.linked_id).toBe(12);
+        return emptyWorkspace;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: {
+            action: action({
+                res_model: "account.move",
+                res_id: 12,
+                linked_filter: true,
+            }),
+        },
+    });
+
+    expect("input[type=search]").toHaveValue("");
 });
 
 test("detail prioritizes original, classification, versions, and linked records", async () => {
@@ -219,6 +253,7 @@ test("detail prioritizes original, classification, versions, and linked records"
     expect(".o_usl_documents_detail").toHaveText(/BILL\/2026\/0042/);
     expect(".o_usl_documents_detail").not.toHaveText(/synchronized/i);
     expect(".o_usl_documents_detail").toHaveText(/Accounting/);
+    expect(".o_usl_documents_detail iframe").toHaveAttribute("data-version", "9");
     expect("a[href*='original=0']").toHaveCount(2);
     expect(".o_usl_documents_detail footer a.btn-primary").toHaveText(
         /Download original/
@@ -238,6 +273,72 @@ test("detail prioritizes original, classification, versions, and linked records"
     browser.history.forward();
     await animationFrame();
     expect(".o_usl_documents_detail").toHaveCount(1);
+});
+
+test("selected document survives a reload after the host router normalizes the URL", async () => {
+    const document = {
+        id: 77,
+        name: "Reload-safe contract",
+        paperless_id: 177,
+        date: "2026-07-30",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "Northstar Retail",
+        document_type: "Contract",
+        tags: [],
+        link_count: 0,
+    };
+    browser.sessionStorage.setItem(
+        storageKey("global"),
+        JSON.stringify({
+            workspace: "all",
+            selectedDocumentId: document.id,
+            selectedVersionId: "12",
+        })
+    );
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", ({ args }) => {
+        expect(args).toEqual([77]);
+        return {
+            ...document,
+            can_edit: true,
+            can_manage: true,
+            links: [],
+            versions: [
+                {
+                    id: 12,
+                    paperless_version_id: "12",
+                    label: "Received original",
+                    is_current: true,
+                    is_received_original: true,
+                    preview_url: "/usl_documents/77/preview?version=12",
+                    original_url:
+                        "/usl_documents/77/download?original=1&version=12",
+                    archive_url:
+                        "/usl_documents/77/download?original=0&version=12",
+                },
+            ],
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await animationFrame();
+
+    expect(".o_usl_documents_detail").toHaveText(/Reload-safe contract/);
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_document")
+    ).toBe("77");
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_version")
+    ).toBe("12");
 });
 
 test("search suggestions create removable native-style facets", async () => {

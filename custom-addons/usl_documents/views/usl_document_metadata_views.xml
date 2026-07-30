@@ -35,7 +35,7 @@
                             <field name="is_inbox_tag"/>
                             <field name="active" groups="usl_documents.group_documents_manager"/>
                         </group>
-                        <group string="Smart matching">
+                        <group string="Automatic classification">
                             <field name="matching_algorithm"/>
                             <field name="match" placeholder="Words or pattern to recognize"
                                    invisible="matching_algorithm in ('0', '6')"/>
@@ -46,8 +46,9 @@
                         </group>
                     </group>
                     <div class="alert alert-info" role="status">
-                        Automatic matching learns from documents carrying this tag. Other
-                        matching options use the words or pattern above.
+                        Paperless can add this tag automatically. Choose <b>Automatic</b>
+                        to learn from examples, or choose a text rule and enter the words
+                        to recognize.
                     </div>
                     <group string="Diagnostics" groups="usl_documents.group_documents_manager">
                         <field name="paperless_id"/>
@@ -65,7 +66,7 @@
         <field name="arch" type="xml">
             <list string="Correspondents" decoration-muted="not active">
                 <field name="name"/>
-                <field name="partner_id" optional="show"/>
+                <field name="partner_visible_id" optional="show"/>
                 <field name="matching_algorithm"/>
                 <field name="match" optional="hide"/>
                 <field name="document_count" optional="hide"
@@ -83,13 +84,13 @@
                 <header>
                     <button name="action_accept_suggested_partner" type="object"
                             string="Use suggested Contact" class="btn-primary"
-                            invisible="not suggested_partner_id or partner_id"/>
+                            invisible="not suggested_partner_id or partner_visible_id"/>
                     <button name="action_reject_suggested_partner" type="object"
                             string="Not this Contact"
-                            invisible="not suggested_partner_id or partner_id"/>
+                            invisible="not suggested_partner_id or partner_visible_id"/>
                     <button name="action_open_partner" type="object"
                             string="Open Contact"
-                            invisible="not partner_id"/>
+                            invisible="not partner_visible_id"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -98,16 +99,24 @@
                     </div>
                     <group>
                         <group string="Business identity">
-                            <field name="partner_id"
-                                   placeholder="Map to an existing Odoo Contact"/>
+                            <field name="partner_mapping_hidden" invisible="1"/>
+                            <field name="partner_visible_id"
+                                   placeholder="Map to an existing Odoo Contact"
+                                   readonly="partner_mapping_hidden"/>
                             <field name="suggested_partner_id" readonly="1"
-                                   invisible="not suggested_partner_id or partner_id"/>
+                                   invisible="not suggested_partner_id or partner_visible_id"/>
+                            <div class="alert alert-warning" role="status"
+                                 invisible="not partner_mapping_hidden">
+                                This correspondent already has a Contact mapping outside
+                                your accessible companies. Ask a Documents administrator
+                                to review it.
+                            </div>
                             <div class="text-muted">
                                 Optional. Mapping does not link documents or grant access.
                                 Leave archive-only correspondents unmapped.
                             </div>
                         </group>
-                        <group string="Smart matching">
+                        <group string="Automatic classification">
                             <field name="matching_algorithm"/>
                             <field name="match" placeholder="Words or pattern to recognize"
                                    invisible="matching_algorithm in ('0', '6')"/>
@@ -156,7 +165,7 @@
                         <h1><field name="name" placeholder="For example: Supplier invoice"/></h1>
                     </div>
                     <group>
-                        <group string="Smart matching">
+                        <group string="Automatic classification">
                             <field name="matching_algorithm"/>
                             <field name="match" placeholder="Words or pattern to recognize"
                                    invisible="matching_algorithm in ('0', '6')"/>

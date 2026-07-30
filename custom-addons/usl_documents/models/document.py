@@ -692,8 +692,28 @@ class UslDocument(models.Model):
         return ids, truncated
 
     @api.model
+    def _workspace_correspondent_values(self, correspondent):
+        """Return archive metadata without exposing an inaccessible Contact."""
+        partner = self.env["res.partner"]
+        mapped_partner = correspondent.partner_id
+        if mapped_partner:
+            partner = self.env["res.partner"].search(
+                [("id", "=", mapped_partner.id)],
+                limit=1,
+            )
+        return {
+            "id": correspondent.id,
+            "name": partner.display_name if partner else correspondent.name,
+            "archive_name": correspondent.name,
+            "partner_id": partner.id,
+        }
+
+    @api.model
     def _workspace_document_values(self, item):
         active_links = item.link_ids.filtered("active")
+        correspondent = self._workspace_correspondent_values(
+            item.correspondent_id,
+        )
         return {
             "id": item.id,
             "name": item.name,
@@ -710,13 +730,10 @@ class UslDocument(models.Model):
                 if item.permission_sync_state == "failed"
                 else False
             ),
-            "correspondent": (
-                item.correspondent_id.partner_id.display_name
-                or item.correspondent_name
-            ),
+            "correspondent": correspondent["name"] or item.correspondent_name,
             "correspondent_id": item.correspondent_id.id,
             "correspondent_archive_name": item.correspondent_name,
-            "correspondent_partner_id": item.correspondent_id.partner_id.id,
+            "correspondent_partner_id": correspondent["partner_id"],
             "document_type": item.document_type_name,
             "document_type_id": item.document_type_id.id,
             "tags": [
@@ -955,12 +972,7 @@ class UslDocument(models.Model):
                 )
             ],
             "correspondents": [
-                {
-                    "id": item.id,
-                    "name": item.partner_id.display_name or item.name,
-                    "archive_name": item.name,
-                    "partner_id": item.partner_id.id,
-                }
+                self._workspace_correspondent_values(item)
                 for item in self.env["usl.paperless.correspondent"].search(
                     [("active", "=", True)],
                 )
@@ -983,9 +995,9 @@ class UslDocument(models.Model):
         document.check_access("read")
         try:
             document.check_access("write")
-            can_edit = True
+            can_write = True
         except AccessError:
-            can_edit = False
+            can_write = False
         values = self._workspace_document_values(document)
         values.update(
             {
@@ -1002,7 +1014,10 @@ class UslDocument(models.Model):
                     else False
                 ),
                 "custom_fields": json.loads(document.custom_fields_json or "[]"),
-                "can_edit": can_edit,
+                "can_edit": can_write and document.availability_state == "available",
+                "can_restore": (
+                    can_write and document.availability_state == "trashed"
+                ),
                 "can_manage": self.env.user.has_group(
                     "usl_documents.group_documents_manager",
                 ),
@@ -1083,6 +1098,11 @@ class UslDocument(models.Model):
             if not payload.get("next"):
                 break
             page += 1
+        trashed_remote = {
+            int(item["id"]): item
+            for item in self._paperless().list_trashed_documents()
+        }
+        remote.update(trashed_remote)
         mirrored_ids = set(documents.mapped("paperless_id"))
         remote_ids = set(remote)
         checksum_mismatches = []
@@ -1119,6 +1139,8 @@ class UslDocument(models.Model):
             "paperless_version": compatibility["server_version"],
             "paperless_api_version": compatibility["api_version"],
             "paperless_document_count": compatibility["document_count"],
+            "paperless_trash_count": len(trashed_remote),
+            "paperless_total_count": len(remote),
             "odoo_document_count": len(documents),
             "relationship_count": len(links),
             "relationship_counts_by_model": {
@@ -1279,7 +1301,14 @@ class UslDocument(models.Model):
         if company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
         checksum = hashlib.sha256(content).hexdigest()
-        existing = self.search([("checksum", "=", checksum)], limit=1)
+        existing = self.search(
+            [
+                "|",
+                ("checksum", "=", checksum),
+                ("version_ids.checksum", "=", checksum),
+            ],
+            limit=1,
+        )
         if existing:
             if res_model and res_id:
                 existing.link_to_record(res_model, int(res_id))

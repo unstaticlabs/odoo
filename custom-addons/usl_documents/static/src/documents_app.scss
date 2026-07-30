@@ -182,9 +182,17 @@
         }
     }
 
+    .o_usl_document_title {
+        display: -webkit-box;
+        min-height: 2.4em;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
     .o_usl_document_thumb {
         position: relative;
-        height: 180px;
+        height: 148px;
         overflow: hidden;
         background: #eef0f2;
 
@@ -225,7 +233,9 @@
 
         iframe {
             width: 100%;
-            height: 48vh;
+            height: 36vh;
+            min-height: 220px;
+            max-height: 360px;
             border: 0;
             background: #eef0f2;
         }

@@ -355,7 +355,7 @@
                                           class="badge text-bg-danger">Access needs attention</span>
                                 </div>
                                 <div class="card-body">
-                                    <h6 class="card-title text-truncate mb-1"
+                                    <h6 class="card-title o_usl_document_title mb-1"
                                         t-esc="document.name"/>
                                     <div class="small text-muted text-truncate">
                                         <t t-esc="document.correspondent || 'Unknown correspondent'"/>
@@ -466,6 +466,7 @@
                     </div>
                     <iframe t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
                             t-att-src="state.selected.preview_url"
+                            t-att-data-version="currentVersion?.paperless_version_id || ''"
                             title="Document preview"/>
                     <div t-elif="state.selected.availability_state === 'trashed'"
                          class="alert alert-secondary m-3">
@@ -474,7 +475,7 @@
                             The archived file is hidden from normal results. Its Odoo
                             links are preserved.
                         </p>
-                        <button t-if="state.selected.can_edit"
+                        <button t-if="state.selected.can_restore"
                                 type="button" class="btn btn-sm btn-primary"
                                 t-on-click="restoreFromTrash">
                             <i class="fa fa-undo me-1"/>Restore document
@@ -679,7 +680,8 @@
                                     Added by <t t-esc="currentVersion.submitted_by"/>
                                 </small>
                             </button>
-                            <div class="mt-2 d-flex flex-wrap gap-2">
+                            <div t-if="state.selected.availability_state === 'available'"
+                                 class="mt-2 d-flex flex-wrap gap-2">
                                 <a t-att-href="currentVersion.original_url"
                                    class="btn btn-sm btn-outline-primary">Download</a>
                                 <a t-att-href="currentVersion.archive_url"
@@ -718,7 +720,8 @@
                                             Added by <t t-esc="version.submitted_by"/>
                                         </small>
                                     </button>
-                                    <div class="mt-2 d-flex flex-wrap gap-2">
+                                    <div t-if="state.selected.availability_state === 'available'"
+                                         class="mt-2 d-flex flex-wrap gap-2">
                                         <a t-att-href="version.original_url"
                                            class="btn btn-sm btn-outline-primary">Download</a>
                                         <a t-att-href="version.archive_url"
@@ -805,7 +808,7 @@
                                 </button>
                             </div>
                         </details>
-                        <button t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_edit"
+                        <button t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_restore"
                                 type="button" class="btn btn-primary flex-grow-1"
                                 t-on-click="restoreFromTrash">
                             <i class="fa fa-undo me-1"/>Restore document
