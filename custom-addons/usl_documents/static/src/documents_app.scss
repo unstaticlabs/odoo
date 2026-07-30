@@ -13,7 +13,19 @@
             border-radius: 0.55rem;
 
             &:hover:not(.active) {
-                background: rgba(0, 0, 0, 0.04);
+                color: #172033;
+                background: #edf1f6;
+            }
+
+            &.active,
+            &.active:hover {
+                color: #fff;
+                background: #714b67;
+            }
+
+            &:focus-visible {
+                outline: 3px solid #2b6cb0;
+                outline-offset: 2px;
             }
         }
     }
@@ -41,6 +53,17 @@
         max-width: 720px;
     }
 
+    .o_usl_search_suggestions {
+        position: absolute;
+        top: calc(100% + 0.25rem);
+        right: 0;
+        left: 0;
+        z-index: 30;
+        max-height: 22rem;
+        overflow-y: auto;
+        background: #fff;
+    }
+
     .o_usl_filter_pill {
         width: auto;
         max-width: 220px;
@@ -60,26 +83,30 @@
 
     .o_usl_tag_chip {
         --tag-color: #dbeafe;
-        --tag-text: #1f2937;
         display: inline-flex;
         align-items: center;
         max-width: 180px;
         padding: 0.18rem 0.55rem;
         overflow: hidden;
-        color: var(--tag-text);
+        color: #172033;
         font-size: 0.75rem;
         line-height: 1.25;
         text-overflow: ellipsis;
         white-space: nowrap;
-        background: color-mix(in srgb, var(--tag-color) 32%, white);
-        border: 1px solid color-mix(in srgb, var(--tag-color) 72%, #64748b);
+        background: color-mix(in srgb, var(--tag-color) 22%, white);
+        border: 1px solid color-mix(in srgb, var(--tag-color) 58%, #526174);
         border-radius: 999px;
 
         &:hover,
         &.is-selected {
-            color: var(--tag-text);
-            background: var(--tag-color);
-            border-color: var(--tag-color);
+            color: #111827;
+            background: color-mix(in srgb, var(--tag-color) 38%, white);
+            border-color: color-mix(in srgb, var(--tag-color) 74%, #334155);
+        }
+
+        &:focus-visible {
+            outline: 3px solid #2b6cb0;
+            outline-offset: 2px;
         }
 
         &.is-selected::before {
@@ -87,6 +114,48 @@
             font-family: FontAwesome;
             content: "\f00c";
         }
+    }
+
+    .o_usl_tag_remove {
+        width: 1.1rem;
+        height: 1.1rem;
+        color: #172033;
+        line-height: 1;
+        border-radius: 50%;
+
+        &:hover,
+        &:focus-visible {
+            color: #fff;
+            background: #7f1d1d;
+        }
+    }
+
+    .o_usl_tag_picker {
+        max-height: 320px;
+        overflow-y: auto;
+        background: #fff;
+
+        .list-group-item {
+            color: #172033;
+            background: #fff;
+
+            &:hover,
+            &:focus {
+                color: #172033;
+                background: #edf1f6;
+            }
+        }
+    }
+
+    .o_usl_tag_color {
+        display: inline-block;
+        width: 0.75rem;
+        height: 0.75rem;
+        margin-right: 0.5rem;
+        vertical-align: -0.05rem;
+        background: var(--tag-color, #64748b);
+        border: 1px solid #526174;
+        border-radius: 50%;
     }
 
     .o_usl_documents_grid {
@@ -105,6 +174,11 @@
         &:hover {
             transform: translateY(-2px);
             box-shadow: var(--o-box-shadow, 0 0.5rem 1rem rgba(0, 0, 0, 0.12)) !important;
+        }
+
+        &:focus-within {
+            outline: 3px solid #2b6cb0;
+            outline-offset: 2px;
         }
     }
 

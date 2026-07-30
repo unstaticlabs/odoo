@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { beforeEach, expect, test } from "@odoo/hoot";
 import { animationFrame } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
@@ -12,6 +12,18 @@ import { DocumentsWorkspace } from "../src/documents_app";
 import { browser } from "@web/core/browser/browser";
 
 defineMailModels();
+
+beforeEach(() => {
+    browser.sessionStorage.removeItem("usl_documents.workspace.global");
+    browser.sessionStorage.removeItem(
+        "usl_documents.workspace.account.move.12"
+    );
+    const url = new URL(browser.location.href);
+    url.searchParams.delete("usl_document");
+    url.searchParams.delete("usl_version");
+    url.searchParams.delete("usl_filters");
+    browser.history.replaceState({}, "", url.toString());
+});
 
 const emptyWorkspace = {
     documents: [],
@@ -44,7 +56,6 @@ const emptyWorkspace = {
         },
     ],
     link_facets: [],
-    operations: [],
 };
 
 function action(params = {}) {
@@ -202,7 +213,8 @@ test("detail prioritizes original, classification, versions, and linked records"
     expect(".o_usl_metadata_document_type").toHaveValue("8");
     expect(".o_usl_metadata_correspondent").toHaveValue("4");
     await contains("button", { text: "Cancel" }).click();
-    await contains(".o_usl_detail_section summary").click();
+    expect(".o_usl_detail_section h6").toHaveText(/File versions/);
+    expect(".o_usl_detail_section .text-bg-primary").toHaveText(/Current/);
     expect(".o_usl_documents_detail").toHaveText(/Received original/);
     expect(".o_usl_documents_detail").toHaveText(/BILL\/2026\/0042/);
     expect(".o_usl_documents_detail").not.toHaveText(/synchronized/i);
@@ -217,6 +229,107 @@ test("detail prioritizes original, classification, versions, and linked records"
         /Remove link from this record/
     );
     expect("a[target='_blank']").toHaveText(/Open in Paperless/);
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_document")
+    ).toBe("7");
+    await contains(".o_usl_documents_detail .btn-close").click();
+    await animationFrame();
+    expect(".o_usl_documents_detail").toHaveCount(0);
+    browser.history.forward();
+    await animationFrame();
+    expect(".o_usl_documents_detail").toHaveCount(1);
+});
+
+test("search suggestions create removable native-style facets", async () => {
+    const tags = [
+        { id: 21, name: "Tax & reporting", color: "#31a354" },
+        { id: 22, name: "Contracts & legal", color: "#8c6bb1" },
+    ];
+    let lastTagIds = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        lastTagIds = kwargs.tag_ids;
+        return { ...emptyWorkspace, tags };
+    });
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    await contains(".o_usl_documents_search input").click();
+    await contains(".o_usl_documents_search input").fill("tag:tax", {
+        confirm: false,
+    });
+    expect(".o_usl_search_suggestions").toHaveText(/Tax & reporting/);
+    await contains(".o_usl_search_suggestions button").click();
+    expect(lastTagIds).toEqual([21]);
+    expect(".o_usl_active_facets").toHaveText(/Tag: Tax & reporting/);
+    await contains(".o_usl_active_facets button").click();
+    expect(lastTagIds).toEqual([]);
+    expect(".o_usl_active_facets").toHaveCount(0);
+});
+
+test("tags are searchable, removable, and creatable from document details", async () => {
+    const existingTag = {
+        id: 31,
+        name: "Accounting",
+        color: "#355f9f",
+        text_color: "#ffffff",
+    };
+    const newTag = {
+        id: 32,
+        name: "Board approved",
+        color: "#4f6fad",
+        text_color: "#ffffff",
+    };
+    const document = {
+        id: 30,
+        name: "Board package",
+        paperless_id: 130,
+        date: "2026-07-29",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "",
+        tags: [existingTag],
+        link_count: 0,
+        primary_link: false,
+    };
+    let detail = {
+        ...document,
+        can_edit: true,
+        can_manage: false,
+        versions: [],
+        links: [],
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        tags: [existingTag],
+        documents: [{ ...document, tags: detail.tags }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail);
+    onRpc("usl.paperless.tag", "create", () => [newTag.id]);
+    onRpc("usl.document", "update_archive_metadata", ({ args }) => {
+        const tagIds = args[1].tag_ids;
+        detail = {
+            ...detail,
+            tags: [existingTag, newTag].filter((tag) => tagIds.includes(tag.id)),
+        };
+        return detail;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    await contains("button", { text: "Add tag" }).click();
+    await contains(".o_usl_tag_picker input").fill("Board approved");
+    await contains(".o_usl_tag_picker button.text-primary").click();
+    expect(".o_usl_detail_tags").toHaveText(/Board approved/);
+    await contains("button[aria-label='Remove tag Accounting']").click();
+    expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
 });
 
 test("tag chips filter results and advanced filters stay tucked away", async () => {

@@ -1,6 +1,13 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useState } from "@odoo/owl";
+import {
+    Component,
+    onMounted,
+    onWillStart,
+    onWillUnmount,
+    useRef,
+    useState,
+} from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
@@ -21,6 +28,7 @@ const FILTER_DEFAULTS = {
     reviewState: "",
     linkedState: "",
     linkedRecord: "",
+    mappedPartnerId: "",
 };
 
 export class DocumentsWorkspace extends Component {
@@ -37,6 +45,7 @@ export class DocumentsWorkspace extends Component {
             params.res_model && params.res_id
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
                 : null;
+        this.listScroller = useRef("documentList");
         this.globalStorageKey = "usl_documents.workspace.global";
         this.storageKey = `usl_documents.workspace.${
             this.recordContext
@@ -53,6 +62,22 @@ export class DocumentsWorkspace extends Component {
         } catch {
             restored = {};
         }
+        const urlState = this.readUrlState();
+        if (urlState.filters) {
+            restored = { ...restored, ...urlState.filters };
+        }
+        if (this.recordContext) {
+            restored.linkedRecord = params.linked_filter
+                ? `${this.recordContext.resModel}:${this.recordContext.resId}`
+                : "";
+            restored.linkedState = "";
+            restored.mappedPartnerId = params.mapped_partner_id
+                ? String(params.mapped_partner_id)
+                : "";
+        }
+        this.initialDocumentId = urlState.documentId;
+        this.initialVersionId = urlState.versionId;
+        this.hasLocalListHistory = false;
         this.state = useState({
             loading: true,
             uploading: false,
@@ -62,6 +87,8 @@ export class DocumentsWorkspace extends Component {
             degraded: false,
             error: "",
             query: typeof restored.query === "string" ? restored.query : "",
+            searchInput: typeof restored.query === "string" ? restored.query : "",
+            searchFocused: false,
             workspace:
                 typeof restored.workspace === "string" ? restored.workspace : "recent",
             view: ["cards", "list"].includes(restored.view) ? restored.view : "cards",
@@ -88,11 +115,42 @@ export class DocumentsWorkspace extends Component {
             selectedLoading: false,
             editingMetadata: false,
             metadataDraft: null,
+            tagPickerOpen: false,
+            tagQuery: "",
+            creatingTag: false,
             operation: null,
-            operations: [],
             truncated: false,
         });
-        onWillStart(() => this.load());
+        this.onPopState = (event) => this.handlePopState(event);
+        onWillStart(async () => {
+            await this.load();
+            if (this.initialDocumentId) {
+                await this.openDocumentById(
+                    this.initialDocumentId,
+                    this.initialVersionId
+                );
+            }
+        });
+        onMounted(() => {
+            browser.addEventListener("popstate", this.onPopState);
+            this.replaceNavigationState();
+            this.restoreScroll();
+        });
+        onWillUnmount(() => browser.removeEventListener("popstate", this.onPopState));
+    }
+
+    readUrlState() {
+        try {
+            const url = new URL(browser.location.href);
+            const filters = JSON.parse(url.searchParams.get("usl_filters") || "null");
+            return {
+                documentId: Number(url.searchParams.get("usl_document")) || null,
+                versionId: url.searchParams.get("usl_version") || null,
+                filters,
+            };
+        } catch {
+            return { documentId: null, versionId: null, filters: null };
+        }
     }
 
     restoreFilters(restored) {
@@ -112,6 +170,7 @@ export class DocumentsWorkspace extends Component {
             reviewState: this.stringValue(restored.reviewState),
             linkedState: this.stringValue(restored.linkedState),
             linkedRecord: this.stringValue(restored.linkedRecord),
+            mappedPartnerId: this.stringValue(restored.mappedPartnerId),
         };
     }
 
@@ -142,7 +201,139 @@ export class DocumentsWorkspace extends Component {
             this.state.reviewState,
             this.state.linkedState,
             this.state.linkedRecord,
+            this.state.mappedPartnerId,
         ].filter(Boolean).length;
+    }
+
+    get activeFacets() {
+        const facets = [];
+        const find = (items, id) =>
+            items.find((item) => item.id === Number(id))?.name;
+        for (const tagId of this.state.tagIds) {
+            facets.push({
+                key: `tag:${tagId}`,
+                label: `Tag: ${find(this.state.tags, tagId) || tagId}`,
+            });
+        }
+        for (const [key, label, items] of [
+            ["companyId", "Company", this.state.companies],
+            ["documentTypeId", "Type", this.state.documentTypes],
+            ["correspondentId", "From", this.state.correspondents],
+        ]) {
+            if (this.state[key]) {
+                facets.push({
+                    key,
+                    label: `${label}: ${
+                        find(items, this.state[key]) || this.state[key]
+                    }`,
+                });
+            }
+        }
+        if (this.state.linkedRecord) {
+            const link = this.state.linkFacets.find(
+                (item) => item.key === this.state.linkedRecord
+            );
+            facets.push({
+                key: "linkedRecord",
+                label: `Linked record: ${link?.label || "Current record"}`,
+            });
+        } else if (this.state.linkedState) {
+            facets.push({
+                key: "linkedState",
+                label:
+                    this.state.linkedState === "linked"
+                        ? "Has linked record"
+                        : "No linked record",
+            });
+        }
+        if (this.state.mappedPartnerId) {
+            facets.push({
+                key: "mappedPartnerId",
+                label: "Correspondent mapped to this Contact",
+            });
+        }
+        for (const [key, label] of Object.entries({
+            source: "Source",
+            confidentiality: "Privacy",
+            reviewState: "Review",
+            dateFrom: "Document date from",
+            dateTo: "Document date to",
+            addedFrom: "Added from",
+            addedTo: "Added to",
+        })) {
+            if (this.state[key]) {
+                facets.push({ key, label: `${label}: ${this.state[key]}` });
+            }
+        }
+        return facets;
+    }
+
+    get searchSuggestions() {
+        if (!this.state.searchFocused) {
+            return [];
+        }
+        const input = this.state.searchInput.trim();
+        const match = input.match(
+            /(?:^|\s)(tag|type|from|company|review|privacy):([^\s]*)$/i
+        );
+        if (!match) {
+            if (input) {
+                return [];
+            }
+            return [
+                { kind: "hint", label: "Tag", hint: "tag:" },
+                { kind: "hint", label: "Correspondent", hint: "from:" },
+                { kind: "hint", label: "Document type", hint: "type:" },
+                { kind: "hint", label: "Company", hint: "company:" },
+            ];
+        }
+        const kind = match[1].toLowerCase();
+        const query = match[2].toLowerCase();
+        const catalogs = {
+            tag: this.state.tags,
+            type: this.state.documentTypes,
+            from: this.state.correspondents,
+            company: this.state.companies,
+            review: [
+                { id: "needs_attention", name: "Needs review" },
+                { id: "classified", name: "Classified" },
+                { id: "reviewed", name: "Reviewed" },
+            ],
+            privacy: [
+                { id: "internal", name: "Internal" },
+                { id: "accounting", name: "Accounting" },
+                { id: "hr", name: "HR restricted" },
+                { id: "private", name: "Private" },
+            ],
+        };
+        return (catalogs[kind] || [])
+            .filter((item) => item.name.toLowerCase().includes(query))
+            .slice(0, 10)
+            .map((item) => ({ kind, item, label: item.name }));
+    }
+
+    get tagPickerResults() {
+        const selected = new Set(
+            (this.state.selected?.tags || []).map((tag) => tag.id)
+        );
+        const query = this.state.tagQuery.trim().toLowerCase();
+        return this.state.tags
+            .filter(
+                (tag) =>
+                    !selected.has(tag.id) &&
+                    (!query || tag.name.toLowerCase().includes(query))
+            )
+            .slice(0, 20);
+    }
+
+    get currentVersion() {
+        return this.state.selected?.versions?.find((version) => version.is_current);
+    }
+
+    get earlierVersions() {
+        return (this.state.selected?.versions || []).filter(
+            (version) => !version.is_current
+        );
     }
 
     persistState() {
@@ -155,9 +346,92 @@ export class DocumentsWorkspace extends Component {
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
+            scrollTop: this.listScroller.el?.scrollTop || 0,
         });
         browser.sessionStorage.setItem(this.storageKey, serialized);
         browser.sessionStorage.setItem(this.globalStorageKey, serialized);
+    }
+
+    navigationFilters() {
+        return {
+            query: this.state.query,
+            workspace: this.state.workspace,
+            view: this.state.view,
+            sort: this.state.sort,
+            page: this.state.page,
+            ...Object.fromEntries(
+                Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
+            ),
+        };
+    }
+
+    writeNavigationState(mode = "replace", documentId = null, versionId = null) {
+        try {
+            const url = new URL(browser.location.href);
+            const setOrDelete = (key, value) =>
+                value
+                    ? url.searchParams.set(key, String(value))
+                    : url.searchParams.delete(key);
+            setOrDelete("usl_document", documentId);
+            setOrDelete("usl_version", versionId);
+            url.searchParams.set(
+                "usl_filters",
+                JSON.stringify(this.navigationFilters())
+            );
+            browser.history[`${mode}State`](
+                {
+                    ...(browser.history.state || {}),
+                    skipRouteChange: true,
+                    uslDocumentsWorkspace: true,
+                    uslDocumentId: documentId || null,
+                    uslVersionId: versionId || null,
+                },
+                "",
+                url
+            );
+        } catch {
+            // Session storage remains the fallback for older embedded browsers.
+        }
+    }
+
+    replaceNavigationState() {
+        this.writeNavigationState(
+            "replace",
+            this.state.selected?.id,
+            this.state.selected?.selected_version_id
+        );
+    }
+
+    restoreScroll() {
+        let restored = {};
+        try {
+            restored = JSON.parse(
+                browser.sessionStorage.getItem(this.storageKey) || "{}"
+            );
+        } catch {
+            restored = {};
+        }
+        browser.requestAnimationFrame(() => {
+            if (this.listScroller.el && Number.isFinite(restored.scrollTop)) {
+                this.listScroller.el.scrollTop = restored.scrollTop;
+            }
+        });
+    }
+
+    async handlePopState(event) {
+        const historyState = event.state || {};
+        if (!historyState.uslDocumentsWorkspace) {
+            return;
+        }
+        const documentId = Number(historyState.uslDocumentId) || null;
+        if (!documentId) {
+            this.state.selected = null;
+            this.state.editingMetadata = false;
+            this.state.tagPickerOpen = false;
+            this.restoreScroll();
+            return;
+        }
+        await this.openDocumentById(documentId, historyState.uslVersionId);
     }
 
     workspaceKwargs() {
@@ -185,6 +459,7 @@ export class DocumentsWorkspace extends Component {
             linked_id: this.state.linkedRecord
                 ? Number(this.state.linkedRecord.split(":", 2)[1])
                 : null,
+            mapped_partner_id: this.state.mappedPartnerId || null,
         };
     }
 
@@ -209,7 +484,6 @@ export class DocumentsWorkspace extends Component {
                 result.document_types || this.state.documentTypes;
             this.state.companies = result.companies || this.state.companies;
             this.state.linkFacets = result.link_facets || this.state.linkFacets;
-            this.state.operations = result.operations || [];
             this.state.truncated = Boolean(result.truncated);
             this.state.error = result.error || "";
             this.state.workspace = result.selected_workspace || this.state.workspace;
@@ -230,6 +504,7 @@ export class DocumentsWorkspace extends Component {
         } finally {
             this.state.loading = false;
             this.persistState();
+            this.replaceNavigationState();
         }
     }
 
@@ -240,6 +515,7 @@ export class DocumentsWorkspace extends Component {
         }
         this.state.page = 1;
         this.state.selected = null;
+        this.state.searchInput = this.state.query;
         return this.load();
     }
 
@@ -272,12 +548,20 @@ export class DocumentsWorkspace extends Component {
 
     search(event) {
         event.preventDefault();
+        this.state.query = this.state.searchInput.trim();
+        this.state.searchFocused = false;
         this.state.page = 1;
         return this.load();
     }
 
+    onSearchInput(event) {
+        this.state.searchInput = event.target.value;
+        this.state.searchFocused = true;
+    }
+
     clearSearch() {
         this.state.query = "";
+        this.state.searchInput = "";
         this.state.page = 1;
         return this.load();
     }
@@ -292,11 +576,53 @@ export class DocumentsWorkspace extends Component {
 
     clearAll() {
         this.state.query = "";
+        this.state.searchInput = "";
         return this.clearFilters();
     }
 
     updateFilter(field, event) {
         this.state[field] = event.target.value;
+        this.state.page = 1;
+        return this.load();
+    }
+
+    applySearchSuggestion(suggestion) {
+        if (suggestion.kind === "hint") {
+            this.state.searchInput = `${this.state.searchInput}${suggestion.hint}`;
+            return;
+        }
+        const fields = {
+            tag: "tagIds",
+            type: "documentTypeId",
+            from: "correspondentId",
+            company: "companyId",
+            review: "reviewState",
+            privacy: "confidentiality",
+        };
+        const field = fields[suggestion.kind];
+        if (field === "tagIds") {
+            const tagId = Number(suggestion.item.id);
+            if (!this.state.tagIds.includes(tagId)) {
+                this.state.tagIds = [...this.state.tagIds, tagId];
+            }
+        } else {
+            this.state[field] = String(suggestion.item.id);
+        }
+        this.state.searchInput = this.state.query;
+        this.state.searchFocused = false;
+        this.state.page = 1;
+        return this.load();
+    }
+
+    removeFacet(key) {
+        if (key.startsWith("tag:")) {
+            const tagId = Number(key.split(":", 2)[1]);
+            this.state.tagIds = this.state.tagIds.filter((id) => id !== tagId);
+        } else {
+            this.state[key] = Array.isArray(FILTER_DEFAULTS[key])
+                ? []
+                : FILTER_DEFAULTS[key] ?? "";
+        }
         this.state.page = 1;
         return this.load();
     }
@@ -367,6 +693,18 @@ export class DocumentsWorkspace extends Component {
     }
 
     async select(document) {
+        this.persistState();
+        this.hasLocalListHistory = true;
+        this.writeNavigationState("push", document.id);
+        await this.openDocumentById(document.id);
+    }
+
+    async openDocumentById(documentId, versionId = null) {
+        const document =
+            this.state.documents.find((item) => item.id === Number(documentId)) || {
+                id: Number(documentId),
+                name: "Document",
+            };
         this.state.selected = {
             ...document,
             preview_url: `/usl_documents/${document.id}/preview`,
@@ -382,6 +720,16 @@ export class DocumentsWorkspace extends Component {
                     ...detail,
                     preview_url: `/usl_documents/${document.id}/preview`,
                 };
+                if (versionId) {
+                    const version = detail.versions?.find(
+                        (item) => item.paperless_version_id === String(versionId)
+                    );
+                    if (version) {
+                        this.state.selected.preview_url = version.preview_url;
+                        this.state.selected.selected_version_id =
+                            version.paperless_version_id;
+                    }
+                }
             }
         } catch (error) {
             this.notification.add(
@@ -395,9 +743,23 @@ export class DocumentsWorkspace extends Component {
         }
     }
 
+    onDocumentKeydown(event, document) {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            return this.select(document);
+        }
+    }
+
     closeDetail() {
-        this.state.selected = null;
-        this.state.editingMetadata = false;
+        if (this.hasLocalListHistory) {
+            browser.history.back();
+        } else {
+            this.state.selected = null;
+            this.state.editingMetadata = false;
+            this.state.tagPickerOpen = false;
+            this.writeNavigationState("replace");
+            this.restoreScroll();
+        }
     }
 
     beginMetadataEdit() {
@@ -407,7 +769,6 @@ export class DocumentsWorkspace extends Component {
             document_date: selected.date || "",
             correspondent_id: selected.correspondent_id || false,
             document_type_id: selected.document_type_id || false,
-            tag_ids: (selected.tags || []).map((tag) => tag.id),
         };
         this.state.editingMetadata = true;
     }
@@ -424,11 +785,90 @@ export class DocumentsWorkspace extends Component {
                 : event.target.value;
     }
 
-    toggleMetadataTag(tagId) {
-        const selected = this.state.metadataDraft.tag_ids;
-        this.state.metadataDraft.tag_ids = selected.includes(tagId)
-            ? selected.filter((id) => id !== tagId)
-            : [...selected, tagId];
+    async setSelectedTags(tagIds) {
+        if (!this.state.selected || this.state.savingMetadata) {
+            return;
+        }
+        this.state.savingMetadata = true;
+        try {
+            const detail = await this.orm.call(
+                "usl.document",
+                "update_archive_metadata",
+                [[this.state.selected.id], { tag_ids: tagIds }]
+            );
+            this.state.selected = {
+                ...detail,
+                preview_url: `/usl_documents/${detail.id}/preview`,
+            };
+            this.state.tagQuery = "";
+            await this.load();
+        } catch (error) {
+            this.notification.add(
+                error.data?.message ||
+                    error.message ||
+                    "Tags could not be updated. No change was kept.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.savingMetadata = false;
+        }
+    }
+
+    addSelectedTag(tag) {
+        const ids = (this.state.selected.tags || []).map((item) => item.id);
+        if (!ids.includes(tag.id)) {
+            return this.setSelectedTags([...ids, tag.id]);
+        }
+    }
+
+    removeSelectedTag(tagId) {
+        return this.setSelectedTags(
+            (this.state.selected.tags || [])
+                .map((tag) => tag.id)
+                .filter((id) => id !== tagId)
+        );
+    }
+
+    async createAndAddTag() {
+        const name = this.state.tagQuery.trim();
+        if (!name || this.state.creatingTag) {
+            return;
+        }
+        const existing = this.state.tags.find(
+            (tag) => tag.name.toLowerCase() === name.toLowerCase()
+        );
+        if (existing) {
+            return this.addSelectedTag(existing);
+        }
+        this.state.creatingTag = true;
+        try {
+            const [tagId] = await this.orm.create("usl.paperless.tag", [
+                {
+                    name,
+                    color: "#4f6fad",
+                    matching_algorithm: "0",
+                    is_insensitive: true,
+                },
+            ]);
+            const tag = {
+                id: tagId,
+                name,
+                color: "#4f6fad",
+                text_color: "#ffffff",
+            };
+            this.state.tags = [...this.state.tags, tag];
+            await this.addSelectedTag(tag);
+            this.notification.add(`Tag “${name}” created and added.`, {
+                type: "success",
+            });
+        } catch (error) {
+            this.notification.add(
+                error.data?.message || error.message || "The tag could not be created.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.creatingTag = false;
+        }
     }
 
     async saveMetadata() {
@@ -461,6 +901,11 @@ export class DocumentsWorkspace extends Component {
     selectVersion(version) {
         this.state.selected.preview_url = version.preview_url;
         this.state.selected.selected_version_id = version.paperless_version_id;
+        this.writeNavigationState(
+            "replace",
+            this.state.selected.id,
+            version.paperless_version_id
+        );
     }
 
     restoreVersion(version) {
@@ -487,6 +932,33 @@ export class DocumentsWorkspace extends Component {
                         error.data?.message ||
                             error.message ||
                             "The version could not be restored.",
+                        { type: "danger", sticky: true }
+                    );
+                }
+            },
+        });
+    }
+
+    restoreFromTrash() {
+        this.dialog.add(ConfirmationDialog, {
+            title: "Restore this document?",
+            body: "The same archived document and all of its Odoo links will return.",
+            confirmLabel: "Restore",
+            confirm: async () => {
+                try {
+                    const result = await this.orm.call(
+                        "usl.document",
+                        "restore_from_trash",
+                        [[this.state.selected.id]]
+                    );
+                    this.notification.add(result.message, { type: "success" });
+                    await this.load();
+                    await this.openDocumentById(result.document_id);
+                } catch (error) {
+                    this.notification.add(
+                        error.data?.message ||
+                            error.message ||
+                            "The document could not be restored.",
                         { type: "danger", sticky: true }
                     );
                 }
@@ -580,7 +1052,7 @@ export class DocumentsWorkspace extends Component {
             if (result.state === "processing") {
                 await this.pollOperation(result.operation_id);
             } else {
-                await this.select(this.state.selected);
+                await this.openDocumentById(this.state.selected.id);
             }
         } catch (error) {
             const message =
@@ -652,7 +1124,7 @@ export class DocumentsWorkspace extends Component {
                 type: "success",
             });
             await this.load();
-            await this.select(this.state.selected);
+            await this.openDocumentById(this.state.selected.id);
         } catch (error) {
             this.notification.add(
                 error.data?.message ||
@@ -678,7 +1150,7 @@ export class DocumentsWorkspace extends Component {
                 { type: "success" }
             );
             await this.load();
-            await this.select(this.state.selected);
+            await this.openDocumentById(this.state.selected.id);
         } catch (error) {
             this.notification.add(
                 error.data?.message ||
@@ -742,8 +1214,9 @@ export class DocumentsWorkspace extends Component {
                 const selected = this.state.selected;
                 await this.load();
                 if (selected) {
-                    await this.select(selected);
+                    await this.openDocumentById(selected.id);
                 }
+                this.state.operation = null;
                 return;
             }
             if (status.state === "failed") {
