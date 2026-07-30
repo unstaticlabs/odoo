@@ -65,6 +65,7 @@ usl-online-dump/
 /oca-src/
 /accounting_compat/private/
 /artifacts/accounting-compat/private/
+/artifacts/platform-billing-restore/
 /artifacts/user-docs/site/
 /output/
 /tmp/

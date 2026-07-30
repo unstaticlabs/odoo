@@ -26,16 +26,30 @@ if TYPE_CHECKING:
 
 
 TOOL_VERSION = "0.1.0"
-COMPOSE_PROJECT = os.environ.get(
-    "ACCOUNTING_COMPAT_COMPOSE_PROJECT",
-    "usl-odoo-saas-19-2",
+
+
+def resolve_compose_project(environment: dict[str, str]) -> str:
+    return (
+        environment.get("ACCOUNTING_COMPAT_COMPOSE_PROJECT")
+        or environment.get("COMPOSE_PROJECT_NAME")
+        or environment.get("ODOO_SAAS_COMPOSE_PROJECT")
+        or "usl-odoo-saas-19-2"
+    )
+
+
+COMPOSE_PROJECT = resolve_compose_project(os.environ)
+REQUIRE_ISOLATED_PROJECT = (
+    os.environ.get("ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT") == "1"
+)
+VERIFY_COMPOSE_SCOPE = (
+    os.environ.get("ACCOUNTING_COMPAT_VERIFY_COMPOSE_SCOPE") == "1"
 )
 SOURCE_DB = "odoo_online_source_saas_19_2"
 EXACT_VALIDATION_DB = "odoo_saas_19_2_validation_exact"
 NATIVE_VALIDATION_DB = "odoo_saas_19_2_validation_native"
 DEV_QA_DB = os.environ.get("ACCOUNTING_COMPAT_DEV_DB", "odoo_dev")
 READONLY_ROLE = "accounting_source_ro"
-DEFAULT_SOURCE_DIR = "usl-online-dump"
+DEFAULT_SOURCE_DIR = os.environ.get("ACCOUNTING_COMPAT_SOURCE_DIR", "usl-online-dump")
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
 SOURCE_DB_SERVICE = "accounting-source-db"
 TARGET_DB_SERVICE = "db"
@@ -287,11 +301,60 @@ def run_stdout(args: list[str], *, env: dict[str, str] | None = None) -> str:
 
 
 def compose_args(*args: str) -> list[str]:
+    if VERIFY_COMPOSE_SCOPE:
+        verify_compose_scope()
     command = ["docker", "compose", "-p", COMPOSE_PROJECT, *args]
     if args[:4] == ("--profile", "init", "run", "--rm") and "init-db" in args:
         insert_at = command.index("init-db")
         command[insert_at:insert_at] = ["-e", f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}"]
     return command
+
+
+def verify_compose_scope() -> None:
+    containers = subprocess.run(
+        [
+            "docker",
+            "ps",
+            "-aq",
+            "--filter",
+            f"label=com.docker.compose.project={COMPOSE_PROJECT}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    for container_id in containers:
+        labels = subprocess.run(
+            [
+                "docker",
+                "inspect",
+                "--format",
+                (
+                    '{{ index .Config.Labels "com.docker.compose.project" }}'
+                    " "
+                    '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}'
+                ),
+                container_id,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if labels != f"{COMPOSE_PROJECT} {ROOT}":
+            raise HarnessError(
+                "Compose scope mismatch for "
+                f"{container_id}: expected {COMPOSE_PROJECT} {ROOT}, got {labels}.",
+            )
+
+
+def require_isolated_compose_project() -> None:
+    if REQUIRE_ISOLATED_PROJECT and not COMPOSE_PROJECT.startswith(
+        "usl-odoo-fp-",
+    ):
+        raise HarnessError(
+            "This run requires a dedicated usl-odoo-fp-* Compose project; "
+            f"resolved {COMPOSE_PROJECT!r}.",
+        )
 
 
 def source_postgres_env() -> dict[str, str]:
@@ -403,6 +466,13 @@ def filestore_inventory(path: Path) -> dict[str, Any]:
     }
 
 
+def repository_relative_or_absolute(path: Path) -> str:
+    resolved = path.resolve()
+    if resolved.is_relative_to(ROOT):
+        return str(resolved.relative_to(ROOT))
+    return str(resolved)
+
+
 def git_value(*args: str) -> str | None:
     try:
         return run_stdout(["git", *args])
@@ -413,7 +483,7 @@ def git_value(*args: str) -> str | None:
 def git_tracking_status(paths: Iterable[Path]) -> list[dict[str, Any]]:
     records = []
     for path in paths:
-        rel = str(path.relative_to(ROOT)) if path.is_absolute() else str(path)
+        rel = repository_relative_or_absolute(path)
         tracked = bool(git_value("ls-files", "--", rel))
         ignored = False
         ignore_rule = None
@@ -705,9 +775,9 @@ def source_validation_manifest(source_dir: str) -> dict[str, Any]:
     manifest = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "source_dir": str(package.path.relative_to(ROOT)) if package.path.is_relative_to(ROOT) else str(package.path),
+        "source_dir": repository_relative_or_absolute(package.path),
         "dump": {
-            "path": str(package.dump_path.relative_to(ROOT)) if package.dump_path.exists() else str(package.dump_path),
+            "path": repository_relative_or_absolute(package.dump_path),
             "exists": package.dump_path.exists(),
             "format": dump_format,
             "size_bytes": dump_size,
@@ -14857,6 +14927,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        require_isolated_compose_project()
         if args.stage == "source-validate":
             print_summary(args.stage, validate_source(args))
         elif args.stage == "source-restore":

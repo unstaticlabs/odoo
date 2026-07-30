@@ -7,7 +7,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PRODUCT_ADDONS = ROOT / "custom-addons"
-MIGRATION_ADDONS = ROOT / "migration" / "project_restore" / "addons"
+PROJECT_MIGRATION_ADDONS = ROOT / "migration" / "project_restore" / "addons"
+PLATFORM_MIGRATION_ADDONS = (
+    ROOT / "migration" / "platform_billing_restore" / "addons"
+)
 
 
 def manifest(path):
@@ -15,8 +18,18 @@ def manifest(path):
 
 
 errors = []
-if not (MIGRATION_ADDONS / "usl_project_restore" / "__manifest__.py").is_file():
+if not (
+    PROJECT_MIGRATION_ADDONS / "usl_project_restore" / "__manifest__.py"
+).is_file():
     errors.append("The project restoration add-on is not migration-isolated.")
+if not (
+    PLATFORM_MIGRATION_ADDONS
+    / "usl_platform_billing_restore"
+    / "__manifest__.py"
+).is_file():
+    errors.append(
+        "The platform billing restoration add-on is not migration-isolated.",
+    )
 
 for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
     addon_name = addon_manifest.parent.name
@@ -30,9 +43,17 @@ for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
         errors.append(
             f"Product add-on {addon_name} depends on usl_project_restore.",
         )
+    if "usl_platform_billing_restore" in dependencies:
+        errors.append(
+            f"Product add-on {addon_name} depends on "
+            "usl_platform_billing_restore.",
+        )
 
 compose = (ROOT / "compose.yaml").read_text()
 restore_harness = (ROOT / "scripts/project-restore").read_text()
+platform_restore_harness = (
+    ROOT / "scripts/platform-billing-restore"
+).read_text()
 default_addons_path = (
     "/opt/odoo/addons,/opt/odoo/odoo/addons,"
     "/mnt/custom-addons,/mnt/oca-addons"
@@ -50,10 +71,35 @@ if (
     errors.append(
         "The migration add-ons path is not confined to the migration service.",
     )
+if "/mnt/platform-billing-migration-addons" not in compose:
+    errors.append(
+        "The dedicated platform billing migration add-ons mount is missing.",
+    )
+if (
+    "--addons-path="
+    + default_addons_path
+    + ",/mnt/platform-billing-migration-addons"
+    not in compose
+):
+    errors.append(
+        "The platform migration add-ons path is not confined to its service.",
+    )
 if '--addons-path="$migration_addons_path"' not in restore_harness:
     errors.append(
         "The project restoration harness does not explicitly pass the "
         "migration-only add-ons path.",
+    )
+if (
+    '--addons-path="$migration_addons_path"'
+    not in platform_restore_harness
+):
+    errors.append(
+        "The platform restoration harness does not explicitly pass the "
+        "migration-only add-ons path.",
+    )
+if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
+    errors.append(
+        "The platform restoration harness lacks the isolated-project guard.",
     )
 
 runtime_project = PRODUCT_ADDONS / "usl_project"
@@ -75,6 +121,28 @@ for path in runtime_project.rglob("*"):
         if forbidden in text:
             errors.append(
                 f"Product file {path.relative_to(ROOT)} contains {forbidden!r}.",
+            )
+
+runtime_platform = PRODUCT_ADDONS / "usl_platform_billing"
+for path in runtime_platform.rglob("*"):
+    if (
+        not path.is_file()
+        or "__pycache__" in path.parts
+        or "tests" in path.parts
+    ):
+        continue
+    text = path.read_text(errors="ignore")
+    for forbidden in (
+        "usl.platform.billing.restore",
+        "usl_platform_billing_restore",
+        "rebuild_source_",
+        "/mnt/platform-billing-migration-addons",
+        "x_content_bank_candidate",
+    ):
+        if forbidden in text:
+            errors.append(
+                f"Product file {path.relative_to(ROOT)} contains "
+                f"{forbidden!r}.",
             )
 
 if errors:

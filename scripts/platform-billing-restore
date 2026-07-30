@@ -1,0 +1,215 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-}}"
+target_database="${PLATFORM_BILLING_TARGET_DATABASE:-odoo_dev}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+expected_dump_sha="ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e"
+migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/platform-billing-migration-addons"
+
+if [[ -z "$compose_project" || "$compose_project" != usl-odoo-fp-* ]]; then
+    echo "Refusing non-isolated Compose project ${compose_project:-<unset>}."
+    echo "Set COMPOSE_PROJECT_NAME to a dedicated usl-odoo-fp-* project."
+    exit 2
+fi
+case "$target_database" in
+    odoo_online_source_saas_19_2)
+        echo "Refusing the read-only source database as a target."
+        exit 2
+        ;;
+    ""|*[!A-Za-z0-9_]*)
+        echo "Refusing unsafe target database name: $target_database"
+        exit 2
+        ;;
+esac
+
+verify_workspace() {
+    if [[ "$PWD" != "$repo_root" ]]; then
+        echo "Docker operation refused outside $repo_root."
+        exit 2
+    fi
+    local container_id
+    while IFS= read -r container_id; do
+        [[ -z "$container_id" ]] && continue
+        local project_label working_dir_label
+        project_label="$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "$container_id")"
+        working_dir_label="$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' "$container_id")"
+        if [[ "$project_label" != "$compose_project" || "$working_dir_label" != "$repo_root" ]]; then
+            echo "Compose label mismatch on container $container_id."
+            echo "Expected project=$compose_project working_dir=$repo_root."
+            exit 2
+        fi
+    done < <(
+        docker ps -aq \
+            --filter "label=com.docker.compose.project=$compose_project"
+    )
+}
+
+compose() {
+    verify_workspace
+    docker compose -p "$compose_project" "$@"
+}
+
+require_source() {
+    if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+        echo "Source dump or filestore is missing under $source_dump_dir."
+        exit 2
+    fi
+    local actual_dump_sha
+    actual_dump_sha="$(shasum -a 256 "$source_dump_dir/dump.sql" | cut -d ' ' -f 1)"
+    if [[ "$actual_dump_sha" != "$expected_dump_sha" ]]; then
+        echo "Source dump SHA-256 mismatch: $actual_dump_sha"
+        exit 2
+    fi
+    if ! compose ps --status running --services | grep -qx accounting-source-db; then
+        echo "The dedicated accounting-source-db service is not running."
+        echo "Restore it through the isolated Accounting reconstruction first."
+        exit 2
+    fi
+}
+
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+product_was_running=0
+if compose ps --status running --services | grep -qx odoo; then
+    product_was_running=1
+    compose stop odoo >/dev/null
+fi
+
+restore_product_service() {
+    if ((product_was_running)); then
+        compose up -d --wait odoo
+    fi
+}
+trap restore_product_service EXIT INT TERM
+
+module_operations() {
+    local init_modules=()
+    local update_modules=()
+    local module_name
+    for module_name in "$@"; do
+        if compose exec -T db \
+            psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
+            "SELECT 1 FROM ir_module_module WHERE name = '$module_name' AND state = 'installed'" \
+            | grep -qx 1; then
+            update_modules+=("$module_name")
+        else
+            init_modules+=("$module_name")
+        fi
+    done
+    local operations=()
+    if ((${#init_modules[@]})); then
+        operations+=("--init=$(IFS=,; echo "${init_modules[*]}")")
+    fi
+    if ((${#update_modules[@]})); then
+        operations+=("--update=$(IFS=,; echo "${update_modules[*]}")")
+    fi
+    compose --profile platform-billing-migration run --rm \
+        -e ODOO_INIT_DB="$target_database" \
+        platform-billing-migration \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" \
+        --database="$target_database" \
+        "${operations[@]}" \
+        --without-demo=true \
+        --stop-after-init
+}
+
+install_modules() {
+    module_operations \
+        usl_platform_billing \
+        rebuild_account_migration \
+        usl_platform_billing_restore
+}
+
+run_shell() {
+    local script_path="$1"
+    local evidence_name="${2:-}"
+    local evidence_path=""
+    if [[ -n "$evidence_name" ]]; then
+        evidence_path="/mnt/platform-billing-evidence/$evidence_name"
+    fi
+    compose --profile platform-billing-migration run --rm \
+        -e PLATFORM_BILLING_SOURCE_DB_HOST=accounting-source-db \
+        -e PLATFORM_BILLING_SOURCE_DB_PORT=5432 \
+        -e PLATFORM_BILLING_SOURCE_DB_USER="${PLATFORM_BILLING_SOURCE_DB_USER:-odoo}" \
+        -e PLATFORM_BILLING_SOURCE_DB_PASSWORD="${PLATFORM_BILLING_SOURCE_DB_PASSWORD:-odoo}" \
+        -e PLATFORM_BILLING_SOURCE_DATABASE="${PLATFORM_BILLING_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e PLATFORM_BILLING_SOURCE_SNAPSHOT="${PLATFORM_BILLING_SOURCE_SNAPSHOT:-odoo-online-saas-19.2-platform-billing}" \
+        -e "PLATFORM_BILLING_EVIDENCE_PATH=$evidence_path" \
+        platform-billing-migration \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" \
+        --database="$target_database" \
+        --shell-interface=python \
+        < "$script_path"
+}
+
+import_history() {
+    require_source
+    run_shell \
+        migration/platform_billing_restore/addons/usl_platform_billing_restore/scripts/run_restore.py \
+        latest-restore.json
+}
+
+validate_history() {
+    require_source
+    run_shell \
+        migration/platform_billing_restore/addons/usl_platform_billing_restore/scripts/validate_restore.py
+}
+
+finalize_history() {
+    run_shell \
+        migration/platform_billing_restore/addons/usl_platform_billing_restore/scripts/finalize_restore.py
+    validate_product_boundary
+}
+
+validate_product_boundary() {
+    compose --profile init run --rm \
+        -e ODOO_INIT_DB="$target_database" \
+        init-db \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --database="$target_database" \
+        --shell-interface=python \
+        < migration/platform_billing_restore/scripts/validate_product_boundary.py
+}
+
+case "$command_name" in
+    install)
+        install_modules
+        ;;
+    import)
+        import_history
+        ;;
+    validate)
+        validate_history
+        ;;
+    idempotence)
+        import_history
+        validate_history
+        ;;
+    finalize)
+        finalize_history
+        ;;
+    product-validate)
+        validate_product_boundary
+        ;;
+    all)
+        install_modules
+        import_history
+        validate_history
+        import_history
+        validate_history
+        finalize_history
+        ;;
+    *)
+        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|product-validate|all]"
+        exit 2
+        ;;
+esac
