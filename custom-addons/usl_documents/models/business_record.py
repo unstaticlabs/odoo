@@ -12,12 +12,27 @@ class DocumentLinkMixin(models.AbstractModel):
 
     def _compute_archived_document_count(self):
         Link = self.env["usl.document.link"]
+        Document = self.env["usl.document"]
         for record in self:
-            record.archived_document_count = Link.search_count([
+            link_domain = [
                 ("res_model", "=", record._name),
                 ("res_id", "=", record.id),
                 ("active", "=", True),
-            ])
+            ]
+            if record._name == "res.partner":
+                record.archived_document_count = Document.search_count(
+                    [
+                        "|",
+                        ("correspondent_id.partner_id", "=", record.id),
+                        "&",
+                        "&",
+                        ("link_ids.res_model", "=", record._name),
+                        ("link_ids.res_id", "=", record.id),
+                        ("link_ids.active", "=", True),
+                    ],
+                )
+            else:
+                record.archived_document_count = Link.search_count(link_domain)
 
     def action_open_archived_documents(self):
         self.ensure_one()
@@ -43,7 +58,19 @@ class DocumentLinkMixin(models.AbstractModel):
         self.ensure_one()
         self.check_access("read")
         action = self.env.ref("usl_documents.action_documents_workspace").read()[0]
-        action["params"] = {"res_model": self._name, "res_id": self.id}
+        linked = self.env["usl.document.link"].search_count(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("active", "=", True),
+            ],
+        )
+        action["params"] = {
+            "res_model": self._name,
+            "res_id": self.id,
+            "linked_filter": bool(linked),
+            "mapped_partner_id": self.id if self._name == "res.partner" else False,
+        }
         return action
 
     def _document_company(self):

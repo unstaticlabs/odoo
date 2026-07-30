@@ -264,6 +264,31 @@
         <field name="view_mode">list,form</field>
     </record>
 
+    <record id="view_usl_document_operation_list" model="ir.ui.view">
+        <field name="name">usl.document.operation.list</field>
+        <field name="model">usl.document.operation</field>
+        <field name="arch" type="xml">
+            <list string="Ingestion history" create="0" delete="0"
+                  decoration-danger="state == 'failed'"
+                  decoration-warning="state == 'duplicate'">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="document_id"/>
+                <field name="retry_count" optional="hide"/>
+                <field name="error_message" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_usl_document_operations" model="ir.actions.act_window">
+        <field name="name">Ingestion history</field>
+        <field name="res_model">usl.document.operation</field>
+        <field name="view_mode">list</field>
+    </record>
+
     <record id="view_usl_paperless_user_mapping_list" model="ir.ui.view">
         <field name="name">usl.paperless.user.mapping.list</field>
         <field name="model">usl.paperless.user.mapping</field>
@@ -329,7 +354,7 @@
               action="action_documents_workspace" sequence="10"/>
     <menuitem id="menu_usl_documents_configuration" name="Configuration"
               parent="menu_usl_documents_root" sequence="90"
-              groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
+              groups="usl_documents.group_documents_manager"/>
     <menuitem id="menu_usl_documents_archive" name="Document register"
               parent="menu_usl_documents_configuration"
               action="action_usl_documents" sequence="60"
@@ -341,5 +366,9 @@
     <menuitem id="menu_usl_documents_identities" name="User access"
               parent="menu_usl_documents_configuration"
               action="action_usl_paperless_user_mappings" sequence="80"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_operations" name="Ingestion history"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_operations" sequence="90"
               groups="usl_documents.group_documents_manager"/>
 </odoo>

@@ -207,6 +207,65 @@ class PaperlessClient:
             "DELETE", f"/api/{endpoint}/{int(metadata_id)}/",
         )[0]
 
+    def list_saved_views(self):
+        """Return all Paperless saved views through the supported API."""
+        page = 1
+        values = []
+        while True:
+            payload = self._request(
+                "GET",
+                "/api/saved_views/",
+                query={"page": page, "page_size": 100, "ordering": "name"},
+            )[0]
+            results = (
+                payload.get("results", []) if isinstance(payload, dict) else payload
+            )
+            values.extend(results)
+            if not isinstance(payload, dict) or not payload.get("next"):
+                return values
+            page += 1
+
+    def create_saved_view(self, values):
+        return self._request("POST", "/api/saved_views/", body=values)[0]
+
+    def update_saved_view(self, saved_view_id, values):
+        return self._request(
+            "PATCH", f"/api/saved_views/{int(saved_view_id)}/", body=values,
+        )[0]
+
+    def delete_saved_view(self, saved_view_id):
+        return self._request(
+            "DELETE", f"/api/saved_views/{int(saved_view_id)}/",
+        )[0]
+
+    def list_trashed_documents(self):
+        """Return all documents currently in Paperless Trash."""
+        page = 1
+        values = []
+        while True:
+            payload = self._request(
+                "GET",
+                "/api/trash/",
+                query={"page": page, "page_size": 100, "ordering": "id"},
+            )[0]
+            results = (
+                payload.get("results", []) if isinstance(payload, dict) else payload
+            )
+            values.extend(results)
+            if not isinstance(payload, dict) or not payload.get("next"):
+                return values
+            page += 1
+
+    def restore_trashed_documents(self, document_ids):
+        return self._request(
+            "POST",
+            "/api/trash/",
+            body={
+                "documents": [int(document_id) for document_id in document_ids],
+                "action": "restore",
+            },
+        )[0]
+
     def ensure_document_type(self, name):
         """Return a document type by name, creating it through the public API."""
         payload = self._request(
@@ -255,6 +314,29 @@ class PaperlessClient:
 
     def get_user(self, user_id):
         return self._request("GET", f"/api/users/{int(user_id)}/")[0]
+
+    def list_users(self):
+        page = 1
+        values = []
+        while True:
+            payload = self._request(
+                "GET",
+                "/api/users/",
+                query={"page": page, "page_size": 100, "ordering": "username"},
+            )[0]
+            results = (
+                payload.get("results", []) if isinstance(payload, dict) else payload
+            )
+            values.extend(results)
+            if not isinstance(payload, dict) or not payload.get("next"):
+                return values
+            page += 1
+
+    def trash_document(self, document_id):
+        """Move a root document to Paperless Trash without permanent deletion."""
+        return self._request(
+            "DELETE", f"/api/documents/{int(document_id)}/",
+        )[0]
 
     def ensure_fail_closed_ingestion_policy(self):
         """Own every ingestion channel with the service identity until Odoo syncs.

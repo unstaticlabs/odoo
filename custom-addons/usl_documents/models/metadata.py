@@ -1,7 +1,7 @@
 import json
 from datetime import timedelta
 
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 from .paperless_client import PaperlessClient
@@ -59,6 +59,10 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         return {"name", "match", "matching_algorithm", "is_insensitive"}
 
     @api.model
+    def _local_write_fields(self):
+        return {"active"}
+
+    @api.model
     def _paperless_payload(self, values):
         payload = {}
         for key in self._payload_fields():
@@ -95,9 +99,17 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
             remote = self._paperless().create_metadata(
                 self._paperless_kind, self._paperless_payload(values),
             )
+            cache_values = self._cache_values(remote)
+            cache_values.update(
+                {
+                    key: value
+                    for key, value in values.items()
+                    if key in self._local_write_fields()
+                },
+            )
             records |= super(UslPaperlessMetadataMixin, self.with_context(
                 usl_documents_cache_write=True,
-            )).create(self._cache_values(remote))
+            )).create(cache_values)
         return records
 
     def write(self, values):
@@ -105,15 +117,30 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
             return super().write(values)
         if "paperless_id" in values:
             raise AccessError(_("Paperless identities cannot be changed."))
-        for record in self:
-            remote = record._paperless().update_metadata(
-                record._paperless_kind,
-                record.paperless_id,
-                record._paperless_payload(values),
+        allowed = self._payload_fields() | self._local_write_fields()
+        unsupported = set(values) - allowed
+        if unsupported:
+            raise AccessError(
+                _("These archive metadata fields cannot be edited: %s")
+                % ", ".join(sorted(unsupported)),
             )
+        for record in self:
+            remote_values = record._paperless_payload(values)
+            cache_values = {
+                key: value
+                for key, value in values.items()
+                if key in record._local_write_fields()
+            }
+            if remote_values:
+                remote = record._paperless().update_metadata(
+                    record._paperless_kind,
+                    record.paperless_id,
+                    remote_values,
+                )
+                cache_values.update(record._cache_values(remote))
             super(UslPaperlessMetadataMixin, record.with_context(
                 usl_documents_cache_write=True,
-            )).write(record._cache_values(remote))
+            )).write(cache_values)
         return True
 
     def unlink(self):
@@ -230,6 +257,111 @@ class UslPaperlessCorrespondent(models.Model):
 
     _paperless_kind = "correspondents"
 
+    partner_id = fields.Many2one(
+        "res.partner",
+        string="Odoo Contact",
+        index=True,
+        ondelete="set null",
+        help=(
+            "Optional business-identity mapping. It does not link documents or grant "
+            "access. Paperless remains responsible for archive matching."
+        ),
+    )
+    rejected_partner_id = fields.Many2one(
+        "res.partner",
+        string="Rejected suggestion",
+        readonly=True,
+        copy=False,
+        ondelete="set null",
+    )
+    suggested_partner_id = fields.Many2one(
+        "res.partner",
+        string="Suggested Contact",
+        compute="_compute_suggested_partner",
+    )
+
+    @api.model
+    def _local_write_fields(self):
+        return super()._local_write_fields() | {
+            "partner_id",
+            "rejected_partner_id",
+        }
+
+    @api.depends("name", "partner_id", "rejected_partner_id")
+    def _compute_suggested_partner(self):
+        for correspondent in self:
+            if correspondent.partner_id or not correspondent.name:
+                correspondent.suggested_partner_id = False
+                continue
+            candidate = self.env["res.partner"].search(
+                [
+                    ("active", "=", True),
+                    ("name", "=ilike", correspondent.name),
+                    "|",
+                    ("company_id", "=", False),
+                    ("company_id", "in", self.env.user.company_ids.ids),
+                ],
+                limit=1,
+            )
+            correspondent.suggested_partner_id = (
+                candidate
+                if candidate and candidate != correspondent.rejected_partner_id
+                else False
+            )
+
+    def action_accept_suggested_partner(self):
+        for correspondent in self:
+            if correspondent.suggested_partner_id:
+                correspondent.write(
+                    {
+                        "partner_id": correspondent.suggested_partner_id.id,
+                        "rejected_partner_id": False,
+                    },
+                )
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def action_reject_suggested_partner(self):
+        for correspondent in self:
+            if correspondent.suggested_partner_id:
+                correspondent.write(
+                    {"rejected_partner_id": correspondent.suggested_partner_id.id},
+                )
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def action_open_partner(self):
+        self.ensure_one()
+        if not self.partner_id:
+            raise ValidationError(_("Map an Odoo Contact first."))
+        self.partner_id.check_access("read")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.partner_id.display_name,
+            "res_model": "res.partner",
+            "res_id": self.partner_id.id,
+            "views": [(False, "form")],
+            "target": "current",
+        }
+
+    @api.model
+    def suggest_contacts(self, correspondent_id, limit=8):
+        correspondent = self.browse(int(correspondent_id)).exists()
+        if not correspondent:
+            raise ValidationError(_("The correspondent no longer exists."))
+        terms = [term for term in correspondent.name.split() if len(term) > 2]
+        domain = [("active", "=", True)]
+        if terms:
+            domain.append(("name", "ilike", " ".join(terms)))
+        partners = self.env["res.partner"].search(domain, limit=min(20, int(limit)))
+        return [
+            {
+                "id": partner.id,
+                "name": partner.display_name,
+                "email": partner.email or "",
+                "company": partner.company_id.display_name,
+            }
+            for partner in partners
+        ]
+
 
 class UslPaperlessDocumentType(models.Model):
     _name = "usl.paperless.document.type"
@@ -263,6 +395,7 @@ class UslDocumentSmartView(models.Model):
             ("recent", "Recently added"),
             ("accounting", "Accounting evidence"),
             ("hr", "HR restricted"),
+            ("trash", "Trash"),
             ("metadata", "Paperless metadata"),
             ("saved", "Saved filters"),
         ],
@@ -292,9 +425,37 @@ class UslDocumentSmartView(models.Model):
         string="Correspondents",
     )
     filter_json = fields.Text(readonly=True)
+    archive_native = fields.Boolean(
+        string="Available in Paperless",
+        help=(
+            "Synchronize this shared view with Paperless. Odoo-only company, "
+            "confidentiality, and business-record filters remain enforced only in Odoo."
+        ),
+    )
+    paperless_id = fields.Integer(
+        string="Paperless Saved View ID", readonly=True, copy=False, index=True,
+    )
+    paperless_filter_json = fields.Text(readonly=True, copy=False)
+    paperless_sync_state = fields.Selection(
+        [
+            ("pending", "Pending"),
+            ("synchronized", "Synchronized"),
+            ("failed", "Needs attention"),
+        ],
+        default="pending",
+        required=True,
+        readonly=True,
+        copy=False,
+    )
+    paperless_sync_error = fields.Text(readonly=True, copy=False)
+    paperless_synced_at = fields.Datetime(readonly=True, copy=False)
 
     _smart_view_key_unique = models.Constraint(
         "UNIQUE(key)", "A shared Documents view key must be unique.",
+    )
+    _smart_view_paperless_unique = models.Constraint(
+        "UNIQUE(paperless_id)",
+        "A Paperless saved view may only be mapped once.",
     )
 
     @api.model_create_multi
@@ -310,7 +471,13 @@ class UslDocumentSmartView(models.Model):
                 values["user_id"] = self.env.user.id
                 values["key"] = False
             normalized.append(values)
-        return super().create(normalized)
+        records = super().create(normalized)
+        if (
+            not self.env.context.get("usl_documents_archive_view_sync")
+            and not self.env.context.get("install_mode")
+        ):
+            records.filtered("archive_native")._push_to_paperless()
+        return records
 
     def write(self, values):
         if self.filtered(lambda item: item.scope == "shared"):
@@ -319,7 +486,21 @@ class UslDocumentSmartView(models.Model):
             lambda item: item.scope == "personal" and item.user_id != self.env.user,
         ):
             raise AccessError(_("You may only edit your own saved views."))
-        return super().write(values)
+        result = super().write(values)
+        push_fields = {
+            "name",
+            "archive_native",
+            "tag_ids",
+            "document_type_ids",
+            "correspondent_ids",
+        }
+        if (
+            push_fields.intersection(values)
+            and not self.env.context.get("usl_documents_archive_view_sync")
+            and not self.env.context.get("install_mode")
+        ):
+            self.filtered("archive_native")._push_to_paperless()
+        return result
 
     def unlink(self):
         if self.filtered(lambda item: item.scope == "shared"):
@@ -328,6 +509,11 @@ class UslDocumentSmartView(models.Model):
             lambda item: item.scope == "personal" and item.user_id != self.env.user,
         ):
             raise AccessError(_("You may only remove your own saved views."))
+        if not self.env.context.get("usl_documents_archive_view_sync"):
+            for record in self.filtered(
+                lambda item: item.archive_native and item.paperless_id,
+            ):
+                PaperlessClient(self.env).delete_saved_view(record.paperless_id)
         return super().unlink()
 
     def _require_manager(self):
@@ -360,24 +546,28 @@ class UslDocumentSmartView(models.Model):
             domain = [("confidentiality", "=", "hr")]
         elif self.system_rule == "saved":
             domain = []
-        elif self.system_rule == "metadata":
-            alternatives = []
             if self.tag_ids:
-                alternatives.append([("tag_ids", "in", self.tag_ids.ids)])
+                domain.append(("tag_ids", "in", self.tag_ids.ids))
             if self.document_type_ids:
-                alternatives.append(
-                    [("document_type_id", "in", self.document_type_ids.ids)],
-                )
+                domain.append(("document_type_id", "in", self.document_type_ids.ids))
             if self.correspondent_ids:
-                alternatives.append(
-                    [("correspondent_id", "in", self.correspondent_ids.ids)],
+                domain.append(
+                    ("correspondent_id", "in", self.correspondent_ids.ids),
                 )
-            domain = (
-                ["|"] * (len(alternatives) - 1)
-                + [alternative[0] for alternative in alternatives]
-                if alternatives
-                else [("id", "=", 0)]
-            )
+        elif self.system_rule == "metadata":
+            domain = []
+            if self.tag_ids:
+                domain.append(("tag_ids", "in", self.tag_ids.ids))
+            if self.document_type_ids:
+                domain.append(("document_type_id", "in", self.document_type_ids.ids))
+            if self.correspondent_ids:
+                domain.append(
+                    ("correspondent_id", "in", self.correspondent_ids.ids),
+                )
+            if not domain:
+                domain = [("id", "=", 0)]
+        elif self.system_rule == "trash":
+            domain = [("availability_state", "=", "trashed")]
         else:
             domain = []
         return domain
@@ -392,7 +582,196 @@ class UslDocumentSmartView(models.Model):
             "icon": self.icon or "fa-folder-o",
             "personal": self.scope == "personal",
             "filters": filters,
+            "archive_native": self.archive_native,
+            "needs_attention": self.paperless_sync_state == "failed",
         }
+
+    def _paperless_filter_rules(self):
+        self.ensure_one()
+        rules = [
+            {"rule_type": 6, "value": str(tag.paperless_id)}
+            for tag in self.tag_ids
+        ]
+        rules.extend(
+            {"rule_type": 4, "value": str(document_type.paperless_id)}
+            for document_type in self.document_type_ids
+        )
+        rules.extend(
+            {"rule_type": 3, "value": str(correspondent.paperless_id)}
+            for correspondent in self.correspondent_ids
+        )
+        saved = json.loads(self.filter_json or "{}")
+        if saved.get("query"):
+            rules.append({"rule_type": 20, "value": saved["query"]})
+        return rules
+
+    def _paperless_payload(self):
+        self.ensure_one()
+        return {
+            "name": self.name,
+            "sort_field": "created",
+            "sort_reverse": True,
+            "filter_rules": self._paperless_filter_rules(),
+            **(
+                {"owner": PaperlessClient(self.env).owner_user_id}
+                if PaperlessClient(self.env).owner_user_id
+                else {}
+            ),
+        }
+
+    def _push_to_paperless(self, client=None):
+        client = client or PaperlessClient(self.env)
+        remote_views = None
+
+        def remote_owner_id(remote):
+            owner = remote.get("owner")
+            return int(owner.get("id")) if isinstance(owner, dict) else int(owner or 0)
+
+        for record in self:
+            if record.scope != "shared" or not record.archive_native:
+                continue
+            payload = record._paperless_payload()
+            paperless_id = record.paperless_id
+            if not paperless_id:
+                # A remote create may have committed while the surrounding Odoo
+                # transaction later rolled back. Adopt that stable object on retry
+                # instead of producing a duplicate or leaving synchronization stuck.
+                remote_views = (
+                    client.list_saved_views()
+                    if remote_views is None
+                    else remote_views
+                )
+                existing = next(
+                    (
+                        remote
+                        for remote in remote_views
+                        if remote.get("name") == record.name
+                        and remote_owner_id(remote)
+                        == int(client.owner_user_id or 0)
+                    ),
+                    None,
+                )
+                paperless_id = int(existing["id"]) if existing else False
+            if paperless_id:
+                remote = client.update_saved_view(paperless_id, payload)
+            else:
+                remote = client.create_saved_view(payload)
+                if remote_views is not None:
+                    remote_views.append(remote)
+            record.with_context(usl_documents_archive_view_sync=True).write(
+                {
+                    "paperless_id": int(remote["id"]),
+                    "paperless_filter_json": json.dumps(
+                        remote.get("filter_rules") or [], sort_keys=True,
+                    ),
+                    "paperless_sync_state": "synchronized",
+                    "paperless_sync_error": False,
+                    "paperless_synced_at": fields.Datetime.now(),
+                },
+            )
+        return True
+
+    @api.model
+    def _remote_cache_values(self, payload):
+        tag_ids = []
+        document_type_ids = []
+        correspondent_ids = []
+        saved_filters = {}
+        unsupported = []
+        models_by_rule = {
+            6: ("usl.paperless.tag", tag_ids),
+            4: ("usl.paperless.document.type", document_type_ids),
+            3: ("usl.paperless.correspondent", correspondent_ids),
+        }
+        for rule in payload.get("filter_rules") or []:
+            rule_type = int(rule.get("rule_type") or 0)
+            if rule_type == 20:
+                saved_filters["query"] = rule.get("value") or ""
+                continue
+            target = models_by_rule.get(rule_type)
+            if not target:
+                unsupported.append(str(rule_type))
+                continue
+            try:
+                paperless_id = int(rule.get("value"))
+            except (TypeError, ValueError):
+                unsupported.append(str(rule_type))
+                continue
+            record = self.env[target[0]].sudo().search(
+                [("paperless_id", "=", paperless_id)], limit=1,
+            )
+            if record:
+                target[1].append(record.id)
+            else:
+                unsupported.append(str(rule_type))
+        return {
+            "name": payload.get("name") or _("Unnamed saved view"),
+            "archive_native": True,
+            "paperless_id": int(payload["id"]),
+            "paperless_filter_json": json.dumps(
+                payload.get("filter_rules") or [], sort_keys=True,
+            ),
+            "system_rule": "saved" if saved_filters else "metadata",
+            "filter_json": json.dumps(saved_filters, sort_keys=True),
+            "tag_ids": [Command.set(tag_ids)],
+            "document_type_ids": [Command.set(document_type_ids)],
+            "correspondent_ids": [Command.set(correspondent_ids)],
+            "paperless_sync_state": "failed" if unsupported else "synchronized",
+            "paperless_sync_error": (
+                _("Paperless uses unsupported saved-view rules: %s")
+                % ", ".join(sorted(set(unsupported)))
+                if unsupported
+                else False
+            ),
+            "paperless_synced_at": fields.Datetime.now(),
+        }
+
+    @api.model
+    def synchronize_archive_views(self, client=None):
+        """Synchronize shared Paperless-compatible views by stable identity."""
+        client = client or PaperlessClient(self.env)
+        local_views = self.sudo().search(
+            [("scope", "=", "shared"), ("archive_native", "=", True)],
+        )
+        local_views.filtered(lambda view: not view.paperless_id)._push_to_paperless(
+            client=client,
+        )
+        remote_views = client.list_saved_views()
+        seen = set()
+        for payload in remote_views:
+            paperless_id = int(payload["id"])
+            seen.add(paperless_id)
+            view = self.sudo().search(
+                [("paperless_id", "=", paperless_id)], limit=1,
+            )
+            values = self._remote_cache_values(payload)
+            if view:
+                view.with_context(usl_documents_archive_view_sync=True).write(values)
+            elif not values["paperless_sync_error"]:
+                self.sudo().with_context(
+                    usl_documents_archive_view_sync=True,
+                ).create(
+                    {
+                        **values,
+                        "scope": "shared",
+                        "key": f"paperless:{paperless_id}",
+                        "icon": "fa-folder-open-o",
+                        "sequence": 75,
+                    },
+                )
+        missing = local_views.filtered(
+            lambda view: view.paperless_id and view.paperless_id not in seen,
+        )
+        if missing:
+            missing.with_context(usl_documents_archive_view_sync=True).write(
+                {
+                    "paperless_sync_state": "failed",
+                    "paperless_sync_error": _(
+                        "The mapped Paperless saved view no longer exists.",
+                    ),
+                },
+            )
+        return len(remote_views)
 
     @api.model
     def save_personal_view(self, name, filters):

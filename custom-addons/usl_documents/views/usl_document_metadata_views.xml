@@ -65,6 +65,7 @@
         <field name="arch" type="xml">
             <list string="Correspondents" decoration-muted="not active">
                 <field name="name"/>
+                <field name="partner_id" optional="show"/>
                 <field name="matching_algorithm"/>
                 <field name="match" optional="hide"/>
                 <field name="document_count" optional="hide"
@@ -79,12 +80,33 @@
         <field name="model">usl.paperless.correspondent</field>
         <field name="arch" type="xml">
             <form string="Correspondent">
+                <header>
+                    <button name="action_accept_suggested_partner" type="object"
+                            string="Use suggested Contact" class="btn-primary"
+                            invisible="not suggested_partner_id or partner_id"/>
+                    <button name="action_reject_suggested_partner" type="object"
+                            string="Not this Contact"
+                            invisible="not suggested_partner_id or partner_id"/>
+                    <button name="action_open_partner" type="object"
+                            string="Open Contact"
+                            invisible="not partner_id"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="For example: Acme Supplies"/></h1>
                     </div>
                     <group>
+                        <group string="Business identity">
+                            <field name="partner_id"
+                                   placeholder="Map to an existing Odoo Contact"/>
+                            <field name="suggested_partner_id" readonly="1"
+                                   invisible="not suggested_partner_id or partner_id"/>
+                            <div class="text-muted">
+                                Optional. Mapping does not link documents or grant access.
+                                Leave archive-only correspondents unmapped.
+                            </div>
+                        </group>
                         <group string="Smart matching">
                             <field name="matching_algorithm"/>
                             <field name="match" placeholder="Words or pattern to recognize"
@@ -203,9 +225,22 @@
                     </group>
                     <div class="alert alert-info" role="status"
                          invisible="system_rule != 'metadata'">
-                        A document appears when it matches any configured tag,
-                        document type, or correspondent.
+                        A document appears when it matches the configured Paperless
+                        metadata. Archive-native views are available in both applications.
                     </div>
+                    <group string="Shared archive view">
+                        <field name="archive_native"
+                               invisible="system_rule not in ('metadata', 'saved')"/>
+                        <field name="paperless_id" readonly="1"
+                               invisible="not archive_native"
+                               groups="usl_documents.group_documents_manager"/>
+                        <field name="paperless_sync_state" readonly="1"
+                               invisible="not archive_native or paperless_sync_state == 'synchronized'"
+                               groups="usl_documents.group_documents_manager"/>
+                        <field name="paperless_sync_error" readonly="1"
+                               invisible="not paperless_sync_error"
+                               groups="usl_documents.group_documents_manager"/>
+                    </group>
                 </sheet>
             </form>
         </field>
@@ -238,16 +273,16 @@
     </record>
 
     <menuitem id="menu_usl_documents_tags" name="Tags"
-              parent="menu_usl_documents_configuration"
-              action="action_usl_paperless_tags" sequence="10"
+              parent="menu_usl_documents_root"
+              action="action_usl_paperless_tags" sequence="20"
               groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
     <menuitem id="menu_usl_documents_correspondents" name="Correspondents"
-              parent="menu_usl_documents_configuration"
-              action="action_usl_paperless_correspondents" sequence="20"
+              parent="menu_usl_documents_root"
+              action="action_usl_paperless_correspondents" sequence="30"
               groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
     <menuitem id="menu_usl_documents_document_types" name="Document types"
-              parent="menu_usl_documents_configuration"
-              action="action_usl_paperless_document_types" sequence="30"
+              parent="menu_usl_documents_root"
+              action="action_usl_paperless_document_types" sequence="40"
               groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
     <menuitem id="menu_usl_documents_smart_views" name="Smart views"
               parent="menu_usl_documents_configuration"

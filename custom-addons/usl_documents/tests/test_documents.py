@@ -213,6 +213,7 @@ class TestDocuments(TransactionCase):
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
             patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
         ):
             first = (
                 self.env["usl.document"]
@@ -260,6 +261,7 @@ class TestDocuments(TransactionCase):
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
             patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
             patch.object(
                 PaperlessClient, "metadata_catalog", return_value=catalog,
             ) as metadata_catalog,
@@ -446,7 +448,9 @@ class TestDocuments(TransactionCase):
         )
         self._document(313, name="Other document")
         view = self.env.ref("usl_documents.smart_view_banking")
-        view.write({"tag_ids": [Command.set(banking.ids)]})
+        view.with_context(usl_documents_archive_view_sync=True).write(
+            {"tag_ids": [Command.set(banking.ids)]},
+        )
 
         result = self.env["usl.document"].workspace_data(
             workspace="banking",
@@ -492,6 +496,150 @@ class TestDocuments(TransactionCase):
             self.env["usl.document.smart.view"].with_user(self.accountant).search([]),
         )
 
+    def test_correspondent_contact_mapping_is_optional_and_does_not_link(self):
+        correspondent = self._correspondent(330, "Archive Supplier")
+        document = self._document(
+            331,
+            correspondent_id=correspondent.id,
+            correspondent_name=correspondent.name,
+        )
+        with patch.object(PaperlessClient, "update_metadata") as update_metadata:
+            correspondent.with_user(self.user).write(
+                {"partner_id": self.partner_a.id},
+            )
+        update_metadata.assert_not_called()
+        self.assertEqual(correspondent.partner_id, self.partner_a)
+        self.assertFalse(document.link_ids)
+        values = self.env["usl.document"]._workspace_document_values(document)
+        self.assertEqual(values["correspondent"], self.partner_a.display_name)
+        self.assertEqual(
+            values["correspondent_archive_name"], "Archive Supplier",
+        )
+
+    def test_contact_documents_combine_mapping_and_explicit_links_without_duplicates(self):
+        correspondent = self._correspondent(
+            334,
+            self.partner_a.name,
+            partner_id=self.partner_a.id,
+        )
+        mapped = self._document(
+            335,
+            correspondent_id=correspondent.id,
+            correspondent_name=correspondent.name,
+        )
+        explicitly_linked = self._document(336)
+        explicitly_linked.link_to_record("res.partner", self.partner_a.id)
+        self.partner_a.invalidate_recordset(["archived_document_count"])
+
+        self.assertEqual(self.partner_a.archived_document_count, 2)
+        action = self.partner_a.action_open_documents_workspace()
+        self.assertTrue(action["params"]["linked_filter"])
+        self.assertEqual(
+            action["params"]["mapped_partner_id"], self.partner_a.id,
+        )
+        result = self.env["usl.document"].workspace_data(
+            workspace="all",
+            linked_model="res.partner",
+            linked_id=self.partner_a.id,
+            mapped_partner_id=self.partner_a.id,
+        )
+        self.assertEqual(
+            {item["id"] for item in result["documents"]},
+            {mapped.id, explicitly_linked.id},
+        )
+
+    def test_archive_native_saved_view_uses_stable_paperless_identity(self):
+        tag = self._tag(332, "Contracts")
+        view = self.env.ref("usl_documents.smart_view_contracts")
+        view.with_context(usl_documents_archive_view_sync=True).write(
+            {
+                "archive_native": True,
+                "paperless_id": 52,
+                "tag_ids": [Command.set(tag.ids)],
+            },
+        )
+        self.env["usl.document.smart.view"].search(
+            [
+                ("archive_native", "=", True),
+                ("id", "!=", view.id),
+            ],
+        ).with_context(usl_documents_archive_view_sync=True).write(
+            {"archive_native": False},
+        )
+        remote = {
+            "id": 52,
+            "name": "Signed agreements",
+            "filter_rules": [{"rule_type": 6, "value": "332"}],
+        }
+        client = PaperlessClient(self.env)
+        with patch.object(client, "list_saved_views", return_value=[remote]):
+            count = self.env["usl.document.smart.view"].synchronize_archive_views(
+                client=client,
+            )
+        self.assertEqual(count, 1)
+        self.assertEqual(view.paperless_id, 52)
+        self.assertEqual(view.name, "Signed agreements")
+        self.assertEqual(view.tag_ids, tag)
+        self.assertEqual(view.paperless_sync_state, "synchronized")
+
+    def test_trash_reconciliation_and_restore_preserve_identity_and_links(self):
+        document = self._document(333, name="Signed contract")
+        document.link_to_record("res.partner", self.partner_a.id)
+        trash_payload = {
+            "id": 333,
+            "title": "Signed contract",
+            "created": "2026-07-01",
+            "modified": "2026-07-29T10:00:00Z",
+            "tags": [],
+            "versions": [{"id": 1, "version_label": "Received original"}],
+        }
+        empty_page = {"next": None, "results": []}
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(PaperlessClient, "list_documents", return_value=empty_page),
+            patch.object(
+                PaperlessClient,
+                "list_trashed_documents",
+                return_value=[trash_payload],
+            ),
+        ):
+            result = (
+                self.env["usl.document"]
+                .with_user(self.manager)
+                .sync_from_paperless(full=True)
+            )
+        self.assertEqual(result["trashed"], 1)
+        self.assertEqual(document.availability_state, "trashed")
+        self.assertEqual(
+            self.env["usl.document"].workspace_data(workspace="all")["count"],
+            0,
+        )
+        linked = self.env["usl.document"].workspace_data(
+            workspace="all",
+            linked_model="res.partner",
+            linked_id=self.partner_a.id,
+        )
+        self.assertEqual(linked["documents"][0]["availability_state"], "trashed")
+
+        restored_payload = {**trash_payload, "modified": "2026-07-29T11:00:00Z"}
+        with (
+            patch.object(
+                PaperlessClient,
+                "restore_trashed_documents",
+                return_value={"result": "OK", "doc_ids": [333]},
+            ),
+            patch.object(
+                PaperlessClient, "get_document", return_value=restored_payload,
+            ),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            restored = document.restore_from_trash()
+        self.assertEqual(restored["state"], "restored")
+        self.assertEqual(document.availability_state, "available")
+        self.assertEqual(document.paperless_id, 333)
+        self.assertEqual(document.link_count, 1)
+
     def test_interrupted_incremental_sync_resumes_from_saved_checkpoint(self):
         page_one = {
             "next": "http://paperless/api/documents/?page=2",
@@ -523,6 +671,7 @@ class TestDocuments(TransactionCase):
                 "list_documents",
                 side_effect=[page_one, page_two],
             ) as list_documents,
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
         ):
             previous_sync = (
                 self.env["ir.config_parameter"]
@@ -983,6 +1132,39 @@ class TestPaperlessClientContract(TransactionCase):
                 ("POST", "/api/tags/"),
                 ("PATCH", "/api/tags/42/"),
                 ("DELETE", "/api/tags/42/"),
+            ],
+        )
+
+    def test_saved_views_and_trash_use_supported_endpoints(self):
+        client = PaperlessClient(self.env)
+        with patch.object(
+            client,
+            "_request",
+            side_effect=[
+                ({"next": None, "results": [{"id": 51, "name": "Contracts"}]}, {}),
+                ({"id": 52, "name": "Tax"}, {}),
+                ({"id": 52, "name": "Tax filings"}, {}),
+                ({}, {}),
+                ({"next": None, "results": [{"id": 333}]}, {}),
+                ({"result": "OK", "doc_ids": [333]}, {}),
+            ],
+        ) as request:
+            self.assertEqual(client.list_saved_views()[0]["id"], 51)
+            client.create_saved_view({"name": "Tax", "filter_rules": []})
+            client.update_saved_view(52, {"name": "Tax filings"})
+            client.delete_saved_view(52)
+            self.assertEqual(client.list_trashed_documents()[0]["id"], 333)
+            restored = client.restore_trashed_documents([333])
+        self.assertEqual(restored["result"], "OK")
+        self.assertEqual(
+            [call.args[:2] for call in request.call_args_list],
+            [
+                ("GET", "/api/saved_views/"),
+                ("POST", "/api/saved_views/"),
+                ("PATCH", "/api/saved_views/52/"),
+                ("DELETE", "/api/saved_views/52/"),
+                ("GET", "/api/trash/"),
+                ("POST", "/api/trash/"),
             ],
         )
 

@@ -314,7 +314,10 @@ class UslDocument(models.Model):
             ),
             "cached_documents": self.search_count([]),
             "missing_documents": self.search_count(
-                [("availability_state", "in", ("missing", "trashed"))],
+                [("availability_state", "=", "missing")],
+            ),
+            "trashed_documents": self.search_count(
+                [("availability_state", "=", "trashed")],
             ),
             "permission_failures": self.search_count(
                 [("permission_sync_state", "=", "failed")],
@@ -485,10 +488,16 @@ class UslDocument(models.Model):
         for key, (name, _color) in default_tags.items():
             view = smart_views.search([("key", "=", key)], limit=1)
             tag = tag_model.search([("name", "=ilike", name)], limit=1)
-            if view and tag and tag not in view.tag_ids:
+            if view and tag and (
+                tag not in view.tag_ids or not view.archive_native
+            ):
                 view.with_context(usl_documents_view_setup=True).write(
-                    {"tag_ids": [Command.link(tag.id)]},
+                    {
+                        "tag_ids": [Command.link(tag.id)],
+                        "archive_native": True,
+                    },
                 )
+        smart_views.synchronize_archive_views(client=client)
 
     @api.model
     def sync_from_paperless(self, *, full=False, limit_pages=None):
@@ -525,6 +534,7 @@ class UslDocument(models.Model):
         params.set_str("usl_documents.sync_modified_after", modified_after or "")
 
         seen = set()
+        trashed_ids = set()
         touched = self.browse()
         pages_processed = 0
         complete = False
@@ -574,11 +584,36 @@ class UslDocument(models.Model):
                     params.set_str("usl_documents.sync_cursor_page", str(page))
                     break
 
+            if complete:
+                for item in client.list_trashed_documents():
+                    paperless_id = int(item["id"])
+                    trashed_ids.add(paperless_id)
+                    document = self.sudo().search(
+                        [("paperless_id", "=", paperless_id)], limit=1,
+                    )
+                    values = self._paperless_values(
+                        item, metadata_catalog=metadata_catalog,
+                    )
+                    values["availability_state"] = "trashed"
+                    values["last_error"] = False
+                    if document:
+                        values.pop("source", None)
+                        document.with_context(
+                            usl_documents_cache_write=True,
+                        ).write(values)
+                    else:
+                        document = self.sudo().create(values)
+                        document.with_context(
+                            usl_documents_cache_write=True,
+                        ).write({"availability_state": "trashed"})
+                    document._synchronize_versions(item.get("versions") or [])
+                    touched |= document
+
             if full and complete:
                 self.sudo().search(
                     [
-                        ("paperless_id", "not in", list(seen)),
-                        ("availability_state", "=", "available"),
+                        ("paperless_id", "not in", list(seen | trashed_ids)),
+                        ("availability_state", "in", ("available", "trashed")),
                     ],
                 ).with_context(usl_documents_cache_write=True).write(
                     {
@@ -590,7 +625,10 @@ class UslDocument(models.Model):
                 )
             if touched:
                 touched.filtered(
-                    lambda item: item.permission_sync_state != "synchronized",
+                    lambda item: (
+                        item.availability_state != "trashed"
+                        and item.permission_sync_state != "synchronized"
+                    ),
                 ).with_user(self.env.ref("base.user_admin")).action_sync_permissions()
             if complete:
                 params.set_str("usl_documents.last_sync", checkpoint)
@@ -602,6 +640,7 @@ class UslDocument(models.Model):
                 params.set_str("usl_documents.last_sync_error", "")
             return {
                 "synchronized": len(seen),
+                "trashed": len(trashed_ids),
                 "pages": pages_processed,
                 "complete": complete,
                 "next_page": page if not complete else None,
@@ -671,8 +710,13 @@ class UslDocument(models.Model):
                 if item.permission_sync_state == "failed"
                 else False
             ),
-            "correspondent": item.correspondent_name,
+            "correspondent": (
+                item.correspondent_id.partner_id.display_name
+                or item.correspondent_name
+            ),
             "correspondent_id": item.correspondent_id.id,
+            "correspondent_archive_name": item.correspondent_name,
+            "correspondent_partner_id": item.correspondent_id.partner_id.id,
             "document_type": item.document_type_name,
             "document_type_id": item.document_type_id.id,
             "tags": [
@@ -724,6 +768,7 @@ class UslDocument(models.Model):
         linked_state=None,
         linked_model=None,
         linked_id=None,
+        mapped_partner_id=None,
         sort="recent",
     ):
         page = max(1, int(page))
@@ -793,25 +838,52 @@ class UslDocument(models.Model):
             if review_state not in ("needs_attention", "classified", "reviewed"):
                 raise ValidationError(_("Invalid review-state filter."))
             domain.append(("review_state", "=", review_state))
+        mapped_partner = self.env["res.partner"]
+        if mapped_partner_id:
+            mapped_partner = self.env["res.partner"].browse(
+                int(mapped_partner_id),
+            ).exists()
+            if not mapped_partner:
+                raise ValidationError(_("Invalid Contact filter."))
+            mapped_partner.check_access("read")
         if linked_model or linked_id:
             if (
                 linked_model not in self.env["usl.document.link"]._allowed_models()
                 or not linked_id
             ):
                 raise ValidationError(_("Invalid linked-record filter."))
-            domain.extend(
-                [
-                    ("link_ids.res_model", "=", linked_model),
-                    ("link_ids.res_id", "=", int(linked_id)),
-                    ("link_ids.active", "=", True),
-                ],
-            )
+            link_domain = [
+                ("link_ids.res_model", "=", linked_model),
+                ("link_ids.res_id", "=", int(linked_id)),
+                ("link_ids.active", "=", True),
+            ]
+            if mapped_partner:
+                domain.extend(
+                    [
+                        "|",
+                        ("correspondent_id.partner_id", "=", mapped_partner.id),
+                        "&",
+                        "&",
+                        *link_domain,
+                    ],
+                )
+            else:
+                domain.extend(link_domain)
+        elif mapped_partner:
+            domain.append(("correspondent_id.partner_id", "=", mapped_partner.id))
         elif linked_state:
             if linked_state not in ("linked", "unlinked"):
                 raise ValidationError(_("Invalid linked-document filter."))
             domain.append(
                 ("link_ids", "!=" if linked_state == "linked" else "=", False),
             )
+        if not (
+            selected_view
+            and selected_view.system_rule == "trash"
+            or (linked_model and linked_id)
+            or mapped_partner
+        ):
+            domain.append(("availability_state", "!=", "trashed"))
         truncated = False
         if query:
             try:
@@ -883,7 +955,12 @@ class UslDocument(models.Model):
                 )
             ],
             "correspondents": [
-                {"id": item.id, "name": item.name}
+                {
+                    "id": item.id,
+                    "name": item.partner_id.display_name or item.name,
+                    "archive_name": item.name,
+                    "partner_id": item.partner_id.id,
+                }
                 for item in self.env["usl.paperless.correspondent"].search(
                     [("active", "=", True)],
                 )
@@ -896,19 +973,6 @@ class UslDocument(models.Model):
             ],
             "smart_views": [view.workspace_values() for view in smart_views],
             "link_facets": sorted(link_facets, key=lambda item: item["label"]),
-            "operations": [
-                {
-                    "id": operation.id,
-                    "name": operation.name,
-                    "state": operation.state,
-                    "error": operation.error_message,
-                    "document_id": operation.document_id.id,
-                    "created_at": operation.create_date,
-                }
-                for operation in self.env["usl.document.operation"].search(
-                    [], order="create_date desc, id desc", limit=10,
-                )
-            ],
         }
 
     @api.model
@@ -1420,6 +1484,31 @@ class UslDocument(models.Model):
             version_label=_("Restored from %s") % version.label,
             restored_from=version.paperless_version_id,
         )
+
+    def restore_from_trash(self):
+        self.ensure_one()
+        self.check_access("write")
+        if self.availability_state != "trashed":
+            raise ValidationError(_("This document is not in Trash."))
+        result = self._paperless().restore_trashed_documents([self.paperless_id])
+        restored_ids = {int(item) for item in result.get("doc_ids", [])}
+        if restored_ids and self.paperless_id not in restored_ids:
+            raise UserError(
+                _("Paperless did not confirm restoration of this document."),
+            )
+        payload = self._paperless().get_document(self.paperless_id)
+        values = self._paperless_values(payload)
+        values.pop("source", None)
+        self.with_context(usl_documents_cache_write=True).write(values)
+        self._synchronize_versions(payload.get("versions") or [])
+        self.action_sync_permissions()
+        return {
+            "state": "restored",
+            "document_id": self.id,
+            "message": _(
+                "Document restored. Its Odoo links and archive identity were preserved.",
+            ),
+        }
 
     def unlink_from_record(self, res_model, res_id):
         self.ensure_one()

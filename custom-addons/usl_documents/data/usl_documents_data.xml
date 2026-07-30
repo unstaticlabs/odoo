@@ -51,6 +51,7 @@
         <field name="sequence">40</field>
         <field name="scope">shared</field>
         <field name="system_rule">metadata</field>
+        <field name="archive_native" eval="True"/>
     </record>
     <record id="smart_view_banking" model="usl.document.smart.view">
         <field name="name">Banking</field>
@@ -59,6 +60,7 @@
         <field name="sequence">50</field>
         <field name="scope">shared</field>
         <field name="system_rule">metadata</field>
+        <field name="archive_native" eval="True"/>
     </record>
     <record id="smart_view_tax" model="usl.document.smart.view">
         <field name="name">Tax &amp; reporting</field>
@@ -67,6 +69,7 @@
         <field name="sequence">60</field>
         <field name="scope">shared</field>
         <field name="system_rule">metadata</field>
+        <field name="archive_native" eval="True"/>
     </record>
     <record id="smart_view_hr" model="usl.document.smart.view">
         <field name="name">HR</field>
@@ -83,5 +86,13 @@
         <field name="sequence">80</field>
         <field name="scope">shared</field>
         <field name="system_rule">all</field>
+    </record>
+    <record id="smart_view_trash" model="usl.document.smart.view">
+        <field name="name">Trash</field>
+        <field name="key">trash</field>
+        <field name="icon">fa-trash-o</field>
+        <field name="sequence">90</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">trash</field>
     </record>
 </odoo>
