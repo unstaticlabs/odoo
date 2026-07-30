@@ -874,6 +874,71 @@ class TestDocuments(TransactionCase):
             {mapped.id, explicitly_linked.id},
         )
 
+    def test_company_smart_button_and_linked_workspace_include_trash(self):
+        available = self._document(337, name="Available company evidence")
+        trashed = self._document(338, name="Company evidence in Trash")
+        available.link_to_record("res.company", self.company_a.id)
+        trashed.link_to_record("res.company", self.company_a.id)
+        trashed.sudo().with_context(usl_documents_cache_write=True).write(
+            {"availability_state": "trashed"},
+        )
+        self.company_a.invalidate_recordset(["archived_document_count"])
+
+        self.assertEqual(self.company_a.archived_document_count, 2)
+        result = self.env["usl.document"].workspace_data(
+            workspace="all",
+            search_domain=[
+                ("linked_record_ref", "=", f"res.company:{self.company_a.id}"),
+            ],
+            linked_model="res.company",
+            linked_id=self.company_a.id,
+        )
+        self.assertEqual(result["count"], 2)
+        self.assertEqual(
+            {item["id"] for item in result["documents"]},
+            {available.id, trashed.id},
+        )
+        self.assertEqual(
+            next(
+                item["availability_state"]
+                for item in result["documents"]
+                if item["id"] == trashed.id
+            ),
+            "trashed",
+        )
+
+    def test_configurable_shortcut_uses_synced_metadata_without_rewriting_view(self):
+        base_tag = self._tag(340, "Contracts")
+        optional_tag = self._tag(341, "Board approved")
+        view = self.env["usl.document.smart.view"].create(
+            {
+                "name": "Legal review",
+                "scope": "shared",
+                "system_rule": "metadata",
+                "tag_ids": [Command.set(base_tag.ids)],
+            },
+        )
+        shortcut = self.env["usl.document.quick.filter"].create(
+            {
+                "name": "Board-approved documents",
+                "kind": "filter",
+                "filter_type": "tags",
+                "tag_ids": [Command.set(optional_tag.ids)],
+                "smart_view_ids": [Command.set(view.ids)],
+            },
+        )
+
+        self.assertTrue(shortcut.key.startswith("shortcut_"))
+        self.assertEqual(
+            shortcut.workspace_values()["domain"],
+            [("tag_ids", "in", optional_tag.ids)],
+        )
+        self.assertIn(shortcut, view.quick_filter_ids)
+        self.assertEqual(
+            view._paperless_filter_rules(),
+            [{"rule_type": 6, "value": str(base_tag.paperless_id)}],
+        )
+
     def test_archive_native_saved_view_uses_stable_paperless_identity(self):
         tag = self._tag(332, "Contracts")
         view = self.env.ref("usl_documents.smart_view_contracts")

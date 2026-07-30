@@ -12,6 +12,7 @@ import {
     useState,
 } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
+import { Domain } from "@web/core/domain";
 import { router } from "@web/core/browser/router";
 import { loadPDFJSAssets } from "@web/core/utils/pdfjs";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -1074,10 +1075,17 @@ export class DocumentsWorkspaceView extends Component {
                 String(versionId) ===
                     String(this.state.selected?.selected_version_id || ""));
         if ((this.closingDetail || isDuplicateOpenEntry) && documentId) {
-            // Odoo's router may have normalized the open-document entry more
-            // than once. Skip equivalent entries automatically so both the
-            // browser Back action and one close click reach the list entry.
-            this.requestHistoryBack();
+            // If Odoo normalized the same detail route into two adjacent
+            // entries, one Back action must still close the panel. Canonicalize
+            // the reached duplicate as the list entry instead of consuming a
+            // second browser-history event.
+            this.cancelHistoryBack();
+            this.closingDetail = false;
+            this.hasLocalListHistory = false;
+            this.clearDetailState();
+            this.writeNavigationState("replace");
+            this.persistState();
+            this.restoreScroll();
             return;
         }
         if (!documentId) {
@@ -1099,6 +1107,13 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     workspaceKwargs() {
+        const linkedRecordIsActive =
+            this.recordContext &&
+            this.domainContains(
+                this.searchModel.domain,
+                "linked_record_ref",
+                this.recordContextKey
+            );
         return {
             query: "",
             workspace: this.state.workspace,
@@ -1106,15 +1121,46 @@ export class DocumentsWorkspaceView extends Component {
             page_size: this.state.pageSize,
             sort: this.state.sort,
             search_domain: this.searchModel.domain,
-            shortcut_tag_ids: this.state.tagIds,
+            // Legacy state is migrated into the native SearchModel before the
+            // second load. Never apply a second hidden tag condition.
+            shortcut_tag_ids: [],
             group_by: this.searchModel.groupBy,
+            linked_model: linkedRecordIsActive
+                ? this.recordContext.resModel
+                : null,
+            linked_id: linkedRecordIsActive ? this.recordContext.resId : null,
+            mapped_partner_id:
+                linkedRecordIsActive &&
+                this.recordContext.resModel === "res.partner"
+                    ? this.recordContext.resId
+                    : null,
         };
+    }
+
+    domainContains(domain, fieldName, value) {
+        if (!Array.isArray(domain)) {
+            return false;
+        }
+        if (
+            domain.length >= 3 &&
+            domain[0] === fieldName &&
+            domain[1] === "=" &&
+            String(domain[2]) === String(value)
+        ) {
+            return true;
+        }
+        return domain.some(
+            (item) =>
+                Array.isArray(item) &&
+                this.domainContains(item, fieldName, value)
+        );
     }
 
     async onNativeSearchUpdate() {
         if (!this.searchReady) {
             return;
         }
+        this.state.tagIds = this.activeTagShortcutIds();
         this.state.page = 1;
         this.state.selected = null;
         await this.load();
@@ -1125,18 +1171,68 @@ export class DocumentsWorkspaceView extends Component {
         if (!tagIds.length) {
             return false;
         }
-        this.state.tagIds = [];
-        for (const tagId of tagIds) {
-            const tag =
-                this.state.tags.find((item) => item.id === Number(tagId)) || {
-                    id: Number(tagId),
-                    name: `Tag ${tagId}`,
-                };
-            this.addTagSearchFilter(tag);
+        const matchingFacet = this.searchModel.facets.find((facet) => {
+            if (!facet.domain) {
+                return false;
+            }
+            try {
+                const facetDomain = new Domain(facet.domain).toList();
+                const leaves = this.domainLeaves(facetDomain);
+                const facetIds = this.tagIdsFromDomain(facetDomain);
+                return (
+                    leaves.length === 1 &&
+                    facetIds.length === tagIds.length &&
+                    facetIds.every((tagId) => tagIds.includes(tagId))
+                );
+            } catch {
+                return false;
+            }
+        });
+        if (matchingFacet) {
+            for (const queryItem of this.searchModel.query) {
+                const searchItem =
+                    this.searchModel.searchItems[queryItem.searchItemId];
+                if (searchItem?.groupId === matchingFacet.groupId) {
+                    searchItem.uslTagShortcutIds = tagIds;
+                }
+            }
+            return false;
         }
+        this.state.tagIds = [];
+        this.replaceTagSearchFilters(tagIds);
         this.persistState();
         this.replaceNavigationState();
         return true;
+    }
+
+    domainLeaves(domain) {
+        if (!Array.isArray(domain)) {
+            return [];
+        }
+        if (
+            domain.length >= 3 &&
+            typeof domain[0] === "string" &&
+            typeof domain[1] === "string"
+        ) {
+            return [domain];
+        }
+        return domain.flatMap((item) =>
+            Array.isArray(item) ? this.domainLeaves(item) : []
+        );
+    }
+
+    tagIdsFromDomain(domain) {
+        return [
+            ...new Set(
+                this.domainLeaves(domain).flatMap((leaf) =>
+                    leaf[0] === "tag_ids" &&
+                    leaf[1] === "in" &&
+                    Array.isArray(leaf[2])
+                        ? leaf[2].map(Number).filter(Boolean)
+                        : []
+                )
+            ),
+        ];
     }
 
     async load() {
@@ -1328,9 +1424,13 @@ export class DocumentsWorkspaceView extends Component {
         const field = fields[suggestion.kind];
         if (field === "tagIds") {
             const tagId = Number(suggestion.item.id);
-            if (!this.state.tagIds.includes(tagId)) {
-                this.state.tagIds = [...this.state.tagIds, tagId];
-            }
+            this.state.searchInput = this.state.query;
+            this.state.searchFocused = false;
+            this.state.page = 1;
+            return this.replaceTagSearchFilters([
+                ...this.activeTagShortcutIds(),
+                tagId,
+            ]);
         } else {
             this.state[field] = String(suggestion.item.id);
         }
@@ -1367,44 +1467,80 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     tagShortcutSearchItem(tag) {
-        return Object.values(this.searchModel.searchItems).find(
-            (item) =>
-                item.uslTagShortcutId === tag.id ||
-                (item.type === "filter" &&
-                    item.description === `Tag: ${tag.name}` &&
-                    this.searchModel.query.some(
-                        (query) => query.searchItemId === item.id
-                    ))
+        return this.activeTagShortcutItems().find((item) =>
+            (item.uslTagShortcutIds || [item.uslTagShortcutId]).includes(tag.id)
         );
+    }
+
+    activeTagShortcutItems() {
+        const activeIds = new Set(
+            this.searchModel.query.map((item) => item.searchItemId)
+        );
+        return Object.values(this.searchModel.searchItems).filter(
+            (item) =>
+                activeIds.has(item.id) &&
+                (item.uslTagShortcutId ||
+                    (item.uslTagShortcutIds || []).length)
+        );
+    }
+
+    activeTagShortcutIds() {
+        return [
+            ...new Set(
+                this.activeTagShortcutItems().flatMap((item) =>
+                    (item.uslTagShortcutIds || [item.uslTagShortcutId])
+                        .map(Number)
+                        .filter(Boolean)
+                )
+            ),
+        ];
     }
 
     isTagShortcutActive(tag) {
-        const item = this.tagShortcutSearchItem(tag);
-        return Boolean(
-            item &&
-                this.searchModel.query.some(
-                    (query) => query.searchItemId === item.id
-                )
-        );
+        return Boolean(this.tagShortcutSearchItem(tag));
     }
 
-    addTagSearchFilter(tag) {
-        this.searchModel.createNewFilters([
-            {
-                description: `Tag: ${tag.name}`,
-                domain: [["tag_ids", "in", [tag.id]]],
-                uslTagShortcutId: tag.id,
-            },
-        ]);
+    replaceTagSearchFilters(tagIds) {
+        const normalizedIds = [...new Set(tagIds.map(Number).filter(Boolean))];
+        this.state.tagIds = normalizedIds;
+        const activeItems = this.activeTagShortcutItems();
+        const groupIds = [...new Set(activeItems.map((item) => item.groupId))];
+        if (groupIds.length) {
+            this.searchModel.blockNotification = true;
+            for (const groupId of groupIds) {
+                this.searchModel.deactivateGroup(groupId);
+            }
+            this.searchModel.blockNotification = false;
+        }
+        if (normalizedIds.length) {
+            const names = normalizedIds.map(
+                (tagId) =>
+                    this.state.tags.find((tag) => tag.id === tagId)?.name ||
+                    `Tag ${tagId}`
+            );
+            this.searchModel.createNewFilters([
+                {
+                    description:
+                        normalizedIds.length === 1
+                            ? `Tag: ${names[0]}`
+                            : `Tags: ${names.join(" or ")}`,
+                    domain: [["tag_ids", "in", normalizedIds]],
+                    uslTagShortcutIds: normalizedIds,
+                },
+            ]);
+        } else if (groupIds.length) {
+            this.searchModel._notify();
+        }
     }
 
     toggleTagFilter(tag) {
-        const existing = this.tagShortcutSearchItem(tag);
-        if (existing) {
-            this.searchModel.toggleSearchItem(existing.id);
-            return;
+        const selected = new Set(this.activeTagShortcutIds());
+        if (selected.has(tag.id)) {
+            selected.delete(tag.id);
+        } else {
+            selected.add(tag.id);
         }
-        this.addTagSearchFilter(tag);
+        this.replaceTagSearchFilters([...selected]);
     }
 
     onTagShortcutSearch(event) {
@@ -1469,7 +1605,7 @@ export class DocumentsWorkspaceView extends Component {
                 query: this.state.query,
                 sort: this.state.sort,
                 company_id: this.state.companyId,
-                tag_ids: this.state.tagIds,
+                tag_ids: this.activeTagShortcutIds(),
                 correspondent_id: this.state.correspondentId,
                 document_type_id: this.state.documentTypeId,
                 date_from: this.state.dateFrom,

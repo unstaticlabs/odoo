@@ -57,7 +57,11 @@ Company, Correspondent, Type, Employee, Privacy, and month.
 Immediately below it, each Smart View may expose a small manager-configured set
 of one-click filters or groupings. The most-used accessible Paperless tags are
 shown next as direct chips. These shortcuts compose with every native search
-facet; they never replace or hide the active query.
+facet; they never replace or hide the active query. Selecting several tag
+chips creates one native facet matching any selected tag, rather than requiring
+every tag simultaneously. Managers maintain reusable shortcuts under
+**Configuration > One-click shortcuts** and choose the Smart Views where each
+one appears.
 
 Selected document, selected version, filters, sort, card/list layout, page, and
 scroll position are represented in navigation state. Back closes the detail
