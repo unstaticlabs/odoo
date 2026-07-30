@@ -15,8 +15,9 @@ API v10 document payloads carry correspondent, document-type, and tag IDs.
 `usl.paperless.document.type` cache those catalogs by stable Paperless ID.
 Synchronization hydrates the catalogs before document rows. User writes call
 the supported Paperless endpoint first and cache its returned representation.
-The compatibility name fields on `usl.document` remain read-only during
-migration; new filters and smart views use relations.
+Fallback correspondent and document-type names keep a record intelligible
+during a partial reconciliation; normal filters, smart views, and editing use
+stable relational Paperless identities.
 
 `usl.document.smart.view` provides manager-owned shared views and private saved
 filters. Archive-native shared views are synchronized with Paperless Saved
@@ -92,7 +93,9 @@ Odoo-generated output retention, permissions, outage/resume, and integrity
 manifest generation. It reconciles first so a rerun after an interrupted
 cross-system transaction reuses Paperless commits.
 `scripts/documents-recovery-test` adds independent backup/restore proof under a
-new Compose project name.
+new Compose project name and removes its containers, volumes, and temporary
+backup artifacts after the proof. Set `USL_DOCUMENTS_PRESERVE_RECOVERY=1` only
+for deliberate restore diagnostics.
 
 Use `scripts/documents-stack qa ...` or `scripts/documents-stack preprod ...`
 for deployment. Never use the base Paperless Compose profile without its

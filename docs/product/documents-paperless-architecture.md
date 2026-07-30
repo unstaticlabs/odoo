@@ -35,7 +35,10 @@ persistent actionable failures and idempotent retry lineage.
 filters. `usl.document.quick.filter` is a manager-configured catalog of
 one-click Odoo search/group shortcuts attached to shared Smart Views.
 `usl.paperless.user.mapping` maps an Odoo user to one individual Paperless
-user; no credential is sent to the client.
+user; no credential is sent to the client. New or changed mappings remain
+pending until **Verify identity** confirms both the remote Paperless user ID
+and username. Only verified mappings participate in document-object grants or
+receive Paperless deep links.
 
 Synchronized tags, correspondents, document types, and archive-native shared
 views use Paperless's supported unowned object form. This mirrors Odoo's shared

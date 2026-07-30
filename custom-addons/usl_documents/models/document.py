@@ -115,8 +115,8 @@ class UslDocument(models.Model):
     mapped_contact_id = fields.Many2one(
         "res.partner",
         string="Mapped Contact",
-        related="correspondent_id.partner_id",
-        readonly=True,
+        compute="_compute_mapped_contact",
+        search="_search_mapped_contact",
     )
     has_linked_record = fields.Boolean(
         string="Linked to Odoo",
@@ -134,13 +134,12 @@ class UslDocument(models.Model):
         compute="_compute_linked_employee",
         search="_search_linked_employee",
     )
-    # Kept during the relational metadata migration for reports and third-party
-    # code that consumed the original text cache.
+    # Fallback names keep a document intelligible if its catalog relation is
+    # temporarily unavailable during reconciliation. Normal UI and filters use
+    # the stable relational metadata above.
     correspondent_name = fields.Char(index=True, readonly=True)
     document_type_name = fields.Char(index=True, readonly=True)
-    tag_names = fields.Char(readonly=True)
     custom_fields_json = fields.Text(readonly=True)
-    version_data_json = fields.Text(readonly=True)
     current_version_label = fields.Char(readonly=True)
     version_ids = fields.One2many(
         "usl.document.version", "document_id", string="File versions", readonly=True,
@@ -200,22 +199,71 @@ class UslDocument(models.Model):
         "UNIQUE(paperless_id)", "A Paperless document may only be mirrored once.",
     )
 
+    @api.model_create_multi
+    def create(self, values_list):
+        if not self.env.su:
+            raise AccessError(
+                _("Archived document cache records can only be created by synchronization."),
+            )
+        return super().create(values_list)
+
     @api.depends("link_ids")
     def _compute_link_count(self):
         for document in self:
-            document.link_count = len(document.link_ids)
+            document.link_count = len(document._accessible_active_links())
+
+    def _accessible_active_links(self):
+        """Return links whose target record is readable by the current user."""
+        self.ensure_one()
+        self.check_access("read")
+        visible = self.env["usl.document.link"].sudo().browse()
+        for link in self.sudo().link_ids.filtered("active"):
+            if link.res_model not in self.env:
+                continue
+            record = self.env[link.res_model].browse(link.res_id).exists()
+            if not record:
+                continue
+            try:
+                record.check_access("read")
+            except AccessError:
+                continue
+            visible |= link
+        return visible
+
+    @api.depends("correspondent_id", "correspondent_id.partner_id")
+    def _compute_mapped_contact(self):
+        for document in self:
+            document.mapped_contact_id = (
+                document.correspondent_id.partner_visible_id
+                if document.correspondent_id
+                else False
+            )
+
+    @api.model
+    def _search_mapped_contact(self, operator, value):
+        if operator not in ("=", "!=", "in", "not in"):
+            raise ValidationError(_("Unsupported mapped Contact filter."))
+        values = value if operator in ("in", "not in") else [value]
+        requested = [int(item) for item in values if item]
+        visible = self.env["res.partner"].search([("id", "in", requested)])
+        if operator in ("=", "in") and requested and not visible:
+            return [("id", "=", 0)]
+        normalized = visible.ids if operator in ("in", "not in") else (
+            visible.id if visible else False
+        )
+        return [("correspondent_id.partner_id", operator, normalized)]
 
     def _compute_search_helpers(self):
         for document in self:
             document.archive_text = False
             document.custom_field_text = False
-            document.has_linked_record = bool(document.link_ids.filtered("active"))
+            document.has_linked_record = bool(document._accessible_active_links())
             document.linked_record_ref = False
 
     @api.depends("link_ids.active", "link_ids.res_model", "link_ids.res_id")
     def _compute_linked_employee(self):
         for document in self:
-            employee_link = document.link_ids.filtered(
+            employee_link = document._accessible_active_links().filtered(
                 lambda link: link.active and link.res_model == "hr.employee",
             )[:1]
             document.linked_employee_id = (
@@ -333,7 +381,43 @@ class UslDocument(models.Model):
         wanted = bool(value)
         if operator == "!=":
             wanted = not wanted
-        return [("link_ids", "!=" if wanted else "=", False)]
+        accessible_document_ids = self.search([]).ids
+        visible_linked_ids = set()
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("document_id", "in", accessible_document_ids),
+                ("active", "=", True),
+            ],
+        )
+        for model_name in links.mapped("res_model"):
+            if model_name not in self.env:
+                continue
+            target_model = self.env[model_name]
+            target_ids = links.filtered(
+                lambda link: link.res_model == model_name,
+            ).mapped("res_id")
+            try:
+                target_model.check_access("read")
+                visible_target_ids = set(
+                    target_model.search([("id", "in", target_ids)]).ids,
+                )
+            except AccessError:
+                continue
+            visible_linked_ids.update(
+                links.filtered(
+                    lambda link: (
+                        link.res_model == model_name
+                        and link.res_id in visible_target_ids
+                    ),
+                ).mapped("document_id").ids,
+            )
+        if not visible_linked_ids:
+            return Domain.FALSE if wanted else Domain.TRUE
+        return Domain(
+            "id",
+            "in" if wanted else "not in",
+            sorted(visible_linked_ids),
+        )
 
     @api.model
     def _search_linked_record_ref(self, operator, value):
@@ -346,7 +430,11 @@ class UslDocument(models.Model):
             raise ValidationError(_("Choose a valid linked Odoo record.")) from error
         if model_name not in self.env["usl.document.link"]._allowed_models():
             raise ValidationError(_("That type of Odoo record cannot carry documents."))
-        link_ids = self.env["usl.document.link"].search(
+        record = self.env[model_name].browse(record_id).exists()
+        if not record:
+            raise ValidationError(_("Choose a valid linked Odoo record."))
+        record.check_access("read")
+        link_ids = self.env["usl.document.link"].sudo().search(
             [
                 ("active", "=", True),
                 ("res_model", "=", model_name),
@@ -364,11 +452,16 @@ class UslDocument(models.Model):
             if operator in ("in", "not in")
             else [int(value)]
         )
-        document_ids = self.env["usl.document.link"].search(
+        employee_model = self.env["hr.employee"]
+        employee_model.check_access("read")
+        visible_employees = employee_model.search(
+            [("id", "in", employee_ids)],
+        )
+        document_ids = self.env["usl.document.link"].sudo().search(
             [
                 ("active", "=", True),
                 ("res_model", "=", "hr.employee"),
-                ("res_id", "in", employee_ids),
+                ("res_id", "in", visible_employees.ids),
             ],
         ).mapped("document_id").ids
         return [
@@ -437,9 +530,7 @@ class UslDocument(models.Model):
             "tag_ids",
             "correspondent_name",
             "document_type_name",
-            "tag_names",
             "custom_fields_json",
-            "version_data_json",
             "current_version_label",
             "source",
             "submitted_by_id",
@@ -456,15 +547,25 @@ class UslDocument(models.Model):
             "permanently_deleted_at",
             "last_error",
         }
-        if cache_fields.intersection(values) and not self.env.context.get(
-            "usl_documents_cache_write",
-        ):
+        cache_write = (
+            self.env.context.get("usl_documents_cache_write")
+            and self.env.su
+        )
+        policy_write = (
+            self.env.context.get("usl_documents_policy_write")
+            and self.env.su
+        )
+        skip_permission_invalidation = (
+            self.env.context.get("skip_permission_invalidation")
+            and self.env.su
+        )
+        if cache_fields.intersection(values) and not cache_write:
             raise AccessError(
                 _("Paperless cache and diagnostic fields cannot be edited manually."),
             )
         if (
             policy_fields.intersection(values)
-            and not self.env.context.get("usl_documents_policy_write")
+            and not policy_write
             and not self.env.user.has_group("usl_documents.group_documents_manager")
         ):
             raise AccessError(
@@ -472,7 +573,7 @@ class UslDocument(models.Model):
             )
         if (
             policy_fields.intersection(values)
-            and not self.env.context.get("skip_permission_invalidation")
+            and not skip_permission_invalidation
         ):
             values = {
                 **values,
@@ -666,15 +767,6 @@ class UslDocument(models.Model):
                 else metadata_name("document_types", document_type)
             )
         )
-        resolved_tag_names = tag_records.mapped("name") or [
-            (
-                tag.get("name")
-                if isinstance(tag, dict)
-                else metadata_name("tags", tag, str(tag))
-            )
-            for tag in tags
-        ]
-        tag_names = ", ".join(name for name in resolved_tag_names if name)
         versions = payload.get("versions") or []
         current_version = (
             versions[0] if versions and isinstance(versions[0], dict) else {}
@@ -701,11 +793,9 @@ class UslDocument(models.Model):
             "tag_ids": [Command.set(tag_records.ids)],
             "correspondent_name": correspondent_name,
             "document_type_name": document_type_name,
-            "tag_names": tag_names,
             "custom_fields_json": json.dumps(
                 payload.get("custom_fields") or [], sort_keys=True,
             ),
-            "version_data_json": json.dumps(versions, sort_keys=True),
             "current_version_label": current_version.get("version_label"),
             "availability_state": "available",
             "source": source,
@@ -994,6 +1084,7 @@ class UslDocument(models.Model):
 
     @api.model
     def cron_sync_from_paperless(self):
+        self._require_manager()
         manager = self.env.ref("base.user_admin")
         try:
             return self.with_user(manager).sync_from_paperless(limit_pages=20)
@@ -1038,7 +1129,7 @@ class UslDocument(models.Model):
     def _workspace_correspondent_values(self, correspondent):
         """Return archive metadata without exposing an inaccessible Contact."""
         partner = self.env["res.partner"]
-        mapped_partner = correspondent.partner_id
+        mapped_partner = correspondent.sudo().partner_id
         if mapped_partner:
             partner = self.env["res.partner"].search(
                 [("id", "=", mapped_partner.id)],
@@ -1053,7 +1144,7 @@ class UslDocument(models.Model):
 
     @api.model
     def _workspace_document_values(self, item):
-        active_links = item.link_ids.filtered("active")
+        active_links = item._accessible_active_links()
         employee_link = active_links.filtered(
             lambda link: link.res_model == "hr.employee",
         )[:1]
@@ -1086,9 +1177,13 @@ class UslDocument(models.Model):
             ),
             "correspondent": correspondent["name"] or item.correspondent_name,
             "correspondent_id": item.correspondent_id.id,
-            "correspondent_archive_name": item.correspondent_name,
+            "correspondent_archive_name": (
+                item.correspondent_id.name or item.correspondent_name
+            ),
             "correspondent_partner_id": correspondent["partner_id"],
-            "document_type": item.document_type_name,
+            "document_type": (
+                item.document_type_id.name or item.document_type_name
+            ),
             "document_type_id": item.document_type_id.id,
             "tags": [
                 {
@@ -1133,7 +1228,6 @@ class UslDocument(models.Model):
         tag_ids=None,
         correspondent_id=None,
         document_type_id=None,
-        document_type=None,
         date_from=None,
         date_to=None,
         added_from=None,
@@ -1210,9 +1304,6 @@ class UslDocument(models.Model):
             domain.append(("correspondent_id", "=", int(correspondent_id)))
         if document_type_id:
             domain.append(("document_type_id", "=", int(document_type_id)))
-        elif document_type:
-            # Compatibility for bookmarks created before relational metadata.
-            domain.append(("document_type_name", "=", document_type))
         for value, operator, field_name in (
             (date_from, ">=", "document_date"),
             (date_to, "<=", "document_date"),
@@ -1254,6 +1345,10 @@ class UslDocument(models.Model):
                 or not linked_id
             ):
                 raise ValidationError(_("Invalid linked-record filter."))
+            linked_record = self.env[linked_model].browse(int(linked_id)).exists()
+            if not linked_record:
+                raise ValidationError(_("The linked Odoo record no longer exists."))
+            linked_record.check_access("read")
             link_domain = [
                 ("link_ids.res_model", "=", linked_model),
                 ("link_ids.res_id", "=", int(linked_id)),
@@ -1360,20 +1455,23 @@ class UslDocument(models.Model):
         accessible_documents = self.search([])
         link_facets = []
         seen_links = set()
-        for link in accessible_documents.mapped("link_ids").filtered("active"):
-            key = f"{link.res_model}:{link.res_id}"
-            if key in seen_links:
-                continue
-            seen_links.add(key)
-            model_label = self.env["ir.model"]._get(link.res_model).name
-            link_facets.append(
-                {
-                    "key": key,
-                    "model": link.res_model,
-                    "res_id": link.res_id,
-                    "label": f"{model_label} — {link.record_name}",
-                },
-            )
+        for document in accessible_documents:
+            for link in document._accessible_active_links():
+                key = f"{link.res_model}:{link.res_id}"
+                if key in seen_links:
+                    continue
+                seen_links.add(key)
+                model_label = self.env["ir.model"]._get(link.res_model).name
+                link_facets.append(
+                    {
+                        "key": key,
+                        "model": link.res_model,
+                        "res_id": link.res_id,
+                        "label": f"{model_label} — {link.record_name}",
+                    },
+                )
+                if len(link_facets) >= 200:
+                    break
             if len(link_facets) >= 200:
                 break
         return {
@@ -1451,6 +1549,15 @@ class UslDocument(models.Model):
             can_write = True
         except AccessError:
             can_write = False
+        can_manage = self.env.user.has_group(
+            "usl_documents.group_documents_manager",
+        )
+        accessible_links = document._accessible_active_links()
+        all_active_links = (
+            document.sudo().link_ids.filtered("active")
+            if can_manage
+            else accessible_links
+        )
         values = self._workspace_document_values(document)
         custom_field_catalog = {
             int(item["id"]): item
@@ -1498,27 +1605,28 @@ class UslDocument(models.Model):
                 "archive_available": archive_available,
                 "custom_fields": custom_field_values,
                 "can_edit": can_write and document.availability_state == "available",
+                "can_change_links": can_write,
                 "can_restore": (
                     can_write and document.availability_state == "trashed"
                 ),
                 "can_trash": (
                     can_write and document.availability_state == "available"
                 ),
-                "can_manage": self.env.user.has_group(
-                    "usl_documents.group_documents_manager",
-                ),
+                "can_manage": can_manage,
                 "permanent_delete_blocker": (
                     _(
                         "Remove the %(count)s active Odoo link(s) before permanent deletion.",
-                        count=len(document.link_ids.filtered("active")),
+                        count=len(all_active_links),
                     )
-                    if document.link_ids.filtered("active")
+                    if can_manage and all_active_links
                     else (
                         _("A retention hold prevents permanent deletion.")
-                        if document.retention_hold
+                        if can_manage and document.retention_hold
                         else (
                             _("Retained until %s.") % document.retention_until
                             if (
+                                can_manage
+                                and
                                 document.retention_until
                                 and document.retention_until > fields.Datetime.now()
                             )
@@ -1580,7 +1688,7 @@ class UslDocument(models.Model):
                             or _("Current file")
                         ),
                     }
-                    for link in document.link_ids.filtered("active")
+                    for link in accessible_links
                 ],
             },
         )
@@ -1757,7 +1865,9 @@ class UslDocument(models.Model):
             refreshed = self._paperless().get_document(self.paperless_id)
             cache_values = self._paperless_values(refreshed)
             cache_values.pop("source", None)
-            self.with_context(usl_documents_cache_write=True).write(cache_values)
+            self.sudo().with_context(
+                usl_documents_cache_write=True,
+            ).write(cache_values)
             self._synchronize_versions(refreshed.get("versions") or [])
         return self.document_detail(self.id)
 
@@ -1910,7 +2020,7 @@ class UslDocument(models.Model):
                         "Identical archive content was found and its existing item was reused.",
                     ),
                 }
-            operation = self.env["usl.document.operation"].create({
+            operation = self.env["usl.document.operation"].sudo().create({
                 "name": filename,
                 "state": "duplicate",
                 "checksum": checksum,
@@ -1933,7 +2043,7 @@ class UslDocument(models.Model):
                 "operation_id": operation.id,
                 "message": operation.error_message,
             }
-        operation = self.env["usl.document.operation"].create({
+        operation = self.env["usl.document.operation"].sudo().create({
             "name": filename,
             "state": "uploading",
             "checksum": checksum,
@@ -1951,10 +2061,12 @@ class UslDocument(models.Model):
             task_id = self._paperless().upload_multipart(
                 content, filename, content_type, title=filename,
             )
-            operation.write({"state": "processing", "paperless_task_id": task_id})
+            operation.sudo().write(
+                {"state": "processing", "paperless_task_id": task_id},
+            )
             retry_operation.acknowledge()
         except PaperlessError as error:
-            operation.write({"state": "failed", "error_message": str(error)})
+            operation.sudo().write({"state": "failed", "error_message": str(error)})
             raise
         return {
             "state": "processing",
@@ -2014,7 +2126,7 @@ class UslDocument(models.Model):
     ):
         self.ensure_one()
         checksum = hashlib.sha256(content).hexdigest()
-        operation = self.env["usl.document.operation"].create(
+        operation = self.env["usl.document.operation"].sudo().create(
             {
                 "name": filename,
                 "state": "uploading",
@@ -2037,9 +2149,11 @@ class UslDocument(models.Model):
                 content_type,
                 version_label=version_label or filename,
             )
-            operation.write({"state": "processing", "paperless_task_id": task_id})
+            operation.sudo().write(
+                {"state": "processing", "paperless_task_id": task_id},
+            )
         except PaperlessError as error:
-            operation.write({"state": "failed", "error_message": str(error)})
+            operation.sudo().write({"state": "failed", "error_message": str(error)})
             raise
         return {
             "state": "processing",
@@ -2116,7 +2230,7 @@ class UslDocument(models.Model):
                 "deletion_reason": False,
             },
         )
-        self.with_context(usl_documents_cache_write=True).write(values)
+        self.sudo().with_context(usl_documents_cache_write=True).write(values)
         self._synchronize_versions(payload.get("versions") or [])
         self.action_sync_permissions()
         return {
@@ -2139,7 +2253,7 @@ class UslDocument(models.Model):
             "usl_documents.paperless_trash_retention_days",
             30,
         )
-        self.with_context(usl_documents_cache_write=True).write(
+        self.sudo().with_context(usl_documents_cache_write=True).write(
             {
                 "availability_state": "trashed",
                 "trashed_at": now,
@@ -2156,7 +2270,7 @@ class UslDocument(models.Model):
             )
             % {
                 "user": self.env.user.display_name,
-                "count": len(self.link_ids.filtered("active")),
+                "count": len(self._accessible_active_links()),
             },
         )
         return {
@@ -2174,7 +2288,7 @@ class UslDocument(models.Model):
             raise ValidationError(_("Only a document in Trash can be approved."))
         if not (reason or "").strip():
             raise ValidationError(_("Record why permanent deletion is authorized."))
-        self.with_context(usl_documents_cache_write=True).write(
+        self.sudo().with_context(usl_documents_cache_write=True).write(
             {
                 "deletion_approved_by_id": self.env.user.id,
                 "deletion_approved_at": fields.Datetime.now(),
@@ -2201,7 +2315,7 @@ class UslDocument(models.Model):
             raise ValidationError(_("Only a document in Trash can be deleted."))
         if self.retention_hold:
             raise UserError(_("A retention hold blocks permanent deletion."))
-        if self.link_ids.filtered("active"):
+        if self.sudo().link_ids.filtered("active"):
             raise UserError(
                 _("Remove every Odoo relationship before permanent deletion."),
             )
@@ -2212,7 +2326,7 @@ class UslDocument(models.Model):
                 _("The archive retention period has not ended yet."),
             )
         self._paperless().permanently_delete_trashed_documents([self.paperless_id])
-        self.with_context(usl_documents_cache_write=True).write(
+        self.sudo().with_context(usl_documents_cache_write=True).write(
             {
                 "availability_state": "permanently_deleted",
                 "permanently_deleted_at": fields.Datetime.now(),
@@ -2233,7 +2347,14 @@ class UslDocument(models.Model):
 
     def unlink_from_record(self, res_model, res_id):
         self.ensure_one()
-        links = self.env["usl.document.link"].search(
+        self.check_access("write")
+        if res_model not in self.env["usl.document.link"]._allowed_models():
+            raise ValidationError(_("This Odoo model cannot carry archived documents."))
+        record = self.env[res_model].browse(int(res_id)).exists()
+        if not record:
+            raise ValidationError(_("The linked Odoo record no longer exists."))
+        record.check_access("read")
+        links = self.env["usl.document.link"].sudo().search(
             [
                 ("document_id", "=", self.id),
                 ("res_model", "=", res_model),
@@ -2245,6 +2366,16 @@ class UslDocument(models.Model):
             return False
         links.unlink()
         return True
+
+    def action_open_linked_record(self, link_id):
+        self.ensure_one()
+        self.check_access("read")
+        link = self.sudo().link_ids.filtered(
+            lambda item: item.id == int(link_id) and item.active,
+        )
+        if not link:
+            raise ValidationError(_("That Odoo relationship no longer exists."))
+        return link._record_action(user_env=self.env)
 
     def action_open_paperless(self):
         self.ensure_one()
@@ -2296,7 +2427,7 @@ class UslDocument(models.Model):
                     change_users=sorted(change_users),
                 )
             except PaperlessError as error:
-                document.with_context(
+                document.sudo().with_context(
                     skip_permission_invalidation=True,
                     usl_documents_cache_write=True,
                 ).write({
@@ -2311,7 +2442,7 @@ class UslDocument(models.Model):
                     ),
                 })
             else:
-                document.with_context(
+                document.sudo().with_context(
                     skip_permission_invalidation=True,
                     usl_documents_cache_write=True,
                 ).write({
@@ -2355,6 +2486,7 @@ class UslDocument(models.Model):
 
     def action_open_links(self):
         self.ensure_one()
+        self._require_manager()
         return {
             "type": "ir.actions.act_window",
             "name": _("Linked Odoo records"),
@@ -2491,6 +2623,12 @@ class UslDocumentLink(models.Model):
 
     @api.model
     def create_for_record(self, document, res_model, res_id, version_id=None):
+        document.ensure_one()
+        document.check_access("write")
+        if document.availability_state != "available":
+            raise UserError(
+                _("Only an available archived document can receive a new Odoo link."),
+            )
         if res_model not in self._allowed_models():
             raise ValidationError(_("This Odoo model cannot receive archived documents."))
         if version_id and not document.version_ids.filtered(
@@ -2512,7 +2650,7 @@ class UslDocumentLink(models.Model):
             raise ValidationError(
                 _("The document and Odoo record must belong to the same legal company."),
             )
-        existing = self.search([
+        existing = self.sudo().search([
             ("document_id", "=", document.id),
             ("res_model", "=", res_model),
             ("res_id", "=", res_id),
@@ -2524,7 +2662,7 @@ class UslDocumentLink(models.Model):
                 existing.sudo().write({"version_id": str(version_id)})
             return existing
         if not document.company_id:
-            document.with_context(usl_documents_policy_write=True).write(
+            document.sudo().with_context(usl_documents_policy_write=True).write(
                 {
                     "company_id": company.id,
                     "review_state": "classified",
@@ -2554,7 +2692,12 @@ class UslDocumentLink(models.Model):
 
     def action_open_record(self):
         self.ensure_one()
-        record = self.env[self.res_model].browse(self.res_id).exists()
+        return self._record_action()
+
+    def _record_action(self, user_env=None):
+        self.ensure_one()
+        user_env = user_env or self.env
+        record = user_env[self.res_model].browse(self.res_id).exists()
         if not record:
             raise UserError(_("The linked Odoo record no longer exists."))
         record.check_access("read")
@@ -2568,6 +2711,8 @@ class UslDocumentLink(models.Model):
         }
 
     def unlink(self):
+        if self.env.su:
+            return super().unlink()
         # Relationships can be removed; the archived original is deliberately untouched.
         for link in self:
             record = (
@@ -2632,6 +2777,21 @@ class UslDocumentOperation(models.Model):
         "usl.document.operation", readonly=True, ondelete="set null",
     )
 
+    @api.model_create_multi
+    def create(self, values_list):
+        if not self.env.su:
+            raise AccessError(
+                _("Ingestion operations can only be created by the upload workflow."),
+            )
+        return super().create(values_list)
+
+    def write(self, values):
+        if not self.env.su:
+            raise AccessError(
+                _("Ingestion state can only be changed by the archive workflow."),
+            )
+        return super().write(values)
+
     def _workspace_values(self):
         self.ensure_one()
         return {
@@ -2673,10 +2833,13 @@ class UslDocumentOperation(models.Model):
         ]
 
     def acknowledge(self):
-        self.filtered(
+        acknowledged = self.filtered(
             lambda operation: operation.user_id == self.env.user
             or self.env.user.has_group("usl_documents.group_documents_manager"),
-        ).write(
+        )
+        if len(acknowledged) != len(self):
+            raise AccessError(_("You can only dismiss your own ingestion messages."))
+        acknowledged.sudo().write(
             {
                 "acknowledged": True,
                 "acknowledged_at": fields.Datetime.now(),
@@ -2693,7 +2856,7 @@ class UslDocumentOperation(models.Model):
                     operation.paperless_task_id,
                 )
             except PaperlessError as error:
-                operation.write({"error_message": str(error)})
+                operation.sudo().write({"error_message": str(error)})
                 continue
             if not task:
                 continue
@@ -2777,14 +2940,14 @@ class UslDocumentOperation(models.Model):
                     document.with_user(
                         self.env.ref("base.user_admin"),
                     ).action_sync_permissions()
-                operation.write({
+                operation.sudo().write({
                     "state": "archived",
                     "document_id": document.id,
                     "error_message": False,
                 })
             elif status in ("failure", "failed"):
                 result_data = task.get("result_data")
-                operation.write({
+                operation.sudo().write({
                     "state": "failed",
                     "error_message": (
                         result_data.get("message")
@@ -2808,6 +2971,12 @@ class UslDocumentOperation(models.Model):
 
     @api.model
     def cron_poll_operations(self):
+        if not self.env.user.has_group(
+            "usl_documents.group_documents_manager",
+        ):
+            raise AccessError(
+                _("Only Documents administrators may run the ingestion scheduler."),
+            )
         operations = self.search([("state", "=", "processing")], limit=100)
         return operations.poll()
 
@@ -2846,10 +3015,57 @@ class UslPaperlessUserMapping(models.Model):
     def _mapped_user_documents(self):
         return self.env["usl.document"].with_user(self.user_id).search([])
 
+    @api.model_create_multi
+    def create(self, values_list):
+        trusted_seed = (
+            self.env.context.get("usl_documents_mapping_no_sync")
+            and self.env.su
+        )
+        normalized = []
+        for values in values_list:
+            values = dict(values)
+            if not trusted_seed:
+                values.update(
+                    {
+                        "sync_state": "pending",
+                        "last_verified_at": False,
+                        "last_error": False,
+                    },
+                )
+            normalized.append(values)
+        return super().create(normalized)
+
     def write(self, values):
+        values = dict(values)
+        trusted_seed = (
+            self.env.context.get("usl_documents_mapping_no_sync")
+            and self.env.su
+        )
+        verified_write = (
+            self.env.context.get("usl_documents_mapping_verification")
+            and self.env.su
+        )
+        protected_fields = {"sync_state", "last_verified_at", "last_error"}
+        if (
+            protected_fields.intersection(values)
+            and not (trusted_seed or verified_write)
+        ):
+            raise AccessError(
+                _("Paperless verification state can only be changed by verification."),
+            )
+        identity_fields = {"user_id", "paperless_user_id", "paperless_username"}
+        if identity_fields.intersection(values) and not (trusted_seed or verified_write):
+            values.update(
+                {
+                    "sync_state": "pending",
+                    "last_verified_at": False,
+                    "last_error": False,
+                },
+            )
         sync_fields = {
             "user_id",
             "paperless_user_id",
+            "paperless_username",
             "sync_state",
             "active",
         }
@@ -2868,7 +3084,7 @@ class UslPaperlessUserMapping(models.Model):
         }
         if (
             not effective_sync_fields
-            or self.env.context.get("usl_documents_mapping_no_sync")
+            or trusted_seed
         ):
             return super().write(values)
         before_documents = {
@@ -2951,22 +3167,30 @@ class UslPaperlessUserMapping(models.Model):
             "usl_documents.group_documents_manager",
         ):
             raise AccessError(_("Only Documents administrators verify identities."))
+        errors = []
         for mapping in self:
             try:
                 payload = self.env["usl.document"]._paperless().get_user(
                     mapping.paperless_user_id,
                 )
             except PaperlessError as error:
-                mapping.write(
+                message = str(error)
+                mapping.sudo().with_context(
+                    usl_documents_mapping_verification=True,
+                ).write(
                     {
                         "sync_state": "failed",
-                        "last_error": str(error),
+                        "last_error": message,
                     },
                 )
-                raise
+                errors.append(
+                    _("%(identity)s: %(error)s")
+                    % {"identity": mapping.display_name, "error": message},
+                )
+                continue
             remote_username = payload.get("username")
             if remote_username != mapping.paperless_username:
-                error = ValidationError(
+                message = (
                     _(
                         "Paperless user %(id)s is %(actual)s, not %(expected)s.",
                     )
@@ -2976,18 +3200,38 @@ class UslPaperlessUserMapping(models.Model):
                         "expected": mapping.paperless_username,
                     },
                 )
-                mapping.write(
+                mapping.sudo().with_context(
+                    usl_documents_mapping_verification=True,
+                ).write(
                     {
                         "sync_state": "failed",
-                        "last_error": str(error),
+                        "last_error": message,
                     },
                 )
-                raise error
-            mapping.write(
+                errors.append(
+                    _("%(identity)s: %(error)s")
+                    % {"identity": mapping.display_name, "error": message},
+                )
+                continue
+            mapping.sudo().with_context(
+                usl_documents_mapping_verification=True,
+            ).write(
                 {
                     "sync_state": "synchronized",
                     "last_verified_at": fields.Datetime.now(),
                     "last_error": False,
                 },
             )
+        if errors:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Identity verification needs attention"),
+                    "message": "\n".join(errors),
+                    "type": "danger",
+                    "sticky": True,
+                    "next": {"type": "ir.actions.client", "tag": "reload"},
+                },
+            }
         return True
