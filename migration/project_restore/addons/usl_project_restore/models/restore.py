@@ -1,0 +1,2432 @@
+import base64
+import copy
+import hashlib
+import os
+from collections import defaultdict
+from pathlib import Path
+
+import psycopg2
+import psycopg2.extras
+
+from odoo import Command, fields, models
+
+SOURCE_MODELS = (
+    "project.project",
+    "project.task",
+    "project.update",
+    "project.milestone",
+)
+RESTORE_REVISION = 6
+
+
+class UslProjectRestoreRun(models.Model):
+    _name = "usl.project.restore.run"
+    _description = "USL Project Restoration Run"
+    _order = "started_at desc, id desc"
+
+    name = fields.Char(required=True, default="Projects restoration")
+    status = fields.Selection(
+        [
+            ("running", "Running"),
+            ("passed", "Passed"),
+            ("partial", "Partial"),
+            ("failed", "Failed"),
+        ],
+        required=True,
+        default="running",
+        index=True,
+    )
+    source_database = fields.Char(required=True, index=True)
+    source_snapshot = fields.Char(required=True, index=True)
+    target_database = fields.Char(required=True, index=True)
+    started_at = fields.Datetime(default=fields.Datetime.now, required=True)
+    finished_at = fields.Datetime()
+    project_count = fields.Integer(readonly=True)
+    task_count = fields.Integer(readonly=True)
+    message_count = fields.Integer(readonly=True)
+    attachment_count = fields.Integer(readonly=True)
+    issue_count = fields.Integer(readonly=True)
+    statistics_json = fields.Json(readonly=True)
+    issue_ids = fields.One2many(
+        "usl.project.restore.issue",
+        "run_id",
+        readonly=True,
+    )
+
+    def _issue(self, severity, source_model, source_id, description):
+        self.ensure_one()
+        return self.env["usl.project.restore.issue"].create(
+            {
+                "run_id": self.id,
+                "severity": severity,
+                "source_model": source_model,
+                "source_id": source_id or 0,
+                "description": description,
+            },
+        )
+
+    @staticmethod
+    def _source_text(value):
+        if isinstance(value, dict):
+            return (
+                value.get("en_US")
+                or value.get("fr_FR")
+                or next(iter(value.values()), "")
+            )
+        return value or ""
+
+    @staticmethod
+    def _source_translation(value, language):
+        return value.get(language) if isinstance(value, dict) else False
+
+    def _community_property_definition(self, definition):
+        definition = copy.deepcopy(definition or [])
+        field = self.env["project.project"]._fields[
+            "task_properties_definition"
+        ]
+        allowed = set(field.ALLOWED_KEYS)
+        allowed.update(
+            self.env["base"]._additional_allowed_keys_properties_definition(),
+        )
+        for item in definition:
+            for key in set(item) - allowed:
+                item.pop(key)
+        return definition
+
+    def _trace_values(self, source_model, source_id, snapshot, status="imported"):
+        return {
+            "rebuild_source_database": self.source_database,
+            "rebuild_source_model": source_model,
+            "rebuild_source_id": source_id,
+            "rebuild_source_snapshot": snapshot,
+            "rebuild_import_status": status,
+            "rebuild_import_note": (
+                f"Restored by Projects run {self.id}, revision "
+                f"{RESTORE_REVISION} from "
+                f"{self.source_database}."
+            ),
+        }
+
+    def _is_current_revision(self, record, snapshot):
+        return bool(
+            record
+            and record.rebuild_source_snapshot == snapshot
+            and f"revision {RESTORE_REVISION} " in (
+                record.rebuild_import_note or ""
+            ),
+        )
+
+    def _written_this_run(self, record):
+        return bool(
+            record
+            and (
+                f"Projects run {self.id}, revision {RESTORE_REVISION} "
+                in (record.rebuild_import_note or "")
+            ),
+        )
+
+    def _traced(self, target_model, source_model, source_ids):
+        source_ids = [source_id for source_id in source_ids if source_id]
+        if not source_ids:
+            return {}
+        records = (
+            self.env[target_model]
+            .with_context(active_test=False)
+            .sudo()
+            .search(
+                [
+                    ("rebuild_source_model", "=", source_model),
+                    ("rebuild_source_id", "in", source_ids),
+                ],
+            )
+        )
+        result = {}
+        for record in records.sorted("id"):
+            if record.rebuild_source_id in result:
+                self._issue(
+                    "error",
+                    source_model,
+                    record.rebuild_source_id,
+                    (
+                        "Multiple target records carry this source identity; "
+                        f"kept target {result[record.rebuild_source_id].id}."
+                    ),
+                )
+                continue
+            result[record.rebuild_source_id] = record
+        return result
+
+    def _upsert(
+        self,
+        target_model,
+        source_model,
+        row,
+        values,
+        snapshot,
+        *,
+        translation_fields=(),
+    ):
+        traced = self._traced(target_model, source_model, [row["id"]])
+        record = traced.get(row["id"])
+        trace_values = self._trace_values(
+            source_model,
+            row["id"],
+            snapshot,
+        )
+        values = {
+            **values,
+            **trace_values,
+        }
+        model = (
+            self.env[target_model]
+            .sudo()
+            .with_context(
+                active_test=False,
+                tracking_disable=True,
+                mail_create_nolog=True,
+                mail_create_nosubscribe=True,
+            )
+        )
+        if record:
+            if self._is_current_revision(record, snapshot):
+                return record
+            record.with_context(tracking_disable=True).write(values)
+        else:
+            record = model.create(values)
+        if (
+            record.rebuild_source_model != source_model
+            or record.rebuild_source_id != row["id"]
+            or record.rebuild_source_snapshot != snapshot
+            or record.rebuild_import_note != trace_values["rebuild_import_note"]
+        ):
+            record.with_context(tracking_disable=True).write(trace_values)
+        for field_name in translation_fields:
+            translated = self._source_translation(row.get(field_name), "fr_FR")
+            if translated and translated != self._source_text(row.get(field_name)):
+                record.with_context(lang="fr_FR", tracking_disable=True).write(
+                    {field_name: translated},
+                )
+        return record
+
+    def _stamp_audit(self, model_name, record, row, user_map):
+        if not self._written_this_run(record):
+            return
+        table_by_model = {
+            "project.project": "project_project",
+            "project.project.stage": "project_project_stage",
+            "project.task": "project_task",
+            "project.task.type": "project_task_type",
+            "project.tags": "project_tags",
+            "project.milestone": "project_milestone",
+            "project.task.recurrence": "project_task_recurrence",
+            "project.update": "project_update",
+            "ir.attachment": "ir_attachment",
+            "mail.message": "mail_message",
+            "mail.activity": "mail_activity",
+        }
+        table = table_by_model.get(model_name)
+        if not table:
+            return
+        create_uid = user_map.get(row.get("create_uid")) or self.env.user
+        write_uid = user_map.get(row.get("write_uid")) or create_uid
+        self.env.cr.execute(
+            f"""
+                UPDATE {table}
+                   SET create_date = COALESCE(%s, create_date),
+                       write_date = COALESCE(%s, write_date),
+                       create_uid = %s,
+                       write_uid = %s
+                 WHERE id = %s
+            """,
+            (
+                row.get("create_date"),
+                row.get("write_date"),
+                create_uid.id,
+                write_uid.id,
+                record.id,
+            ),
+        )
+        record.invalidate_recordset(["create_date", "write_date"])
+
+    def _target_xmlid(self, source_xmlids, source_model, source_id):
+        xmlid = source_xmlids.get((source_model, source_id))
+        if not xmlid:
+            return self.env[source_model]
+        try:
+            record = self.env.ref(xmlid, raise_if_not_found=False)
+        except ValueError:
+            record = False
+        return record or self.env[source_model]
+
+    def _restore_partners_companies_users(self, payload, snapshot):
+        companies = self._traced(
+            "res.company",
+            "res.company",
+            [row["id"] for row in payload["companies"]],
+        )
+        for row in payload["companies"]:
+            if row["id"] in companies:
+                continue
+            name = self._source_text(row["name"])
+            company = self.env["res.company"].sudo().search(
+                [("name", "=", name)],
+                limit=1,
+            )
+            if not company:
+                self._issue(
+                    "error",
+                    "res.company",
+                    row["id"],
+                    f"No target company matches {name!r}.",
+                )
+                continue
+            company.write(
+                self._trace_values(
+                    "res.company",
+                    row["id"],
+                    snapshot,
+                    status="reused",
+                ),
+            )
+            companies[row["id"]] = company
+
+        partners = self._traced(
+            "res.partner",
+            "res.partner",
+            [row["id"] for row in payload["partners"]],
+        )
+        for row in payload["partners"]:
+            if row["id"] in partners:
+                continue
+            domain = (
+                [("email", "=ilike", row["email"])]
+                if row.get("email")
+                else [("name", "=", row["name"])]
+            )
+            partner = (
+                self.env["res.partner"]
+                .with_context(active_test=False)
+                .sudo()
+                .search(domain, limit=1)
+            )
+            status = "reused"
+            if not partner:
+                status = "imported"
+                partner = self.env["res.partner"].sudo().create(
+                    {
+                        "name": row["name"] or f"Source partner {row['id']}",
+                        "email": row.get("email"),
+                        "active": row.get("active", True),
+                        "is_company": bool(row.get("is_company")),
+                        "company_id": (
+                            companies.get(row.get("company_id")).id
+                            if companies.get(row.get("company_id"))
+                            else False
+                        ),
+                    },
+                )
+            partner.write(
+                self._trace_values(
+                    "res.partner",
+                    row["id"],
+                    snapshot,
+                    status=status,
+                ),
+            )
+            partners[row["id"]] = partner
+
+        users = {}
+        default_password = os.getenv("PROJECT_RESTORE_DEFAULT_PASSWORD")
+        for row in payload["users"]:
+            partner = partners.get(row["partner_id"])
+            if not partner:
+                self._issue(
+                    "error",
+                    "res.users",
+                    row["id"],
+                    "User partner could not be reconciled.",
+                )
+                continue
+            user = (
+                self.env["res.users"]
+                .with_context(active_test=False)
+                .sudo()
+                .search(
+                    [
+                        "|",
+                        ("partner_id", "=", partner.id),
+                        ("login", "=", row["login"]),
+                    ],
+                    limit=1,
+                )
+            )
+            company_ids = [
+                companies[source_company_id].id
+                for source_company_id in row["company_ids"]
+                if source_company_id in companies
+            ]
+            if not user:
+                user_values = {
+                    "name": partner.name,
+                    "login": row["login"],
+                    "email": partner.email,
+                    "partner_id": partner.id,
+                    "active": row["active"],
+                    "share": row["share"],
+                    "company_ids": [Command.set(company_ids)],
+                    "company_id": company_ids[0] if company_ids else False,
+                }
+                if default_password:
+                    user_values["password"] = default_password
+                user = (
+                    self.env["res.users"]
+                    .with_context(no_reset_password=True)
+                    .sudo()
+                    .create(user_values)
+                )
+            groups = self.env["res.groups"]
+            for xmlid in row["project_group_xmlids"]:
+                group = self.env.ref(xmlid, raise_if_not_found=False)
+                if group:
+                    groups |= group
+            project_user = self.env.ref(
+                "project.group_project_user",
+                raise_if_not_found=False,
+            )
+            if project_user and not row["share"]:
+                groups |= project_user
+            values = {"group_ids": [Command.link(group.id) for group in groups]}
+            if company_ids:
+                values["company_ids"] = [Command.link(item) for item in company_ids]
+            user.sudo().write(values)
+            users[row["id"]] = user
+        return companies, partners, users
+
+    def _restore_configuration(
+        self,
+        payload,
+        snapshot,
+        companies,
+        users,
+    ):
+        project_stages = {}
+        for row in payload["project_stages"]:
+            record = self._upsert(
+                "project.project.stage",
+                "project.project.stage",
+                row,
+                {
+                    "name": self._source_text(row["name"]),
+                    "sequence": row["sequence"],
+                    "color": row["color"],
+                    "active": row["active"],
+                    "fold": row["fold"],
+                    "company_id": (
+                        companies.get(row["company_id"]).id
+                        if companies.get(row["company_id"])
+                        else False
+                    ),
+                    "rotting_threshold_days": row["rotting_threshold_days"],
+                },
+                snapshot,
+                translation_fields=("name",),
+            )
+            project_stages[row["id"]] = record
+            self._stamp_audit(
+                "project.project.stage",
+                record,
+                row,
+                users,
+            )
+
+        task_stages = {}
+        for row in payload["task_stages"]:
+            record = self._upsert(
+                "project.task.type",
+                "project.task.type",
+                row,
+                {
+                    "name": self._source_text(row["name"]),
+                    "sequence": row["sequence"],
+                    "color": row["color"],
+                    "active": row["active"],
+                    "fold": row["fold"],
+                    "auto_validation_state": row["auto_validation_state"],
+                    "user_id": (
+                        users.get(row["user_id"]).id
+                        if users.get(row["user_id"])
+                        else False
+                    ),
+                    "rotting_threshold_days": row["rotting_threshold_days"],
+                },
+                snapshot,
+                translation_fields=("name",),
+            )
+            task_stages[row["id"]] = record
+            self._stamp_audit("project.task.type", record, row, users)
+
+        tags = {}
+        for row in payload["tags"]:
+            record = self._upsert(
+                "project.tags",
+                "project.tags",
+                row,
+                {
+                    "name": self._source_text(row["name"]),
+                    "color": row["color"],
+                },
+                snapshot,
+                translation_fields=("name",),
+            )
+            tags[row["id"]] = record
+            self._stamp_audit("project.tags", record, row, users)
+        activity_types = {}
+        for row in payload["activity_types"]:
+            target = self._target_xmlid(
+                payload["xmlids"],
+                "mail.activity.type",
+                row["id"],
+            )
+            if target:
+                if not target.rebuild_source_id:
+                    target.write(
+                        self._trace_values(
+                            "mail.activity.type",
+                            row["id"],
+                            snapshot,
+                            status="reused",
+                        ),
+                    )
+                activity_types[row["id"]] = target
+                continue
+            record = self._upsert(
+                "mail.activity.type",
+                "mail.activity.type",
+                row,
+                {
+                    "name": self._source_text(row["name"]),
+                    "active": row["active"],
+                    "category": row["category"],
+                    "summary": row["summary"],
+                    "icon": row["icon"],
+                    "decoration_type": row["decoration_type"],
+                    "delay_count": row["delay_count"],
+                    "delay_unit": row["delay_unit"],
+                    "delay_from": row["delay_from"],
+                },
+                snapshot,
+                translation_fields=("name",),
+            )
+            activity_types[row["id"]] = record
+        return project_stages, task_stages, tags, activity_types
+
+    def _restore_projects(
+        self,
+        payload,
+        snapshot,
+        companies,
+        partners,
+        users,
+        project_stages,
+        task_stages,
+        tags,
+    ):
+        analytic_accounts = self._traced(
+            "account.analytic.account",
+            "account.analytic.account",
+            [
+                row["account_id"]
+                for row in payload["projects"]
+                if row["account_id"]
+            ],
+        )
+        projects = {}
+        for row in payload["projects"]:
+            account = analytic_accounts.get(row["account_id"])
+            if row["account_id"] and not account:
+                self._issue(
+                    "warning",
+                    "project.project",
+                    row["id"],
+                    (
+                        "Analytic account source "
+                        f"{row['account_id']} is unresolved; project retained "
+                        "without the profitability link."
+                    ),
+                )
+            values = {
+                "name": self._source_text(row["name"]),
+                "sequence": row["sequence"],
+                "partner_id": (
+                    partners.get(row["partner_id"]).id
+                    if partners.get(row["partner_id"])
+                    else False
+                ),
+                "company_id": (
+                    companies.get(row["company_id"]).id
+                    if companies.get(row["company_id"])
+                    else False
+                ),
+                "color": row["color"],
+                "user_id": (
+                    users.get(row["user_id"]).id
+                    if users.get(row["user_id"])
+                    else False
+                ),
+                "stage_id": (
+                    project_stages.get(row["stage_id"]).id
+                    if project_stages.get(row["stage_id"])
+                    else False
+                ),
+                "access_token": row["access_token"],
+                "privacy_visibility": row["privacy_visibility"],
+                "last_update_status": row["last_update_status"],
+                "date_start": row["date_start"],
+                "date": row["date"],
+                "label_tasks": self._source_text(row["label_tasks"]),
+                "task_properties_definition": self._community_property_definition(
+                    row["task_properties_definition"],
+                ),
+                "usl_source_task_properties_definition": (
+                    row["task_properties_definition"] or []
+                ),
+                "description": row["description"],
+                "active": row["active"],
+                "allow_task_dependencies": bool(
+                    row["allow_task_dependencies"],
+                ),
+                "allow_milestones": bool(row["allow_milestones"]),
+                "allow_recurring_tasks": bool(row["allow_recurring_tasks"]),
+                "is_template": bool(row["is_template"]),
+                "account_id": account.id if account else False,
+                "date_last_stage_update": row["date_last_stage_update"],
+            }
+            record = self._upsert(
+                "project.project",
+                "project.project",
+                row,
+                values,
+                snapshot,
+                translation_fields=("name", "label_tasks"),
+            )
+            projects[row["id"]] = record
+            self._stamp_audit("project.project", record, row, users)
+            alias = record.alias_id
+            if (
+                row["alias_id"]
+                and alias
+                and self._written_this_run(record)
+            ):
+                source_alias_name = row["alias_name"] or False
+                conflict = self.env["mail.alias"].sudo().search(
+                    [
+                        ("id", "!=", alias.id),
+                        ("alias_name", "=", source_alias_name),
+                        ("alias_domain_id", "=", alias.alias_domain_id.id),
+                    ],
+                    limit=1,
+                )
+                if source_alias_name and conflict:
+                    self._issue(
+                        "error",
+                        "mail.alias",
+                        row["alias_id"],
+                        (
+                            f"Project alias {source_alias_name!r} conflicts "
+                            f"with target alias {conflict.id}."
+                        ),
+                    )
+                else:
+                    alias.sudo().write(
+                        {
+                            "alias_name": source_alias_name,
+                            "alias_contact": row["alias_contact"],
+                            **self._trace_values(
+                                "mail.alias",
+                                row["alias_id"],
+                                snapshot,
+                            ),
+                        },
+                    )
+
+        stage_links = defaultdict(list)
+        for row in payload["project_task_stage_rel"]:
+            if row["project_id"] in projects and row["type_id"] in task_stages:
+                stage_links[row["project_id"]].append(
+                    task_stages[row["type_id"]].id,
+                )
+        tag_links = defaultdict(list)
+        for row in payload["project_tag_rel"]:
+            if row["project_id"] in projects and row["tag_id"] in tags:
+                tag_links[row["project_id"]].append(tags[row["tag_id"]].id)
+        favorite_links = defaultdict(list)
+        for row in payload["project_favorite_rel"]:
+            if row["project_id"] in projects and row["user_id"] in users:
+                favorite_links[row["project_id"]].append(users[row["user_id"]].id)
+        for source_id, project in projects.items():
+            missing_stage_ids = set(stage_links[source_id]) - set(
+                project.type_ids.ids,
+            )
+            missing_tag_ids = set(tag_links[source_id]) - set(
+                project.tag_ids.ids,
+            )
+            missing_favorite_ids = set(favorite_links[source_id]) - set(
+                project.favorite_user_ids.ids,
+            )
+            relation_values = {}
+            if missing_stage_ids:
+                relation_values["type_ids"] = [
+                    Command.link(record_id)
+                    for record_id in missing_stage_ids
+                ]
+            if missing_tag_ids:
+                relation_values["tag_ids"] = [
+                    Command.link(record_id)
+                    for record_id in missing_tag_ids
+                ]
+            if missing_favorite_ids:
+                relation_values["favorite_user_ids"] = [
+                    Command.link(record_id)
+                    for record_id in missing_favorite_ids
+                ]
+            if relation_values:
+                project.with_context(tracking_disable=True).write(
+                    relation_values,
+                )
+        return projects
+
+    def _restore_tasks(
+        self,
+        payload,
+        snapshot,
+        projects,
+        partners,
+        companies,
+        users,
+        task_stages,
+        tags,
+    ):
+        recurrences = {}
+        for row in payload["recurrences"]:
+            record = self._upsert(
+                "project.task.recurrence",
+                "project.task.recurrence",
+                row,
+                {
+                    "repeat_interval": row["repeat_interval"],
+                    "repeat_unit": row["repeat_unit"],
+                    "repeat_type": row["repeat_type"],
+                    "repeat_until": row["repeat_until"],
+                },
+                snapshot,
+            )
+            recurrences[row["id"]] = record
+            self._stamp_audit(
+                "project.task.recurrence",
+                record,
+                row,
+                users,
+            )
+
+        milestones = {}
+        for row in payload["milestones"]:
+            project = projects.get(row["project_id"])
+            if not project:
+                self._issue(
+                    "error",
+                    "project.milestone",
+                    row["id"],
+                    "Milestone project is unresolved.",
+                )
+                continue
+            record = self._upsert(
+                "project.milestone",
+                "project.milestone",
+                row,
+                {
+                    "name": row["name"],
+                    "sequence": row["sequence"],
+                    "project_id": project.id,
+                    "deadline": row["deadline"],
+                    "reached_date": row["reached_date"],
+                    "is_reached": row["is_reached"],
+                },
+                snapshot,
+            )
+            milestones[row["id"]] = record
+            self._stamp_audit("project.milestone", record, row, users)
+
+        task_users = defaultdict(list)
+        for row in payload["task_user_rel"]:
+            if row["user_id"] in users:
+                task_users[row["task_id"]].append(users[row["user_id"]].id)
+        task_tags = defaultdict(list)
+        for row in payload["task_tag_rel"]:
+            if row["tag_id"] in tags:
+                task_tags[row["task_id"]].append(tags[row["tag_id"]].id)
+
+        tasks = {}
+        for row in payload["tasks"]:
+            project = projects.get(row["project_id"])
+            stage = task_stages.get(row["stage_id"])
+            values = {
+                "name": row["name"],
+                "sequence": row["sequence"],
+                "stage_id": stage.id if stage else False,
+                "project_id": project.id if project else False,
+                "partner_id": (
+                    partners.get(row["partner_id"]).id
+                    if partners.get(row["partner_id"])
+                    else False
+                ),
+                "company_id": (
+                    companies.get(row["company_id"]).id
+                    if companies.get(row["company_id"])
+                    else False
+                ),
+                "color": row["color"],
+                "access_token": row["access_token"],
+                "priority": row["priority"] or "0",
+                "state": row["state"],
+                "email_from": row["email_from"],
+                "html_field_history": row["html_field_history"],
+                "task_properties": row["task_properties"] or {},
+                "usl_source_task_properties": row["task_properties"] or {},
+                "description": row["description"],
+                "active": row["active"],
+                "recurring_task": bool(row["recurring_task"]),
+                "is_template": bool(row["is_template"]),
+                "date_end": row["date_end"],
+                "date_assign": row["date_assign"],
+                "date_deadline": row["date_deadline"],
+                "date_last_stage_update": row["date_last_stage_update"],
+                "allocated_hours": row["allocated_hours"] or 0.0,
+                "planned_date_begin": row["planned_date_begin"],
+                "milestone_id": (
+                    milestones.get(row["milestone_id"]).id
+                    if milestones.get(row["milestone_id"])
+                    else False
+                ),
+                "recurrence_id": (
+                    recurrences.get(row["recurrence_id"]).id
+                    if recurrences.get(row["recurrence_id"])
+                    else False
+                ),
+                "user_ids": [Command.set(task_users[row["id"]])],
+                "tag_ids": [Command.set(task_tags[row["id"]])],
+            }
+            record = self._upsert(
+                "project.task",
+                "project.task",
+                row,
+                values,
+                snapshot,
+            )
+            tasks[row["id"]] = record
+            self._stamp_audit("project.task", record, row, users)
+
+        for row in payload["tasks"]:
+            task = tasks.get(row["id"])
+            parent = tasks.get(row["parent_id"])
+            if task and row["parent_id"] and not parent:
+                self._issue(
+                    "error",
+                    "project.task",
+                    row["id"],
+                    f"Parent task {row['parent_id']} is unresolved.",
+                )
+            if task and (
+                self._written_this_run(task)
+                or (parent and not task.parent_id)
+            ):
+                task.with_context(tracking_disable=True).write(
+                    {"parent_id": parent.id if parent else False},
+                )
+        dependencies = defaultdict(list)
+        for row in payload["dependencies"]:
+            task = tasks.get(row["task_id"])
+            blocker = tasks.get(row["depends_on_id"])
+            if task and blocker:
+                dependencies[row["task_id"]].append(blocker.id)
+            else:
+                self._issue(
+                    "error",
+                    "project.task",
+                    row["task_id"],
+                    (
+                        "Dependency on source task "
+                        f"{row['depends_on_id']} is unresolved."
+                    ),
+                )
+        for source_id, blocker_ids in dependencies.items():
+            missing_blocker_ids = set(blocker_ids) - set(
+                tasks[source_id].depend_on_ids.ids,
+            )
+            if missing_blocker_ids:
+                tasks[source_id].with_context(tracking_disable=True).write(
+                    {
+                        "depend_on_ids": [
+                            Command.link(blocker_id)
+                            for blocker_id in missing_blocker_ids
+                        ],
+                    },
+                )
+
+        return tasks, milestones, recurrences
+
+    def _reconcile_volatile_history(
+        self,
+        payload,
+        projects,
+        tasks,
+        task_stages,
+    ):
+        # Project's ORM deliberately updates lifecycle fields as relationships,
+        # chatter and activities are created. Those conveniences are correct
+        # for live work, but restored history must retain its source values.
+        self.env.flush_all()
+        for row in payload["projects"]:
+            project = projects.get(row["id"])
+            if not project or not self._written_this_run(project):
+                continue
+            self.env.cr.execute(
+                """
+                    UPDATE project_project
+                       SET date_last_stage_update = %s
+                     WHERE id = %s
+                """,
+                (row["date_last_stage_update"], project.id),
+            )
+            project.invalidate_recordset(["date_last_stage_update"])
+        for row in payload["tasks"]:
+            task = tasks.get(row["id"])
+            if not task or not self._written_this_run(task):
+                continue
+            stage = task_stages.get(row["stage_id"])
+            self.env.cr.execute(
+                """
+                    UPDATE project_task
+                       SET stage_id = %s,
+                           state = %s,
+                           description = %s,
+                           date_end = %s,
+                           date_assign = %s,
+                           date_deadline = %s,
+                           date_last_stage_update = %s,
+                           planned_date_begin = %s,
+                           html_field_history = %s
+                     WHERE id = %s
+                """,
+                (
+                    stage.id if stage else None,
+                    row["state"],
+                    row["description"],
+                    row["date_end"],
+                    row["date_assign"],
+                    row["date_deadline"],
+                    row["date_last_stage_update"],
+                    row["planned_date_begin"],
+                    psycopg2.extras.Json(row["html_field_history"] or {}),
+                    task.id,
+                ),
+            )
+            task.invalidate_recordset(
+                [
+                    "date_end",
+                    "stage_id",
+                    "state",
+                    "description",
+                    "date_assign",
+                    "date_deadline",
+                    "date_last_stage_update",
+                    "planned_date_begin",
+                    "html_field_history",
+                ],
+            )
+
+    def _restore_updates(
+        self,
+        payload,
+        snapshot,
+        projects,
+        users,
+    ):
+        updates = {}
+        for row in payload["updates"]:
+            project = projects.get(row["project_id"])
+            user = users.get(row["user_id"]) or self.env.user
+            if not project:
+                self._issue(
+                    "error",
+                    "project.update",
+                    row["id"],
+                    "Project update project is unresolved.",
+                )
+                continue
+            record = self._upsert(
+                "project.update",
+                "project.update",
+                row,
+                {
+                    "name": row["name"],
+                    "progress": row["progress"],
+                    "user_id": user.id,
+                    "project_id": project.id,
+                    "task_count": row["task_count"],
+                    "closed_task_count": row["closed_task_count"],
+                    "status": row["status"],
+                    "date": row["date"],
+                    "description": row["description"],
+                },
+                snapshot,
+            )
+            updates[row["id"]] = record
+            self._stamp_audit("project.update", record, row, users)
+        for row in payload["projects"]:
+            project = projects.get(row["id"])
+            update = updates.get(row["last_update_id"])
+            if project and (
+                self._written_this_run(project)
+                or (update and not project.last_update_id)
+            ):
+                project.with_context(tracking_disable=True).write(
+                    {"last_update_id": update.id if update else False},
+                )
+                self.env.cr.execute(
+                    """
+                        UPDATE project_project
+                           SET last_update_status = %s
+                         WHERE id = %s
+                    """,
+                    (row["last_update_status"], project.id),
+                )
+                project.invalidate_recordset(["last_update_status"])
+        return updates
+
+    def _record_maps(self, projects, tasks, updates, milestones):
+        return {
+            "project.project": projects,
+            "project.task": tasks,
+            "project.update": updates,
+            "project.milestone": milestones,
+        }
+
+    def _restore_attachments(
+        self,
+        payload,
+        snapshot,
+        record_maps,
+        filestore,
+        users,
+    ):
+        attachments = self._traced(
+            "ir.attachment",
+            "ir.attachment",
+            [row["id"] for row in payload["attachments"]],
+        )
+        filestore_path = Path(filestore).resolve()
+        for row in payload["attachments"]:
+            target_record = record_maps.get(row["res_model"], {}).get(
+                row["res_id"],
+            )
+            if not target_record:
+                self._issue(
+                    "error",
+                    "ir.attachment",
+                    row["id"],
+                    (
+                        f"Attachment target {row['res_model']} "
+                        f"{row['res_id']} is unresolved."
+                    ),
+                )
+                continue
+            binary = row.get("db_datas")
+            if isinstance(binary, memoryview):
+                binary = binary.tobytes()
+            if not binary and row["store_fname"]:
+                candidate = (filestore_path / row["store_fname"]).resolve()
+                if filestore_path not in candidate.parents:
+                    self._issue(
+                        "error",
+                        "ir.attachment",
+                        row["id"],
+                        "Rejected unsafe filestore path.",
+                    )
+                    continue
+                if not candidate.is_file():
+                    self._issue(
+                        "error",
+                        "ir.attachment",
+                        row["id"],
+                        f"Filestore blob is missing: {row['store_fname']}.",
+                    )
+                    continue
+                binary = candidate.read_bytes()
+            if not binary:
+                self._issue(
+                    "error",
+                    "ir.attachment",
+                    row["id"],
+                    "Attachment has no database or filestore binary.",
+                )
+                continue
+            checksum = hashlib.sha1(binary).hexdigest()
+            if row["checksum"] and checksum != row["checksum"]:
+                self._issue(
+                    "error",
+                    "ir.attachment",
+                    row["id"],
+                    (
+                        f"Checksum mismatch: expected {row['checksum']}, "
+                        f"read {checksum}."
+                    ),
+                )
+                continue
+            values = {
+                "name": row["name"],
+                "type": "binary",
+                "mimetype": row["mimetype"],
+                "description": row["description"],
+                "res_model": row["res_model"],
+                "res_id": target_record.id,
+                "datas": base64.b64encode(binary),
+                "public": row["public"],
+                **self._trace_values("ir.attachment", row["id"], snapshot),
+                "rebuild_source_attachment_res_model": row["res_model"],
+                "rebuild_source_attachment_res_id": row["res_id"],
+            }
+            attachment = attachments.get(row["id"])
+            if attachment:
+                if not self._is_current_revision(attachment, snapshot):
+                    immutable = dict(values)
+                    immutable.pop("datas")
+                    attachment.sudo().write(immutable)
+            else:
+                attachment = self.env["ir.attachment"].sudo().create(values)
+                attachments[row["id"]] = attachment
+            self._stamp_audit("ir.attachment", attachment, row, users)
+        return attachments
+
+    def _restore_messages(
+        self,
+        payload,
+        snapshot,
+        record_maps,
+        partners,
+        companies,
+        users,
+        attachments,
+    ):
+        source_xmlids = payload["xmlids"]
+        messages = {}
+        existing = self._traced(
+            "mail.message",
+            "mail.message",
+            [row["id"] for row in payload["messages"]],
+        )
+        recipients = defaultdict(list)
+        for row in payload["message_partner_rel"]:
+            if row["partner_id"] in partners:
+                recipients[row["message_id"]].append(
+                    partners[row["partner_id"]].id,
+                )
+        message_attachments = defaultdict(list)
+        for row in payload["message_attachment_rel"]:
+            if row["attachment_id"] in attachments:
+                message_attachments[row["message_id"]].append(
+                    attachments[row["attachment_id"]].id,
+                )
+        for row in payload["messages"]:
+            target_record = record_maps.get(row["model"], {}).get(row["res_id"])
+            if not target_record:
+                self._issue(
+                    "error",
+                    "mail.message",
+                    row["id"],
+                    f"Chatter target {row['model']} {row['res_id']} is unresolved.",
+                )
+                continue
+            subtype = self._target_xmlid(
+                source_xmlids,
+                "mail.message.subtype",
+                row["subtype_id"],
+            )
+            activity_type = self._target_xmlid(
+                source_xmlids,
+                "mail.activity.type",
+                row["mail_activity_type_id"],
+            )
+            values = {
+                "model": row["model"],
+                "res_id": target_record.id,
+                "subject": row["subject"],
+                "message_type": row["message_type"],
+                "email_from": row["email_from"],
+                "message_id": row["message_id"],
+                "reply_to": row["reply_to"],
+                "body": row["body"] or "",
+                "is_internal": row["is_internal"],
+                "date": row["date"],
+                "author_id": (
+                    partners.get(row["author_id"]).id
+                    if partners.get(row["author_id"])
+                    else False
+                ),
+                "subtype_id": subtype.id if subtype else False,
+                "mail_activity_type_id": (
+                    activity_type.id if activity_type else False
+                ),
+                "record_company_id": (
+                    companies.get(row["record_company_id"]).id
+                    if companies.get(row["record_company_id"])
+                    else False
+                ),
+                "partner_ids": [Command.set(recipients[row["id"]])],
+                "attachment_ids": [
+                    Command.set(message_attachments[row["id"]]),
+                ],
+                **self._trace_values("mail.message", row["id"], snapshot),
+            }
+            message = existing.get(row["id"])
+            if message:
+                if not self._is_current_revision(message, snapshot):
+                    message.sudo().write(values)
+            else:
+                message = (
+                    self.env["mail.message"]
+                    .sudo()
+                    .with_context(
+                        tracking_disable=True,
+                        mail_create_nolog=True,
+                        mail_create_nosubscribe=True,
+                    )
+                    .create(values)
+                )
+            messages[row["id"]] = message
+            self._stamp_audit("mail.message", message, row, users)
+        for row in payload["messages"]:
+            message = messages.get(row["id"])
+            parent = messages.get(row["parent_id"])
+            if message and parent and (
+                self._written_this_run(message)
+                or not message.parent_id
+            ):
+                message.sudo().write({"parent_id": parent.id})
+
+        existing_tracking = self._traced(
+            "mail.tracking.value",
+            "mail.tracking.value",
+            [row["id"] for row in payload["tracking_values"]],
+        )
+        for row in payload["tracking_values"]:
+            message = messages.get(row["mail_message_id"])
+            field_record = self.env["ir.model.fields"].sudo().search(
+                [
+                    ("model", "=", row["field_model"]),
+                    ("name", "=", row["field_name"]),
+                ],
+                limit=1,
+            )
+            if not message or not field_record:
+                self._issue(
+                    "warning",
+                    "mail.tracking.value",
+                    row["id"],
+                    (
+                        f"Tracked field {row['field_model']}."
+                        f"{row['field_name']} is unavailable."
+                    ),
+                )
+                continue
+            values = {
+                "mail_message_id": message.id,
+                "field_id": field_record.id,
+                "old_value_integer": row["old_value_integer"],
+                "new_value_integer": row["new_value_integer"],
+                "old_value_char": row["old_value_char"],
+                "new_value_char": row["new_value_char"],
+                "old_value_text": row["old_value_text"],
+                "new_value_text": row["new_value_text"],
+                "old_value_datetime": row["old_value_datetime"],
+                "new_value_datetime": row["new_value_datetime"],
+                "old_value_float": row["old_value_float"],
+                "new_value_float": row["new_value_float"],
+                "field_info": row["field_info"],
+                **self._trace_values(
+                    "mail.tracking.value",
+                    row["id"],
+                    snapshot,
+                ),
+            }
+            tracking = existing_tracking.get(row["id"])
+            if tracking:
+                if not self._is_current_revision(tracking, snapshot):
+                    tracking.sudo().write(values)
+            else:
+                existing_tracking[row["id"]] = (
+                    self.env["mail.tracking.value"].sudo().create(values)
+                )
+        return messages
+
+    def _restore_followers_activities(
+        self,
+        payload,
+        snapshot,
+        record_maps,
+        partners,
+        users,
+        activity_types,
+    ):
+        source_xmlids = payload["xmlids"]
+        follower_subtypes = defaultdict(list)
+        for row in payload["follower_subtype_rel"]:
+            subtype = self._target_xmlid(
+                source_xmlids,
+                "mail.message.subtype",
+                row["subtype_id"],
+            )
+            if subtype:
+                follower_subtypes[row["follower_id"]].append(subtype.id)
+        existing_followers = self._traced(
+            "mail.followers",
+            "mail.followers",
+            [row["id"] for row in payload["followers"]],
+        )
+        follower_count = 0
+        follower_subtype_count = 0
+        for row in payload["followers"]:
+            target_record = record_maps.get(row["res_model"], {}).get(
+                row["res_id"],
+            )
+            partner = partners.get(row["partner_id"])
+            if not target_record or not partner:
+                self._issue(
+                    "warning",
+                    "mail.followers",
+                    row["id"],
+                    "Follower record or partner is unresolved.",
+                )
+                continue
+            follower = existing_followers.get(row["id"])
+            if not follower:
+                follower = self.env["mail.followers"].sudo().search(
+                    [
+                        ("res_model", "=", row["res_model"]),
+                        ("res_id", "=", target_record.id),
+                        ("partner_id", "=", partner.id),
+                    ],
+                    limit=1,
+                )
+            values = {
+                "res_model": row["res_model"],
+                "res_id": target_record.id,
+                "partner_id": partner.id,
+                "subtype_ids": [
+                    Command.set(follower_subtypes[row["id"]]),
+                ],
+                **self._trace_values(
+                    "mail.followers",
+                    row["id"],
+                    snapshot,
+                ),
+            }
+            if follower:
+                if not self._is_current_revision(follower, snapshot):
+                    follower.write(values)
+            else:
+                follower = self.env["mail.followers"].sudo().create(values)
+            existing_followers[row["id"]] = follower
+            follower_count += 1
+            follower_subtype_count += len(follower_subtypes[row["id"]])
+
+        activities = self._traced(
+            "mail.activity",
+            "mail.activity",
+            [row["id"] for row in payload["activities"]],
+        )
+        fallback_assignment_count = 0
+        for row in payload["activities"]:
+            target_record = record_maps.get(row["res_model"], {}).get(
+                row["res_id"],
+            )
+            user = users.get(row["user_id"])
+            if not user and target_record:
+                if row["res_model"] == "project.task":
+                    user = (
+                        target_record.user_ids[:1]
+                        or target_record.project_id.user_id
+                    )
+                elif row["res_model"] in (
+                    "project.project",
+                    "project.update",
+                ):
+                    user = target_record.user_id
+                elif row["res_model"] == "project.milestone":
+                    user = target_record.project_id.user_id
+                user = user or self.env.user
+                fallback_assignment_count += 1
+            activity_type = activity_types.get(row["activity_type_id"])
+            if not target_record or not user or not activity_type:
+                self._issue(
+                    "warning",
+                    "mail.activity",
+                    row["id"],
+                    "Activity target, type, or assigned user is unresolved.",
+                )
+                continue
+            values = {
+                "res_model_id": self.env["ir.model"]._get_id(row["res_model"]),
+                "res_id": target_record.id,
+                "activity_type_id": activity_type.id,
+                "user_id": user.id,
+                "summary": row["summary"],
+                "date_deadline": row["date_deadline"],
+                "note": row["note"],
+                "feedback": row["feedback"],
+                "automated": row["automated"],
+                **self._trace_values("mail.activity", row["id"], snapshot),
+            }
+            if not row["user_id"]:
+                values["rebuild_import_note"] = (
+                    values["rebuild_import_note"]
+                    + " Source activity had no assigned user; assigned to the "
+                    "task assignee, project manager, or restore operator in "
+                    "that order."
+                )
+            activity = activities.get(row["id"])
+            if activity:
+                if not self._is_current_revision(activity, snapshot):
+                    activity.sudo().write(values)
+            else:
+                activity = self.env["mail.activity"].sudo().create(values)
+                activities[row["id"]] = activity
+            self._stamp_audit("mail.activity", activity, row, users)
+            if not row["active"] and self._written_this_run(activity):
+                self.env.cr.execute(
+                    """
+                        UPDATE mail_activity
+                           SET active = FALSE, date_done = %s
+                         WHERE id = %s
+                    """,
+                    (row["date_done"], activity.id),
+                )
+                activity.invalidate_recordset(["active", "date_done"])
+        if fallback_assignment_count:
+            self._issue(
+                "info",
+                "mail.activity",
+                0,
+                (
+                    f"{fallback_assignment_count} source activities had no "
+                    "assigned user and were assigned using the documented "
+                    "task/project fallback rule."
+                ),
+            )
+        return follower_count, follower_subtype_count, len(activities)
+
+    def restore_from_payload(self, payload, *, filestore):
+        self.ensure_one()
+        snapshot = self.source_snapshot
+        companies, partners, users = self._restore_partners_companies_users(
+            payload,
+            snapshot,
+        )
+        project_stages, task_stages, tags, activity_types = (
+            self._restore_configuration(
+                payload,
+                snapshot,
+                companies,
+                users,
+            )
+        )
+        projects = self._restore_projects(
+            payload,
+            snapshot,
+            companies,
+            partners,
+            users,
+            project_stages,
+            task_stages,
+            tags,
+        )
+        tasks, milestones, recurrences = self._restore_tasks(
+            payload,
+            snapshot,
+            projects,
+            partners,
+            companies,
+            users,
+            task_stages,
+            tags,
+        )
+        updates = self._restore_updates(
+            payload,
+            snapshot,
+            projects,
+            users,
+        )
+        record_maps = self._record_maps(
+            projects,
+            tasks,
+            updates,
+            milestones,
+        )
+        attachments = self._restore_attachments(
+            payload,
+            snapshot,
+            record_maps,
+            filestore,
+            users,
+        )
+        messages = self._restore_messages(
+            payload,
+            snapshot,
+            record_maps,
+            partners,
+            companies,
+            users,
+            attachments,
+        )
+        (
+            follower_count,
+            follower_subtype_count,
+            activity_count,
+        ) = self._restore_followers_activities(
+            payload,
+            snapshot,
+            record_maps,
+            partners,
+            users,
+            activity_types,
+        )
+        self._reconcile_volatile_history(
+            payload,
+            projects,
+            tasks,
+            task_stages,
+        )
+        project_ids = {record.id for record in projects.values()}
+        self.env.cr.execute(
+            """
+                SELECT count(DISTINCT expense.id)
+                  FROM hr_expense expense
+                  JOIN project_project project
+                    ON project.id = ANY(%s)
+                 WHERE project.account_id IS NOT NULL
+                   AND expense.rebuild_source_model = 'hr.expense'
+                   AND expense.rebuild_source_id = ANY(%s)
+                   AND expense.analytic_distribution
+                       ? project.account_id::text
+            """,
+            (
+                list(project_ids),
+                payload["linked_expense_ids"] or [0],
+            ),
+        )
+        linked_expense_count = self.env.cr.fetchone()[0]
+        stats = {
+            "source": payload["counts"],
+            "target": {
+                "companies": len(companies),
+                "partners": len(partners),
+                "users": len(users),
+                "projects": len(projects),
+                "tasks": len(tasks),
+                "project_stages": len(project_stages),
+                "task_stages": len(task_stages),
+                "tags": len(tags),
+                "activity_types": len(activity_types),
+                "milestones": len(milestones),
+                "recurrences": len(payload["recurrences"]),
+                "updates": len(updates),
+                "project_task_stage_links": sum(
+                    bool(
+                        projects.get(row["project_id"])
+                        and task_stages.get(row["type_id"])
+                        in projects[row["project_id"]].type_ids,
+                    )
+                    for row in payload["project_task_stage_rel"]
+                ),
+                "project_tag_links": sum(
+                    bool(
+                        projects.get(row["project_id"])
+                        and tags.get(row["tag_id"])
+                        in projects[row["project_id"]].tag_ids,
+                    )
+                    for row in payload["project_tag_rel"]
+                ),
+                "project_favorite_links": sum(
+                    bool(
+                        projects.get(row["project_id"])
+                        and users.get(row["user_id"])
+                        in projects[row["project_id"]].favorite_user_ids,
+                    )
+                    for row in payload["project_favorite_rel"]
+                ),
+                "task_user_links": sum(
+                    bool(
+                        tasks.get(row["task_id"])
+                        and users.get(row["user_id"])
+                        in tasks[row["task_id"]].user_ids,
+                    )
+                    for row in payload["task_user_rel"]
+                ),
+                "task_tag_links": sum(
+                    bool(
+                        tasks.get(row["task_id"])
+                        and tags.get(row["tag_id"])
+                        in tasks[row["task_id"]].tag_ids,
+                    )
+                    for row in payload["task_tag_rel"]
+                ),
+                "task_parent_links": sum(
+                    bool(
+                        row["parent_id"]
+                        and tasks.get(row["id"])
+                        and tasks.get(row["parent_id"])
+                        == tasks[row["id"]].parent_id,
+                    )
+                    for row in payload["tasks"]
+                ),
+                "dependencies": sum(
+                    bool(
+                        tasks.get(row["task_id"])
+                        and tasks.get(row["depends_on_id"])
+                        in tasks[row["task_id"]].depend_on_ids,
+                    )
+                    for row in payload["dependencies"]
+                ),
+                "task_milestone_links": sum(
+                    bool(
+                        row["milestone_id"]
+                        and tasks.get(row["id"])
+                        and milestones.get(row["milestone_id"])
+                        == tasks[row["id"]].milestone_id,
+                    )
+                    for row in payload["tasks"]
+                ),
+                "task_recurrence_links": sum(
+                    bool(
+                        row["recurrence_id"]
+                        and tasks.get(row["id"])
+                        and recurrences.get(row["recurrence_id"])
+                        == tasks[row["id"]].recurrence_id,
+                    )
+                    for row in payload["tasks"]
+                ),
+                "project_aliases": sum(
+                    bool(
+                        row["alias_id"]
+                        and projects.get(row["id"])
+                        and projects[row["id"]].alias_id,
+                    )
+                    for row in payload["projects"]
+                ),
+                "project_alias_names": sum(
+                    bool(
+                        row["alias_name"]
+                        and projects.get(row["id"])
+                        and projects[row["id"]].alias_id.alias_name
+                        == row["alias_name"],
+                    )
+                    for row in payload["projects"]
+                ),
+                "project_analytic_links": sum(
+                    bool(
+                        row["account_id"]
+                        and projects.get(row["id"])
+                        and projects[row["id"]].account_id,
+                    )
+                    for row in payload["projects"]
+                ),
+                "linked_expenses": linked_expense_count,
+                "messages": len(messages),
+                "message_parent_links": sum(
+                    bool(
+                        row["parent_id"]
+                        and messages.get(row["id"])
+                        and messages.get(row["parent_id"])
+                        == messages[row["id"]].parent_id,
+                    )
+                    for row in payload["messages"]
+                ),
+                "message_recipient_links": sum(
+                    bool(
+                        messages.get(row["message_id"])
+                        and partners.get(row["partner_id"])
+                        in messages[row["message_id"]].partner_ids,
+                    )
+                    for row in payload["message_partner_rel"]
+                ),
+                "message_attachment_links": sum(
+                    bool(
+                        messages.get(row["message_id"])
+                        and attachments.get(row["attachment_id"])
+                        in messages[row["message_id"]].attachment_ids,
+                    )
+                    for row in payload["message_attachment_rel"]
+                ),
+                "tracking_values": self.env[
+                    "mail.tracking.value"
+                ].sudo().search_count(
+                    [
+                        (
+                            "rebuild_source_model",
+                            "=",
+                            "mail.tracking.value",
+                        ),
+                        ("rebuild_source_snapshot", "=", snapshot),
+                    ],
+                ),
+                "followers": follower_count,
+                "follower_subtype_links": follower_subtype_count,
+                "activities": activity_count,
+                "attachments": len(attachments),
+            },
+            "deliberate_exclusions": {
+                "empty_enterprise_documents_folders": payload[
+                    "empty_documents_folder_count"
+                ],
+                "enterprise_gantt_view": (
+                    "Community task form/list retain planned start and deadline; "
+                    "no proprietary Gantt client was copied."
+                ),
+                "outgoing_mail_notifications": (
+                    "Chatter recipients are retained, but historical delivery "
+                    "queues and notification statuses are not replayed."
+                ),
+                "source_project_collaborators": payload[
+                    "project_collaborator_count"
+                ],
+                "source_project_documents": payload[
+                    "project_document_count"
+                ],
+                "source_project_sales_links": payload[
+                    "project_sales_link_count"
+                ],
+            },
+        }
+        unsupported_source_links = {
+            "project collaborators": payload["project_collaborator_count"],
+            "project Documents": payload["project_document_count"],
+            "project sales links": payload["project_sales_link_count"],
+        }
+        for description, count in unsupported_source_links.items():
+            if count:
+                self._issue(
+                    "error",
+                    "usl.project.restore.run",
+                    self.id,
+                    (
+                        f"Source contains {count} {description}; this "
+                        "perimeter requires an explicit restoration mapping."
+                    ),
+                )
+        expected = payload["counts"]
+        material_keys = tuple(expected)
+        for key in material_keys:
+            if stats["target"].get(key) != expected.get(key):
+                self._issue(
+                    "error",
+                    "usl.project.restore.run",
+                    self.id,
+                    (
+                        f"{key} count differs: source {expected.get(key)}, "
+                        f"target {stats['target'].get(key)}."
+                    ),
+                )
+        issue_count = self.env["usl.project.restore.issue"].search_count(
+            [("run_id", "=", self.id)],
+        )
+        blocking_count = self.env["usl.project.restore.issue"].search_count(
+            [
+                ("run_id", "=", self.id),
+                ("severity", "=", "error"),
+                ("resolved", "=", False),
+            ],
+        )
+        warning_count = self.env["usl.project.restore.issue"].search_count(
+            [
+                ("run_id", "=", self.id),
+                ("severity", "=", "warning"),
+                ("resolved", "=", False),
+            ],
+        )
+        self.write(
+            {
+                "status": (
+                    "failed"
+                    if blocking_count
+                    else "partial"
+                    if warning_count
+                    else "passed"
+                ),
+                "finished_at": fields.Datetime.now(),
+                "project_count": len(projects),
+                "task_count": len(tasks),
+                "message_count": len(messages),
+                "attachment_count": len(attachments),
+                "issue_count": issue_count,
+                "statistics_json": stats,
+            },
+        )
+        return stats
+
+    @classmethod
+    def restore_from_source(cls, env, options):
+        payload = ProjectSourceReader(options).read()
+        run = env["usl.project.restore.run"].create(
+            {
+                "source_database": options["database"],
+                "source_snapshot": options["snapshot"],
+                "target_database": env.cr.dbname,
+            },
+        )
+        stats = run.restore_from_payload(
+            payload,
+            filestore=options["filestore"],
+        )
+        return run, stats
+
+
+class UslProjectRestoreIssue(models.Model):
+    _name = "usl.project.restore.issue"
+    _description = "USL Project Restoration Issue"
+    _order = "severity, source_model, source_id, id"
+
+    run_id = fields.Many2one(
+        "usl.project.restore.run",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    severity = fields.Selection(
+        [("error", "Error"), ("warning", "Warning"), ("info", "Information")],
+        required=True,
+        default="warning",
+        index=True,
+    )
+    source_model = fields.Char(required=True, index=True)
+    source_id = fields.Integer(index=True)
+    description = fields.Text(required=True)
+    resolved = fields.Boolean(default=False, index=True)
+    resolution = fields.Text()
+
+
+class ProjectSourceReader:
+    def __init__(self, options):
+        self.options = options
+
+    def _connect(self):
+        return psycopg2.connect(
+            host=self.options["host"],
+            port=self.options.get("port", 5432),
+            user=self.options["user"],
+            password=self.options["password"],
+            dbname=self.options["database"],
+            connect_timeout=10,
+            options="-c default_transaction_read_only=on",
+        )
+
+    @staticmethod
+    def _rows(cursor, query, params=None):
+        cursor.execute(query, params or ())
+        return [dict(row) for row in cursor.fetchall()]
+
+    def read(self):
+        with self._connect() as connection:
+            with connection.cursor(
+                cursor_factory=psycopg2.extras.RealDictCursor,
+            ) as cursor:
+                payload = self._read_core(cursor)
+                payload.update(self._read_relations(cursor))
+                payload.update(self._read_mail(cursor))
+                payload.update(self._read_identities(cursor))
+                xmlids = self._rows(
+                    cursor,
+                    """
+                        SELECT model, res_id, module || '.' || name AS xmlid
+                          FROM ir_model_data
+                         WHERE model IN (
+                            'mail.message.subtype',
+                            'mail.activity.type',
+                            'res.groups'
+                         )
+                    """,
+                )
+                payload["xmlids"] = {
+                    (row["model"], row["res_id"]): row["xmlid"]
+                    for row in xmlids
+                }
+                cursor.execute(
+                    """
+                        WITH RECURSIVE roots AS (
+                            SELECT documents_folder_id AS id
+                              FROM project_project
+                             WHERE documents_folder_id IS NOT NULL
+                        ),
+                        descendants AS (
+                            SELECT document.id, document.folder_id, 0 AS depth
+                              FROM documents_document document
+                              JOIN roots ON roots.id = document.id
+                            UNION ALL
+                            SELECT child.id, child.folder_id,
+                                   parent.depth + 1
+                              FROM documents_document child
+                              JOIN descendants parent
+                                ON child.folder_id = parent.id
+                        )
+                        SELECT count(*)
+                          FROM roots
+                         WHERE NOT EXISTS (
+                               SELECT 1
+                                 FROM descendants
+                                WHERE descendants.depth > 0
+                                  AND descendants.folder_id = roots.id
+                         )
+                    """,
+                )
+                payload["empty_documents_folder_count"] = cursor.fetchone()[
+                    "count"
+                ]
+                cursor.execute(
+                    """
+                        WITH RECURSIVE roots AS (
+                            SELECT documents_folder_id AS id
+                              FROM project_project
+                             WHERE documents_folder_id IS NOT NULL
+                        ),
+                        descendants AS (
+                            SELECT document.id, document.folder_id, 0 AS depth
+                              FROM documents_document document
+                              JOIN roots ON roots.id = document.id
+                            UNION ALL
+                            SELECT child.id, child.folder_id,
+                                   parent.depth + 1
+                              FROM documents_document child
+                              JOIN descendants parent
+                                ON child.folder_id = parent.id
+                        )
+                        SELECT count(DISTINCT document_id)
+                          FROM (
+                                SELECT id AS document_id
+                                  FROM descendants
+                                 WHERE depth > 0
+                                UNION
+                                SELECT id
+                                  FROM documents_document
+                                 WHERE res_model IN (
+                                       'project.project', 'project.task'
+                                 )
+                          ) project_document
+                    """,
+                )
+                payload["project_document_count"] = cursor.fetchone()["count"]
+                cursor.execute("SELECT count(*) FROM project_collaborator")
+                payload["project_collaborator_count"] = cursor.fetchone()[
+                    "count"
+                ]
+                cursor.execute(
+                    """
+                        SELECT (
+                            SELECT count(*)
+                              FROM project_project
+                             WHERE sale_line_id IS NOT NULL
+                                OR reinvoiced_sale_order_id IS NOT NULL
+                        ) + (
+                            SELECT count(*)
+                              FROM project_task
+                             WHERE sale_order_id IS NOT NULL
+                                OR sale_line_id IS NOT NULL
+                        ) AS count
+                    """,
+                )
+                payload["project_sales_link_count"] = cursor.fetchone()[
+                    "count"
+                ]
+                payload["linked_expense_ids"] = [
+                    row["id"]
+                    for row in self._rows(
+                        cursor,
+                        """
+                            WITH project_accounts AS (
+                                SELECT account_id::text AS id
+                                  FROM project_project
+                                 WHERE account_id IS NOT NULL
+                            )
+                            SELECT DISTINCT expense.id
+                              FROM hr_expense expense
+                              JOIN project_accounts account
+                                ON expense.analytic_distribution ? account.id
+                             ORDER BY expense.id
+                        """,
+                    )
+                ]
+        list_count_keys = {
+            "companies": "companies",
+            "partners": "partners",
+            "users": "users",
+            "projects": "projects",
+            "tasks": "tasks",
+            "project_stages": "project_stages",
+            "task_stages": "task_stages",
+            "tags": "tags",
+            "activity_types": "activity_types",
+            "milestones": "milestones",
+            "recurrences": "recurrences",
+            "updates": "updates",
+            "project_task_stage_links": "project_task_stage_rel",
+            "project_tag_links": "project_tag_rel",
+            "project_favorite_links": "project_favorite_rel",
+            "task_user_links": "task_user_rel",
+            "task_tag_links": "task_tag_rel",
+            "dependencies": "dependencies",
+            "messages": "messages",
+            "message_recipient_links": "message_partner_rel",
+            "message_attachment_links": "message_attachment_rel",
+            "tracking_values": "tracking_values",
+            "followers": "followers",
+            "follower_subtype_links": "follower_subtype_rel",
+            "activities": "activities",
+            "attachments": "attachments",
+        }
+        payload["counts"] = {
+            name: len(payload[key]) for name, key in list_count_keys.items()
+        }
+        payload["counts"].update(
+            {
+                "task_parent_links": sum(
+                    bool(row["parent_id"])
+                    for row in payload["tasks"]
+                ),
+                "task_milestone_links": sum(
+                    bool(row["milestone_id"])
+                    for row in payload["tasks"]
+                ),
+                "task_recurrence_links": sum(
+                    bool(row["recurrence_id"])
+                    for row in payload["tasks"]
+                ),
+                "project_aliases": sum(
+                    bool(row["alias_id"])
+                    for row in payload["projects"]
+                ),
+                "project_alias_names": sum(
+                    bool(row["alias_name"])
+                    for row in payload["projects"]
+                ),
+                "project_analytic_links": sum(
+                    bool(row["account_id"])
+                    for row in payload["projects"]
+                ),
+                "linked_expenses": len(payload["linked_expense_ids"]),
+                "message_parent_links": sum(
+                    bool(row["parent_id"])
+                    for row in payload["messages"]
+                ),
+            },
+        )
+        return payload
+
+    def _read_core(self, cursor):
+        return {
+            "project_stages": self._rows(
+                cursor,
+                """
+                    SELECT id, sequence, company_id, color, name, active, fold,
+                           create_uid, write_uid, create_date, write_date,
+                           rotting_threshold_days
+                      FROM project_project_stage
+                     ORDER BY id
+                """,
+            ),
+            "task_stages": self._rows(
+                cursor,
+                """
+                    SELECT id, sequence, color, user_id, name, active, fold,
+                           auto_validation_state, create_uid, write_uid,
+                           create_date, write_date, rotting_threshold_days
+                      FROM project_task_type
+                     ORDER BY id
+                """,
+            ),
+            "tags": self._rows(
+                cursor,
+                """
+                    SELECT id, color, name, create_uid, write_uid,
+                           create_date, write_date
+                      FROM project_tags
+                     ORDER BY id
+                """,
+            ),
+            "projects": self._rows(
+                cursor,
+                """
+                    SELECT id, account_id, sequence, partner_id, company_id,
+                           color, user_id, stage_id, last_update_id,
+                           access_token, privacy_visibility, last_update_status,
+                           date_start, date, name, label_tasks,
+                           task_properties_definition, description, active,
+                           allow_task_dependencies, allow_milestones,
+                           allow_recurring_tasks, is_template,
+                           date_last_stage_update, create_uid, write_uid,
+                           create_date, write_date, documents_folder_id,
+                           alias_id,
+                           (
+                               SELECT alias_name
+                                 FROM mail_alias
+                                WHERE id = project_project.alias_id
+                           ) AS alias_name,
+                           (
+                               SELECT alias_contact
+                                 FROM mail_alias
+                                WHERE id = project_project.alias_id
+                           ) AS alias_contact
+                      FROM project_project
+                     ORDER BY id
+                """,
+            ),
+            "recurrences": self._rows(
+                cursor,
+                """
+                    SELECT id, repeat_interval, repeat_unit, repeat_type,
+                           repeat_until, create_uid, write_uid,
+                           create_date, write_date
+                      FROM project_task_recurrence
+                     ORDER BY id
+                """,
+            ),
+            "milestones": self._rows(
+                cursor,
+                """
+                    SELECT id, sequence, project_id, name, deadline,
+                           reached_date, is_reached, create_uid, write_uid,
+                           create_date, write_date
+                      FROM project_milestone
+                     ORDER BY id
+                """,
+            ),
+            "tasks": self._rows(
+                cursor,
+                """
+                    SELECT id, sequence, stage_id, project_id, partner_id,
+                           company_id, color, displayed_image_id, parent_id,
+                           milestone_id, recurrence_id, access_token, name,
+                           priority, state, email_from, html_field_history,
+                           task_properties, description, active,
+                           recurring_task, is_template, date_end, date_assign,
+                           date_deadline, date_last_stage_update,
+                           allocated_hours, planned_date_begin,
+                           create_uid, write_uid, create_date, write_date
+                      FROM project_task
+                     ORDER BY id
+                """,
+            ),
+            "updates": self._rows(
+                cursor,
+                """
+                    SELECT id, progress, user_id, project_id, task_count,
+                           closed_task_count, name, status, date, description,
+                           create_uid, write_uid, create_date, write_date
+                      FROM project_update
+                     ORDER BY id
+                """,
+            ),
+        }
+
+    def _read_relations(self, cursor):
+        return {
+            "project_task_stage_rel": self._rows(
+                cursor,
+                """
+                    SELECT project_id, type_id
+                      FROM project_task_type_rel
+                     ORDER BY project_id, type_id
+                """,
+            ),
+            "project_tag_rel": self._rows(
+                cursor,
+                """
+                    SELECT project_project_id AS project_id,
+                           project_tags_id AS tag_id
+                      FROM project_project_project_tags_rel
+                     ORDER BY project_project_id, project_tags_id
+                """,
+            ),
+            "project_favorite_rel": self._rows(
+                cursor,
+                """
+                    SELECT project_id, user_id
+                      FROM project_favorite_user_rel
+                     ORDER BY project_id, user_id
+                """,
+            ),
+            "task_user_rel": self._rows(
+                cursor,
+                """
+                    SELECT task_id, user_id
+                      FROM project_task_user_rel
+                     ORDER BY task_id, user_id
+                """,
+            ),
+            "task_tag_rel": self._rows(
+                cursor,
+                """
+                    SELECT project_task_id AS task_id,
+                           project_tags_id AS tag_id
+                      FROM project_tags_project_task_rel
+                     ORDER BY project_task_id, project_tags_id
+                """,
+            ),
+            "dependencies": self._rows(
+                cursor,
+                """
+                    SELECT task_id, depends_on_id
+                      FROM task_dependencies_rel
+                     ORDER BY task_id, depends_on_id
+                """,
+            ),
+        }
+
+    def _read_mail(self, cursor):
+        messages = self._rows(
+            cursor,
+            """
+                SELECT id, parent_id, res_id, record_company_id, subtype_id,
+                       mail_activity_type_id, author_id, create_uid, write_uid,
+                       subject, model, message_type, email_from, message_id,
+                       reply_to, body, is_internal, date, create_date, write_date
+                  FROM mail_message
+                 WHERE model = ANY(%s)
+                 ORDER BY id
+            """,
+            (list(SOURCE_MODELS),),
+        )
+        message_ids = [row["id"] for row in messages] or [0]
+        attachments = self._rows(
+            cursor,
+            """
+                SELECT DISTINCT attachment.id, attachment.res_id,
+                       attachment.name, attachment.res_model, attachment.type,
+                       attachment.url, attachment.store_fname,
+                       attachment.checksum, attachment.mimetype,
+                       attachment.description, attachment.public,
+                       attachment.create_uid, attachment.write_uid,
+                       attachment.create_date, attachment.write_date,
+                       attachment.db_datas
+                  FROM ir_attachment attachment
+                  LEFT JOIN message_attachment_rel relation
+                    ON relation.attachment_id = attachment.id
+                 WHERE attachment.res_model = ANY(%s)
+                    OR relation.message_id = ANY(%s)
+                 ORDER BY attachment.id
+            """,
+            (list(SOURCE_MODELS), message_ids),
+        )
+        return {
+            "messages": messages,
+            "message_attachment_rel": self._rows(
+                cursor,
+                """
+                    SELECT message_id, attachment_id
+                      FROM message_attachment_rel
+                     WHERE message_id = ANY(%s)
+                     ORDER BY message_id, attachment_id
+                """,
+                (message_ids,),
+            ),
+            "message_partner_rel": self._rows(
+                cursor,
+                """
+                    SELECT mail_message_id AS message_id,
+                           res_partner_id AS partner_id
+                      FROM mail_message_res_partner_rel
+                     WHERE mail_message_id = ANY(%s)
+                     ORDER BY mail_message_id, res_partner_id
+                """,
+                (message_ids,),
+            ),
+            "tracking_values": self._rows(
+                cursor,
+                """
+                    SELECT value.*, field.model AS field_model,
+                           field.name AS field_name
+                      FROM mail_tracking_value value
+                      JOIN ir_model_fields field ON field.id = value.field_id
+                     WHERE value.mail_message_id = ANY(%s)
+                     ORDER BY value.id
+                """,
+                (message_ids,),
+            ),
+            "attachments": attachments,
+            "followers": self._rows(
+                cursor,
+                """
+                    SELECT id, res_id, partner_id, res_model
+                      FROM mail_followers
+                     WHERE res_model = ANY(%s)
+                     ORDER BY id
+                """,
+                (list(SOURCE_MODELS),),
+            ),
+            "follower_subtype_rel": self._rows(
+                cursor,
+                """
+                    SELECT relation.mail_followers_id AS follower_id,
+                           relation.mail_message_subtype_id AS subtype_id
+                      FROM mail_followers_mail_message_subtype_rel relation
+                      JOIN mail_followers follower
+                        ON follower.id = relation.mail_followers_id
+                     WHERE follower.res_model = ANY(%s)
+                     ORDER BY relation.mail_followers_id,
+                              relation.mail_message_subtype_id
+                """,
+                (list(SOURCE_MODELS),),
+            ),
+            "activities": self._rows(
+                cursor,
+                """
+                    SELECT id, res_id, activity_type_id, user_id, res_model,
+                           summary, date_deadline, date_done, note, feedback,
+                           automated, active, create_uid, write_uid,
+                           create_date, write_date
+                      FROM mail_activity
+                     WHERE res_model = ANY(%s)
+                     ORDER BY id
+                """,
+                (list(SOURCE_MODELS),),
+            ),
+            "activity_types": self._rows(
+                cursor,
+                """
+                    SELECT id, name, active, category, summary, icon,
+                           decoration_type, delay_count, delay_unit, delay_from
+                      FROM mail_activity_type
+                     WHERE id IN (
+                        SELECT DISTINCT activity_type_id
+                          FROM mail_activity
+                         WHERE res_model = ANY(%s)
+                     )
+                     ORDER BY id
+                """,
+                (list(SOURCE_MODELS),),
+            ),
+        }
+
+    def _read_identities(self, cursor):
+        partners = self._rows(
+            cursor,
+            """
+                WITH referenced AS (
+                    SELECT partner_id AS id
+                      FROM project_project
+                     WHERE partner_id IS NOT NULL
+                    UNION
+                    SELECT partner_id FROM project_task
+                     WHERE partner_id IS NOT NULL
+                    UNION
+                    SELECT author_id FROM mail_message
+                     WHERE model = ANY(%s) AND author_id IS NOT NULL
+                    UNION
+                    SELECT recipient.res_partner_id
+                      FROM mail_message_res_partner_rel recipient
+                      JOIN mail_message message
+                        ON message.id = recipient.mail_message_id
+                     WHERE message.model = ANY(%s)
+                    UNION
+                    SELECT partner_id FROM mail_followers
+                     WHERE res_model = ANY(%s)
+                    UNION
+                    SELECT partner_id FROM res_users
+                     WHERE id IN (
+                        SELECT user_id FROM project_task_user_rel
+                        UNION SELECT user_id FROM project_project
+                              WHERE user_id IS NOT NULL
+                        UNION SELECT user_id FROM project_update
+                              WHERE user_id IS NOT NULL
+                        UNION SELECT user_id FROM mail_activity
+                              WHERE res_model = ANY(%s)
+                     )
+                )
+                SELECT partner.id, partner.name, partner.email,
+                       partner.active, partner.is_company, partner.company_id
+                  FROM res_partner partner
+                  JOIN referenced ON referenced.id = partner.id
+                 ORDER BY partner.id
+            """,
+            (
+                list(SOURCE_MODELS),
+                list(SOURCE_MODELS),
+                list(SOURCE_MODELS),
+                list(SOURCE_MODELS),
+            ),
+        )
+        users = self._rows(
+            cursor,
+            """
+                WITH referenced AS (
+                    SELECT user_id AS id FROM project_task_user_rel
+                    UNION SELECT user_id FROM project_project
+                          WHERE user_id IS NOT NULL
+                    UNION SELECT user_id FROM project_update
+                          WHERE user_id IS NOT NULL
+                    UNION SELECT user_id FROM mail_activity
+                          WHERE res_model = ANY(%s) AND user_id IS NOT NULL
+                )
+                SELECT users.id, users.login, users.active, users.share,
+                       users.partner_id,
+                       COALESCE(
+                           array_agg(DISTINCT company_rel.cid)
+                               FILTER (WHERE company_rel.cid IS NOT NULL),
+                           ARRAY[]::integer[]
+                       ) AS company_ids,
+                       COALESCE(
+                           array_agg(DISTINCT data.module || '.' || data.name)
+                               FILTER (WHERE data.id IS NOT NULL),
+                           ARRAY[]::text[]
+                       ) AS project_group_xmlids
+                  FROM res_users users
+                  JOIN referenced ON referenced.id = users.id
+             LEFT JOIN res_company_users_rel company_rel
+                    ON company_rel.user_id = users.id
+             LEFT JOIN res_groups_users_rel group_rel
+                    ON group_rel.uid = users.id
+             LEFT JOIN ir_model_data data
+                    ON data.model = 'res.groups'
+                   AND data.res_id = group_rel.gid
+                   AND data.module = 'project'
+              GROUP BY users.id
+              ORDER BY users.id
+            """,
+            (list(SOURCE_MODELS),),
+        )
+        company_ids = {
+            row["company_id"]
+            for row in partners
+            if row["company_id"]
+        }
+        for user in users:
+            company_ids.update(user["company_ids"])
+        cursor.execute(
+            """
+                SELECT DISTINCT company_id
+                  FROM project_project
+                 WHERE company_id IS NOT NULL
+            """,
+        )
+        company_ids.update(row["company_id"] for row in cursor.fetchall())
+        companies = (
+            self._rows(
+                cursor,
+                """
+                    SELECT id, name
+                      FROM res_company
+                     WHERE id = ANY(%s)
+                     ORDER BY id
+                """,
+                (list(company_ids),),
+            )
+            if company_ids
+            else []
+        )
+        return {"partners": partners, "users": users, "companies": companies}
