@@ -59,8 +59,12 @@ print_url() {
 
 deploy() {
   local module="${1:-$DEV_MODULE}"
+  local update_modules="$module"
+  if [[ "$module" == "rebuild_account_migration" ]]; then
+    update_modules="usl_accounting,rebuild_account_migration"
+  fi
   if is_canonical_target; then
-    "$ROOT/scripts/pocket-id-dev" configure-odoo "$module"
+    "$ROOT/scripts/pocket-id-dev" configure-odoo "$update_modules"
     return
   fi
   "${COMPOSE[@]}" up -d --wait db
@@ -70,7 +74,7 @@ deploy() {
     init-db odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" \
-    --update="$module" \
+    --update="$update_modules" \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn
@@ -161,6 +165,28 @@ configure_pocket_id() {
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
   print_url
   return "$status"
+}
+
+bootstrap_immediate_settlement_qa() {
+  local status=0
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_IMMEDIATE_SETTLEMENT_QA_BOOTSTRAP=1 \
+    -e ODOO_IMMEDIATE_SETTLEMENT_QA_DATABASE="$DEV_DB" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < \
+    "$ROOT/scripts/odoo/immediate_settlement_qa_bootstrap.py" \
+    || status=$?
+  restore_development_runtime
+  if ((status)); then
+    return "$status"
+  fi
+  printf '\nThree-Action Foreign-Currency Settlement QA is ready.\n'
+  printf 'Accountant: qa.settlement / qa-settlement\n'
+  printf 'Read-only: qa.viewer / qa-viewer\n'
 }
 
 cleanup_test_database() {
@@ -309,6 +335,9 @@ case "${1:-help}" in
   configure-pocket-id)
     configure_pocket_id
     ;;
+  bootstrap-immediate-settlement-qa)
+    bootstrap_immediate_settlement_qa
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -350,6 +379,8 @@ Commands:
                 Prepare safe e-invoicing QA data and local test accounts
   configure-pocket-id
                 Dry-run or apply Pocket ID environment and named-user policy
+  bootstrap-immediate-settlement-qa
+                Prepare three-action foreign-currency settlement QA cases
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

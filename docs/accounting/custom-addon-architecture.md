@@ -83,6 +83,7 @@ identifiers. It is explicitly rejected for this increment.
 | --- | --- | --- | --- |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
+| Foreign-currency settlement definitions, views and payment-widget assets | `usl_accounting` | runtime foundation over native/OCA | exact/native-FX, payment-rate, reversal, ACL and browser tests |
 | Company-paid expense bank matching | `usl_accounting` | runtime foundation over native expenses and OCA reconciliation | ranked-candidate, ACL, native lifecycle, rollback and reconciliation tests |
 | Reconciliation-model intelligence | compatibility module for this stage | source-trace dependency, left unchanged | rule behavior and replay tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
@@ -114,6 +115,10 @@ menus.
   change as part of source extraction.
 - Existing XML/data files stay in `rebuild_account_migration` until a separate
   rehearsed ownership migration proves install, upgrade and uninstall safety.
+- New runtime records and assets that have never shipped under a compatibility
+  XML ID belong directly to their product module. Immediate-settlement models,
+  views, security, payment-widget assets and tests therefore belong to
+  `usl_accounting`; no ownership transfer is required.
 - Source parity and target environment policy are separate. Odoo Online has no
   Pocket ID state; canonical `odoo_dev` receives SSO only after imported
   Accounting and Projects data pass their controls and temporary migration
