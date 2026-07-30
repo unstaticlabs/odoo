@@ -6,7 +6,7 @@ cd "$ROOT"
 
 usage() {
   printf '%s\n' \
-    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|up|update|bootstrap|status|logs|stop|test|test-js> [args]" \
+    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|up|update|bootstrap|status|logs|stop|test|test-accounting|test-js> [args]" \
     "" \
     "QA is fixed to project codex-paperless-docs, database odoo_usl_documents_test," \
     "Odoo 127.0.0.1:18080, and Paperless 127.0.0.1:8010." >&2
@@ -71,10 +71,19 @@ SERVICES=(
   paperless-webserver
   odoo
 )
+UPDATE_MODULES="usl_documents,usl_documents_accounting"
+[[ "$UPDATE_MODULES" =~ ^[A-Za-z0-9_,]+$ ]] || {
+  printf 'Refusing unsafe Documents module update list: %s\n' "$UPDATE_MODULES" >&2
+  exit 2
+}
 
 validate_config() {
   local config trash_delay
   config="$("${COMPOSE[@]}" config)"
+  if [[ "$ENVIRONMENT" = "preprod" ]] && grep -Fq "CHANGE_ME" "$ENV_FILE"; then
+    printf 'Pre-production env still contains CHANGE_ME placeholders.\n' >&2
+    return 1
+  fi
   grep -Fq "ODOO_DB_FILTER: ^${DATABASE}\$" <<<"$config" || {
     printf 'Rendered Odoo database filter does not target %s.\n' "$DATABASE" >&2
     return 1
@@ -104,10 +113,6 @@ validate_config() {
   }
   if [[ "$ENVIRONMENT" = "qa" && "$trash_delay" != "36500" ]]; then
     printf 'QA Paperless Trash safety delay must remain exactly 36500 days.\n' >&2
-    return 1
-  fi
-  if [[ "$ENVIRONMENT" = "preprod" ]] && grep -Fq "CHANGE_ME" "$ENV_FILE"; then
-    printf 'Pre-production env still contains CHANGE_ME placeholders.\n' >&2
     return 1
   fi
   if [[ "$ENVIRONMENT" = "preprod" ]] \
@@ -153,7 +158,7 @@ case "$COMMAND" in
       -e ODOO_INIT_DB="$DATABASE" init-db odoo \
       --config=/etc/odoo/odoo.conf \
       --database="$DATABASE" \
-      --update=usl_documents \
+      --update="$UPDATE_MODULES" \
       --without-demo=true \
       --stop-after-init \
       --log-level=warn
@@ -289,9 +294,17 @@ print(
     validate_config
     "${COMPOSE[@]}" stop "${SERVICES[@]}"
     ;;
-  test)
+  test|test-accounting)
     validate_config
-    TEST_DATABASE="${1:-odoo_test_usl_documents}"
+    if [[ "$COMMAND" = "test-accounting" ]]; then
+      TEST_DATABASE="${1:-odoo_test_usl_documents_accounting}"
+      TEST_INIT_MODULE="usl_documents_accounting"
+      TEST_TAGS="usl_documents_accounting"
+    else
+      TEST_DATABASE="${1:-odoo_test_usl_documents}"
+      TEST_INIT_MODULE="usl_documents"
+      TEST_TAGS="usl_documents"
+    fi
     case "$TEST_DATABASE" in
       ""|"$DATABASE"|odoo_dev|*[!A-Za-z0-9_]*)
         printf 'Refusing unsafe Documents test database: %s\n' "$TEST_DATABASE" >&2
@@ -319,10 +332,10 @@ print(
       -e ODOO_INIT_DB="$TEST_DATABASE" init-db odoo \
       --config=/etc/odoo/odoo.conf \
       --database="$TEST_DATABASE" \
-      --init=usl_documents \
+      --init="$TEST_INIT_MODULE" \
       --without-demo=true \
       --test-enable \
-      --test-tags=usl_documents \
+      --test-tags="$TEST_TAGS" \
       --stop-after-init \
       --log-level=test
     trap - EXIT

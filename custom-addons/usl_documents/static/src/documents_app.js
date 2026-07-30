@@ -3,13 +3,17 @@
 import {
     Component,
     onMounted,
+    onWillDestroy,
     onWillStart,
     onWillUnmount,
+    onWillUpdateProps,
     useRef,
     useSubEnv,
     useState,
 } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
+import { router } from "@web/core/browser/router";
+import { loadPDFJSAssets } from "@web/core/utils/pdfjs";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { Dialog } from "@web/core/dialog/dialog";
 import { registry } from "@web/core/registry";
@@ -40,6 +44,164 @@ const FILTER_DEFAULTS = {
     customFieldId: "",
     customFieldValue: "",
 };
+
+for (const key of [
+    "uslDocumentsWorkspace",
+    "uslDocumentId",
+    "uslVersionId",
+    "uslDocumentsRecordContext",
+    "uslDocumentsReturnRecord",
+]) {
+    router.hideKeyFromUrl(key);
+}
+
+export class DocumentPreview extends Component {
+    static template = "usl_documents.DocumentPreview";
+    static props = {
+        url: String,
+        versionId: { type: String, optional: true },
+    };
+
+    setup() {
+        this.canvas = useRef("canvas");
+        this.loadToken = 0;
+        this.imageUrl = null;
+        this.pdf = null;
+        this.state = useState({
+            loading: true,
+            kind: "",
+            text: "",
+            error: "",
+            page: 1,
+            pageCount: 0,
+        });
+        onMounted(() => this.load(this.props));
+        onWillUpdateProps((nextProps) => {
+            if (nextProps.url !== this.props.url) {
+                this.load(nextProps);
+            }
+        });
+        onWillDestroy(() => this.cleanup());
+    }
+
+    cleanup() {
+        this.loadToken += 1;
+        if (this.imageUrl) {
+            URL.revokeObjectURL(this.imageUrl);
+            this.imageUrl = null;
+        }
+        this.pdf?.destroy();
+        this.pdf = null;
+    }
+
+    async load(props) {
+        this.cleanup();
+        const token = this.loadToken;
+        Object.assign(this.state, {
+            loading: true,
+            kind: "",
+            text: "",
+            error: "",
+            page: 1,
+            pageCount: 0,
+        });
+        try {
+            const response = await browser.fetch(props.url, {
+                credentials: "same-origin",
+                cache: "no-store",
+            });
+            if (!response.ok) {
+                throw new Error(`Preview request failed (${response.status}).`);
+            }
+            const contentType = (
+                response.headers.get("Content-Type") || ""
+            ).toLowerCase();
+            if (contentType.includes("application/pdf")) {
+                await loadPDFJSAssets();
+                const pdf = await globalThis.pdfjsLib.getDocument({
+                    data: await response.arrayBuffer(),
+                }).promise;
+                if (token !== this.loadToken) {
+                    pdf.destroy();
+                    return;
+                }
+                this.pdf = pdf;
+                this.state.kind = "pdf";
+                this.state.pageCount = pdf.numPages;
+                browser.requestAnimationFrame(() => this.renderPdfPage());
+            } else if (contentType.startsWith("image/")) {
+                const imageUrl = URL.createObjectURL(await response.blob());
+                if (token !== this.loadToken) {
+                    URL.revokeObjectURL(imageUrl);
+                    return;
+                }
+                this.imageUrl = imageUrl;
+                this.state.kind = "image";
+            } else if (
+                contentType.startsWith("text/") ||
+                contentType.includes("html")
+            ) {
+                const source = await response.text();
+                if (token !== this.loadToken) {
+                    return;
+                }
+                const parsed = new DOMParser().parseFromString(source, "text/html");
+                this.state.text = parsed.body?.textContent || source;
+                this.state.kind = "text";
+            } else {
+                throw new Error("This file format does not provide an inline preview.");
+            }
+        } catch (error) {
+            if (token === this.loadToken) {
+                this.state.error =
+                    error.message || "The preview could not be displayed.";
+            }
+        } finally {
+            if (token === this.loadToken) {
+                this.state.loading = false;
+            }
+        }
+    }
+
+    async renderPdfPage() {
+        const canvas = this.canvas.el;
+        if (!canvas || !this.pdf) {
+            return;
+        }
+        const token = this.loadToken;
+        const page = await this.pdf.getPage(this.state.page);
+        if (token !== this.loadToken) {
+            return;
+        }
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max(
+            240,
+            canvas.parentElement?.clientWidth || 680
+        );
+        const scale = Math.min(2, availableWidth / baseViewport.width);
+        const viewport = page.getViewport({ scale });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({
+            canvasContext: canvas.getContext("2d"),
+            viewport,
+        }).promise;
+    }
+
+    async previousPage() {
+        if (this.state.page > 1) {
+            this.state.page -= 1;
+            await this.renderPdfPage();
+        }
+    }
+
+    async nextPage() {
+        if (this.state.page < this.state.pageCount) {
+            this.state.page += 1;
+            await this.renderPdfPage();
+        }
+    }
+}
 
 export class OpenDocumentsField extends Component {
     static template = "usl_documents.OpenDocumentsField";
@@ -98,7 +260,7 @@ export class PermanentDeleteDialog extends Component {
 
 export class DocumentsWorkspaceView extends Component {
     static template = "usl_documents.DocumentsWorkspaceView";
-    static components = { SearchBar };
+    static components = { DocumentPreview, SearchBar };
     static props = {
         ...standardActionServiceProps,
         context: { type: Object, optional: true },
@@ -680,19 +842,24 @@ export class DocumentsWorkspaceView extends Component {
             for (const [key, value] of nativeSearch.entries()) {
                 url.searchParams.set(key, value);
             }
-            browser.history[`${mode}State`](
-                {
-                    ...(browser.history.state || {}),
-                    skipRouteChange: true,
-                    uslDocumentsWorkspace: true,
-                    uslDocumentId: documentId || null,
-                    uslVersionId: versionId || null,
-                    uslDocumentsRecordContext: this.recordContextKey,
-                    uslDocumentsReturnRecord: null,
-                },
-                "",
-                url
-            );
+            const nextState = {
+                ...router.urlToState(url),
+                usl_document: documentId || undefined,
+                usl_version: versionId || undefined,
+                domain: url.searchParams.get("domain") || undefined,
+                groupBy: url.searchParams.get("groupBy") || undefined,
+                orderBy: url.searchParams.get("orderBy") || undefined,
+                uslDocumentsWorkspace: true,
+                uslDocumentId: documentId || null,
+                uslVersionId: versionId || null,
+                uslDocumentsRecordContext: this.recordContextKey,
+                uslDocumentsReturnRecord: null,
+            };
+            if (mode === "push") {
+                router.pushState(nextState, { sync: true });
+            } else {
+                router.replaceState(nextState, { sync: true });
+            }
         } catch {
             // Session storage remains the fallback for older embedded browsers.
         }
@@ -709,16 +876,29 @@ export class DocumentsWorkspaceView extends Component {
     ensureRecordReturnHistory() {
         if (
             !this.recordContext ||
-            browser.history.state?.uslDocumentsRecordContext === this.recordContextKey
+            (browser.history.state?.uslDocumentsRecordContext ||
+                browser.history.state?.nextState?.uslDocumentsRecordContext) ===
+                this.recordContextKey
         ) {
             return;
         }
         try {
             const url = new URL(browser.location.href);
             const baseState = { ...(browser.history.state || {}) };
+            const baseRouteState = {
+                ...(baseState.nextState || router.urlToState(url)),
+            };
             browser.history.replaceState(
                 {
                     ...baseState,
+                    nextState: {
+                        ...baseRouteState,
+                        uslDocumentsWorkspace: false,
+                        uslDocumentsReturnRecord: {
+                            resModel: this.recordContext.resModel,
+                            resId: this.recordContext.resId,
+                        },
+                    },
                     skipRouteChange: true,
                     uslDocumentsWorkspace: false,
                     uslDocumentsReturnRecord: {
@@ -732,6 +912,15 @@ export class DocumentsWorkspaceView extends Component {
             browser.history.pushState(
                 {
                     ...baseState,
+                    nextState: {
+                        ...baseRouteState,
+                        uslDocumentsWorkspace: true,
+                        uslDocumentId: this.state.selected?.id || null,
+                        uslVersionId:
+                            this.state.selected?.selected_version_id || null,
+                        uslDocumentsRecordContext: this.recordContextKey,
+                        uslDocumentsReturnRecord: null,
+                    },
                     skipRouteChange: true,
                     uslDocumentsWorkspace: true,
                     uslDocumentId: this.state.selected?.id || null,
@@ -819,6 +1008,7 @@ export class DocumentsWorkspaceView extends Component {
             Number(
                 historyState.uslDocumentId ||
                     routedState.uslDocumentId ||
+                    routedState.usl_document ||
                     urlState.documentId
             )
         );
@@ -865,19 +1055,28 @@ export class DocumentsWorkspaceView extends Component {
             ? historyState.uslDocumentId
             : hasOwn(routedState, "uslDocumentId")
               ? routedState.uslDocumentId
+              : hasOwn(routedState, "usl_document")
+                ? routedState.usl_document
               : urlState.documentId;
         const rawVersionId = hasOwn(historyState, "uslVersionId")
             ? historyState.uslVersionId
             : hasOwn(routedState, "uslVersionId")
               ? routedState.uslVersionId
+              : hasOwn(routedState, "usl_version")
+                ? routedState.usl_version
               : urlState.versionId;
         const documentId = Number(rawDocumentId) || null;
         const versionId = rawVersionId || null;
-        if (this.closingDetail && documentId) {
+        const isDuplicateOpenEntry =
+            documentId &&
+            documentId === this.state.selected?.id &&
+            (!versionId ||
+                String(versionId) ===
+                    String(this.state.selected?.selected_version_id || ""));
+        if ((this.closingDetail || isDuplicateOpenEntry) && documentId) {
             // Odoo's router may have normalized the open-document entry more
-            // than once and may only retain its own nested route state. The
-            // URL is therefore an intentional fallback: skip every duplicate
-            // automatically so one close click always reaches the list entry.
+            // than once. Skip equivalent entries automatically so both the
+            // browser Back action and one close click reach the list entry.
             this.requestHistoryBack();
             return;
         }
@@ -1891,9 +2090,9 @@ export class DocumentsWorkspaceView extends Component {
     async openLink(link) {
         this.persistState();
         const action = await this.orm.call(
-            "usl.document.link",
-            "action_open_record",
-            [[link.id]]
+            "usl.document",
+            "action_open_linked_record",
+            [[this.state.selected.id], link.id]
         );
         return this.action.doAction(action);
     }

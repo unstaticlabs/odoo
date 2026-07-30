@@ -6,12 +6,32 @@ from odoo.http.stream import content_disposition
 
 from ..models.paperless_client import PaperlessError
 
+SAFE_BROWSER_BINARY_TYPES = {
+    "application/pdf",
+    "image/bmp",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/webp",
+}
+
 
 class DocumentsController(http.Controller):
     @staticmethod
     def _browser_preview(content, content_type):
-        if not content_type.lower().startswith("text/"):
-            return content, content_type
+        mime_type = (content_type or "").split(";", 1)[0].strip().lower()
+        text_types = {
+            "application/json",
+            "application/xhtml+xml",
+            "application/xml",
+        }
+        if not (mime_type.startswith("text/") or mime_type in text_types):
+            return (
+                (content, mime_type)
+                if mime_type in SAFE_BROWSER_BINARY_TYPES
+                else (content, "application/octet-stream")
+            )
         escaped = html.escape(content.decode("utf-8", errors="replace"))
         page = f"""<!doctype html>
 <html>
@@ -80,6 +100,10 @@ class DocumentsController(http.Controller):
             headers=[
                 ("Content-Type", content_type),
                 ("Cache-Control", "private, no-store"),
+                (
+                    "Content-Security-Policy",
+                    "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+                ),
                 ("X-Content-Type-Options", "nosniff"),
             ],
         )
@@ -98,11 +122,19 @@ class DocumentsController(http.Controller):
             content, headers = document._paperless().thumbnail(document.paperless_id)
         except PaperlessError:
             return request.not_found()
+        content_type = (
+            headers.get("Content-Type", "image/webp")
+            .split(";", 1)[0]
+            .strip()
+            .lower()
+        )
+        if content_type not in SAFE_BROWSER_BINARY_TYPES - {"application/pdf"}:
+            content_type = "application/octet-stream"
         return request.make_response(
             content,
             headers=[
-                ("Content-Type", headers.get("Content-Type", "image/webp")),
-                ("Cache-Control", "private, max-age=300"),
+                ("Content-Type", content_type),
+                ("Cache-Control", "private, no-store"),
                 ("X-Content-Type-Options", "nosniff"),
             ],
         )

@@ -28,10 +28,11 @@ scripts/documents-stack qa logs
 scripts/documents-stack qa stop
 ```
 
-`update` updates the Odoo module and recreates only the Odoo application
-container. It does not reset databases, filestore, Paperless media, consume
-staging, exports, or relationships. `bootstrap` is idempotent and seeds only
-synthetic QA material.
+`update` updates both `usl_documents` and the optional
+`usl_documents_accounting` bridge when installed, then recreates only the Odoo
+application container. It does not install an unselected bridge or reset
+databases, filestore, Paperless media, consume staging, exports, or
+relationships. `bootstrap` is idempotent and seeds only synthetic QA material.
 
 QA-only credentials are intentionally simple:
 
@@ -97,10 +98,14 @@ token in Odoo secret/system configuration. Never expose it to a browser.
 
 Map direct users under **Documents > Configuration > User access**. Each map is
 one Odoo user to one individual Paperless user; shared administrators are not a
-valid production mapping. Install the Odoo-created fail-closed Paperless
-workflow before enabling web, consume, mail, or API intake. New archive items
-remain owned by the service context until Odoo assigns company/confidentiality
-and synchronizes actual document-object permissions.
+valid production mapping. After creating or changing a map, use **Verify
+identity**: Odoo reads the Paperless user through the service API and requires
+the ID and username to match before granting objects or exposing deep links. A
+failed check remains visible on the mapping instead of being accepted
+optimistically. Install the Odoo-created fail-closed Paperless workflow before
+enabling web, consume, mail, or API intake. New archive items remain owned by
+the service context until Odoo assigns company/confidentiality and synchronizes
+actual document-object permissions.
 
 In Paperless, put direct identities in a role that grants model-level read
 access to Documents, Tags, Correspondents, Document types, Custom fields,
@@ -201,10 +206,17 @@ Local QA:
 
 ```bash
 make documents-qa-test
+scripts/documents-stack qa test-accounting
 make documents-qa-test-js
 make documents-qa-acceptance
 make documents-qa-recovery-test
 ```
+
+The recovery test uses an isolated, timestamped Compose project. It removes
+that project, its temporary volumes, and the sensitive temporary backup
+artifacts after recording the result. Set
+`USL_DOCUMENTS_PRESERVE_RECOVERY=1` only while diagnosing a synthetic restore,
+then remove the preserved project and artifacts explicitly.
 
 Pre-production uses the corresponding `documents-preprod-*` targets after
 preflight. The real-service acceptance verifies Paperless 3.0.4/API v10,

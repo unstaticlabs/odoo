@@ -153,7 +153,8 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_open_links" type="object" class="oe_stat_button" icon="fa-link">
+                        <button name="action_open_links" type="object" class="oe_stat_button"
+                                icon="fa-link" groups="usl_documents.group_documents_manager">
                             <field name="link_count" widget="statinfo" string="Odoo records"/>
                         </button>
                     </div>
@@ -239,7 +240,8 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Linked records" name="links">
+                        <page string="Linked records" name="links"
+                              groups="usl_documents.group_documents_manager">
                             <field name="link_ids" context="{'default_document_id': id}">
                                 <list create="0" edit="0">
                                     <field name="record_name"/>
@@ -365,10 +367,10 @@
                 <field name="user_id"/>
                 <field name="paperless_username"/>
                 <field name="paperless_user_id"/>
-                <field name="sync_state"/>
+                <field name="sync_state" readonly="1"/>
                 <field name="last_verified_at"/>
                 <field name="active"/>
-                <button name="action_mark_verified" type="object" string="Mark verified"
+                <button name="action_mark_verified" type="object" string="Verify identity"
                         invisible="sync_state == 'synchronized'"/>
             </list>
         </field>
@@ -380,9 +382,9 @@
         <field name="arch" type="xml">
             <form string="Paperless Identity">
                 <header>
-                    <button name="action_mark_verified" type="object" string="Mark verified"
+                    <button name="action_mark_verified" type="object" string="Verify identity"
                             class="oe_highlight" invisible="sync_state == 'synchronized'"/>
-                    <field name="sync_state" widget="statusbar"/>
+                    <field name="sync_state" widget="statusbar" readonly="1"/>
                 </header>
                 <sheet>
                     <group>

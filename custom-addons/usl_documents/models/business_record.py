@@ -11,13 +11,12 @@ class DocumentLinkMixin(models.AbstractModel):
     )
 
     def _compute_archived_document_count(self):
-        Link = self.env["usl.document.link"]
         Document = self.env["usl.document"]
         for record in self:
             link_domain = [
-                ("res_model", "=", record._name),
-                ("res_id", "=", record.id),
-                ("active", "=", True),
+                ("link_ids.res_model", "=", record._name),
+                ("link_ids.res_id", "=", record.id),
+                ("link_ids.active", "=", True),
             ]
             if record._name == "res.partner":
                 record.archived_document_count = Document.search_count(
@@ -32,27 +31,7 @@ class DocumentLinkMixin(models.AbstractModel):
                     ],
                 )
             else:
-                record.archived_document_count = Link.search_count(link_domain)
-
-    def action_open_archived_documents(self):
-        self.ensure_one()
-        self.check_access("read")
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Archived Documents"),
-            "res_model": "usl.document",
-            "view_mode": "kanban,list,form",
-            "domain": [
-                ("link_ids.res_model", "=", self._name),
-                ("link_ids.res_id", "=", self.id),
-                ("link_ids.active", "=", True),
-            ],
-            "context": {
-                "usl_documents_res_model": self._name,
-                "usl_documents_res_id": self.id,
-                "default_company_id": self._document_company().id,
-            },
-        }
+                record.archived_document_count = Document.search_count(link_domain)
 
     def action_open_documents_workspace(self):
         self.ensure_one()

@@ -46,7 +46,9 @@ def ensure_user(login, name, groups, company):
         ],
     }
     if user:
-        user.with_context(usl_documents_user_access_no_sync=True).write(values)
+        user.sudo().with_context(
+            usl_documents_user_access_no_sync=True,
+        ).write(values)
     else:
         user = env["res.users"].with_context(no_reset_password=True).create(values)
     return user
@@ -92,6 +94,7 @@ def upload_document(spec):
     checksum = hashlib.sha256(content).hexdigest()
     document = env["usl.document"].with_user(admin).search(
         [
+            ("availability_state", "in", ["available", "trashed"]),
             "|",
             ("checksum", "=", checksum),
             ("version_ids.checksum", "=", checksum),
@@ -141,6 +144,21 @@ def upload_document(spec):
             "review_state": spec.get("review_state", "reviewed"),
         }
     )
+    # Fixture text can legitimately evolve between branches. The checksum then
+    # identifies the new canonical root, while an older root with the same
+    # reserved QA filename would otherwise remain as a misleading duplicate.
+    # Keep it recoverable in Trash, but remove its synthetic business links.
+    legacy_roots = documents.search(
+        [
+            ("id", "!=", document.id),
+            ("original_filename", "=", spec["filename"]),
+            ("availability_state", "!=", "permanently_deleted"),
+        ]
+    )
+    for legacy in legacy_roots:
+        legacy.sudo().link_ids.unlink()
+        if legacy.availability_state == "available":
+            legacy.with_user(admin).move_to_trash()
     for record in spec.get("records", []):
         link_once(document, record)
     return document
@@ -291,9 +309,13 @@ for user, username in identity_pairs:
         "active": True,
     }
     if mapping:
-        mapping.write(values)
+        mapping.sudo().with_context(
+            usl_documents_mapping_no_sync=True,
+        ).write(values)
     else:
-        env["usl.paperless.user.mapping"].create({"user_id": user.id, **values})
+        env["usl.paperless.user.mapping"].sudo().with_context(
+            usl_documents_mapping_no_sync=True,
+        ).create({"user_id": user.id, **values})
 
 contacts = {}
 for reference, name in {
@@ -672,6 +694,7 @@ contract_original_checksum = hashlib.sha256(
 legacy_contract_roots = documents.search(
     [
         ("id", "!=", contract.id),
+        ("availability_state", "=", "available"),
         ("version_ids.checksum", "=", contract_original_checksum),
     ],
     order="paperless_id",
@@ -747,7 +770,7 @@ failed_operation = env["usl.document.operation"].search(
     [("name", "=", "qa-corrupted-upload.pdf")], limit=1
 )
 if not failed_operation:
-    failed_operation = env["usl.document.operation"].create(
+    failed_operation = env["usl.document.operation"].sudo().create(
         {
             "name": "qa-corrupted-upload.pdf",
             "state": "failed",

@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -63,6 +64,32 @@ class PaperlessClient:
             headers["Content-Type"] = "application/json"
         return headers
 
+    @staticmethod
+    def _decode_json(payload):
+        try:
+            return json.loads(payload.decode())
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise PaperlessCompatibilityError(
+                "Paperless returned an invalid API response.",
+            ) from error
+
+    @staticmethod
+    def _multipart_filename(filename):
+        """Keep an untrusted filename inside one multipart header value."""
+        return (
+            str(filename or "document")
+            .replace("\r", "_")
+            .replace("\n", "_")
+            .replace('"', "'")
+        )
+
+    @staticmethod
+    def _multipart_content_type(content_type):
+        value = str(content_type or "")
+        if re.fullmatch(r"[\w!#$&^_.+-]+/[\w!#$&^_.+-]+", value):
+            return value
+        return "application/octet-stream"
+
     def _request(
         self,
         method,
@@ -92,10 +119,7 @@ class PaperlessClient:
                 response_headers = dict(response.headers.items())
                 if raw:
                     return payload, response_headers
-                return (
-                    json.loads(payload.decode()) if payload else {},
-                    response_headers,
-                )
+                return (self._decode_json(payload) if payload else {}, response_headers)
         except urllib.error.HTTPError as error:
             payload = error.read().decode(errors="replace")[:1000]
             if error.code in (401, 403):
@@ -480,12 +504,13 @@ class PaperlessClient:
                     f"{title}\r\n"
                 ).encode(),
             )
-        safe_filename = filename.replace('"', "")
+        safe_filename = self._multipart_filename(filename)
+        safe_content_type = self._multipart_content_type(content_type)
         chunks.extend([
             (
                 f"--{boundary}\r\n"
                 f'Content-Disposition: form-data; name="document"; filename="{safe_filename}"\r\n'
-                f"Content-Type: {content_type or 'application/octet-stream'}\r\n\r\n"
+                f"Content-Type: {safe_content_type}\r\n\r\n"
             ).encode(),
             content,
             f"\r\n--{boundary}--\r\n".encode(),
@@ -501,7 +526,13 @@ class PaperlessClient:
         )
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                task_id = json.loads(response.read().decode())
+                task_id = self._decode_json(response.read())
+                if isinstance(task_id, dict):
+                    task_id = task_id.get("task_id") or task_id.get("id")
+                if not task_id:
+                    raise PaperlessCompatibilityError(
+                        _("Paperless accepted the upload without returning a task ID."),
+                    )
                 return str(task_id)
         except urllib.error.HTTPError as error:
             if error.code in (401, 403):
@@ -533,13 +564,14 @@ class PaperlessClient:
                     f"{version_label}\r\n"
                 ).encode(),
             )
-        safe_filename = filename.replace('"', "")
+        safe_filename = self._multipart_filename(filename)
+        safe_content_type = self._multipart_content_type(content_type)
         chunks.extend(
             [
                 (
                     f"--{boundary}\r\n"
                     f'Content-Disposition: form-data; name="document"; filename="{safe_filename}"\r\n'
-                    f"Content-Type: {content_type or 'application/octet-stream'}\r\n\r\n"
+                    f"Content-Type: {safe_content_type}\r\n\r\n"
                 ).encode(),
                 content,
                 f"\r\n--{boundary}--\r\n".encode(),
@@ -556,9 +588,16 @@ class PaperlessClient:
         )
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                payload = json.loads(response.read().decode())
+                payload = self._decode_json(response.read())
                 if isinstance(payload, dict):
                     payload = payload.get("task_id") or payload.get("id")
+                if not payload:
+                    raise PaperlessCompatibilityError(
+                        _(
+                            "Paperless accepted the replacement without returning "
+                            "a task ID."
+                        ),
+                    )
                 return str(payload)
         except urllib.error.HTTPError as error:
             if error.code in (401, 403):

@@ -294,13 +294,39 @@
         flex: 0 0 46vw;
         z-index: 3;
 
-        iframe {
+        .o_usl_document_preview {
+            display: block;
             width: 100%;
             height: 36vh;
             min-height: 220px;
             max-height: 360px;
-            border: 0;
+            overflow: auto;
             background: #eef0f2;
+
+            > img,
+            canvas {
+                display: block;
+                max-width: 100%;
+                margin: 0 auto;
+            }
+
+            pre {
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+            }
+        }
+
+        .o_usl_pdf_preview_controls {
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            color: #212529;
+            background: rgba(255, 255, 255, 0.92);
+            border-top: 1px solid #dee2e6;
         }
 
         footer {

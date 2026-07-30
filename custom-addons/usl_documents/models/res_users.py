@@ -17,7 +17,10 @@ class ResUsers(models.Model):
         }
 
     def write(self, values):
-        if self.env.context.get("usl_documents_user_access_no_sync"):
+        if (
+            self.env.context.get("usl_documents_user_access_no_sync")
+            and self.env.su
+        ):
             return super().write(values)
         access_fields = {"company_ids", "company_id", "group_ids", "active"}
         tracked = self.filtered(
@@ -34,6 +37,10 @@ class ResUsers(models.Model):
             if access_fields.intersection(values)
             else {}
         )
+        before_manager = {
+            user.id: user.has_group("usl_documents.group_documents_manager")
+            for user in tracked
+        }
         result = super().write(values)
         if not before:
             return result
@@ -63,9 +70,17 @@ class ResUsers(models.Model):
         removed_ids = set().union(
             *(before[user.id] - after[user.id] for user in tracked),
         )
+        manager_revocation_ids = set().union(
+            *(
+                before[user.id] | after[user.id]
+                for user in tracked
+                if before_manager[user.id]
+                and not user.has_group("usl_documents.group_documents_manager")
+            ),
+        )
         if documents.filtered(
             lambda document: (
-                document.id in removed_ids
+                document.id in removed_ids | manager_revocation_ids
                 and document.permission_sync_state == "failed"
             ),
         ):

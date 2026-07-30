@@ -11,6 +11,7 @@ from ..models.document import UslDocument
 from ..models.paperless_client import (
     PaperlessClient,
     PaperlessCompatibilityError,
+    PaperlessError,
     PaperlessUnavailable,
 )
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -205,8 +206,16 @@ class TestDocuments(TransactionCase):
                     res_model="res.partner",
                     res_id=self.partner_a.id,
                     company_id=self.company_a.id,
-                )
             )
+        )
+
+    def _verified_mapping(self, values):
+        return (
+            self.env["usl.paperless.user.mapping"]
+            .sudo()
+            .with_context(usl_documents_mapping_no_sync=True)
+            .create(values)
+        )
 
         self.assertEqual(result["state"], "duplicate")
         self.assertEqual(result["document_id"], existing.id)
@@ -280,11 +289,57 @@ class TestDocuments(TransactionCase):
 
         internal_link = internal.link_to_record("res.partner", self.partner_a.id)
         evidence_link = evidence.link_to_record("res.partner", self.partner_b.id)
-        accountant_links = self.env["usl.document.link"].with_user(
-            self.accountant,
-        ).search([])
-        self.assertEqual(accountant_links, evidence_link)
-        self.assertNotIn(internal_link, accountant_links)
+        with self.assertRaises(AccessError):
+            self.env["usl.document.link"].with_user(self.accountant).search([])
+        accountant_detail = evidence.with_user(self.accountant).document_detail(
+            evidence.id,
+        )
+        self.assertEqual(
+            [item["id"] for item in accountant_detail["links"]],
+            [evidence_link.id],
+        )
+        with self.assertRaises(AccessError):
+            evidence.with_user(self.accountant).link_to_record(
+                "res.partner",
+                self.partner_a.id,
+            )
+        with self.assertRaises(AccessError):
+            evidence.with_user(self.accountant).unlink_from_record(
+                "res.partner",
+                self.partner_b.id,
+            )
+        self.assertNotEqual(internal_link, evidence_link)
+
+    def test_linked_record_metadata_is_hidden_without_target_record_access(self):
+        document = self._document(1420)
+        employee = self.env["hr.employee"].create(
+            {"name": "Restricted Employee", "company_id": self.company_a.id},
+        )
+        document.link_to_record("hr.employee", employee.id)
+
+        detail = document.with_user(self.user).document_detail(document.id)
+        workspace = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="all",
+        )
+
+        self.assertFalse(detail["links"])
+        self.assertEqual(detail["link_count"], 0)
+        self.assertNotIn(
+            f"hr.employee:{employee.id}",
+            [item["key"] for item in workspace["link_facets"]],
+        )
+        self.assertNotIn(
+            document,
+            self.env["usl.document"].with_user(self.user).search(
+                [("has_linked_record", "=", True)],
+            ),
+        )
+        self.assertIn(
+            document,
+            self.env["usl.document"].with_user(self.user).search(
+                [("has_linked_record", "=", False)],
+            ),
+        )
 
     def test_cross_company_relationship_is_rejected(self):
         document = self._document(107, company_id=self.company_a.id)
@@ -316,6 +371,7 @@ class TestDocuments(TransactionCase):
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
             patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
             patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
         ):
@@ -376,7 +432,6 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(document.correspondent_name, "Example Supplier")
         self.assertEqual(document.document_type_name, "Invoice")
-        self.assertEqual(document.tag_names, "Accounting, Reviewed")
         metadata_catalog.assert_called_once()
 
     def test_supported_paperless_metadata_write_contract(self):
@@ -468,7 +523,6 @@ class TestDocuments(TransactionCase):
             },
         )
         self.assertEqual(document.tag_ids, child)
-        self.assertEqual(document.tag_names, "Banking")
 
     def test_document_users_manage_metadata_but_cannot_delete_it(self):
         response = {
@@ -504,6 +558,32 @@ class TestDocuments(TransactionCase):
             tag.with_user(self.user).unlink()
         with patch.object(PaperlessClient, "delete_metadata", return_value={}):
             tag.with_user(self.manager).unlink()
+
+    def test_metadata_create_retry_adopts_committed_shared_paperless_item(self):
+        remote = {
+            "id": 9199,
+            "name": "Retry-safe tag",
+            "owner": None,
+            "match": "",
+            "matching_algorithm": 0,
+        }
+        with (
+            patch.object(
+                PaperlessClient,
+                "create_metadata",
+                side_effect=PaperlessError("already exists"),
+            ),
+            patch.object(
+                PaperlessClient,
+                "list_metadata",
+                return_value=[remote],
+            ),
+        ):
+            tag = self.env["usl.paperless.tag"].with_user(self.user).create(
+                {"name": "Retry-safe tag"},
+            )
+        self.assertEqual(tag.paperless_id, 9199)
+        self.assertEqual(tag.name, "Retry-safe tag")
 
     def test_metadata_create_normalizes_empty_match_and_compiles_rule_lines(self):
         correspondent_response = {
@@ -839,6 +919,35 @@ class TestDocuments(TransactionCase):
         self.assertEqual(view.tag_ids, tag)
         self.assertEqual(view.paperless_sync_state, "synchronized")
 
+    def test_private_paperless_saved_view_is_not_imported_as_shared(self):
+        client = PaperlessClient(self.env)
+        client.owner_user_id = 3
+        self.env["usl.document.smart.view"].search(
+            [("archive_native", "=", True)],
+        ).sudo().with_context(usl_documents_archive_view_sync=True).write(
+            {"archive_native": False},
+        )
+        remote = {
+            "id": 98,
+            "name": "Archive administrator private view",
+            "owner": 42,
+            "filter_rules": [],
+        }
+        local = self.env["usl.document.smart.view"]
+        with (
+            patch.object(client, "list_saved_views", return_value=[remote]),
+            patch.object(client, "create_saved_view") as create_saved_view,
+        ):
+            local.synchronize_archive_views(client=client)
+        self.assertFalse(local.search([("paperless_id", "=", 98)]))
+        create_saved_view.assert_not_called()
+
+    def test_only_manager_can_reconcile_shared_paperless_saved_views(self):
+        with self.assertRaises(AccessError):
+            self.env["usl.document.smart.view"].with_user(
+                self.user,
+            ).synchronize_archive_views(client=PaperlessClient(self.env))
+
     def test_trash_reconciliation_and_restore_preserve_identity_and_links(self):
         document = self._document(333, name="Signed contract")
         document.link_to_record("res.partner", self.partner_a.id)
@@ -883,6 +992,8 @@ class TestDocuments(TransactionCase):
         )
         self.assertFalse(detail["can_edit"])
         self.assertTrue(detail["can_restore"])
+        with self.assertRaises(UserError):
+            document.link_to_record("res.partner", self.partner_b.id)
 
         restored_payload = {**trash_payload, "modified": "2026-07-29T11:00:00Z"}
         with (
@@ -1156,7 +1267,7 @@ class TestDocuments(TransactionCase):
         self.assertEqual(by_id["count"], 1)
 
     def test_async_success_creates_relationship_only_after_confirmation(self):
-        operation = self.env["usl.document.operation"].with_user(self.user).create({
+        operation = self.env["usl.document.operation"].sudo().create({
             "name": "pending.pdf",
             "state": "processing",
             "checksum": "c" * 64,
@@ -1166,6 +1277,7 @@ class TestDocuments(TransactionCase):
             "res_model": "res.partner",
             "res_id": self.partner_a.id,
             "source": "odoo_upload",
+            "user_id": self.user.id,
         })
         payload = {
             "id": 109,
@@ -1195,21 +1307,23 @@ class TestDocuments(TransactionCase):
         self.assertEqual(operation.document_id.checksum, "c" * 64)
 
     def test_workspace_restores_active_and_failed_operations_by_role(self):
-        active = self.env["usl.document.operation"].with_user(self.user).create(
+        active = self.env["usl.document.operation"].sudo().create(
             {
                 "name": "processing.pdf",
                 "state": "processing",
                 "checksum": "4" * 64,
                 "company_id": self.company_a.id,
+                "user_id": self.user.id,
             },
         )
-        failed = self.env["usl.document.operation"].with_user(self.user).create(
+        failed = self.env["usl.document.operation"].sudo().create(
             {
                 "name": "corrupted.pdf",
                 "state": "failed",
                 "checksum": "5" * 64,
                 "company_id": self.company_a.id,
                 "error_message": "Corrupted file",
+                "user_id": self.user.id,
             },
         )
         workspace = self.env["usl.document"].with_user(self.user).workspace_data(
@@ -1325,7 +1439,7 @@ class TestDocuments(TransactionCase):
             187, confidentiality="accounting", accounting_evidence=True,
         )
         document.link_to_record("res.partner", self.partner_a.id)
-        operation = self.env["usl.document.operation"].create(
+        operation = self.env["usl.document.operation"].sudo().create(
             {
                 "name": "replacement.pdf",
                 "state": "processing",
@@ -1378,7 +1492,7 @@ class TestDocuments(TransactionCase):
         self.env["usl.paperless.user.mapping"].search([
             ("user_id", "in", [self.user.id, self.manager.id]),
         ]).unlink()
-        self.env["usl.paperless.user.mapping"].create([
+        self._verified_mapping([
             {
                 "user_id": self.user.id,
                 "paperless_user_id": 21,
@@ -1402,9 +1516,78 @@ class TestDocuments(TransactionCase):
             110, view_users=[21, 22], change_users=[22],
         )
 
+    def test_identity_mapping_cannot_bypass_verification_state(self):
+        mapping = self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 29,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        self.assertEqual(mapping.sync_state, "pending")
+        with self.assertRaises(AccessError):
+            mapping.write({"sync_state": "synchronized"})
+        with (
+            patch.object(
+                PaperlessClient,
+                "get_user",
+                return_value={"id": 29, "username": "documents-user"},
+            ),
+            patch.object(PaperlessClient, "set_document_permissions"),
+        ):
+            mapping.with_user(self.manager).action_mark_verified()
+        self.assertEqual(mapping.sync_state, "synchronized")
+        self.assertTrue(mapping.last_verified_at)
+
+    def test_identity_verification_failure_remains_visible(self):
+        mapping = self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 29,
+                "paperless_username": "documents-user",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "get_user",
+            side_effect=PaperlessError("Paperless rejected the identity"),
+        ):
+            action = mapping.with_user(self.manager).action_mark_verified()
+        self.assertEqual(mapping.sync_state, "failed")
+        self.assertEqual(mapping.last_error, "Paperless rejected the identity")
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(action["params"]["type"], "danger")
+
+    def test_identity_change_returns_mapping_to_pending_and_revokes_access(self):
+        document = self._document(415)
+        mapping = self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 35,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            mapping.with_user(self.manager).write(
+                {"paperless_username": "renamed-user"},
+            )
+        self.assertEqual(mapping.sync_state, "pending")
+        self.assertFalse(mapping.last_verified_at)
+        permission_call.assert_called_with(
+            document.paperless_id,
+            view_users=[],
+            change_users=[],
+        )
+
     def test_company_access_loss_revokes_paperless_object_permission(self):
         document = self._document(410)
-        mapping = self.env["usl.paperless.user.mapping"].create(
+        mapping = self._verified_mapping(
             {
                 "user_id": self.user.id,
                 "paperless_user_id": 31,
@@ -1433,10 +1616,10 @@ class TestDocuments(TransactionCase):
     def test_manager_role_loss_revokes_paperless_change_permission(self):
         document = self._document(414)
         manager_group = self.env.ref("usl_documents.group_documents_manager")
-        self.user.with_context(usl_documents_user_access_no_sync=True).write(
+        self.user.sudo().with_context(usl_documents_user_access_no_sync=True).write(
             {"group_ids": [Command.link(manager_group.id)]},
         )
-        self.env["usl.paperless.user.mapping"].create(
+        self._verified_mapping(
             {
                 "user_id": self.user.id,
                 "paperless_user_id": 34,
@@ -1458,9 +1641,33 @@ class TestDocuments(TransactionCase):
             change_users=[],
         )
 
+    def test_manager_role_loss_rolls_back_when_change_permission_revoke_fails(self):
+        self._document(1414)
+        manager_group = self.env.ref("usl_documents.group_documents_manager")
+        self.user.sudo().with_context(usl_documents_user_access_no_sync=True).write(
+            {"group_ids": [Command.link(manager_group.id)]},
+        )
+        self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 44,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with (
+            patch.object(
+                PaperlessClient,
+                "set_document_permissions",
+                side_effect=PaperlessUnavailable("offline"),
+            ),
+            self.assertRaisesRegex(UserError, "Access was not changed"),
+        ):
+            self.user.write({"group_ids": [Command.unlink(manager_group.id)]})
+
     def test_access_reduction_rolls_back_when_permission_revoke_fails(self):
         self._document(411)
-        self.env["usl.paperless.user.mapping"].create(
+        self._verified_mapping(
             {
                 "user_id": self.user.id,
                 "paperless_user_id": 32,
@@ -1574,7 +1781,7 @@ class TestDocuments(TransactionCase):
         )
         document = self._document(185)
         self.assertFalse(document.with_user(self.user).paperless_url)
-        self.env["usl.paperless.user.mapping"].create(
+        self._verified_mapping(
             {
                 "user_id": self.user.id,
                 "paperless_user_id": 85,
@@ -1594,6 +1801,14 @@ class TestDocuments(TransactionCase):
         with self.assertRaises(AccessError):
             document.with_user(self.user).write({"confidentiality": "private"})
         with self.assertRaises(AccessError):
+            document.with_user(self.user).with_context(
+                usl_documents_cache_write=True,
+            ).write({"name": "Spoofed through context"})
+        with self.assertRaises(AccessError):
+            document.with_user(self.user).with_context(
+                usl_documents_policy_write=True,
+            ).write({"confidentiality": "private"})
+        with self.assertRaises(AccessError):
             self.env["usl.document.link"].with_user(self.user).create(
                 {
                     "document_id": document.id,
@@ -1603,9 +1818,42 @@ class TestDocuments(TransactionCase):
                     "company_id": self.company_a.id,
                 },
             )
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "trusted-operation.pdf",
+                "state": "processing",
+                "checksum": "1" * 64,
+                "company_id": self.company_a.id,
+                "user_id": self.user.id,
+            },
+        )
+        with self.assertRaises(AccessError):
+            self.env["usl.document.operation"].with_user(self.user).create(
+                {
+                    "name": "forged-operation.pdf",
+                    "state": "processing",
+                    "checksum": "2" * 64,
+                    "company_id": self.company_a.id,
+                },
+            )
+        with self.assertRaises(AccessError):
+            operation.with_user(self.user).write({"state": "archived"})
+        tag = self._tag(9186, "Protected cache identity")
+        with self.assertRaises(AccessError):
+            tag.with_user(self.user).with_context(
+                usl_documents_cache_write=True,
+            ).write({"paperless_id": 999999})
+        personal = self.env["usl.document.smart.view"].with_user(self.user).create(
+            {"name": "Private search"},
+        )
+        with self.assertRaises(AccessError):
+            personal.with_user(self.user).with_context(
+                usl_documents_archive_view_sync=True,
+            ).write({"paperless_id": 12345})
 
     def test_integrity_manifest_reports_versions_links_and_checksums(self):
         document = self._document(112, checksum="d" * 64)
+        document.link_to_record("res.partner", self.partner_a.id)
         document.with_context(usl_documents_cache_write=True).write(
             {"availability_state": "trashed"},
         )
@@ -1615,7 +1863,6 @@ class TestDocuments(TransactionCase):
             availability_state="permanently_deleted",
             permission_sync_state="failed",
         )
-        document.link_to_record("res.partner", self.partner_a.id)
         with (
             patch.object(
                 PaperlessClient,
@@ -1667,6 +1914,26 @@ class TestDocuments(TransactionCase):
 
 @tagged("post_install", "-at_install", "usl_documents")
 class TestPaperlessClientContract(TransactionCase):
+    def test_multipart_headers_reject_filename_and_content_type_injection(self):
+        self.assertEqual(
+            PaperlessClient._multipart_filename('invoice"\r\nX-Evil: yes.pdf'),
+            "invoice'__X-Evil: yes.pdf",
+        )
+        self.assertEqual(
+            PaperlessClient._multipart_content_type(
+                "application/pdf\r\nX-Evil: yes",
+            ),
+            "application/octet-stream",
+        )
+        self.assertEqual(
+            PaperlessClient._multipart_content_type("application/pdf"),
+            "application/pdf",
+        )
+
+    def test_invalid_json_response_fails_as_api_compatibility_error(self):
+        with self.assertRaises(PaperlessCompatibilityError):
+            PaperlessClient._decode_json(b"{not valid JSON")
+
     def test_api_v10_and_server_3_are_explicitly_qualified(self):
         client = PaperlessClient(self.env)
         with patch.object(
@@ -1724,6 +1991,19 @@ class TestPaperlessClientContract(TransactionCase):
         self.assertIn(b"&lt;script&gt;", content)
         self.assertNotIn(b"<script>", content)
         self.assertIn(b"Supplier evidence", content)
+
+    def test_active_preview_types_cannot_execute_in_odoo_origin(self):
+        content, content_type = DocumentsController._browser_preview(
+            b"<script>alert('unsafe')</script>",
+            "application/xhtml+xml",
+        )
+        self.assertEqual(content_type, "text/html; charset=utf-8")
+        self.assertIn(b"&lt;script&gt;", content)
+        content, content_type = DocumentsController._browser_preview(
+            b"<svg onload=\"alert('unsafe')\"/>",
+            "image/svg+xml",
+        )
+        self.assertEqual(content_type, "application/octet-stream")
 
     def test_metadata_catalog_crud_uses_supported_endpoints(self):
         client = PaperlessClient(self.env)

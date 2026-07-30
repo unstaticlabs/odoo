@@ -1,5 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="usl_documents.DocumentPreview">
+        <div class="o_usl_document_preview"
+             t-att-data-version="props.versionId || ''"
+             aria-label="Document preview">
+            <div t-if="state.loading" class="text-center text-muted p-4">
+                <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading preview…
+            </div>
+            <img t-elif="state.kind === 'image'"
+                 t-att-src="imageUrl"
+                 alt="Document preview"/>
+            <pre t-elif="state.kind === 'text'"
+                 class="m-0 p-3"
+                 t-esc="state.text"/>
+            <div t-elif="state.kind === 'pdf'" class="o_usl_pdf_preview">
+                <canvas t-ref="canvas"/>
+                <div t-if="state.pageCount &gt; 1"
+                     class="o_usl_pdf_preview_controls">
+                    <button type="button" class="btn btn-sm btn-light"
+                            t-att-disabled="state.page === 1"
+                            t-on-click="previousPage"
+                            aria-label="Previous preview page">
+                        <i class="fa fa-chevron-left"/>
+                    </button>
+                    <span>Page <t t-esc="state.page"/> of <t t-esc="state.pageCount"/></span>
+                    <button type="button" class="btn btn-sm btn-light"
+                            t-att-disabled="state.page === state.pageCount"
+                            t-on-click="nextPage"
+                            aria-label="Next preview page">
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+            </div>
+            <div t-elif="state.error" class="alert alert-warning m-3">
+                <strong>Preview unavailable.</strong>
+                <div t-esc="state.error"/>
+            </div>
+        </div>
+    </t>
+
     <t t-name="usl_documents.OpenDocumentsField">
         <button type="button"
                 class="btn btn-link p-0 text-nowrap o_usl_open_documents"
@@ -422,10 +461,9 @@
                         <strong>Document access needs attention.</strong>
                         <div>The file is blocked until an administrator verifies archive access.</div>
                     </div>
-                    <iframe t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
-                            t-att-src="state.selected.preview_url"
-                            t-att-data-version="currentVersion?.paperless_version_id || ''"
-                            title="Document preview"/>
+                    <DocumentPreview t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
+                                     url="state.selected.preview_url"
+                                     versionId="state.selected.selected_version_id || currentVersion?.paperless_version_id || ''"/>
                     <div t-elif="state.selected.availability_state === 'trashed'"
                          class="alert alert-secondary m-3">
                         <strong>In Trash</strong>
@@ -829,12 +867,12 @@
                     <div t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_manage &amp;&amp; state.selected.permanent_delete_blocker"
                          class="small text-muted mt-2"
                          t-esc="state.selected.permanent_delete_blocker"/>
-                    <button t-if="recordContext &amp;&amp; !this.isLinkedToCurrent()"
+                    <button t-if="recordContext &amp;&amp; state.selected.can_change_links &amp;&amp; state.selected.availability_state === 'available' &amp;&amp; !this.isLinkedToCurrent()"
                             type="button" class="btn btn-success w-100 mt-2"
                             t-on-click="() => this.linkSelected()">
                         <i class="fa fa-link me-1"/>Link to this record
                     </button>
-                    <button t-if="recordContext &amp;&amp; this.isLinkedToCurrent()"
+                    <button t-if="recordContext &amp;&amp; state.selected.can_change_links &amp;&amp; this.isLinkedToCurrent()"
                             type="button" class="btn btn-link text-danger w-100 mt-2"
                             t-on-click="() => this.unlinkCurrent()">
                         Remove link from this record

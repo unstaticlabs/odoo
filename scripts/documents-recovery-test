@@ -76,6 +76,11 @@ SOURCE_PAPERLESS_HTTP_PORT="$(
   sed -n 's/^PAPERLESS_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
 )"
 BACKUP_ID="documents-restore-$(date -u +%Y%m%dT%H%M%SZ)"
+PRESERVE_RECOVERY="${USL_DOCUMENTS_PRESERVE_RECOVERY:-0}"
+[[ "$PRESERVE_RECOVERY" =~ ^[01]$ ]] || {
+  printf 'USL_DOCUMENTS_PRESERVE_RECOVERY must be 0 or 1.\n' >&2
+  exit 2
+}
 ARTIFACT_DIR="$(mktemp -d "/tmp/${BACKUP_ID}.XXXXXX")"
 RESTORED_DATABASE="${SOURCE_DATABASE}_restored"
 SOURCE_ODOO_VOLUME="${SOURCE_PROJECT}_odoo-data"
@@ -103,7 +108,40 @@ restore_source() {
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
   "${SOURCE[@]}" up -d --wait --pull never odoo || true
 }
-trap restore_source EXIT INT TERM
+
+cleanup_restore() {
+  restore_source
+  if [[ "$PRESERVE_RECOVERY" = "1" ]]; then
+    return
+  fi
+  "${RESTORE[@]}" down --volumes --remove-orphans >/dev/null 2>&1 || true
+  local volume
+  for volume in \
+    "${RESTORE_PROJECT}_postgres-data" \
+    "$RESTORE_ODOO_VOLUME" \
+    "${RESTORE_PROJECT}_paperless-postgres-data" \
+    "${RESTORE_PROJECT}_paperless-broker-data" \
+    "$RESTORE_PAPERLESS_DATA_VOLUME" \
+    "$RESTORE_PAPERLESS_MEDIA_VOLUME" \
+    "${RESTORE_PROJECT}_paperless-consume" \
+    "$RESTORE_PAPERLESS_EXPORT_VOLUME" \
+    "$RESTORE_PAPERLESS_TRASH_VOLUME"
+  do
+    docker volume rm "$volume" >/dev/null 2>&1 || true
+  done
+  case "$ARTIFACT_DIR" in
+    /tmp/documents-restore-*.??????)
+      rm -rf -- "$ARTIFACT_DIR"
+      ;;
+    *)
+      printf 'Refusing unsafe recovery artifact cleanup: %s\n' \
+        "$ARTIFACT_DIR" >&2
+      ;;
+  esac
+}
+trap cleanup_restore EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 EXPECTED_DOCUMENTS="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM usl_document')"
 EXPECTED_RELATIONSHIPS="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM usl_document_link WHERE active')"
@@ -201,6 +239,10 @@ RESTORE_CONTAINER_IDS="$("${RESTORE[@]}" ps -q)"
 if [[ -n "$RESTORE_CONTAINER_IDS" ]]; then
   "${RESTORE[@]}" stop >/dev/null
 fi
-trap - EXIT INT TERM
-printf 'DOCUMENTS_RECOVERY_TEST_OK environment=%s backup=%s artifacts=%s restore_project=%s database=%s\n' \
-  "$ENVIRONMENT" "$BACKUP_ID" "$ARTIFACT_DIR" "$RESTORE_PROJECT" "$RESTORED_DATABASE"
+if [[ "$PRESERVE_RECOVERY" = "1" ]]; then
+  printf 'DOCUMENTS_RECOVERY_TEST_OK environment=%s backup=%s artifacts=%s restore_project=%s database=%s preserved=1\n' \
+    "$ENVIRONMENT" "$BACKUP_ID" "$ARTIFACT_DIR" "$RESTORE_PROJECT" "$RESTORED_DATABASE"
+else
+  printf 'DOCUMENTS_RECOVERY_TEST_OK environment=%s backup=%s artifacts=cleaned restore_project=cleaned database=%s preserved=0\n' \
+    "$ENVIRONMENT" "$BACKUP_ID" "$RESTORED_DATABASE"
+fi

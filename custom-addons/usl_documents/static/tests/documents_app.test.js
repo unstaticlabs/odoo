@@ -189,6 +189,7 @@ test("document details stay useful and actionable during an archive outage", asy
             ...document,
             archive_available: false,
             can_edit: true,
+            can_change_links: true,
             can_manage: true,
             versions: [],
             links: [],
@@ -207,7 +208,7 @@ test("document details stay useful and actionable during an archive outage", asy
     expect(".o_usl_documents_detail .alert-warning.mb-0").toHaveText(
         /Odoo links and business records are unaffected/
     );
-    expect(".o_usl_documents_detail iframe").toHaveCount(0);
+    expect(".o_usl_document_preview").toHaveCount(0);
     expect(".o_usl_documents_detail .alert-warning.mb-0 button").toHaveText(
         /Try again/
     );
@@ -363,6 +364,7 @@ test("detail prioritizes original, classification, versions, and linked records"
         ...document,
         checksum: "a".repeat(64),
         can_edit: true,
+        can_change_links: true,
         can_manage: true,
         versions: [
             {
@@ -408,7 +410,7 @@ test("detail prioritizes original, classification, versions, and linked records"
     expect(".o_usl_documents_detail").toHaveText(/BILL\/2026\/0042/);
     expect(".o_usl_documents_detail").not.toHaveText(/synchronized/i);
     expect(".o_usl_documents_detail").toHaveText(/Accounting/);
-    expect(".o_usl_documents_detail iframe").toHaveAttribute("data-version", "9");
+    expect(".o_usl_document_preview").toHaveAttribute("data-version", "9");
     expect("a[href*='original=0']").toHaveCount(2);
     expect(".o_usl_documents_detail footer a.btn-primary").toHaveText(
         /Download original/
@@ -422,18 +424,33 @@ test("detail prioritizes original, classification, versions, and linked records"
     expect(
         new URL(browser.location.href).searchParams.get("usl_document")
     ).toBe("7");
+    expect(browser.history.state.nextState.usl_document).toBe(7);
     browser.history.pushState(
-        { nextState: { actionStack: [] } },
+        {
+            nextState: {
+                actionStack: [],
+                usl_document: 7,
+            },
+            skipRouteChange: true,
+        },
         "",
         browser.location.href
     );
     browser.history.pushState(
-        { nextState: { actionStack: [] } },
+        {
+            nextState: {
+                actionStack: [],
+                usl_document: 7,
+            },
+            skipRouteChange: true,
+        },
         "",
         browser.location.href
     );
-    await contains(".o_usl_documents_detail .btn-close").click();
-    await tick();
+    browser.history.back();
+    await animationFrame();
+    await animationFrame();
+    await animationFrame();
     expect(".o_usl_documents_detail").toHaveCount(0);
     expect(
         new URL(browser.location.href).searchParams.get("usl_document")
@@ -476,6 +493,7 @@ test("selected document survives a reload after the host router normalizes the U
         return {
             ...document,
             can_edit: true,
+            can_change_links: true,
             can_manage: true,
             links: [],
             versions: [
@@ -595,9 +613,10 @@ test("Back from a record-context workspace returns to the linked record", async 
             }),
         },
     });
-    expect(browser.history.state.uslDocumentsRecordContext).toBe(
-        "account.move:12"
-    );
+    expect(
+        browser.history.state.uslDocumentsRecordContext ||
+            browser.history.state.nextState?.uslDocumentsRecordContext
+    ).toBe("account.move:12");
 
     const popState = new Event("popstate");
     Object.defineProperty(popState, "state", {
@@ -673,6 +692,7 @@ test("tags are searchable, removable, and creatable from document details", asyn
     let detail = {
         ...document,
         can_edit: true,
+        can_change_links: true,
         can_manage: false,
         versions: [],
         links: [],
@@ -842,6 +862,7 @@ test("Trash shows attribution and keeps linked documents recoverable", async () 
         ...document,
         availability_state: availabilityState,
         can_edit: true,
+        can_change_links: true,
         can_trash: availabilityState === "available",
         can_restore: availabilityState === "trashed",
         can_manage: true,
@@ -919,6 +940,7 @@ test("authorized permanent deletion requires a reason and keeps an audit flow", 
     onRpc("usl.document", "document_detail", () => ({
         ...document,
         can_edit: false,
+        can_change_links: true,
         can_trash: false,
         can_restore: true,
         can_manage: true,
@@ -991,6 +1013,7 @@ test("workspace and open document detail do not overflow their viewport", async 
     onRpc("usl.document", "document_detail", () => ({
         ...evidence,
         can_edit: true,
+        can_change_links: true,
         can_trash: true,
         can_restore: false,
         can_manage: true,
@@ -1036,6 +1059,7 @@ test("permission failures are actionable while healthy state stays quiet", async
     onRpc("usl.document", "document_detail", () => ({
         ...document,
         can_edit: false,
+        can_change_links: false,
         can_manage: false,
         versions: [],
         links: [],
@@ -1050,5 +1074,5 @@ test("permission failures are actionable while healthy state stays quiet", async
     expect(".o_usl_documents_detail .alert-danger").toHaveText(
         /access needs attention/i
     );
-    expect(".o_usl_documents_detail iframe").toHaveCount(0);
+    expect(".o_usl_document_preview").toHaveCount(0);
 });
