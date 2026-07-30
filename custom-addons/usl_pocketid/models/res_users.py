@@ -5,7 +5,7 @@ from odoo.exceptions import AccessDenied, ValidationError
 
 from ..exceptions import PocketIDAccessDenied, PocketIDReason
 
-_PROFILE_DEFINITIONS = {
+_BASE_PROFILE_DEFINITIONS = {
     "administrator": {
         "classification": "active",
         "active": True,
@@ -23,15 +23,6 @@ _PROFILE_DEFINITIONS = {
         "groups": (
             "base.group_user",
             "project.group_project_user",
-        ),
-        "pocketid": True,
-    },
-    "accountant_reviewer": {
-        "classification": "active",
-        "active": True,
-        "groups": (
-            "base.group_user",
-            "rebuild_account_migration.group_rebuild_accountant_reviewer",
         ),
         "pocketid": True,
     },
@@ -109,6 +100,26 @@ class ResUsers(models.Model):
         "user_id",
         string="OIDC identities",
     )
+
+    @api.model
+    def _usl_pocketid_profile_definitions(self):
+        """Return profiles owned by this module.
+
+        Product modules may extend this mapping with roles they own. Keeping
+        those XML IDs out of the base SSO module prevents an undeclared reverse
+        dependency and preserves independent installation.
+        """
+        return {
+            name: {
+                **definition,
+                "groups": (
+                    tuple(definition["groups"])
+                    if definition["groups"] is not None
+                    else None
+                ),
+            }
+            for name, definition in _BASE_PROFILE_DEFINITIONS.items()
+        }
 
     @api.constrains(
         "active",
@@ -267,6 +278,7 @@ class ResUsers(models.Model):
     def _usl_pocketid_prepare_user_configuration(self, configurations):
         if not isinstance(configurations, list) or not configurations:
             raise ValidationError(_("Pocket ID user configuration must be a non-empty list."))
+        profile_definitions = self._usl_pocketid_profile_definitions()
         prepared = []
         seen_logins = set()
         seen_subjects = set()
@@ -291,7 +303,7 @@ class ResUsers(models.Model):
                     login=login,
                 )
             seen_logins.add(normalized_login)
-            if profile not in _PROFILE_DEFINITIONS:
+            if profile not in profile_definitions:
                 self._usl_pocketid_configuration_error(
                     _("The configured identity profile is unsupported."),
                     login=login,
@@ -338,7 +350,7 @@ class ResUsers(models.Model):
                         login=login,
                     )
                 seen_subjects.add(subject)
-            definition = _PROFILE_DEFINITIONS[profile]
+            definition = profile_definitions[profile]
             email_link = configuration.get("email_link", False)
             if not isinstance(email_link, bool):
                 self._usl_pocketid_configuration_error(
