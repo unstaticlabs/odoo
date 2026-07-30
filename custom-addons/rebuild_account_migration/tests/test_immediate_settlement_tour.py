@@ -86,6 +86,14 @@ class TestImmediateSettlementBrowser(
             widget_line["can_immediate_settle"],
             widget_line["immediate_settlement_reason"],
         )
+        self.assertTrue(
+            widget_line["can_use_payment_rate"],
+            widget_line["payment_rate_settlement_reason"],
+        )
+        self.assertEqual(
+            widget_line["recommended_settlement_action"],
+            "payment_rate",
+        )
 
         self.start_tour(
             f"/odoo/account.move/{self.bill.id}",
@@ -95,9 +103,16 @@ class TestImmediateSettlementBrowser(
 
         settlement = self.bill.immediate_settlement_ids
         self.assertEqual(settlement.state, "reversed")
-        self.assertEqual(settlement.mechanism, "bank_statement")
+        self.assertEqual(settlement.mechanism, "payment_rate")
         self.assertFalse(settlement.reversal_move_id)
-        self.assertTrue(settlement.exchange_move_names)
+        self.assertFalse(settlement.exchange_move_names)
+        self.assertAlmostEqual(
+            settlement.economic_adjustment_amount,
+            0.02,
+            places=2,
+        )
+        self.assertTrue(settlement.allocation_ids)
+        self.assertFalse(settlement.allocation_ids.adjustment_line_id)
         self.assertFalse(settlement.partial_reconcile_ids)
         self.assertEqual(self.bill.payment_state, "not_paid")
         term_line = self.bill.line_ids.filtered(

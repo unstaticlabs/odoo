@@ -22,9 +22,14 @@
         }
 
         .outstanding_credit_assign,
-        .immediate_settlement_assign {
+        .immediate_settlement_assign,
+        .payment_rate_assign {
             min-width: 3rem;
             padding: .25rem .65rem;
+        }
+
+        .payment_rate_assign {
+            white-space: nowrap;
         }
     }
 
@@ -37,47 +42,41 @@
         line-height: 1.35;
     }
 
-    .o_rebuild_payment_suggestion_best {
-        margin-right: map-get($spacers, 1);
-        border: 1px solid rgba($success, .2);
-        background: rgba($success, .1);
-        color: $success-text-emphasis;
-        cursor: help;
-        font-weight: $font-weight-semibold;
-    }
-
-    .o_rebuild_payment_suggestion_kind {
-        margin-right: map-get($spacers, 1);
-        border: 1px solid rgba($o-gray-500, .25);
-        background: rgba($o-gray-500, .08);
-        color: $o-gray-700;
-        font-weight: $font-weight-normal;
-    }
-
     .o_rebuild_payment_suggestion_evidence {
         color: $text-muted;
+        cursor: help;
     }
 
-    .o_rebuild_payment_suggestion_settlement_preview {
+    .o_rebuild_payment_suggestion_facts {
         margin-top: map-get($spacers, 1);
         color: $body-color;
         font-weight: $font-weight-semibold;
     }
 
-    .o_rebuild_payment_suggestion_settlement_estimate {
-        font-size: $font-size-sm;
+    .o_rebuild_payment_suggestion_recommendation {
+        color: $primary;
+        font-weight: $font-weight-semibold;
     }
 
-    .o_rebuild_payment_suggestion_settlement_blocker {
+    .o_rebuild_payment_suggestion_review {
         margin-left: map-get($spacers, 1);
         border-bottom: 1px dotted currentColor;
         color: $text-muted;
         cursor: help;
     }
 
+    .o_rebuild_payment_suggestion_estimate_label {
+        font-size: $font-size-sm * .85;
+        line-height: 1.1;
+    }
+
     @include media-breakpoint-down(sm) {
         .o_immediate_settlement_actions {
-            max-width: 8.5rem;
+            max-width: 15rem;
+        }
+
+        .payment_rate_assign {
+            flex-basis: 100%;
         }
     }
 }

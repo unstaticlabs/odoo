@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, resize, test } from "@odoo/hoot";
 import { animationFrame } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import { Deferred } from "@web/core/utils/concurrency";
@@ -108,14 +108,20 @@ class AccountMove extends models.Model {
                         date: "2026-07-20",
                         can_assign: true,
                         can_immediate_settle: true,
-                        immediate_settlement_confidence: "high",
+                        can_use_payment_rate: true,
                         immediate_settlement_reason:
-                            "Match the exact document amount against the actual bank amount and record the resulting company-currency settlement difference.",
-                        immediate_settlement_preview:
-                            "Settle $5.00 against €4.40 · records €0.02 FX loss",
-                        immediate_settlement_synthetic_preview:
-                            "Odoo estimated payment: $5.03",
-                        show_immediate_settlement_reason: true,
+                            "Use the document's exact $5.00. Odoo records €0.02 FX loss.",
+                        payment_rate_settlement_reason:
+                            "Use $5.00 at the bank's €4.40 rate. No FX is recorded.",
+                        recommended_settlement_action: "payment_rate",
+                        settlement_facts:
+                            "Bank €4.40 · Bill $5.00",
+                        settlement_recommendation:
+                            "Recommended: Use payment rate · no FX",
+                        add_action_helper:
+                            "Use Odoo's $5.03 estimate. This may leave a $0.03 difference.",
+                        amount_is_odoo_estimate: true,
+                        odoo_estimate_label: "Odoo estimate",
                     },
                 ],
                 move_id: 4,
@@ -135,10 +141,21 @@ class AccountMove extends models.Model {
                         currency_id: 1,
                         date: "2026-07-20",
                         can_assign: true,
-                        can_immediate_settle: false,
+                        can_immediate_settle: true,
+                        can_use_payment_rate: false,
                         immediate_settlement_reason:
-                            "The bank transaction is 8 days from the document, above the 3-day exact-settlement policy.",
-                        show_immediate_settlement_reason: true,
+                            "Use the document's exact $5.00. Odoo records €0.02 FX loss. Check: 8 days after the document.",
+                        payment_rate_settlement_reason:
+                            "Use payment rate is limited to 3 days; this transaction is 8 days from the document.",
+                        recommended_settlement_action: "settle",
+                        settlement_facts:
+                            "Bank €4.40 · Bill $5.00",
+                        settlement_recommendation:
+                            "Recommended: Settle · €0.02 FX loss",
+                        add_action_helper:
+                            "Use Odoo's $5.03 estimate. This may leave a $0.03 difference.",
+                        amount_is_odoo_estimate: true,
+                        odoo_estimate_label: "Odoo estimate",
                     },
                 ],
                 move_id: 5,
@@ -194,18 +211,89 @@ class AccountMove extends models.Model {
                         currency_id: 1,
                         date: "2026-07-20",
                         can_assign: true,
-                        can_immediate_settle: true,
-                        immediate_settlement_confidence: "normal",
+                        can_immediate_settle: false,
+                        can_use_payment_rate: true,
                         immediate_settlement_reason:
-                            "Match the exact document amount against the actual bank amount and record the resulting company-currency settlement difference.",
-                        immediate_settlement_preview:
-                            "Settle $5.00 against €4.38 · no settlement difference",
-                        immediate_settlement_synthetic_preview:
-                            "Odoo estimated payment: $5.00",
-                        show_immediate_settlement_reason: true,
+                            "Add already uses the exact foreign amount for this bank transaction.",
+                        payment_rate_settlement_reason:
+                            "Use $5.00 at the bank's €4.38 rate. No FX is recorded.",
+                        recommended_settlement_action: "payment_rate",
+                        settlement_facts:
+                            "Bank €4.38 · Bill $5.00",
+                        settlement_recommendation:
+                            "Recommended: Use payment rate · no FX",
+                        add_action_helper:
+                            "Use Odoo's existing $5.00 candidate.",
+                        amount_is_odoo_estimate: false,
+                        odoo_estimate_label: "Odoo estimate",
                     },
                 ],
                 move_id: 7,
+                outstanding: true,
+                title: "Outstanding debits",
+            },
+        },
+        {
+            id: 8,
+            invoice_payments_widget: {
+                content: [
+                    {
+                        id: 49,
+                        move_id: 91,
+                        name: "Payment-rate settlement",
+                        amount: 5,
+                        currency_id: 1,
+                        date: "2026-07-20",
+                        partial_id: 100,
+                        is_exchange: false,
+                        is_refund: false,
+                        is_immediate_settlement: true,
+                        is_payment_rate_settlement: true,
+                        settlement_summary: "$5.00 · €4.40 · no FX",
+                        settlement_method: "Use payment rate",
+                        executed_pair:
+                            "$5.00 from the document = €4.40 reported on the bank statement",
+                        synthetic_estimate: "$5.03",
+                        carrying_value: "€4.38",
+                        economic_adjustment_label: "€0.02",
+                        economic_account_names: "604000 Hosting",
+                        executed_rate: 0.88,
+                        reference_rate: 0.874,
+                        provenance:
+                            "EUR amount from bank statement; foreign amount from selected document residual",
+                        journal_name: "Shine EUR",
+                        ref: "IMS/2026/00002",
+                    },
+                ],
+                outstanding: false,
+                title: "Less Payment",
+                exchange_info: { line_ids: [] },
+            },
+        },
+        {
+            id: 9,
+            invoice_outstanding_credits_debits_widget: {
+                content: [
+                    {
+                        id: 50,
+                        move_id: 92,
+                        move_name: "BNK1/25-26/0303",
+                        amount: 5.03,
+                        currency_id: 1,
+                        date: "2026-07-20",
+                        can_assign: true,
+                        can_immediate_settle: false,
+                        can_use_payment_rate: false,
+                        immediate_settlement_reason:
+                            "The bank or integration foreign amount conflicts with the document. Review it in Bank Matching.",
+                        payment_rate_settlement_reason:
+                            "The bank or integration foreign amount conflicts with the document. Review it in Bank Matching.",
+                        settlement_review_reason:
+                            "The bank or integration foreign amount conflicts with the document. Review it in Bank Matching.",
+                        show_settlement_review: true,
+                    },
+                ],
+                move_id: 9,
                 outstanding: true,
                 title: "Outstanding debits",
             },
@@ -237,18 +325,15 @@ test("draft bill payment suggestion keeps matching details outside the native ro
         "tr.o_rebuild_payment_suggestion .open_account_move .badge"
     ).toHaveCount(0);
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
-    ).toHaveText("Best match");
-    expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
-    ).toHaveAttribute(
-        "title",
-        "Exact amount · Same currency · Date within 7 days · Native payment"
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
+    ).toHaveText(
+        "Best match · Exact amount · Date within 7 days"
     );
     expect(
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
-    ).toHaveText(
-        "Exact amount · Date within 7 days"
+    ).toHaveAttribute(
+        "title",
+        "Exact amount · Same currency · Date within 7 days · Native payment"
     );
     expect(
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_source"
@@ -300,14 +385,9 @@ test("bank suggestion keeps changes in the Add helper", async () => {
     });
 
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .badge"
-    ).toHaveCount(2);
-    expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_kind"
-    ).toHaveText("Bank transaction");
-    expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_change"
-    ).toHaveCount(0);
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
+    ).toHaveText("Best match · Exact amount · Date 1 day from due date");
+    expect("tr.o_rebuild_payment_suggestion_detail .badge").toHaveCount(0);
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
@@ -315,12 +395,24 @@ test("bank suggestion keeps changes in the Add helper", async () => {
     );
 });
 
-test("eligible suggestion keeps Settle recommended beside native Add", async () => {
+test("immediate suggestion shows all three actions and recommends payment rate", async () => {
+    onRpc("js_assign_outstanding_line", ({ args, model }) => {
+        expect.step("add");
+        expect(model).toBe("account.move");
+        expect(args).toEqual([4, 45]);
+        return true;
+    });
     onRpc("js_settle_outstanding_line", ({ args, model }) => {
         expect.step("settle");
         expect(model).toBe("account.move");
         expect(args).toEqual([4, 45]);
         return { settlement_id: 7 };
+    });
+    onRpc("js_use_payment_rate_outstanding_line", ({ args, model }) => {
+        expect.step("payment-rate");
+        expect(model).toBe("account.move");
+        expect(args).toEqual([4, 45]);
+        return { settlement_id: 8 };
     });
     await mountView({
         type: "form",
@@ -338,24 +430,45 @@ test("eligible suggestion keeps Settle recommended beside native Add", async () 
 
     expect(".immediate_settlement_assign").toHaveCount(1);
     expect(".immediate_settlement_assign").toHaveText("Settle");
-    expect(".immediate_settlement_assign").toHaveClass("btn-primary");
+    expect(".immediate_settlement_assign").toHaveClass("btn-outline-primary");
     expect(".immediate_settlement_assign").toHaveAttribute(
         "title",
-        "Match the exact document amount against the actual bank amount and record the resulting company-currency settlement difference."
+        "Use the document's exact $5.00. Odoo records €0.02 FX loss."
     );
-    expect(".o_rebuild_payment_suggestion_settlement_preview").toHaveText(
-        "Settle $5.00 against €4.40 · records €0.02 FX loss"
+    expect(".payment_rate_assign").toHaveCount(1);
+    expect(".payment_rate_assign").toHaveText("Use payment rate");
+    expect(".payment_rate_assign").toHaveClass("btn-primary");
+    expect(".payment_rate_assign").toHaveAttribute(
+        "title",
+        "Use $5.00 at the bank's €4.40 rate. No FX is recorded."
     );
-    expect(".o_rebuild_payment_suggestion_settlement_estimate").toHaveText(
-        "Odoo estimated payment: $5.03"
+    expect(".o_rebuild_payment_suggestion_facts").toHaveText(
+        "Bank €4.40 · Bill $5.00"
+    );
+    expect(".o_rebuild_payment_suggestion_recommendation").toHaveText(
+        "Recommended: Use payment rate · no FX"
     );
     expect(".outstanding_credit_assign").toHaveCount(1);
+    expect(".outstanding_credit_assign").toHaveAttribute(
+        "title",
+        "Use Odoo's $5.03 estimate. This may leave a $0.03 difference."
+    );
+    expect(".o_rebuild_payment_suggestion_estimate_label").toHaveText(
+        "Odoo estimate"
+    );
     expect(".o_immediate_settlement_actions").toHaveClass("flex-wrap");
+    expect(".o_immediate_settlement_actions > :nth-child(1)").toHaveText("Add");
+    expect(".o_immediate_settlement_actions > :nth-child(2)").toHaveText("Settle");
+    expect(".o_immediate_settlement_actions > :nth-child(3)").toHaveText(
+        "Use payment rate"
+    );
+    await contains(".outstanding_credit_assign").click();
     await contains(".immediate_settlement_assign").click();
-    expect.verifySteps(["settle"]);
+    await contains(".payment_rate_assign").click();
+    expect.verifySteps(["add", "settle", "payment-rate"]);
 });
 
-test("zero company-currency difference is explained without an FX claim", async () => {
+test("exact native candidate hides Settle but keeps payment-rate provenance", async () => {
     await mountView({
         type: "form",
         resModel: "account.move",
@@ -370,13 +483,15 @@ test("zero company-currency difference is explained without an FX claim", async 
         `,
     });
 
-    expect(".immediate_settlement_assign").toHaveClass("btn-outline-primary");
-    expect(".o_rebuild_payment_suggestion_settlement_preview").toHaveText(
-        "Settle $5.00 against €4.38 · no settlement difference"
+    expect(".immediate_settlement_assign").toHaveCount(0);
+    expect(".payment_rate_assign").toHaveCount(1);
+    expect(".payment_rate_assign").toHaveClass("btn-primary");
+    expect(".o_rebuild_payment_suggestion_recommendation").toHaveText(
+        "Recommended: Use payment rate · no FX"
     );
 });
 
-test("blocked payment keeps only Add and a plain-language reason", async () => {
+test("delayed payment recommends Settle and keeps payment-rate warning in helper", async () => {
     await mountView({
         type: "form",
         resModel: "account.move",
@@ -391,25 +506,54 @@ test("blocked payment keeps only Add and a plain-language reason", async () => {
         `,
     });
 
-    expect(".immediate_settlement_assign").toHaveCount(0);
+    expect(".immediate_settlement_assign").toHaveCount(1);
+    expect(".immediate_settlement_assign").toHaveClass("btn-primary");
+    expect(".payment_rate_assign").toHaveCount(0);
     expect(".outstanding_credit_assign").toHaveCount(1);
-    expect(".o_rebuild_payment_suggestion_settlement_blocker").toHaveText(
-        "Settle unavailable"
-    );
-    expect(".o_rebuild_payment_suggestion_settlement_blocker").toHaveAttribute(
+    expect(".immediate_settlement_assign").toHaveAttribute(
         "title",
-        "The bank transaction is 8 days from the document, above the 3-day exact-settlement policy."
+        "Use the document's exact $5.00. Odoo records €0.02 FX loss. Check: 8 days after the document."
+    );
+    expect(".o_rebuild_payment_suggestion_recommendation").toHaveText(
+        "Recommended: Settle · €0.02 FX loss"
+    );
+    expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
+});
+
+test("conflicting facts keep Add with one unobtrusive review indicator", async () => {
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 9,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    expect(".outstanding_credit_assign").toHaveCount(1);
+    expect(".immediate_settlement_assign").toHaveCount(0);
+    expect(".payment_rate_assign").toHaveCount(0);
+    expect(".o_rebuild_payment_suggestion_review").toHaveCount(1);
+    expect(".o_rebuild_payment_suggestion_review").toHaveText("Review");
+    expect(".o_rebuild_payment_suggestion_review").toHaveAttribute(
+        "title",
+        "The bank or integration foreign amount conflicts with the document. Review it in Bank Matching."
     );
 });
 
-test("Settle prevents duplicate clicks and reports a server error", async () => {
+test("pending payment-rate action disables the full row and reports an error", async () => {
     const deferred = new Deferred();
     mockService("notification", {
         add(message, { type }) {
             expect.step(`${type}:${message}`);
         },
     });
-    onRpc("js_settle_outstanding_line", async () => {
+    onRpc("js_use_payment_rate_outstanding_line", async () => {
         await deferred;
         throw new Error("RPC error");
     });
@@ -427,10 +571,12 @@ test("Settle prevents duplicate clicks and reports a server error", async () => 
         `,
     });
 
-    await contains(".immediate_settlement_assign").click();
+    await contains(".payment_rate_assign").click();
     expect(".immediate_settlement_assign").not.toBeEnabled();
-    expect(".immediate_settlement_assign").toHaveAttribute("aria-busy", "true");
-    expect(".immediate_settlement_assign .spinner-border").toHaveCount(1);
+    expect(".payment_rate_assign").not.toBeEnabled();
+    expect(".outstanding_credit_assign").toHaveClass("disabled");
+    expect(".payment_rate_assign").toHaveAttribute("aria-busy", "true");
+    expect(".payment_rate_assign .spinner-border").toHaveCount(1);
     deferred.resolve();
     await expect.waitForSteps(["danger:RPC error"]);
     await animationFrame();
@@ -462,4 +608,53 @@ test("settled payment trace distinguishes bank facts from Odoo's estimate", asyn
     expect(".account_payment_popover").toHaveText(/€0.02 FX loss/);
     expect(".account_payment_popover").toHaveText(/656000 Commercial FX loss/);
     expect(".account_payment_popover").toHaveText(/EXCH\/2026\/00001/);
+});
+
+test("payment-rate trace shows bank value, no FX, and economic allocation", async () => {
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 8,
+        arch: `
+            <form>
+                <field name="invoice_payments_widget" widget="payment"/>
+            </form>
+        `,
+    });
+
+    expect(".o_payment_label").toHaveText(
+        /Payment rate · \$5.00 · €4.40 · no FX on/
+    );
+    await contains(".js_payment_info").click();
+    expect(".account_payment_popover").toHaveText(/Method:\s*Use payment rate/);
+    expect(".account_payment_popover").toHaveText(/Economic adjustment:\s*€0.02/);
+    expect(".account_payment_popover").toHaveText(
+        /Adjusted accounts:\s*604000 Hosting/
+    );
+    expect(".account_payment_popover").not.toHaveText(/Exchange account:/);
+    expect(".account_payment_popover").not.toHaveText(/Native exchange entry:/);
+});
+
+test("all three actions remain visible in a compact mobile layout", async () => {
+    await resize({ width: 375, height: 667 });
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 4,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    expect(".o_immediate_settlement_actions").toHaveClass("flex-wrap");
+    expect(".outstanding_credit_assign").toHaveCount(1);
+    expect(".immediate_settlement_assign").toHaveCount(1);
+    expect(".payment_rate_assign").toHaveCount(1);
+    expect(".o_rebuild_payment_suggestion_facts").toHaveCount(1);
+    expect(".o_rebuild_payment_suggestion_recommendation").toHaveCount(1);
 });

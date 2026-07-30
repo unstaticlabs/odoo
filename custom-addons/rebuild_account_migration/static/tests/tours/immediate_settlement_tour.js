@@ -3,36 +3,36 @@ import { registry } from "@web/core/registry";
 registry.category("web_tour.tours").add("usl_immediate_settlement", {
     steps: () => [
         {
-            content: "Settle and Add coexist on an eligible payment",
+            content: "All three actions coexist on an immediate payment",
             trigger:
-                ".o_form_view .o_immediate_settlement_actions:has(.immediate_settlement_assign):has(.outstanding_credit_assign)",
+                ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)",
         },
         {
-            content: "The exact amount and discarded estimate are visible",
-            trigger:
-                ".o_form_view .o_rebuild_payment_suggestion_detail:contains('FX loss'):contains('Odoo estimated payment')",
+            content: "The facts and recommendation are concise",
+        trigger:
+            ".o_form_view .o_rebuild_payment_suggestion_detail:contains('Bank'):contains('Bill'):contains('Recommended: Use payment rate')",
         },
         {
-            content: "Settle the exact invoice amount",
+            content: "Use the immediate payment rate",
             trigger:
-                ".o_form_view .immediate_settlement_assign:not([disabled])",
+                ".o_form_view .payment_rate_assign:not([disabled])",
             run: "click",
         },
         {
             content: "The invoice shows one concise settlement trace",
             trigger:
-                ".o_form_view .o_payment_label:contains('Settled ·'):contains('FX loss')",
+                ".o_form_view .o_payment_label:contains('Payment rate ·'):contains('no FX')",
         },
         {
             content: "Open the settlement accounting detail",
             trigger:
-                ".o_form_view tr:has(.o_payment_label:contains('Settled ·')) .js_payment_info",
+                ".o_form_view tr:has(.o_payment_label:contains('Payment rate ·')) .js_payment_info",
             run: "click",
         },
         {
-            content: "The source facts and discarded estimate remain inspectable",
+            content: "Source facts and the economic allocation remain inspectable",
             trigger:
-                ".account_payment_popover:contains('from the document'):contains('Discarded Odoo estimate'):contains('FX loss')",
+                ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Economic adjustment')",
         },
         {
             content: "Reverse the whole linked settlement",
@@ -41,9 +41,9 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
             run: "click",
         },
         {
-            content: "Reversal restores the open document and both actions",
+            content: "Reversal restores the open document and all actions",
             trigger:
-                ".o_form_view .o_immediate_settlement_actions:has(.immediate_settlement_assign):has(.outstanding_credit_assign)",
+                ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign)",
         },
     ],
 });
