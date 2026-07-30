@@ -61,11 +61,6 @@
         font-weight: $font-weight-semibold;
     }
 
-    .o_rebuild_payment_suggestion_estimate_label {
-        font-size: $font-size-sm * .85;
-        line-height: 1.1;
-    }
-
     @include media-breakpoint-down(sm) {
         & {
             width: 100% !important;

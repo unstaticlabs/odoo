@@ -83,6 +83,8 @@ class AccountMove extends models.Model {
                             "Exact amount · Date 1 day from due date · Assigned partner Wrong Supplier differs from bill supplier IWG",
                         match_summary:
                             "Exact amount · Date 1 day from due date",
+                        partner_evidence:
+                            "Assigned partner Wrong Supplier differs from document partner IWG",
                         partner_reassignment_required: true,
                         assigned_partner_name: "Wrong Supplier",
                         account_reassignment_required: true,
@@ -113,6 +115,8 @@ class AccountMove extends models.Model {
                             "Reference match · Larger available payment · 1-day gap from due date · Bank transaction · Assigned partner matches Cloudflare",
                         match_summary:
                             "Reference match · Larger available payment · 1-day gap from due date",
+                        partner_evidence:
+                            "Assigned partner matches Cloudflare",
                         can_immediate_settle: true,
                         can_use_payment_rate: true,
                         immediate_settlement_reason:
@@ -126,8 +130,6 @@ class AccountMove extends models.Model {
                             "Recommended: Use payment rate · no FX",
                         add_action_helper:
                             "Use Odoo's $5.03 estimate. This may leave a $0.03 difference.",
-                        amount_is_odoo_estimate: true,
-                        odoo_estimate_label: "Odoo estimate",
                     },
                 ],
                 move_id: 4,
@@ -153,6 +155,8 @@ class AccountMove extends models.Model {
                             "Reference match · Larger available payment · 8-day gap from document · Bank transaction · Assigned partner matches Cloudflare",
                         match_summary:
                             "Reference match · Larger available payment",
+                        partner_evidence:
+                            "Assigned partner matches Cloudflare",
                         can_immediate_settle: true,
                         can_use_payment_rate: false,
                         immediate_settlement_reason:
@@ -166,8 +170,6 @@ class AccountMove extends models.Model {
                             "Recommended: Settle · €0.02 FX loss",
                         add_action_helper:
                             "Use Odoo's $5.03 estimate. This may leave a $0.03 difference.",
-                        amount_is_odoo_estimate: true,
-                        odoo_estimate_label: "Odoo estimate",
                         settlement_review_reason:
                             "Use payment rate is limited to 3 days; this transaction is 8 days from the document.",
                         show_settlement_review: true,
@@ -231,6 +233,8 @@ class AccountMove extends models.Model {
                         match_reason:
                             "Reference match · Bank transaction · Assigned partner matches Cloudflare",
                         match_summary: "Reference match · Exact amount",
+                        partner_evidence:
+                            "Assigned partner matches Cloudflare",
                         can_immediate_settle: false,
                         can_use_payment_rate: true,
                         immediate_settlement_reason:
@@ -244,8 +248,6 @@ class AccountMove extends models.Model {
                             "Recommended: Use payment rate · no FX",
                         add_action_helper:
                             "Use Odoo's existing $5.00 candidate.",
-                        amount_is_odoo_estimate: false,
-                        odoo_estimate_label: "Odoo estimate",
                     },
                 ],
                 move_id: 7,
@@ -311,6 +313,8 @@ class AccountMove extends models.Model {
                         match_reason:
                             "Reference match · Bank transaction · Assigned partner matches Cloudflare",
                         match_summary: "Reference match · Larger available payment",
+                        partner_evidence:
+                            "Assigned partner matches Cloudflare",
                         can_immediate_settle: false,
                         can_use_payment_rate: false,
                         immediate_settlement_reason:
@@ -366,7 +370,7 @@ test("draft bill payment suggestion keeps matching details outside the native ro
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_context"
     ).toHaveAttribute(
         "title",
-        "Exact amount · Same currency · Date within 7 days · Native payment"
+        "Highest-ranked payment. Match: Exact amount; Date within 7 days. Source: existing payment."
     );
     expect(
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_source"
@@ -398,6 +402,10 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
         "Add this existing payment to the bill and reconcile the available amount."
+    );
+    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
+        "title",
+        "Alternative payment. Match: Exact amount. Source: existing payment."
     );
     expect("[aria-disabled='true']").toHaveCount(0);
 });
@@ -495,8 +503,10 @@ test("immediate suggestion shows all three actions and recommends payment rate",
         "title",
         "Use Odoo's $5.03 estimate. This may leave a $0.03 difference."
     );
-    expect(".o_rebuild_payment_suggestion_estimate_label").toHaveText(
-        "Odoo estimate"
+    expect(".o_rebuild_payment_suggestion_estimate_label").toHaveCount(0);
+    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
+        "title",
+        "Highest-ranked payment. Match: Reference match; Larger available payment; 1-day gap from due date. Source: bank transaction. Partner: Assigned partner matches Cloudflare."
     );
     expect(".o_immediate_settlement_actions").toHaveClass("flex-wrap");
     expect(".o_immediate_settlement_actions > :nth-child(1)").toHaveText("Add");
@@ -562,7 +572,7 @@ test("delayed payment recommends Settle and keeps payment-rate warning in helper
     );
     expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
         "title",
-        "Reference match · Larger available payment · 8-day gap from document · Bank transaction · Assigned partner matches Cloudflare · Use payment rate is limited to 3 days; this transaction is 8 days from the document."
+        "Highest-ranked payment. Match: Reference match; Larger available payment. Source: bank transaction. Partner: Assigned partner matches Cloudflare. Review: Use payment rate is limited to 3 days; this transaction is 8 days from the document."
     );
 });
 
@@ -591,7 +601,7 @@ test("conflicting facts keep Add with the warning in compact match evidence", as
     );
     expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
         "title",
-        "Reference match · Bank transaction · Assigned partner matches Cloudflare · The bank or integration foreign amount conflicts with the document. Review it in Bank Matching."
+        "Highest-ranked payment. Match: Reference match; Larger available payment. Source: bank transaction. Partner: Assigned partner matches Cloudflare. Review: The bank or integration foreign amount conflicts with the document. Review it in Bank Matching."
     );
 });
 
