@@ -1,0 +1,17 @@
+{
+    "name": "USL TESE Restoration",
+    "summary": "Temporary Odoo Online TESE payroll and HR restoration machinery",
+    "version": "saas~19.2.1.0.0",
+    "category": "Technical/Migration",
+    "author": "Unstatic Labs",
+    "license": "LGPL-3",
+    "depends": [
+        "rebuild_account_migration",
+        "usl_tese_payroll",
+    ],
+    "data": [
+        "security/ir.model.access.csv",
+    ],
+    "application": False,
+    "installable": True,
+}
