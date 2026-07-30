@@ -10,7 +10,7 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
         {
             content: "The matching cue stays compact",
             trigger:
-                ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence:contains('Best match')",
+                ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('Best match')",
         },
         {
             content: "Use the immediate payment rate",

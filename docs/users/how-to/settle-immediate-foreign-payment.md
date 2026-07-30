@@ -17,9 +17,10 @@ Odoo estimate $5.03     [Add] [Settle] [Use payment rate]
 
 All available actions remain on the same compact row. The recommended action
 is highlighted; alternatives use secondary styling. Hover or focus an action
-to see its accounting consequence. The short **Best match** cue keeps the full
-matching evidence and any source warning in a tooltip instead of repeating it
-on the invoice.
+to see its accounting consequence. Light chips below each candidate summarize
+the useful matching facts, such as **Best match**, **Bank transaction**,
+**Reference match**, **Exact amount**, and the date gap. Hover or focus those
+chips for the complete matching evidence and any source warning.
 
 ## Choose the action
 

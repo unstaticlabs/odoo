@@ -40,11 +40,25 @@
         color: $text-muted;
         font-size: $font-size-sm;
         line-height: 1.35;
+        cursor: help;
     }
 
+    .o_rebuild_payment_suggestion_best,
+    .o_rebuild_payment_suggestion_kind,
     .o_rebuild_payment_suggestion_evidence {
-        color: $text-muted;
-        cursor: help;
+        margin-right: map-get($spacers, 1);
+        margin-bottom: .15rem;
+        border: 1px solid rgba($o-gray-500, .2);
+        background: rgba($o-gray-500, .06);
+        color: $o-gray-700;
+        font-weight: $font-weight-normal;
+    }
+
+    .o_rebuild_payment_suggestion_best {
+        border-color: rgba($success, .2);
+        background: rgba($success, .08);
+        color: $success-text-emphasis;
+        font-weight: $font-weight-semibold;
     }
 
     .o_rebuild_payment_suggestion_estimate_label {

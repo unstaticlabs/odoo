@@ -167,6 +167,43 @@ def _ensure_case(
     return bill, statement_line
 
 
+def _ensure_competing_statement(
+    env,
+    *,
+    company,
+    bank_journal,
+    partner,
+    payment_ref,
+    statement_date,
+    amount,
+):
+    statement_line = env["account.bank.statement.line"].sudo().search(
+        [
+            ("company_id", "=", company.id),
+            ("journal_id", "=", bank_journal.id),
+            ("payment_ref", "=", payment_ref),
+        ],
+        limit=1,
+    )
+    values = {
+        "journal_id": bank_journal.id,
+        "date": statement_date,
+        "payment_ref": payment_ref,
+        "amount": amount,
+        "partner_id": partner.id,
+    }
+    if statement_line:
+        statement_line.write(values)
+    else:
+        statement_line = (
+            env["account.bank.statement.line"]
+            .sudo()
+            .with_company(company)
+            .create(values)
+        )
+    return statement_line
+
+
 def bootstrap(env):
     if not _is_enabled("USL_IMMEDIATE_SETTLEMENT_QA_BOOTSTRAP"):
         raise RuntimeError(MISSING_OPT_IN)
@@ -312,6 +349,26 @@ def bootstrap(env):
         document_date=document_date,
         statement_date=statement_date,
     )
+    competing_statements = [
+        _ensure_competing_statement(
+            env,
+            company=company,
+            bank_journal=bank_journal,
+            partner=payment_rate_bill.partner_id,
+            payment_ref="SHINE CARD ALTERNATIVE 4.39",
+            statement_date=document_date,
+            amount=-4.39,
+        ),
+        _ensure_competing_statement(
+            env,
+            company=company,
+            bank_journal=bank_journal,
+            partner=payment_rate_bill.partner_id,
+            payment_ref="SHINE CARD ALTERNATIVE 4.36",
+            statement_date=document_date + timedelta(days=2),
+            amount=-4.36,
+        ),
+    ]
     settle_bill, settle_statement = _ensure_case(
         env,
         company=company,
@@ -433,6 +490,14 @@ def bootstrap(env):
     _liquidity, payment_rate_source, _other = (
         payment_rate_statement._seek_for_lines()
     )
+    competing_source_ids = {
+        source.id
+        for statement in competing_statements
+        for source in statement._seek_for_lines()[1]
+    }
+    payment_rate_candidates = payment_rate_bill.with_user(
+        accountant,
+    ).invoice_outstanding_credits_debits_widget["content"]
     settle_eligibility = payment_rate_bill.with_user(
         accountant,
     )._get_immediate_settlement_eligibility(
@@ -506,6 +571,11 @@ def bootstrap(env):
         or payment_rate_statement.amount_currency
         or not settle_eligibility["eligible"]
         or not payment_rate_eligibility["eligible"]
+        or len(payment_rate_candidates) < 3
+        or payment_rate_candidates[0]["id"] != payment_rate_source.id
+        or not competing_source_ids.issubset(
+            {candidate["id"] for candidate in payment_rate_candidates},
+        )
         or not usd.is_zero(
             settle_eligibility["synthetic_foreign_amount"] - 5.03,
         )
@@ -526,6 +596,13 @@ def bootstrap(env):
         payment_rate_bill.display_name,
         payment_rate_bill.id,
         payment_rate_statement.id,
+    )
+    _logger.info(
+        "Competing debit suggestions: %s",
+        [
+            (statement.display_name, statement.amount, statement.id)
+            for statement in competing_statements
+        ],
     )
     _logger.info(
         "Settle case: %s %s %s",
