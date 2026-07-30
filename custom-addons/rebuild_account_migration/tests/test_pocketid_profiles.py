@@ -66,6 +66,10 @@ class TestPocketIDProductProfiles(TransactionCase):
             reviewer,
         ]
         users = self.env["res.users"]
+        self.assertIn(
+            "accountant_reviewer",
+            users._usl_pocketid_profile_definitions(),
+        )
         first_summary = users._usl_pocketid_apply_user_configuration(
             configuration,
             break_glass_password="offline-break-glass-password",

@@ -41,7 +41,7 @@ services:
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
       USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
       USL_POCKET_ID_CLIENT_SECRET: ${POCKET_ID_CLIENT_SECRET:?Generate .pocket-id.env with scripts/pocket-id-dev bootstrap}
-      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:18469}
+      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
       USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
       USL_POCKET_ID_SCOPES: openid profile email groups
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: "0"
@@ -58,7 +58,7 @@ services:
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
       USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
       USL_POCKET_ID_CLIENT_SECRET: ${POCKET_ID_CLIENT_SECRET:?Generate .pocket-id.env with scripts/pocket-id-dev bootstrap}
-      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:18469}
+      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
       USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
       USL_POCKET_ID_SCOPES: openid profile email groups
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: "0"

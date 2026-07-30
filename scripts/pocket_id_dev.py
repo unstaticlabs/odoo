@@ -34,6 +34,7 @@ REQUIRED_ENV_KEYS = {
     "POCKET_ID_PROSPER_EMAIL",
     "POCKET_ID_PROSPER_ID",
     "POCKET_ID_ROGER_ID",
+    "POCKET_ID_SOURCE_DB",
     "POCKET_ID_STATIC_API_KEY",
     "POCKET_ID_VALENTIN_ID",
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
@@ -112,10 +113,10 @@ def _write_new_env(path: Path) -> None:
     ).strip()
     database = os.getenv(
         "USL_POCKET_ID_DEV_ODOO_DB",
-        "odoo_saas_19_2_candidate_01",
+        "odoo_dev_pocketid_qa",
     ).strip()
-    odoo_port = os.getenv("USL_POCKET_ID_DEV_ODOO_PORT", "18469").strip()
-    gevent_port = os.getenv("USL_POCKET_ID_DEV_GEVENT_PORT", "18472").strip()
+    odoo_port = os.getenv("USL_POCKET_ID_DEV_ODOO_PORT", "8069").strip()
+    gevent_port = os.getenv("USL_POCKET_ID_DEV_GEVENT_PORT", "8072").strip()
     pocket_port = os.getenv("USL_POCKET_ID_DEV_POCKET_PORT", "1411").strip()
     odoo_hostname = os.getenv(
         "USL_POCKET_ID_DEV_ODOO_HOSTNAME",
@@ -125,7 +126,10 @@ def _write_new_env(path: Path) -> None:
         "USL_POCKET_ID_DEV_POCKET_HOSTNAME",
         "pocket-id.localhost",
     ).strip()
-    qa_clone = os.getenv("USL_POCKET_ID_DEV_QA_CLONE", "0").strip() == "1"
+    source_database = os.getenv(
+        "USL_POCKET_ID_DEV_SOURCE_DB",
+        "odoo_dev",
+    ).strip()
     prosper_odoo_email = os.getenv(
         "USL_POCKET_ID_DEV_PROSPER_ODOO_EMAIL",
         "prosper@preproduction.invalid",
@@ -134,12 +138,12 @@ def _write_new_env(path: Path) -> None:
         raise PocketIDError("The local Compose project name is unsafe.")
     if not SAFE_DATABASE_PATTERN.fullmatch(database):
         raise PocketIDError("The local Odoo database name is unsafe.")
-    if database in {"odoo_dev", "odoo_online_source_saas_19_2"}:
-        raise PocketIDError("The preserved or source Odoo database is protected.")
-    if qa_clone and not re.fullmatch(r"odoo_dev_[A-Za-z0-9_]+_qa", database):
+    if source_database != "odoo_dev":
+        raise PocketIDError("Local Pocket ID QA must clone the canonical odoo_dev.")
+    if database in {source_database, "odoo_online_source_saas_19_2"}:
+        raise PocketIDError("The canonical or source Odoo database is protected.")
+    if not re.fullmatch(r"odoo_dev_[A-Za-z0-9_]+_qa", database):
         raise PocketIDError("A QA clone must use an odoo_dev_*_qa database name.")
-    if database != "odoo_saas_19_2_candidate_01" and not qa_clone:
-        raise PocketIDError("A non-candidate database must be an explicit QA clone.")
     ports = (odoo_port, gevent_port, pocket_port)
     if any(not port.isdigit() or not 1 <= int(port) <= 65535 for port in ports):
         raise PocketIDError("Local service ports must be between 1 and 65535.")
@@ -150,7 +154,7 @@ def _write_new_env(path: Path) -> None:
             raise PocketIDError("Local service hostnames must use .localhost.")
     values = {
         "COMPOSE_PROJECT_NAME": project_name,
-        "ODOO_DB_FILTER": "^odoo_saas_19_2_candidate_01$",
+        "ODOO_DB_FILTER": f"^{database}$",
         "ODOO_GEVENT_PORT": gevent_port,
         "ODOO_HOSTNAME": odoo_hostname,
         "ODOO_HTTP_PORT": odoo_port,
@@ -170,15 +174,15 @@ def _write_new_env(path: Path) -> None:
         "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
         "POCKET_ID_PROSPER_ODOO_EMAIL": prosper_odoo_email,
         "POCKET_ID_PROSPER_ID": str(uuid.uuid4()),
-        "POCKET_ID_QA_CLONE": "1" if qa_clone else "0",
+        "POCKET_ID_QA_CLONE": "1",
         "POCKET_ID_ROGER_ID": str(uuid.uuid4()),
+        "POCKET_ID_SOURCE_DB": source_database,
         "POCKET_ID_STATIC_API_KEY": secrets.token_urlsafe(36),
         "POCKET_ID_VALENTIN_ID": str(uuid.uuid4()),
         "USL_EINVOICE_LIVE_ENABLED": "0",
         "USL_EREPORTING_LIVE_ENABLED": "0",
         "USL_POCKET_ID_BREAK_GLASS_PASSWORD": secrets.token_urlsafe(36),
     }
-    values["ODOO_DB_FILTER"] = f"^{database}$"
     content = (
         "# Generated local Pocket ID preproduction configuration. Do not commit.\n"
         + "\n".join(f"{key}={value}" for key, value in values.items())

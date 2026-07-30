@@ -134,10 +134,10 @@ The read-only Odoo Online source inspection on 2026-07-29 found:
 | Public user and Portal User Template | Framework accounts | Protected framework records; never SSO-linked |
 | OdooBot | Technical system account | Protected framework record; never SSO-linked |
 
-The current candidate database had only the framework accounts and the local
-`admin` user when inspected. It had both Unstatic Labs and USL MEDIA companies.
-The accounting reconstruction step must run before named-user SSO policy if
-Valentin and Prosper are expected to be present.
+Pocket ID QA is downstream of reconstruction. The local helper clones the
+canonical `odoo_dev` product, including its users, companies and filestore,
+then applies named-user policy only to that disposable clone. It never weakens
+or mutates the canonical reconstruction to make SSO tests pass.
 
 ## Lifecycle and session policy
 
@@ -169,10 +169,11 @@ must be configured deliberately:
 
 The repository now supplies an isolated, digest-pinned Pocket ID tenant,
 generated uncommitted credentials, stable local immutable subjects, a
-restricted OIDC client and an idempotent candidate-database policy. The named
-users and cross-application journeys have been validated with administrator
-one-time Pocket ID links; passkey-ceremony validation is intentionally outside
-the Odoo integration acceptance scope.
+restricted OIDC client and an idempotent policy over an on-demand
+`odoo_dev_pocketid_qa` clone. The named users and cross-application journeys
+have been validated with administrator one-time Pocket ID links;
+passkey-ceremony validation is intentionally outside the Odoo integration
+acceptance scope.
 
 This unblocks local preproduction. A future non-local deployment still needs
 owner-confirmed production issuer and subjects, an owner-confirmed Prosper

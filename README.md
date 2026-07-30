@@ -337,8 +337,9 @@ scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
 scripts/odoo-dev configure-pocket-id  # dry-run/apply Pocket ID user policy
 scripts/pocket-id-dev bootstrap       # generate ignored local Pocket ID secrets
-scripts/pocket-id-dev configure-odoo  # provision Pocket ID and candidate Odoo
+scripts/pocket-id-dev configure-odoo  # clone odoo_dev and provision isolated SSO QA
 scripts/pocket-id-dev one-time-link valentin  # test-only named-user login
+scripts/pocket-id-dev cleanup-qa-clone --confirm  # restore canonical odoo_dev
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
@@ -359,9 +360,10 @@ effective runtime filter before printing the login URL. If you invoke
 aligned with the database you intend to serve.
 
 The isolated local Pocket ID workflow is pinned in `compose.pocket-id.yaml`,
-binds Pocket ID only to loopback, targets only
-`odoo_saas_19_2_candidate_01`, and generates its environment-only credentials
-in the ignored mode-0600 `.pocket-id.env`. Follow the
+binds Pocket ID only to loopback, creates one disposable
+`odoo_dev_pocketid_qa` clone from canonical `odoo_dev`, and generates its
+environment-only credentials in the ignored mode-0600 `.pocket-id.env`.
+Cleanup drops that clone and restores the normal `odoo_dev` service. Follow the
 [Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
 the client secret, break-glass password or raw subjects in Git.
 

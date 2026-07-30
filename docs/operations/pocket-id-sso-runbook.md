@@ -1,8 +1,9 @@
 # Pocket ID SSO runbook
 
 This runbook configures Pocket ID passkey login without making Pocket ID an
-authorization source. Use the candidate database first. Do not run the
-procedure against `odoo_dev` or the read-only source database.
+authorization source. Local integration QA uses an automatically managed,
+disposable clone of canonical `odoo_dev`. The helper never configures
+`odoo_dev` itself and never touches the read-only source database.
 
 For Odoo integration acceptance in the isolated local tenant, administrator
 one-time Pocket ID login links stand in for the passkey ceremony. They exercise
@@ -34,19 +35,19 @@ The repository provides a pinned Pocket ID v2.12.0 Compose overlay and an
 idempotent helper. It:
 
 - binds Pocket ID to `127.0.0.1:1411`;
-- serves Odoo on `http://odoo.localhost:18469`;
+- serves Odoo on the normal local port at `http://odoo.localhost:8069`;
 - accepts local HTTP only for RFC-reserved `.localhost` names;
-- targets only `odoo_saas_19_2_candidate_01`;
+- targets only a disposable `odoo_dev_*_qa` clone;
 - refuses either enabled regulatory live guard;
 - writes generated secrets and immutable test subjects only to the ignored
   `.pocket-id.env` with mode 0600;
-- backs up the candidate database and filestore before applying Odoo policy.
+- clones canonical `odoo_dev` and its filestore on demand;
+- reuses that clone during one QA session, then removes it explicitly.
 
 Create and configure the tenant:
 
 ```bash
 scripts/pocket-id-dev bootstrap
-scripts/pocket-id-dev provision
 scripts/pocket-id-dev configure-odoo
 scripts/pocket-id-dev status
 ```
@@ -73,11 +74,16 @@ scripts/pocket-id-dev start-idp
 ```
 
 `reset-idp --confirm` deletes only the disposable Pocket ID container and
-volume. It does not delete the candidate Odoo database or filestore:
+volume. To finish QA, remove the disposable database/filestore clone and
+restore the canonical Odoo service:
 
 ```bash
 scripts/pocket-id-dev reset-idp --confirm
+scripts/pocket-id-dev cleanup-qa-clone --confirm
 ```
+
+`cleanup-qa-clone` is the normal final command. It also removes Pocket ID
+service data, so running `reset-idp` first is optional.
 
 The local overlay deliberately enables insecure callback URLs only inside this
 loopback preproduction topology. Staging and production require HTTPS and must
@@ -177,13 +183,11 @@ If a target contains the inactive source-style `roger@xaic.cat` user, add:
 ```
 
 Do not create a historical identity only to make the list resemble the source.
-The current candidate contains only framework users and `admin`; it retains an
-imported Valentin partner with the exact email above. Controlled creation
-therefore reuses Valentin's partner instead of duplicating it, while Roger and
-Prosper require complete owner-approved identity details. If a later
-reconstruction already created one of these users, the same configuration
-matches login first and exact email second. It refuses ambiguity and never
-silently merges users.
+Local QA starts from the current canonical reconstruction, including its
+existing users and imported contacts. Controlled creation therefore reuses an
+exact existing login or email/partner instead of duplicating it; missing users
+still require complete owner-approved identity details. The configuration
+refuses ambiguity and never silently merges users.
 
 Verified-email first link is an exception for a known existing user. Replace
 `subject` with `"email_link": true`, set both provider and per-user approval,
@@ -192,10 +196,10 @@ for an ambiguous email or as an account-discovery mechanism.
 
 ## 5. Install and dry-run
 
-Select the candidate explicitly:
+For a non-local preproduction database, select the approved target explicitly:
 
 ```bash
-export ODOO_DEV_DB=odoo_saas_19_2_candidate_01
+export ODOO_DEV_DB=<approved-preproduction-database>
 export USL_POCKET_ID_USERS_JSON='<complete-json-array>'
 export USL_POCKET_ID_BREAK_GLASS_PASSWORD='<password-manager-secret>'
 export USL_POCKET_ID_APPLY=0
@@ -206,6 +210,11 @@ scripts/odoo-dev configure-pocket-id
 The dry run performs discovery and all user, company, group, subject and
 break-glass checks, then rolls the database transaction back. It prints only
 logins, profiles and counts; it does not print subjects or secrets.
+
+For local QA, do not run these commands manually. `scripts/pocket-id-dev
+configure-odoo` creates the disposable clone, updates the complete product
+dependency graph, performs the same dry-run/apply sequence and prints the
+isolated Odoo and Pocket ID URLs.
 
 Review the dry-run result with the identity owner and accounting owner.
 Resolve every missing user, duplicate email, unclassified login, company or
@@ -280,7 +289,7 @@ tests do not replace the real Pocket ID/Odoo redirect and callback.
 
 ## 8. Validated local acceptance
 
-The isolated candidate was validated in the running application on
+The isolated preproduction candidate was validated in the running application on
 2026-07-30:
 
 - Valentin, Roger and Prosper completed real Pocket ID authorization-code
