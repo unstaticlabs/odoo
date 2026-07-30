@@ -5,10 +5,9 @@ from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 
+from ..models.constants import TESE_COMPONENTS
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
-
-from ..models.constants import TESE_COMPONENTS
 
 
 @tagged("post_install", "-at_install", "usl_tese_payroll")
@@ -394,7 +393,11 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         Diagnostic = self.env["usl.tese.diagnostic.issue"].with_user(
             self.workflow_user,
         )
-        Diagnostic.action_run_diagnostics()
+        action = self.env.ref(
+            "usl_tese_payroll.action_run_tese_diagnostics",
+        ).with_user(self.workflow_user)
+        result = action.run()
+        self.assertEqual(result["res_model"], "usl.tese.diagnostic.issue")
         issue = self.env["usl.tese.diagnostic.issue"].sudo().search([
             ("stable_key", "=", f"payslip:{payslip.id}:pdf"),
         ])
