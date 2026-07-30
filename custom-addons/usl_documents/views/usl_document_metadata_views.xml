@@ -229,6 +229,76 @@
         </field>
     </record>
 
+    <record id="view_usl_document_quick_filter_list" model="ir.ui.view">
+        <field name="name">usl.document.quick.filter.list</field>
+        <field name="model">usl.document.quick.filter</field>
+        <field name="arch" type="xml">
+            <list string="One-click Shortcuts" decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="kind"/>
+                <field name="filter_type" optional="hide"/>
+                <field name="field_name" optional="hide"/>
+                <field name="smart_view_ids" widget="many2many_tags"
+                       string="Smart views" optional="show"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_document_quick_filter_form" model="ir.ui.view">
+        <field name="name">usl.document.quick.filter.form</field>
+        <field name="model">usl.document.quick.filter</field>
+        <field name="arch" type="xml">
+            <form string="One-click Shortcut">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="For example: Current supplier documents"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="kind"/>
+                            <field name="filter_type" invisible="kind != 'filter'"/>
+                            <field name="days"
+                                   invisible="kind != 'filter' or filter_type != 'recent'"/>
+                            <field name="confidentiality"
+                                   invisible="kind != 'filter' or filter_type != 'privacy'"/>
+                            <field name="field_name" invisible="kind != 'group'"/>
+                        </group>
+                        <group>
+                            <field name="icon"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="key" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Paperless metadata"
+                           invisible="kind != 'filter' or filter_type not in ('tags', 'correspondents', 'document_types')">
+                        <field name="tag_ids" widget="many2many_tags"
+                               invisible="filter_type != 'tags'"/>
+                        <field name="correspondent_ids" widget="many2many_tags"
+                               invisible="filter_type != 'correspondents'"/>
+                        <field name="document_type_ids" widget="many2many_tags"
+                               invisible="filter_type != 'document_types'"/>
+                    </group>
+                    <group string="Placement">
+                        <field name="smart_view_ids" widget="many2many_tags"
+                               domain="[('scope', '=', 'shared')]"
+                               options="{'no_create': True, 'no_quick_create': True}"/>
+                    </group>
+                    <div class="alert alert-info" role="status">
+                        Shortcuts are optional Odoo search controls attached to Smart
+                        Views. Tag, correspondent, and document-type choices use the
+                        synchronized Paperless catalogs. The Smart View’s base
+                        Paperless-compatible definition remains the shared Saved View;
+                        toggling a shortcut does not silently rewrite that definition.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="view_usl_document_smart_view_list" model="ir.ui.view">
         <field name="name">usl.document.smart.view.list</field>
         <field name="model">usl.document.smart.view</field>
@@ -280,6 +350,12 @@
                         A document appears when it matches the configured Paperless
                         metadata. Archive-native views are available in both applications.
                     </div>
+                    <div class="alert alert-info" role="status"
+                         invisible="not quick_filter_ids">
+                        One-click shortcuts are optional Odoo controls shown below the
+                        search bar. Configure reusable shortcuts from
+                        <b>Configuration &gt; One-click shortcuts</b>.
+                    </div>
                     <group string="Shared archive view">
                         <field name="archive_native"
                                invisible="system_rule not in ('metadata', 'saved')"/>
@@ -323,6 +399,11 @@
         <field name="domain">[('scope', '=', 'shared')]</field>
         <field name="context">{'default_scope': 'shared'}</field>
     </record>
+    <record id="action_usl_document_quick_filters" model="ir.actions.act_window">
+        <field name="name">One-click shortcuts</field>
+        <field name="res_model">usl.document.quick.filter</field>
+        <field name="view_mode">list,form</field>
+    </record>
 
     <menuitem id="menu_usl_documents_tags" name="Tags"
               parent="menu_usl_documents_root"
@@ -339,5 +420,9 @@
     <menuitem id="menu_usl_documents_smart_views" name="Smart views"
               parent="menu_usl_documents_configuration"
               action="action_usl_document_smart_views" sequence="40"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_quick_filters" name="One-click shortcuts"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_quick_filters" sequence="45"
               groups="usl_documents.group_documents_manager"/>
 </odoo>

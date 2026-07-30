@@ -307,6 +307,8 @@ test("a record smart button starts from an uncluttered linked-record view", asyn
         expect(kwargs.search_domain).toEqual([
             ["linked_record_ref", "=", "account.move:12"],
         ]);
+        expect(kwargs.linked_model).toBe("account.move");
+        expect(kwargs.linked_id).toBe(12);
         return emptyWorkspace;
     });
 
@@ -447,10 +449,17 @@ test("detail prioritizes original, classification, versions, and linked records"
         "",
         browser.location.href
     );
+    let popStateCount = 0;
+    const countPopState = () => {
+        popStateCount += 1;
+    };
+    browser.addEventListener("popstate", countPopState);
     browser.history.back();
     await animationFrame();
     await animationFrame();
     await animationFrame();
+    browser.removeEventListener("popstate", countPopState);
+    expect(popStateCount).toBe(1);
     expect(".o_usl_documents_detail").toHaveCount(0);
     expect(
         new URL(browser.location.href).searchParams.get("usl_document")
@@ -549,10 +558,53 @@ test("top tag shortcuts compose with native search facets", async () => {
     expect(lastDomain).toEqual([["tag_ids", "in", [21]]]);
     expect(".o_searchview_facet").toHaveText(/Tag: Tax & reporting/);
     expect(".o_usl_filter_shortcuts .is-selected").toHaveText(/Tax & reporting/);
-    await contains(".o_usl_filter_shortcuts .is-selected").click();
-    expect(lastDomain).toEqual([]);
-    expect(".o_searchview_facet").toHaveCount(0);
-    expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(0);
+    await contains(".o_usl_filter_shortcuts .o_usl_tag_chip", {
+        text: "Contracts & legal",
+    }).click();
+    expect(lastDomain).toEqual([["tag_ids", "in", [21, 22]]]);
+    expect(".o_searchview_facet").toHaveText(
+        /Tags: Tax & reporting or Contracts & legal/
+    );
+    expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(2);
+    await contains(".o_usl_filter_shortcuts .is-selected", {
+        text: "Tax & reporting",
+    }).click();
+    expect(lastDomain).toEqual([["tag_ids", "in", [22]]]);
+    expect(".o_searchview_facet").toHaveText(/Tag: Contracts & legal/);
+    expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(1);
+});
+
+test("restored tag OR facet stays synchronized with top shortcuts", async () => {
+    const tags = [
+        { id: 21, name: "Tax & reporting", color: "#31a354" },
+        { id: 22, name: "Contracts & legal", color: "#8c6bb1" },
+    ];
+    const url = new URL(browser.location.href);
+    url.searchParams.set("domain", '[("tag_ids", "in", [21, 22])]');
+    browser.history.replaceState({}, "", url.toString());
+    browser.sessionStorage.setItem(
+        storageKey("global"),
+        JSON.stringify({ workspace: "recent", tagIds: [21, 22] })
+    );
+    let lastDomain = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.shortcut_tag_ids).toEqual([]);
+        lastDomain = kwargs.search_domain;
+        return { ...emptyWorkspace, tags };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect(lastDomain).toEqual([["tag_ids", "in", [21, 22]]]);
+    expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(2);
+    expect(".o_searchview_facet").toHaveCount(1);
+    await contains(".o_usl_filter_shortcuts .is-selected", {
+        text: "Tax & reporting",
+    }).click();
+    expect(lastDomain).toEqual([["tag_ids", "in", [22]]]);
+    expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(1);
 });
 
 test("large tag catalogs stay readable in a bounded searchable picker", async () => {

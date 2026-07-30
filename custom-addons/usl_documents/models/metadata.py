@@ -1,5 +1,6 @@
 import json
 import shlex
+import uuid
 from datetime import timedelta
 
 from odoo import Command, _, api, fields, models
@@ -670,17 +671,69 @@ class UslPaperlessDocumentType(models.Model):
 
 class UslDocumentQuickFilter(models.Model):
     _name = "usl.document.quick.filter"
-    _description = "Documents One-click Filter"
+    _description = "Documents One-click Shortcut"
     _order = "sequence, name, id"
 
     name = fields.Char(required=True, translate=True)
-    key = fields.Char(required=True, index=True)
+    key = fields.Char(required=True, index=True, readonly=True, copy=False)
     icon = fields.Char(default="fa-filter")
     sequence = fields.Integer(default=10)
     kind = fields.Selection(
         [("filter", "Filter"), ("group", "Group by")],
         required=True,
         default="filter",
+    )
+    filter_type = fields.Selection(
+        [
+            ("my_uploads", "My uploads"),
+            ("unlinked", "Not linked"),
+            ("linked", "Linked to Odoo"),
+            ("needs_review", "Needs review"),
+            ("recent", "Recently added"),
+            ("accounting", "Accounting evidence"),
+            ("tags", "Any selected tag"),
+            ("correspondents", "Any selected correspondent"),
+            ("document_types", "Any selected document type"),
+            ("privacy", "Privacy"),
+        ],
+        string="Filter",
+        required=True,
+        default="unlinked",
+    )
+    days = fields.Integer(
+        default=30,
+        help="For Recently added, include documents added within this many days.",
+    )
+    tag_ids = fields.Many2many(
+        "usl.paperless.tag",
+        "usl_document_quick_filter_tag_rel",
+        "filter_id",
+        "tag_id",
+        string="Tags",
+    )
+    correspondent_ids = fields.Many2many(
+        "usl.paperless.correspondent",
+        "usl_document_quick_filter_correspondent_rel",
+        "filter_id",
+        "correspondent_id",
+        string="Correspondents",
+    )
+    document_type_ids = fields.Many2many(
+        "usl.paperless.document.type",
+        "usl_document_quick_filter_type_rel",
+        "filter_id",
+        "document_type_id",
+        string="Document types",
+    )
+    confidentiality = fields.Selection(
+        [
+            ("internal", "Internal"),
+            ("accounting", "Accounting evidence"),
+            ("hr", "HR restricted"),
+            ("private", "Private"),
+        ],
+        string="Privacy",
+        default="internal",
     )
     field_name = fields.Selection(
         [
@@ -693,33 +746,132 @@ class UslDocumentQuickFilter(models.Model):
         ],
         string="Group field",
     )
+    smart_view_ids = fields.Many2many(
+        "usl.document.smart.view",
+        "usl_document_smart_view_quick_filter_rel",
+        "filter_id",
+        "view_id",
+        string="Available in Smart Views",
+        help=(
+            "Smart Views that show this optional shortcut below the native "
+            "Odoo search bar."
+        ),
+    )
     active = fields.Boolean(default=True)
 
     _quick_filter_key_unique = models.Constraint(
         "UNIQUE(key)", "A Documents shortcut key must be unique.",
     )
 
-    def workspace_values(self):
+    @api.model_create_multi
+    def create(self, values_list):
+        normalized = []
+        for values in values_list:
+            values = dict(values)
+            values.setdefault("key", f"shortcut_{uuid.uuid4().hex}")
+            normalized.append(values)
+        return super().create(normalized)
+
+    @api.constrains(
+        "kind",
+        "filter_type",
+        "field_name",
+        "days",
+        "tag_ids",
+        "correspondent_ids",
+        "document_type_ids",
+    )
+    def _check_configuration(self):
+        for shortcut in self:
+            if shortcut.kind == "group" and not shortcut.field_name:
+                raise ValidationError(_("Choose the field to group documents by."))
+            if shortcut.kind != "filter":
+                continue
+            if shortcut.filter_type == "recent" and shortcut.days < 1:
+                raise ValidationError(_("Recently added must use at least one day."))
+            required_catalogs = {
+                "tags": (shortcut.tag_ids, _("Choose at least one tag.")),
+                "correspondents": (
+                    shortcut.correspondent_ids,
+                    _("Choose at least one correspondent."),
+                ),
+                "document_types": (
+                    shortcut.document_type_ids,
+                    _("Choose at least one document type."),
+                ),
+            }
+            records, message = required_catalogs.get(
+                shortcut.filter_type,
+                (True, ""),
+            )
+            if not records:
+                raise ValidationError(message)
+
+    def _effective_filter_type(self):
         self.ensure_one()
-        domains = {
-            "my_uploads": [("submitted_by_id", "=", self.env.user.id)],
-            "unlinked": [("has_linked_record", "=", False)],
-            "needs_review": [("review_state", "=", "needs_attention")],
-            "last_30_days": [
+        # Existing seeded shortcuts predate the configurable filter type.
+        # Their stable key remains the migration contract for upgraded databases.
+        return {
+            "my_uploads": "my_uploads",
+            "unlinked": "unlinked",
+            "needs_review": "needs_review",
+            "last_30_days": "recent",
+        }.get(self.key, self.filter_type)
+
+    def _filter_domain(self):
+        self.ensure_one()
+        if self.kind != "filter":
+            return []
+        filter_type = self._effective_filter_type()
+        if filter_type == "my_uploads":
+            return [("submitted_by_id", "=", self.env.user.id)]
+        if filter_type == "unlinked":
+            return [("has_linked_record", "=", False)]
+        if filter_type == "linked":
+            return [("has_linked_record", "=", True)]
+        if filter_type == "needs_review":
+            return [("review_state", "=", "needs_attention")]
+        if filter_type == "recent":
+            return [
                 (
                     "paperless_created",
                     ">=",
-                    fields.Datetime.now() - timedelta(days=30),
+                    fields.Datetime.now() - timedelta(days=max(1, self.days or 30)),
                 ),
-            ],
-        }
+            ]
+        if filter_type == "accounting":
+            return [("accounting_evidence", "=", True)]
+        if filter_type == "tags":
+            return [("tag_ids", "in", self.tag_ids.filtered("active").ids)]
+        if filter_type == "correspondents":
+            return [
+                (
+                    "correspondent_id",
+                    "in",
+                    self.correspondent_ids.filtered("active").ids,
+                ),
+            ]
+        if filter_type == "document_types":
+            return [
+                (
+                    "document_type_id",
+                    "in",
+                    self.document_type_ids.filtered("active").ids,
+                ),
+            ]
+        if filter_type == "privacy":
+            return [("confidentiality", "=", self.confidentiality)]
+        return []
+
+    def workspace_values(self):
+        self.ensure_one()
         return {
             "id": self.id,
             "key": self.key,
             "name": self.name,
             "icon": self.icon or "fa-filter",
             "kind": self.kind,
-            "domain": domains.get(self.key, []),
+            "domain": self._filter_domain(),
             "group_by": self.field_name or False,
         }
 

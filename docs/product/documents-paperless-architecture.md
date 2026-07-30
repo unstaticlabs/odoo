@@ -71,10 +71,15 @@ The client action mounts Odoo's supported `WithSearch`, `SearchModel`, and
 `SearchBar` components against the `usl.document` search view. Native facets,
 date filters, custom domains, grouping, and `ir.filters` favorites therefore
 use the same mechanism as ordinary Odoo views. Smart-View shortcut chips create
-normal SearchModel filters/groupings, while top tag chips are an additional
-stable-ID constraint sent to the workspace query. Remote OCR and custom-field
-conditions are resolved once before Odoo runs count and page queries, avoiding
-duplicate Paperless requests or inconsistent pagination.
+normal SearchModel filters/groupings. Top tag chips update one SearchModel
+facet whose stable-ID `in` condition means “any selected tag”; the search bar
+and the chips therefore always describe the same query. Reusable shortcut
+records may use synchronized Paperless tag, correspondent, or document-type
+IDs, but remain optional Odoo presentation controls. The enclosing
+archive-native Smart View—not a transient shortcut state—is the definition
+synchronized to a Paperless Saved View. Remote OCR and custom-field conditions
+are resolved once before Odoo runs count and page queries, avoiding duplicate
+Paperless requests or inconsistent pagination.
 
 ## Write path
 

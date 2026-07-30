@@ -70,6 +70,10 @@ The small chips below the search bar are deliberate shortcuts:
   access;
 - every shortcut composes with the search facets already present.
 
+Select two colored tags. Odoo should show one search facet listing both tags
+with **or**, and the results may carry either tag. Removing one colored chip
+updates that same facet instead of leaving a hidden filter behind.
+
 Try Back and Forward:
 
 - Back closes the document and keeps the same filters and list position.
@@ -218,6 +222,12 @@ They appear immediately before the top tag chips. Archive-native tag/type/
 correspondent criteria remain synchronized with the Paperless Saved View by
 stable ID; Odoo-only company, confidentiality, links, and group shortcuts are
 clearly kept in Odoo.
+
+To maintain them, open **Configuration > One-click shortcuts**. Create a typed
+filter or grouping, choose the shared Smart Views where it should appear, and
+save. Tag, correspondent, and document-type shortcuts select from the
+Paperless-synchronized catalogs. They do not silently rewrite a Saved View when
+a user toggles one for a temporary search.
 
 Company, confidentiality, accounting-evidence, HR, or linked-record
 restrictions are labelled as Odoo policy and are not claimed to be identical

@@ -24,6 +24,7 @@
         <field name="key">my_uploads</field>
         <field name="icon">fa-user-o</field>
         <field name="kind">filter</field>
+        <field name="filter_type">my_uploads</field>
         <field name="sequence">10</field>
     </record>
     <record id="quick_filter_unlinked" model="usl.document.quick.filter">
@@ -31,6 +32,7 @@
         <field name="key">unlinked</field>
         <field name="icon">fa-unlink</field>
         <field name="kind">filter</field>
+        <field name="filter_type">unlinked</field>
         <field name="sequence">20</field>
     </record>
     <record id="quick_filter_needs_review" model="usl.document.quick.filter">
@@ -38,6 +40,7 @@
         <field name="key">needs_review</field>
         <field name="icon">fa-exclamation-circle</field>
         <field name="kind">filter</field>
+        <field name="filter_type">needs_review</field>
         <field name="sequence">30</field>
     </record>
     <record id="quick_filter_last_30_days" model="usl.document.quick.filter">
@@ -45,6 +48,8 @@
         <field name="key">last_30_days</field>
         <field name="icon">fa-calendar</field>
         <field name="kind">filter</field>
+        <field name="filter_type">recent</field>
+        <field name="days">30</field>
         <field name="sequence">40</field>
     </record>
     <record id="quick_filter_group_company" model="usl.document.quick.filter">
