@@ -729,6 +729,21 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.document_type_id, document_type)
         self.assertEqual(document.tag_ids, tag)
 
+    def test_document_metadata_failure_keeps_authoritative_cached_value(self):
+        document = self._document(2308, name="Original title")
+        with (
+            patch.object(
+                PaperlessClient,
+                "update_document_metadata",
+                side_effect=PaperlessUnavailable("Archive offline"),
+            ),
+            self.assertRaises(PaperlessUnavailable),
+        ):
+            document.with_user(self.user).update_archive_metadata(
+                {"name": "Title that was not saved"},
+            )
+        self.assertEqual(document.name, "Original title")
+
     def test_smart_views_and_advanced_filters_use_stable_metadata_ids(self):
         banking = self._tag(309, "Banking")
         supplier = self._correspondent(310, "Example Bank")
@@ -881,6 +896,49 @@ class TestDocuments(TransactionCase):
             self.partner_a,
         )
 
+    def test_create_correspondent_from_contact_reuses_then_creates_safely(self):
+        exact = self._correspondent(1339, self.partner_a.display_name)
+        first = (
+            self.env["usl.paperless.correspondent"]
+            .with_user(self.user)
+            .create_from_partner(self.partner_a.id)
+        )
+        second = (
+            self.env["usl.paperless.correspondent"]
+            .with_user(self.user)
+            .create_from_partner(self.partner_a.id)
+        )
+        self.assertEqual(first["id"], exact.id)
+        self.assertEqual(second["id"], exact.id)
+        self.assertEqual(exact.partner_id, self.partner_a)
+
+        new_partner = self.env["res.partner"].create(
+            {"name": "New archive correspondent"},
+        )
+        remote = {
+            "id": 1340,
+            "name": new_partner.display_name,
+            "match": "",
+            "matching_algorithm": 0,
+            "owner": None,
+        }
+        with patch.object(
+            PaperlessClient,
+            "create_metadata",
+            return_value=remote,
+        ) as create_metadata:
+            created = (
+                self.env["usl.paperless.correspondent"]
+                .with_user(self.user)
+                .create_from_partner(new_partner.id)
+            )
+        correspondent = self.env["usl.paperless.correspondent"].browse(
+            created["id"],
+        )
+        self.assertEqual(correspondent.partner_id, new_partner)
+        self.assertEqual(correspondent.paperless_id, 1340)
+        create_metadata.assert_called_once()
+
     def test_contact_documents_combine_mapping_and_explicit_links_without_duplicates(self):
         correspondent = self._correspondent(
             334,
@@ -957,12 +1015,23 @@ class TestDocuments(TransactionCase):
                 "tag_ids": [Command.set(base_tag.ids)],
             },
         )
+        native_filter = self.env["ir.filters"].create(
+            {
+                "name": "Board-approved documents",
+                "model_id": "usl.document",
+                "action_id": self.env.ref(
+                    "usl_documents.action_documents_workspace",
+                ).id,
+                "domain": repr([("tag_ids", "in", optional_tag.ids)]),
+                "context": "{}",
+                "sort": "[]",
+                "user_ids": [],
+            },
+        )
         shortcut = self.env["usl.document.quick.filter"].create(
             {
                 "name": "Board-approved documents",
-                "kind": "filter",
-                "filter_type": "tags",
-                "tag_ids": [Command.set(optional_tag.ids)],
+                "ir_filter_id": native_filter.id,
                 "smart_view_ids": [Command.set(view.ids)],
             },
         )
@@ -977,6 +1046,50 @@ class TestDocuments(TransactionCase):
             view._paperless_filter_rules(),
             [{"rule_type": 6, "value": str(base_tag.paperless_id)}],
         )
+
+    def test_native_shortcut_capture_preserves_domain_grouping_order_and_permissions(self):
+        view = self.env.ref("usl_documents.smart_view_accounting")
+        values = {
+            "domain": repr([("review_state", "=", "needs_attention")]),
+            "context": {"group_by": ["company_id", "document_date:month"]},
+            "sort": ["name", "document_date desc"],
+        }
+        shortcut_values = self.env["usl.document.quick.filter"].save_from_search(
+            "Evidence to review",
+            values,
+            icon="fa-check-square-o",
+            sequence=17,
+            smart_view_ids=view.ids,
+        )
+        shortcut = self.env["usl.document.quick.filter"].browse(
+            shortcut_values["id"],
+        )
+        self.assertEqual(shortcut.ir_filter_id.model_id, "usl.document")
+        self.assertEqual(
+            shortcut.ir_filter_id.action_id.id,
+            self.env.ref("usl_documents.action_documents_workspace").id,
+        )
+        self.assertFalse(shortcut.ir_filter_id.user_ids)
+        self.assertEqual(
+            shortcut_values["domain"],
+            [("review_state", "=", "needs_attention")],
+        )
+        self.assertEqual(
+            shortcut_values["group_by"],
+            ["company_id", "document_date:month"],
+        )
+        self.assertEqual(
+            shortcut_values["order_by"],
+            [
+                {"name": "name", "asc": True},
+                {"name": "document_date", "asc": False},
+            ],
+        )
+        self.assertIn(shortcut, view.quick_filter_ids)
+        with self.assertRaises(AccessError):
+            self.env["usl.document.quick.filter"].with_user(
+                self.user,
+            ).save_from_search("Unsafe shared control", values)
 
     def test_archive_native_saved_view_uses_stable_paperless_identity(self):
         tag = self._tag(332, "Contracts")
@@ -1306,6 +1419,113 @@ class TestDocuments(TransactionCase):
         self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
         search.assert_called_once()
         self.assertEqual(search.call_args.args[0], "embedded cobalt phrase")
+
+    def test_search_everywhere_uses_paperless_relevance_and_odoo_authorization(self):
+        first = self._document(2182, name="First authorized result")
+        second = self._document(2183, name="Second authorized result")
+        self._document(2184, company_id=self.company_b.id)
+        first.link_to_record("res.partner", self.partner_a.id)
+        with patch.object(
+            PaperlessClient,
+            "search",
+            return_value={
+                "count": 3,
+                "next": None,
+                "results": [{"id": 2183}, {"id": 2184}, {"id": 2182}],
+            },
+        ) as search:
+            result = self.env["usl.document"].with_user(self.user).workspace_data(
+                workspace="all",
+                search_domain=[
+                    ["all_text", "ilike", "quarterly archive phrase"],
+                ],
+            )
+        self.assertEqual(
+            [item["id"] for item in result["documents"]],
+            [second.id, first.id],
+        )
+        search.assert_called_once()
+        self.assertEqual(search.call_args.args[0], "quarterly archive phrase")
+        self.assertTrue(search.call_args.kwargs["full_text"])
+
+        with patch.object(
+            PaperlessClient,
+            "search",
+            return_value={"count": 0, "next": None, "results": []},
+        ):
+            linked_label = (
+                self.env["usl.document"]
+                .with_user(self.user)
+                .workspace_data(
+                    workspace="all",
+                    search_domain=[
+                        ["all_text", "ilike", self.partner_a.display_name],
+                    ],
+                )
+            )
+        self.assertEqual(
+            [item["id"] for item in linked_label["documents"]],
+            [first.id],
+        )
+
+    def test_workspace_validates_and_applies_every_native_list_order(self):
+        tag_a = self._tag(2190, "Alpha")
+        tag_z = self._tag(2191, "Zulu")
+        correspondent_a = self._correspondent(2192, "Alpha sender")
+        correspondent_z = self._correspondent(2193, "Zulu sender")
+        type_a = self._document_type(2194, "Alpha type")
+        type_z = self._document_type(2195, "Zulu type")
+        documents = self.env["usl.document"]
+        documents |= self._document(
+            2196,
+            name="Zulu document",
+            document_date="2026-07-02",
+            correspondent_id=correspondent_z.id,
+            document_type_id=type_z.id,
+            tag_ids=[Command.set(tag_z.ids)],
+            review_state="reviewed",
+        )
+        documents |= self._document(
+            2197,
+            name="Alpha document",
+            document_date="2026-07-01",
+            correspondent_id=correspondent_a.id,
+            document_type_id=type_a.id,
+            tag_ids=[Command.set(tag_a.ids)],
+            review_state="needs_attention",
+        )
+        order_fields = [
+            "name",
+            "document_date",
+            "correspondent_id",
+            "document_type_id",
+            "company_id",
+            "tag_sort_key",
+            "status_sort_key",
+        ]
+        for field_name in order_fields:
+            result = self.env["usl.document"].workspace_data(
+                workspace="all",
+                search_domain=[["id", "in", documents.ids]],
+                order_by=[{"name": field_name, "asc": True}],
+                page_size=1,
+            )
+            expected = self.env["usl.document"].search(
+                [("id", "in", documents.ids)],
+                order=f"{field_name} asc, id asc",
+                limit=1,
+            )
+            self.assertEqual(
+                [item["id"] for item in result["documents"]],
+                expected.ids,
+                field_name,
+            )
+            self.assertEqual(result["count"], 2)
+        with self.assertRaises(ValidationError):
+            self.env["usl.document"].workspace_data(
+                workspace="all",
+                order_by=[{"name": "checksum", "asc": True}],
+            )
 
     def test_native_search_bar_searches_paperless_custom_field_values(self):
         visible = self._document(1184, name="Invoice reference match")

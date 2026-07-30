@@ -27,6 +27,12 @@ company, confidentiality, accounting evidence, HR, review state, and
 linked-record context; these constraints are never represented as if
 Paperless enforced an identical Saved View.
 
+`usl.document.quick.filter` places optional one-click controls on Smart Views,
+but each control's query is a shared native `ir.filters` record. Domain,
+grouping, and ordering are captured from Odoo's SearchModel, validated on the
+server, and replayed through the same search bar. Personal searches remain
+ordinary private Odoo Favorites.
+
 Shared Paperless catalogs and archive-native Saved Views are written with no
 Paperless owner, its supported shared-object form. Direct identities need the
 corresponding global model read permissions, but document roots remain owned by
@@ -52,7 +58,15 @@ Paperless correspondents optionally map to `res.partner`. Archive matching and
 the Paperless name remain remote authority; Odoo owns the mapped business
 identity. The workspace and native catalog expose the mapped Contact only when
 the current user can read it. Mapping does not create a Contact, document link,
-or access grant.
+or access grant. Inline Contact selection reuses a visible mapping, safely
+adopts one exact unmapped correspondent, or creates a new Paperless
+correspondent through the supported API.
+
+The workspace uses Odoo's SearchModel/SearchBar, relational autocomplete,
+locale-aware date input, Pager, table classes, and native Favorites lifecycle.
+`all_text` is the default broad Paperless full-text query plus authorized Odoo
+link labels. Explicit list ordering is server-allowlisted and persisted through
+the standard action URL/favorite state.
 
 The workspace does not expose healthy synchronization state. It returns a
 document-level access error only when permission synchronization failed.

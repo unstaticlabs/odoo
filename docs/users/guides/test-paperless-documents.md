@@ -57,8 +57,8 @@ uses the equivalent HTTPS callback and disables Paperless password login.
 ## 1. Find text inside a document
 
 1. In Documents, type `heliotrope`.
-2. Choose **Search Document content for: heliotrope**. It becomes a removable
-   **Document content** facet.
+2. Choose the first suggestion, **Search everywhere for: heliotrope**. It
+   becomes a removable **Search everywhere** facet.
 3. Click the top **Accounting** tag chip. It is applied on top of the search,
    leaving **Alpine Office Supplies — Invoice SI-2026-0715**.
 4. Open the document and confirm the preview contains the OCR-only sentence.
@@ -77,12 +77,12 @@ Open the search dropdown. It must be Odoo's normal three-column menu:
 
 There is no separate **More filters** form.
 
-For another structured search, type `INV-QA-2026-0042` and choose
-**Additional details**. This searches synchronized Paperless custom fields.
-Type a Paperless ID and choose **Archive ID** to create an exact identity
-facet. Type a tag, correspondent, type, company, employee, source, privacy, or
-review value and choose the matching suggestion. Every choice is a normal
-removable Odoo facet and still passes through Odoo authorization.
+The initial suggestions deliberately keep only frequent choices: Search
+everywhere, Title, Document content, Tags, Correspondent, Type, Company, and
+Date. Use **Filters > Add Custom Filter** for archive identity, source,
+privacy, review state, availability, mapped Contact, employee, or a Paperless
+custom field. Every choice remains a normal removable Odoo facet and still
+passes through Odoo authorization.
 
 The small chips below the search bar are deliberate shortcuts:
 
@@ -110,12 +110,21 @@ Try Back and Forward:
 4. Type a harmless new tag such as `CEO QA reviewed` and create it inline.
 5. Remove that tag with its small remove action.
 
-The picker should remain practical without a separate edit screen. Paperless is
-updated first and Odoo reads the result back. If Paperless is unavailable, the
-visible value must roll back instead of pretending the change saved.
+The picker should close on selection, Escape, or an outside click and remain
+practical without a separate edit screen. Paperless is updated first and Odoo
+reads the result back. If Paperless is unavailable, the visible value must
+roll back instead of pretending the change saved.
 
-Use **Edit** only for title/date/correspondent/type. Those values should also
-appear in Paperless after saving.
+Click the title, correspondent, document type, or date directly. There is no
+Edit/Save/Cancel mode. Confirm the field briefly shows that it is saving and
+the final value appears in Paperless. Try:
+
+- selecting an existing Paperless correspondent;
+- choosing an Odoo Contact from **Search Contacts** to create or reuse its
+  mapped Paperless correspondent;
+- creating an archive-only correspondent inline;
+- creating a new document type inline;
+- choosing and clearing a date through Odoo's locale-aware date picker.
 
 ## 3. Understand and edit automatic classification
 
@@ -171,7 +180,7 @@ mapping.
 
 1. Open the draft vendor bill with reference
    `USL-DOCS-CEO-QA-BILL`.
-2. Its one smart button should say **3 Documents** in the current seed.
+2. Its one smart button should show the current authorized document count.
 3. Click it. Documents opens with a removable **Linked record** facet and the
    seeded supplier invoice.
 4. Remove that facet. The rest of the authorized archive becomes searchable and
@@ -245,11 +254,14 @@ correspondent criteria remain synchronized with the Paperless Saved View by
 stable ID; Odoo-only company, confidentiality, links, and group shortcuts are
 clearly kept in Odoo.
 
-To maintain them, open **Configuration > One-click shortcuts**. Create a typed
-filter or grouping, choose the shared Smart Views where it should appear, and
-save. Tag, correspondent, and document-type shortcuts select from the
-Paperless-synchronized catalogs. They do not silently rewrite a Saved View when
-a user toggles one for a temporary search.
+To maintain them, build the desired query in Documents using the same
+**Filters**, **Group By**, and list-header sorting that users already know.
+Then choose **Favorites > Save as one-click shortcut**, give it a name/icon,
+and choose the shared Smart Views where it should appear. Under
+**Configuration > One-click shortcuts**, **New** opens this same Documents
+search builder and editing reopens the saved facets, grouping, and order.
+These shortcuts do not silently rewrite a Paperless Saved View when a user
+toggles one for a temporary search.
 
 Company, confidentiality, accounting-evidence, HR, or linked-record
 restrictions are labelled as Odoo policy and are not claimed to be identical
@@ -258,7 +270,19 @@ mapped identities with the Saved View read permission. A personal Paperless
 view such as the seeded **Tag: Banking** belongs only to `archive-admin`;
 personal Odoo views likewise remain private to their Odoo owner.
 
-## 10. External ingestion and Trash
+## 10. Check the Odoo-style list
+
+1. Switch from cards to the compact list.
+2. Sort Document, Date, Correspondent, Type, Company, Tags, and Status in both
+   directions by clicking each header.
+3. Move to another page, reload, and use Back/Forward.
+4. Switch to cards and back.
+
+The selected ordering, page, filters, grouping, and active document should
+remain coherent. The list uses Odoo table conventions and Pager; there is no
+second custom sort selector.
+
+## 11. External ingestion and Trash
 
 1. Upload a harmless file directly in Paperless.
 2. Wait for processing and Odoo synchronization (normally within five minutes).
@@ -285,7 +309,7 @@ The seeded **Retention review sample — in Trash** lets you test Restore withou
 creating another item. Run `make documents-qa-bootstrap` afterward to return it
 to the intended demo state.
 
-## 11. Check each role
+## 12. Check each role
 
 - `documents-user/admin` sees authorized general and accounting material, but
   not HR/private/other-company items.
@@ -300,7 +324,7 @@ to the intended demo state.
 Search/session state is stored per Odoo user. Switching accounts must not carry
 the prior user's query into the next account.
 
-## 12. Check an outage
+## 13. Check an outage
 
 The automated safe exercise is:
 
@@ -322,7 +346,7 @@ classification, Odoo links, and version labels visible, hides unavailable
 preview/download actions, and offers **Try again**. After recovery, retry
 without creating duplicate documents or relationships.
 
-## 13. Prove backup and restore
+## 14. Prove backup and restore
 
 Run:
 

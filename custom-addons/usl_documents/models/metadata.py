@@ -1,10 +1,15 @@
+import ast
 import json
 import shlex
 import uuid
 from datetime import timedelta
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+from odoo.fields import Domain
+from odoo.tools.safe_eval import safe_eval
 
 from .paperless_client import PaperlessClient, PaperlessError
 
@@ -660,6 +665,58 @@ class UslPaperlessCorrespondent(models.Model):
             for partner in partners
         ]
 
+    @api.model
+    def create_from_partner(self, partner_id):
+        """Create or reuse a correspondent explicitly selected from Contacts."""
+        partner = self.env["res.partner"].browse(int(partner_id or 0)).exists()
+        if not partner:
+            raise ValidationError(_("The selected Odoo Contact no longer exists."))
+        partner.check_access("read")
+        # The stored mapping is manager-only because it may point to a Contact
+        # outside the caller's companies. Resolve it in a protected environment,
+        # then return to the caller's environment and re-check normal read access.
+        protected_correspondent = self.sudo().search(
+            [("partner_visible_id", "=", partner.id), ("active", "=", True)],
+            limit=1,
+        )
+        correspondent = self.browse(protected_correspondent.id).exists()
+        if correspondent:
+            correspondent.check_access("read")
+        if not correspondent:
+            protected_matches = self.sudo().search(
+                [
+                    ("name", "=ilike", partner.display_name),
+                    ("partner_id", "=", False),
+                    ("active", "=", True),
+                ],
+                limit=2,
+            )
+            exact_matches = self.browse(protected_matches.ids).exists()
+            exact_matches.check_access("read")
+            if len(exact_matches) == 1:
+                correspondent = exact_matches
+                correspondent.write({"partner_visible_id": partner.id})
+            else:
+                correspondent = self.create(
+                    {
+                        "name": partner.display_name,
+                        "partner_visible_id": partner.id,
+                        "matching_algorithm": "0",
+                        "is_insensitive": True,
+                    },
+                )
+        visible_partner = correspondent.partner_visible_id
+        return {
+            "id": correspondent.id,
+            "name": (
+                visible_partner.display_name
+                if visible_partner
+                else correspondent.name
+            ),
+            "archive_name": correspondent.name,
+            "partner_id": visible_partner.id,
+        }
+
 
 class UslPaperlessDocumentType(models.Model):
     _name = "usl.paperless.document.type"
@@ -678,73 +735,15 @@ class UslDocumentQuickFilter(models.Model):
     key = fields.Char(required=True, index=True, readonly=True, copy=False)
     icon = fields.Char(default="fa-filter")
     sequence = fields.Integer(default=10)
-    kind = fields.Selection(
-        [("filter", "Filter"), ("group", "Group by")],
-        required=True,
-        default="filter",
-    )
-    filter_type = fields.Selection(
-        [
-            ("my_uploads", "My uploads"),
-            ("unlinked", "Not linked"),
-            ("linked", "Linked to Odoo"),
-            ("needs_review", "Needs review"),
-            ("recent", "Recently added"),
-            ("accounting", "Accounting evidence"),
-            ("tags", "Any selected tag"),
-            ("correspondents", "Any selected correspondent"),
-            ("document_types", "Any selected document type"),
-            ("privacy", "Privacy"),
-        ],
-        string="Filter",
-        required=True,
-        default="unlinked",
-    )
-    days = fields.Integer(
-        default=30,
-        help="For Recently added, include documents added within this many days.",
-    )
-    tag_ids = fields.Many2many(
-        "usl.paperless.tag",
-        "usl_document_quick_filter_tag_rel",
-        "filter_id",
-        "tag_id",
-        string="Tags",
-    )
-    correspondent_ids = fields.Many2many(
-        "usl.paperless.correspondent",
-        "usl_document_quick_filter_correspondent_rel",
-        "filter_id",
-        "correspondent_id",
-        string="Correspondents",
-    )
-    document_type_ids = fields.Many2many(
-        "usl.paperless.document.type",
-        "usl_document_quick_filter_type_rel",
-        "filter_id",
-        "document_type_id",
-        string="Document types",
-    )
-    confidentiality = fields.Selection(
-        [
-            ("internal", "Internal"),
-            ("accounting", "Accounting evidence"),
-            ("hr", "HR restricted"),
-            ("private", "Private"),
-        ],
-        string="Privacy",
-        default="internal",
-    )
-    field_name = fields.Selection(
-        [
-            ("company_id", "Company"),
-            ("correspondent_id", "Correspondent"),
-            ("document_type_id", "Document type"),
-            ("linked_employee_id", "Employee"),
-            ("document_date:month", "Document month"),
-            ("paperless_created:month", "Archive month"),
-        ],
-        string="Group field",
+    ir_filter_id = fields.Many2one(
+        "ir.filters",
+        string="Saved search",
+        ondelete="cascade",
+        copy=False,
+        help=(
+            "Native Odoo search definition containing the shortcut domain, "
+            "grouping, and ordering."
+        ),
     )
     smart_view_ids = fields.Many2many(
         "usl.document.smart.view",
@@ -763,6 +762,12 @@ class UslDocumentQuickFilter(models.Model):
         "UNIQUE(key)", "A Documents shortcut key must be unique.",
     )
 
+    def _require_manager(self):
+        if not self.env.user.has_group("usl_documents.group_documents_manager"):
+            raise AccessError(
+                _("Only Documents administrators may configure shared shortcuts."),
+            )
+
     @api.model_create_multi
     def create(self, values_list):
         normalized = []
@@ -772,96 +777,217 @@ class UslDocumentQuickFilter(models.Model):
             normalized.append(values)
         return super().create(normalized)
 
-    @api.constrains(
-        "kind",
-        "filter_type",
-        "field_name",
-        "days",
-        "tag_ids",
-        "correspondent_ids",
-        "document_type_ids",
-    )
-    def _check_configuration(self):
-        for shortcut in self:
-            if shortcut.kind == "group" and not shortcut.field_name:
-                raise ValidationError(_("Choose the field to group documents by."))
-            if shortcut.kind != "filter":
-                continue
-            if shortcut.filter_type == "recent" and shortcut.days < 1:
-                raise ValidationError(_("Recently added must use at least one day."))
-            required_catalogs = {
-                "tags": (shortcut.tag_ids, _("Choose at least one tag.")),
-                "correspondents": (
-                    shortcut.correspondent_ids,
-                    _("Choose at least one correspondent."),
-                ),
-                "document_types": (
-                    shortcut.document_type_ids,
-                    _("Choose at least one document type."),
-                ),
-            }
-            records, message = required_catalogs.get(
-                shortcut.filter_type,
-                (True, ""),
-            )
-            if not records:
-                raise ValidationError(message)
-
-    def _effective_filter_type(self):
-        self.ensure_one()
-        # Existing seeded shortcuts predate the configurable filter type.
-        # Their stable key remains the migration contract for upgraded databases.
-        return {
-            "my_uploads": "my_uploads",
-            "unlinked": "unlinked",
-            "needs_review": "needs_review",
-            "last_30_days": "recent",
-        }.get(self.key, self.filter_type)
+    def unlink(self):
+        native_filters = self.mapped("ir_filter_id")
+        result = super().unlink()
+        native_filters.exists().unlink()
+        return result
 
     def _filter_domain(self):
         self.ensure_one()
-        if self.kind != "filter":
+        if not self.ir_filter_id:
             return []
-        filter_type = self._effective_filter_type()
-        if filter_type == "my_uploads":
-            return [("submitted_by_id", "=", self.env.user.id)]
-        if filter_type == "unlinked":
-            return [("has_linked_record", "=", False)]
-        if filter_type == "linked":
-            return [("has_linked_record", "=", True)]
-        if filter_type == "needs_review":
-            return [("review_state", "=", "needs_attention")]
-        if filter_type == "recent":
-            return [
-                (
-                    "paperless_created",
-                    ">=",
-                    fields.Datetime.now() - timedelta(days=max(1, self.days or 30)),
-                ),
-            ]
-        if filter_type == "accounting":
-            return [("accounting_evidence", "=", True)]
-        if filter_type == "tags":
-            return [("tag_ids", "in", self.tag_ids.filtered("active").ids)]
-        if filter_type == "correspondents":
-            return [
-                (
-                    "correspondent_id",
-                    "in",
-                    self.correspondent_ids.filtered("active").ids,
-                ),
-            ]
-        if filter_type == "document_types":
-            return [
-                (
-                    "document_type_id",
-                    "in",
-                    self.document_type_ids.filtered("active").ids,
-                ),
-            ]
-        if filter_type == "privacy":
-            return [("confidentiality", "=", self.confidentiality)]
+        try:
+            domain = safe_eval(
+                self.ir_filter_id.domain or "[]",
+                {
+                    "uid": self.env.uid,
+                    "context_today": lambda: fields.Date.context_today(self),
+                    "relativedelta": relativedelta,
+                },
+            )
+        except Exception as error:
+            raise ValidationError(
+                _("The shortcut contains an invalid domain."),
+            ) from error
+        if not isinstance(domain, list):
+            raise ValidationError(_("The shortcut contains an invalid domain."))
+        Domain(domain)
+        return domain
+
+    def _filter_context(self):
+        self.ensure_one()
+        if not self.ir_filter_id:
+            return {}
+        try:
+            context = ast.literal_eval(self.ir_filter_id.context or "{}")
+        except (SyntaxError, ValueError) as error:
+            raise ValidationError(_("The shortcut contains an invalid context.")) from error
+        if not isinstance(context, dict):
+            raise ValidationError(_("The shortcut contains an invalid context."))
+        return context
+
+    def _filter_group_by(self):
+        self.ensure_one()
+        group_by = self._filter_context().get("group_by")
+        if isinstance(group_by, str):
+            return [group_by]
+        if isinstance(group_by, list):
+            return [item for item in group_by if isinstance(item, str)]
         return []
+
+    def _filter_order_by(self):
+        self.ensure_one()
+        if not self.ir_filter_id:
+            return []
+        try:
+            values = json.loads(self.ir_filter_id.sort or "[]")
+        except json.JSONDecodeError as error:
+            raise ValidationError(_("The shortcut contains invalid ordering.")) from error
+        result = []
+        for value in values:
+            if not isinstance(value, str):
+                continue
+            field_name, *direction = value.split()
+            result.append(
+                {
+                    "name": field_name,
+                    "asc": not direction or direction[0].lower() != "desc",
+                },
+            )
+        return result
+
+    @api.model
+    def _validated_ir_filter_values(self, values):
+        if not isinstance(values, dict):
+            raise ValidationError(_("Invalid saved-search definition."))
+        allowed = {"domain", "context", "sort"}
+        if set(values) - allowed:
+            raise ValidationError(_("Unsupported saved-search value."))
+        domain = values.get("domain") or "[]"
+        context = values.get("context") or "{}"
+        sort = values.get("sort") or "[]"
+        try:
+            parsed_domain = ast.literal_eval(domain)
+            parsed_context = (
+                context
+                if isinstance(context, dict)
+                else ast.literal_eval(context)
+            )
+            parsed_sort = sort if isinstance(sort, list) else json.loads(sort)
+        except (SyntaxError, ValueError, json.JSONDecodeError) as error:
+            raise ValidationError(_("Invalid saved-search definition.")) from error
+        if (
+            not isinstance(parsed_domain, list)
+            or not isinstance(parsed_context, dict)
+            or not isinstance(parsed_sort, list)
+        ):
+            raise ValidationError(_("Invalid saved-search definition."))
+        Domain(parsed_domain)
+        return {
+            "domain": repr(parsed_domain),
+            "context": repr(parsed_context),
+            "sort": json.dumps(parsed_sort),
+        }
+
+    @api.model
+    def save_from_search(
+        self,
+        name,
+        search_values,
+        *,
+        shortcut_id=None,
+        icon="fa-filter",
+        sequence=10,
+        smart_view_ids=None,
+    ):
+        self._require_manager()
+        name = (name or "").strip()
+        if not name:
+            raise ValidationError(_("Give the shortcut a name."))
+        ir_values = self._validated_ir_filter_values(search_values)
+        action = self.env.ref("usl_documents.action_documents_workspace")
+        ir_values.update(
+            {
+                "name": name,
+                "model_id": "usl.document",
+                "action_id": action.id,
+                "user_ids": [Command.clear()],
+                "is_default": False,
+            },
+        )
+        shortcut = self.browse(int(shortcut_id or 0)).exists()
+        if shortcut:
+            shortcut.check_access("write")
+            if shortcut.ir_filter_id:
+                shortcut.ir_filter_id.write(ir_values)
+            else:
+                shortcut.ir_filter_id = self.env["ir.filters"].create(ir_values)
+            shortcut.write(
+                {
+                    "name": name,
+                    "icon": icon or "fa-filter",
+                    "sequence": int(sequence or 10),
+                    "smart_view_ids": [
+                        Command.set(
+                            self.env["usl.document.smart.view"].browse(
+                                [int(item) for item in (smart_view_ids or [])],
+                            ).filtered(lambda view: view.scope == "shared").ids,
+                        ),
+                    ],
+                },
+            )
+        else:
+            ir_filter = self.env["ir.filters"].create(ir_values)
+            shortcut = self.create(
+                {
+                    "name": name,
+                    "ir_filter_id": ir_filter.id,
+                    "icon": icon or "fa-filter",
+                    "sequence": int(sequence or 10),
+                    "smart_view_ids": [
+                        Command.set(
+                            self.env["usl.document.smart.view"].browse(
+                                [int(item) for item in (smart_view_ids or [])],
+                            ).filtered(lambda view: view.scope == "shared").ids,
+                        ),
+                    ],
+                },
+            )
+        return shortcut.workspace_values()
+
+    @api.model
+    def builder_values(self, shortcut_id=None):
+        self._require_manager()
+        shortcut = self.browse(int(shortcut_id or 0)).exists()
+        return {
+            "shortcut": (
+                {
+                    "id": shortcut.id,
+                    "name": shortcut.name,
+                    "icon": shortcut.icon,
+                    "sequence": shortcut.sequence,
+                    "smart_view_ids": shortcut.smart_view_ids.ids,
+                    "domain": shortcut._filter_domain(),
+                    "group_by": shortcut._filter_group_by(),
+                    "order_by": shortcut._filter_order_by(),
+                }
+                if shortcut
+                else False
+            ),
+            "smart_views": [
+                {"id": view.id, "name": view.name}
+                for view in self.env["usl.document.smart.view"].search(
+                    [("scope", "=", "shared"), ("active", "=", True)],
+                )
+            ],
+        }
+
+    @api.model
+    def action_open_builder(self):
+        self._require_manager()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "usl_documents.action_documents_workspace",
+        )
+        action["params"] = {"shortcut_builder": True}
+        return action
+
+    def action_edit_in_workspace(self):
+        self.ensure_one()
+        self._require_manager()
+        action = self.action_open_builder()
+        action["params"]["shortcut_id"] = self.id
+        return action
 
     def workspace_values(self):
         self.ensure_one()
@@ -870,9 +996,14 @@ class UslDocumentQuickFilter(models.Model):
             "key": self.key,
             "name": self.name,
             "icon": self.icon or "fa-filter",
-            "kind": self.kind,
+            "kind": (
+                "group"
+                if self._filter_group_by() and not self._filter_domain()
+                else "filter"
+            ),
             "domain": self._filter_domain(),
-            "group_by": self.field_name or False,
+            "group_by": self._filter_group_by(),
+            "order_by": self._filter_order_by(),
         }
 
 
