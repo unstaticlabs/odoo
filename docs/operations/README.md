@@ -8,3 +8,4 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Run imported accounting data in development](run-imported-accounting-dev.md)
 - [Accounting development workflow](accounting-development-workflow.md)
 - [Activate French electronic-invoice reception](activate-french-electronic-invoicing.md)
+- [Restore historical platform billing](platform-billing-migration.md)

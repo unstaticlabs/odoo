@@ -17,6 +17,7 @@ These documents define the accounting truths that implementations and migrations
 - [French electronic-invoicing validation evidence](french-electronic-invoicing-validation.md)
 - [Bank Matching Rule discovery](bank-matching-rule-discovery.md)
 - [Transactions navigation contract](transaction-navigation.md)
+- [Platform billing accounting design](platform-billing.md)
 - [USL Accounting add-on architecture](custom-addon-architecture.md)
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
 - [Milestone 13 declaration and closing workflow](milestone-13-declaration-closing-workflow.md)

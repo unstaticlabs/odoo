@@ -11,6 +11,7 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Structured operational memory](structured-operational-memory.md)
 - [Accounting core](accounting-core.md)
 - [Lightweight expense batches](expense-batches.md)
+- [Content-platform payout billing](platform-billing.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
 
