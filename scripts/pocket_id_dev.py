@@ -459,19 +459,21 @@ def _find_user(
     if username in USER_DEFINITIONS:
         user_id = values[USER_DEFINITIONS[username]["id_key"]]
         user = api.request("GET", f"/api/users/{user_id}")
-    elif username == UNLINKED_TEST_USERNAME:
+    else:
         users = _paginated_data(
             api.request("GET", "/api/users?pagination%5Blimit%5D=100"),
             "user",
         )
         matches = [user for user in users if user.get("username") == username]
-        if len(matches) != 1:
+        if not matches:
             raise PocketIDError(
-                "The unlinked Pocket ID lifecycle user is not provisioned.",
+                f"Pocket ID user {username!r} is not provisioned.",
+            )
+        if len(matches) > 1:
+            raise PocketIDError(
+                f"Pocket ID username {username!r} is ambiguous.",
             )
         user = matches[0]
-    else:
-        raise PocketIDError(f"Unknown preproduction user {username!r}.")
     if not isinstance(user, dict) or user.get("username") != username:
         raise PocketIDError(f"Pocket ID user {username!r} is not provisioned.")
     return user
@@ -611,10 +613,7 @@ def main() -> int:
     subparsers.add_parser("ensure-unlinked")
     subparsers.add_parser("odoo-policy")
     link_parser = subparsers.add_parser("one-time-link")
-    link_parser.add_argument(
-        "username",
-        choices=(*USER_DEFINITIONS, UNLINKED_TEST_USERNAME),
-    )
+    link_parser.add_argument("username")
     link_parser.add_argument("--ttl", default="1h")
     disabled_parser = subparsers.add_parser("set-disabled")
     disabled_parser.add_argument("username", choices=tuple(USER_DEFINITIONS))

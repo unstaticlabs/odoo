@@ -231,7 +231,7 @@ Commands:
   ensure-unlinked            Add the Pocket-only lifecycle-denial identity
   configure-odoo [MODULE]    Configure canonical odoo_dev and start its SSO stack
   start-runtime              Start the already-configured canonical target stack
-  one-time-link USER         Generate a one-hour Pocket ID login link
+  one-time-link USER         Generate a one-hour link for any Pocket ID user
   set-disabled USER BOOL     Enable or disable a named Pocket ID user
   set-profile USER EMAIL NAME
                              Change claims without changing the immutable subject
