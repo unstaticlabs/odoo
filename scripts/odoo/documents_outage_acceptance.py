@@ -12,7 +12,7 @@ if not result.get("error"):
     raise AssertionError("Paperless outage did not provide an actionable error")
 
 bill = env["account.move"].search(
-    [("ref", "=", "USL-DOCS-QA-BILL"), ("move_type", "=", "in_invoice")],
+    [("ref", "=", "USL-DOCS-CEO-QA-BILL"), ("move_type", "=", "in_invoice")],
     limit=1,
 )
 if not bill or not bill.exists():

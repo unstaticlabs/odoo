@@ -4,17 +4,37 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-SOURCE_PROJECT="${USL_DOCUMENTS_COMPOSE_PROJECT:?Set the isolated source Compose project}"
-SOURCE_DATABASE="${USL_DOCUMENTS_DATABASE:?Set the isolated source Odoo database}"
-RESTORE_PROJECT="${USL_DOCUMENTS_RESTORE_PROJECT:?Set a new isolated restore Compose project}"
+ENVIRONMENT="${1:-qa}"
+case "$ENVIRONMENT" in
+  qa)
+    ENV_FILE="$ROOT/deploy/documents/qa.env"
+    OVERRIDE="$ROOT/compose.documents.qa.yaml"
+    SOURCE_PROJECT="codex-paperless-docs"
+    SOURCE_DATABASE="odoo_usl_documents_test"
+    ;;
+  preprod)
+    ENV_FILE="${USL_DOCUMENTS_PREPROD_ENV:-}"
+    [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]] || {
+      printf 'Set USL_DOCUMENTS_PREPROD_ENV to the populated pre-production env file.\n' >&2
+      exit 2
+    }
+    OVERRIDE="$ROOT/compose.documents.preprod.yaml"
+    SOURCE_PROJECT="${USL_DOCUMENTS_PREPROD_PROJECT:-usl-documents-preprod}"
+    SOURCE_DATABASE="${USL_DOCUMENTS_PREPROD_DB:-odoo_usl_documents_preprod}"
+    ;;
+  *)
+    printf 'Usage: scripts/documents-recovery-test <qa|preprod>\n' >&2
+    exit 2
+    ;;
+esac
+RESTORE_PROJECT="${USL_DOCUMENTS_RESTORE_PROJECT:-${SOURCE_PROJECT}-restore-$(date -u +%Y%m%d%H%M%S)}"
 if [[ "${USL_DOCUMENTS_SYNTHETIC_RECOVERY:-0}" != "1" ]]; then
   printf 'Refusing unconfirmed recovery test; set USL_DOCUMENTS_SYNTHETIC_RECOVERY=1\n' >&2
   exit 2
 fi
 case "$SOURCE_DATABASE" in
-  odoo_usl_documents_*_test|odoo_usl_documents_test) ;;
-  *)
-    printf 'Refusing non-QA source database: %s\n' "$SOURCE_DATABASE" >&2
+  ""|odoo_dev|*[!A-Za-z0-9_]*)
+    printf 'Refusing unsafe source database: %s\n' "$SOURCE_DATABASE" >&2
     exit 2
     ;;
 esac
@@ -29,11 +49,32 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${RESTORE_PROJECT}-"; then
   exit 2
 fi
 
-SOURCE=(docker compose -p "$SOURCE_PROJECT")
-RESTORE=(docker compose -p "$RESTORE_PROJECT")
-SOURCE_ODOO_HTTP_PORT="${USL_DOCUMENTS_ODOO_HTTP_PORT:-18080}"
-SOURCE_ODOO_GEVENT_PORT="${USL_DOCUMENTS_ODOO_GEVENT_PORT:-18072}"
-SOURCE_PAPERLESS_HTTP_PORT="${USL_DOCUMENTS_PAPERLESS_HTTP_PORT:-8010}"
+scripts/documents-stack "$ENVIRONMENT" preflight >/dev/null
+SOURCE=(
+  docker compose
+  --env-file "$ENV_FILE"
+  -p "$SOURCE_PROJECT"
+  -f "$ROOT/compose.yaml"
+  -f "$OVERRIDE"
+  --profile paperless
+)
+RESTORE=(
+  docker compose
+  --env-file "$ENV_FILE"
+  -p "$RESTORE_PROJECT"
+  -f "$ROOT/compose.yaml"
+  -f "$OVERRIDE"
+  --profile paperless
+)
+SOURCE_ODOO_HTTP_PORT="$(
+  sed -n 's/^ODOO_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
+)"
+SOURCE_ODOO_GEVENT_PORT="$(
+  sed -n 's/^ODOO_GEVENT_PORT=//p' "$ENV_FILE" | tail -n 1
+)"
+SOURCE_PAPERLESS_HTTP_PORT="$(
+  sed -n 's/^PAPERLESS_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
+)"
 BACKUP_ID="documents-restore-$(date -u +%Y%m%dT%H%M%SZ)"
 ARTIFACT_DIR="$(mktemp -d "/tmp/${BACKUP_ID}.XXXXXX")"
 RESTORED_DATABASE="${SOURCE_DATABASE}_restored"
@@ -47,14 +88,18 @@ RESTORE_PAPERLESS_MEDIA_VOLUME="${RESTORE_PROJECT}_paperless-media"
 RESTORE_PAPERLESS_EXPORT_VOLUME="${RESTORE_PROJECT}_paperless-export"
 
 restore_source() {
+  ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
+  ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
+  ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
-    "${SOURCE[@]}" --profile paperless up -d --wait \
+  "${SOURCE[@]}" up -d --wait --pull never \
     paperless-preflight paperless-db paperless-broker paperless-gotenberg \
     paperless-tika paperless-webserver || true
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
-    ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
-    ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
-    "${SOURCE[@]}" up -d --wait odoo || true
+  ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
+  ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
+  PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
+  "${SOURCE[@]}" up -d --wait --pull never odoo || true
 }
 trap restore_source EXIT INT TERM
 
@@ -94,9 +139,13 @@ export ODOO_HTTP_PORT="${USL_DOCUMENTS_RESTORE_ODOO_HTTP_PORT:-18180}"
 export ODOO_GEVENT_PORT="${USL_DOCUMENTS_RESTORE_ODOO_GEVENT_PORT:-18172}"
 export PAPERLESS_HTTP_PORT="${USL_DOCUMENTS_RESTORE_PAPERLESS_HTTP_PORT:-8020}"
 export ODOO_DB_FILTER="^${RESTORED_DATABASE}$"
+export ODOO_INIT_DB="$RESTORED_DATABASE"
+export PAPERLESS_PUBLIC_URL="http://127.0.0.1:${PAPERLESS_HTTP_PORT}"
+export PAPERLESS_CORS_ALLOWED_HOSTS="$PAPERLESS_PUBLIC_URL"
+export PAPERLESS_CSRF_TRUSTED_ORIGINS="$PAPERLESS_PUBLIC_URL"
 
 "${RESTORE[@]}" up -d --wait db
-"${RESTORE[@]}" --profile paperless up -d --wait paperless-db paperless-broker
+"${RESTORE[@]}" up -d --wait --pull never paperless-db paperless-broker
 docker volume create "$RESTORE_ODOO_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_DATA_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_MEDIA_VOLUME" >/dev/null
@@ -121,12 +170,12 @@ docker run --rm -v "$RESTORE_PAPERLESS_EXPORT_VOLUME:/target" -v "$ARTIFACT_DIR:
   --clean --if-exists --no-owner --no-privileges < "$ARTIFACT_DIR/paperless.dump"
 
 # Prove Odoo can recover and remain healthy before Paperless is started.
-"${RESTORE[@]}" up -d --wait odoo
+"${RESTORE[@]}" up -d --wait --pull never odoo
 curl --fail --silent \
   "http://127.0.0.1:${ODOO_HTTP_PORT}/web/health?db_server_status=1" >/dev/null
 
 # Prove Paperless can recover independently, then validate cross-system links.
-"${RESTORE[@]}" --profile paperless up -d --wait \
+"${RESTORE[@]}" up -d --wait --pull never \
   paperless-preflight paperless-db paperless-broker paperless-gotenberg \
   paperless-tika paperless-webserver
 curl --fail --silent "http://127.0.0.1:${PAPERLESS_HTTP_PORT}/api/" >/dev/null
@@ -139,8 +188,8 @@ curl --fail --silent "http://127.0.0.1:${PAPERLESS_HTTP_PORT}/api/" >/dev/null
   init-db odoo shell \
   --config=/etc/odoo/odoo.conf \
   --database="$RESTORED_DATABASE" < "$ROOT/scripts/odoo/documents_restore_acceptance.py"
-"${RESTORE[@]}" up -d --wait odoo
+"${RESTORE[@]}" up -d --wait --pull never odoo
 
 trap - EXIT INT TERM
-printf 'DOCUMENTS_RECOVERY_TEST_OK backup=%s artifacts=%s restore_project=%s database=%s\n' \
-  "$BACKUP_ID" "$ARTIFACT_DIR" "$RESTORE_PROJECT" "$RESTORED_DATABASE"
+printf 'DOCUMENTS_RECOVERY_TEST_OK environment=%s backup=%s artifacts=%s restore_project=%s database=%s\n' \
+  "$ENVIRONMENT" "$BACKUP_ID" "$ARTIFACT_DIR" "$RESTORE_PROJECT" "$RESTORED_DATABASE"
