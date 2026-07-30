@@ -8,6 +8,7 @@ Controls, Reports and the compatibility product module:
 - governed fiscal-year behavior;
 - payment and partner suggestions;
 - bank matching and reconciliation compatibility;
+- company-paid expense matching against unreconciled bank transactions;
 - analytic measures and entry-direction safeguards;
 - scoped read-only accounting evidence protection.
 
@@ -18,3 +19,21 @@ activation or normal Accounting menus.
 Existing database XML IDs, views, actions and security records remain in
 `rebuild_account_migration` during the staged compatibility period. Do not add
 a reverse dependency on that module.
+
+## Company-paid expense matching
+
+Accounting Managers can open a Draft, Submitted or Approved expense and use
+**Find bank transactions**. The feature ranks at most five same-company bank
+debits using amount, date, currency, vendor and reference facts. It shows those
+facts rather than a confidence score.
+
+Only an exact amount within the expense currency rounding can be selected.
+After explicit confirmation, **Use and reconcile** runs the native expense
+submit, approve and post methods, selects the exact outstanding line from the
+native company payment and reconciles it through the pinned OCA bank-matching
+API. Native duplicate review, analytic validation, lock dates and permissions
+remain blocking. Any failure rolls back the complete request.
+
+Candidate rows are operational and recomputable. They are not accounting
+truth, do not run from a cron and never replace the native payment, journal
+entry or reconciliation records.

@@ -87,6 +87,7 @@ identifiers. It is explicitly rejected for this increment.
 | --- | --- | --- | --- |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
+| Company-paid expense bank matching | `usl_accounting` | runtime foundation over native expenses and OCA reconciliation | ranked-candidate, ACL, native lifecycle, rollback and reconciliation tests |
 | Reconciliation-model intelligence | compatibility module for this stage | source-trace dependency, left unchanged | rule behavior and replay tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |

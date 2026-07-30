@@ -7,10 +7,30 @@
    required**) to find missing evidence. Open an expense to see its contextual
    next-step guidance; a required missing receipt blocks
    submission, approval and posting.
-5. Select **Submit to Manager**, then **Approve**. An expense manager approving their own expense still performs both explicit steps.
-6. Select **Post Expense**. Odoo creates and opens the native posted journal entry.
-7. If the employee paid, select **Pay** on the journal entry or **Record Reimbursement** on the expense. If the company paid, keep the company-payment link.
-8. Match the related bank transaction, then inspect the journal entry and analytical report impact.
+5. If the company may already have paid the expense, select **Find bank
+   transactions** before posting. Review the amount, date, journal, label,
+   partner and the plain-language facts shown for each suggestion.
+6. For an exact amount, select **Use**, read the confirmation and choose **Use
+   and reconcile**. Odoo submits, approves and posts the native company-paid
+   expense when your permissions and its validations allow it, then matches
+   the resulting payment to that bank transaction.
+7. If an amount is merely close, correct the expense or investigate the bank
+   item in **Bank Matching**; a close amount cannot be applied automatically.
+8. If no company transaction applies, select **Submit to Manager**, then
+   **Approve** and **Post Expense** normally. For an employee-paid expense,
+   select **Pay** on the journal entry or **Record Reimbursement** on the
+   expense.
+9. Inspect the posted entry, accepted company-payment evidence and analytical
+   report impact.
+
+The bank partner is applied as the vendor only when the selected transaction
+has one, and the confirmation names the change first. Native duplicate review,
+analytic requirements, lock dates and permissions can stop the one-click
+flow. When that happens, no payment mode, vendor, payment or reconciliation is
+left half-applied.
+
+A scoped read-only accountant can inspect suggestions and accepted history but
+cannot refresh or use them. Ordinary employees cannot see bank-match evidence.
 
 Use the **Missing receipt** filter to prepare incomplete drafts. A category such as a configured fixed allowance can explicitly say **Receipt not required**; this is a category policy, not an exception hidden in the workflow.
 

@@ -14,6 +14,14 @@ The source version, accounting modules, companies, fiscal settings, customizatio
 
 The source package is repeatable, complete for its declared perimeter and traceable to target records. Exclusions and transformations are explicit.
 
+For the former Online expense-to-bank helper, every cached candidate,
+many-to-many association and selected bank line must be classified as current,
+stale, already settled, shared or ambiguous. The cache is not business truth
+and is not imported. The target recomputes suggestions after native expenses
+and bank lines exist, while the source expense, payment, entry and
+reconciliation remain authoritative. A repeated refresh must preserve
+candidate identity and every accounting count.
+
 ### Ledger integrity
 
 Entries are balanced; companies, accounts, dates, currencies, taxes, residuals and reconciliation relationships match the accepted source.

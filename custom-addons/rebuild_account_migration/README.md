@@ -42,6 +42,14 @@ module remains their compatibility consumer and retains installed
 `rebuild.*` models and stable XML/data ownership. See the
 [custom add-on architecture decision](../../docs/accounting/custom-addon-architecture.md).
 
+The source-faithful expense stage reads the former Online expense-to-bank
+suggestion cache only as migration evidence. It classifies every candidate,
+many-to-many and selected-line association, recomputes current operational
+suggestions through `usl_accounting`, and proves that refreshes are idempotent
+and leave expenses, moves, lines, payments and reconciliations unchanged. The
+legacy `x_sl_expense_bank_candidate` model, `x_*` fields, server actions, ACLs
+and inherited view are never imported.
+
 The authenticated user guide at `/usl/user-docs` renders the repository files
 under `docs/users/` with the pinned CommonMark runtime. Common Markdown
 formatting, nested lists, tables, code blocks and repository-relative links are

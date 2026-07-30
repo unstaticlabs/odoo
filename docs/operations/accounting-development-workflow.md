@@ -1,6 +1,6 @@
 # Accounting development workflow
 
-Last updated: 2026-07-28
+Last updated: 2026-07-30
 
 Audience: implementation agents and developers working on Milestone 13.
 
@@ -45,6 +45,7 @@ code and UI work, update it in place.
 | Future currency-rate provider changes | module update, targeted provider tests, `accounting-currency-rate-provider`, then manager/reviewer browser journeys | source restore, extract, native validation replay |
 | Importer mapping changes | `accounting-validation-exact-reset`, `accounting-validation-exact-import`, `accounting-validation-exact-validate` | source restore if snapshot unchanged |
 | Product expense reconstruction changes | clean disposable `accounting-dev-reset`, `accounting-dev-import`, then `accounting-dev-validate`; promote the same verified flow to the canonical development database only after it passes | source restore when the restored snapshot and filestore are unchanged; broad browser QA when no expense UI changed |
+| Company-paid expense bank matching | `/usl_accounting:TestExpenseBankMatching`, module update, one manager and one read-only form check; when source-cache classification changes, also run the clean `accounting-dev-reset`, `accounting-dev-import`, `accounting-dev-validate` sequence | native-validation replay and broad browser QA when native expense/payment/reconciliation behavior is unchanged |
 | Attachment/filestore replay changes | `accounting-dev-attachments`, `accounting-attachment-audit`, focused attachment and draft-regeneration tests | ledger reset or full native replay when record mappings are unchanged |
 | Source extraction mapping changes | `accounting-extract`, target reset/import/validate | source restore if source DB still running and unchanged |
 | native validation expense/document mapping changes | `accounting-validation-native-reset`, `accounting-validation-native-expenses`, `accounting-validation-native-documents` | source restore, exact-validation reset/import |
