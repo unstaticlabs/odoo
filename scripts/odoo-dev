@@ -87,7 +87,8 @@ test_js() {
 
 test_tag() {
   local test_tag="$1"
-  run_with_odoo_stopped init init-db odoo \
+  "${COMPOSE[@]}" --profile test build test
+  run_with_odoo_stopped test test odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" \
     --test-enable \
@@ -176,13 +177,15 @@ test_module() {
   esac
   container="${COMPOSE_PROJECT}-test-${database}"
   trap 'finish_module_test "$database" "$container"' EXIT INT TERM
+  "${COMPOSE[@]}" --profile test build test
   cleanup_test_container "$container"
   cleanup_test_database "$database"
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
-  "${COMPOSE[@]}" --profile init run --rm \
+  "${COMPOSE[@]}" --profile test run --rm \
     --name "$container" \
-    -e ODOO_INIT_DB="$DEV_DB" \
-    init-db odoo \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    test odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$database" \
     --init="$module" \
@@ -267,9 +270,9 @@ Commands:
   logs         Follow logs
   init-db      Initialize odoo_dev (or ODOO_INIT_DB)
   shell        Open a dev container shell
-  test [mod]   Run Odoo tests for a module
+  test [mod]   Run full backend/browser tests for a module
   test-js [mod] Run one module's frontend unit tests on odoo_dev
-  test-tag TAG  Run one installed Odoo test tag on odoo_dev
+  test-tag TAG  Run one installed backend/browser test tag on odoo_dev
   bootstrap-einvoice-qa
                 Prepare safe e-invoicing QA data and local test accounts
   ruff [args]  Run ruff in the dev image

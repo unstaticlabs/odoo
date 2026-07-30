@@ -138,7 +138,11 @@ menus.
 
 Tracked patches under `oca-patches/saas-19.2/` are part of that exact
 integration. A manifest version adaptation alone is not compatibility
-evidence.
+evidence. OCA compatibility tests must also be independent of restored
+candidate data: partner fixtures use unique exact evidence, date assertions
+follow the configured `res.lang`, and browser tests use the current Hoot step
+API. The complete `/account_reconcile_oca` tag must run in the
+Chromium-enabled `test` image so browser wrappers cannot be silently skipped.
 
 ## Upstream core patches
 
