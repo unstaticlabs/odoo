@@ -71,6 +71,68 @@
     }
 
     @include media-breakpoint-down(sm) {
+        & {
+            width: 100% !important;
+        }
+
+        tbody {
+            display: block;
+            width: 100%;
+        }
+
+        .o_rebuild_payment_suggestion {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+
+            > td {
+                display: block;
+                min-width: 0;
+                width: auto;
+            }
+
+            > td:nth-child(1) {
+                order: 1;
+                flex: 1 1 50%;
+            }
+
+            > td:nth-child(4) {
+                order: 2;
+                flex: 0 0 7rem;
+                width: 7rem;
+            }
+
+            > td:nth-child(2) {
+                order: 3;
+                flex: 0 0 100%;
+                width: 100%;
+            }
+
+            > td:nth-child(3) {
+                order: 4;
+                flex: 0 0 100%;
+                width: 100%;
+                padding-left: 0 !important;
+            }
+        }
+
+        .o_rebuild_payment_suggestion_detail {
+            display: flex;
+            width: 100%;
+
+            > td:first-child {
+                display: none;
+            }
+        }
+
+        .o_rebuild_payment_suggestion_context {
+            display: block;
+            flex: 0 0 100%;
+            width: auto;
+            padding-right: 0;
+            padding-left: 0;
+        }
+
         .o_immediate_settlement_actions {
             max-width: 15rem;
         }
