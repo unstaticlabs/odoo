@@ -20,11 +20,31 @@
             <tr t-if="info.outstanding and line.match_reason"
                 class="o_rebuild_payment_suggestion_detail">
                 <td/>
+                <t t-set="match_explanation"
+                   t-value="(line.is_best_match
+                             ? 'Highest-ranked payment. '
+                             : 'Alternative payment. ')
+                            + 'Match: '
+                            + (line.match_summary or line.match_reason).replaceAll(' · ', '; ')
+                            + '. Source: '
+                            + (line.is_bank_statement_candidate
+                               ? 'bank transaction'
+                               : 'existing payment')
+                            + (line.partner_evidence
+                               ? '. Partner: ' + line.partner_evidence
+                               : '')
+                            + (line.partner_suggestion_reason
+                               ? '. Cited evidence: ' + line.partner_suggestion_reason
+                               : '')
+                            + '.'
+                            + (line.settlement_review_reason
+                               ? ' Review: ' + line.settlement_review_reason
+                               : '')"/>
                 <td colspan="3"
                     class="o_rebuild_payment_suggestion_context text-start text-wrap"
-                    t-att-title="line.settlement_review_reason
-                                 ? line.match_reason + ' · ' + line.settlement_review_reason
-                                 : line.match_reason"
+                    tabindex="0"
+                    t-att-title="match_explanation"
+                    t-att-aria-label="match_explanation"
                     data-bs-toggle="tooltip">
                     <span t-if="line.is_best_match"
                           class="badge rounded-pill o_rebuild_payment_suggestion_best">
@@ -108,11 +128,6 @@
                   title="The bill must be posted before accounting entries can be reconciled.">
                 Available after posting
             </span>
-        </xpath>
-        <xpath expr="//td[@t-if='!line.is_exchange']/span" position="after">
-            <small t-if="info.outstanding and line.amount_is_odoo_estimate"
-                   class="d-block text-muted o_rebuild_payment_suggestion_estimate_label"
-                   t-out="line.odoo_estimate_label"/>
         </xpath>
         <xpath expr="//t[@t-if='!info.outstanding']/td/i" position="replace">
             <i class="o_field_widget text-start o_payment_label">

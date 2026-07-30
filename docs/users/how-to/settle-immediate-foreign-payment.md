@@ -21,6 +21,8 @@ to see its accounting consequence. Light chips below each candidate summarize
 the useful matching facts, such as **Best match**, **Bank transaction**,
 **Reference match**, **Exact amount**, and the date gap. Hover or focus those
 chips for the complete matching evidence and any source warning.
+The amount column stays uncluttered; the **Add** helper explains when its amount
+is Odoo's estimated foreign value.
 
 ## Choose the action
 

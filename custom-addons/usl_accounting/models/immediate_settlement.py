@@ -2508,10 +2508,6 @@ class AccountMove(models.Model):
                     else False
                 )
                 if context["eligible"]:
-                    item["odoo_estimate_label"] = _("Odoo estimate")
-                    item["amount_is_odoo_estimate"] = (
-                        not context["facts"].get("authoritative_foreign")
-                    )
                     if move.currency_id.is_zero(context["synthetic_difference"]):
                         item["add_action_helper"] = _(
                             "Use Odoo's existing %(amount)s candidate.",
