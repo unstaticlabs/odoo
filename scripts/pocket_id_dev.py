@@ -132,7 +132,7 @@ def _write_new_env(path: Path) -> None:
     ).strip()
     prosper_odoo_email = os.getenv(
         "USL_POCKET_ID_DEV_PROSPER_ODOO_EMAIL",
-        "prosper@preproduction.invalid",
+        "",
     ).strip()
     if not SAFE_PROJECT_PATTERN.fullmatch(project_name):
         raise PocketIDError("The local Compose project name is unsafe.")
@@ -438,7 +438,7 @@ def odoo_policy(values: dict[str, str]) -> None:
             "create_if_missing": True,
         },
         {
-            "login": "roger",
+            "login": "roger@unstaticlabs.com",
             "name": "Roger",
             "email": USER_DEFINITIONS["roger"]["email"],
             "profile": "collaborator",

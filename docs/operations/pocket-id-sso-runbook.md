@@ -87,9 +87,10 @@ service data, so running `reset-idp` first is optional.
 
 The local overlay deliberately enables insecure callback URLs only inside this
 loopback preproduction topology. Staging and production require HTTPS and must
-not copy that setting. Prosper's default
-`prosper@preproduction.invalid` address is a clearly synthetic placeholder;
-replace it with an owner-confirmed address before any non-local activation.
+not copy that setting. Pocket ID uses `prosper@preproduction.invalid` only as a
+clearly synthetic provider-side placeholder. It is not written to Prosper's
+existing Odoo user, whose canonical email is currently blank. Replace the
+placeholder with an owner-confirmed address before any non-local activation.
 
 ## 3. Configure an external Pocket ID
 
@@ -152,7 +153,7 @@ value with owner-confirmed data:
     "create_if_missing": true
   },
   {
-    "login": "roger",
+    "login": "roger@unstaticlabs.com",
     "name": "Roger",
     "email": "roger@unstaticlabs.com",
     "profile": "collaborator",
