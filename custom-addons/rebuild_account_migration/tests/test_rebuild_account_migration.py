@@ -4420,6 +4420,41 @@ class TestRebuildAccountMigration(TransactionCase):
             },
         )
 
+    def test_legacy_expense_bank_match_bootstrap_schema_is_absent(self):
+        stats = self.env[
+            "rebuild.account.import.run"
+        ]._native_expense_legacy_bank_match_schema()
+
+        self.assertTrue(stats["absent"], stats)
+        self.assertIn(
+            "usl.expense.bank.match.candidate",
+            self.env.registry.models,
+        )
+        self.assertFalse(self.env["ir.model.fields"].search([
+            ("model", "=", "hr.expense"),
+            (
+                "name",
+                "in",
+                [
+                    "x_bank_match_candidate_ids",
+                    "x_candidate_bank_statement_line_ids",
+                    "x_selected_bank_statement_line_id",
+                    "x_selected_bank_statement_line_preview",
+                ],
+            ),
+        ]))
+        self.assertFalse(self.env["ir.actions.server"].search([
+            (
+                "name",
+                "in",
+                [
+                    "SL - Dépense - Chercher débits candidats",
+                    "SL - Dépense - Associer meilleur débit bancaire",
+                    "SL - Candidat bancaire - Associer à la dépense",
+                ],
+            ),
+        ]))
+
     def test_vendor_bills_and_receipts_have_separate_removable_default_filters(self):
         bills_action = self.env.ref("account.action_move_in_invoice")
         expenses_action = self.env.ref(
