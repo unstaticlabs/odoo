@@ -8,6 +8,8 @@ ENVIRONMENT="${1:-qa}"
 case "$ENVIRONMENT" in
   qa)
     ENV_FILE="$ROOT/deploy/documents/qa.env"
+    SSO_ENV_FILE="$ROOT/.documents-qa-sso.env"
+    python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
     OVERRIDE="$ROOT/compose.documents.qa.yaml"
     SOURCE_PROJECT="codex-paperless-docs"
     SOURCE_DATABASE="odoo_usl_documents_test"
@@ -18,6 +20,7 @@ case "$ENVIRONMENT" in
       printf 'Set USL_DOCUMENTS_PREPROD_ENV to the populated pre-production env file.\n' >&2
       exit 2
     }
+    SSO_ENV_FILE=""
     OVERRIDE="$ROOT/compose.documents.preprod.yaml"
     SOURCE_PROJECT="${USL_DOCUMENTS_PREPROD_PROJECT:-usl-documents-preprod}"
     SOURCE_DATABASE="${USL_DOCUMENTS_PREPROD_DB:-odoo_usl_documents_preprod}"
@@ -50,11 +53,16 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${RESTORE_PROJECT}-"; then
 fi
 
 scripts/documents-stack "$ENVIRONMENT" preflight >/dev/null
+SOURCE_ENV_FILES=(--env-file "$ENV_FILE")
+if [[ -n "$SSO_ENV_FILE" ]]; then
+  SOURCE_ENV_FILES+=(--env-file "$SSO_ENV_FILE")
+fi
 SOURCE=(
   docker compose
-  --env-file "$ENV_FILE"
+  "${SOURCE_ENV_FILES[@]}"
   -p "$SOURCE_PROJECT"
   -f "$ROOT/compose.yaml"
+  -f "$ROOT/compose.pocket-id.yaml"
   -f "$OVERRIDE"
   --profile paperless
 )
@@ -74,6 +82,26 @@ SOURCE_ODOO_GEVENT_PORT="$(
 )"
 SOURCE_PAPERLESS_HTTP_PORT="$(
   sed -n 's/^PAPERLESS_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
+)"
+SOURCE_PAPERLESS_PUBLIC_URL="$(
+  sed -n 's/^PAPERLESS_PUBLIC_URL=//p' "$ENV_FILE" | tail -n 1
+)"
+SOURCE_PAPERLESS_PUBLIC_BASE_URL="$(
+  if [[ -n "$SSO_ENV_FILE" ]]; then
+    sed -n 's/^PAPERLESS_PUBLIC_BASE_URL=//p' \
+      "$ENV_FILE" "$SSO_ENV_FILE" | tail -n 1
+  else
+    sed -n 's/^PAPERLESS_PUBLIC_BASE_URL=//p' "$ENV_FILE" | tail -n 1
+  fi
+)"
+SOURCE_PAPERLESS_PUBLIC_BASE_URL="$(
+  printf '%s' "${SOURCE_PAPERLESS_PUBLIC_BASE_URL:-$SOURCE_PAPERLESS_PUBLIC_URL}"
+)"
+SOURCE_PAPERLESS_CORS_ALLOWED_HOSTS="$(
+  sed -n 's/^PAPERLESS_CORS_ALLOWED_HOSTS=//p' "$ENV_FILE" | tail -n 1
+)"
+SOURCE_PAPERLESS_CSRF_TRUSTED_ORIGINS="$(
+  sed -n 's/^PAPERLESS_CSRF_TRUSTED_ORIGINS=//p' "$ENV_FILE" | tail -n 1
 )"
 BACKUP_ID="documents-restore-$(date -u +%Y%m%dT%H%M%SZ)"
 PRESERVE_RECOVERY="${USL_DOCUMENTS_PRESERVE_RECOVERY:-0}"
@@ -99,18 +127,29 @@ restore_source() {
   ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
   ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
+  PAPERLESS_PUBLIC_URL="$SOURCE_PAPERLESS_PUBLIC_URL" \
+  PAPERLESS_PUBLIC_BASE_URL="$SOURCE_PAPERLESS_PUBLIC_BASE_URL" \
+  PAPERLESS_CORS_ALLOWED_HOSTS="$SOURCE_PAPERLESS_CORS_ALLOWED_HOSTS" \
+  PAPERLESS_CSRF_TRUSTED_ORIGINS="$SOURCE_PAPERLESS_CSRF_TRUSTED_ORIGINS" \
   "${SOURCE[@]}" up -d --wait --pull never \
     paperless-preflight paperless-db paperless-broker paperless-gotenberg \
-    paperless-tika paperless-trash-init paperless-webserver || true
+    paperless-tika paperless-trash-init paperless-webserver
+  "${SOURCE[@]}" run --rm --no-deps paperless-access-init
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
   ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
   ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
-  "${SOURCE[@]}" up -d --wait --pull never odoo || true
+  PAPERLESS_PUBLIC_URL="$SOURCE_PAPERLESS_PUBLIC_URL" \
+  PAPERLESS_PUBLIC_BASE_URL="$SOURCE_PAPERLESS_PUBLIC_BASE_URL" \
+  PAPERLESS_CORS_ALLOWED_HOSTS="$SOURCE_PAPERLESS_CORS_ALLOWED_HOSTS" \
+  PAPERLESS_CSRF_TRUSTED_ORIGINS="$SOURCE_PAPERLESS_CSRF_TRUSTED_ORIGINS" \
+  "${SOURCE[@]}" up -d --wait --pull never odoo
 }
 
 cleanup_restore() {
-  restore_source
+  if ! restore_source; then
+    printf 'WARNING: failed to restore the source Documents stack.\n' >&2
+  fi
   if [[ "$PRESERVE_RECOVERY" = "1" ]]; then
     return
   fi
@@ -223,6 +262,7 @@ curl --fail --silent \
 "${RESTORE[@]}" up -d --wait --pull never \
   paperless-preflight paperless-db paperless-broker paperless-gotenberg \
   paperless-tika paperless-trash-init paperless-webserver
+"${RESTORE[@]}" run --rm --no-deps paperless-access-init
 curl --fail --silent "http://127.0.0.1:${PAPERLESS_HTTP_PORT}/api/" >/dev/null
 "${RESTORE[@]}" stop odoo >/dev/null
 "${RESTORE[@]}" --profile init run --rm -T \

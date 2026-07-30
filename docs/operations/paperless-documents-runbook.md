@@ -14,12 +14,14 @@ Local QA is fixed to:
   `^odoo_usl_documents_test$`;
 - Odoo `http://127.0.0.1:18080` and gevent port `18072`;
 - Paperless `http://127.0.0.1:8010`;
+- Pocket ID `http://pocket-id-documents.localhost:18110`;
 - electronic invoice and e-reporting live flags `0`;
 - preserved named volumes for both applications.
 
 Use:
 
 ```bash
+scripts/documents-stack qa build
 scripts/documents-stack qa up
 scripts/documents-stack qa update
 scripts/documents-stack qa bootstrap
@@ -28,11 +30,25 @@ scripts/documents-stack qa logs
 scripts/documents-stack qa stop
 ```
 
-`update` updates both `usl_documents` and the optional
-`usl_documents_accounting` bridge when installed, then recreates only the Odoo
-application container. It does not install an unselected bridge or reset
+The QA target uses `codex-paperless-docs-odoo:documents-qa`, never the
+canonical development image. Run `build` after Dockerfile, Python dependency,
+or upstream/OCA dependency changes; ordinary mounted add-on edits need only
+`update`.
+
+`update` updates `usl_documents`, its required `usl_pocketid` identity
+foundation, and the optional `usl_documents_accounting` bridge when installed,
+then recreates only the Odoo application container. It does not reset
 databases, filestore, Paperless media, consume staging, exports, or
 relationships. `bootstrap` is idempotent and seeds only synthetic QA material.
+The wrapper creates `.documents-qa-sso.env` with mode `0600`, provisions
+separate Odoo and Paperless Pocket clients idempotently, and never commits
+their secrets. It uses port `18110` so it does not collide with the canonical
+development Pocket tenant on `1411`.
+After Paperless is healthy, the qualified target runs a pinned, idempotent
+initializer for the Paperless-local SSO capability group. It grants only
+catalog/UI permissions; Odoo continues to synchronize every document object
+grant. A failed initializer fails the target instead of leaving a newly
+authenticated user with a broken Paperless dashboard.
 
 QA-only credentials are intentionally simple:
 
@@ -43,6 +59,9 @@ QA-only credentials are intentionally simple:
   password `admin`.
 
 Never reuse these credentials or `deploy/documents/qa.env` outside local QA.
+They are an explicit test-only exception; ordinary pre-production users use
+Pocket. The QA mapping exception is ignored unless
+`USL_DEPLOYMENT_ENV=qa`.
 
 ## Pre-production
 
@@ -58,12 +77,14 @@ scripts/documents-stack preprod up
 ```
 
 Preflight refuses default/QA credentials, `CHANGE_ME` values, unpinned images,
-an unsafe database filter, public HTTP Paperless URLs, local-only identity
-settings, enabled live electronic-invoice/e-reporting flags, or a non-
-preproduction environment. The target cannot silently fall back to QA or the
-base Compose defaults.
+an unsafe database filter, public HTTP Paperless or Pocket URLs, local-only
+identity settings, a reused Odoo/Paperless OIDC client, enabled password login
+in Paperless, a callback protocol that differs from Paperless's public URL,
+Pocket-to-Paperless group synchronization, enabled live
+electronic-invoice/e-reporting flags, or a non-preproduction environment. The
+target cannot silently fall back to QA or the base Compose defaults.
 
-Terminate TLS and SSO at the secured production ingress. Paperless should not
+Terminate TLS at the secured production ingress. Paperless should not
 be publicly reachable except through that ingress. Direct Paperless users must
 be individual identities with equivalent object permissions; Odoo-native work
 does not require a Paperless login.
@@ -78,7 +99,8 @@ It was qualified against REST API v10. PostgreSQL is 16-bookworm, Valkey is
 with `latest` or let an image pull become an implicit upgrade.
 
 Compose health checks cover Odoo, Odoo PostgreSQL, Paperless web/worker,
-Paperless PostgreSQL, Valkey, Tika, and Gotenberg. Odoo has no runtime
+Paperless PostgreSQL, Valkey, Tika, Gotenberg, and the digest-pinned Pocket ID
+v2.12.0 service. Odoo has no runtime
 `depends_on` relationship that makes Paperless availability a prerequisite.
 
 Monitor:
@@ -96,13 +118,27 @@ A Paperless outage pages the archive owner but must not restart or block Odoo.
 Use a non-human service identity only for server-to-server API work. Keep its
 token in Odoo secret/system configuration. Never expose it to a browser.
 
+Create two confidential clients in Pocket ID:
+
+- Odoo callback: `https://<odoo-host>/auth_oauth/signin`;
+- Paperless callback:
+  `https://<paperless-host>/accounts/oidc/pocket-id/login/callback/`.
+
+Both use authorization code, PKCE, `openid profile email groups`, and the same
+allowed-user group, but never the same client ID or secret. Paperless uses its
+documented `allauth.socialaccount.providers.openid_connect` provider,
+auto-signup, disabled regular frontend login, and optional automatic SSO
+redirect. Keep `PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS=false`: Pocket groups
+gate login and never become document authorization.
+
 Map direct users under **Documents > Configuration > User access**. Each map is
-one Odoo user to one individual Paperless user; shared administrators are not a
-valid production mapping. After creating or changing a map, use **Verify
-identity**: Odoo reads the Paperless user through the service API and requires
-the ID and username to match before granting objects or exposing deep links. A
-failed check remains visible on the mapping instead of being accepted
-optimistically. Install the Odoo-created fail-closed Paperless workflow before
+one Odoo user, its immutable Pocket identity, and one numeric Paperless user;
+shared administrators are not a valid production mapping. After the first
+Paperless Pocket login creates or links the individual account, use **Verify
+identity**. Odoo requires the Paperless ID/username and active Pocket link to
+match before granting objects or exposing deep links. A failed check remains
+visible instead of being accepted optimistically. Install the Odoo-created
+fail-closed Paperless workflow before
 enabling web, consume, mail, or API intake. New archive items remain owned by
 the service context until Odoo assigns company/confidentiality and synchronizes
 actual document-object permissions.
@@ -123,8 +159,9 @@ carries them.
 Healthy permission checks are quiet. A failure blocks file/deep-link access,
 shows an actionable warning, and retains timestamp/error in diagnostics.
 Metadata-object permissions alone are not acceptance evidence. Changing an
-Odoo user's companies, Documents roles, active status, or individual Paperless
-mapping resynchronizes every affected document object. Permission expansion
+Odoo user's companies, Documents roles, active/Pocket status, Pocket identity,
+or individual Paperless mapping resynchronizes every affected document object.
+Permission expansion
 may remain pending and blocks access; permission revocation is fail-closed and
 rolls back the Odoo access change if the old Paperless grant cannot be removed.
 

@@ -6,7 +6,7 @@ cd "$ROOT"
 
 usage() {
   printf '%s\n' \
-    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|up|update|bootstrap|status|logs|stop|test|test-accounting|test-js> [args]" \
+    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|build|up|update|bootstrap|status|logs|stop|test|test-accounting|test-pocket|test-js> [args]" \
     "" \
     "QA is fixed to project codex-paperless-docs, database odoo_usl_documents_test," \
     "Odoo 127.0.0.1:18080, and Paperless 127.0.0.1:8010." >&2
@@ -20,6 +20,8 @@ shift $(( $# >= 2 ? 2 : $# ))
 case "$ENVIRONMENT" in
   qa)
     ENV_FILE="$ROOT/deploy/documents/qa.env"
+    SSO_ENV_FILE="$ROOT/.documents-qa-sso.env"
+    python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
     OVERRIDE="$ROOT/compose.documents.qa.yaml"
     PROJECT="codex-paperless-docs"
     DATABASE="odoo_usl_documents_test"
@@ -30,6 +32,7 @@ case "$ENVIRONMENT" in
       printf 'Set USL_DOCUMENTS_PREPROD_ENV to a populated pre-production env file.\n' >&2
       exit 2
     }
+    SSO_ENV_FILE=""
     OVERRIDE="$ROOT/compose.documents.preprod.yaml"
     PROJECT="${USL_DOCUMENTS_PREPROD_PROJECT:-usl-documents-preprod}"
     DATABASE="${USL_DOCUMENTS_PREPROD_DB:-odoo_usl_documents_preprod}"
@@ -52,16 +55,22 @@ case "$DATABASE" in
     ;;
 esac
 
+ENV_FILES=(--env-file "$ENV_FILE")
+if [[ -n "$SSO_ENV_FILE" ]]; then
+  ENV_FILES+=(--env-file "$SSO_ENV_FILE")
+fi
 COMPOSE=(
   docker compose
-  --env-file "$ENV_FILE"
+  "${ENV_FILES[@]}"
   -p "$PROJECT"
   -f "$ROOT/compose.yaml"
+  -f "$ROOT/compose.pocket-id.yaml"
   -f "$OVERRIDE"
   --profile paperless
 )
 SERVICES=(
   db
+  pocket-id
   paperless-preflight
   paperless-db
   paperless-broker
@@ -71,7 +80,7 @@ SERVICES=(
   paperless-webserver
   odoo
 )
-UPDATE_MODULES="usl_documents,usl_documents_accounting"
+UPDATE_MODULES="usl_pocketid,usl_documents,usl_documents_accounting"
 [[ "$UPDATE_MODULES" =~ ^[A-Za-z0-9_,]+$ ]] || {
   printf 'Refusing unsafe Documents module update list: %s\n' "$UPDATE_MODULES" >&2
   exit 2
@@ -100,6 +109,18 @@ validate_config() {
     printf 'Paperless 3.0.4 is not exactly pinned.\n' >&2
     return 1
   }
+  grep -Fq "ghcr.io/pocket-id/pocket-id:v2.12.0@sha256:4a277d141d6069fd9a7b321a9aca80f4b9812b8fa122ee566d2f15900e3d8448" <<<"$config" || {
+    printf 'Pocket ID v2.12.0 is not pinned by digest.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect" <<<"$config" || {
+    printf 'Paperless OpenID Connect support is not enabled.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: \"false\"" <<<"$config" || {
+    printf 'Paperless must not derive authorization from Pocket groups.\n' >&2
+    return 1
+  }
   trash_delay="$(
     awk '$1 == "PAPERLESS_EMPTY_TRASH_DELAY:" {
       gsub(/"/, "", $2)
@@ -122,6 +143,13 @@ validate_config() {
   fi
 }
 
+provision_qa_sso() {
+  [[ "$ENVIRONMENT" = "qa" ]] || return 0
+  "${COMPOSE[@]}" up -d --wait --pull never pocket-id
+  python3 "$ROOT/scripts/pocket_id_dev.py" \
+    --env-file "$SSO_ENV_FILE" provision >/dev/null
+}
+
 runtime_status() {
   "${COMPOSE[@]}" ps
   local runtime_filter
@@ -136,6 +164,10 @@ runtime_status() {
   }
 }
 
+ensure_paperless_access() {
+  "${COMPOSE[@]}" run --rm --no-deps paperless-access-init
+}
+
 case "$COMMAND" in
   config)
     validate_config
@@ -145,14 +177,25 @@ case "$COMMAND" in
     validate_config
     "${COMPOSE[@]}" run --rm --no-deps paperless-preflight
     ;;
+  build)
+    [[ "$ENVIRONMENT" = "qa" ]] || {
+      printf 'Pre-production uses a qualified registry image and cannot build in place.\n' >&2
+      exit 2
+    }
+    validate_config
+    "${COMPOSE[@]}" build odoo
+    ;;
   up)
     validate_config
+    provision_qa_sso
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
+    ensure_paperless_access
     runtime_status
     ;;
   update)
     validate_config
-    "${COMPOSE[@]}" up -d --wait --pull never db
+    provision_qa_sso
+    "${COMPOSE[@]}" up -d --wait --pull never db pocket-id
     "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
     "${COMPOSE[@]}" --profile init run --rm --no-deps \
       -e ODOO_INIT_DB="$DATABASE" init-db odoo \
@@ -165,6 +208,7 @@ case "$COMMAND" in
     "${COMPOSE[@]}" up -d --wait --pull never \
       db paperless-preflight paperless-db paperless-broker \
       paperless-gotenberg paperless-tika paperless-webserver
+    ensure_paperless_access
     "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
     runtime_status
     ;;
@@ -174,7 +218,9 @@ case "$COMMAND" in
       exit 2
     }
     validate_config
+    provision_qa_sso
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
+    ensure_paperless_access
     paperless_setup="$(
       "${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell -c '
 from django.contrib.auth import get_user_model
@@ -246,6 +292,13 @@ print(
             username: User.objects.get(username=username).id
             for username in users
             if username != "odoo-integration"
+        }
+        | {
+            "documents-sso-user": User.objects.get(
+                username="documents-sso-user"
+            ).id
+            for _item in [True]
+            if User.objects.filter(username="documents-sso-user").exists()
         },
         separators=(",", ":"),
     )
@@ -294,12 +347,17 @@ print(
     validate_config
     "${COMPOSE[@]}" stop "${SERVICES[@]}"
     ;;
-  test|test-accounting)
+  test|test-accounting|test-pocket)
     validate_config
+    provision_qa_sso
     if [[ "$COMMAND" = "test-accounting" ]]; then
       TEST_DATABASE="${1:-odoo_test_usl_documents_accounting}"
       TEST_INIT_MODULE="usl_documents_accounting"
       TEST_TAGS="usl_documents_accounting"
+    elif [[ "$COMMAND" = "test-pocket" ]]; then
+      TEST_DATABASE="${1:-odoo_test_usl_pocketid}"
+      TEST_INIT_MODULE="usl_pocketid"
+      TEST_TAGS="usl_pocketid,usl_pocketid_http"
     else
       TEST_DATABASE="${1:-odoo_test_usl_documents}"
       TEST_INIT_MODULE="usl_documents"
@@ -327,9 +385,12 @@ print(
     }
     trap cleanup_test EXIT
     "${COMPOSE[@]}" up -d --wait --pull never db
+    # OCA auth_oidc's test package imports `responses`. Keep that dependency
+    # in the browser-capable test image rather than bloating the runtime image.
+    "${COMPOSE[@]}" --profile test build test
     cleanup_test
-    "${COMPOSE[@]}" --profile init run --rm \
-      -e ODOO_INIT_DB="$TEST_DATABASE" init-db odoo \
+    "${COMPOSE[@]}" --profile test run --rm \
+      -e "ODOO_DB_FILTER=^${TEST_DATABASE}$" test odoo \
       --config=/etc/odoo/odoo.conf \
       --database="$TEST_DATABASE" \
       --init="$TEST_INIT_MODULE" \
@@ -343,6 +404,7 @@ print(
     ;;
   test-js)
     validate_config
+    provision_qa_sso
     "${COMPOSE[@]}" --profile test build test
     "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
     restore_qa_odoo() {

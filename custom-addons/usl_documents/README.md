@@ -64,6 +64,13 @@ individual deep links. Extend supported business models through
 `usl.document.link._allowed_models()` and the link mixin, with explicit company
 and confidentiality tests.
 
+`usl_documents` depends on `usl_pocketid` for the canonical Odoo identity
+link. Interactive Odoo and Paperless sessions use distinct confidential Pocket
+OIDC clients. A Paperless mapping is permission-eligible only while its Odoo
+user, Pocket `(issuer, subject)` link, and remote numeric Paperless identity
+remain verified. Pocket groups are never copied into Paperless authorization.
+The service API token remains a separate non-human integration identity.
+
 The implementation compared three credible approaches. Standard `ir.attachment`
 would preserve native UI but duplicate archive binaries and lacks Paperless OCR,
 versions, and search authority. A general OCA DMS layer would add another

@@ -399,8 +399,10 @@ test("detail prioritizes original, classification, versions, and linked records"
             action: action({ res_model: "account.move", res_id: 12 }),
         },
     });
+    const listHistoryLength = browser.history.length;
     await contains(".o_usl_document_card").click();
     await animationFrame();
+    expect(browser.history.length).toBe(listHistoryLength + 1);
 
     await contains("button", { text: "Edit" }).click();
     expect(".o_usl_metadata_document_type").toHaveValue("8");
@@ -427,28 +429,7 @@ test("detail prioritizes original, classification, versions, and linked records"
         new URL(browser.location.href).searchParams.get("usl_document")
     ).toBe("7");
     expect(browser.history.state.nextState.usl_document).toBe(7);
-    browser.history.pushState(
-        {
-            nextState: {
-                actionStack: [],
-                usl_document: 7,
-            },
-            skipRouteChange: true,
-        },
-        "",
-        browser.location.href
-    );
-    browser.history.pushState(
-        {
-            nextState: {
-                actionStack: [],
-                usl_document: 7,
-            },
-            skipRouteChange: true,
-        },
-        "",
-        browser.location.href
-    );
+    expect(browser.history.state.skipRouteChange).toBe(true);
     let popStateCount = 0;
     const countPopState = () => {
         popStateCount += 1;
