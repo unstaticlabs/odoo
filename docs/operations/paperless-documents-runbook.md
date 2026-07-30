@@ -239,10 +239,12 @@ were written outside the repository under `/tmp`; that location is evidence
 for the disposable rehearsal, not a production backup destination.
 
 The final frontend acceptance passed both desktop and mobile QUnit variants:
-17 tests and 93 assertions in each, including native search suggestions, Smart
-View shortcuts, Trash attribution and deletion gates, and an open-detail
+19 tests and 109 assertions in each, including native search suggestions,
+native tag facets, a bounded searchable large-tag picker, Smart View
+shortcuts, one-click detail history normalization, linked-record return
+navigation, Trash attribution and deletion gates, and an open-detail
 no-overflow assertion. Live browser review exercised the native OCR facet,
-additive top tag chip, real document detail, preview, classification, and
+additive top tag facet, real document detail, preview, classification, and
 original download. Responsive review at 1280×720, 768×1024, and 390×844 opened
 a real document detail without page overflow, clipped document actions,
 browser exceptions, or failed HTTP responses. The previously failing

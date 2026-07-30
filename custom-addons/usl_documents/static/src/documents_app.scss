@@ -65,8 +65,7 @@
     .o_usl_filter_shortcuts {
         max-width: 100%;
         padding-bottom: 0.2rem;
-        overflow-x: auto;
-        scrollbar-width: thin;
+        flex-wrap: wrap;
     }
 
     .o_usl_filter_shortcut_divider {
@@ -79,6 +78,7 @@
     .o_usl_tag_chip {
         --tag-color: #dbeafe;
         display: inline-flex;
+        flex: 0 0 auto;
         align-items: center;
         max-width: 180px;
         padding: 0.18rem 0.55rem;
@@ -108,6 +108,64 @@
             margin-right: 0.3rem;
             font-family: FontAwesome;
             content: "\f00c";
+        }
+    }
+
+    .o_usl_tag_chip_label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_usl_more_tags {
+        flex: 0 0 auto;
+
+        > summary {
+            list-style: none;
+
+            &::-webkit-details-marker {
+                display: none;
+            }
+
+            &::after {
+                margin-left: 0.35rem;
+                font-family: FontAwesome;
+                content: "\f0d7";
+            }
+        }
+
+        &[open] > summary::after {
+            content: "\f0d8";
+        }
+    }
+
+    .o_usl_more_tags_menu {
+        right: 0;
+        left: auto;
+        z-index: 1100;
+        width: 22rem;
+        max-width: calc(100vw - 2rem);
+    }
+
+    .o_usl_more_tags_results {
+        max-height: 18rem;
+        overflow-y: auto;
+
+        .dropdown-item {
+            min-width: 0;
+            color: #172033;
+
+            &:hover,
+            &:focus {
+                color: #172033;
+                background: #edf1f6;
+            }
+
+            &.active {
+                color: #fff;
+                background: #714b67;
+            }
         }
     }
 
