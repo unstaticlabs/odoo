@@ -98,6 +98,7 @@ identifiers. It is explicitly rejected for this increment.
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
 | Pocket ID authentication and identity governance | `usl_pocketid` over pinned OCA `auth_oidc` | runtime authentication boundary | issuer/audience/nonce/PKCE/JWKS, identity lifecycle and named-profile tests |
 | Pocket ID accountant-reviewer profile | compatibility extension over `usl_pocketid` | the stable reviewer group XML ID is still owned here; the base SSO module has no reverse Accounting dependency | clean `usl_pocketid` install plus product-profile integration test |
+| Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project finalization, product-boundary guard and target-finalization order tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
 
@@ -113,6 +114,10 @@ menus.
   change as part of source extraction.
 - Existing XML/data files stay in `rebuild_account_migration` until a separate
   rehearsed ownership migration proves install, upgrade and uninstall safety.
+- Source parity and target environment policy are separate. Odoo Online has no
+  Pocket ID state; canonical `odoo_dev` receives SSO only after imported
+  Accounting and Projects data pass their controls and temporary migration
+  modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or

@@ -1,9 +1,9 @@
 # Pocket ID SSO runbook
 
 This runbook configures Pocket ID passkey login without making Pocket ID an
-authorization source. Local integration QA uses an automatically managed,
-disposable clone of canonical `odoo_dev`. The helper never configures
-`odoo_dev` itself and never touches the read-only source database.
+authorization source. Local integration QA uses canonical `odoo_dev`, the
+disposable production-shaped target reconstructed from the Online dump. The
+helper never touches the read-only source database.
 
 For Odoo integration acceptance in the isolated local tenant, administrator
 one-time Pocket ID login links stand in for the passkey ceremony. They exercise
@@ -29,7 +29,7 @@ Before changing a database:
 Never paste tokens, client secrets, passkeys or raw Pocket ID subjects into a
 commit, ticket, screenshot or validation artifact.
 
-## 2. Isolated local preproduction
+## 2. Canonical local target
 
 The repository provides a pinned Pocket ID v2.12.0 Compose overlay and an
 idempotent helper. It:
@@ -37,12 +37,12 @@ idempotent helper. It:
 - binds Pocket ID to `127.0.0.1:1411`;
 - serves Odoo on the normal local port at `http://odoo.localhost:8069`;
 - accepts local HTTP only for RFC-reserved `.localhost` names;
-- targets only a disposable `odoo_dev_*_qa` clone;
+- targets only canonical `odoo_dev`;
 - refuses either enabled regulatory live guard;
 - writes generated secrets and immutable test subjects only to the ignored
   `.pocket-id.env` with mode 0600;
-- clones canonical `odoo_dev` and its filestore on demand;
-- reuses that clone during one QA session, then removes it explicitly.
+- provisions stable local subjects idempotently;
+- applies target-only identity policy after source-data reconstruction.
 
 Create and configure the tenant:
 
@@ -73,26 +73,53 @@ scripts/pocket-id-dev stop-idp
 scripts/pocket-id-dev start-idp
 ```
 
-`reset-idp --confirm` deletes only the disposable Pocket ID container and
-volume. To finish QA, remove the disposable database/filestore clone and
-restore the canonical Odoo service:
+`reset-idp --confirm` deletes only the local Pocket ID container and volume.
+It does not delete `odoo_dev`. Reprovisioning is deterministic because the
+ignored environment file retains the immutable local subjects and credentials:
 
 ```bash
 scripts/pocket-id-dev reset-idp --confirm
-scripts/pocket-id-dev cleanup-qa-clone --confirm
+scripts/pocket-id-dev configure-odoo
 ```
 
-`cleanup-qa-clone` is the normal final command. It also removes Pocket ID
-service data, so running `reset-idp` first is optional.
+Normal development does not require cleanup. `make dev`, `make deploy` and
+`make rebuild` keep the canonical target and local identity provider running.
 
 The local overlay deliberately enables insecure callback URLs only inside this
-loopback preproduction topology. Staging and production require HTTPS and must
-not copy that setting. Pocket ID uses `prosper@preproduction.invalid` only as a
+loopback target topology. Staging and production require HTTPS and must not
+copy that setting. Pocket ID uses `prosper@preproduction.invalid` only as a
 clearly synthetic provider-side placeholder. It is not written to Prosper's
 existing Odoo user, whose canonical email is currently blank. Replace the
 placeholder with an owner-confirmed address before any non-local activation.
 
-## 3. Configure an external Pocket ID
+## 3. Reconstruction and target finalization
+
+The Online source has no SSO. This is expected and must not be “fixed” by
+writing Pocket metadata into source extraction or parity mappings. The
+canonical pipeline keeps two explicit layers:
+
+1. reconstruct and validate native business data;
+2. apply the desired target environment and governed identities.
+
+Run the complete lifecycle with:
+
+```bash
+make target-reconstruct
+```
+
+It executes Accounting reset/import/parity, Project import/parity and
+migration finalization before applying Pocket ID. To reapply only target
+configuration after a deployment or environment change:
+
+```bash
+make target-finalize
+```
+
+Both commands retain the migration tools as maintained, versioned repository
+deliverables while the final Odoo database remains free of migration modules,
+models, menus and provenance fields.
+
+## 4. Configure an external Pocket ID
 
 Create a confidential OIDC client in Pocket ID:
 
@@ -127,7 +154,7 @@ configured public base URL, proxy host/scheme and Pocket ID redirect must be
 identical. Leave `USL_POCKET_ID_TOKEN_AUTH_METHOD` empty to select the
 advertised safe default.
 
-## 4. Prepare named-user policy
+## 5. Prepare named-user policy
 
 `USL_POCKET_ID_USERS_JSON` must contain every non-framework Odoo user. The
 framework OdooBot, Public user and Portal User Template are protected
@@ -195,7 +222,7 @@ Verified-email first link is an exception for a known existing user. Replace
 and disable both approvals after the first successful link. Do not use this
 for an ambiguous email or as an account-discovery mechanism.
 
-## 5. Install and dry-run
+## 6. Install and dry-run
 
 For a non-local preproduction database, select the approved target explicitly:
 
@@ -212,16 +239,15 @@ The dry run performs discovery and all user, company, group, subject and
 break-glass checks, then rolls the database transaction back. It prints only
 logins, profiles and counts; it does not print subjects or secrets.
 
-For local QA, do not run these commands manually. `scripts/pocket-id-dev
-configure-odoo` creates the disposable clone, updates the complete product
-dependency graph, performs the same dry-run/apply sequence and prints the
-isolated Odoo and Pocket ID URLs.
+For the canonical local target, `scripts/pocket-id-dev configure-odoo` updates
+the product dependency graph, performs an apply bracketed by two successful
+dry runs, and prints the Odoo and Pocket ID URLs.
 
 Review the dry-run result with the identity owner and accounting owner.
 Resolve every missing user, duplicate email, unclassified login, company or
 subject conflict. Never work around a refusal by deleting a user or identity.
 
-## 6. Apply
+## 7. Apply
 
 After the dry run is accepted:
 
@@ -245,7 +271,7 @@ In Odoo, verify under **Settings → Users & Companies**:
 - every explicit link has the expected subject fingerprint;
 - Pocket ID audit events exist for links and policy application.
 
-## 7. Required acceptance journeys
+## 8. Required acceptance journeys
 
 Record date, environment, user, expected result and actual result. Do not
 record passkey screens, secrets, tokens or raw subjects.
@@ -288,7 +314,7 @@ One-time links are the approved local mechanism because the passkey ceremony
 itself is outside the Odoo integration test scope. Automated signed-token
 tests do not replace the real Pocket ID/Odoo redirect and callback.
 
-## 8. Validated local acceptance
+## 9. Validated local acceptance
 
 The isolated preproduction candidate was validated in the running application on
 2026-07-30:
@@ -316,7 +342,7 @@ accountant boundaries are covered by the module's focused automated tests.
 Acceptance artifacts record only safe fingerprints and outcomes, never raw
 subjects, tokens or generated credentials.
 
-## 9. Offboarding and conflicts
+## 10. Offboarding and conflicts
 
 For a planned departure:
 
@@ -330,7 +356,7 @@ For an incorrect link, do not delete either user. Disable the identity, verify
 the two exact users and immutable subjects with the identity owner, then
 perform an explicit administrator relink. The relink is audited.
 
-## 10. Outage, rollback and recovery
+## 11. Outage, rollback and recovery
 
 During a Pocket ID outage, do not enable local passwords for SSO-managed
 users. Use only the tested break-glass account for necessary administration.

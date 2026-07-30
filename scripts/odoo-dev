@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -16,6 +17,19 @@ case "$DEV_DB" in
 esac
 export ODOO_INIT_DB="$DEV_DB"
 export ODOO_DB_FILTER="^${DEV_DB}$"
+
+is_canonical_target() {
+  [[ "$DEV_DB" == "odoo_dev" ]]
+}
+
+restore_development_runtime() {
+  if is_canonical_target; then
+    "$ROOT/scripts/pocket-id-dev" start-runtime
+  else
+    "${COMPOSE[@]}" up -d --wait odoo
+    print_url
+  fi
+}
 
 verify_runtime_database_filter() {
   local runtime_filter
@@ -45,6 +59,10 @@ print_url() {
 
 deploy() {
   local module="${1:-$DEV_MODULE}"
+  if is_canonical_target; then
+    "$ROOT/scripts/pocket-id-dev" configure-odoo "$module"
+    return
+  fi
   "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   "${COMPOSE[@]}" --profile init run --rm \
@@ -69,8 +87,7 @@ run_with_odoo_stopped() {
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   "${COMPOSE[@]}" --profile "$profile" run --rm \
     -e ODOO_INIT_DB="$DEV_DB" "$service" "$@" || status=$?
-  "${COMPOSE[@]}" up -d --wait odoo
-  print_url
+  restore_development_runtime
   return "$status"
 }
 
@@ -108,8 +125,7 @@ bootstrap_einvoice_qa() {
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" < "$ROOT/scripts/odoo/einvoice_qa_bootstrap.py" \
     || status=$?
-  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
-  print_url
+  restore_development_runtime
   if ((status)); then
     return "$status"
   fi
@@ -120,18 +136,18 @@ bootstrap_einvoice_qa() {
 
 configure_pocket_id() {
   local status=0
-  if [[ -z "${ODOO_DEV_DB:-}" || "$DEV_DB" == "odoo_dev" \
+  if is_canonical_target; then
+    "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
+    return
+  fi
+  if [[ -z "${ODOO_DEV_DB:-}" \
       || "$DEV_DB" == "odoo_online_source_saas_19_2" ]]; then
-    printf \
-      'Refusing Pocket ID configuration without an explicit safe candidate database.\n' \
-      >&2
+    printf 'External Pocket ID configuration requires an explicit safe target.\n' >&2
     return 2
   fi
   if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
       || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
-    printf \
-      'Refusing Pocket ID configuration while an electronic-invoice live guard is enabled.\n' \
-      >&2
+    printf 'Pocket ID configuration requires both regulatory guards to be 0.\n' >&2
     return 2
   fi
   "${COMPOSE[@]}" up -d --wait db
@@ -183,8 +199,7 @@ finish_module_test() {
   trap - EXIT INT TERM
   cleanup_test_container "$container"
   cleanup_test_database "$database"
-  "${COMPOSE[@]}" up -d --wait odoo
-  print_url
+  restore_development_runtime
 }
 
 test_module() {
@@ -232,8 +247,12 @@ case "${1:-help}" in
     "${COMPOSE[@]}" build "${@:2}"
     ;;
   start)
-    "${COMPOSE[@]}" up -d --wait db odoo
-    print_url
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
+    else
+      "${COMPOSE[@]}" up -d --wait db odoo
+      print_url
+    fi
     ;;
   deploy)
     deploy "${2:-$DEV_MODULE}"
@@ -243,17 +262,32 @@ case "${1:-help}" in
     deploy "${2:-$DEV_MODULE}"
     ;;
   stop)
-    "${COMPOSE[@]}" down
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" stop-stack
+    else
+      "${COMPOSE[@]}" down
+    fi
     ;;
   restart)
-    "${COMPOSE[@]}" restart "${@:2}"
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" start-runtime
+    else
+      "${COMPOSE[@]}" restart "${@:2}"
+    fi
     ;;
   logs)
-    "${COMPOSE[@]}" logs -f "${@:2}"
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" logs "${@:2}"
+    else
+      "${COMPOSE[@]}" logs -f "${@:2}"
+    fi
     ;;
   init-db)
     "${COMPOSE[@]}" build odoo
     "${COMPOSE[@]}" --profile init run --rm init-db
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
+    fi
     ;;
   shell)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer bash
@@ -279,6 +313,9 @@ case "${1:-help}" in
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
   reset)
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" stop-stack
+    fi
     "${COMPOSE[@]}" down --volumes --remove-orphans
     ;;
   update)
@@ -286,7 +323,11 @@ case "${1:-help}" in
     "${COMPOSE[@]}" build --pull
     ;;
   ps)
-    "${COMPOSE[@]}" ps
+    if is_canonical_target; then
+      "$ROOT/scripts/pocket-id-dev" status
+    else
+      "${COMPOSE[@]}" ps
+    fi
     ;;
   help|*)
     cat <<'EOF'

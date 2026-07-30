@@ -17,6 +17,12 @@ activities and lifecycle dates remain in their native Odoo records. Technical
 migration history is external evidence and must not remain in ordinary models
 or navigation.
 
+Migration is nevertheless a supported, versioned deliverable of this
+distribution repository. The boundary is deployment, not maintainership:
+`migration/` and the canonical orchestration scripts must remain tested,
+repeatable and documented, while only finalized product modules and native
+business records cross into the normal runtime.
+
 ## Existing transitional exception
 
 `rebuild_account_migration` still owns pre-existing accounting compatibility
@@ -44,6 +50,9 @@ temporary Projects importer uses it while reconciling source identities.
   menus and dependencies are absent while imported business records remain.
 - Import logs and parity evidence belong in private external artifacts, not in
   the delivered database or repository.
+- Apply environment-specific target configuration only after source parity and
+  migration finalization. For local development, `make target-reconstruct`
+  ends with Pocket ID target finalization on canonical `odoo_dev`.
 
 ## Alternatives considered
 

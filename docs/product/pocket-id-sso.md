@@ -134,10 +134,11 @@ The read-only Odoo Online source inspection on 2026-07-29 found:
 | Public user and Portal User Template | Framework accounts | Protected framework records; never SSO-linked |
 | OdooBot | Technical system account | Protected framework record; never SSO-linked |
 
-Pocket ID QA is downstream of reconstruction. The local helper clones the
-canonical `odoo_dev` product, including its users, companies and filestore,
-then applies named-user policy only to that disposable clone. It never weakens
-or mutates the canonical reconstruction to make SSO tests pass.
+Pocket ID target configuration is downstream of reconstruction. The local
+helper applies named-user policy to canonical `odoo_dev` only after imported
+users, companies and business data pass source-parity controls. SSO is an
+explicit target enrichment and never weakens or mutates source evidence to
+make authentication tests pass.
 
 ## Lifecycle and session policy
 
@@ -169,9 +170,11 @@ must be configured deliberately:
 
 The repository now supplies an isolated, digest-pinned Pocket ID tenant,
 generated uncommitted credentials, stable local immutable subjects, a
-restricted OIDC client and an idempotent policy over an on-demand
-`odoo_dev_pocketid_qa` clone. The named users and cross-application journeys
-have been validated with administrator one-time Pocket ID links;
+restricted OIDC client and an idempotent policy over canonical `odoo_dev`.
+That database is the disposable production-shaped target: the Online dump
+supplies business truth, then target finalization adds SSO without weakening
+source parity. The named users and cross-application journeys have been
+validated with administrator one-time Pocket ID links;
 passkey-ceremony validation is intentionally outside the Odoo integration
 acceptance scope.
 
