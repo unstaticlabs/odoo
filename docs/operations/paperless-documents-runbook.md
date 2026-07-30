@@ -1,149 +1,217 @@
 # Paperless-backed Documents operations
 
-## Qualified deployment
+## Supported stack targets
 
-The `paperless` Compose profile pins `ghcr.io/paperless-ngx/paperless-ngx:3.0.4`
-(qualified image digest
-`sha256:3838b9a4260d23acc5bb63aed407138435e70b56e5806f4baa350ca184e57582`),
-PostgreSQL 16, Valkey 8.1.3, Gotenberg 8.34, and Apache Tika 3.2.3.0-full.
-Paperless 3.0.4 was released on 28 July 2026 and was qualified against REST API
-version 10. Odoo rejects another API version or server major and shows the
-detected versions in Settings diagnostics. Never replace these pins with
-`latest` or allow an image pull to become an implicit upgrade.
+Do not run an unqualified `docker compose --profile paperless up`. It can use
+development defaults, the wrong database filter, or another shared project.
+The repository wrapper always supplies the environment, project, override
+files, profile, ports, and safety checks together.
 
-Start only this profile with:
+Local QA is fixed to:
+
+- Compose project `codex-paperless-docs`;
+- Odoo database `odoo_usl_documents_test` and filter
+  `^odoo_usl_documents_test$`;
+- Odoo `http://127.0.0.1:18080` and gevent port `18072`;
+- Paperless `http://127.0.0.1:8010`;
+- electronic invoice and e-reporting live flags `0`;
+- preserved named volumes for both applications.
+
+Use:
 
 ```bash
-docker compose --profile paperless up -d --wait
+scripts/documents-stack qa up
+scripts/documents-stack qa update
+scripts/documents-stack qa bootstrap
+scripts/documents-stack qa status
+scripts/documents-stack qa logs
+scripts/documents-stack qa stop
 ```
 
-Paperless binds to loopback by default. Production must route it only through
-the secured ingress and individual SSO. Set all placeholders in `.env` from the
-secret manager, including a long random secret key, database password, initial
-administrator credentials, allowed hosts, CORS/trusted origins, and the Odoo
-service token. Never expose that token to the browser.
+`update` updates the Odoo module and recreates only the Odoo application
+container. It does not reset databases, filestore, Paperless media, consume
+staging, exports, or relationships. `bootstrap` is idempotent and seeds only
+synthetic QA material.
 
-Named volumes separate PostgreSQL, broker state, Paperless data/search state,
-authoritative media, portable export, and consume staging. Odoo has no
-`depends_on` relationship to Paperless and uses a separate filestore.
+QA-only credentials are intentionally simple:
 
-## Identity and permissions
+- Odoo: `admin/admin`, `documents-user/admin`,
+  `documents-accountant/admin`, `documents-hr/admin`, and
+  `documents-restricted/admin`;
+- Paperless: `archive-admin/admin` and the same four role usernames with
+  password `admin`.
 
-Create a non-human Paperless integration owner with only the API model
-permissions required for documents, tasks, metadata reads, and document object
-permission updates. Store its token only in Odoo system parameters/secret
-injection. Map every direct Paperless user under **Documents > Configuration >
-User access**. Never map users to a shared administrator. The technical model
-remains `usl.paperless.user.mapping`; only its user-facing name changed.
+Never reuse these credentials or `deploy/documents/qa.env` outside local QA.
 
-Permission synchronization is fail closed: a failed sync blocks Paperless deep
-links and marks the document unsafe. Healthy checks are quiet in the workspace;
-failures surface there and the check timestamp/error remain in diagnostics.
-Test actual document object permissions; tag or correspondent permissions alone
-are insufficient.
+## Pre-production
 
-Install the Odoo-created fail-closed Paperless workflow before enabling any
-consume, mail, API, or web ingestion channel. It assigns new documents to the
-dedicated service owner with no ordinary-user grants until Odoo has assigned
-company/confidentiality state and synchronized explicit document-object
-permissions. Reception and e-reporting live flags remain unrelated and disabled
-outside their production activation runbooks.
+Copy `deploy/documents/preprod.env.example` outside the repository, replace
+every placeholder from the secret manager, pin the Odoo image to an immutable
+revision, and set:
 
-## Metadata catalogs and smart views
+```bash
+export USL_DOCUMENTS_PREPROD_ENV=/secure/path/documents-preprod.env
+scripts/documents-stack preprod config
+scripts/documents-stack preprod preflight
+scripts/documents-stack preprod up
+```
 
-Full and incremental reconciliation refresh Paperless tags, correspondents, and
-document types before document rows. Catalog records are cache entries keyed by
-Paperless IDs. Renaming a Paperless item therefore keeps assignments, filters,
-and smart views stable.
+Preflight refuses default/QA credentials, `CHANGE_ME` values, unpinned images,
+an unsafe database filter, public HTTP Paperless URLs, local-only identity
+settings, enabled live electronic-invoice/e-reporting flags, or a non-
+preproduction environment. The target cannot silently fall back to QA or the
+base Compose defaults.
 
-Users create and edit metadata from Odoo through REST API v10. Paperless is
-updated first and the returned representation refreshes the cache. Deletion is
-manager-only. Matching patterns and algorithms are Paperless concepts; Odoo
-does not invent a second classifier or confidence score.
+Terminate TLS and SSO at the secured production ingress. Paperless should not
+be publicly reachable except through that ingress. Direct Paperless users must
+be individual identities with equivalent object permissions; Odoo-native work
+does not require a Paperless login.
 
-Shared smart views are manager-maintained under **Documents > Configuration >
-Smart views**. Metadata-backed views reference stable IDs. Personal saved
-filters are visible only to their owner. After catalog drift, run a full
-reconciliation rather than editing cache rows directly.
+## Qualified versions and health
 
-## Monitoring
+The exact qualified Paperless image is
+`ghcr.io/paperless-ngx/paperless-ngx:3.0.4` (qualified digest
+`sha256:3838b9a4260d23acc5bb63aed407138435e70b56e5806f4baa350ca184e57582`).
+It was qualified against REST API v10. PostgreSQL is 16-bookworm, Valkey is
+8.1.3-alpine, Gotenberg is 8.34, and Tika is 3.2.3.0-full. Never replace a pin
+with `latest` or let an image pull become an implicit upgrade.
 
-Monitor the Odoo and Paperless health endpoints, worker queue depth, failed
-tasks, consume errors, storage capacity, last successful Odoo sync, permission
-sync failures, catalog drift, missing documents, and backup age. A Paperless
-outage must page the archive owner but must not restart or block Odoo.
+Compose health checks cover Odoo, Odoo PostgreSQL, Paperless web/worker,
+Paperless PostgreSQL, Valkey, Tika, and Gotenberg. Odoo has no runtime
+`depends_on` relationship that makes Paperless availability a prerequisite.
+
+Monitor:
+
+- HTTP health and Paperless API compatibility;
+- task queue depth, failed consumption, and preview/OCR errors;
+- last successful incremental/full synchronization and its checkpoint;
+- permission failures, catalog/Saved View drift, Trash drift, and missing IDs;
+- database, media, data/search, filestore, and backup capacity/age.
+
+A Paperless outage pages the archive owner but must not restart or block Odoo.
+
+## Identity and permission synchronization
+
+Use a non-human service identity only for server-to-server API work. Keep its
+token in Odoo secret/system configuration. Never expose it to a browser.
+
+Map direct users under **Documents > Configuration > User access**. Each map is
+one Odoo user to one individual Paperless user; shared administrators are not a
+valid production mapping. Install the Odoo-created fail-closed Paperless
+workflow before enabling web, consume, mail, or API intake. New archive items
+remain owned by the service context until Odoo assigns company/confidentiality
+and synchronizes actual document-object permissions.
+
+Healthy permission checks are quiet. A failure blocks file/deep-link access,
+shows an actionable warning, and retains timestamp/error in diagnostics.
+Metadata-object permissions alone are not acceptance evidence.
+
+## Storage
+
+Named volumes separate:
+
+- Odoo PostgreSQL and complete Odoo filestore;
+- Paperless PostgreSQL;
+- Paperless media/originals;
+- Paperless data/search/processing state;
+- Valkey state;
+- consume staging;
+- portable exports.
+
+Neither application mounts the other's writable storage. Paperless files are
+clear text at application level, so use encrypted host storage, restricted host
+access, encrypted off-host backups, and controlled portable exports.
 
 ## Upgrade and rollback
 
-1. Read the release and migration notes. Paperless 3 requires an upgrade from
-   2.20.15; do not skip the supported source version.
-2. Produce coordinated Odoo/Paperless backups, portable export, and integrity
-   manifest; record the current image digest.
-3. Restore the backup into an isolated rehearsal and run migrations, reindexing
-   where the release requires it, API contract tests, permissions, preview,
-   download, OCR search, ingestion, and manifest comparison.
-4. Pin the new exact tag and digest, deploy Paperless independently, and run
-   **Test connection** plus a full Odoo reconciliation.
-5. On failure, stop Paperless, restore its database/media/data set together,
-   restore the previous pinned image and configuration, then reconcile. Do not
-   roll back only the database or only media.
+1. Read Paperless release and migration notes. For the qualified 3.0 line,
+   follow its supported source-version path; do not skip migrations.
+2. Capture coordinated backups, portable export, integrity manifest,
+   configuration, secrets inventory, and current image digests.
+3. Restore into an isolated pre-production target. Run migrations/reindexing,
+   API compatibility, upload, OCR search, preview/download, version, Saved View,
+   Trash, object-permission, outage, and restore tests.
+4. Pin the new exact tag and digest. Upgrade Paperless independently and run
+   full reconciliation before accepting traffic.
+5. On failure, stop Paperless and restore its database, media, and data/search
+   set together with the prior image/configuration. Never roll back only one
+   storage component. Odoo remains on its independent lifecycle.
 
-## Backup sets
+## Backup sets and integrity manifest
 
-For the same backup ID and maintenance window capture:
+For one backup ID and maintenance window capture:
 
-- Odoo PostgreSQL, complete filestore, configuration/secrets, installed modules,
-  and git revision;
-- Paperless PostgreSQL, media/originals, data/search state, configuration/secrets,
-  and pinned image digest;
-- a Paperless `document_exporter` export with originals, archive files,
-  thumbnails, and split JSON manifests;
-- the cross-system JSON generated with:
+- Odoo PostgreSQL, complete filestore, configuration/secrets, installed module
+  list, and git revision;
+- Paperless PostgreSQL, media/originals, data/search state,
+  configuration/secrets, and pinned image digest;
+- `document_exporter` output containing originals, archive files, thumbnails,
+  and JSON manifests;
+- a cross-system manifest:
 
 ```bash
-USL_BACKUP_ID=2026-07-29T0900Z \
-docker compose exec -T odoo odoo shell -d "$ODOO_DB" --no-http \
+docker compose \
+  --env-file "$USL_DOCUMENTS_PREPROD_ENV" \
+  -f compose.yaml -f compose.documents.preprod.yaml \
+  --profile paperless exec -T \
+  -e USL_BACKUP_ID=2026-07-30T0900Z odoo \
+  odoo shell -d odoo_usl_documents_preprod --no-http \
 < scripts/odoo/documents_integrity_manifest.py > integrity.json
 ```
 
-Encrypt backups and exports at rest, restrict host access, keep them off-host,
-and do not treat the exporter as the operational backup.
+Run `scripts/documents-stack preprod preflight` first. Keep the exact
+environment and override arguments; do not substitute the base Compose
+defaults.
 
-## Restore acceptance
+The exporter is a portable additional copy, not the operational backup.
 
-Restore into isolated networks and new database/volume names. Confirm database
-integrity, Paperless `document_sanity_checker`, representative media SHA-256
-checksums, API v10, object permissions, Odoo filestore access, linked-document
-and relationship counts, no unexplained missing/orphaned IDs, and successful
-opening of accounting, legal, and operational evidence. Record the result and
-timestamp in the backup inventory. Starting containers alone is not acceptance.
+## Acceptance and independent restore
 
-During restore tests keep electronic invoice and e-reporting live flags at `0`.
-
-For a disposable synthetic environment, the repository executes the complete
-exercise with:
+Local QA:
 
 ```bash
-USL_DOCUMENTS_COMPOSE_PROJECT=documents-qa \
-USL_DOCUMENTS_DATABASE=odoo_usl_documents_test \
-USL_DOCUMENTS_RESTORE_PROJECT=documents-qa-restore \
-USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 \
-scripts/documents-recovery-test
+make documents-qa-test
+make documents-qa-test-js
+make documents-qa-acceptance
+make documents-qa-recovery-test
 ```
 
-The script exports the portable archive, captures both PostgreSQL databases and
-all required volumes, records SHA-256 manifests, proves Odoo starts without
-Paperless, proves Paperless starts independently, restores both under new names,
-and checks counts, relationships, previews, current and received-original
-checksums, object permissions, and orphan detection. Preserve its timestamped
-result in the backup inventory; its `/tmp` artifacts are test evidence, not a
-production backup destination.
+Pre-production uses the corresponding `documents-preprod-*` targets after
+preflight. The real-service acceptance verifies Paperless 3.0.4/API v10,
+asynchronous upload, OCR-only search, current and historical checksum duplicate
+reuse, multi-link/unlink, generated-output retention, external ingestion,
+versions, permissions, outage/resume, and reconciliation.
 
-## Deletion and retention operations
+The recovery target:
 
-Unlinking closes only an Odoo relationship. Trashing or permanently deleting a
-Paperless root is a separate archive-administrator action and must follow the
-retention policy and audit procedure. A full reconciliation marks a missing
-Paperless root in Odoo without breaking the business record. Restore or repair
-the archive identity; never “fix” the condition by silently creating a new root
-with the same title.
+1. exports Paperless;
+2. captures both PostgreSQL databases and all authoritative volumes;
+3. records SHA-256 manifests;
+4. proves Odoo starts without Paperless;
+5. proves Paperless starts without Odoo;
+6. restores under a unique Compose project, database, and volume set;
+7. verifies counts, relationships, previews, current/received-original
+   checksums, permissions, and orphan detection.
+
+Successful QA evidence on 30 July 2026 restored 39 Odoo document roots, 37
+relationships, and 54 file-version rows with `integrity_ok=True`. The
+timestamped artifacts were written outside the repository under `/tmp`; that
+location is evidence for the disposable rehearsal, not a production backup
+destination.
+
+The final UI acceptance also exercised the live workspace at 1280×720,
+768×1024, and 390×844. The tablet and mobile runs opened a real document detail
+and reported no page overflow, clipped document actions, browser exceptions, or
+failed HTTP responses. The previously failing active-navigation and tag-chip
+states measured 7.23:1 and 12.26:1 contrast respectively.
+
+Stop the isolated restored project after evidence capture but preserve its
+volumes until review. Never pass `--volumes` to the cleanup command.
+
+## Trash, unlinking, and permanent deletion
+
+Unlinking removes only one Odoo relationship. Paperless Trash is synchronized
+as the same stable root and can be restored from Odoo with relationships
+intact. Permanent deletion is separate, administrator-only, auditable, and
+subject to retention approval. A missing root is reported; never repair it by
+silently creating a new document with the same title.
