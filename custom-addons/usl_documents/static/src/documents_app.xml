@@ -102,7 +102,8 @@
                                 <i class="fa fa-list"/>
                             </button>
                         </div>
-                        <label t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')">
+                        <label t-if="state.canUpload"
+                               t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')">
                             <i class="fa fa-upload me-1"/>
                             <t t-if="state.uploading">Uploading…</t>
                             <t t-else="">Upload</t>
@@ -239,6 +240,27 @@
                                             t-esc="linkFacet.label"/>
                                 </select>
                             </div>
+                            <div class="col-12 col-md-6 col-xl-4"
+                                 t-if="state.customFields.length">
+                                <label class="form-label small fw-semibold">Additional detail</label>
+                                <div class="input-group input-group-sm">
+                                    <select class="form-select o_usl_custom_field_select"
+                                            t-model="state.customFieldId"
+                                            t-on-change="selectCustomField">
+                                        <option value="">Choose field</option>
+                                        <option t-foreach="state.customFields"
+                                                t-as="field" t-key="field.id"
+                                                t-att-value="field.id.toString()"
+                                                t-esc="field.name"/>
+                                    </select>
+                                    <input class="form-control o_usl_custom_field_value"
+                                           t-att-type="customFieldInputType"
+                                           placeholder="Value"
+                                           t-model="state.customFieldValue"
+                                           t-on-input="scheduleCustomFieldFilter"
+                                           t-on-keydown="applyCustomFieldFilter"/>
+                                </div>
+                            </div>
                             <div class="col-6 col-md-3 col-xl-2">
                                 <label class="form-label small fw-semibold">Links</label>
                                 <select class="form-select form-select-sm"
@@ -278,11 +300,36 @@
 
                 <div t-if="state.operation" class="px-3 pt-3">
                     <div t-att-class="'alert mb-0 ' + (state.operation.state === 'failed' ? 'alert-danger' : state.operation.state === 'archived' ? 'alert-success' : 'alert-info')">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
                             <i t-att-class="'fa ' + (state.operation.state === 'failed' ? 'fa-times-circle' : state.operation.state === 'archived' ? 'fa-check-circle' : 'fa-circle-o-notch fa-spin')"/>
                             <strong t-esc="state.operation.name"/>
                             <span class="text-capitalize" t-esc="state.operation.state"/>
                             <span t-if="state.operation.error" t-esc="state.operation.error"/>
+                        </div>
+                    </div>
+                </div>
+                <div t-if="state.failedOperations.length" class="px-3 pt-3">
+                    <div t-foreach="state.failedOperations" t-as="operation"
+                         t-key="operation.id"
+                         class="alert alert-warning mb-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <i class="fa fa-exclamation-triangle"/>
+                            <div class="flex-grow-1">
+                                <strong t-esc="operation.name"/>
+                                <div class="small" t-esc="operation.error || 'Archive processing needs review.'"/>
+                            </div>
+                            <label t-if="state.canUpload"
+                                   class="btn btn-sm btn-primary mb-0"
+                                   title="Choose the same file to retry safely. Its checksum prevents a duplicate archive item.">
+                                Choose file to retry
+                                <input type="file" class="d-none"
+                                       t-on-change="onFileChange"
+                                       t-att-disabled="state.uploading"/>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-link"
+                                    t-on-click="() => this.dismissOperation(operation)">
+                                Dismiss
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -314,8 +361,11 @@
                             <p class="text-muted" t-if="state.query || activeFilterCount">
                                 Try changing the search or filters.
                             </p>
-                            <p class="text-muted" t-else="">
+                            <p class="text-muted" t-elif="state.canUpload">
                                 Drop a file here or upload one. Paperless will classify it.
+                            </p>
+                            <p class="text-muted" t-else="">
+                                No accessible documents match this view.
                             </p>
                             <button t-if="state.query || activeFilterCount"
                                     class="btn btn-outline-primary" type="button"
@@ -459,12 +509,24 @@
                             aria-label="Close"/>
                 </header>
                 <div class="flex-grow-1 overflow-auto">
+                    <div t-if="state.selected.archive_available === false"
+                         class="alert alert-warning m-3 mb-0">
+                        <strong>Archive temporarily unavailable.</strong>
+                        <div class="mb-2">
+                            Preview and downloads will return when Paperless is
+                            available. Odoo links and business records are unaffected.
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-dark"
+                                t-on-click="retryDocumentDetail">
+                            <i class="fa fa-refresh me-1"/>Try again
+                        </button>
+                    </div>
                     <div t-if="state.selected.access_error"
                          class="alert alert-danger m-3 mb-0">
                         <strong>Document access needs attention.</strong>
                         <div>The file is blocked until an administrator verifies archive access.</div>
                     </div>
-                    <iframe t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
+                    <iframe t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
                             t-att-src="state.selected.preview_url"
                             t-att-data-version="currentVersion?.paperless_version_id || ''"
                             title="Document preview"/>
@@ -627,6 +689,20 @@
                                 </div>
                             </div>
                         </div>
+                        <div t-if="state.selected.custom_fields?.length"
+                             class="mt-3">
+                            <label class="form-label small fw-semibold mb-2">
+                                Additional details
+                            </label>
+                            <dl class="row small mb-0">
+                                <t t-foreach="state.selected.custom_fields"
+                                   t-as="field" t-key="field.id">
+                                    <dt class="col-5" t-esc="field.name"/>
+                                    <dd class="col-7 text-break"
+                                        t-esc="field.value === null || field.value === '' ? 'Not set' : field.value"/>
+                                </t>
+                            </dl>
+                        </div>
                     </section>
 
                     <section class="border-top p-3">
@@ -639,11 +715,30 @@
                                 <strong t-esc="link.record_name"/>
                                 <small class="d-block text-muted"
                                        t-esc="link.model_label"/>
+                                <small t-if="link.version_id" class="d-block text-muted">
+                                    Evidence file: <t t-esc="link.version_label"/>
+                                </small>
                             </button>
                         </div>
                         <div t-else="" class="small text-muted">
                             This document is not linked to an Odoo record yet.
                         </div>
+                    </section>
+                    <section t-if="state.selected.availability_state === 'trashed'"
+                             class="border-top p-3">
+                        <h6>Trash and retention</h6>
+                        <p class="small mb-1">
+                            This archive item keeps the same identity and Odoo links
+                            while it is in Trash.
+                        </p>
+                        <p t-if="state.selected.retention_hold"
+                           class="small text-warning mb-1">
+                            A retention hold prevents permanent deletion.
+                        </p>
+                        <p t-elif="state.selected.retention_until"
+                           class="small text-muted mb-0">
+                            Retained until <t t-esc="state.selected.retention_until"/>.
+                        </p>
                     </section>
 
                     <section class="o_usl_detail_section border-top p-3">

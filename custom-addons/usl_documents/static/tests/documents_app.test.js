@@ -35,11 +35,15 @@ const emptyWorkspace = {
     page_size: 24,
     degraded: false,
     truncated: false,
+    can_upload: true,
+    active_operation: false,
+    failed_operations: [],
     selected_workspace: "recent",
     companies: [],
     tags: [],
     correspondents: [],
     document_types: [],
+    custom_fields: [],
     smart_views: [
         {
             id: 1,
@@ -96,6 +100,90 @@ test("degraded state keeps Odoo available and offers retry", async () => {
     expect(".alert-warning").toHaveText(/Archive unavailable/);
     expect(".o_usl_documents_empty").toHaveText(/temporarily unavailable/);
     expect(".o_usl_documents_empty button.btn-primary").toHaveText(/Try again/);
+});
+
+test("document details stay useful and actionable during an archive outage", async () => {
+    const document = {
+        id: 61,
+        name: "Cached supplier evidence",
+        availability_state: "available",
+        access_error: false,
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", ({ kwargs }) => {
+        expect(kwargs.check_archive).toBe(true);
+        return {
+            ...document,
+            archive_available: false,
+            can_edit: true,
+            can_manage: true,
+            versions: [],
+            links: [],
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_documents_detail .alert-warning.mb-0").toHaveText(
+        /Archive temporarily unavailable/
+    );
+    expect(".o_usl_documents_detail .alert-warning.mb-0").toHaveText(
+        /Odoo links and business records are unaffected/
+    );
+    expect(".o_usl_documents_detail iframe").toHaveCount(0);
+    expect(".o_usl_documents_detail .alert-warning.mb-0 button").toHaveText(
+        /Try again/
+    );
+});
+
+test("read-only evidence users do not see upload controls", async () => {
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        can_upload: false,
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect("label.btn-primary").toHaveCount(0);
+    expect("input[type=file]").toHaveCount(0);
+    expect(".o_usl_documents_empty").toHaveText(
+        /No accessible documents match this view/
+    );
+});
+
+test("failed ingestion remains actionable in Needs review", async () => {
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        selected_workspace: "attention",
+        failed_operations: [
+            {
+                id: 19,
+                name: "corrupted.pdf",
+                state: "failed",
+                error: "The file is corrupted.",
+            },
+        ],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect(".alert-warning").toHaveText(/corrupted\.pdf/);
+    expect(".alert-warning").toHaveText(/Choose file to retry/);
+    expect(".alert-warning").toHaveText(/Dismiss/);
 });
 
 test("workspace search state survives record navigation", async () => {
@@ -441,14 +529,17 @@ test("tag chips filter results and advanced filters stay tucked away", async () 
         { id: 4, name: "July", color: "#662288", text_color: "#ffffff" },
     ];
     let calls = 0;
+    const workspaces = [];
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
         calls++;
-        if (calls > 1) {
-            expect(kwargs.tag_ids).toEqual([1]);
-        }
+        workspaces.push(kwargs);
         return {
             ...emptyWorkspace,
             tags,
+            custom_fields: [
+                { id: 30, name: "Invoice reference", data_type: "string" },
+                { id: 31, name: "Invoice date", data_type: "date" },
+            ],
             documents: [
                 {
                     id: 10,
@@ -477,8 +568,19 @@ test("tag chips filter results and advanced filters stay tucked away", async () 
     expect(".o_usl_more_filters").toHaveCount(0);
     await contains("button", { text: "More filters" }).click();
     expect(".o_usl_more_filters").toHaveCount(1);
-    await contains(".o_usl_document_card .o_usl_tag_chip").click();
+    expect(".o_usl_custom_field_value").toHaveAttribute("type", "text");
+    await contains(".o_usl_custom_field_select").select("31");
+    expect(".o_usl_custom_field_value").toHaveAttribute("type", "date");
+    await contains(".o_usl_custom_field_select").select("30");
+    await contains(".o_usl_custom_field_value").edit("INV-QA-0042", {
+        confirm: "enter",
+    });
     expect(calls).toBe(2);
+    expect(workspaces.at(-1).custom_field_id).toBe("30");
+    expect(workspaces.at(-1).custom_field_value).toBe("INV-QA-0042");
+    await contains(".o_usl_document_card .o_usl_tag_chip").click();
+    expect(calls).toBe(3);
+    expect(workspaces.at(-1).tag_ids).toEqual([1]);
 });
 
 test("permission failures are actionable while healthy state stays quiet", async () => {

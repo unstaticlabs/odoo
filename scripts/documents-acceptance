@@ -78,6 +78,74 @@ run_shell() {
 
 run_shell "$ROOT/scripts/odoo/documents_compose_acceptance.py"
 
+if [[ "$ENVIRONMENT" = "qa" ]]; then
+  paperless_api="http://127.0.0.1:8010/api"
+  shared_view_names=("Contracts & legal" "Banking" "Tax & reporting")
+  for username in \
+    archive-admin \
+    documents-user \
+    documents-accountant \
+    documents-hr \
+    documents-restricted
+  do
+    documents_payload="$(
+      curl --fail --silent --show-error \
+        --user "${username}:admin" \
+        --header "Accept: application/json; version=10" \
+        "${paperless_api}/documents/?page_size=1"
+    )"
+    saved_views_payload="$(
+      curl --fail --silent --show-error \
+        --user "${username}:admin" \
+        --header "Accept: application/json; version=10" \
+        "${paperless_api}/saved_views/?page_size=100"
+    )"
+    for view_name in "${shared_view_names[@]}"; do
+      grep -Fq "\"name\":\"${view_name}\"" <<<"$saved_views_payload" || {
+        printf 'Paperless identity %s cannot see shared view %s.\n' \
+          "$username" "$view_name" >&2
+        exit 1
+      }
+    done
+    if [[ "$username" != "archive-admin" ]]; then
+      shared_view_id="$(
+        sed -n 's/.*"results":\[{"id":\([0-9][0-9]*\).*/\1/p' \
+          <<<"$saved_views_payload"
+      )"
+      change_status="$(
+        curl --silent --show-error \
+          --user "${username}:admin" \
+          --header "Accept: application/json; version=10" \
+          --header "Content-Type: application/json" \
+          --request PATCH \
+          --data '{"sort_reverse":true}' \
+          --output /dev/null \
+          --write-out "%{http_code}" \
+          "${paperless_api}/saved_views/${shared_view_id}/"
+      )"
+      [[ "$change_status" = "403" ]] || {
+        printf 'Ordinary Paperless identity %s can change a shared view.\n' \
+          "$username" >&2
+        exit 1
+      }
+    fi
+    if [[ "$username" = "documents-restricted" ]]; then
+      grep -Eq '^\{"count":0,' <<<"$documents_payload" || {
+        printf 'Restricted Paperless identity can infer document results.\n' >&2
+        exit 1
+      }
+    else
+      grep -Eq '^\{"count":[1-9][0-9]*,' <<<"$documents_payload" || {
+        printf 'Paperless identity %s has no authorized direct-use documents.\n' \
+          "$username" >&2
+        exit 1
+      }
+    fi
+  done
+  printf '%s\n' \
+    "DOCUMENTS_DIRECT_IDENTITIES_OK shared_views=3 restricted_documents=0"
+fi
+
 "${COMPOSE[@]}" stop paperless-webserver
 run_shell "$ROOT/scripts/odoo/documents_outage_acceptance.py"
 

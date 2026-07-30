@@ -15,3 +15,18 @@ class TestAccountingDocumentContexts(TransactionCase):
             self.assertTrue(
                 callable(getattr(self.env[model_name], "action_open_documents_workspace"))
             )
+
+    def test_accounting_forms_use_one_contextual_documents_entry_point(self):
+        for xmlid in (
+            "usl_documents_accounting.view_rebuild_account_declaration_documents",
+            "usl_documents_accounting.view_rebuild_account_closing_documents",
+        ):
+            arch = self.env.ref(xmlid).arch_db
+            self.assertEqual(arch.count('name="action_open_documents_workspace"'), 2)
+            self.assertIn('string="Upload"', arch)
+            self.assertIn('string="Documents"', arch)
+            self.assertIn('invisible="archived_document_count != 0"', arch)
+            self.assertIn('invisible="archived_document_count == 0"', arch)
+            self.assertNotIn("Find / upload", arch)
+            self.assertNotIn("Evidence", arch)
+            self.assertNotIn("action_open_archived_documents", arch)

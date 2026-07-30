@@ -43,6 +43,11 @@ You should get one authorized result. The preview contains the searched words.
 The panel immediately explains the date, correspondent, type, tags, company,
 and Odoo links. Healthy synchronization and checksum messages are absent.
 
+Open **More filters** and try the seeded **Invoice reference** additional
+detail with value `SI-2026-0715`. You can also type `id:` in the main search
+and choose an exact Paperless archive ID. Both are normal removable facets and
+still pass through Odoo authorization.
+
 Try Back and Forward:
 
 - Back closes the document and keeps the same filters and list position.
@@ -96,7 +101,7 @@ mapping.
 
 1. Open the draft vendor bill with reference
    `USL-DOCS-CEO-QA-BILL`.
-2. Its one smart button should say **1 Documents**.
+2. Its one smart button should say **3 Documents** in the current seed.
 3. Click it. Documents opens with a removable **Linked record** facet and the
    seeded supplier invoice.
 4. Remove that facet. The rest of the authorized archive becomes searchable and
@@ -106,6 +111,11 @@ mapping.
 During upload, the same page shows pending/processing state. Odoo says archived
 only after Paperless succeeds. The durable bill relationship then appears, and
 no extra `ir.attachment` binary is created.
+
+To review failure UX without using a real business file, switch to **Needs
+review** and use the seeded failed operation. It remains after reload and
+offers **Choose file to retry** or **Dismiss**. A retry of the same bytes is
+idempotent.
 
 On any supported record with no archived links, the same smart button is
 **Upload**. It still opens Documents with both upload and link-existing
@@ -143,19 +153,26 @@ Removing a link never moves the document to Trash.
 
 The selected old file becomes a new current version. **Received original** and
 all earlier files remain previewable/downloadable. No version is overwritten.
+The linked-record section also labels the exact evidence version retained by
+the business relationship; replacing the current file does not move that
+historical pin.
 
 ## 9. Compare shared Smart Views with Paperless
 
 1. In Odoo, open **Configuration > Smart views**.
 2. Open **Contracts & legal**, **Banking**, or **Tax & reporting**.
 3. Confirm it shows a stable Paperless Saved View identity.
-4. In Paperless as `archive-admin/admin`, open Saved Views and find the same
-   shared view.
+4. In Paperless as `archive-admin/admin`, open the Saved Views management list
+   and find the same three shared definitions. The Paperless sidebar shows only
+   views that this Paperless user has chosen to favorite.
 5. Make a harmless archive-native change, synchronize, and check Odoo again.
 
 Company, confidentiality, accounting-evidence, HR, or linked-record
 restrictions are labelled as Odoo policy and are not claimed to be identical
-Paperless Saved Views. Personal Odoo views remain private to their owner.
+Paperless Saved Views. Shared views have no Paperless owner and are visible to
+mapped identities with the Saved View read permission. A personal Paperless
+view such as the seeded **Tag: Banking** belongs only to `archive-admin`;
+personal Odoo views likewise remain private to their Odoo owner.
 
 ## 10. External ingestion and Trash
 
@@ -169,6 +186,11 @@ The document should be **In Trash**. Its relationships remain, normal
 edit/download actions are unavailable, and an authorized **Restore document**
 action returns the same stable identity and links.
 
+Managers can inspect the retention date and hold in the technical Document
+register. Permanent deletion is deliberately unavailable while a relationship,
+hold, or retention window remains. It requires a recorded reason and approval
+and leaves an audit tombstone; do not use it during normal QA.
+
 The seeded **Retention review sample — in Trash** lets you test Restore without
 creating another item. Run `make documents-qa-bootstrap` afterward to return it
 to the intended demo state.
@@ -179,7 +201,7 @@ to the intended demo state.
   not HR/private/other-company items.
 - `documents-accountant/admin` sees the seeded accounting examples—supplier
   invoice, expense, bank statement, and VAT filing—without unrelated private or
-  HR material.
+  HR material. This role is read-only and should not see Upload controls.
 - `documents-hr/admin` also sees **Camille Martin — July payroll evidence**.
 - `documents-restricted/admin` gets an intentional empty archive for the
   synthetic other company and cannot infer a known title through search,
@@ -202,8 +224,10 @@ do not change.
 
 For interactive review, keep the vendor bill open while that target is running.
 During the Paperless stop, Documents shows one actionable unavailable message;
-the bill and the rest of Odoo remain usable. After recovery, retry without
-creating duplicate documents or relationships.
+the bill and the rest of Odoo remain usable. An open detail keeps its cached
+classification, Odoo links, and version labels visible, hides unavailable
+preview/download actions, and offers **Try again**. After recovery, retry
+without creating duplicate documents or relationships.
 
 ## 13. Prove backup and restore
 

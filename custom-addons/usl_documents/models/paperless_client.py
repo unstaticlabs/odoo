@@ -191,6 +191,26 @@ class PaperlessClient:
                 return values
             page += 1
 
+    def list_custom_fields(self):
+        page = 1
+        values = []
+        while True:
+            payload = self._request(
+                "GET",
+                "/api/custom_fields/",
+                query={"page": page, "page_size": 100, "ordering": "name"},
+            )[0]
+            results = (
+                payload.get("results", []) if isinstance(payload, dict) else payload
+            )
+            values.extend(results)
+            if not isinstance(payload, dict) or not payload.get("next"):
+                return values
+            page += 1
+
+    def create_custom_field(self, values):
+        return self._request("POST", "/api/custom_fields/", body=values)[0]
+
     def create_metadata(self, kind, values):
         endpoint = self._metadata_endpoint(kind)
         return self._request("POST", f"/api/{endpoint}/", body=values)[0]
@@ -263,6 +283,17 @@ class PaperlessClient:
             body={
                 "documents": [int(document_id) for document_id in document_ids],
                 "action": "restore",
+            },
+        )[0]
+
+    def permanently_delete_trashed_documents(self, document_ids):
+        """Permanently empty explicitly selected documents from Trash."""
+        return self._request(
+            "POST",
+            "/api/trash/",
+            body={
+                "documents": [int(document_id) for document_id in document_ids],
+                "action": "empty",
             },
         )[0]
 

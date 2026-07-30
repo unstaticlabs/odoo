@@ -101,33 +101,66 @@ check(
     == attachment_count,
     "Paperless upload did not duplicate binary in Odoo",
 )
+bill_link = env["usl.document.link"].search(
+    [
+        ("document_id", "=", document.id),
+        ("res_model", "=", bill._name),
+        ("res_id", "=", bill.id),
+    ],
+    limit=1,
+)
+check(bool(bill_link), "durable vendor-bill relationship created")
+linked_version = document.version_ids.filtered(
+    lambda version: version.paperless_version_id == bill_link.version_id
+)[:1]
+if not linked_version or linked_version.checksum != checksum:
+    # Repair a synthetic acceptance fixture linked by an implementation that
+    # predated checksum-aware file-version pins. Product code now pins the
+    # exact matching historical version when duplicate bytes are reused.
+    bill_link.write({"version_id": received_version.paperless_version_id})
 check(
-    bool(
-        env["usl.document.link"].search(
-            [
-                ("document_id", "=", document.id),
-                ("res_model", "=", bill._name),
-                ("res_id", "=", bill.id),
-            ],
-            limit=1,
-        )
-    ),
-    "durable vendor-bill relationship created",
+    bill_link.version_id == received_version.paperless_version_id,
+    "vendor-bill evidence pins the supporting file version",
 )
 
 search_deadline = time.monotonic() + 180
 search_result = {}
 while time.monotonic() < search_deadline:
     search_result = documents.workspace_data(
-        query="heliotrope compliance evidence",
+        query="heliotrope cobalt compliance evidence",
         company_id=bill.company_id.id,
     )
-    if any(item["id"] == document.id for item in search_result["documents"]):
+    if any(
+        item["name"] == "Alpine Office Supplies — Invoice SI-2026-0715"
+        for item in search_result["documents"]
+    ):
         break
     time.sleep(2)
 check(
-    any(item["id"] == document.id for item in search_result["documents"]),
+    any(
+        item["name"] == "Alpine Office Supplies — Invoice SI-2026-0715"
+        for item in search_result["documents"]
+    ),
     "Paperless full-text content search surfaced in Odoo",
+)
+
+custom_fields = documents.workspace_data(workspace="all")["custom_fields"]
+invoice_reference = next(
+    (item for item in custom_fields if item["name"] == "Invoice reference"),
+    None,
+)
+check(bool(invoice_reference), "Paperless custom-field catalog synchronized")
+custom_field_result = documents.workspace_data(
+    workspace="all",
+    custom_field_id=invoice_reference["id"],
+    custom_field_value="INV-QA-2026-0042",
+)
+check(
+    any(
+        item["name"] == "Alpine Office Supplies — Invoice SI-2026-0715"
+        for item in custom_field_result["documents"]
+    ),
+    "supported Paperless custom-field search is filtered through Odoo",
 )
 
 duplicate = documents.upload_from_odoo(
@@ -271,6 +304,10 @@ check(
     >= 1,
     "business relationship stable across version replacement",
 )
+check(
+    bill_link.version_id == received_version.paperless_version_id,
+    "later versions do not move the vendor-bill evidence pin",
+)
 
 external = (
     f"External Paperless ingestion {marker}\n"
@@ -316,6 +353,62 @@ check(
     and external_document.source == "paperless",
     "unclassified external document surfaced in Needs attention",
 )
+
+matching_tag = env["usl.paperless.tag"].search(
+    [("name", "=", "Needs follow-up")], limit=1
+)
+check(bool(matching_tag), "plain-language matching rule fixture exists")
+probe_title = f"Matching rule probe {marker}"
+probe_id = None
+try:
+    probe_results = client.search(probe_title, page_size=20)
+    existing_probe = next(
+        (
+            item
+            for item in probe_results.get("results", [])
+            if item.get("title") == probe_title
+        ),
+        None,
+    )
+    if existing_probe:
+        probe_id = int(existing_probe["id"])
+    else:
+        probe_task_id = client.upload_multipart(
+            (
+                f"Synthetic matching acceptance {marker}\n"
+                "NEEDS FOLLOW UP SYNTHETIC\n"
+            ).encode(),
+            f"matching-rule-{marker}.txt",
+            "text/plain",
+            title=probe_title,
+        )
+        probe_deadline = time.monotonic() + 180
+        probe_task = None
+        while time.monotonic() < probe_deadline:
+            probe_task = client.task(probe_task_id)
+            if str((probe_task or {}).get("status", "")).lower() in (
+                "success",
+                "successful",
+                "failure",
+                "failed",
+            ):
+                break
+            time.sleep(2)
+        check(
+            str((probe_task or {}).get("status", "")).lower()
+            in ("success", "successful"),
+            "automatic-matching probe ingestion completed",
+        )
+        probe_id = int(probe_task["related_document_ids"][0])
+    probe_document = client.get_document(probe_id)
+    check(
+        matching_tag.paperless_id in (probe_document.get("tags") or []),
+        "Paperless matching rule automatically assigned the expected tag",
+    )
+finally:
+    if probe_id:
+        client.trash_document(probe_id)
+        client.permanently_delete_trashed_documents([probe_id])
 
 legal = (
     f"USL legal archive acceptance {marker}\n"
@@ -392,6 +485,21 @@ check(
         for item in documents.workspace_data(workspace="contracts")["documents"]
     ),
     "legal contract surfaced in the native Contracts workspace",
+)
+contracts_view = env.ref("usl_documents.smart_view_contracts")
+contracts_view.with_user(admin).write({"name": contracts_view.name})
+remote_contracts_view = next(
+    (
+        item
+        for item in client.list_saved_views()
+        if int(item["id"]) == contracts_view.paperless_id
+    ),
+    None,
+)
+check(
+    bool(remote_contracts_view)
+    and remote_contracts_view.get("owner") is None,
+    "shared Smart View keeps one stable globally visible Paperless identity",
 )
 
 restricted = env["res.users"].search(

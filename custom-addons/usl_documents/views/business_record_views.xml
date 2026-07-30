@@ -9,7 +9,7 @@
                 <button name="action_open_documents_workspace" type="object" class="oe_stat_button"
                         icon="fa-cloud-upload" string="Upload"
                         invisible="archived_document_count != 0"
-                        groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant"/>
+                        groups="usl_documents.group_documents_user"/>
                 <button name="action_open_documents_workspace" type="object" class="oe_stat_button"
                         icon="fa-folder-open-o" invisible="archived_document_count == 0"
                         groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
@@ -28,7 +28,7 @@
                 <button name="action_open_documents_workspace" type="object" class="oe_stat_button"
                         icon="fa-cloud-upload" string="Upload"
                         invisible="archived_document_count != 0"
-                        groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant"/>
+                        groups="usl_documents.group_documents_user"/>
                 <button name="action_open_documents_workspace" type="object" class="oe_stat_button"
                         icon="fa-folder-open-o" invisible="archived_document_count == 0"
                         groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">

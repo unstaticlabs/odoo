@@ -2,7 +2,7 @@ import base64
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 from ..controllers.documents import DocumentsController
@@ -101,6 +101,59 @@ class TestDocuments(TransactionCase):
         self.assertTrue(document.exists())
         self.assertEqual(document.link_ids, second)
 
+    def test_business_relationship_pins_the_current_file_version(self):
+        document = self._document(401)
+        document._synchronize_versions(
+            [
+                {"id": 12, "version_label": "Current replacement"},
+                {"id": 11, "is_root": True},
+            ],
+        )
+        link = document.link_to_record("res.partner", self.partner_a.id)
+        self.assertEqual(link.version_id, "12")
+        document._synchronize_versions(
+            [
+                {"id": 13, "version_label": "Later replacement"},
+                {"id": 12, "version_label": "Current replacement"},
+                {"id": 11, "is_root": True},
+            ],
+        )
+        self.assertEqual(link.version_id, "12")
+        detail = document.document_detail(document.id)
+        self.assertEqual(detail["links"][0]["version_label"], "Current replacement")
+
+    def test_reconciliation_pins_legacy_relationship_to_received_original(self):
+        document = self._document(403)
+        link = self.env["usl.document.link"].sudo().create(
+            {
+                "document_id": document.id,
+                "res_model": "res.partner",
+                "res_id": self.partner_a.id,
+                "record_name": self.partner_a.display_name,
+                "company_id": self.company_a.id,
+                "linked_by_id": self.env.user.id,
+            },
+        )
+        document._synchronize_versions(
+            [
+                {"id": 17, "version_label": "Current replacement"},
+                {"id": 16, "is_root": True},
+            ],
+        )
+        self.assertEqual(link.version_id, "16")
+
+    def test_document_detail_reports_archive_outage_without_hiding_cached_context(self):
+        document = self._document(402, name="Cached supplier evidence")
+        with patch.object(
+            PaperlessClient,
+            "compatibility",
+            side_effect=PaperlessUnavailable("Archive offline"),
+        ):
+            detail = document.document_detail(document.id, check_archive=True)
+
+        self.assertFalse(detail["archive_available"])
+        self.assertEqual(detail["name"], "Cached supplier evidence")
+
     def test_duplicate_checksum_reuses_archive_without_upload(self):
         content = b"identical supplier evidence"
         checksum = __import__("hashlib").sha256(content).hexdigest()
@@ -157,6 +210,25 @@ class TestDocuments(TransactionCase):
         self.assertEqual(result["state"], "duplicate")
         self.assertEqual(result["document_id"], existing.id)
         self.assertEqual(existing.link_count, 1)
+        self.assertEqual(existing.link_ids.version_id, "received-139")
+        upload.assert_not_called()
+
+    def test_duplicate_in_trash_requires_restore_instead_of_new_binary(self):
+        content = b"trashed supplier evidence"
+        checksum = __import__("hashlib").sha256(content).hexdigest()
+        self._document(140, checksum=checksum, availability_state="trashed")
+        with (
+            patch.object(PaperlessClient, "upload_multipart") as upload,
+            self.assertRaisesRegex(UserError, "already in Trash"),
+        ):
+            self.env["usl.document"].with_user(self.user).upload_from_odoo(
+                "supplier-in-trash.pdf",
+                base64.b64encode(content).decode(),
+                "application/pdf",
+                res_model="res.partner",
+                res_id=self.partner_a.id,
+                company_id=self.company_a.id,
+            )
         upload.assert_not_called()
 
     def test_unfiltered_remote_checksum_response_does_not_false_duplicate(self):
@@ -334,10 +406,12 @@ class TestDocuments(TransactionCase):
 
     def test_catalog_sync_preserves_stable_ids_hierarchy_and_relations(self):
         client = PaperlessClient(self.env)
+        client.owner_user_id = 3
         payloads = [
             {
                 "id": 301,
                 "name": "Finance",
+                "owner": 3,
                 "color": "#112233",
                 "text_color": "#ffffff",
                 "matching_algorithm": 6,
@@ -347,6 +421,7 @@ class TestDocuments(TransactionCase):
             {
                 "id": 302,
                 "name": "Banking",
+                "owner": None,
                 "color": "#445566",
                 "text_color": "#ffffff",
                 "matching_algorithm": 3,
@@ -355,8 +430,17 @@ class TestDocuments(TransactionCase):
                 "parent": 301,
             },
         ]
-        with patch.object(client, "list_metadata", return_value=payloads):
+        migrated_parent = {**payloads[0], "owner": None}
+        with (
+            patch.object(client, "list_metadata", return_value=payloads),
+            patch.object(
+                client,
+                "update_metadata",
+                return_value=migrated_parent,
+            ) as update_metadata,
+        ):
             self.env["usl.paperless.tag"].synchronize_catalog(client=client)
+        update_metadata.assert_called_once_with("tags", 301, {"owner": None})
         parent = self.env["usl.paperless.tag"].search(
             [("paperless_id", "=", 301)],
         )
@@ -405,6 +489,7 @@ class TestDocuments(TransactionCase):
                 },
             )
         create_metadata.assert_called_once()
+        self.assertIsNone(create_metadata.call_args.args[1]["owner"])
         self.assertEqual(tag.paperless_id, 304)
         with patch.object(
             PaperlessClient,
@@ -667,13 +752,24 @@ class TestDocuments(TransactionCase):
         remote = {
             "id": 52,
             "name": "Signed agreements",
+            "owner": 3,
             "filter_rules": [{"rule_type": 6, "value": "332"}],
         }
         client = PaperlessClient(self.env)
-        with patch.object(client, "list_saved_views", return_value=[remote]):
+        client.owner_user_id = 3
+        shared_remote = {**remote, "owner": None}
+        with (
+            patch.object(client, "list_saved_views", return_value=[remote]),
+            patch.object(
+                client,
+                "update_saved_view",
+                return_value=shared_remote,
+            ) as update_saved_view,
+        ):
             count = self.env["usl.document.smart.view"].synchronize_archive_views(
                 client=client,
             )
+        update_saved_view.assert_called_once_with(52, {"owner": None})
         self.assertEqual(count, 1)
         self.assertEqual(view.paperless_id, 52)
         self.assertEqual(view.name, "Signed agreements")
@@ -839,6 +935,38 @@ class TestDocuments(TransactionCase):
         self.assertEqual(len(result["documents"]), 1)
         self.assertEqual(search.call_count, 2)
 
+    def test_archive_id_and_custom_field_filters_keep_odoo_authorization(self):
+        visible = self._document(420)
+        self._document(421, company_id=self.company_b.id)
+        self.env["ir.config_parameter"].sudo().set_str(
+            "usl_documents.paperless_custom_fields",
+            '[{"id": 7, "name": "Invoice reference", "data_type": "string"}]',
+        )
+        with patch.object(
+            PaperlessClient,
+            "search",
+            return_value={
+                "count": 2,
+                "next": None,
+                "results": [{"id": 420}, {"id": 421}],
+            },
+        ) as search:
+            result = self.env["usl.document"].with_user(self.user).workspace_data(
+                workspace="all",
+                custom_field_id=7,
+                custom_field_value="INV-QA",
+            )
+        self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
+        self.assertEqual(
+            search.call_args.kwargs["filters"]["custom_field_query"],
+            '["Invoice reference", "icontains", "INV-QA"]',
+        )
+        by_id = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="all",
+            paperless_id=420,
+        )
+        self.assertEqual(by_id["count"], 1)
+
     def test_async_success_creates_relationship_only_after_confirmation(self):
         operation = self.env["usl.document.operation"].with_user(self.user).create({
             "name": "pending.pdf",
@@ -877,6 +1005,42 @@ class TestDocuments(TransactionCase):
         self.assertTrue(operation.document_id)
         self.assertEqual(operation.document_id.link_count, 1)
         self.assertEqual(operation.document_id.checksum, "c" * 64)
+
+    def test_workspace_restores_active_and_failed_operations_by_role(self):
+        active = self.env["usl.document.operation"].with_user(self.user).create(
+            {
+                "name": "processing.pdf",
+                "state": "processing",
+                "checksum": "4" * 64,
+                "company_id": self.company_a.id,
+            },
+        )
+        failed = self.env["usl.document.operation"].with_user(self.user).create(
+            {
+                "name": "corrupted.pdf",
+                "state": "failed",
+                "checksum": "5" * 64,
+                "company_id": self.company_a.id,
+                "error_message": "Corrupted file",
+            },
+        )
+        workspace = self.env["usl.document"].with_user(self.user).workspace_data(
+            workspace="attention",
+        )
+        self.assertTrue(workspace["can_upload"])
+        self.assertEqual(workspace["active_operation"]["id"], active.id)
+        self.assertEqual(workspace["failed_operations"][0]["id"], failed.id)
+        failed.with_user(self.user).acknowledge()
+        self.assertFalse(
+            self.env["usl.document.operation"]
+            .with_user(self.user)
+            .workspace_failures(),
+        )
+        accountant_workspace = self.env["usl.document"].with_user(
+            self.accountant,
+        ).workspace_data(workspace="attention")
+        self.assertFalse(accountant_workspace["can_upload"])
+        self.assertFalse(accountant_workspace["failed_operations"])
 
     def test_structured_versions_are_stable_and_version_downloads_are_scoped(self):
         document = self._document(184)
@@ -1050,6 +1214,128 @@ class TestDocuments(TransactionCase):
             110, view_users=[21, 22], change_users=[22],
         )
 
+    def test_company_access_loss_revokes_paperless_object_permission(self):
+        document = self._document(410)
+        mapping = self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 31,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        self.assertTrue(mapping)
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            self.user.write(
+                {
+                    "company_id": self.company_b.id,
+                    "company_ids": [Command.set(self.company_b.ids)],
+                },
+            )
+        permission_call.assert_called_with(
+            document.paperless_id,
+            view_users=[],
+            change_users=[],
+        )
+
+    def test_manager_role_loss_revokes_paperless_change_permission(self):
+        document = self._document(414)
+        manager_group = self.env.ref("usl_documents.group_documents_manager")
+        self.user.with_context(usl_documents_user_access_no_sync=True).write(
+            {"group_ids": [Command.link(manager_group.id)]},
+        )
+        self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 34,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            self.user.write(
+                {"group_ids": [Command.unlink(manager_group.id)]},
+            )
+        permission_call.assert_called_with(
+            document.paperless_id,
+            view_users=[34],
+            change_users=[],
+        )
+
+    def test_access_reduction_rolls_back_when_permission_revoke_fails(self):
+        self._document(411)
+        self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 32,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with (
+            patch.object(
+                PaperlessClient,
+                "set_document_permissions",
+                side_effect=PaperlessUnavailable("offline"),
+            ),
+            self.assertRaisesRegex(UserError, "Access was not changed"),
+        ):
+            self.user.write(
+                {
+                    "company_id": self.company_b.id,
+                    "company_ids": [Command.set(self.company_b.ids)],
+                },
+            )
+
+    def test_retention_gates_permanent_trash_deletion_and_keeps_tombstone(self):
+        document = self._document(
+            412,
+            availability_state="trashed",
+        )
+        document.with_user(self.manager).write(
+            {
+                "retention_hold": True,
+                "deletion_reason": "Synthetic expired record",
+            },
+        )
+        document.with_user(self.manager).action_approve_permanent_deletion()
+        with self.assertRaisesRegex(UserError, "retention hold"):
+            document.with_user(self.manager).permanently_delete_from_trash()
+        document.with_user(self.manager).write({"retention_hold": False})
+        with patch.object(
+            PaperlessClient,
+            "permanently_delete_trashed_documents",
+            return_value={"result": "OK"},
+        ) as deletion:
+            document.with_user(self.manager).permanently_delete_from_trash()
+        deletion.assert_called_once_with([412])
+        self.assertEqual(document.availability_state, "permanently_deleted")
+        self.assertTrue(document.permanently_deleted_at)
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            side_effect=PaperlessUnavailable("already removed"),
+        ):
+            document.with_user(self.manager).action_sync_permissions()
+        self.assertEqual(document.availability_state, "permanently_deleted")
+        self.assertNotIn(
+            document.id,
+            [
+                item["id"]
+                for item in self.env["usl.document"].workspace_data(
+                    workspace="all",
+                )["documents"]
+            ],
+        )
+
     def test_permission_sync_failure_blocks_paperless_deep_link(self):
         self.env["ir.config_parameter"].sudo().set_str(
             "usl_documents.paperless_public_url", "https://documents.example.test",
@@ -1105,6 +1391,12 @@ class TestDocuments(TransactionCase):
         document.with_context(usl_documents_cache_write=True).write(
             {"availability_state": "trashed"},
         )
+        self._document(
+            113,
+            checksum="e" * 64,
+            availability_state="permanently_deleted",
+            permission_sync_state="failed",
+        )
         document.link_to_record("res.partner", self.partner_a.id)
         with (
             patch.object(
@@ -1143,7 +1435,10 @@ class TestDocuments(TransactionCase):
         self.assertEqual(manifest["paperless_version"], "3.0.4")
         self.assertEqual(manifest["paperless_trash_count"], 1)
         self.assertEqual(manifest["paperless_total_count"], 1)
+        self.assertEqual(manifest["permanent_deletion_tombstone_count"], 1)
+        self.assertEqual(manifest["permanently_deleted_paperless_ids"], [113])
         self.assertFalse(manifest["missing_document_ids"])
+        self.assertFalse(manifest["permission_sync_failures"])
         self.assertTrue(manifest["integrity_ok"])
         self.assertGreaterEqual(manifest["relationship_count"], 1)
         self.assertIn(
@@ -1250,6 +1545,48 @@ class TestPaperlessClientContract(TransactionCase):
             ],
         )
 
+    def test_custom_fields_use_supported_catalog_endpoint(self):
+        client = PaperlessClient(self.env)
+        with patch.object(
+            client,
+            "_request",
+            side_effect=[
+                (
+                    {
+                        "next": None,
+                        "results": [
+                            {
+                                "id": 7,
+                                "name": "Invoice reference",
+                                "data_type": "string",
+                            },
+                        ],
+                    },
+                    {},
+                ),
+                (
+                    {
+                        "id": 8,
+                        "name": "Gross amount",
+                        "data_type": "monetary",
+                    },
+                    {},
+                ),
+            ],
+        ) as request:
+            self.assertEqual(client.list_custom_fields()[0]["id"], 7)
+            created = client.create_custom_field(
+                {"name": "Gross amount", "data_type": "monetary"},
+            )
+        self.assertEqual(created["id"], 8)
+        self.assertEqual(
+            [call.args[:2] for call in request.call_args_list],
+            [
+                ("GET", "/api/custom_fields/"),
+                ("POST", "/api/custom_fields/"),
+            ],
+        )
+
     def test_saved_views_and_trash_use_supported_endpoints(self):
         client = PaperlessClient(self.env)
         with patch.object(
@@ -1262,6 +1599,7 @@ class TestPaperlessClientContract(TransactionCase):
                 ({}, {}),
                 ({"next": None, "results": [{"id": 333}]}, {}),
                 ({"result": "OK", "doc_ids": [333]}, {}),
+                ({"result": "OK", "doc_ids": [334]}, {}),
             ],
         ) as request:
             self.assertEqual(client.list_saved_views()[0]["id"], 51)
@@ -1270,7 +1608,9 @@ class TestPaperlessClientContract(TransactionCase):
             client.delete_saved_view(52)
             self.assertEqual(client.list_trashed_documents()[0]["id"], 333)
             restored = client.restore_trashed_documents([333])
+            emptied = client.permanently_delete_trashed_documents([334])
         self.assertEqual(restored["result"], "OK")
+        self.assertEqual(emptied["result"], "OK")
         self.assertEqual(
             [call.args[:2] for call in request.call_args_list],
             [
@@ -1280,7 +1620,12 @@ class TestPaperlessClientContract(TransactionCase):
                 ("DELETE", "/api/saved_views/52/"),
                 ("GET", "/api/trash/"),
                 ("POST", "/api/trash/"),
+                ("POST", "/api/trash/"),
             ],
+        )
+        self.assertEqual(
+            request.call_args_list[-1].kwargs["body"]["action"],
+            "empty",
         )
 
     def test_fail_closed_workflow_uses_supported_api_for_every_channel(self):

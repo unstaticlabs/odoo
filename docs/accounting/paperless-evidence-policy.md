@@ -27,6 +27,8 @@ integrity or access problem requires action.
 When one version legally supports a posting, tax declaration, bank
 reconciliation, or signed decision, the Odoo relationship should retain that
 version identity rather than relying only on whichever file is current later.
+New relationships do this automatically; the document detail labels the
+supporting version for each linked record.
 
 ## Classification is not authorization
 
@@ -66,6 +68,10 @@ An accounting document moved to Paperless Trash remains represented on its
 linked Odoo records as **In Trash**. Authorized Restore returns the same stable
 archive identity and relationships. Permanent deletion is a separate audited
 administrator action and must satisfy the applicable retention policy.
+Accounting evidence receives a retention hold by default. Permanent deletion
+requires a reason and approval, refuses an active relationship, hold, or
+unexpired retention date, and preserves a tombstone with attribution after
+Paperless removes the bytes.
 
 ## Restore acceptance
 
@@ -81,10 +87,16 @@ Acceptance is not “both containers start.” A representative exercise must:
    project, and generated-output evidence;
 7. report missing and orphaned identities.
 
-The synthetic QA recovery rehearsal on 30 July 2026 restored 39 document roots,
-37 Odoo relationships, and 54 mirrored file versions. Representative preview,
-checksum, permissions, and orphan checks returned `integrity_ok=True`.
+The synthetic QA recovery rehearsal on 30 July 2026 restored 39 Odoo document
+roots, 22 active Odoo relationships, and 54 mirrored file versions. The 39
+roots include 19 retained permanent-deletion tombstones from earlier synthetic
+acceptance runs; the live/Trash archive set contains 20 stable identities.
+Representative preview, checksum, permissions, and orphan checks returned
+`integrity_ok=True`, with tombstones reported separately rather than as missing
+evidence.
 
 The optional `usl_documents_accounting` bridge extends the generic relationship
 contract to installed tax declaration and accounting closing-period models. It
-does not alter posting, reconciliation, tax computation, or report semantics.
+uses the same single contextual smart button: **Upload** when empty and
+**N Documents** when evidence exists. It does not alter posting,
+reconciliation, tax computation, or report semantics.

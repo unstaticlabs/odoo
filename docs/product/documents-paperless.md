@@ -21,7 +21,9 @@ The workspace is deliberately about documents, not integration health:
 An active upload remains visible while it is pending or processing. Success
 opens the archived document and gives a short confirmation. Duplicate, failed,
 or ambiguous work stays actionable in **Needs review** or diagnostics rather
-than being described as archived.
+than being described as archived. Failed uploads survive a reload and offer
+**Choose file to retry** or **Dismiss**; retrying the same content remains
+checksum-idempotent.
 
 ## Authority boundary
 
@@ -44,10 +46,10 @@ The detailed integration contract is in
 
 The main search accepts ordinary OCR/title text and structured suggestions such
 as tag, correspondent, document type, company, date, linked record,
-confidentiality, and review state. Suggestions become removable facets. Common
-company/type/correspondent controls remain one click away; less common fields
-are under **More filters**. A user can save a personal view without changing
-company navigation.
+confidentiality, review state, archive ID, and synchronized Paperless custom
+fields. Suggestions become removable facets. Common company/type/correspondent
+controls remain one click away; less common fields are under **More filters**.
+A user can save a personal view without changing company navigation.
 
 Selected document, selected version, filters, sort, card/list layout, page, and
 scroll position are represented in navigation state. Back closes the detail
@@ -63,6 +65,11 @@ Saved View identities and stable tag/type/correspondent IDs. Odoo-only company,
 confidentiality, linked-record, accounting, and HR restrictions compose with
 those views and remain visibly Odoo policy; they are never claimed to exist
 identically in Paperless.
+
+Shared archive-native views are globally visible Saved View objects in
+Paperless. Paperless's sidebar is a per-user preference, so a direct user may
+favorite one without changing the shared definition. Personal Paperless Saved
+Views and personal Odoo favorites remain separate and private to their owner.
 
 ## Classify and automate
 
@@ -109,19 +116,32 @@ The current file is permanently visible under **File versions**, with label,
 date, submitting user, preview, and download. **Earlier versions (N)** contains
 the history. **Current** and **Received original** are distinct badges.
 Restoring an earlier file creates a new current Paperless version and preserves
-every prior version; it never overwrites the received original.
+every prior version; it never overwrites the received original. A relationship
+to a business record stores the exact supporting file-version identity, so a
+later replacement does not silently change the evidence for an older business
+decision.
 
 Trashed Paperless documents disappear from ordinary search but retain their
 stable Odoo relationships. **Trash** shows them as **In Trash**, suppresses
 normal edit/download actions, and offers authorized Restore. Restore returns
 the same root and relationships. Permanent deletion is a separate
-administrator and retention decision.
+administrator and retention decision: it requires a reason and approval,
+cannot bypass a hold, active Odoo relationship, or unexpired retention window,
+and leaves an auditable Odoo tombstone rather than converting the item into an
+unexplained missing reference.
+
+The deployment effectively disables Paperless's automatic Trash expiry with a
+100-year delay, leaving Odoo's audited retention decision in control. A direct
+archive-administrator deletion is treated as an exceptional tombstone and
+diagnostic finding; it never causes Odoo to invent a replacement document.
 
 External Paperless ingestion is found by resumable synchronization. Items
 without an Odoo company, confidentiality, or business decision enter **Needs
 review**. Missing roots, processing failure, permission failure, duplicate
 ambiguity, and unavailable previews use concise actionable states. The Odoo
-business record remains usable during every Paperless outage.
+business record remains usable during every Paperless outage. An already-open
+detail retains cached classification, Odoo links, and version labels while
+preview/download actions are unavailable, and offers one concise retry action.
 
 ## Permissions
 
@@ -133,7 +153,18 @@ returning a title, tag, thumbnail, preview, version, or byte.
 Direct Paperless work uses an individually mapped Paperless identity. Deep
 links are withheld until that identity and the document's Paperless
 object-level permissions are synchronized. A tag, correspondent, saved view, or
-matching rule never grants business access.
+matching rule never grants business access. Changes to an Odoo user's active
+companies, Documents roles, active state, or Paperless identity mapping
+immediately resynchronize affected document permissions. An access reduction
+fails closed and rolls the Odoo change back when Paperless cannot revoke the
+old permission safely.
+
+Tags, correspondents, document types, and shared Saved Views use Paperless's
+supported unowned/shared form. Direct identities receive only the global model
+permission needed to list those shared concepts; actual document visibility
+still requires the per-document grant calculated by Odoo. Removing a document
+grant therefore removes the title, metadata, preview, and bytes even though the
+shared tag catalog remains usable.
 
 ## Deliberate boundaries
 

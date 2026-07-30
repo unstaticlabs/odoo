@@ -91,6 +91,15 @@
                     <button name="action_sync_permissions" type="object" string="Synchronize permissions"
                             icon="fa-shield" groups="usl_documents.group_documents_manager"
                             invisible="permission_sync_state == 'synchronized'"/>
+                    <button name="action_approve_permanent_deletion" type="object"
+                            string="Approve deletion" icon="fa-check"
+                            groups="usl_documents.group_documents_manager"
+                            invisible="availability_state != 'trashed' or deletion_approved_at"/>
+                    <button name="action_permanently_delete_from_trash" type="object"
+                            string="Permanently delete" icon="fa-trash"
+                            groups="usl_documents.group_documents_manager"
+                            confirm="Permanently delete this archived file? This cannot be undone."
+                            invisible="availability_state != 'trashed' or not deletion_approved_at"/>
                     <field name="review_state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -120,6 +129,14 @@
                         </group>
                         <group>
                             <field name="availability_state"/>
+                            <field name="trashed_at" invisible="availability_state != 'trashed'"/>
+                            <field name="retention_until" invisible="availability_state != 'trashed'"/>
+                            <field name="retention_hold" invisible="availability_state != 'trashed'"
+                                   groups="usl_documents.group_documents_manager"/>
+                            <field name="deletion_reason" invisible="availability_state != 'trashed'"
+                                   groups="usl_documents.group_documents_manager"
+                                   placeholder="Required business reason before approval"/>
+                            <field name="deletion_approved_at" invisible="1"/>
                             <field name="original_filename"/>
                             <field name="mime_type"/>
                         </group>

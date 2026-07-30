@@ -50,6 +50,7 @@ services:
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
       PAPERLESS_PUBLIC_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
       PAPERLESS_ALLOWED_HOSTS: ${PAPERLESS_ALLOWED_HOSTS:-localhost,127.0.0.1,paperless-webserver}
+      PAPERLESS_EMPTY_TRASH_DELAY: ${PAPERLESS_EMPTY_TRASH_DELAY:-36500}
       ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
@@ -87,6 +88,13 @@ services:
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
           case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
           case "$${PAPERLESS_ALLOWED_HOSTS}" in *localhost*|*127.0.0.1*) echo "Production-like allowed hosts must not include local QA hosts"; exit 1;; esac
+          case "$${PAPERLESS_EMPTY_TRASH_DELAY}" in
+            ""|*[!0-9]*) echo "Paperless Trash retention must be an explicit number of days"; exit 1;;
+          esac
+          if [ "$${PAPERLESS_EMPTY_TRASH_DELAY}" -lt 36500 ]; then
+            echo "Paperless automatic Trash emptying must use the 100-year safety delay; Odoo owns retention approval"
+            exit 1
+          fi
           ;;
         esac
 
@@ -120,6 +128,14 @@ services:
     volumes:
       - paperless-broker-data:/data
 
+  paperless-trash-init:
+    profiles: ["paperless"]
+    image: alpine:3.22.1
+    restart: "no"
+    command: ["chown", "1000:1000", "/trash"]
+    volumes:
+      - paperless-trash:/trash
+
   paperless-webserver:
     profiles: ["paperless"]
     image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
@@ -131,6 +147,8 @@ services:
         condition: service_healthy
       paperless-broker:
         condition: service_healthy
+      paperless-trash-init:
+        condition: service_completed_successfully
       paperless-gotenberg:
         condition: service_healthy
       paperless-tika:
@@ -152,6 +170,8 @@ services:
       PAPERLESS_CONSUMER_RECURSIVE: "true"
       PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "false"
       PAPERLESS_OCR_USER_ARGS: '{"invalidate_digital_signatures": false}'
+      PAPERLESS_EMPTY_TRASH_DELAY: ${PAPERLESS_EMPTY_TRASH_DELAY:-36500}
+      PAPERLESS_EMPTY_TRASH_DIR: /usr/src/paperless/trash
       PAPERLESS_TIKA_ENABLED: "1"
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg:3000
       PAPERLESS_TIKA_ENDPOINT: http://paperless-tika:9998
@@ -174,6 +194,7 @@ services:
       - paperless-media:/usr/src/paperless/media
       - paperless-export:/usr/src/paperless/export
       - paperless-consume:/usr/src/paperless/consume
+      - paperless-trash:/usr/src/paperless/trash
 
   paperless-gotenberg:
     profiles: ["paperless"]
@@ -363,3 +384,4 @@ volumes:
   paperless-media:
   paperless-export:
   paperless-consume:
+  paperless-trash:
