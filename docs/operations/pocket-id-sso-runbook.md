@@ -4,6 +4,12 @@ This runbook configures Pocket ID passkey login without making Pocket ID an
 authorization source. Use the candidate database first. Do not run the
 procedure against `odoo_dev` or the read-only source database.
 
+For Odoo integration acceptance in the isolated local tenant, administrator
+one-time Pocket ID login links stand in for the passkey ceremony. They exercise
+the real Pocket ID session, OIDC authorization-code redirect, PKCE, token
+exchange, claims and Odoo callback. Validating WebAuthn/passkey enrollment and
+verification is Pocket ID's responsibility and is not an Odoo acceptance gate.
+
 ## 1. Safety and prerequisites
 
 Before changing a database:
@@ -22,7 +28,64 @@ Before changing a database:
 Never paste tokens, client secrets, passkeys or raw Pocket ID subjects into a
 commit, ticket, screenshot or validation artifact.
 
-## 2. Configure Pocket ID
+## 2. Isolated local preproduction
+
+The repository provides a pinned Pocket ID v2.12.0 Compose overlay and an
+idempotent helper. It:
+
+- binds Pocket ID to `127.0.0.1:1411`;
+- serves Odoo on `http://odoo.localhost:18469`;
+- accepts local HTTP only for RFC-reserved `.localhost` names;
+- targets only `odoo_saas_19_2_candidate_01`;
+- refuses either enabled regulatory live guard;
+- writes generated secrets and immutable test subjects only to the ignored
+  `.pocket-id.env` with mode 0600;
+- backs up the candidate database and filestore before applying Odoo policy.
+
+Create and configure the tenant:
+
+```bash
+scripts/pocket-id-dev bootstrap
+scripts/pocket-id-dev provision
+scripts/pocket-id-dev configure-odoo
+scripts/pocket-id-dev status
+```
+
+Generate a one-hour, single-user test login link without exposing a password:
+
+```bash
+scripts/pocket-id-dev one-time-link valentin
+scripts/pocket-id-dev one-time-link roger
+scripts/pocket-id-dev one-time-link prosper
+```
+
+Use these lifecycle controls for repeatable acceptance:
+
+```bash
+scripts/pocket-id-dev set-disabled roger true
+scripts/pocket-id-dev set-disabled roger false
+scripts/pocket-id-dev set-group roger absent
+scripts/pocket-id-dev set-group roger present
+scripts/pocket-id-dev set-profile roger roger+changed@example.invalid "Roger Changed"
+scripts/pocket-id-dev set-profile roger roger@unstaticlabs.com Roger
+scripts/pocket-id-dev stop-idp
+scripts/pocket-id-dev start-idp
+```
+
+`reset-idp --confirm` deletes only the disposable Pocket ID container and
+volume. It does not delete the candidate Odoo database or filestore:
+
+```bash
+scripts/pocket-id-dev reset-idp --confirm
+```
+
+The local overlay deliberately enables insecure callback URLs only inside this
+loopback preproduction topology. Staging and production require HTTPS and must
+not copy that setting. Prosper's default
+`prosper@preproduction.invalid` address is a clearly synthetic placeholder;
+replace it with an owner-confirmed address before any non-local activation.
+
+## 3. Configure an external Pocket ID
 
 Create a confidential OIDC client in Pocket ID:
 
@@ -57,7 +120,7 @@ configured public base URL, proxy host/scheme and Pocket ID redirect must be
 identical. Leave `USL_POCKET_ID_TOKEN_AUTH_METHOD` empty to select the
 advertised safe default.
 
-## 3. Prepare named-user policy
+## 4. Prepare named-user policy
 
 `USL_POCKET_ID_USERS_JSON` must contain every non-framework Odoo user. The
 framework OdooBot, Public user and Portal User Template are protected
@@ -127,7 +190,7 @@ Verified-email first link is an exception for a known existing user. Replace
 and disable both approvals after the first successful link. Do not use this
 for an ambiguous email or as an account-discovery mechanism.
 
-## 4. Install and dry-run
+## 5. Install and dry-run
 
 Select the candidate explicitly:
 
@@ -148,7 +211,7 @@ Review the dry-run result with the identity owner and accounting owner.
 Resolve every missing user, duplicate email, unclassified login, company or
 subject conflict. Never work around a refusal by deleting a user or identity.
 
-## 5. Apply
+## 6. Apply
 
 After the dry run is accepted:
 
@@ -172,20 +235,21 @@ In Odoo, verify under **Settings → Users & Companies**:
 - every explicit link has the expected subject fingerprint;
 - Pocket ID audit events exist for links and policy application.
 
-## 6. Required acceptance journeys
+## 7. Required acceptance journeys
 
 Record date, environment, user, expected result and actual result. Do not
 record passkey screens, secrets, tokens or raw subjects.
 
-1. Valentin authenticates to Pocket ID with a passkey, selects **Log in with
-   Pocket ID**, reaches the existing Odoo user, opens Settings, both allowed
-   companies, Accounting administration, Expenses administration and Project
+1. Valentin authenticates to Pocket ID with an approved test one-time link
+   (or a passkey outside integration testing), selects **Log in with Pocket
+   ID**, reaches the existing Odoo user, opens Settings, both allowed companies,
+   Accounting administration, Expenses administration and Project
    administration.
-2. Roger authenticates with a passkey, reaches the existing/migration-created
+2. Roger authenticates the same way, reaches the existing/migration-created
    collaborator, can use assigned projects, and cannot open Settings,
    Accounting, expense administration, HR private records, sales management,
    Documents administration or Signing administration.
-3. Prosper authenticates with a passkey, sees only Unstatic Labs and the
+3. Prosper authenticates the same way, sees only Unstatic Labs and the
    existing USL accountant-review screens, reports and exports. Attempted
    accounting create, edit, post, reconcile, configuration or approval actions
    are denied.
@@ -209,10 +273,40 @@ record passkey screens, secrets, tokens or raw subjects.
    returns to the same Odoo user without changing Odoo authorization or profile
    fields.
 
-Pocket ID passkey completion and the first three named-user journeys are
-external acceptance gates; automated signed-token tests do not replace them.
+The first three named-user Odoo journeys remain browser acceptance gates.
+One-time links are the approved local mechanism because the passkey ceremony
+itself is outside the Odoo integration test scope. Automated signed-token
+tests do not replace the real Pocket ID/Odoo redirect and callback.
 
-## 7. Offboarding and conflicts
+## 8. Validated local acceptance
+
+The isolated candidate was validated in the running application on
+2026-07-30:
+
+- Valentin, Roger and Prosper completed real Pocket ID authorization-code
+  redirects and entered their explicitly linked Odoo users;
+- Valentin saw both intended companies and administrative, Accounting,
+  Expenses and Project applications;
+- Roger saw Project but neither Settings nor Accounting, and only Unstatic
+  Labs;
+- Prosper opened the imported accountant-review and accounting-report surface,
+  saw only Unstatic Labs, and had no Settings or Project administration;
+- a group-authorized but unlinked Pocket ID user was refused without increasing
+  Odoo's seven-user count;
+- Roger was refused after Pocket ID disablement and separately after removal
+  from the allowed group, then recovered after each control was restored;
+- changing Roger's Pocket ID email left the immutable subject link, Odoo user,
+  Odoo email, authorization and seven-user count unchanged;
+- with Pocket ID stopped, new SSO failed closed while the sole local
+  break-glass administrator entered Odoo and reached Settings; after restart,
+  Valentin SSO recovered.
+
+Protocol error, replay, conflict, archive, authorization and read-only
+accountant boundaries are covered by the module's focused automated tests.
+Acceptance artifacts record only safe fingerprints and outcomes, never raw
+subjects, tokens or generated credentials.
+
+## 9. Offboarding and conflicts
 
 For a planned departure:
 
@@ -226,7 +320,7 @@ For an incorrect link, do not delete either user. Disable the identity, verify
 the two exact users and immutable subjects with the identity owner, then
 perform an explicit administrator relink. The relink is audited.
 
-## 8. Outage, rollback and recovery
+## 10. Outage, rollback and recovery
 
 During a Pocket ID outage, do not enable local passwords for SSO-managed
 users. Use only the tested break-glass account for necessary administration.
