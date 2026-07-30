@@ -8,9 +8,9 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
                 ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)",
         },
         {
-            content: "The facts and recommendation are concise",
-        trigger:
-            ".o_form_view .o_rebuild_payment_suggestion_detail:contains('Bank'):contains('Bill'):contains('Recommended: Use payment rate')",
+            content: "The matching cue stays compact",
+            trigger:
+                ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence:contains('Best match')",
         },
         {
             content: "Use the immediate payment rate",

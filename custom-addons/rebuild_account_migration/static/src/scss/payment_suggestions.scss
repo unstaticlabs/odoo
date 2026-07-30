@@ -35,7 +35,7 @@
 
     .o_rebuild_payment_suggestion_context {
         max-width: 34rem;
-        padding: 0 map-get($spacers, 2) map-get($spacers, 2);
+        padding: 0 map-get($spacers, 2) map-get($spacers, 1);
         border-bottom: 1px solid rgba($border-color, .65);
         color: $text-muted;
         font-size: $font-size-sm;
@@ -43,24 +43,6 @@
     }
 
     .o_rebuild_payment_suggestion_evidence {
-        color: $text-muted;
-        cursor: help;
-    }
-
-    .o_rebuild_payment_suggestion_facts {
-        margin-top: map-get($spacers, 1);
-        color: $body-color;
-        font-weight: $font-weight-semibold;
-    }
-
-    .o_rebuild_payment_suggestion_recommendation {
-        color: $primary;
-        font-weight: $font-weight-semibold;
-    }
-
-    .o_rebuild_payment_suggestion_review {
-        margin-left: map-get($spacers, 1);
-        border-bottom: 1px dotted currentColor;
         color: $text-muted;
         cursor: help;
     }
