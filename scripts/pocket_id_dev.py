@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import secrets
 import stat
 import sys
@@ -61,6 +62,11 @@ USER_DEFINITIONS = {
     },
 }
 UNLINKED_TEST_USERNAME = "unlinked-test"
+SAFE_DATABASE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
+SAFE_PROJECT_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+SAFE_LOCALHOST_PATTERN = re.compile(
+    r"^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*localhost$",
+)
 
 
 class PocketIDError(RuntimeError):
@@ -100,25 +106,71 @@ def _write_new_env(path: Path) -> None:
         _read_env(path)
         print(f"{path.name} already exists and passed validation.")
         return
+    project_name = os.getenv(
+        "USL_POCKET_ID_DEV_COMPOSE_PROJECT",
+        "usl-odoo-saas-19-2",
+    ).strip()
+    database = os.getenv(
+        "USL_POCKET_ID_DEV_ODOO_DB",
+        "odoo_saas_19_2_candidate_01",
+    ).strip()
+    odoo_port = os.getenv("USL_POCKET_ID_DEV_ODOO_PORT", "18469").strip()
+    gevent_port = os.getenv("USL_POCKET_ID_DEV_GEVENT_PORT", "18472").strip()
+    pocket_port = os.getenv("USL_POCKET_ID_DEV_POCKET_PORT", "1411").strip()
+    odoo_hostname = os.getenv(
+        "USL_POCKET_ID_DEV_ODOO_HOSTNAME",
+        "odoo.localhost",
+    ).strip()
+    pocket_hostname = os.getenv(
+        "USL_POCKET_ID_DEV_POCKET_HOSTNAME",
+        "pocket-id.localhost",
+    ).strip()
+    qa_clone = os.getenv("USL_POCKET_ID_DEV_QA_CLONE", "0").strip() == "1"
+    prosper_odoo_email = os.getenv(
+        "USL_POCKET_ID_DEV_PROSPER_ODOO_EMAIL",
+        "prosper@preproduction.invalid",
+    ).strip()
+    if not SAFE_PROJECT_PATTERN.fullmatch(project_name):
+        raise PocketIDError("The local Compose project name is unsafe.")
+    if not SAFE_DATABASE_PATTERN.fullmatch(database):
+        raise PocketIDError("The local Odoo database name is unsafe.")
+    if database in {"odoo_dev", "odoo_online_source_saas_19_2"}:
+        raise PocketIDError("The preserved or source Odoo database is protected.")
+    if qa_clone and not re.fullmatch(r"odoo_dev_[A-Za-z0-9_]+_qa", database):
+        raise PocketIDError("A QA clone must use an odoo_dev_*_qa database name.")
+    if database != "odoo_saas_19_2_candidate_01" and not qa_clone:
+        raise PocketIDError("A non-candidate database must be an explicit QA clone.")
+    ports = (odoo_port, gevent_port, pocket_port)
+    if any(not port.isdigit() or not 1 <= int(port) <= 65535 for port in ports):
+        raise PocketIDError("Local service ports must be between 1 and 65535.")
+    if len(set(ports)) != len(ports):
+        raise PocketIDError("Local service ports must be distinct.")
+    for hostname in (odoo_hostname, pocket_hostname):
+        if not SAFE_LOCALHOST_PATTERN.fullmatch(hostname):
+            raise PocketIDError("Local service hostnames must use .localhost.")
     values = {
-        "COMPOSE_PROJECT_NAME": "usl-odoo-saas-19-2",
+        "COMPOSE_PROJECT_NAME": project_name,
         "ODOO_DB_FILTER": "^odoo_saas_19_2_candidate_01$",
-        "ODOO_GEVENT_PORT": "18472",
-        "ODOO_HTTP_PORT": "18469",
-        "ODOO_INIT_DB": "odoo_saas_19_2_candidate_01",
-        "ODOO_PUBLIC_BASE_URL": "http://odoo.localhost:18469",
-        "POCKET_ID_APP_URL": "http://pocket-id.localhost:1411",
+        "ODOO_GEVENT_PORT": gevent_port,
+        "ODOO_HOSTNAME": odoo_hostname,
+        "ODOO_HTTP_PORT": odoo_port,
+        "ODOO_INIT_DB": database,
+        "ODOO_PUBLIC_BASE_URL": f"http://{odoo_hostname}:{odoo_port}",
+        "POCKET_ID_APP_URL": f"http://{pocket_hostname}:{pocket_port}",
         "POCKET_ID_CLIENT_ID": "usl-odoo-preproduction",
         "POCKET_ID_CLIENT_SECRET": secrets.token_urlsafe(36),
         "POCKET_ID_ENCRYPTION_KEY": secrets.token_urlsafe(36),
         "POCKET_ID_GROUP_NAME": "odoo-preproduction",
-        "POCKET_ID_HTTP_PORT": "1411",
+        "POCKET_ID_HOSTNAME": pocket_hostname,
+        "POCKET_ID_HTTP_PORT": pocket_port,
         "POCKET_ID_IMAGE": (
             "ghcr.io/pocket-id/pocket-id:v2.12.0@"
             "sha256:4a277d141d6069fd9a7b321a9aca80f4b9812b8fa122ee566d2f15900e3d8448"
         ),
         "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
+        "POCKET_ID_PROSPER_ODOO_EMAIL": prosper_odoo_email,
         "POCKET_ID_PROSPER_ID": str(uuid.uuid4()),
+        "POCKET_ID_QA_CLONE": "1" if qa_clone else "0",
         "POCKET_ID_ROGER_ID": str(uuid.uuid4()),
         "POCKET_ID_STATIC_API_KEY": secrets.token_urlsafe(36),
         "POCKET_ID_VALENTIN_ID": str(uuid.uuid4()),
@@ -126,6 +178,7 @@ def _write_new_env(path: Path) -> None:
         "USL_EREPORTING_LIVE_ENABLED": "0",
         "USL_POCKET_ID_BREAK_GLASS_PASSWORD": secrets.token_urlsafe(36),
     }
+    values["ODOO_DB_FILTER"] = f"^{database}$"
     content = (
         "# Generated local Pocket ID preproduction configuration. Do not commit.\n"
         + "\n".join(f"{key}={value}" for key, value in values.items())
@@ -361,6 +414,10 @@ def provision(values: dict[str, str]) -> None:
 
 
 def odoo_policy(values: dict[str, str]) -> None:
+    prosper_odoo_email = values.get(
+        "POCKET_ID_PROSPER_ODOO_EMAIL",
+        values["POCKET_ID_PROSPER_EMAIL"],
+    )
     policy = [
         {
             "login": "admin",
@@ -388,13 +445,14 @@ def odoo_policy(values: dict[str, str]) -> None:
         {
             "login": "prosper",
             "name": "Prosper",
-            "email": values["POCKET_ID_PROSPER_EMAIL"],
             "profile": "accountant_reviewer",
             "companies": ["Unstatic Labs"],
             "subject": values["POCKET_ID_PROSPER_ID"],
-            "create_if_missing": True,
+            "create_if_missing": bool(prosper_odoo_email),
         },
     ]
+    if prosper_odoo_email:
+        policy[-1]["email"] = prosper_odoo_email
     print(json.dumps(policy, separators=(",", ":")))
 
 

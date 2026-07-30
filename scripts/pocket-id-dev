@@ -21,9 +21,17 @@ load_environment() {
     printf 'Refusing Pocket ID preproduction while a live regulatory guard is enabled.\n' >&2
     return 2
   fi
-  if [[ "${ODOO_INIT_DB:-}" != "odoo_saas_19_2_candidate_01" ]]; then
+  if [[ "${ODOO_INIT_DB:-}" == "odoo_saas_19_2_candidate_01" ]]; then
+    :
+  elif [[ "${POCKET_ID_QA_CLONE:-0}" == "1" \
+      && "${ODOO_INIT_DB:-}" =~ ^odoo_dev_[A-Za-z0-9_]+_qa$ ]]; then
+    :
+  else
     printf 'Refusing Pocket ID preproduction on database %s.\n' "${ODOO_INIT_DB:-<empty>}" >&2
     return 2
+  fi
+  if [[ "${POCKET_ID_QA_CLONE:-0}" == "1" ]]; then
+    export ODOO_IMAGE="${ODOO_IMAGE:-${COMPOSE_PROJECT_NAME}-odoo:latest}"
   fi
   COMPOSE=(
     docker compose

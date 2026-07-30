@@ -34,9 +34,9 @@ services:
       pocket-id:
         condition: service_healthy
     extra_hosts:
-      - "pocket-id.localhost:host-gateway"
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
     environment:
-      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost},${POCKET_ID_HOSTNAME:-pocket-id.localhost}
       USL_POCKET_ID_ENABLED: "1"
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
       USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
@@ -51,9 +51,9 @@ services:
       pocket-id:
         condition: service_healthy
     extra_hosts:
-      - "pocket-id.localhost:host-gateway"
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
     environment:
-      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost},${POCKET_ID_HOSTNAME:-pocket-id.localhost}
       USL_POCKET_ID_ENABLED: "1"
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
       USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
@@ -65,11 +65,11 @@ services:
 
   test:
     extra_hosts:
-      - "pocket-id.localhost:host-gateway"
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
 
   devcontainer:
     extra_hosts:
-      - "pocket-id.localhost:host-gateway"
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
 
 volumes:
   pocket-id-data:
