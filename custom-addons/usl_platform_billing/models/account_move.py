@@ -11,6 +11,7 @@ class AccountMove(models.Model):
         copy=False,
         index=True,
         ondelete="set null",
+        groups="usl_platform_billing.group_platform_billing_reader",
     )
     platform_billing_platform_id = fields.Many2one(
         "usl.platform.billing.platform",
@@ -19,6 +20,7 @@ class AccountMove(models.Model):
         copy=False,
         index=True,
         ondelete="set null",
+        groups="usl_platform_billing.group_platform_billing_reader",
     )
     platform_billing_payout_ids = fields.Many2many(
         "usl.platform.billing.payout",
@@ -27,4 +29,5 @@ class AccountMove(models.Model):
         "payout_id",
         string="Platform Payouts",
         copy=False,
+        groups="usl_platform_billing.group_platform_billing_reader",
     )

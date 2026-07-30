@@ -24,6 +24,7 @@
                             <field name="bank_date"/>
                             <field name="bank_currency_id" column_invisible="True"/>
                             <field name="bank_amount"/>
+                            <field name="allocated_bank_amount"/>
                             <field name="bank_partner_id"/>
                             <field name="bank_label"/>
                             <field name="platform_id"/>

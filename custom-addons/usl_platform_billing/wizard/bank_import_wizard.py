@@ -100,18 +100,44 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         return platform, reference, score, reason, confidence
 
     def _match_payout(self, bank_line, platform, reference):
-        domain = [
+        base_domain = [
             ("session_id", "=", self.session_id.id),
             ("platform_id", "=", platform.id),
             ("bank_statement_line_id", "=", False),
+            ("state", "in", ("draft", "generated", "posted")),
         ]
+        domain = list(base_domain)
         if reference:
             domain.append(("platform_reference", "=", reference))
         payouts = self.env["usl.platform.billing.payout"].search(domain)
+        linked_payouts = self.env["usl.platform.billing.payout"].search(
+            [("bank_statement_line_id", "=", bank_line.id)],
+        )
+        if (
+            reference
+            and not payouts
+            and reference in linked_payouts.mapped("platform_reference")
+        ):
+            payouts = self.env["usl.platform.billing.payout"].search(
+                base_domain,
+            )
+        remaining_bank_amount = bank_line.currency_id.round(
+            bank_line.amount
+            - sum(linked_payouts.mapped("bank_received_amount")),
+        )
+        if remaining_bank_amount <= 0:
+            return self.env["usl.platform.billing.payout"], 0.0, 0, False
         ranked = []
         for payout in payouts:
             date_difference = abs((bank_line.date - payout.payout_date).days)
-            if date_difference > platform.bank_match_days_tolerance:
+            delayed_posted_receipt = (
+                self.session_id.state in {"posted", "paid"}
+                and bank_line.date >= payout.payout_date
+            )
+            if (
+                not delayed_posted_receipt
+                and date_difference > platform.bank_match_days_tolerance
+            ):
                 continue
             expected_bank_amount = payout.bank_received_amount
             if (
@@ -120,13 +146,14 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             ):
                 expected_bank_amount = payout.net_platform_amount
             amount_difference = (
-                abs(bank_line.amount - expected_bank_amount)
+                abs(remaining_bank_amount - expected_bank_amount)
                 if expected_bank_amount
                 else 0.0
             )
             if (
                 expected_bank_amount
-                and amount_difference > platform.bank_match_amount_tolerance
+                and expected_bank_amount - remaining_bank_amount
+                > platform.bank_match_amount_tolerance
             ):
                 continue
             amount_bonus = (
@@ -170,21 +197,21 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             ],
         )
         tolerance = max(platforms.mapped("bank_match_days_tolerance") or [15])
-        already_linked = self.env["usl.platform.billing.payout"].search(
-            [("bank_statement_line_id", "!=", False)],
-        ).bank_statement_line_id
-        bank_lines = self.env["account.bank.statement.line"].search(
-            [
-                ("company_id", "=", session.company_id.id),
-                ("date", ">=", start - relativedelta(days=tolerance)),
+        bank_domain = [
+            ("company_id", "=", session.company_id.id),
+            ("date", ">=", start - relativedelta(days=tolerance)),
+            ("amount", ">", 0),
+            ("is_reconciled", "=", False),
+        ]
+        if session.state not in {"posted", "paid"}:
+            bank_domain.append(
                 ("date", "<=", end + relativedelta(days=tolerance)),
-                ("amount", ">", 0),
-                ("is_reconciled", "=", False),
-                ("id", "not in", already_linked.ids),
-            ],
+            )
+        bank_lines = self.env["account.bank.statement.line"].search(
+            bank_domain,
             order="date, id",
         )
-        commands = [Command.clear()]
+        candidate_values = []
         for bank_line in bank_lines:
             platform, reference, score, reason, confidence = self._detect_platform(
                 bank_line,
@@ -200,9 +227,22 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             ) = self._match_payout(bank_line, platform, reference)
             if ambiguous_payout:
                 continue
-            if reference and not existing_payout:
+            linked_payouts = self.env["usl.platform.billing.payout"].search(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            )
+            if (
+                reference
+                and not existing_payout
+                and reference not in linked_payouts.mapped("platform_reference")
+            ):
                 # A reference extracted from a configured regex must identify a
                 # payout inside the configured tolerances.
+                continue
+            remaining_bank_amount = bank_line.currency_id.round(
+                bank_line.amount
+                - sum(linked_payouts.mapped("bank_received_amount")),
+            )
+            if remaining_bank_amount <= 0:
                 continue
             if existing_payout:
                 score += max(
@@ -221,27 +261,74 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                     )
             else:
                 date_difference = abs((bank_line.date - start).days)
-            commands.append(
-                Command.create(
-                    {
-                        "selected": confidence in {"high", "medium"},
-                        "bank_statement_line_id": bank_line.id,
-                        "platform_id": platform.id,
-                        "existing_payout_id": existing_payout.id,
-                        "extracted_reference": reference,
-                        "confidence": confidence,
-                        "score": score,
-                        "detection_reason": reason,
-                        "amount_difference": amount_difference,
-                        "date_difference": date_difference,
-                    },
-                ),
+            allocated_amount = remaining_bank_amount
+            if existing_payout:
+                if existing_payout.bank_received_amount:
+                    allocated_amount = existing_payout.bank_received_amount
+                elif existing_payout.platform_currency_id == self.session_id.bank_currency_id:
+                    allocated_amount = min(
+                        existing_payout.net_platform_amount,
+                        remaining_bank_amount,
+                    )
+                elif (
+                    bank_line.foreign_currency_id
+                    == existing_payout.platform_currency_id
+                    and bank_line.amount_currency
+                ):
+                    allocated_amount = min(
+                        remaining_bank_amount,
+                        bank_line.currency_id.round(
+                            bank_line.amount
+                            / bank_line.amount_currency
+                            * existing_payout.net_platform_amount,
+                        ),
+                    )
+            candidate_values.append(
+                {
+                    "selected": confidence in {"high", "medium"},
+                    "bank_statement_line_id": bank_line.id,
+                    "platform_id": platform.id,
+                    "existing_payout_id": existing_payout.id,
+                    "extracted_reference": reference,
+                    "confidence": confidence,
+                    "score": score,
+                    "detection_reason": reason,
+                    "allocated_bank_amount": allocated_amount,
+                    "amount_difference": amount_difference,
+                    "date_difference": date_difference,
+                },
             )
+        reserved_payout_ids = set()
+        for values in sorted(
+            candidate_values,
+            key=lambda item: (-item["score"], item["bank_statement_line_id"]),
+        ):
+            payout_id = values["existing_payout_id"]
+            if payout_id and payout_id in reserved_payout_ids:
+                values.update(
+                    {
+                        "selected": False,
+                        "confidence": "ambiguous",
+                        "detection_reason": _(
+                            "Another higher-ranked bank transaction already "
+                            "targets this payout.",
+                        ),
+                    },
+                )
+            elif payout_id and values["selected"]:
+                reserved_payout_ids.add(payout_id)
+        commands = [Command.clear()] + [
+            Command.create(values) for values in candidate_values
+        ]
         self.candidate_ids = commands
 
     def action_import(self):
         self.ensure_one()
         self.session_id._check_operator()
+        if self.session_id.state not in {"draft", "ready", "posted"}:
+            raise UserError(
+                _("Bank transactions can only be linked to draft, ready or posted sessions."),
+            )
         selected = self.candidate_ids.filtered("selected")
         if not selected:
             raise UserError(_("Select at least one unambiguous bank transaction."))
@@ -253,9 +340,49 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                 )
             bank_line = candidate.bank_statement_line_id
             payout = candidate.existing_payout_id
+            self.env.cr.execute(
+                """
+                SELECT id
+                  FROM account_bank_statement_line
+                 WHERE id = %s
+                   FOR UPDATE
+                """,
+                [bank_line.id],
+            )
+            bank_line.invalidate_recordset()
+            if bank_line.is_reconciled:
+                raise UserError(
+                    _(
+                        "The bank transaction %(label)s was reconciled while "
+                        "this selection was open.",
+                        label=bank_line.display_name,
+                    ),
+                )
+            linked_payouts = self.env["usl.platform.billing.payout"].search(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            )
+            remaining_bank_amount = bank_line.currency_id.round(
+                bank_line.amount
+                - sum(linked_payouts.mapped("bank_received_amount")),
+            )
+            if (
+                candidate.allocated_bank_amount <= 0
+                or bank_line.currency_id.compare_amounts(
+                    candidate.allocated_bank_amount,
+                    remaining_bank_amount,
+                )
+                > 0
+            ):
+                raise UserError(
+                    _(
+                        "The allocation for %(label)s must be positive and "
+                        "cannot exceed the bank transaction's unallocated amount.",
+                        label=bank_line.display_name,
+                    ),
+                )
             values = {
                 "bank_statement_line_id": bank_line.id,
-                "bank_received_amount": bank_line.amount,
+                "bank_received_amount": candidate.allocated_bank_amount,
                 "bank_match_status": "selected",
                 "bank_match_score": candidate.score,
                 "bank_amount_difference": candidate.amount_difference,
@@ -263,7 +390,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                 "bank_detection_reason": candidate.detection_reason,
             }
             if payout:
-                payout.write(values)
+                payout._workflow_write(values)
             else:
                 reference = candidate.extracted_reference or f"BANK-{bank_line.id}"
                 platform_amount = (
@@ -346,6 +473,11 @@ class UslPlatformBillingBankImportWizardLine(models.TransientModel):
         readonly=True,
     )
     extracted_reference = fields.Char(readonly=True)
+    allocated_bank_amount = fields.Monetary(
+        string="Allocated Bank Amount",
+        currency_field="bank_currency_id",
+        required=True,
+    )
     confidence = fields.Selection(
         [
             ("high", "High"),

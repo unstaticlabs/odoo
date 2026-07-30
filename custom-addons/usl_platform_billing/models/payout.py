@@ -70,9 +70,13 @@ class UslPlatformBillingPayout(models.Model):
         store=True,
     )
     bank_received_amount = fields.Monetary(
-        string="Bank Amount",
+        string="Allocated Bank Amount",
         currency_field="bank_currency_id",
         tracking=True,
+        help=(
+            "Part of the selected bank transaction allocated to this payout. "
+            "Several payouts may share one pooled bank transaction."
+        ),
     )
     bank_statement_line_id = fields.Many2one(
         "account.bank.statement.line",
@@ -174,10 +178,6 @@ class UslPlatformBillingPayout(models.Model):
         "UNIQUE(company_id, platform_id, platform_reference)",
         "A platform payout reference must be unique within the company.",
     )
-    _bank_statement_line_unique = models.Constraint(
-        "UNIQUE(bank_statement_line_id)",
-        "A bank transaction can be linked to only one platform payout.",
-    )
 
     @api.depends("platform_id.name", "platform_reference", "payout_date")
     def _compute_name(self):
@@ -264,8 +264,23 @@ class UslPlatformBillingPayout(models.Model):
         "net_platform_amount",
         "session_id",
         "bank_statement_line_id",
+        "bank_received_amount",
     )
     def _check_business_values(self):
+        bank_line_ids = self.filtered("bank_statement_line_id").bank_statement_line_id.ids
+        if bank_line_ids:
+            # Serialize allocations so two operators cannot over-allocate the
+            # same pooled receipt in concurrent transactions.
+            self.env.cr.execute(
+                """
+                SELECT id
+                  FROM account_bank_statement_line
+                 WHERE id IN %s
+                 ORDER BY id
+                   FOR UPDATE
+                """,
+                [tuple(bank_line_ids)],
+            )
         for payout in self:
             if payout.platform_id.company_id != payout.company_id:
                 raise ValidationError(_("The platform and session companies must match."))
@@ -294,6 +309,34 @@ class UslPlatformBillingPayout(models.Model):
                 raise ValidationError(
                     _("The bank transaction must use the session bank currency."),
                 )
+            if payout.bank_statement_line_id:
+                if payout.bank_received_amount <= 0:
+                    raise ValidationError(
+                        _("The allocated bank amount must be positive."),
+                    )
+                allocations = self.search(
+                    [
+                        (
+                            "bank_statement_line_id",
+                            "=",
+                            payout.bank_statement_line_id.id,
+                        ),
+                    ],
+                )
+                if (
+                    float_compare(
+                        sum(allocations.mapped("bank_received_amount")),
+                        payout.bank_statement_line_id.amount,
+                        precision_rounding=payout.bank_currency_id.rounding,
+                    )
+                    > 0
+                ):
+                    raise ValidationError(
+                        _(
+                            "Payout allocations cannot exceed the bank "
+                            "transaction amount.",
+                        ),
+                    )
 
     @api.onchange("platform_id")
     def _onchange_platform_id(self):
@@ -306,10 +349,20 @@ class UslPlatformBillingPayout(models.Model):
         for payout in self.filtered("bank_statement_line_id"):
             line = payout.bank_statement_line_id
             payout.bank_received_amount = line.amount
-            payout.bank_match_status = "selected"
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.su and any(
+            {
+                "state",
+                "customer_invoice_id",
+                "vendor_bill_id",
+                "compensation_move_id",
+            }
+            & set(values)
+            for values in vals_list
+        ):
+            raise AccessError(_("Workflow fields can only be changed by app actions."))
         for values in vals_list:
             platform = self.env["usl.platform.billing.platform"].browse(
                 values.get("platform_id"),
@@ -317,9 +370,36 @@ class UslPlatformBillingPayout(models.Model):
             if platform:
                 values.setdefault("platform_currency_id", platform.currency_id.id)
                 values.setdefault("commission_rate_snapshot", platform.commission_rate)
-        return super().create(vals_list)
+            if not self.env.su and values.get("bank_statement_line_id"):
+                bank_line = self.env["account.bank.statement.line"].browse(
+                    values["bank_statement_line_id"],
+                )
+                if bank_line.is_reconciled:
+                    raise UserError(
+                        _("A reconciled bank transaction cannot be allocated."),
+                    )
+        payouts = super().create(vals_list)
+        selected = payouts.filtered("bank_statement_line_id").filtered(
+            lambda payout: payout.bank_match_status == "unmatched",
+        )
+        if selected:
+            selected._workflow_write({"bank_match_status": "selected"})
+        return payouts
 
     def write(self, vals):
+        workflow_fields = {
+            "state",
+            "customer_invoice_id",
+            "vendor_bill_id",
+            "compensation_move_id",
+            "bank_match_status",
+            "bank_match_score",
+            "bank_amount_difference",
+            "bank_date_difference",
+            "bank_detection_reason",
+        }
+        if not self.env.su and workflow_fields & set(vals):
+            raise AccessError(_("Workflow fields can only be changed by app actions."))
         protected = {
             "session_id",
             "platform_id",
@@ -333,16 +413,57 @@ class UslPlatformBillingPayout(models.Model):
             lambda payout: payout.state not in {"draft"},
         ):
             raise UserError(_("Generated payouts cannot change their accounting basis."))
-        return super().write(vals)
+        if {"bank_statement_line_id", "bank_received_amount"} & set(vals):
+            if not self.env.su and vals.get("bank_statement_line_id"):
+                bank_line = self.env["account.bank.statement.line"].browse(
+                    vals["bank_statement_line_id"],
+                )
+                if bank_line.is_reconciled:
+                    raise UserError(
+                        _("A reconciled bank transaction cannot be allocated."),
+                    )
+            if self.filtered(lambda payout: payout.state in {"paid", "cancelled"}):
+                raise UserError(
+                    _("Paid or cancelled payouts cannot change their bank allocation."),
+                )
+            if self.filtered(
+                lambda payout: (
+                    payout.bank_statement_line_id.is_reconciled
+                    and (
+                        "bank_statement_line_id" in vals
+                        or "bank_received_amount" in vals
+                    )
+                ),
+            ):
+                raise UserError(
+                    _("A reconciled bank allocation cannot be changed from this app."),
+                )
+        result = super().write(vals)
+        if "bank_statement_line_id" in vals:
+            self._workflow_write(
+                {
+                    "bank_match_status": (
+                        "selected" if vals["bank_statement_line_id"] else "unmatched"
+                    ),
+                },
+            )
+        return result
+
+    def _workflow_write(self, values):
+        return super().write(values)
 
     def unlink(self):
         if self.filtered(lambda payout: payout.state != "draft"):
             raise UserError(_("Only draft payouts can be deleted."))
         if (
             not self.env.su
-            and not self.env.user.has_group("account.group_account_manager")
+            and not self.env.user.has_group(
+                "usl_platform_billing.group_platform_billing_manager",
+            )
         ):
-            raise AccessError(_("Only Accounting administrators can delete payouts."))
+            raise AccessError(
+                _("Only Platform Billing administrators can delete payouts."),
+            )
         return super().unlink()
 
     def _open_receivable_line(self):
@@ -354,60 +475,86 @@ class UslPlatformBillingPayout(models.Model):
             ),
         )[:1]
 
-    def _bank_line_is_amount_consistent(self):
-        self.ensure_one()
-        bank_line = self.bank_statement_line_id
-        if not bank_line:
-            return False
-        bank_amount = self.bank_currency_id.round(
-            self.bank_received_amount or bank_line.amount,
-        )
-        return float_compare(
-            bank_line.amount,
-            bank_amount,
-            precision_rounding=self.bank_currency_id.rounding,
-        ) == 0
-
     def _reconcile_bank_transaction(self):
-        self.ensure_one()
-        invoice = self.customer_invoice_id
-        bank_line = self.bank_statement_line_id
-        if not invoice or invoice.state != "posted":
-            raise UserError(_("The customer invoice must be posted first."))
-        if not bank_line:
-            raise UserError(_("Select a bank transaction first."))
+        if not self:
+            return
+        bank_lines = self.bank_statement_line_id
+        if len(bank_lines) != 1 or self.filtered(
+            lambda payout: not payout.bank_statement_line_id,
+        ):
+            raise UserError(_("Select one shared bank transaction for these payouts."))
+        bank_line = bank_lines
+        invoices = self.customer_invoice_id
+        if not invoices or invoices.filtered(lambda invoice: invoice.state != "posted"):
+            raise UserError(_("Every customer invoice must be posted first."))
         if bank_line.is_reconciled:
-            self.bank_match_status = "reconciled"
+            self._workflow_write({"bank_match_status": "reconciled"})
             return
         if bank_line.move_id.state != "posted":
             raise UserError(_("The selected bank transaction is not posted."))
-        if bank_line.amount <= 0 or not self._bank_line_is_amount_consistent():
+        if bank_line.amount <= 0:
+            raise UserError(_("The selected bank transaction must be incoming."))
+        allocated_amount = bank_line.currency_id.round(
+            sum(self.mapped("bank_received_amount")),
+        )
+        if float_compare(
+            bank_line.amount,
+            allocated_amount,
+            precision_rounding=bank_line.currency_id.rounding,
+        ):
             raise UserError(
-                _("The selected bank transaction amount no longer matches the payout."),
+                _(
+                    "The shared bank transaction is %(actual)s, but its linked "
+                    "payout allocations total %(allocated)s.",
+                    actual=bank_line.amount,
+                    allocated=allocated_amount,
+                ),
             )
-        receivable = self._open_receivable_line()
+        partners = invoices.commercial_partner_id
+        currencies = invoices.currency_id
+        if len(partners) != 1:
+            raise UserError(
+                _("A pooled bank transaction must use one customer partner."),
+            )
+        if len(currencies) != 1:
+            raise UserError(
+                _("A pooled bank transaction must use one invoice currency."),
+            )
+        receivable = invoices.line_ids.filtered(
+            lambda line: (
+                line.account_id.account_type == "asset_receivable"
+                and not line.reconciled
+            ),
+        )
         if not receivable:
-            if float_is_zero(
-                invoice.amount_residual,
-                precision_rounding=invoice.currency_id.rounding,
+            if all(
+                float_is_zero(
+                    invoice.amount_residual,
+                    precision_rounding=invoice.currency_id.rounding,
+                )
+                for invoice in invoices
             ):
+                self._workflow_write({"bank_match_status": "reconciled"})
                 return
-            raise UserError(_("No open receivable line remains on the customer invoice."))
+            raise UserError(_("No open receivable line remains on the customer invoices."))
 
-        values = {"partner_id": invoice.commercial_partner_id.id}
+        values = {"partner_id": partners.id}
         transaction_currency = bank_line.currency_id
-        if invoice.currency_id != transaction_currency:
+        invoice_currency = currencies
+        if invoice_currency != transaction_currency:
             if bank_line.foreign_currency_id not in (
                 self.env["res.currency"],
-                invoice.currency_id,
+                invoice_currency,
             ):
                 raise UserError(
                     _("The bank transaction already carries another foreign currency."),
                 )
             values.update(
                 {
-                    "foreign_currency_id": invoice.currency_id.id,
-                    "amount_currency": self.net_platform_amount,
+                    "foreign_currency_id": invoice_currency.id,
+                    "amount_currency": invoice_currency.round(
+                        sum(self.mapped("net_platform_amount")),
+                    ),
                 },
             )
         elif bank_line.foreign_currency_id:
@@ -416,7 +563,8 @@ class UslPlatformBillingPayout(models.Model):
             )
         bank_line.write(values)
         bank_line.reconcile_data_info = bank_line._default_reconcile_data()
-        bank_line._add_account_move_line(receivable)
+        for line in receivable:
+            bank_line._add_account_move_line(line)
         if not bank_line.can_reconcile:
             raise UserError(
                 _("OCA reconciliation could not balance this bank transaction."),
@@ -424,7 +572,7 @@ class UslPlatformBillingPayout(models.Model):
         bank_line.reconcile_bank_line()
         if not bank_line.is_reconciled:
             raise UserError(_("The bank transaction remains unreconciled."))
-        self.write(
+        self._workflow_write(
             {
                 "bank_match_status": "reconciled",
                 "state": "paid",

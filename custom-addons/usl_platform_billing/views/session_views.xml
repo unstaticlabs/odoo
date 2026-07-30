@@ -52,25 +52,25 @@
             <form string="Platform Billing Session">
                 <header>
                     <button name="action_prefill" string="Prefill" type="object"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             invisible="state not in ('draft', 'ready')"/>
                     <button name="action_check" string="Check" type="object"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_generate_documents" string="Generate drafts"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" class="oe_highlight" invisible="state != 'ready'"/>
                     <button name="action_post_documents" string="Post documents"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" class="oe_highlight" invisible="state != 'generated'"/>
                     <button name="action_reconcile_bank" string="Reconcile bank"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" class="oe_highlight" invisible="state != 'posted'"/>
                     <button name="action_reset_drafts" string="Reset drafts"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" invisible="state != 'generated'"/>
                     <button name="action_cancel" string="Cancel"
-                            groups="account.group_account_user,account.group_account_manager"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" invisible="state not in ('draft', 'ready')"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,ready,generated,posted,paid"/>
@@ -111,10 +111,14 @@
                             <field name="generated_by_id" readonly="1"/>
                         </group>
                     </group>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not platform_coverage_warning or state in ('paid', 'cancelled')">
+                        <field name="platform_coverage_warning" nolabel="1" readonly="1"/>
+                    </div>
                     <notebook>
                         <page name="payouts" string="Payouts">
                             <button name="action_open_bank_import" string="Import bank transactions"
-                                    groups="account.group_account_user,account.group_account_manager"
+                                    groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                                     type="object" class="oe_highlight"
                                     invisible="state not in ('draft', 'ready', 'posted')"/>
                             <field name="payout_ids"

@@ -6,14 +6,20 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-30 01:40+0000\n"
-"PO-Revision-Date: 2026-07-30 01:40+0000\n"
+"POT-Creation-Date: 2026-07-30 15:34+0000\n"
+"PO-Revision-Date: 2026-07-30 15:34+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "%(count)s payout(s) remain open while payment is delayed."
+msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
@@ -42,11 +48,6 @@ msgid "%s bank transaction(s) linked to platform payouts."
 msgstr ""
 
 #. module: usl_platform_billing
-#: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_payout_bank_statement_line_unique
-msgid "A bank transaction can be linked to only one platform payout."
-msgstr ""
-
-#. module: usl_platform_billing
 #: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_session_company_period_name_unique
 msgid "A billing session name must be unique for the company and month."
 msgstr ""
@@ -63,8 +64,26 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
-#: code:addons/usl_platform_billing/models/session.py:0
-msgid "A session with posted entries cannot be cancelled."
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "A pooled bank transaction must use one customer partner."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "A pooled bank transaction must use one invoice currency."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "A reconciled bank allocation cannot be changed from this app."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "A reconciled bank transaction cannot be allocated."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -138,6 +157,11 @@ msgid "Add at least one payout."
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:res.groups,name:usl_platform_billing.group_platform_billing_manager
+msgid "Administrator"
+msgstr ""
+
+#. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "All generated documents and selected bank transactions are settled."
@@ -147,6 +171,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "All payouts must belong to the session company."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__allocated_bank_amount
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_received_amount
+msgid "Allocated Bank Amount"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -181,6 +211,12 @@ msgid "Analytic Distribution"
 msgstr ""
 
 #. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Another higher-ranked bank transaction already targets this payout."
+msgstr ""
+
+#. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
 msgid "Archived"
 msgstr ""
@@ -205,11 +241,6 @@ msgstr ""
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
 msgid "Bank"
-msgstr ""
-
-#. module: usl_platform_billing
-#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_received_amount
-msgid "Bank Amount"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -305,6 +336,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_list
 msgid "Bank total"
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"Bank transactions can only be linked to draft, ready or posted sessions."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -480,6 +519,14 @@ msgid "Configured label pattern"
 msgstr ""
 
 #. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_post_confirm_wizard
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Confirm Incomplete Platform Coverage"
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_account_bank_statement_line__platform_billing_platform_id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_platform_id
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
@@ -535,6 +582,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__create_uid
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__create_uid
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__create_uid
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__create_uid
 msgid "Created by"
 msgstr ""
@@ -544,6 +592,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__create_date
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__create_date
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__create_date
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__create_date
 msgid "Created on"
 msgstr ""
@@ -619,6 +668,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__display_name
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__display_name
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__display_name
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__display_name
 msgid "Display Name"
 msgstr ""
@@ -671,6 +721,12 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Every customer invoice must be posted first."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
 msgid "Every platform setting must belong to the platform company."
 msgstr ""
@@ -711,6 +767,13 @@ msgstr ""
 #: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__activity_type_icon
 #: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:res.groups,comment:usl_platform_billing.group_platform_billing_manager
+msgid ""
+"Full platform billing access, including configuration and eligible record "
+"deletion."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -772,6 +835,11 @@ msgid "Generated sessions cannot change their accounting basis."
 msgstr ""
 
 #. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Go Back"
+msgstr ""
+
+#. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
 msgid "Gross Revenue"
 msgstr ""
@@ -806,6 +874,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__id
 msgid "ID"
 msgstr ""
@@ -856,6 +925,13 @@ msgstr ""
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
 msgid "Import bank transactions"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:res.groups,comment:usl_platform_billing.group_platform_billing_reader
+msgid ""
+"Inspect platform billing configurations, sessions, payouts and linked "
+"accounting evidence."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -913,6 +989,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__write_uid
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__write_uid
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__write_uid
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__write_uid
 msgid "Last Updated by"
 msgstr ""
@@ -922,6 +999,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__write_date
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__write_date
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__write_date
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__write_date
 msgid "Last Updated on"
 msgstr ""
@@ -968,6 +1046,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_ids
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_ids
 msgid "Messages"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__missing_active_platform_ids
+msgid "Missing Active Platforms"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1024,7 +1107,16 @@ msgstr ""
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "No open receivable line remains on the customer invoice."
+msgid "No open receivable line remains on the customer invoices."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"No payout is registered for these active platforms: %(platforms)s. Monthly "
+"billing should normally cover every active platform; you may continue after "
+"confirming the exception."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1106,25 +1198,37 @@ msgstr ""
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "Only Accounting administrators can delete payouts."
+msgid "Only Platform Billing administrators can delete payouts."
 msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
-msgid "Only Accounting administrators can delete sessions."
+msgid "Only Platform Billing administrators can delete sessions."
 msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
-msgid "Only Accounting users can inspect this session."
+msgid "Only Platform Billing operators can run this action."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only Platform Billing users can inspect this session."
 msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "Only draft or cancelled sessions can be deleted."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only draft or ready sessions can be cancelled."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1152,20 +1256,32 @@ msgid "Only generated sessions can be posted."
 msgstr ""
 
 #. module: usl_platform_billing
-#. odoo-python
-#: code:addons/usl_platform_billing/models/session.py:0
-msgid "Only writable Accounting users can run this action."
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Open"
 msgstr ""
 
 #. module: usl_platform_billing
-#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
-msgid "Open"
+#: model:res.groups,name:usl_platform_billing.group_platform_billing_operator
+msgid "Operator"
 msgstr ""
 
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__paid
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__paid
 msgid "Paid"
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Paid or cancelled payouts cannot change their bank allocation."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__bank_received_amount
+msgid ""
+"Part of the selected bank transaction allocated to this payout. Several "
+"payouts may share one pooled bank transaction."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1198,6 +1314,12 @@ msgstr ""
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__payout_date
 msgid "Payout Date"
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Payout allocations cannot exceed the bank transaction amount."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1247,6 +1369,7 @@ msgstr ""
 
 #. module: usl_platform_billing
 #: model:ir.ui.menu,name:usl_platform_billing.menu_platform_billing_root
+#: model:res.groups.privilege,name:usl_platform_billing.res_groups_privilege_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_form_platform_billing
 msgid "Platform Billing"
 msgstr ""
@@ -1269,6 +1392,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_list
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
 msgid "Platform Billing Sessions"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__platform_coverage_warning
+msgid "Platform Coverage Warning"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1331,6 +1459,16 @@ msgid "Platforms"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__missing_platform_ids
+msgid "Platforms Without Payouts"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Post Anyway"
+msgstr ""
+
+#. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
@@ -1366,8 +1504,20 @@ msgid "Prefill"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:res.groups,comment:usl_platform_billing.group_platform_billing_operator
+msgid ""
+"Prepare, generate, post and reconcile platform billing sessions without "
+"configuring platforms."
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__purchase_journal_id
 msgid "Purchase Journal"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:res.groups,name:usl_platform_billing.group_platform_billing_reader
+msgid "Read-only"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1449,12 +1599,6 @@ msgstr ""
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "Select a bank transaction first."
-msgstr ""
-
-#. module: usl_platform_billing
-#. odoo-python
-#: code:addons/usl_platform_billing/models/payout.py:0
 msgid "Select a platform."
 msgstr ""
 
@@ -1474,6 +1618,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "Select each bank transaction, then reconcile the net receipts."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Select one shared bank transaction for these payouts."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1501,6 +1651,7 @@ msgstr ""
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__session_id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__session_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__session_id
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
 msgid "Session"
@@ -1555,6 +1706,20 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The allocated bank amount must be positive."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"The allocation for %(label)s must be positive and cannot exceed the bank "
+"transaction's unallocated amount."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
 msgid "The bank label pattern can contain {ref} only once."
 msgstr ""
@@ -1563,6 +1728,13 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
 msgid "The bank label pattern is invalid: %s"
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"The bank transaction %(label)s was reconciled while this selection was open."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1616,12 +1788,6 @@ msgstr ""
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "The customer invoice must be posted first."
-msgstr ""
-
-#. module: usl_platform_billing
-#. odoo-python
-#: code:addons/usl_platform_billing/models/payout.py:0
 msgid "The payout currency differs from the platform currency."
 msgstr ""
 
@@ -1652,13 +1818,21 @@ msgstr ""
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "The selected bank transaction amount no longer matches the payout."
+msgid "The selected bank transaction is not posted."
 msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "The selected bank transaction is not posted."
+msgid "The selected bank transaction must be incoming."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid ""
+"The shared bank transaction is %(actual)s, but its linked payout allocations"
+" total %(allocated)s."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1711,6 +1885,11 @@ msgid "Warning"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__warning_message
+msgid "Warning Message"
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__website_message_ids
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__website_message_ids
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__website_message_ids
@@ -1727,6 +1906,13 @@ msgstr ""
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__wizard_id
 msgid "Wizard"
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Workflow fields can only be changed by app actions."
 msgstr ""
 
 #. module: usl_platform_billing

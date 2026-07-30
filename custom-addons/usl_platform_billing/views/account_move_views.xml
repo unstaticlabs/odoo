@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='other_info']//group" position="inside">
                 <group string="Platform Billing"
+                       groups="usl_platform_billing.group_platform_billing_reader"
                        invisible="not platform_billing_session_id">
                     <field name="platform_billing_session_id" readonly="1"/>
                     <field name="platform_billing_platform_id" readonly="1"/>

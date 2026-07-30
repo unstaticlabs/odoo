@@ -91,6 +91,17 @@ class UslPlatformBillingSession(models.Model):
     guidance = fields.Text(compute="_compute_guidance")
     generated_at = fields.Datetime(readonly=True, copy=False)
     generated_by_id = fields.Many2one("res.users", readonly=True, copy=False)
+    missing_active_platform_ids = fields.Many2many(
+        "usl.platform.billing.platform",
+        "usl_pb_session_missing_platform_rel",
+        "session_id",
+        "platform_id",
+        compute="_compute_platform_coverage",
+        string="Missing Active Platforms",
+    )
+    platform_coverage_warning = fields.Text(
+        compute="_compute_platform_coverage",
+    )
 
     _company_period_name_unique = models.Constraint(
         "UNIQUE(company_id, period_month, name)",
@@ -196,6 +207,29 @@ class UslPlatformBillingSession(models.Model):
         for session in self:
             session.next_action, session.guidance = guidance[session.state]
 
+    @api.depends("company_id", "payout_ids.platform_id")
+    def _compute_platform_coverage(self):
+        Platform = self.env["usl.platform.billing.platform"]
+        for session in self:
+            active_platforms = Platform.search(
+                [
+                    ("company_id", "=", session.company_id.id),
+                    ("active", "=", True),
+                ],
+            )
+            missing = active_platforms - session.payout_ids.platform_id
+            session.missing_active_platform_ids = missing
+            session.platform_coverage_warning = (
+                _(
+                    "No payout is registered for these active platforms: %(platforms)s. "
+                    "Monthly billing should normally cover every active platform; "
+                    "you may continue after confirming the exception.",
+                    platforms=", ".join(missing.mapped("display_name")),
+                )
+                if missing
+                else False
+            )
+
     @api.constrains("period_month")
     def _check_period_first_day(self):
         for session in self:
@@ -212,12 +246,22 @@ class UslPlatformBillingSession(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.su and any(
+            {"state", "generated_at", "generated_by_id"} & set(values)
+            for values in vals_list
+        ):
+            raise AccessError(_("Workflow fields can only be changed by app actions."))
         sessions = super().create(vals_list)
         for session in sessions:
             session.action_prefill()
         return sessions
 
     def write(self, vals):
+        if (
+            not self.env.su
+            and {"state", "generated_at", "generated_by_id"} & set(vals)
+        ):
+            raise AccessError(_("Workflow fields can only be changed by app actions."))
         basis = {"company_id", "period_month", "invoice_date", "due_date", "bank_currency_id"}
         if basis & set(vals) and self.filtered(
             lambda session: session.state not in {"draft", "ready"},
@@ -225,25 +269,31 @@ class UslPlatformBillingSession(models.Model):
             raise UserError(_("Generated sessions cannot change their accounting basis."))
         return super().write(vals)
 
+    def _workflow_write(self, values):
+        return super().write(values)
+
     def unlink(self):
         if self.filtered(lambda session: session.state not in {"draft", "cancelled"}):
             raise UserError(_("Only draft or cancelled sessions can be deleted."))
         if (
             not self.env.su
-            and not self.env.user.has_group("account.group_account_manager")
+            and not self.env.user.has_group(
+                "usl_platform_billing.group_platform_billing_manager",
+            )
         ):
-            raise AccessError(_("Only Accounting administrators can delete sessions."))
+            raise AccessError(
+                _("Only Platform Billing administrators can delete sessions."),
+            )
         return super().unlink()
 
     def _check_operator(self):
         if self.env.su:
             return
         user = self.env.user
-        if not (
-            user.has_group("account.group_account_user")
-            or user.has_group("account.group_account_manager")
+        if not user.has_group(
+            "usl_platform_billing.group_platform_billing_operator",
         ):
-            raise AccessError(_("Only writable Accounting users can run this action."))
+            raise AccessError(_("Only Platform Billing operators can run this action."))
         for session in self:
             if session.company_id not in user.company_ids:
                 raise AccessError(_("You cannot operate a session from another company."))
@@ -252,15 +302,10 @@ class UslPlatformBillingSession(models.Model):
         if self.env.su:
             return
         user = self.env.user
-        if not any(
-            user.has_group(group)
-            for group in (
-                "account.group_account_readonly",
-                "account.group_account_user",
-                "account.group_account_manager",
-            )
+        if not user.has_group(
+            "usl_platform_billing.group_platform_billing_reader",
         ):
-            raise AccessError(_("Only Accounting users can inspect this session."))
+            raise AccessError(_("Only Platform Billing users can inspect this session."))
         for session in self:
             if session.company_id not in user.company_ids:
                 raise AccessError(_("You cannot inspect a session from another company."))
@@ -279,8 +324,6 @@ class UslPlatformBillingSession(models.Model):
             values = {}
             if not session.invoice_date:
                 values["invoice_date"] = end
-            if not session.due_date:
-                values["due_date"] = end
             if not session.name or session.name.startswith("Platform billing —"):
                 values["name"] = _(
                     "Platform billing — %(month)s",
@@ -357,7 +400,7 @@ class UslPlatformBillingSession(models.Model):
                     subtype_xmlid="mail.mt_note",
                 )
                 raise UserError("\n".join(errors))
-            session.state = "ready"
+            session._workflow_write({"state": "ready"})
             session.message_post(
                 body=_("Accounting checks passed. The session is ready to generate."),
                 subtype_xmlid="mail.mt_note",
@@ -387,25 +430,34 @@ class UslPlatformBillingSession(models.Model):
             else platform.purchase_journal_id
         )
         references = ", ".join(payouts.mapped("platform_reference"))
-        return {
+        values = {
             "move_type": move_type,
             "company_id": self.company_id.id,
             "journal_id": journal.id,
             "partner_id": partner.id,
             "currency_id": platform.currency_id.id,
             "invoice_date": self.invoice_date,
-            "invoice_date_due": self.due_date or self.invoice_date,
             "ref": references,
             "platform_billing_session_id": self.id,
             "platform_billing_platform_id": platform.id,
             "platform_billing_payout_ids": [Command.set(payouts.ids)],
             "invoice_line_ids": line_commands,
         }
+        if self.due_date:
+            values.update(
+                {
+                    "invoice_payment_term_id": False,
+                    "invoice_date_due": self.due_date,
+                },
+            )
+        return values
 
     def _copy_supporting_documents(self, payouts, moves):
-        for attachment in payouts.attachment_ids:
+        attachments = payouts.attachment_ids
+        attachments.check_access("read")
+        for attachment in attachments:
             for move in moves:
-                existing = self.env["ir.attachment"].sudo().search_count(
+                existing = self.env["ir.attachment"].search_count(
                     [
                         ("res_model", "=", "account.move"),
                         ("res_id", "=", move.id),
@@ -414,7 +466,7 @@ class UslPlatformBillingSession(models.Model):
                     ],
                 )
                 if not existing:
-                    attachment.sudo().copy(
+                    attachment.copy(
                         {
                             "res_model": "account.move",
                             "res_id": move.id,
@@ -457,7 +509,7 @@ class UslPlatformBillingSession(models.Model):
                 self._move_values(platform, "in_invoice", bill_payouts, bill_lines),
             )
         for payout in payouts:
-            payout.write(
+            payout._workflow_write(
                 {
                     "customer_invoice_id": invoice.id,
                     "vendor_bill_id": bills.filtered(
@@ -468,7 +520,9 @@ class UslPlatformBillingSession(models.Model):
                 },
             )
         self._copy_supporting_documents(payouts, invoice | bills)
-        if platform.auto_post_invoices:
+        # Incomplete monthly coverage always requires the explicit posting
+        # confirmation, even when this platform normally auto-posts.
+        if platform.auto_post_invoices and not self.missing_active_platform_ids:
             (invoice | bills).action_post()
 
     def action_generate_documents(self):
@@ -488,7 +542,7 @@ class UslPlatformBillingSession(models.Model):
                         lambda payout, platform=platform: payout.platform_id == platform,
                     ),
                 )
-            session.write(
+            session._workflow_write(
                 {
                     "state": "generated",
                     "generated_at": fields.Datetime.now(),
@@ -570,7 +624,7 @@ class UslPlatformBillingSession(models.Model):
                 ],
             },
         )
-        payouts.compensation_move_id = move
+        payouts._workflow_write({"compensation_move_id": move.id})
         return move
 
     def _reconcile_compensation(self, platform, payouts, compensation):
@@ -602,6 +656,29 @@ class UslPlatformBillingSession(models.Model):
         for session in self:
             if session.state != "generated":
                 raise UserError(_("Only generated sessions can be posted."))
+            if (
+                session.missing_active_platform_ids
+                and not self.env.context.get("skip_platform_coverage_warning")
+            ):
+                wizard = self.env[
+                    "usl.platform.billing.post.confirm.wizard"
+                ].create(
+                    {
+                        "session_id": session.id,
+                        "missing_platform_ids": [
+                            Command.set(session.missing_active_platform_ids.ids),
+                        ],
+                        "warning_message": session.platform_coverage_warning,
+                    },
+                )
+                return {
+                    "type": "ir.actions.act_window",
+                    "name": _("Confirm Incomplete Platform Coverage"),
+                    "res_model": wizard._name,
+                    "res_id": wizard.id,
+                    "view_mode": "form",
+                    "target": "new",
+                }
             drafts = session.generated_move_ids.filtered(
                 lambda move: move.state == "draft",
             )
@@ -619,8 +696,8 @@ class UslPlatformBillingSession(models.Model):
                     if compensation.state == "draft":
                         compensation.action_post()
                     session._reconcile_compensation(platform, payouts, compensation)
-            session.payout_ids.write({"state": "posted"})
-            session.state = "posted"
+            session.payout_ids._workflow_write({"state": "posted"})
+            session._workflow_write({"state": "posted"})
             session._refresh_state()
             session.message_post(
                 body=_("Documents were posted and configured compensations reconciled."),
@@ -636,7 +713,7 @@ class UslPlatformBillingSession(models.Model):
             if session.generated_move_ids.filtered(lambda move: move.state != "draft"):
                 raise UserError(_("Posted journal entries cannot be reset from this app."))
             moves = session.generated_move_ids
-            session.payout_ids.write(
+            session.payout_ids._workflow_write(
                 {
                     "customer_invoice_id": False,
                     "vendor_bill_id": False,
@@ -645,7 +722,7 @@ class UslPlatformBillingSession(models.Model):
                 },
             )
             moves.unlink()
-            session.write(
+            session._workflow_write(
                 {
                     "state": "ready",
                     "generated_at": False,
@@ -683,6 +760,10 @@ class UslPlatformBillingSession(models.Model):
     def action_open_bank_import(self):
         self.ensure_one()
         self._check_operator()
+        if self.state not in {"draft", "ready", "posted"}:
+            raise UserError(
+                _("Bank transactions can only be linked to draft, ready or posted sessions."),
+            )
         wizard = self.env["usl.platform.billing.bank.import.wizard"].create(
             {"session_id": self.id},
         )
@@ -702,14 +783,20 @@ class UslPlatformBillingSession(models.Model):
                 continue
             moves = session.generated_move_ids
             if not moves:
-                session.state = (
-                    "ready" if session.payout_ids and not session._validation_errors() else "draft"
+                session._workflow_write(
+                    {
+                        "state": (
+                            "ready"
+                            if session.payout_ids
+                            and not session._validation_errors()
+                            else "draft"
+                        ),
+                    },
                 )
                 continue
             if moves.filtered(lambda move: move.state == "draft"):
-                session.state = "generated"
+                session._workflow_write({"state": "generated"})
                 continue
-            bank_ready = session.payout_ids.filtered("bank_statement_line_id")
             invoices_paid = all(
                 move.payment_state in {"paid", "reversed"}
                 or float_is_zero(
@@ -718,11 +805,16 @@ class UslPlatformBillingSession(models.Model):
                 )
                 for move in session.customer_invoice_ids | session.vendor_bill_ids
             )
-            bank_paid = bool(bank_ready) and all(bank_ready.bank_statement_line_id.mapped("is_reconciled"))
-            session.state = "paid" if invoices_paid and bank_paid else "posted"
-            session.payout_ids.write(
+            bank_paid = bool(session.payout_ids) and all(
+                payout.bank_statement_line_id
+                and payout.bank_statement_line_id.is_reconciled
+                for payout in session.payout_ids
+            )
+            state = "paid" if invoices_paid and bank_paid else "posted"
+            session._workflow_write({"state": state})
+            session.payout_ids._workflow_write(
                 {
-                    "state": "paid" if session.state == "paid" else "posted",
+                    "state": "paid" if state == "paid" else "posted",
                 },
             )
 
@@ -732,20 +824,34 @@ class UslPlatformBillingSession(models.Model):
             if session.state not in {"posted", "paid"}:
                 raise UserError(_("Post the generated documents before bank reconciliation."))
             blocked = []
-            for payout in session.payout_ids:
+            affected_sessions = session
+            linked_payouts = session.payout_ids.filtered("bank_statement_line_id")
+            for bank_line in linked_payouts.bank_statement_line_id:
+                payouts = self.env["usl.platform.billing.payout"].search(
+                    [("bank_statement_line_id", "=", bank_line.id)],
+                )
+                affected_sessions |= payouts.session_id
                 try:
                     with self.env.cr.savepoint():
-                        payout._reconcile_bank_transaction()
+                        payouts._reconcile_bank_transaction()
                 except (UserError, ValidationError) as error:
-                    payout.write(
+                    payouts._workflow_write(
                         {
                             "bank_match_status": "blocked",
                             "bank_detection_reason": str(error),
                         },
                     )
-                    blocked.append(f"{payout.display_name}: {error}")
-            session._refresh_state()
+                    blocked.append(
+                        f"{bank_line.display_name}: {error}",
+                    )
+            affected_sessions._refresh_state()
             body = _("Bank reconciliation finished.")
+            delayed_count = len(session.payout_ids - linked_payouts)
+            if delayed_count:
+                body += "<br/>" + _(
+                    "%(count)s payout(s) remain open while payment is delayed.",
+                    count=delayed_count,
+                )
             if blocked:
                 body += "<br/>" + "<br/>".join(blocked)
             session.message_post(body=body, subtype_xmlid="mail.mt_note")
@@ -754,8 +860,8 @@ class UslPlatformBillingSession(models.Model):
     def action_cancel(self):
         self._check_operator()
         for session in self:
-            if session.generated_move_ids.filtered(lambda move: move.state == "posted"):
-                raise UserError(_("A session with posted entries cannot be cancelled."))
-            session.generated_move_ids.unlink()
-            session.state = "cancelled"
+            if session.state not in {"draft", "ready"}:
+                raise UserError(_("Only draft or ready sessions can be cancelled."))
+            session.payout_ids._workflow_write({"state": "cancelled"})
+            session._workflow_write({"state": "cancelled"})
         return True

@@ -5,7 +5,7 @@
               action="action_platform_billing_sessions"
               sequence="55"
               web_icon="usl_platform_billing,static/description/icon.png"
-              groups="account.group_account_readonly,account.group_account_user,account.group_account_manager"/>
+              groups="usl_platform_billing.group_platform_billing_reader,usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"/>
     <menuitem id="menu_platform_billing_sessions"
               name="Billing Sessions"
               parent="menu_platform_billing_root"
@@ -20,6 +20,5 @@
               name="Platforms"
               parent="menu_platform_billing_root"
               action="action_platform_billing_platforms"
-              sequence="30"
-              groups="account.group_account_manager"/>
+              sequence="30"/>
 </odoo>
