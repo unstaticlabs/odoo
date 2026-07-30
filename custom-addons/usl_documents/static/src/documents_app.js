@@ -30,6 +30,9 @@ const FILTER_DEFAULTS = {
     linkedState: "",
     linkedRecord: "",
     mappedPartnerId: "",
+    paperlessId: "",
+    customFieldId: "",
+    customFieldValue: "",
 };
 
 export class DocumentsWorkspace extends Component {
@@ -124,6 +127,7 @@ export class DocumentsWorkspace extends Component {
             correspondents: [],
             documentTypes: [],
             companies: [],
+            customFields: [],
             linkFacets: [],
             page:
                 Number.isInteger(restored.page) && restored.page > 0
@@ -140,8 +144,15 @@ export class DocumentsWorkspace extends Component {
             tagQuery: "",
             creatingTag: false,
             operation: null,
+            failedOperations: [],
+            canUpload: false,
             truncated: false,
         });
+        this.pollingOperationIds = new Set();
+        this.customFieldFilterTimer = null;
+        this.customFieldFilterApplied = Boolean(
+            this.state.customFieldId && this.state.customFieldValue
+        );
         this.onPopState = (event) => this.handlePopState(event);
         onWillStart(async () => {
             await this.load();
@@ -162,7 +173,12 @@ export class DocumentsWorkspace extends Component {
                 this.restoreScroll();
             });
         });
-        onWillUnmount(() => browser.removeEventListener("popstate", this.onPopState));
+        onWillUnmount(() => {
+            browser.removeEventListener("popstate", this.onPopState);
+            if (this.customFieldFilterTimer) {
+                browser.clearTimeout(this.customFieldFilterTimer);
+            }
+        });
     }
 
     readUrlState() {
@@ -197,6 +213,9 @@ export class DocumentsWorkspace extends Component {
             linkedState: this.stringValue(restored.linkedState),
             linkedRecord: this.stringValue(restored.linkedRecord),
             mappedPartnerId: this.stringValue(restored.mappedPartnerId),
+            paperlessId: this.stringValue(restored.paperlessId),
+            customFieldId: this.stringValue(restored.customFieldId),
+            customFieldValue: this.stringValue(restored.customFieldValue),
         };
     }
 
@@ -228,6 +247,8 @@ export class DocumentsWorkspace extends Component {
             this.state.linkedState,
             this.state.linkedRecord,
             this.state.mappedPartnerId,
+            this.state.paperlessId,
+            this.state.customFieldId && this.state.customFieldValue,
         ].filter(Boolean).length;
     }
 
@@ -278,6 +299,23 @@ export class DocumentsWorkspace extends Component {
                 label: "Correspondent mapped to this Contact",
             });
         }
+        if (this.state.paperlessId) {
+            facets.push({
+                key: "paperlessId",
+                label: `Archive ID: ${this.state.paperlessId}`,
+            });
+        }
+        if (this.state.customFieldId && this.state.customFieldValue) {
+            const field = this.state.customFields.find(
+                (item) => item.id === Number(this.state.customFieldId)
+            );
+            facets.push({
+                key: "customField",
+                label: `${field?.name || "Additional detail"}: ${
+                    this.state.customFieldValue
+                }`,
+            });
+        }
         for (const [key, label] of Object.entries({
             source: "Source",
             confidentiality: "Privacy",
@@ -300,7 +338,7 @@ export class DocumentsWorkspace extends Component {
         }
         const input = this.state.searchInput.trim();
         const match = input.match(
-            /(?:^|\s)(tag|type|from|company|review|privacy):([^\s]*)$/i
+            /(?:^|\s)(tag|type|from|company|review|privacy|id):([^\s]*)$/i
         );
         if (!match) {
             if (input) {
@@ -311,6 +349,7 @@ export class DocumentsWorkspace extends Component {
                 { kind: "hint", label: "Correspondent", hint: "from:" },
                 { kind: "hint", label: "Document type", hint: "type:" },
                 { kind: "hint", label: "Company", hint: "company:" },
+                { kind: "hint", label: "Archive ID", hint: "id:" },
             ];
         }
         const kind = match[1].toLowerCase();
@@ -331,7 +370,17 @@ export class DocumentsWorkspace extends Component {
                 { id: "hr", name: "HR restricted" },
                 { id: "private", name: "Private" },
             ],
+            id: [],
         };
+        if (kind === "id" && /^\d+$/.test(query)) {
+            return [
+                {
+                    kind: "id",
+                    item: { id: query, name: query },
+                    label: `Archive document ${query}`,
+                },
+            ];
+        }
         return (catalogs[kind] || [])
             .filter((item) => item.name.toLowerCase().includes(query))
             .slice(0, 10)
@@ -360,6 +409,13 @@ export class DocumentsWorkspace extends Component {
         return (this.state.selected?.versions || []).filter(
             (version) => !version.is_current
         );
+    }
+
+    get customFieldInputType() {
+        const field = this.state.customFields.find(
+            (item) => String(item.id) === String(this.state.customFieldId)
+        );
+        return field?.data_type === "date" ? "date" : "text";
     }
 
     documentPreviewUrl(document) {
@@ -498,6 +554,9 @@ export class DocumentsWorkspace extends Component {
                 ? Number(this.state.linkedRecord.split(":", 2)[1])
                 : null,
             mapped_partner_id: this.state.mappedPartnerId || null,
+            paperless_id: this.state.paperlessId || null,
+            custom_field_id: this.state.customFieldId || null,
+            custom_field_value: this.state.customFieldValue || null,
         };
     }
 
@@ -521,7 +580,15 @@ export class DocumentsWorkspace extends Component {
             this.state.documentTypes =
                 result.document_types || this.state.documentTypes;
             this.state.companies = result.companies || this.state.companies;
+            this.state.customFields =
+                result.custom_fields || this.state.customFields;
             this.state.linkFacets = result.link_facets || this.state.linkFacets;
+            this.state.canUpload = Boolean(result.can_upload);
+            this.state.failedOperations = result.failed_operations || [];
+            if (!this.state.operation && result.active_operation) {
+                this.state.operation = result.active_operation;
+                this.pollOperation(result.active_operation.id);
+            }
             this.state.truncated = Boolean(result.truncated);
             this.state.error = result.error || "";
             this.state.workspace = result.selected_workspace || this.state.workspace;
@@ -624,6 +691,52 @@ export class DocumentsWorkspace extends Component {
         return this.load();
     }
 
+    selectCustomField(event) {
+        this.state.customFieldId = event.target.value;
+        this.state.page = 1;
+        if (this.state.customFieldValue) {
+            this.customFieldFilterApplied = true;
+            return this.load();
+        }
+    }
+
+    scheduleCustomFieldFilter(event) {
+        this.state.customFieldValue = event.target.value;
+        this.state.page = 1;
+        if (this.customFieldFilterTimer) {
+            browser.clearTimeout(this.customFieldFilterTimer);
+        }
+        if (!this.state.customFieldValue) {
+            this.customFieldFilterTimer = null;
+            if (!this.customFieldFilterApplied) {
+                return;
+            }
+            this.customFieldFilterApplied = false;
+            return this.load();
+        }
+        if (!this.state.customFieldId) {
+            return;
+        }
+        this.customFieldFilterTimer = browser.setTimeout(() => {
+            this.customFieldFilterTimer = null;
+            this.customFieldFilterApplied = true;
+            this.load();
+        }, 300);
+    }
+
+    applyCustomFieldFilter(event) {
+        if (event.key !== "Enter" || !this.state.customFieldId) {
+            return;
+        }
+        event.preventDefault();
+        if (this.customFieldFilterTimer) {
+            browser.clearTimeout(this.customFieldFilterTimer);
+            this.customFieldFilterTimer = null;
+        }
+        this.customFieldFilterApplied = true;
+        return this.load();
+    }
+
     applySearchSuggestion(suggestion) {
         if (suggestion.kind === "hint") {
             this.state.searchInput = `${this.state.searchInput}${suggestion.hint}`;
@@ -636,6 +749,7 @@ export class DocumentsWorkspace extends Component {
             company: "companyId",
             review: "reviewState",
             privacy: "confidentiality",
+            id: "paperlessId",
         };
         const field = fields[suggestion.kind];
         if (field === "tagIds") {
@@ -653,6 +767,12 @@ export class DocumentsWorkspace extends Component {
     }
 
     removeFacet(key) {
+        if (key === "customField") {
+            this.state.customFieldId = "";
+            this.state.customFieldValue = "";
+            this.state.page = 1;
+            return this.load();
+        }
         if (key.startsWith("tag:")) {
             const tagId = Number(key.split(":", 2)[1]);
             this.state.tagIds = this.state.tagIds.filter((id) => id !== tagId);
@@ -759,14 +879,18 @@ export class DocumentsWorkspace extends Component {
         this.state.selectedLoading = true;
         this.state.editingMetadata = false;
         try {
-            const detail = await this.orm.call("usl.document", "document_detail", [
-                document.id,
-            ]);
+            const detail = await this.orm.call(
+                "usl.document",
+                "document_detail",
+                [document.id],
+                { check_archive: true }
+            );
             if (this.state.selected?.id === document.id) {
                 this.state.selected = {
                     ...detail,
                     preview_url: this.documentPreviewUrl(detail),
                 };
+                this.state.degraded = detail.archive_available === false;
                 if (versionId) {
                     const version = detail.versions?.find(
                         (item) => item.paperless_version_id === String(versionId)
@@ -788,6 +912,15 @@ export class DocumentsWorkspace extends Component {
             );
         } finally {
             this.state.selectedLoading = false;
+        }
+    }
+
+    retryDocumentDetail() {
+        if (this.state.selected) {
+            return this.openDocumentById(
+                this.state.selected.id,
+                this.state.selected.selected_version_id
+            );
         }
     }
 
@@ -1047,6 +1180,9 @@ export class DocumentsWorkspace extends Component {
     }
 
     onDragOver(event) {
+        if (!this.state.canUpload) {
+            return;
+        }
         event.preventDefault();
         this.state.dragged = true;
     }
@@ -1058,6 +1194,9 @@ export class DocumentsWorkspace extends Component {
     onDrop(event) {
         event.preventDefault();
         this.state.dragged = false;
+        if (!this.state.canUpload) {
+            return;
+        }
         const file = event.dataTransfer.files?.[0];
         if (file) {
             return this.upload(file);
@@ -1119,6 +1258,9 @@ export class DocumentsWorkspace extends Component {
     }
 
     async upload(file) {
+        if (!this.state.canUpload) {
+            return;
+        }
         this.state.uploading = true;
         this.state.operation = { name: file.name, state: "uploading" };
         try {
@@ -1242,7 +1384,11 @@ export class DocumentsWorkspace extends Component {
     }
 
     async pollOperation(operationId) {
-        for (let attempt = 0; attempt < 30; attempt++) {
+        if (!operationId || this.pollingOperationIds.has(operationId)) {
+            return;
+        }
+        this.pollingOperationIds.add(operationId);
+        for (let attempt = 0; attempt < 90; attempt++) {
             const statuses = await this.orm.call(
                 "usl.document.operation",
                 "poll",
@@ -1267,6 +1413,7 @@ export class DocumentsWorkspace extends Component {
                     await this.openDocumentById(selected.id);
                 }
                 this.state.operation = null;
+                this.pollingOperationIds.delete(operationId);
                 return;
             }
             if (status.state === "failed") {
@@ -1274,13 +1421,28 @@ export class DocumentsWorkspace extends Component {
                     status.error || "Paperless processing failed.",
                     { type: "danger", sticky: true }
                 );
+                await this.load();
+                this.pollingOperationIds.delete(operationId);
                 return;
             }
             await new Promise((resolve) => setTimeout(resolve, 2000));
         }
         this.notification.add(
-            "Processing continues in Paperless. This status will update automatically.",
+            "Processing is taking longer than usual. You can leave this page; "
+                + "the status will be restored when you return.",
             { type: "info" }
+        );
+        this.pollingOperationIds.delete(operationId);
+    }
+
+    async dismissOperation(operation) {
+        await this.orm.call(
+            "usl.document.operation",
+            "acknowledge",
+            [[operation.id]]
+        );
+        this.state.failedOperations = this.state.failedOperations.filter(
+            (item) => item.id !== operation.id
         );
     }
 }

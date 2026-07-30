@@ -102,9 +102,26 @@ workflow before enabling web, consume, mail, or API intake. New archive items
 remain owned by the service context until Odoo assigns company/confidentiality
 and synchronizes actual document-object permissions.
 
+In Paperless, put direct identities in a role that grants model-level read
+access to Documents, Tags, Correspondents, Document types, Custom fields,
+Storage paths, Notes, and Saved Views. Grant personal Saved View/UI-settings
+management only to archive managers: Paperless uses the same global Saved View
+change permission for personal and unowned shared definitions. Ordinary users
+manage personal favorites in Odoo and may manage their own Paperless UI
+settings. Do not grant global document change/delete rights merely to make the
+UI load: Odoo's synchronized per-document view/change grants remain the
+confidentiality boundary. Shared catalogs and archive-native views are
+deliberately unowned Paperless objects, so every identity with the relevant
+model read permission can use them without receiving access to a document that
+carries them.
+
 Healthy permission checks are quiet. A failure blocks file/deep-link access,
 shows an actionable warning, and retains timestamp/error in diagnostics.
-Metadata-object permissions alone are not acceptance evidence.
+Metadata-object permissions alone are not acceptance evidence. Changing an
+Odoo user's companies, Documents roles, active status, or individual Paperless
+mapping resynchronizes every affected document object. Permission expansion
+may remain pending and blocks access; permission revocation is fail-closed and
+rolls back the Odoo access change if the old Paperless grant cannot be removed.
 
 ## Storage
 
@@ -114,6 +131,7 @@ Named volumes separate:
 - Paperless PostgreSQL;
 - Paperless media/originals;
 - Paperless data/search/processing state;
+- Paperless Trash staging, retained on its own volume;
 - Valkey state;
 - consume staging;
 - portable exports.
@@ -121,6 +139,18 @@ Named volumes separate:
 Neither application mounts the other's writable storage. Paperless files are
 clear text at application level, so use encrypted host storage, restricted host
 access, encrypted off-host backups, and controlled portable exports.
+
+Paperless has no switch that completely disables automatic Trash emptying. The
+supported deployment therefore sets `PAPERLESS_EMPTY_TRASH_DELAY=36500` (100
+years), and pre-production refuses any shorter value. Odoo owns the real
+retention decision and calls the supported permanent-delete API only after its
+approval gates pass. The separate Trash volume preserves the received file
+while an item is in Paperless Trash; it is not a substitute for metadata,
+database, or derivative backups. Do not use Paperless **Empty Trash** directly
+except through an approved, audited retention procedure. If an archive
+administrator nevertheless deletes a root directly, reconciliation records an
+Odoo tombstone and reports the exceptional deletion rather than silently
+recreating it.
 
 ## Upgrade and rollback
 
@@ -180,7 +210,8 @@ Pre-production uses the corresponding `documents-preprod-*` targets after
 preflight. The real-service acceptance verifies Paperless 3.0.4/API v10,
 asynchronous upload, OCR-only search, current and historical checksum duplicate
 reuse, multi-link/unlink, generated-output retention, external ingestion,
-versions, permissions, outage/resume, and reconciliation.
+versions, a real automatic matching rule, direct mapped identities, shared
+Saved View visibility, permissions, outage/resume, and reconciliation.
 
 The recovery target:
 
@@ -189,15 +220,21 @@ The recovery target:
 3. records SHA-256 manifests;
 4. proves Odoo starts without Paperless;
 5. proves Paperless starts without Odoo;
-6. restores under a unique Compose project, database, and volume set;
+6. restores under a unique Compose project, database, and volume set, including
+   retained Trash files;
 7. verifies counts, relationships, previews, current/received-original
-   checksums, permissions, and orphan detection.
+   checksums, permissions, and orphan detection;
+8. stops the restored application containers after evidence capture while
+   preserving the isolated restored volumes for review.
 
-Successful QA evidence on 30 July 2026 restored 39 Odoo document roots, 37
-relationships, and 54 file-version rows with `integrity_ok=True`. The
-timestamped artifacts were written outside the repository under `/tmp`; that
-location is evidence for the disposable rehearsal, not a production backup
-destination.
+Successful QA evidence on 30 July 2026 restored 39 Odoo document roots, 22
+active relationships, and 54 file-version rows with `integrity_ok=True`.
+Nineteen roots are retained permanent-deletion tombstones from earlier
+synthetic acceptance runs; the live/Trash Paperless set contains 20 stable
+identities. Tombstones are reported explicitly and do not count as missing
+roots, permission failures, or checksum failures. The timestamped artifacts
+were written outside the repository under `/tmp`; that location is evidence
+for the disposable rehearsal, not a production backup destination.
 
 The final UI acceptance also exercised the live workspace at 1280×720,
 768×1024, and 390×844. The tablet and mobile runs opened a real document detail
@@ -205,13 +242,19 @@ and reported no page overflow, clipped document actions, browser exceptions, or
 failed HTTP responses. The previously failing active-navigation and tag-chip
 states measured 7.23:1 and 12.26:1 contrast respectively.
 
-Stop the isolated restored project after evidence capture but preserve its
-volumes until review. Never pass `--volumes` to the cleanup command.
+The target stops the isolated restored project after evidence capture and
+preserves its volumes until review. Never pass `--volumes` to a manual cleanup
+command.
 
 ## Trash, unlinking, and permanent deletion
 
 Unlinking removes only one Odoo relationship. Paperless Trash is synchronized
 as the same stable root and can be restored from Odoo with relationships
 intact. Permanent deletion is separate, administrator-only, auditable, and
-subject to retention approval. A missing root is reported; never repair it by
-silently creating a new document with the same title.
+subject to a recorded reason, explicit approval, an expired retention date, no
+retention hold, and no active Odoo relationship. Accounting and HR evidence is
+held by default. Successful permanent deletion keeps an Odoo tombstone and
+audit attribution. A missing root is reported; never repair it by silently
+creating a new document with the same title. Paperless automatic expiry is
+effectively disabled with the deployment's 100-year delay so that it cannot
+bypass these gates.

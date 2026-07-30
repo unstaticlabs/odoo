@@ -73,8 +73,11 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
             if key == "matching_algorithm":
                 value = int(value or 0)
             payload[key] = value
-        if self._paperless().owner_user_id:
-            payload.setdefault("owner", self._paperless().owner_user_id)
+        # Tags, correspondents, and document types are shared archive catalogs.
+        # Paperless treats an object without an owner as visible to users who
+        # have the corresponding global model permission. Document object
+        # permissions remain independent and are synchronized separately.
+        payload.setdefault("owner", None)
         return payload
 
     @api.model
@@ -165,6 +168,20 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         for payload in payloads:
             paperless_id = int(payload["id"])
             seen.add(paperless_id)
+            owner = payload.get("owner")
+            owner_id = (
+                int(owner.get("id"))
+                if isinstance(owner, dict) and owner.get("id")
+                else int(owner or 0)
+            )
+            if client.owner_user_id and owner_id == client.owner_user_id:
+                # Migrate catalogs created by earlier revisions from the
+                # integration identity to Paperless's supported shared form.
+                payload = client.update_metadata(
+                    self._paperless_kind,
+                    paperless_id,
+                    {"owner": None},
+                )
             record = self.sudo().search(
                 [("paperless_id", "=", paperless_id)], limit=1,
             )
@@ -704,11 +721,9 @@ class UslDocumentSmartView(models.Model):
             "sort_field": "created",
             "sort_reverse": True,
             "filter_rules": self._paperless_filter_rules(),
-            **(
-                {"owner": PaperlessClient(self.env).owner_user_id}
-                if PaperlessClient(self.env).owner_user_id
-                else {}
-            ),
+            # Shared Odoo views are shared Paperless Saved Views. Personal
+            # Paperless and personal Odoo views retain their individual owner.
+            "owner": None,
         }
 
     def _push_to_paperless(self, client=None):
@@ -738,8 +753,7 @@ class UslDocumentSmartView(models.Model):
                         remote
                         for remote in remote_views
                         if remote.get("name") == record.name
-                        and remote_owner_id(remote)
-                        == int(client.owner_user_id or 0)
+                        and remote_owner_id(remote) == 0
                     ),
                     None,
                 )
@@ -836,6 +850,25 @@ class UslDocumentSmartView(models.Model):
             view = self.sudo().search(
                 [("paperless_id", "=", paperless_id)], limit=1,
             )
+            owner = payload.get("owner")
+            owner_id = (
+                int(owner.get("id"))
+                if isinstance(owner, dict) and owner.get("id")
+                else int(owner or 0)
+            )
+            if (
+                view
+                and view.scope == "shared"
+                and view.archive_native
+                and client.owner_user_id
+                and owner_id == client.owner_user_id
+            ):
+                # Earlier revisions owned synchronized views with the service
+                # account, making them disappear from ordinary Paperless users.
+                payload = client.update_saved_view(
+                    paperless_id,
+                    {"owner": None},
+                )
             values = self._remote_cache_values(payload)
             if view:
                 view.with_context(usl_documents_archive_view_sync=True).write(values)

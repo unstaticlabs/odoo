@@ -26,6 +26,12 @@ company, confidentiality, accounting evidence, HR, review state, and
 linked-record context; these constraints are never represented as if
 Paperless enforced an identical Saved View.
 
+Shared Paperless catalogs and archive-native Saved Views are written with no
+Paperless owner, its supported shared-object form. Direct identities need the
+corresponding global model read permissions, but document roots remain owned by
+the integration service and visible only through Odoo-synchronized object
+grants. Personal Paperless and Odoo saved views retain their individual owner.
+
 Incremental synchronization saves a page and timestamp checkpoint before each
 bounded run, resumes after interruption, and uses full reconciliation to
 refresh catalogs/Saved Views/Trash and mark missing roots without deleting
@@ -81,9 +87,10 @@ Real-service validation uses `scripts/documents-acceptance` with an isolated
 Compose project/database. It verifies API compatibility, fail-closed workflow
 ownership, asynchronous upload, OCR search, full-history checksum reuse,
 multi-link/unlink, version replacement, external ingestion, legal metadata
-hydration, Odoo-generated output retention, permissions, outage/resume, and
-integrity manifest generation. It reconciles first so a rerun after an
-interrupted cross-system transaction reuses Paperless commits.
+hydration, Paperless automatic matching, shared Saved View identity,
+Odoo-generated output retention, permissions, outage/resume, and integrity
+manifest generation. It reconciles first so a rerun after an interrupted
+cross-system transaction reuses Paperless commits.
 `scripts/documents-recovery-test` adds independent backup/restore proof under a
 new Compose project name.
 

@@ -65,6 +65,7 @@ SERVICES=(
   paperless-preflight
   paperless-db
   paperless-broker
+  paperless-trash-init
   paperless-gotenberg
   paperless-tika
   paperless-webserver
@@ -72,7 +73,7 @@ SERVICES=(
 )
 
 validate_config() {
-  local config
+  local config trash_delay
   config="$("${COMPOSE[@]}" config)"
   grep -Fq "ODOO_DB_FILTER: ^${DATABASE}\$" <<<"$config" || {
     printf 'Rendered Odoo database filter does not target %s.\n' "$DATABASE" >&2
@@ -90,6 +91,21 @@ validate_config() {
     printf 'Paperless 3.0.4 is not exactly pinned.\n' >&2
     return 1
   }
+  trash_delay="$(
+    awk '$1 == "PAPERLESS_EMPTY_TRASH_DELAY:" {
+      gsub(/"/, "", $2)
+      print $2
+      exit
+    }' <<<"$config"
+  )"
+  [[ "$trash_delay" =~ ^[0-9]+$ ]] && (( trash_delay >= 36500 )) || {
+    printf 'Paperless automatic Trash emptying must use at least the 100-year safety delay.\n' >&2
+    return 1
+  }
+  if [[ "$ENVIRONMENT" = "qa" && "$trash_delay" != "36500" ]]; then
+    printf 'QA Paperless Trash safety delay must remain exactly 36500 days.\n' >&2
+    return 1
+  fi
   if [[ "$ENVIRONMENT" = "preprod" ]] && grep -Fq "CHANGE_ME" "$ENV_FILE"; then
     printf 'Pre-production env still contains CHANGE_ME placeholders.\n' >&2
     return 1
@@ -157,6 +173,7 @@ case "$COMMAND" in
     paperless_setup="$(
       "${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell -c '
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from rest_framework.authtoken.models import Token
 import json
 
@@ -177,6 +194,42 @@ for username, (name, administrator) in users.items():
     user.is_superuser = administrator
     user.set_password("admin")
     user.save()
+
+# Direct Paperless use is deliberately read-only for ordinary QA identities.
+# Global model permissions make the Paperless UI usable; Odoo-synchronized
+# object permissions still decide which document roots each identity can see.
+# UI settings remain personal. The global Saved View change permission
+# also permits editing unowned shared views, so ordinary identities receive
+# read-only Saved Views and keep personal filters in Odoo instead.
+direct_view_models = {
+    "correspondent",
+    "customfield",
+    "customfieldinstance",
+    "document",
+    "documenttype",
+    "note",
+    "savedview",
+    "savedviewfilterrule",
+    "storagepath",
+    "tag",
+    "uisettings",
+}
+direct_permission_codenames = {
+    f"view_{model}" for model in direct_view_models
+} | {
+    f"{action}_{model}"
+    for action in ("add", "change", "delete")
+    for model in ("uisettings",)
+}
+direct_permissions = Permission.objects.filter(
+    content_type__app_label="documents",
+    codename__in=direct_permission_codenames,
+)
+for username in users:
+    if username in {"archive-admin", "odoo-integration"}:
+        continue
+    User.objects.get(username=username).user_permissions.set(direct_permissions)
+
 service = User.objects.get(username="odoo-integration")
 token, _created = Token.objects.get_or_create(user=service)
 print(f"USL_TOKEN={token.key}")

@@ -129,7 +129,18 @@ class DocumentsController(http.Controller):
             return request.make_response(
                 str(error), status=503, headers=[("Content-Type", "text/plain")],
             )
-        filename = document.original_filename or f"document-{document.paperless_id}"
+        cached_version = (
+            document.version_ids.filtered(
+                lambda item: item.paperless_version_id == version,
+            )[:1]
+            if version
+            else document.version_ids.filtered("is_current")[:1]
+        )
+        filename = (
+            cached_version.original_filename
+            or document.original_filename
+            or f"document-{document.paperless_id}"
+        )
         return request.make_response(
             content,
             headers=[

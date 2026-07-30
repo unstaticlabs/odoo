@@ -82,10 +82,12 @@ SOURCE_ODOO_VOLUME="${SOURCE_PROJECT}_odoo-data"
 SOURCE_PAPERLESS_DATA_VOLUME="${SOURCE_PROJECT}_paperless-data"
 SOURCE_PAPERLESS_MEDIA_VOLUME="${SOURCE_PROJECT}_paperless-media"
 SOURCE_PAPERLESS_EXPORT_VOLUME="${SOURCE_PROJECT}_paperless-export"
+SOURCE_PAPERLESS_TRASH_VOLUME="${SOURCE_PROJECT}_paperless-trash"
 RESTORE_ODOO_VOLUME="${RESTORE_PROJECT}_odoo-data"
 RESTORE_PAPERLESS_DATA_VOLUME="${RESTORE_PROJECT}_paperless-data"
 RESTORE_PAPERLESS_MEDIA_VOLUME="${RESTORE_PROJECT}_paperless-media"
 RESTORE_PAPERLESS_EXPORT_VOLUME="${RESTORE_PROJECT}_paperless-export"
+RESTORE_PAPERLESS_TRASH_VOLUME="${RESTORE_PROJECT}_paperless-trash"
 
 restore_source() {
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
@@ -94,7 +96,7 @@ restore_source() {
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
   "${SOURCE[@]}" up -d --wait --pull never \
     paperless-preflight paperless-db paperless-broker paperless-gotenberg \
-    paperless-tika paperless-webserver || true
+    paperless-tika paperless-trash-init paperless-webserver || true
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
   ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
   ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
@@ -122,6 +124,8 @@ docker run --rm -v "$SOURCE_PAPERLESS_MEDIA_VOLUME:/source:ro" -v "$ARTIFACT_DIR
   alpine:3.22.1 tar -C /source -czf /backup/paperless-media.tgz .
 docker run --rm -v "$SOURCE_PAPERLESS_EXPORT_VOLUME:/source:ro" -v "$ARTIFACT_DIR:/backup" \
   alpine:3.22.1 tar -C /source -czf /backup/paperless-export.tgz .
+docker run --rm -v "$SOURCE_PAPERLESS_TRASH_VOLUME:/source:ro" -v "$ARTIFACT_DIR:/backup" \
+  alpine:3.22.1 tar -C /source -czf /backup/paperless-trash.tgz .
 sha256sum "$ARTIFACT_DIR"/* > "$ARTIFACT_DIR/SHA256SUMS"
 restore_source
 "${SOURCE[@]}" --profile init run --rm -T \
@@ -150,6 +154,7 @@ docker volume create "$RESTORE_ODOO_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_DATA_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_MEDIA_VOLUME" >/dev/null
 docker volume create "$RESTORE_PAPERLESS_EXPORT_VOLUME" >/dev/null
+docker volume create "$RESTORE_PAPERLESS_TRASH_VOLUME" >/dev/null
 
 docker run --rm -v "$RESTORE_ODOO_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
   alpine:3.22.1 tar -C /target -xzf /backup/odoo-data.tgz
@@ -162,6 +167,8 @@ docker run --rm -v "$RESTORE_PAPERLESS_MEDIA_VOLUME:/target" -v "$ARTIFACT_DIR:/
   alpine:3.22.1 tar -C /target -xzf /backup/paperless-media.tgz
 docker run --rm -v "$RESTORE_PAPERLESS_EXPORT_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
   alpine:3.22.1 tar -C /target -xzf /backup/paperless-export.tgz
+docker run --rm -v "$RESTORE_PAPERLESS_TRASH_VOLUME:/target" -v "$ARTIFACT_DIR:/backup:ro" \
+  alpine:3.22.1 tar -C /target -xzf /backup/paperless-trash.tgz
 
 "${RESTORE[@]}" exec -T db createdb -U odoo "$RESTORED_DATABASE"
 "${RESTORE[@]}" exec -T db pg_restore -U odoo -d "$RESTORED_DATABASE" \
@@ -177,7 +184,7 @@ curl --fail --silent \
 # Prove Paperless can recover independently, then validate cross-system links.
 "${RESTORE[@]}" up -d --wait --pull never \
   paperless-preflight paperless-db paperless-broker paperless-gotenberg \
-  paperless-tika paperless-webserver
+  paperless-tika paperless-trash-init paperless-webserver
 curl --fail --silent "http://127.0.0.1:${PAPERLESS_HTTP_PORT}/api/" >/dev/null
 "${RESTORE[@]}" stop odoo >/dev/null
 "${RESTORE[@]}" --profile init run --rm -T \
@@ -190,6 +197,10 @@ curl --fail --silent "http://127.0.0.1:${PAPERLESS_HTTP_PORT}/api/" >/dev/null
   --database="$RESTORED_DATABASE" < "$ROOT/scripts/odoo/documents_restore_acceptance.py"
 "${RESTORE[@]}" up -d --wait --pull never odoo
 
+RESTORE_CONTAINER_IDS="$("${RESTORE[@]}" ps -q)"
+if [[ -n "$RESTORE_CONTAINER_IDS" ]]; then
+  "${RESTORE[@]}" stop >/dev/null
+fi
 trap - EXIT INT TERM
 printf 'DOCUMENTS_RECOVERY_TEST_OK environment=%s backup=%s artifacts=%s restore_project=%s database=%s\n' \
   "$ENVIRONMENT" "$BACKUP_ID" "$ARTIFACT_DIR" "$RESTORE_PROJECT" "$RESTORED_DATABASE"

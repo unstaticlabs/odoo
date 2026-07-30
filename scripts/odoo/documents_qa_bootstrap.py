@@ -46,7 +46,7 @@ def ensure_user(login, name, groups, company):
         ],
     }
     if user:
-        user.write(values)
+        user.with_context(usl_documents_user_access_no_sync=True).write(values)
     else:
         user = env["res.users"].with_context(no_reset_password=True).create(values)
     return user
@@ -79,7 +79,12 @@ def link_once(document, record):
         ],
         limit=1,
     )
-    return existing or document.link_to_record(record._name, record.id)
+    link = existing or document.link_to_record(record._name, record.id)
+    if not link.version_id:
+        current = document.version_ids.filtered("is_current")[:1]
+        if current:
+            link.write({"version_id": current.paperless_version_id})
+    return link
 
 
 def upload_document(spec):
@@ -158,6 +163,7 @@ params.set_str(
 )
 params.set_str("usl_documents.paperless_token", token)
 params.set_int("usl_documents.paperless_timeout", 20)
+params.set_int("usl_documents.paperless_trash_retention_days", 30)
 params.set_int(
     "usl_documents.paperless_service_user_id",
     int(os.environ.get("PAPERLESS_QA_SERVICE_USER_ID", "3")),
@@ -169,6 +175,66 @@ documents = env["usl.document"].with_user(admin)
 client = documents._paperless()
 policy = client.ensure_fail_closed_ingestion_policy()
 initial_sync = documents.sync_from_paperless(full=True)
+
+# Keep the product-review archive deterministic. Earlier acceptance revisions
+# used random markers and could leave several copies of the same synthetic
+# automation fixture. Remove only those recognizable QA artifacts, retain one
+# canonical real-service example of each kind, and never touch ordinary archive
+# content.
+canonical_acceptance_names = {
+    "acceptance-qa-real-service.txt",
+    "External ingestion qa-real-service",
+    "Legal contract qa-real-service",
+    "final-accounting-output-qa-real-service.pdf",
+}
+kept_acceptance_names = set()
+legacy_acceptance = documents.browse()
+for document in documents.search([], order="paperless_id"):
+    if document.availability_state == "permanently_deleted":
+        continue
+    name = document.name or ""
+    is_acceptance_artifact = (
+        (name.startswith("acceptance-") and name.endswith(".txt"))
+        or name.startswith("External ingestion ")
+        or name.startswith("Legal contract ")
+        or name.startswith("final-accounting-output-")
+        or name.startswith("Browser supplier invoice ")
+    )
+    if not is_acceptance_artifact:
+        continue
+    if name in canonical_acceptance_names and name not in kept_acceptance_names:
+        kept_acceptance_names.add(name)
+        continue
+    legacy_acceptance |= document
+if legacy_acceptance:
+    for document in legacy_acceptance.filtered(
+        lambda item: item.availability_state == "available",
+    ):
+        client.trash_document(document.paperless_id)
+    remote_ids = legacy_acceptance.filtered(
+        lambda item: item.availability_state in ("available", "trashed"),
+    ).mapped("paperless_id")
+    if remote_ids:
+        client.permanently_delete_trashed_documents(remote_ids)
+    operations = env["usl.document.operation"].search(
+        [
+            "|",
+            ("document_id", "in", legacy_acceptance.ids),
+            ("target_document_id", "in", legacy_acceptance.ids),
+        ],
+    )
+    operations.unlink()
+    legacy_acceptance.link_ids.unlink()
+    legacy_acceptance.with_context(usl_documents_cache_write=True).write(
+        {
+            "availability_state": "permanently_deleted",
+            "permanently_deleted_at": fields.Datetime.now(),
+            "last_error": (
+                "Obsolete synthetic acceptance artifact removed by the "
+                "idempotent QA bootstrap."
+            ),
+        },
+    )
 
 main_company = env.company
 restricted_company = env["res.company"].search(
@@ -544,6 +610,41 @@ specs = [
 ]
 seeded = {spec["filename"]: upload_document(spec) for spec in specs}
 
+# Paperless custom fields are searchable archive metadata, not Odoo-only
+# columns. Keep the fixture idempotent and assign representative invoice data
+# through the supported document API.
+remote_custom_fields = client.list_custom_fields()
+invoice_reference_field = next(
+    (
+        item
+        for item in remote_custom_fields
+        if item["name"] == "Invoice reference"
+    ),
+    None,
+) or client.create_custom_field(
+    {"name": "Invoice reference", "data_type": "string"},
+)
+invoice_amount_field = next(
+    (
+        item
+        for item in remote_custom_fields
+        if item["name"] == "Gross amount"
+    ),
+    None,
+) or client.create_custom_field(
+    {"name": "Gross amount", "data_type": "monetary"},
+)
+supplier_document = seeded["qa-supplier-invoice-si-2026-0715.txt"]
+client.update_document_metadata(
+    supplier_document.paperless_id,
+    {
+        "custom_fields": [
+            {"field": invoice_reference_field["id"], "value": "INV-QA-2026-0042"},
+            {"field": invoice_amount_field["id"], "value": "1240.00"},
+        ],
+    },
+)
+
 contract = seeded["qa-signed-contract-v1.txt"]
 replacement = (
     "SYNTHETIC SIGNED AGREEMENT\nELECTRONICALLY SIGNED SYNTHETIC\n"
@@ -678,13 +779,14 @@ if trashed.availability_state == "available":
     documents.sync_from_paperless(full=True)
 
 documents.search(
-    [("availability_state", "!=", "trashed")]
+    [("availability_state", "in", ("available", "permission_error"))]
 ).action_sync_permissions()
 env.cr.commit()
 print(
     "DOCUMENTS_QA_READY",
     {
         "initial_sync": initial_sync,
+        "legacy_acceptance_removed": len(legacy_acceptance),
         "documents": documents.search_count([]),
         "links": env["usl.document.link"].search_count([("active", "=", True)]),
         "versions": env["usl.document.version"].search_count([]),
