@@ -182,6 +182,11 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertNotIn("createdb", script)
         self.assertNotIn("dropdb", script)
         self.assertIn("canonical odoo_dev", script)
+        self.assertIn("--git-common-dir", script)
+        self.assertIn(
+            'DEFAULT_ENV_FILE="$(dirname "$GIT_COMMON_DIR")/.pocket-id.env"',
+            script,
+        )
 
     def test_login_link_resolves_any_exact_pocket_username(self):
         api = Mock()

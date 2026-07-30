@@ -2,7 +2,20 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_FILE="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id.env}"
+GIT_COMMON_DIR="$(
+  git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null \
+    || true
+)"
+if [[ -n "$GIT_COMMON_DIR" ]]; then
+  DEFAULT_ENV_FILE="$(dirname "$GIT_COMMON_DIR")/.pocket-id.env"
+else
+  DEFAULT_ENV_FILE="$ROOT/.pocket-id.env"
+fi
+# Pocket ID is a deliberately shared canonical odoo_dev service. Linked Git
+# worktrees must therefore share its encryption environment as well; otherwise
+# an ordinary helper command can recreate the shared container with a key that
+# cannot decrypt the existing Pocket volume.
+ENV_FILE="${POCKET_ID_ENV_FILE:-$DEFAULT_ENV_FILE}"
 PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
 COMPOSE_FILES=(-f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml")
 
