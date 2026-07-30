@@ -147,6 +147,20 @@ class AccountImmediateSettlement(models.Model):
         index=True,
         copy=False,
     )
+    payment_rate_application = fields.Selection(
+        [
+            ("document_reprice", "Document repricing"),
+            ("legacy_bank_adjustment", "Legacy bank adjustment"),
+        ],
+        readonly=True,
+        index=True,
+        copy=False,
+        help=(
+            "How a payment-rate settlement was applied. New settlements reprice "
+            "the document through Odoo's native draft/post workflow. The legacy "
+            "value preserves preview-era bank adjustment records."
+        ),
+    )
     state = fields.Selection(
         [("settled", "Settled"), ("reversed", "Reversed")],
         required=True,
@@ -274,8 +288,8 @@ class AccountImmediateSettlement(models.Model):
         readonly=True,
         help=(
             "Company-currency difference predicted before reconciliation. "
-            "Settle records it as native FX; Use payment rate allocates it to "
-            "eligible economic accounts."
+            "Settle records it as native FX; Use payment rate removes it by "
+            "repricing the eligible document before reconciliation."
         ),
     )
     settlement_difference = fields.Monetary(
@@ -324,7 +338,7 @@ class AccountImmediateSettlement(models.Model):
         readonly=True,
         help=(
             "Signed company-currency amount allocated to the original economic "
-            "accounts by a payment-rate settlement."
+            "accounts by a preserved legacy payment-rate settlement."
         ),
     )
     economic_adjustment_line_ids = fields.Many2many(
@@ -336,6 +350,28 @@ class AccountImmediateSettlement(models.Model):
         readonly=True,
         check_company=True,
     )
+    original_invoice_currency_rate = fields.Float(
+        digits=(16, 10),
+        readonly=True,
+    )
+    applied_invoice_currency_rate = fields.Float(
+        digits=(16, 10),
+        readonly=True,
+    )
+    original_document_company_amount = fields.Monetary(
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    repriced_document_company_amount = fields.Monetary(
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    document_revaluation_amount = fields.Monetary(
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    original_document_line_snapshot = fields.Json(readonly=True)
+    repriced_document_line_snapshot = fields.Json(readonly=True)
     policy_date_distance = fields.Integer(readonly=True)
     policy_warning = fields.Char(readonly=True)
     generated_line_ids = fields.One2many(
@@ -426,6 +462,7 @@ class AccountImmediateSettlement(models.Model):
             violations = []
             for accounting_date in {
                 settlement.document_date,
+                settlement.document_id.date,
                 settlement.payment_date,
                 settlement.settlement_date,
             }:
@@ -484,6 +521,70 @@ class AccountImmediateSettlement(models.Model):
                 },
             )
 
+    def _restore_payment_rate_document(self):
+        for settlement in self:
+            document = settlement.document_id
+            if (
+                settlement.payment_rate_application != "document_reprice"
+                or not settlement.original_invoice_currency_rate
+            ):
+                continue
+            document.invalidate_recordset()
+            if document.state != "posted" or document.payment_state != "not_paid":
+                raise UserError(
+                    _(
+                        "The repriced document is not open and posted. Restore "
+                        "it before reversing this settlement.",
+                    ),
+                )
+            current_snapshot = document._payment_rate_document_snapshot()
+            if document._payment_rate_snapshot_accounting_values(
+                current_snapshot,
+            ) != document._payment_rate_snapshot_accounting_values(
+                settlement.repriced_document_line_snapshot or [],
+            ):
+                raise UserError(
+                    _(
+                        "The repriced document no longer matches its settlement "
+                        "snapshot and cannot be restored automatically.",
+                    ),
+                )
+            original_name = document.name
+            original_date = document.date
+            original_currency = document.currency_id
+            internal_document = document.with_context(
+                immediate_settlement_internal_token=_INTERNAL_SETTLEMENT_TOKEN,
+            )
+            internal_document.button_draft()
+            internal_document.write(
+                {
+                    "invoice_currency_rate": (
+                        settlement.original_invoice_currency_rate
+                    ),
+                },
+            )
+            internal_document._post(soft=False)
+            document.invalidate_recordset()
+            restored_snapshot = document._payment_rate_document_snapshot()
+            if (
+                document.state != "posted"
+                or document.name != original_name
+                or document.date != original_date
+                or document.currency_id != original_currency
+                or document._payment_rate_snapshot_accounting_values(
+                    restored_snapshot,
+                )
+                != document._payment_rate_snapshot_accounting_values(
+                    settlement.original_document_line_snapshot or [],
+                )
+            ):
+                raise UserError(
+                    _(
+                        "Odoo could not restore the document's original "
+                        "valuation. No reversal changes were saved.",
+                    ),
+                )
+
     def _reverse_legacy_settlement(self):
         for settlement in self:
             partials = settlement.partial_reconcile_ids
@@ -526,6 +627,7 @@ class AccountImmediateSettlement(models.Model):
         for settlement in active.filtered(lambda item: item.state == "settled"):
             if settlement.mechanism in ("bank_statement", "payment_rate"):
                 settlement._reverse_bank_statement_settlement()
+                settlement._restore_payment_rate_document()
             else:
                 settlement._reverse_legacy_settlement()
             _as_settlement_service(settlement).write(
@@ -545,7 +647,7 @@ class AccountImmediateSettlement(models.Model):
 
 
 class AccountImmediateSettlementAllocation(models.Model):
-    """Immutable allocation snapshot for payment-rate and legacy settlements."""
+    """Immutable allocation snapshot for legacy payment-rate settlements."""
 
     _name = "account.immediate.settlement.allocation"
     _description = "Settlement Economic Allocation"
@@ -639,15 +741,6 @@ class AccountBankStatementLine(models.Model):
 
     def _has_internal_settlement_token(self):
         return _has_internal_settlement_token(self.env)
-
-    def _compute_exchange_rate(self, vals, line, reconcile_auxiliary_id):
-        if self.env.context.get("immediate_settlement_payment_rate"):
-            return reconcile_auxiliary_id, False
-        return super()._compute_exchange_rate(
-            vals,
-            line,
-            reconcile_auxiliary_id,
-        )
 
     def _reconcile_move_line_vals(self, line, move_id=False):
         vals = super()._reconcile_move_line_vals(line, move_id=move_id)
@@ -764,6 +857,26 @@ class AccountMoveLine(models.Model):
             "tax_base_amount",
             "name",
         }
+        active_repriced_document_lines = self.filtered(
+            lambda line: line.move_id.immediate_settlement_ids.filtered(
+                lambda settlement: (
+                    settlement.state == "settled"
+                    and settlement.payment_rate_application
+                    == "document_reprice"
+                ),
+            ),
+        )
+        if (
+            active_repriced_document_lines
+            and accounting_fields & set(vals)
+            and not _has_internal_settlement_token(self.env)
+        ):
+            raise UserError(
+                _(
+                    "This repriced document's journal items cannot be edited "
+                    "directly. Undo the linked settlement first.",
+                ),
+            )
         if (
             active_generated
             and accounting_fields & set(vals)
@@ -792,6 +905,24 @@ class AccountMoveLine(models.Model):
         return super().create(vals_list)
 
     def unlink(self):
+        active_repriced_document_lines = self.filtered(
+            lambda line: line.move_id.immediate_settlement_ids.filtered(
+                lambda settlement: (
+                    settlement.state == "settled"
+                    and settlement.payment_rate_application
+                    == "document_reprice"
+                ),
+            ),
+        )
+        if active_repriced_document_lines and not _has_internal_settlement_token(
+            self.env,
+        ):
+            raise UserError(
+                _(
+                    "This repriced document's journal items cannot be deleted "
+                    "directly. Undo the linked settlement first.",
+                ),
+            )
         active = self.filtered(
             lambda line: (
                 line.immediate_settlement_id.state == "settled"
@@ -1412,6 +1543,86 @@ class AccountMove(models.Model):
                 return self.env["account.move.line"]
         return lines
 
+    def _payment_rate_term_lines(self):
+        self.ensure_one()
+        return self.line_ids.filtered(
+            lambda line: (
+                line.account_id.account_type
+                in ("asset_receivable", "liability_payable")
+                and line.currency_id == self.currency_id
+            ),
+        )
+
+    def _payment_rate_document_company_amount(self):
+        self.ensure_one()
+        return abs(sum(self._payment_rate_term_lines().mapped("balance")))
+
+    def _payment_rate_document_snapshot(self):
+        self.ensure_one()
+        return [
+            {
+                "line_id": line.id,
+                "account_id": line.account_id.id,
+                "display_type": line.display_type,
+                "partner_id": line.partner_id.id,
+                "name": line.name,
+                "balance": line.balance,
+                "amount_currency": line.amount_currency,
+                "currency_id": line.currency_id.id,
+                "analytic_distribution": line.analytic_distribution or {},
+                "tax_line_id": line.tax_line_id.id,
+                "tax_ids": sorted(line.tax_ids.ids),
+                "tax_tag_ids": sorted(line.tax_tag_ids.ids),
+                "tax_repartition_line_id": line.tax_repartition_line_id.id,
+                "tax_base_amount": line.tax_base_amount,
+            }
+            for line in self.line_ids.sorted("id")
+        ]
+
+    @api.model
+    def _payment_rate_snapshot_structure(self, snapshot):
+        ignored = {"line_id", "balance", "amount_currency"}
+        structure = [
+            {key: value for key, value in line.items() if key not in ignored}
+            for line in snapshot
+        ]
+        return sorted(
+            structure,
+            key=lambda line: (
+                line["display_type"] or "",
+                line["account_id"],
+                line["name"] or "",
+                repr(line),
+            ),
+        )
+
+    def _payment_rate_snapshot_accounting_values(self, snapshot):
+        self.ensure_one()
+        return sorted(
+            (
+                line["account_id"],
+                line["display_type"] or "",
+                line["name"] or "",
+                line["currency_id"],
+                self.company_currency_id.round(line["balance"]),
+                self.currency_id.round(line["amount_currency"]),
+                repr(line["analytic_distribution"]),
+            )
+            for line in snapshot
+        )
+
+    def _payment_rate_document_tax_metadata(self):
+        self.ensure_one()
+        return self.line_ids.filtered(
+            lambda line: (
+                line.tax_line_id
+                or line.tax_ids
+                or line.tax_tag_ids
+                or line.tax_repartition_line_id
+                or not self.company_currency_id.is_zero(line.tax_base_amount)
+            ),
+        )
+
     def _get_payment_rate_settlement_eligibility(
         self,
         payment_line,
@@ -1434,6 +1645,37 @@ class AccountMove(models.Model):
                 "reason": reason,
             }
 
+        if self.payment_state != "not_paid":
+            return blocked(
+                _(
+                    "Use payment rate requires a completely unpaid document. "
+                    "Use Settle for a remaining balance.",
+                ),
+            )
+        term_lines = self._payment_rate_term_lines()
+        if (
+            not term_lines
+            or term_lines != context["allocation"]["lines"]
+            or any(
+                line.reconciled
+                or line.matched_debit_ids
+                or line.matched_credit_ids
+                for line in term_lines
+            )
+        ):
+            return blocked(
+                _(
+                    "Use payment rate requires one bank transaction for the "
+                    "complete, never-paid document.",
+                ),
+            )
+        if self._payment_rate_document_tax_metadata():
+            return blocked(
+                _(
+                    "Use payment rate is not available when the document "
+                    "contains taxes. Use Settle to preserve its tax valuation.",
+                ),
+            )
         if (
             not context["facts"].get("trusted_date")
             and context["date_distance"] > context["policy"]["max_days"]
@@ -1455,35 +1697,102 @@ class AccountMove(models.Model):
                     maximum=context["policy"]["max_deviation"],
                 ),
             )
+        if not self.env.user.has_group("account.group_account_invoice"):
+            return blocked(
+                _(
+                    "You need permission to reset and post the document before "
+                    "using its payment rate.",
+                ),
+            )
+        try:
+            self.check_access("write")
+        except AccessError:
+            return blocked(
+                _(
+                    "You do not have permission to revalue and repost this "
+                    "document.",
+                ),
+            )
+        if (
+            not self.show_reset_to_draft_button
+            or self.need_cancel_request
+            or self.inalterable_hash
+            or self._is_protected_by_audit_trail()
+        ):
+            return blocked(
+                _(
+                    "This document is protected from reset to draft. Use "
+                    "Settle without changing its original valuation.",
+                ),
+            )
+        if self.is_move_sent:
+            return blocked(
+                _(
+                    "This document was already sent and cannot be repriced "
+                    "automatically.",
+                ),
+            )
+        if "edi_document_ids" in self._fields and self.edi_document_ids.filtered(
+            lambda document: document.state not in ("cancelled",),
+        ):
+            return blocked(
+                _(
+                    "This document has an active electronic-invoice record and "
+                    "cannot be repriced automatically.",
+                ),
+            )
+        lock_violations = self.company_id._get_lock_date_violations(
+            self.date,
+            fiscalyear=True,
+            sale=True,
+            purchase=True,
+            tax=True,
+            hard=True,
+        )
+        if lock_violations:
+            return blocked(
+                _(
+                    "The document cannot be reset because its accounting period "
+                    "is locked: %(locks)s.",
+                    locks=self.company_id._format_lock_dates(lock_violations),
+                ),
+            )
+        try:
+            self._check_draftable()
+        except UserError as error:
+            return blocked(str(error))
         economic_lines = self._immediate_settlement_safe_economic_lines()
         if not economic_lines:
             return blocked(
                 _(
                     "This document contains economic lines that cannot safely "
-                    "be adjusted at the payment rate.",
+                    "be repriced at the payment rate.",
                 ),
             )
-        adjustment = context["settlement_difference"]
-        total_weight = sum(abs(line.balance) for line in economic_lines)
-        remaining = adjustment
-        economic_allocations = []
-        for index, original_line in enumerate(economic_lines):
-            if index == len(economic_lines) - 1:
-                amount = remaining
-            else:
-                amount = self.company_currency_id.round(
-                    adjustment * abs(original_line.balance) / total_weight,
+        applied_invoice_currency_rate = (
+            context["foreign_amount"] / context["company_amount"]
+        )
+        expected_company_amount = abs(
+            sum(
+                self.company_currency_id.round(
+                    line.amount_currency / applied_invoice_currency_rate,
                 )
-                remaining -= amount
-            economic_allocations.append(
-                {
-                    "original_line": original_line,
-                    "amount": amount,
-                    "proportion": abs(original_line.balance) / total_weight,
-                },
+                for line in economic_lines
+            ),
+        )
+        if self.company_currency_id.compare_amounts(
+            expected_company_amount,
+            context["company_amount"],
+        ):
+            return blocked(
+                _(
+                    "Document-line rounding does not produce the exact bank "
+                    "amount at this payment rate. Use Settle instead.",
+                ),
             )
         reason = _(
-            "Use %(foreign)s at the bank's %(company)s rate. No FX is recorded.",
+            "Value the document at the bank's %(company)s rate and match "
+            "%(foreign)s. No FX.",
             foreign=context["foreign_label"],
             company=context["company_label"],
         )
@@ -1493,8 +1802,11 @@ class AccountMove(models.Model):
             "reason": reason,
             "confidence": "recommended",
             "economic_lines": economic_lines,
-            "economic_adjustment": adjustment,
-            "economic_allocations": economic_allocations,
+            "applied_invoice_currency_rate": applied_invoice_currency_rate,
+            "original_document_company_amount": (
+                self._payment_rate_document_company_amount()
+            ),
+            "repriced_document_company_amount": expected_company_amount,
         }
 
     def _prepare_exact_settlement_reconcile_data(self, statement_line, eligibility):
@@ -1536,92 +1848,93 @@ class AccountMove(models.Model):
             statement_line.manual_reference,
         )
 
-    def _prepare_payment_rate_reconcile_data(self, statement_line, eligibility):
-        payment_rate_statement = statement_line.with_context(
-            immediate_settlement_payment_rate=True,
+    def _apply_payment_rate_to_document(self, eligibility):
+        self.ensure_one()
+        original_name = self.name
+        original_date = self.date
+        original_currency = self.currency_id
+        original_rate = self.invoice_currency_rate
+        original_snapshot = self._payment_rate_document_snapshot()
+        original_company_amount = self._payment_rate_document_company_amount()
+
+        self.button_draft()
+        self.write(
+            {
+                "invoice_currency_rate": eligibility[
+                    "applied_invoice_currency_rate"
+                ],
+            },
         )
-        data = []
-        reconcile_auxiliary_id = 1
-        liquidity_lines, _suspense_lines, _other_lines = (
-            payment_rate_statement._seek_for_lines()
-        )
-        for liquidity_line in liquidity_lines:
-            reconcile_auxiliary_id, line_data = (
-                payment_rate_statement._get_reconcile_line(
-                    liquidity_line,
-                    "liquidity",
-                    reconcile_auxiliary_id=reconcile_auxiliary_id,
-                    move=True,
-                )
+        self._post(soft=False)
+        self.invalidate_recordset()
+
+        repriced_snapshot = self._payment_rate_document_snapshot()
+        repriced_company_amount = self._payment_rate_document_company_amount()
+        if (
+            self.state != "posted"
+            or self.name != original_name
+            or self.date != original_date
+            or self.currency_id != original_currency
+        ):
+            raise UserError(
+                _(
+                    "Reposting changed the document identity. No accounting "
+                    "changes were saved.",
+                ),
             )
-            data += line_data
-        for term_line in eligibility["allocation"]["lines"]:
-            reconcile_auxiliary_id, line_data = (
-                payment_rate_statement._get_reconcile_line(
-                    term_line,
-                    "other",
-                    is_counterpart=True,
-                    reconcile_auxiliary_id=reconcile_auxiliary_id,
-                    move=True,
-                )
+        if self._payment_rate_snapshot_structure(
+            original_snapshot,
+        ) != self._payment_rate_snapshot_structure(repriced_snapshot):
+            raise UserError(
+                _(
+                    "Reposting changed the document's accounts, analytics, or "
+                    "line structure. No accounting changes were saved.",
+                ),
             )
-            for values in line_data:
-                if values.get("counterpart_line_ids"):
-                    values.update(
-                        {
-                            "immediate_settlement_role": "bank_counterpart",
-                            "immediate_settlement_source_line_id_snapshot": (
-                                term_line.id
-                            ),
-                        },
-                    )
-            data += line_data
-        for allocation in eligibility["economic_allocations"]:
-            amount = allocation["amount"]
-            if self.company_currency_id.is_zero(amount):
-                continue
-            original_line = allocation["original_line"]
-            data.append(
-                {
-                    "reference": f"reconcile_auxiliary;{reconcile_auxiliary_id}",
-                    "id": False,
-                    "account_id": [
-                        original_line.account_id.id,
-                        original_line.account_id.display_name,
-                    ],
-                    "partner_id": (
-                        [
-                            original_line.partner_id.id,
-                            original_line.partner_id.display_name,
-                        ]
-                        if original_line.partner_id
-                        else False
-                    ),
-                    "date": fields.Date.to_string(statement_line.date),
-                    "name": _(
-                        "Payment rate adjustment · %(document)s",
-                        document=self.display_name,
-                    ),
-                    "amount": amount,
-                    "credit": -amount if amount < 0 else 0.0,
-                    "debit": amount if amount > 0 else 0.0,
-                    "kind": "other",
-                    "currency_id": self.company_currency_id.id,
-                    "line_currency_id": self.company_currency_id.id,
-                    "currency_amount": amount,
-                    "analytic_distribution": original_line.analytic_distribution,
-                    "immediate_settlement_role": "payment_rate_economic",
-                    "immediate_settlement_source_line_id_snapshot": (
-                        original_line.id
-                    ),
-                },
+        original_foreign = [
+            values[:4] + (values[5], values[6])
+            for values in self._payment_rate_snapshot_accounting_values(
+                original_snapshot,
             )
-            reconcile_auxiliary_id += 1
-        return payment_rate_statement._recompute_suspense_line(
-            data,
-            reconcile_auxiliary_id,
-            payment_rate_statement.manual_reference,
-        )
+        ]
+        repriced_foreign = [
+            values[:4] + (values[5], values[6])
+            for values in self._payment_rate_snapshot_accounting_values(
+                repriced_snapshot,
+            )
+        ]
+        if original_foreign != repriced_foreign:
+            raise UserError(
+                _(
+                    "Reposting changed the document's foreign-currency amounts. "
+                    "No accounting changes were saved.",
+                ),
+            )
+        if self.company_currency_id.compare_amounts(
+            repriced_company_amount,
+            eligibility["company_amount"],
+        ):
+            raise UserError(
+                _(
+                    "The payment rate did not produce the exact bank amount on "
+                    "the document. No accounting changes were saved.",
+                ),
+            )
+        if self._payment_rate_document_tax_metadata():
+            raise UserError(
+                _(
+                    "Reposting introduced tax metadata. No accounting changes "
+                    "were saved.",
+                ),
+            )
+        return {
+            "original_rate": original_rate,
+            "applied_rate": self.invoice_currency_rate,
+            "original_company_amount": original_company_amount,
+            "repriced_company_amount": repriced_company_amount,
+            "original_snapshot": original_snapshot,
+            "repriced_snapshot": repriced_snapshot,
+        }
 
     def _lock_foreign_settlement_records(self, payment_line):
         move_ids = tuple(sorted({self.id, payment_line.move_id.id}))
@@ -1750,7 +2063,11 @@ class AccountMove(models.Model):
             )
             for line in original_liquidity
         ]
-        original_tax_snapshot = self._foreign_settlement_tax_snapshot()
+        original_tax_snapshot = (
+            False
+            if mechanism == "payment_rate"
+            else self._foreign_settlement_tax_snapshot()
+        )
         original_line_ids = set(bank_move.line_ids.ids)
         original_partial_ids = set(
             (
@@ -1758,6 +2075,20 @@ class AccountMove(models.Model):
                 + eligibility["allocation"]["lines"].matched_credit_ids
             ).ids,
         )
+        reprice_result = {}
+        if mechanism == "payment_rate":
+            reprice_result = self._apply_payment_rate_to_document(eligibility)
+            selected_lines = self._payment_rate_term_lines()
+            reconcile_eligibility = {
+                **eligibility,
+                "allocation": {
+                    **eligibility["allocation"],
+                    "lines": selected_lines,
+                },
+            }
+        else:
+            selected_lines = eligibility["allocation"]["lines"]
+            reconcile_eligibility = eligibility
         signed_foreign_amount = (
             eligibility["foreign_amount"]
             if statement_line.amount > 0
@@ -1784,12 +2115,10 @@ class AccountMove(models.Model):
             immediate_settlement_internal_token=_INTERNAL_SETTLEMENT_TOKEN,
             rebuild_skip_partner_inference=True,
         ).write(statement_values)
-        prepare_method = (
-            self._prepare_payment_rate_reconcile_data
-            if mechanism == "payment_rate"
-            else self._prepare_exact_settlement_reconcile_data
+        reconcile_data = self._prepare_exact_settlement_reconcile_data(
+            statement_line,
+            reconcile_eligibility,
         )
-        reconcile_data = prepare_method(statement_line, eligibility)
         if not reconcile_data.get("can_reconcile") or any(
             line.get("kind") == "suspense"
             for line in reconcile_data.get("data", [])
@@ -1802,7 +2131,6 @@ class AccountMove(models.Model):
             )
         reconcile_statement = statement_line.with_context(
             immediate_settlement_internal_token=_INTERNAL_SETTLEMENT_TOKEN,
-            immediate_settlement_payment_rate=(mechanism == "payment_rate"),
         )
         reconcile_statement._reconcile_bank_line_edit(
             reconcile_statement._prepare_reconcile_line_data(
@@ -1831,7 +2159,6 @@ class AccountMove(models.Model):
             raise UserError(
                 _("Settlement did not fully clear the bank suspense balance."),
             )
-        selected_lines = eligibility["allocation"]["lines"]
         selected_lines.invalidate_recordset(
             ["amount_residual", "amount_residual_currency", "reconciled"],
         )
@@ -1843,7 +2170,10 @@ class AccountMove(models.Model):
             raise UserError(
                 _("Settlement did not fully clear the selected document amount."),
             )
-        if self._foreign_settlement_tax_snapshot() != original_tax_snapshot:
+        if (
+            mechanism != "payment_rate"
+            and self._foreign_settlement_tax_snapshot() != original_tax_snapshot
+        ):
             raise UserError(
                 _("Settlement attempted to change the document's tax lines."),
             )
@@ -1855,14 +2185,16 @@ class AccountMove(models.Model):
             lambda line: (
                 line.account_id == eligibility["allocation"]["account"]
                 and line.currency_id == self.currency_id
-                and self.currency_id.compare_amounts(
-                    abs(line.amount_currency),
-                    eligibility["foreign_amount"],
-                )
-                == 0
             ),
         )
-        if not counterpart_lines:
+        if (
+            not counterpart_lines
+            or self.currency_id.compare_amounts(
+                abs(sum(counterpart_lines.mapped("amount_currency"))),
+                eligibility["foreign_amount"],
+            )
+            != 0
+        ):
             raise UserError(
                 _(
                     "Settlement did not create the exact foreign-currency "
@@ -1893,14 +2225,13 @@ class AccountMove(models.Model):
                         "exchange entry. No accounting changes were saved.",
                     ),
                 )
-            if self.company_currency_id.compare_amounts(
+            if economic_lines or not self.company_currency_id.is_zero(
                 actual_economic_adjustment,
-                eligibility["economic_adjustment"],
             ):
                 raise UserError(
                     _(
-                        "Payment-rate settlement produced an unexpected "
-                        "economic-account adjustment.",
+                        "Payment-rate settlement created an unexpected technical "
+                        "adjustment line. No accounting changes were saved.",
                     ),
                 )
         elif self.company_currency_id.compare_amounts(
@@ -1939,6 +2270,11 @@ class AccountMove(models.Model):
                     )
                     or _("New"),
                     "mechanism": mechanism,
+                    "payment_rate_application": (
+                        "document_reprice"
+                        if mechanism == "payment_rate"
+                        else False
+                    ),
                     "company_id": self.company_id.id,
                     "currency_id": self.currency_id.id,
                     "document_id": self.id,
@@ -1980,6 +2316,32 @@ class AccountMove(models.Model):
                     "economic_adjustment_line_ids": [
                         Command.set(economic_lines.ids),
                     ],
+                    "original_invoice_currency_rate": reprice_result.get(
+                        "original_rate",
+                        0.0,
+                    ),
+                    "applied_invoice_currency_rate": reprice_result.get(
+                        "applied_rate",
+                        0.0,
+                    ),
+                    "original_document_company_amount": reprice_result.get(
+                        "original_company_amount",
+                        0.0,
+                    ),
+                    "repriced_document_company_amount": reprice_result.get(
+                        "repriced_company_amount",
+                        0.0,
+                    ),
+                    "document_revaluation_amount": (
+                        reprice_result.get("repriced_company_amount", 0.0)
+                        - reprice_result.get("original_company_amount", 0.0)
+                    ),
+                    "original_document_line_snapshot": reprice_result.get(
+                        "original_snapshot",
+                    ),
+                    "repriced_document_line_snapshot": reprice_result.get(
+                        "repriced_snapshot",
+                    ),
                     "executed_rate": eligibility["executed_rate"],
                     "reference_rate": eligibility["reference_rate"],
                     "rate_deviation": eligibility["rate_deviation"],
@@ -2019,36 +2381,6 @@ class AccountMove(models.Model):
         _as_settlement_service(statement_line).write(
             {"active_immediate_settlement_id": settlement.id},
         )
-        if mechanism == "payment_rate":
-            allocation_values = []
-            economic_by_source = {
-                line.immediate_settlement_source_line_id_snapshot: line
-                for line in economic_lines
-            }
-            for allocation in eligibility["economic_allocations"]:
-                original_line = allocation["original_line"]
-                adjustment_line = economic_by_source.get(original_line.id)
-                if not adjustment_line:
-                    continue
-                allocation_values.append(
-                    {
-                        "settlement_id": settlement.id,
-                        "original_line_id": original_line.id,
-                        "adjustment_line_id": adjustment_line.id,
-                        "adjustment_line_id_snapshot": adjustment_line.id,
-                        "adjustment_line_name": adjustment_line.name,
-                        "account_id_snapshot": original_line.account_id.id,
-                        "company_amount": adjustment_line.balance,
-                        "proportion": allocation["proportion"],
-                        "analytic_distribution_snapshot": (
-                            original_line.analytic_distribution
-                        ),
-                    },
-                )
-            if allocation_values:
-                _as_settlement_service(
-                    self.env["account.immediate.settlement.allocation"],
-                ).create(allocation_values)
         difference_text = (
             _("no settlement difference")
             if settlement.settlement_difference_type == "none"
@@ -2063,15 +2395,18 @@ class AccountMove(models.Model):
         if mechanism == "payment_rate":
             self.message_post(
                 body=_(
-                    "Payment rate used for %(foreign)s against %(company)s. "
-                    "%(adjustment)s was allocated to the original economic "
-                    "accounts; no FX was recorded.",
+                    "Payment rate applied to the document for %(foreign)s "
+                    "against %(company)s. Its company-currency value changed "
+                    "from %(original)s to %(repriced)s; no FX was recorded.",
                     foreign=self.currency_id.format(settlement.foreign_amount),
                     company=self.company_currency_id.format(
                         settlement.company_amount,
                     ),
-                    adjustment=self.company_currency_id.format(
-                        abs(settlement.economic_adjustment_amount),
+                    original=self.company_currency_id.format(
+                        settlement.original_document_company_amount,
+                    ),
+                    repriced=self.company_currency_id.format(
+                        settlement.repriced_document_company_amount,
                     ),
                 ),
             )
@@ -2229,7 +2564,6 @@ class AccountMove(models.Model):
                     payment_rate["reason"]
                     if payment_rate.get("plausible")
                     and not payment_rate["eligible"]
-                    and not settle["eligible"]
                     else settle["reason"]
                     if settle.get("plausible") and not settle["eligible"]
                     else False
@@ -2286,6 +2620,10 @@ class AccountMove(models.Model):
                 exchange_info["label"] = _("Exchange Loss")
             for settlement in active_settlements:
                 is_payment_rate = settlement.mechanism == "payment_rate"
+                is_document_reprice = (
+                    is_payment_rate
+                    and settlement.payment_rate_application == "document_reprice"
+                )
                 partial_ids = set(settlement.partial_reconcile_ids.ids)
                 if not any(
                     item.get("partial_id") in partial_ids for item in content
@@ -2316,6 +2654,21 @@ class AccountMove(models.Model):
                     settlement.company_amount,
                 )
                 settlement_summary = (
+                    _(
+                        "%(foreign)s · %(document)s %(company)s · no FX",
+                        foreign=foreign_label,
+                        document={
+                            "in_invoice": _("Bill"),
+                            "in_refund": _("Vendor credit"),
+                            "in_receipt": _("Purchase receipt"),
+                            "out_invoice": _("Invoice"),
+                            "out_refund": _("Credit note"),
+                            "out_receipt": _("Sales receipt"),
+                        }.get(move.move_type, _("Document")),
+                        company=company_label,
+                    )
+                    if is_document_reprice
+                    else
                     _(
                         "%(foreign)s · %(company)s · no FX",
                         foreign=foreign_label,
@@ -2356,6 +2709,7 @@ class AccountMove(models.Model):
                         "is_refund": False,
                         "is_immediate_settlement": True,
                         "is_payment_rate_settlement": is_payment_rate,
+                        "is_document_reprice": is_document_reprice,
                         "immediate_settlement_id": settlement.id,
                         "settlement_summary": settlement_summary,
                         "settlement_method": (
@@ -2384,13 +2738,44 @@ class AccountMove(models.Model):
                             settlement.company_currency_id.format(
                                 abs(settlement.economic_adjustment_amount),
                             )
-                            if is_payment_rate
+                            if is_payment_rate and not is_document_reprice
                             else _("None")
                         ),
                         "economic_account_names": ", ".join(
                             settlement.allocation_ids.mapped(
                                 "account_id_snapshot.display_name",
                             ),
+                        ),
+                        "original_document_value": (
+                            settlement.company_currency_id.format(
+                                settlement.original_document_company_amount,
+                            )
+                            if is_document_reprice
+                            else False
+                        ),
+                        "repriced_document_value": (
+                            settlement.company_currency_id.format(
+                                settlement.repriced_document_company_amount,
+                            )
+                            if is_document_reprice
+                            else False
+                        ),
+                        "document_revaluation_label": (
+                            settlement.company_currency_id.format(
+                                abs(settlement.document_revaluation_amount),
+                            )
+                            if is_document_reprice
+                            else False
+                        ),
+                        "original_invoice_currency_rate": (
+                            settlement.original_invoice_currency_rate
+                            if is_document_reprice
+                            else False
+                        ),
+                        "applied_invoice_currency_rate": (
+                            settlement.applied_invoice_currency_rate
+                            if is_document_reprice
+                            else False
                         ),
                         "exchange_account_name": (
                             settlement.exchange_account_id.display_name
@@ -2423,8 +2808,12 @@ class AccountMove(models.Model):
             [
                 ("state", "=", "settled"),
                 "|",
+                "|",
                 ("bank_move_id", "in", self.ids),
                 ("exchange_move_ids", "in", self.ids),
+                "&",
+                ("document_id", "in", self.ids),
+                ("payment_rate_application", "=", "document_reprice"),
             ],
         )
         return self.filtered(
@@ -2432,8 +2821,35 @@ class AccountMove(models.Model):
                 move.immediate_settlement_adjustment_id
                 or move in settlements.bank_move_id
                 or move in settlements.exchange_move_ids
+                or move in settlements.document_id
             ),
         )
+
+    def write(self, vals):
+        protected_fields = {
+            "invoice_currency_rate",
+            "line_ids",
+            "invoice_line_ids",
+            "currency_id",
+            "date",
+            "invoice_date",
+        } & set(vals)
+        internal = (
+            self.env.context.get("immediate_settlement_internal_token")
+            is _INTERNAL_SETTLEMENT_TOKEN
+        )
+        if (
+            protected_fields
+            and not internal
+            and self._immediate_settlement_protected_moves()
+        ):
+            raise UserError(
+                _(
+                    "An active foreign-currency settlement protects this "
+                    "accounting valuation. Undo the settlement first.",
+                ),
+            )
+        return super().write(vals)
 
     def button_draft(self):
         protected = self._immediate_settlement_protected_moves()
