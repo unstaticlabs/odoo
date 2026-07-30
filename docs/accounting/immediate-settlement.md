@@ -1,116 +1,154 @@
-# Exact foreign-amount settlement
+# Three-action foreign-currency settlement
 
 ## Purpose
 
-**Settle** fixes one narrow bank-matching problem: Odoo can invent a foreign
-amount when an imported company-currency bank transaction does not contain
-one. For example, a Shine card debit may contain only `€4.40`. Odoo converts
-that amount at its reference rate and suggests `$5.03`, although the selected
-Cloudflare bill is exactly `$5.00`.
+An imported company-currency bank transaction may have no authoritative
+foreign amount. Odoo then converts the bank balance at its reference rate. A
+`€4.40` card debit can appear as `$5.03` beside a `$5.00` Cloudflare bill.
 
-The authoritative facts in this workflow are:
+This feature separates three accounting decisions:
 
-- the `€4.40` imported bank debit;
-- the selected bill's exact `$5.00` residual.
+| Action | Foreign amount | Company-currency treatment |
+| --- | --- | --- |
+| **Add** | Existing Odoo candidate | Existing native behavior |
+| **Settle** | Exact selected document residual | Native Odoo FX |
+| **Use payment rate** | Exact selected document residual | Safe economic-account allocation; no FX |
 
-The `$5.03` value is retained only as a discarded Odoo estimate. It is not
-treated as bank evidence and it does not leave a `$0.03` residual.
+Add is not renamed, removed, or intercepted. Facturations Plateformes and
+automatic posted-document revaluation remain out of scope.
 
-**Add** is unchanged. It remains the normal matching action for every existing
-payment and for candidates that do not meet the stricter Settle policy.
+## Design decision
 
-## Accounting model
+Three credible mechanisms were evaluated:
 
-Two implementation approaches were considered:
+1. mutate or revalue the posted invoice;
+2. create a dedicated adjustment journal and move;
+3. use the existing editable OCA bank move.
 
-1. revalue the posted document at the bank's executed rate and suppress the
-   company-currency difference;
-2. correct only the missing foreign amount and then use standard OCA/Odoo
-   reconciliation.
+The third mechanism is used. The posted document, imported liquidity line,
+global currency rates, and tax lines remain unchanged. The bank move is already
+the native location where OCA prepares the statement counterpart and is
+reversible through the standard bank-line undo path. No IMST journal is
+created.
 
-The second approach is used. Revaluing the document would be a separate
-accounting policy affecting expense or revenue valuation and potentially tax
-bases. Exact settlement does not change the bill, invoice, taxes, analytics,
-global rates, or imported liquidity amount.
+Odoo's standard delayed-settlement FX remains the Settle policy, consistent
+with [Odoo's multi-currency model](https://www.odoo.com/documentation/19.0/applications/finance/accounting/get_started/multi_currency.html).
+Payment-rate treatment is limited to immediate economic events. It never
+copies VAT metadata because foreign-currency VAT valuation follows its own
+tax-exigibility rules; see the
+[BOFiP foreign-currency VAT guidance](https://bofip.impots.gouv.fr/bofip/1475-PGP.html/identifiant=BOI-TVA-BASE-10-20-40-20-20120912).
 
-For a bill carried as `€4.38 / $5.00` and a bank debit of `€4.40`, Settle:
+## Shared validation
 
-1. marks the statement foreign amount as `$5.00`, derived from the selected
-   document rather than reported by the bank;
-2. asks the pinned OCA editable reconciliation engine to prepare
-   `€4.40 / $5.00` on the payable counterpart;
-3. lets native Odoo reconciliation clear the `$5.00` payable;
-4. lets native Odoo create its normal `€0.02` EXCH loss using the configured
-   exchange journal and account.
+`account.move._get_foreign_settlement_context(payment_line)` is the common
+server-side gate. It requires:
 
-The bank suspense and document foreign residual are both zero afterward.
-There is no dedicated settlement journal and no custom adjustment move.
+- a posted, open foreign-currency invoice, bill, refund, or receipt;
+- one editable company-currency OCA bank statement candidate;
+- one unallocated, reconcilable suspense line;
+- the same company, coherent partner and commercial direction;
+- one deterministic full residual or unique payment term;
+- no conflicting currency fact, combined fee, withholding, lock, secure hash,
+  or immutable audit-trail protection;
+- Accounting User permission and write access.
 
-## Eligibility and trust boundary
-
-`account.move._get_immediate_settlement_eligibility(payment_line)` is the
-authoritative server check. Settle is available only for a posted, open
-foreign-currency invoice, bill, refund, or receipt and a posted imported bank
-transaction that:
-
-- belongs to the same company and has a coherent commercial direction;
-- uses a company-currency bank journal in OCA editable reconciliation mode;
-- is still one unallocated suspense line with no fee or withholding line;
-- has no bank-reported or otherwise authoritative foreign amount;
-- identifies either the full document residual or one unique payment term;
-- is within the effective date and reference-rate deviation policy;
-- is not locked, hashed, reconciled, or protected by the restrictive audit
-  trail;
-- is writable by an Accounting user.
-
-The default policy is three calendar days and 3% maximum deviation. A bank
-journal may override both values. Ambiguity always falls back to Add.
-
-`account.move.js_settle_outstanding_line(line_id)` is the only widget RPC. The
-browser sends no amount, rate, provenance, or trust flag. The method locks the
-document, bank move, statement line, source suspense line, and relevant
-payment terms, then recomputes eligibility. A repeated or stale click is
-idempotent.
+The browser sends only the candidate line ID. Both RPCs lock the document, bank
+move, statement line, selected term lines, and source line, then re-run the
+gate. Repeated clicks return the existing audit record; stale cross-policy
+clicks are rejected.
 
 An installed integration may override
-`_get_immediate_settlement_source_facts(payment_line)` to supply a trusted
-transaction date and provenance or mark a foreign fact authoritative,
-conflicting, or combined with a fee/withholding. Trusted date provenance may
-replace generic date inference. It never bypasses currency, amount, rate,
-company, lock, discrepancy, or permission checks.
+`_get_immediate_settlement_source_facts(payment_line)` to provide a transaction
+date, provenance, and authoritative/conflicting foreign facts. Trusted
+provenance may replace generic date inference for payment-rate timing. It
+cannot bypass amount, currency, rate, discrepancy, permission, lock, or company
+checks.
+
+## Settle: exact foreign amount with native FX
+
+`account.move.js_settle_outstanding_line(line_id)` ignores a synthetic Odoo
+foreign estimate and assigns the exact selected document residual to the
+statement, marked `document_residual`.
+
+For a bill carried as `€4.38 / $5.00` and a `€4.40` bank debit:
+
+1. the statement becomes `€4.40 / $5.00`;
+2. OCA prepares the exact payable counterpart on the bank move;
+3. native reconciliation clears the payable and suspense;
+4. Odoo records the legitimate `€0.02` carrying-value FX loss.
+
+Date distance and reference-rate deviation are warnings, not Settle blockers.
+Settle is hidden when Add already uses an authoritative exact foreign amount.
+
+## Use payment rate: immediate-event valuation
+
+`account.move.js_use_payment_rate_outstanding_line(line_id)` adds these stricter
+conditions:
+
+- transaction and document are within the effective date policy, default three
+  calendar days, unless a trusted integration supplies the date;
+- the bank/document executed rate is within the effective reference-rate
+  policy, default 3%;
+- the original economic lines are safe to adjust.
+
+The OCA bank preparation is reused with exchange preparation disabled only
+inside this internal service call. It creates:
+
+- an exact foreign receivable/payable counterpart at the document carrying
+  value;
+- company-currency-only balancing lines on the existing bank move, allocated
+  proportionally to the original eligible economic accounts.
+
+The allocation copies analytic distributions only. It does not copy tax IDs,
+tax tags, tax repartition data, tax bases, products, fee data, asset/deferred
+metadata, or stock valuation metadata. Automatic stock valuation, fixed
+assets, deferrals, mixed signs, reconcilable subledgers, and unsupported
+complexity are blocked. Add and Settle remain available where their own gates
+pass.
+
+Postconditions are checked in the same transaction:
+
+- imported liquidity is unchanged;
+- the selected company and foreign residuals are zero;
+- bank suspense is zero;
+- original tax metadata is unchanged;
+- no exchange move or exchange line exists;
+- generated economic balances equal the bank-versus-carrying difference.
+
+Any failed assertion rolls back the request.
 
 ## Audit and security
 
-`account.immediate.settlement` records:
+`account.immediate.settlement` records the exact/native-FX, `payment_rate`, or
+preserved `legacy_adjustment` mechanism, including source amounts, discarded
+estimate, carrying value, dates, rates, policy warning, provenance, generated
+lines, reconciliation, native FX, economic allocation, user, and reversal
+state.
 
-- document, selected terms, statement line, bank move, and original suggestion
-  line ID;
-- imported company amount, invoice-derived foreign amount, carrying value,
-  and discarded synthetic estimate;
-- executed and reference rates, deviation, and settlement dates;
-- previewed/actual gain or loss, native EXCH move references, exchange account
-  and lines, and reconciliation links;
-- provenance, acting user, state, and reversal details.
+`account.immediate.settlement.allocation` stores immutable account, amount,
+proportion, analytic, and generated-line snapshots. After reversal the
+generated line relation is cleared but its ID, name, account, amount, and
+analytic snapshot remain.
 
-The statement line has a separate source marker so its inferred `$5.00` is
-never represented as bank-reported data. Accounting users can read audit
-records but cannot create, edit, or delete them through RPC. Only validated
-server code creates them with elevated access.
+Accounting users have read-only ACLs. Model create/write also require both
+elevated server access and an in-process Python object token. A serialized RPC
+context cannot reproduce object identity, so even a superuser RPC cannot
+fabricate an audit record or generated line. Active generated lines and bank
+moves cannot be directly edited, drafted, cancelled, deleted, or unlinked.
 
 ## Reversal and migration
 
-Unreconciling a settlement-linked partial or using **Reverse Settlement**
-routes through the native OCA bank-line undo flow. It removes the native
-reconciliation and EXCH result, restores the suspense and document residuals,
-and restores the statement's original missing-foreign-amount state. The audit
-record remains, including the inferred amount and EXCH reference snapshot.
+Unreconciling a linked partial or choosing **Reverse Settlement** routes through
+OCA's native `unreconcile_bank_line()` path. It removes reconciliation and
+generated bank counterpart/economic lines, restores suspense and the document
+residual, and restores the statement's original foreign currency, amount, and
+source state. Audit snapshots remain immutable.
 
-The `saas~19.2.1.2.0` migration does not create a journal or alter historical
-reconciliations. It marks preview-era adjustment settlements as legacy,
-preserves used preview journals and entries, and archives only unused journals
-that were linked by the preview configuration. Legacy records remain
-inspectable and reversible.
+The `saas~19.2.1.2.0` migration preserves preview-era adjustment records as
+`legacy_adjustment`, keeps used entries inspectable, and archives only unused
+auto-created IMST journals. The `saas~19.2.1.3.0` migration backfills exact
+settlement source facts, preview differences, and immutable allocation
+snapshots. No new journal or historical settlement is created.
 
-Deployment must update both `usl_accounting` and
-`rebuild_account_migration`. “Use payment rate” document revaluation is
-explicitly out of scope.
+Deployment updates `usl_accounting` followed by
+`rebuild_account_migration`.

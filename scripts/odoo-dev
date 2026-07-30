@@ -45,6 +45,10 @@ print_url() {
 
 deploy() {
   local module="${1:-$DEV_MODULE}"
+  local update_modules="$module"
+  if [[ "$module" == "rebuild_account_migration" ]]; then
+    update_modules="usl_accounting,rebuild_account_migration"
+  fi
   "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   "${COMPOSE[@]}" --profile init run --rm \
@@ -52,7 +56,7 @@ deploy() {
     init-db odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" \
-    --update="$module" \
+    --update="$update_modules" \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn
@@ -135,7 +139,7 @@ bootstrap_immediate_settlement_qa() {
   if ((status)); then
     return "$status"
   fi
-  printf '\nExact Foreign-Amount Settlement QA is ready.\n'
+  printf '\nThree-Action Foreign-Currency Settlement QA is ready.\n'
   printf 'Accountant: qa.settlement / qa-settlement\n'
   printf 'Read-only: qa.viewer / qa-viewer\n'
 }
@@ -299,7 +303,7 @@ Commands:
   bootstrap-einvoice-qa
                 Prepare safe e-invoicing QA data and local test accounts
   bootstrap-immediate-settlement-qa
-                Prepare exact foreign-amount settlement QA cases
+                Prepare three-action foreign-currency settlement QA cases
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes
