@@ -4,25 +4,51 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-PROJECT="${USL_DOCUMENTS_COMPOSE_PROJECT:?Set USL_DOCUMENTS_COMPOSE_PROJECT to an isolated QA Compose project}"
-DATABASE="${USL_DOCUMENTS_DATABASE:?Set USL_DOCUMENTS_DATABASE to an isolated QA database}"
-export ODOO_HTTP_PORT="${USL_DOCUMENTS_ODOO_HTTP_PORT:-18080}"
-export ODOO_GEVENT_PORT="${USL_DOCUMENTS_ODOO_GEVENT_PORT:-18072}"
+ENVIRONMENT="${1:-qa}"
+case "$ENVIRONMENT" in
+  qa)
+    ENV_FILE="$ROOT/deploy/documents/qa.env"
+    OVERRIDE="$ROOT/compose.documents.qa.yaml"
+    PROJECT="codex-paperless-docs"
+    DATABASE="odoo_usl_documents_test"
+    ;;
+  preprod)
+    ENV_FILE="${USL_DOCUMENTS_PREPROD_ENV:-}"
+    [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]] || {
+      printf 'Set USL_DOCUMENTS_PREPROD_ENV to the populated pre-production env file.\n' >&2
+      exit 2
+    }
+    OVERRIDE="$ROOT/compose.documents.preprod.yaml"
+    PROJECT="${USL_DOCUMENTS_PREPROD_PROJECT:-usl-documents-preprod}"
+    DATABASE="${USL_DOCUMENTS_PREPROD_DB:-odoo_usl_documents_preprod}"
+    ;;
+  *)
+    printf 'Usage: scripts/documents-acceptance <qa|preprod>\n' >&2
+    exit 2
+    ;;
+esac
 case "$PROJECT" in
-  usl-odoo-saas-19-2|odoo|production|prod|*canonical*)
-    printf 'Refusing shared or canonical Compose project: %s\n' "$PROJECT" >&2
+  ""|usl-odoo-saas-19-2|odoo|production|prod|*canonical*|*[!A-Za-z0-9_.-]*)
+    printf 'Refusing shared or invalid Compose project: %s\n' "$PROJECT" >&2
     exit 2
     ;;
 esac
 case "$DATABASE" in
-  odoo_usl_documents_*_test|odoo_usl_documents_test) ;;
-  *)
-    printf 'Refusing non-QA Documents database: %s\n' "$DATABASE" >&2
+  ""|odoo_dev|*[!A-Za-z0-9_]*)
+    printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
     exit 2
     ;;
 esac
 
-COMPOSE=(docker compose -p "$PROJECT")
+scripts/documents-stack "$ENVIRONMENT" preflight >/dev/null
+COMPOSE=(
+  docker compose
+  --env-file "$ENV_FILE"
+  -p "$PROJECT"
+  -f "$ROOT/compose.yaml"
+  -f "$OVERRIDE"
+  --profile paperless
+)
 PAPERLESS_SERVICES=(
   paperless-preflight
   paperless-db
@@ -33,8 +59,8 @@ PAPERLESS_SERVICES=(
 )
 
 restore_services() {
-  "${COMPOSE[@]}" --profile paperless up -d --wait "${PAPERLESS_SERVICES[@]}" >/dev/null 2>&1 || true
-  "${COMPOSE[@]}" up -d --wait odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" up -d --wait --pull never "${PAPERLESS_SERVICES[@]}" >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" up -d --wait --pull never odoo >/dev/null 2>&1 || true
 }
 trap restore_services EXIT INT TERM
 
@@ -47,7 +73,7 @@ run_shell() {
     --database="$DATABASE" < "$script"
 }
 
-"${COMPOSE[@]}" --profile paperless up -d --wait "${PAPERLESS_SERVICES[@]}"
+"${COMPOSE[@]}" up -d --wait --pull never "${PAPERLESS_SERVICES[@]}"
 "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
 
 run_shell "$ROOT/scripts/odoo/documents_compose_acceptance.py"
@@ -55,9 +81,10 @@ run_shell "$ROOT/scripts/odoo/documents_compose_acceptance.py"
 "${COMPOSE[@]}" stop paperless-webserver
 run_shell "$ROOT/scripts/odoo/documents_outage_acceptance.py"
 
-"${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+"${COMPOSE[@]}" up -d --wait --pull never paperless-webserver
 run_shell "$ROOT/scripts/odoo/documents_recovery_acceptance.py"
 
 restore_services
 trap - EXIT INT TERM
-printf 'DOCUMENTS_ACCEPTANCE_OK project=%s database=%s\n' "$PROJECT" "$DATABASE"
+printf 'DOCUMENTS_ACCEPTANCE_OK environment=%s project=%s database=%s\n' \
+  "$ENVIRONMENT" "$PROJECT" "$DATABASE"

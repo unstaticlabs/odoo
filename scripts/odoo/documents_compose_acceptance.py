@@ -10,7 +10,6 @@ import base64
 import hashlib
 import os
 import time
-import uuid
 
 from odoo.exceptions import AccessError
 
@@ -37,21 +36,29 @@ def wait_for_operation(operation, timeout=180):
 admin = env.ref("base.user_admin")
 documents = env["usl.document"].with_user(admin)
 client = documents._paperless()
-marker = os.environ.get("USL_DOCUMENTS_ACCEPTANCE_ID") or uuid.uuid4().hex[:12]
+marker = os.environ.get("USL_DOCUMENTS_ACCEPTANCE_ID") or "qa-real-service"
 compatibility = client.compatibility()
 check(compatibility["api_version"] == "10", "Paperless API v10 contract")
 check(
-    compatibility["server_version"].startswith("3."),
-    "Paperless qualified 3.x server",
+    compatibility["server_version"] == "3.0.4",
+    "Paperless qualified 3.0.4 server",
 )
 policy = client.ensure_fail_closed_ingestion_policy()
 check(
     policy["workflow_name"] == client.FAIL_CLOSED_WORKFLOW_NAME,
     "supported Workflow API enforces fail-closed ingestion ownership",
 )
+# Paperless mutations cannot participate in Odoo's database transaction. Reconcile
+# first so rerunning after an interrupted acceptance reuses the archive roots that
+# Paperless already committed instead of consuming the same fixture again.
+startup_sync = documents.sync_from_paperless(full=True)
+check(
+    startup_sync["complete"],
+    "interrupted acceptance state reconciled before fixture reuse",
+)
 
 bill = env["account.move"].search(
-    [("ref", "=", "USL-DOCS-QA-BILL"), ("move_type", "=", "in_invoice")],
+    [("ref", "=", "USL-DOCS-CEO-QA-BILL"), ("move_type", "=", "in_invoice")],
     limit=1,
 )
 partner = env["res.partner"].search(
@@ -82,7 +89,11 @@ if result["state"] == "processing":
     document = operation.document_id
 else:
     document = documents.browse(result["document_id"])
-check(document.checksum == checksum, "received-original checksum retained")
+received_version = document.version_ids.filtered("is_received_original")[:1]
+check(
+    bool(received_version) and received_version.checksum == checksum,
+    "received-original checksum retained",
+)
 check(
     env["ir.attachment"].search_count(
         [("res_model", "=", bill._name), ("res_id", "=", bill.id)]
@@ -155,7 +166,11 @@ check(
     "unlink removed only one relationship, not the archive",
 )
 
-download, _headers = client.download(document.paperless_id, original=True)
+download, _headers = client.download(
+    document.paperless_id,
+    version_id=received_version.paperless_version_id,
+    original=True,
+)
 check(hashlib.sha256(download).hexdigest() == checksum, "original download integrity")
 preview, preview_headers = client.preview(document.paperless_id)
 check(bool(preview), "Paperless preview generated")
@@ -167,39 +182,63 @@ check(
 # Exercise the deliberate-copy policy for an Odoo-generated accounting output.
 # The Odoo report attachment remains operationally authoritative in Odoo while
 # Paperless retains the immutable archival copy and matching checksum.
-generated_pdf, _ = (
-    env["ir.actions.report"]
-    .with_context(force_report_rendering=True)
-    ._render_qweb_pdf("account.account_invoices", res_ids=bill.id)
+generated_name = f"final-accounting-output-{marker}.pdf"
+generated_document = documents.search(
+    [
+        ("original_filename", "=", generated_name),
+        ("source", "=", "odoo_generated"),
+    ],
+    limit=1,
 )
-generated_pdf += f"\n% USL Documents acceptance {marker}\n".encode()
-generated_checksum = hashlib.sha256(generated_pdf).hexdigest()
-generated_attachment = env["ir.attachment"].create({
-    "name": f"final-accounting-output-{marker}.pdf",
-    "datas": base64.b64encode(generated_pdf),
-    "mimetype": "application/pdf",
-    "res_model": bill._name,
-    "res_id": bill.id,
-})
-generated_result = bill.action_archive_attachment(
-    generated_attachment.id, source="odoo_generated"
+generated_attachment = env["ir.attachment"].search(
+    [
+        ("name", "=", generated_name),
+        ("res_model", "=", bill._name),
+        ("res_id", "=", bill.id),
+    ],
+    limit=1,
 )
-if generated_result["state"] == "processing":
-    generated_operation = env["usl.document.operation"].browse(
-        generated_result["operation_id"]
+if not generated_document:
+    generated_pdf, _ = (
+        env["ir.actions.report"]
+        .with_context(force_report_rendering=True)
+        ._render_qweb_pdf("account.account_invoices", res_ids=bill.id)
     )
-    wait_for_operation(generated_operation)
-    check(
-        generated_operation.state == "archived",
-        "Odoo-generated accounting output archived",
+    generated_pdf += f"\n% USL Documents acceptance {marker}\n".encode()
+    generated_checksum = hashlib.sha256(generated_pdf).hexdigest()
+    generated_attachment = env["ir.attachment"].create({
+        "name": generated_name,
+        "datas": base64.b64encode(generated_pdf),
+        "mimetype": "application/pdf",
+        "res_model": bill._name,
+        "res_id": bill.id,
+    })
+    generated_result = bill.action_archive_attachment(
+        generated_attachment.id, source="odoo_generated"
     )
-    generated_document = generated_operation.document_id
-else:
-    generated_document = documents.browse(generated_result["document_id"])
+    if generated_result["state"] == "processing":
+        generated_operation = env["usl.document.operation"].browse(
+            generated_result["operation_id"]
+        )
+        wait_for_operation(generated_operation)
+        check(
+            generated_operation.state == "archived",
+            "Odoo-generated accounting output archived",
+        )
+        generated_document = generated_operation.document_id
+    else:
+        generated_document = documents.browse(generated_result["document_id"])
 check(bool(generated_attachment.exists()), "Odoo operational report copy retained")
+generated_checksum = hashlib.sha256(
+    base64.b64decode(generated_attachment.datas),
+).hexdigest()
 check(
     generated_document.source == "odoo_generated"
-    and generated_document.checksum == generated_checksum,
+    and generated_checksum
+    in (
+        {generated_document.checksum}
+        | set(generated_document.version_ids.mapped("checksum"))
+    ),
     "generated output copies are explicitly related by source and checksum",
 )
 
@@ -207,18 +246,22 @@ replacement = (
     f"USL replacement {marker}\n"
     "This is a later immutable version; the received original remains retained.\n"
 ).encode()
-replacement_result = document.upload_new_version(
-    f"acceptance-{marker}-v2.txt",
-    base64.b64encode(replacement).decode(),
-    "text/plain",
-    f"Acceptance {marker} v2",
-)
-check(replacement_result["state"] == "processing", "replacement queued as version")
-replacement_operation = env["usl.document.operation"].browse(
-    replacement_result["operation_id"]
-)
-wait_for_operation(replacement_operation)
-check(replacement_operation.state == "archived", "replacement version archived")
+replacement_checksum = hashlib.sha256(replacement).hexdigest()
+if replacement_checksum not in document.version_ids.mapped("checksum"):
+    replacement_result = document.upload_new_version(
+        f"acceptance-{marker}-v2.txt",
+        base64.b64encode(replacement).decode(),
+        "text/plain",
+        f"Acceptance {marker} v2",
+    )
+    check(replacement_result["state"] == "processing", "replacement queued as version")
+    replacement_operation = env["usl.document.operation"].browse(
+        replacement_result["operation_id"]
+    )
+    wait_for_operation(replacement_operation)
+    check(replacement_operation.state == "archived", "replacement version archived")
+else:
+    check(True, "existing replacement version reused")
 document.invalidate_recordset()
 check(len(document.version_ids) >= 2, "structured version history synchronized")
 check(
@@ -233,34 +276,40 @@ external = (
     f"External Paperless ingestion {marker}\n"
     "Needs Odoo company and business classification.\n"
 ).encode()
-external_task_id = client.upload_multipart(
-    external,
-    f"external-{marker}.txt",
-    "text/plain",
-    title=f"External ingestion {marker}",
-)
-external_deadline = time.monotonic() + 180
-external_task = None
-while time.monotonic() < external_deadline:
-    external_task = client.task(external_task_id)
-    if str((external_task or {}).get("status", "")).lower() in (
-        "success",
-        "successful",
-        "failure",
-        "failed",
-    ):
-        break
-    time.sleep(2)
-check(
-    str((external_task or {}).get("status", "")).lower()
-    in ("success", "successful"),
-    "external Paperless ingestion completed",
-)
-sync_result = documents.sync_from_paperless(full=True)
-check(sync_result["complete"], "external ingestion reconciliation completed")
 external_document = documents.search(
     [("name", "=", f"External ingestion {marker}")], limit=1
 )
+if not external_document:
+    external_task_id = client.upload_multipart(
+        external,
+        f"external-{marker}.txt",
+        "text/plain",
+        title=f"External ingestion {marker}",
+    )
+    external_deadline = time.monotonic() + 180
+    external_task = None
+    while time.monotonic() < external_deadline:
+        external_task = client.task(external_task_id)
+        if str((external_task or {}).get("status", "")).lower() in (
+            "success",
+            "successful",
+            "failure",
+            "failed",
+        ):
+            break
+        time.sleep(2)
+    check(
+        str((external_task or {}).get("status", "")).lower()
+        in ("success", "successful"),
+        "external Paperless ingestion completed",
+    )
+    sync_result = documents.sync_from_paperless(full=True)
+    check(sync_result["complete"], "external ingestion reconciliation completed")
+    external_document = documents.search(
+        [("name", "=", f"External ingestion {marker}")], limit=1
+    )
+else:
+    check(True, "existing external ingestion reused")
 check(bool(external_document), "external document discovered automatically")
 check(
     external_document.review_state == "needs_attention"
@@ -272,45 +321,63 @@ legal = (
     f"USL legal archive acceptance {marker}\n"
     "Synthetic retained contract evidence for restore validation.\n"
 ).encode()
-legal_task_id = client.upload_multipart(
-    legal,
-    f"legal-contract-{marker}.txt",
-    "text/plain",
-    title=f"Legal contract {marker}",
+legal_document = documents.search(
+    [("name", "=", f"Legal contract {marker}")], limit=1
 )
-legal_deadline = time.monotonic() + 180
-legal_task = None
-while time.monotonic() < legal_deadline:
-    legal_task = client.task(legal_task_id)
-    if str((legal_task or {}).get("status", "")).lower() in (
-        "success",
-        "successful",
-        "failure",
-        "failed",
-    ):
-        break
-    time.sleep(2)
-check(
-    str((legal_task or {}).get("status", "")).lower()
-    in ("success", "successful"),
-    "legal contract ingestion completed",
-)
-legal_paperless_id = int(legal_task["related_document_ids"][0])
+if not legal_document:
+    legal_task_id = client.upload_multipart(
+        legal,
+        f"legal-contract-{marker}.txt",
+        "text/plain",
+        title=f"Legal contract {marker}",
+    )
+    legal_deadline = time.monotonic() + 180
+    legal_task = None
+    while time.monotonic() < legal_deadline:
+        legal_task = client.task(legal_task_id)
+        if str((legal_task or {}).get("status", "")).lower() in (
+            "success",
+            "successful",
+            "failure",
+            "failed",
+        ):
+            break
+        time.sleep(2)
+    check(
+        str((legal_task or {}).get("status", "")).lower()
+        in ("success", "successful"),
+        "legal contract ingestion completed",
+    )
+    legal_paperless_id = int(legal_task["related_document_ids"][0])
+else:
+    legal_paperless_id = legal_document.paperless_id
+    check(True, "existing legal contract reused")
 contract_type = client.ensure_document_type("Contract")
-client.update_document_metadata(
-    legal_paperless_id,
-    {"title": f"Legal contract {marker}", "document_type": contract_type["id"]},
-)
 documents.sync_from_paperless(full=True)
 legal_document = documents.search(
     [("paperless_id", "=", legal_paperless_id)], limit=1
 )
-legal_document.write({
-    "company_id": env.company.id,
-    "review_state": "classified",
-})
+contract_type_cache = env["usl.paperless.document.type"].search(
+    [("paperless_id", "=", contract_type["id"])], limit=1
+)
+contracts_tag = env["usl.paperless.tag"].search(
+    [("name", "=", "Contracts & legal")], limit=1
+)
+legal_document.update_archive_metadata(
+    {
+        "name": f"Legal contract {marker}",
+        "document_type_id": contract_type_cache.id,
+        "tag_ids": contracts_tag.ids,
+    }
+)
+legal_document.with_context(usl_documents_policy_write=True).write(
+    {
+        "company_id": env.company.id,
+        "review_state": "classified",
+    }
+)
 project = env["project.project"].search(
-    [("name", "=", "Synthetic Documents Project")], limit=1
+    [("name", "=", "Atlas Website Rollout")], limit=1
 )
 legal_document.link_to_record(project._name, project.id)
 legal_document.action_sync_permissions()
@@ -343,7 +410,8 @@ detail = documents.document_detail(document.id)
 check(bool(detail["links"]), "detail exposes linked Odoo records")
 check(len(detail["versions"]) >= 2, "detail exposes structured file versions")
 check(
-    detail["permission_sync_state"] == "synchronized",
+    document.permission_sync_state == "synchronized"
+    and not detail.get("permission_sync_error"),
     "Paperless object permissions synchronized before direct access",
 )
 manifest = documents.integrity_manifest(f"acceptance-{marker}")
@@ -352,6 +420,10 @@ check(not manifest["orphaned_relationship_ids"], "no orphaned Odoo relationships
 check(
     document.paperless_id not in manifest["missing_document_ids"],
     "stable root is present in both systems",
+)
+check(
+    manifest["integrity_ok"],
+    "active and trashed Paperless identities reconcile with Odoo",
 )
 
 env.cr.commit()

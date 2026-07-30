@@ -1,0 +1,301 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+usage() {
+  printf '%s\n' \
+    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|up|update|bootstrap|status|logs|stop|test|test-js> [args]" \
+    "" \
+    "QA is fixed to project codex-paperless-docs, database odoo_usl_documents_test," \
+    "Odoo 127.0.0.1:18080, and Paperless 127.0.0.1:8010." >&2
+  exit 2
+}
+
+ENVIRONMENT="${1:-}"
+COMMAND="${2:-}"
+shift $(( $# >= 2 ? 2 : $# ))
+
+case "$ENVIRONMENT" in
+  qa)
+    ENV_FILE="$ROOT/deploy/documents/qa.env"
+    OVERRIDE="$ROOT/compose.documents.qa.yaml"
+    PROJECT="codex-paperless-docs"
+    DATABASE="odoo_usl_documents_test"
+    ;;
+  preprod)
+    ENV_FILE="${USL_DOCUMENTS_PREPROD_ENV:-}"
+    [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]] || {
+      printf 'Set USL_DOCUMENTS_PREPROD_ENV to a populated pre-production env file.\n' >&2
+      exit 2
+    }
+    OVERRIDE="$ROOT/compose.documents.preprod.yaml"
+    PROJECT="${USL_DOCUMENTS_PREPROD_PROJECT:-usl-documents-preprod}"
+    DATABASE="${USL_DOCUMENTS_PREPROD_DB:-odoo_usl_documents_preprod}"
+    ;;
+  *)
+    usage
+    ;;
+esac
+
+case "$PROJECT" in
+  ""|usl-odoo-saas-19-2|*[!A-Za-z0-9_.-]*)
+    printf 'Refusing unsafe Documents Compose project: %s\n' "$PROJECT" >&2
+    exit 2
+    ;;
+esac
+case "$DATABASE" in
+  ""|odoo_dev|*[!A-Za-z0-9_]*)
+    printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
+    exit 2
+    ;;
+esac
+
+COMPOSE=(
+  docker compose
+  --env-file "$ENV_FILE"
+  -p "$PROJECT"
+  -f "$ROOT/compose.yaml"
+  -f "$OVERRIDE"
+  --profile paperless
+)
+SERVICES=(
+  db
+  paperless-preflight
+  paperless-db
+  paperless-broker
+  paperless-gotenberg
+  paperless-tika
+  paperless-webserver
+  odoo
+)
+
+validate_config() {
+  local config
+  config="$("${COMPOSE[@]}" config)"
+  grep -Fq "ODOO_DB_FILTER: ^${DATABASE}\$" <<<"$config" || {
+    printf 'Rendered Odoo database filter does not target %s.\n' "$DATABASE" >&2
+    return 1
+  }
+  grep -Fq "USL_EINVOICE_LIVE_ENABLED: \"0\"" <<<"$config" || {
+    printf 'Electronic-invoice live safety flag is not disabled.\n' >&2
+    return 1
+  }
+  grep -Fq "USL_EREPORTING_LIVE_ENABLED: \"0\"" <<<"$config" || {
+    printf 'E-reporting live safety flag is not disabled.\n' >&2
+    return 1
+  }
+  grep -Fq "ghcr.io/paperless-ngx/paperless-ngx:3.0.4" <<<"$config" || {
+    printf 'Paperless 3.0.4 is not exactly pinned.\n' >&2
+    return 1
+  }
+  if [[ "$ENVIRONMENT" = "preprod" ]] && grep -Fq "CHANGE_ME" "$ENV_FILE"; then
+    printf 'Pre-production env still contains CHANGE_ME placeholders.\n' >&2
+    return 1
+  fi
+  if [[ "$ENVIRONMENT" = "preprod" ]] \
+    && ! grep -Fq "USL_DEPLOYMENT_ENV: preproduction" <<<"$config"; then
+    printf 'Pre-production target must set USL_DEPLOYMENT_ENV=preproduction.\n' >&2
+    return 1
+  fi
+}
+
+runtime_status() {
+  "${COMPOSE[@]}" ps
+  local runtime_filter
+  runtime_filter="$(
+    "${COMPOSE[@]}" exec -T odoo \
+      sed -n 's/^dbfilter[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \
+      | tr -d '\r' | tail -n 1
+  )"
+  [[ "$runtime_filter" = "^${DATABASE}$" ]] || {
+    printf 'Runtime database filter mismatch: %s\n' "${runtime_filter:-<empty>}" >&2
+    return 1
+  }
+}
+
+case "$COMMAND" in
+  config)
+    validate_config
+    "${COMPOSE[@]}" config "$@"
+    ;;
+  preflight)
+    validate_config
+    "${COMPOSE[@]}" run --rm --no-deps paperless-preflight
+    ;;
+  up)
+    validate_config
+    "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
+    runtime_status
+    ;;
+  update)
+    validate_config
+    "${COMPOSE[@]}" up -d --wait --pull never db
+    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+    "${COMPOSE[@]}" --profile init run --rm --no-deps \
+      -e ODOO_INIT_DB="$DATABASE" init-db odoo \
+      --config=/etc/odoo/odoo.conf \
+      --database="$DATABASE" \
+      --update=usl_documents \
+      --without-demo=true \
+      --stop-after-init \
+      --log-level=warn
+    "${COMPOSE[@]}" up -d --wait --pull never \
+      db paperless-preflight paperless-db paperless-broker \
+      paperless-gotenberg paperless-tika paperless-webserver
+    "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
+    runtime_status
+    ;;
+  bootstrap)
+    [[ "$ENVIRONMENT" = "qa" ]] || {
+      printf 'Synthetic bootstrap is available only for local QA.\n' >&2
+      exit 2
+    }
+    validate_config
+    "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
+    paperless_setup="$(
+      "${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell -c '
+from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+import json
+
+users = {
+    "archive-admin": ("Archive Administrator", True),
+    "odoo-integration": ("Odoo Integration", False),
+    "documents-user": ("Documents General User", False),
+    "documents-accountant": ("Documents Accountant", False),
+    "documents-hr": ("Documents HR Reviewer", False),
+    "documents-restricted": ("Documents Restricted User", False),
+}
+User = get_user_model()
+for username, (name, administrator) in users.items():
+    user, _created = User.objects.get_or_create(username=username)
+    user.first_name = name
+    user.is_active = True
+    user.is_staff = administrator
+    user.is_superuser = administrator
+    user.set_password("admin")
+    user.save()
+service = User.objects.get(username="odoo-integration")
+token, _created = Token.objects.get_or_create(user=service)
+print(f"USL_TOKEN={token.key}")
+print(f"USL_SERVICE_ID={service.id}")
+print(
+    "USL_IDENTITIES="
+    + json.dumps(
+        {
+            username: User.objects.get(username=username).id
+            for username in users
+            if username != "odoo-integration"
+        },
+        separators=(",", ":"),
+    )
+)
+'
+    )"
+    paperless_token="$(sed -n 's/^USL_TOKEN=//p' <<<"$paperless_setup" | tail -n 1)"
+    paperless_service_id="$(
+      sed -n 's/^USL_SERVICE_ID=//p' <<<"$paperless_setup" | tail -n 1
+    )"
+    paperless_identities="$(
+      sed -n 's/^USL_IDENTITIES=//p' <<<"$paperless_setup" | tail -n 1
+    )"
+    [[ -n "$paperless_token" && -n "$paperless_service_id" && -n "$paperless_identities" ]] || {
+      printf 'Could not prepare Paperless QA identities.\n' >&2
+      exit 1
+    }
+    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+    bootstrap_status=0
+    "${COMPOSE[@]}" --profile init run --rm -T \
+      -e ODOO_INIT_DB="$DATABASE" \
+      -e PAPERLESS_QA_TOKEN="$paperless_token" \
+      -e PAPERLESS_QA_SERVICE_USER_ID="$paperless_service_id" \
+      -e PAPERLESS_QA_IDENTITIES="$paperless_identities" \
+      init-db odoo shell \
+      --config=/etc/odoo/odoo.conf \
+      --database="$DATABASE" \
+      < "$ROOT/scripts/odoo/documents_qa_bootstrap.py" \
+      || bootstrap_status=$?
+    "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
+    runtime_status
+    ((bootstrap_status == 0)) || exit "$bootstrap_status"
+    printf '\nDocuments QA users all use password admin:\n'
+    printf '  Odoo: admin, documents-user, documents-accountant, documents-hr, documents-restricted\n'
+    printf '  Paperless: archive-admin, documents-user, documents-accountant, documents-hr, documents-restricted\n'
+    ;;
+  status)
+    validate_config
+    runtime_status
+    ;;
+  logs)
+    validate_config
+    "${COMPOSE[@]}" logs "$@"
+    ;;
+  stop)
+    validate_config
+    "${COMPOSE[@]}" stop "${SERVICES[@]}"
+    ;;
+  test)
+    validate_config
+    TEST_DATABASE="${1:-odoo_test_usl_documents}"
+    case "$TEST_DATABASE" in
+      ""|"$DATABASE"|odoo_dev|*[!A-Za-z0-9_]*)
+        printf 'Refusing unsafe Documents test database: %s\n' "$TEST_DATABASE" >&2
+        exit 2
+        ;;
+    esac
+    cleanup_test() {
+      "${COMPOSE[@]}" exec -T \
+        -e TEST_DATABASE="$TEST_DATABASE" db sh -c \
+        'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"' \
+        >/dev/null
+      "${COMPOSE[@]}" --profile init run --rm --no-deps \
+        --entrypoint sh -e TEST_DATABASE="$TEST_DATABASE" init-db -c '
+          directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+          if [ -d "$directory" ]; then
+            find "$directory" -mindepth 1 -delete
+            rmdir "$directory"
+          fi
+        ' >/dev/null
+    }
+    trap cleanup_test EXIT
+    "${COMPOSE[@]}" up -d --wait --pull never db
+    cleanup_test
+    "${COMPOSE[@]}" --profile init run --rm \
+      -e ODOO_INIT_DB="$TEST_DATABASE" init-db odoo \
+      --config=/etc/odoo/odoo.conf \
+      --database="$TEST_DATABASE" \
+      --init=usl_documents \
+      --without-demo=true \
+      --test-enable \
+      --test-tags=usl_documents \
+      --stop-after-init \
+      --log-level=test
+    trap - EXIT
+    cleanup_test
+    ;;
+  test-js)
+    validate_config
+    "${COMPOSE[@]}" --profile test build test
+    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+    restore_qa_odoo() {
+      "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo >/dev/null 2>&1 || true
+    }
+    trap restore_qa_odoo EXIT INT TERM
+    js_status=0
+    "${COMPOSE[@]}" --profile test run --rm test odoo \
+      --config=/etc/odoo/odoo.conf \
+      --database="$DATABASE" \
+      --test-tags="/usl_documents:WebSuite.test_unit_desktop" \
+      --stop-after-init \
+      --log-level=test \
+      || js_status=$?
+    "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
+    trap - EXIT INT TERM
+    ((js_status == 0)) || exit "$js_status"
+    ;;
+  *)
+    usage
+    ;;
+esac

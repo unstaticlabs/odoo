@@ -9,7 +9,7 @@ USER_DOCS_VENV ?= .venv-docs
 USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ODOO_DEV ?= scripts/odoo-dev
 
-.PHONY: dev deploy rebuild login-link disable-tours documents-acceptance documents-recovery-test target-finalize target-reconstruct oca-addons-sync project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-deps user-docs-serve user-docs-build
+.PHONY: dev deploy rebuild login-link disable-tours documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test target-finalize target-reconstruct oca-addons-sync project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-deps user-docs-serve user-docs-build
 
 dev:
 	$(ODOO_DEV) start
@@ -36,11 +36,50 @@ target-finalize:
 target-reconstruct:
 	scripts/target-reconstruct
 
+documents-qa-up:
+	scripts/documents-stack qa up
+
+documents-qa-update:
+	scripts/documents-stack qa update
+
+documents-qa-bootstrap:
+	scripts/documents-stack qa bootstrap
+
+documents-qa-status:
+	scripts/documents-stack qa status
+
+documents-qa-test:
+	scripts/documents-stack qa test
+
+documents-qa-test-js:
+	scripts/documents-stack qa test-js
+
+documents-qa-acceptance:
+	scripts/documents-acceptance qa
+
+documents-qa-recovery-test:
+	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test qa
+
+documents-preprod-config:
+	scripts/documents-stack preprod config
+
+documents-preprod-preflight:
+	scripts/documents-stack preprod preflight
+
+documents-preprod-up:
+	scripts/documents-stack preprod up
+
+documents-preprod-acceptance:
+	scripts/documents-acceptance preprod
+
+documents-preprod-recovery-test:
+	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test preprod
+
 documents-acceptance:
-	scripts/documents-acceptance
+	scripts/documents-acceptance qa
 
 documents-recovery-test:
-	scripts/documents-recovery-test
+	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test qa
 
 oca-addons-sync:
 	scripts/sync-oca-addons
