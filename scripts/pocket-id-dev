@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENV_FILE="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id.env}"
+PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
+COMPOSE_FILES=(-f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml")
+
+bootstrap() {
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
+}
+
+load_environment() {
+  bootstrap >/dev/null
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+  if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
+      || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
+    printf 'Refusing Pocket ID preproduction while a live regulatory guard is enabled.\n' >&2
+    return 2
+  fi
+  if [[ "${ODOO_INIT_DB:-}" != "odoo_saas_19_2_candidate_01" ]]; then
+    printf 'Refusing Pocket ID preproduction on database %s.\n' "${ODOO_INIT_DB:-<empty>}" >&2
+    return 2
+  fi
+  COMPOSE=(
+    docker compose
+    -p "$COMPOSE_PROJECT_NAME"
+    --env-file "$ENV_FILE"
+    "${COMPOSE_FILES[@]}"
+  )
+}
+
+start_idp() {
+  load_environment
+  "${COMPOSE[@]}" up -d --wait pocket-id
+}
+
+provision() {
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
+}
+
+ensure_unlinked() {
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" ensure-unlinked
+}
+
+backup_candidate() {
+  local backup_dir timestamp volume_name
+  load_environment
+  timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  backup_dir="$ROOT/.pocket-id-backups/$timestamp"
+  volume_name="${COMPOSE_PROJECT_NAME}_odoo-data"
+  mkdir -p "$backup_dir"
+  chmod 700 "$ROOT/.pocket-id-backups" "$backup_dir"
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" exec -T \
+    -e PGPASSWORD="${POSTGRES_PASSWORD:-odoo}" \
+    db pg_dump \
+    --format=custom \
+    --username="${POSTGRES_USER:-odoo}" \
+    --dbname="$ODOO_INIT_DB" > "$backup_dir/database.dump"
+  docker run --rm \
+    -v "$volume_name:/source:ro" \
+    -v "$backup_dir:/backup" \
+    alpine:3.22.1 \
+    tar -C /source -czf /backup/odoo-filestore.tar.gz .
+  chmod 600 "$backup_dir/database.dump" "$backup_dir/odoo-filestore.tar.gz"
+  printf 'Candidate backup created: %s\n' "$backup_dir"
+}
+
+run_policy() {
+  local apply_mode="$1" policy
+  policy="$(python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" odoo-policy)"
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    -e USL_POCKET_ID_USERS_JSON="$policy" \
+    -e USL_POCKET_ID_BREAK_GLASS_PASSWORD="$USL_POCKET_ID_BREAK_GLASS_PASSWORD" \
+    -e USL_POCKET_ID_APPLY="$apply_mode" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" < "$ROOT/scripts/odoo/pocket_id_configure.py"
+}
+
+configure_odoo() {
+  provision
+  backup_candidate
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    --update=rebuild_account_migration \
+    --without-demo=true \
+    --stop-after-init \
+    --log-level=warn
+  run_policy 0
+  run_policy 1
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+}
+
+one_time_link() {
+  local username="${1:?Usage: scripts/pocket-id-dev one-time-link USER}"
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" one-time-link "$username"
+}
+
+set_disabled() {
+  local username="${1:?Usage: scripts/pocket-id-dev set-disabled USER true|false}"
+  local state="${2:?Usage: scripts/pocket-id-dev set-disabled USER true|false}"
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" set-disabled "$username" "$state"
+}
+
+set_profile() {
+  local username="${1:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
+  local email="${2:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
+  local display_name="${3:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
+  start_idp
+  python3 "$PYTHON_HELPER" \
+    --env-file "$ENV_FILE" \
+    set-profile "$username" "$email" "$display_name"
+}
+
+set_group() {
+  local username="${1:?Usage: scripts/pocket-id-dev set-group USER present|absent}"
+  local state="${2:?Usage: scripts/pocket-id-dev set-group USER present|absent}"
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" set-group "$username" "$state"
+}
+
+stop_idp() {
+  load_environment
+  "${COMPOSE[@]}" stop pocket-id
+}
+
+status() {
+  load_environment
+  "${COMPOSE[@]}" ps
+}
+
+reset_idp() {
+  local confirmation="${1:-}"
+  load_environment
+  if [[ "$confirmation" != "--confirm" ]]; then
+    printf 'This deletes only the local Pocket ID container and volume.\n' >&2
+    printf 'Re-run with: scripts/pocket-id-dev reset-idp --confirm\n' >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" rm -sf pocket-id
+  docker volume rm "${COMPOSE_PROJECT_NAME}_pocket-id-data"
+}
+
+case "${1:-help}" in
+  bootstrap)
+    bootstrap
+    ;;
+  start-idp)
+    start_idp
+    ;;
+  provision)
+    provision
+    ;;
+  ensure-unlinked)
+    ensure_unlinked
+    ;;
+  backup-candidate)
+    backup_candidate
+    ;;
+  configure-odoo)
+    configure_odoo
+    ;;
+  one-time-link)
+    one_time_link "${2:-}"
+    ;;
+  set-disabled)
+    set_disabled "${2:-}" "${3:-}"
+    ;;
+  set-profile)
+    set_profile "${2:-}" "${3:-}" "${4:-}"
+    ;;
+  set-group)
+    set_group "${2:-}" "${3:-}"
+    ;;
+  stop-idp)
+    stop_idp
+    ;;
+  status)
+    status
+    ;;
+  reset-idp)
+    reset_idp "${2:-}"
+    ;;
+  help|*)
+    cat <<'EOF'
+Usage: scripts/pocket-id-dev <command>
+
+Commands:
+  bootstrap                  Generate ignored local secrets and stable test IDs
+  start-idp                  Start only the isolated Pocket ID service
+  provision                  Idempotently configure users, group, and OIDC client
+  ensure-unlinked            Add the Pocket-only lifecycle-denial identity
+  backup-candidate           Back up the candidate database and filestore
+  configure-odoo             Update, dry-run, apply, and start candidate Odoo
+  one-time-link USER         Generate a one-hour Pocket ID login link
+  set-disabled USER BOOL     Enable or disable a named Pocket ID user
+  set-profile USER EMAIL NAME
+                             Change claims without changing the immutable subject
+  set-group USER STATE       Add or remove a named user from the Odoo group
+  stop-idp                   Stop Pocket ID for outage testing
+  status                     Show this project's services
+  reset-idp --confirm        Delete only the disposable Pocket ID service data
+EOF
+    ;;
+esac

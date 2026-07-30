@@ -293,6 +293,34 @@ class TestPocketIDOidcSecurity(TransactionCase):
                 allow_query=False,
             )
 
+    def test_http_is_limited_to_loopback_and_localhost_names(self):
+        for url in (
+            "http://127.0.0.1:1411",
+            "http://[::1]:1411",
+            "http://localhost:1411",
+            "http://pocket-id.localhost:1411",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(
+                    self.provider._usl_validate_url(
+                        url,
+                        label="local test service",
+                    ),
+                    url,
+                )
+        for url in (
+            "http://pocket-id.example.test:1411",
+            "http://localhost.example.test:1411",
+        ):
+            with (
+                self.subTest(url=url),
+                self.assertRaises(ValidationError),
+            ):
+                self.provider._usl_validate_url(
+                    url,
+                    label="unsafe test service",
+                )
+
     def test_jwks_requires_bounded_valid_rsa_key_selection(self):
         second_key = {**self.jwk, "kid": "second-key"}
         response = Mock()

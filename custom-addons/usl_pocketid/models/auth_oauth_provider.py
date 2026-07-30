@@ -173,7 +173,8 @@ class AuthOauthProvider(models.Model):
         try:
             is_loopback = ipaddress.ip_address(parsed.hostname).is_loopback
         except ValueError:
-            is_loopback = parsed.hostname == "localhost"
+            hostname = parsed.hostname.rstrip(".")
+            is_loopback = hostname == "localhost" or hostname.endswith(".localhost")
         if not is_loopback:
             raise ValidationError(
                 _("%(label)s may use HTTP only for a loopback test service.", label=label),
