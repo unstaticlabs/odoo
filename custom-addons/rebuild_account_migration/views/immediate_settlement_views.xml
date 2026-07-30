@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_account_settings_immediate_settlement" model="ir.ui.view">
-        <field name="name">res.config.settings.exact.foreign.amount.settlement</field>
+        <field name="name">res.config.settings.foreign.currency.settlement</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="account.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//app[@name='account']/block[@name='main_currency_setting_container']" position="after">
-                <block title="Exact Foreign-Amount Settlement" name="immediate_settlement_settings">
+                <block title="Foreign-Currency Settlement" name="immediate_settlement_settings">
                     <setting
-                        string="Correct synthetic bank conversions"
+                        string="Exact amounts and immediate payment rates"
                         company_dependent="1"
-                        help="Allow an eligible company-currency bank transaction with no reported foreign amount to use the exact selected invoice or bill residual. Native Odoo accounting records the resulting settlement gain or loss.">
+                        help="Settle can replace a synthetic foreign estimate with the exact document amount. Use payment rate is additionally limited by the delay and reference-rate policies below.">
                         <div class="content-group">
                             <div class="row mt16">
                                 <label for="immediate_settlement_max_days" class="col-lg-4 o_light_label"/>
@@ -28,12 +28,12 @@
     </record>
 
     <record id="view_account_journal_form_immediate_settlement" model="ir.ui.view">
-        <field name="name">account.journal.form.exact.foreign.amount.settlement</field>
+        <field name="name">account.journal.form.foreign.currency.settlement</field>
         <field name="model">account.journal</field>
         <field name="inherit_id" ref="account.view_account_journal_form"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='advanced_settings']/group" position="inside">
-                <group string="Exact Foreign-Amount Settlement" groups="account.group_account_manager">
+                <group string="Payment-Rate Policy" groups="account.group_account_manager">
                     <field name="immediate_settlement_policy_override"/>
                     <field
                         name="immediate_settlement_max_days"
@@ -61,8 +61,10 @@
                 <field name="company_amount"/>
                 <field name="company_currency_id" column_invisible="True"/>
                 <field name="synthetic_foreign_amount"/>
+                <field name="preview_settlement_difference" optional="hide"/>
                 <field name="settlement_difference"/>
                 <field name="settlement_difference_type" widget="badge"/>
+                <field name="economic_adjustment_amount"/>
                 <field name="provenance"/>
                 <field name="mechanism" optional="hide"/>
                 <field name="state" widget="badge"/>
@@ -110,15 +112,19 @@
                         <group>
                             <field name="synthetic_foreign_amount"/>
                             <field name="reference_company_amount"/>
+                            <field name="preview_settlement_difference"/>
                             <field name="settlement_difference"/>
                             <field name="settlement_difference_type"/>
                             <field name="exchange_account_id"/>
+                            <field name="economic_adjustment_amount"/>
                         </group>
                         <group>
                             <field name="executed_rate"/>
                             <field name="reference_rate"/>
                             <field name="rate_deviation"/>
                             <field name="benchmark_company_amount"/>
+                            <field name="policy_date_distance"/>
+                            <field name="policy_warning"/>
                         </group>
                     </group>
                     <group>
@@ -142,12 +148,14 @@
                                 <field name="exchange_move_ids" widget="many2many_tags"/>
                                 <field name="exchange_move_names"/>
                                 <field name="exchange_line_ids"/>
+                                <field name="economic_adjustment_line_ids"/>
+                                <field name="generated_line_ids"/>
                                 <field name="partial_reconcile_ids"/>
                                 <field name="source_line_id_snapshot"/>
                                 <field name="provenance_details"/>
                             </group>
                         </page>
-                        <page string="Legacy Adjustment" invisible="mechanism != 'legacy_adjustment'">
+                        <page string="Economic Allocations" invisible="mechanism not in ('payment_rate', 'legacy_adjustment')">
                             <group>
                                 <field name="payment_line_id"/>
                                 <field name="payment_move_id"/>
@@ -163,14 +171,14 @@
     </record>
 
     <record id="action_account_immediate_settlement" model="ir.actions.act_window">
-        <field name="name">Exact Foreign-Amount Settlements</field>
+        <field name="name">Foreign-Currency Settlements</field>
         <field name="res_model">account.immediate.settlement</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'create': False}</field>
     </record>
 
     <record id="view_move_form_immediate_settlement" model="ir.ui.view">
-        <field name="name">account.move.form.exact.foreign.amount.settlement</field>
+        <field name="name">account.move.form.foreign.currency.settlement</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
@@ -181,7 +189,7 @@
                     class="oe_stat_button"
                     icon="fa-exchange"
                     invisible="not immediate_settlement_count">
-                    <field name="immediate_settlement_count" widget="statinfo" string="Exact Settlement"/>
+                    <field name="immediate_settlement_count" widget="statinfo" string="Settlement"/>
                 </button>
             </xpath>
         </field>
