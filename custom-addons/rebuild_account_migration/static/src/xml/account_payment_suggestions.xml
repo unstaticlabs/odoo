@@ -21,13 +21,24 @@
                 class="o_rebuild_payment_suggestion_detail">
                 <td/>
                 <td colspan="3"
-                    class="o_rebuild_payment_suggestion_context text-start text-wrap">
-                    <span class="o_rebuild_payment_suggestion_evidence"
-                          t-att-title="line.settlement_review_reason
-                                       ? line.match_reason + ' · ' + line.settlement_review_reason
-                                       : line.match_reason"
-                          data-bs-toggle="tooltip"
-                          t-out="line.is_best_match ? 'Best match' : 'Possible match'"/>
+                    class="o_rebuild_payment_suggestion_context text-start text-wrap"
+                    t-att-title="line.settlement_review_reason
+                                 ? line.match_reason + ' · ' + line.settlement_review_reason
+                                 : line.match_reason"
+                    data-bs-toggle="tooltip">
+                    <span t-if="line.is_best_match"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_best">
+                        Best match
+                    </span>
+                    <span t-if="line.is_bank_statement_candidate"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_kind">
+                        Bank transaction
+                    </span>
+                    <span t-foreach="(line.match_summary or line.match_reason).split(' · ')"
+                          t-as="evidence"
+                          t-key="evidence_index"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_evidence"
+                          t-out="evidence"/>
                 </td>
             </tr>
         </xpath>

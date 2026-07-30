@@ -108,8 +108,11 @@ class AccountMove extends models.Model {
                         date: "2026-07-20",
                         can_assign: true,
                         is_best_match: true,
+                        is_bank_statement_candidate: true,
                         match_reason:
                             "Reference match · Larger available payment · 1-day gap from due date · Bank transaction · Assigned partner matches Cloudflare",
+                        match_summary:
+                            "Reference match · Larger available payment · 1-day gap from due date",
                         can_immediate_settle: true,
                         can_use_payment_rate: true,
                         immediate_settlement_reason:
@@ -145,8 +148,11 @@ class AccountMove extends models.Model {
                         date: "2026-07-20",
                         can_assign: true,
                         is_best_match: true,
+                        is_bank_statement_candidate: true,
                         match_reason:
                             "Reference match · Larger available payment · 8-day gap from document · Bank transaction · Assigned partner matches Cloudflare",
+                        match_summary:
+                            "Reference match · Larger available payment",
                         can_immediate_settle: true,
                         can_use_payment_rate: false,
                         immediate_settlement_reason:
@@ -221,8 +227,10 @@ class AccountMove extends models.Model {
                         date: "2026-07-20",
                         can_assign: true,
                         is_best_match: true,
+                        is_bank_statement_candidate: true,
                         match_reason:
                             "Reference match · Bank transaction · Assigned partner matches Cloudflare",
+                        match_summary: "Reference match · Exact amount",
                         can_immediate_settle: false,
                         can_use_payment_rate: true,
                         immediate_settlement_reason:
@@ -299,8 +307,10 @@ class AccountMove extends models.Model {
                         date: "2026-07-20",
                         can_assign: true,
                         is_best_match: true,
+                        is_bank_statement_candidate: true,
                         match_reason:
                             "Reference match · Bank transaction · Assigned partner matches Cloudflare",
+                        match_summary: "Reference match · Larger available payment",
                         can_immediate_settle: false,
                         can_use_payment_rate: false,
                         immediate_settlement_reason:
@@ -344,10 +354,16 @@ test("draft bill payment suggestion keeps matching details outside the native ro
         "tr.o_rebuild_payment_suggestion .open_account_move .badge"
     ).toHaveCount(0);
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_context"
+    ).toHaveText(/Best match\s*Exact amount\s*Date within 7 days/);
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
     ).toHaveText("Best match");
     expect(
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
+    ).toHaveCount(2);
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_context"
     ).toHaveAttribute(
         "title",
         "Exact amount · Same currency · Date within 7 days · Native payment"
@@ -402,9 +418,16 @@ test("bank suggestion keeps changes in the Add helper", async () => {
     });
 
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_context"
+    ).toHaveText(
+        /Best match\s*Bank transaction\s*Exact amount\s*Date 1 day from due date/
+    );
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
     ).toHaveText("Best match");
-    expect("tr.o_rebuild_payment_suggestion_detail .badge").toHaveCount(0);
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_kind"
+    ).toHaveText("Bank transaction");
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
@@ -462,7 +485,11 @@ test("immediate suggestion shows all three actions and recommends payment rate",
     expect(".o_rebuild_payment_suggestion_facts").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_recommendation").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
-    expect(".o_rebuild_payment_suggestion_evidence").toHaveText("Best match");
+    expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
+    expect(".o_rebuild_payment_suggestion_kind").toHaveText("Bank transaction");
+    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+        /Best match\s*Bank transaction\s*Reference match\s*Larger available payment\s*1-day gap from due date/
+    );
     expect(".outstanding_credit_assign").toHaveCount(1);
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
@@ -529,8 +556,11 @@ test("delayed payment recommends Settle and keeps payment-rate warning in helper
     );
     expect(".o_rebuild_payment_suggestion_recommendation").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
-    expect(".o_rebuild_payment_suggestion_evidence").toHaveText("Best match");
-    expect(".o_rebuild_payment_suggestion_evidence").toHaveAttribute(
+    expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
+    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+        /Best match\s*Bank transaction\s*Reference match\s*Larger available payment/
+    );
+    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
         "title",
         "Reference match · Larger available payment · 8-day gap from document · Bank transaction · Assigned partner matches Cloudflare · Use payment rate is limited to 3 days; this transaction is 8 days from the document."
     );
@@ -555,8 +585,11 @@ test("conflicting facts keep Add with the warning in compact match evidence", as
     expect(".immediate_settlement_assign").toHaveCount(0);
     expect(".payment_rate_assign").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
-    expect(".o_rebuild_payment_suggestion_evidence").toHaveText("Best match");
-    expect(".o_rebuild_payment_suggestion_evidence").toHaveAttribute(
+    expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
+    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+        /Best match\s*Bank transaction\s*Reference match\s*Larger available payment/
+    );
+    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
         "title",
         "Reference match · Bank transaction · Assigned partner matches Cloudflare · The bank or integration foreign amount conflicts with the document. Review it in Bank Matching."
     );
@@ -683,5 +716,8 @@ test("all three actions remain visible in a compact mobile layout", async () => 
     expect(".o_rebuild_payment_suggestion_facts").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_recommendation").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
-    expect(".o_rebuild_payment_suggestion_evidence").toHaveText("Best match");
+    expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
+    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+        /Best match\s*Bank transaction\s*Reference match\s*Larger available payment\s*1-day gap from due date/
+    );
 });
