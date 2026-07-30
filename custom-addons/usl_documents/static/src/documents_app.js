@@ -18,6 +18,7 @@ import { useBus, useService } from "@web/core/utils/hooks";
 import { SearchBar } from "@web/search/search_bar/search_bar";
 import { WithSearch } from "@web/search/with_search/with_search";
 import { getDefaultConfig } from "@web/views/view";
+import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 const FILTER_DEFAULTS = {
@@ -39,6 +40,33 @@ const FILTER_DEFAULTS = {
     customFieldId: "",
     customFieldValue: "",
 };
+
+export class OpenDocumentsField extends Component {
+    static template = "usl_documents.OpenDocumentsField";
+    static props = { ...standardFieldProps };
+
+    setup() {
+        this.orm = useService("orm");
+        this.action = useService("action");
+    }
+
+    get count() {
+        return Number(this.props.record.data[this.props.name]) || 0;
+    }
+
+    get label() {
+        return `Open ${this.count} document${this.count === 1 ? "" : "s"}`;
+    }
+
+    async open() {
+        const action = await this.orm.call(
+            this.props.record.resModel,
+            "action_open_documents",
+            [[this.props.record.resId]]
+        );
+        return this.action.doAction(action);
+    }
+}
 
 export class PermanentDeleteDialog extends Component {
     static template = "usl_documents.PermanentDeleteDialog";
@@ -148,6 +176,10 @@ export class DocumentsWorkspaceView extends Component {
         this.initialVersionId =
             urlState.versionId || this.stringValue(restored.selectedVersionId) || null;
         this.hasLocalListHistory = false;
+        this.closingDetail = false;
+        this.recordContextKey = this.recordContext
+            ? `${this.recordContext.resModel}:${this.recordContext.resId}`
+            : null;
         this.state = useState({
             loading: true,
             uploading: false,
@@ -188,6 +220,7 @@ export class DocumentsWorkspaceView extends Component {
             metadataDraft: null,
             tagPickerOpen: false,
             tagQuery: "",
+            tagShortcutQuery: "",
             creatingTag: false,
             operation: null,
             failedOperations: [],
@@ -197,6 +230,8 @@ export class DocumentsWorkspaceView extends Component {
         this.searchReady = false;
         this.pollingOperationIds = new Set();
         this.customFieldFilterTimer = null;
+        this.closeHistoryTimer = null;
+        this.closeCanonicalTimer = null;
         this.customFieldFilterApplied = Boolean(
             this.state.customFieldId && this.state.customFieldValue
         );
@@ -204,6 +239,9 @@ export class DocumentsWorkspaceView extends Component {
         useBus(this.searchModel, "update", () => this.onNativeSearchUpdate());
         onWillStart(async () => {
             await this.load();
+            if (this.migrateLegacyTagFilters()) {
+                await this.load();
+            }
             this.searchReady = true;
             if (this.initialDocumentId) {
                 await this.openDocumentById(
@@ -214,6 +252,7 @@ export class DocumentsWorkspaceView extends Component {
         });
         onMounted(() => {
             browser.addEventListener("popstate", this.onPopState);
+            this.ensureRecordReturnHistory();
             // Odoo's host router may normalize the action URL immediately after
             // mounting. Reassert the document state on the following frame so a
             // copied link and subsequent reload remain stable.
@@ -226,6 +265,12 @@ export class DocumentsWorkspaceView extends Component {
             browser.removeEventListener("popstate", this.onPopState);
             if (this.customFieldFilterTimer) {
                 browser.clearTimeout(this.customFieldFilterTimer);
+            }
+            if (this.closeHistoryTimer) {
+                browser.clearTimeout(this.closeHistoryTimer);
+            }
+            if (this.closeCanonicalTimer) {
+                browser.clearTimeout(this.closeCanonicalTimer);
             }
         });
     }
@@ -281,7 +326,7 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     get activeFilterCount() {
-        return this.searchModel.facets.length + this.state.tagIds.length;
+        return this.searchModel.facets.length;
     }
 
     get activeSmartView() {
@@ -295,7 +340,11 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     get visibleTagShortcuts() {
-        const selected = new Set(this.state.tagIds);
+        const selected = new Set(
+            this.state.tags
+                .filter((tag) => this.isTagShortcutActive(tag))
+                .map((tag) => tag.id)
+        );
         return [...this.state.tags]
             .sort(
                 (left, right) =>
@@ -303,7 +352,36 @@ export class DocumentsWorkspaceView extends Component {
                     (right.document_count || 0) - (left.document_count || 0) ||
                     left.name.localeCompare(right.name)
             )
-            .slice(0, 16);
+            .slice(0, 6);
+    }
+
+    get overflowTagShortcuts() {
+        const visible = new Set(this.visibleTagShortcuts.map((tag) => tag.id));
+        return this.state.tags
+            .filter((tag) => !visible.has(tag.id))
+            .sort(
+                (left, right) =>
+                    (right.document_count || 0) - (left.document_count || 0) ||
+                    left.name.localeCompare(right.name)
+            );
+    }
+
+    get tagShortcutResults() {
+        const query = this.state.tagShortcutQuery.trim().toLocaleLowerCase();
+        const candidates = query
+            ? this.state.tags.filter((tag) =>
+                  tag.name.toLocaleLowerCase().includes(query)
+              )
+            : this.overflowTagShortcuts;
+        return [...candidates]
+            .sort(
+                (left, right) =>
+                    Number(this.isTagShortcutActive(right)) -
+                        Number(this.isTagShortcutActive(left)) ||
+                    (right.document_count || 0) - (left.document_count || 0) ||
+                    left.name.localeCompare(right.name)
+            )
+            .slice(0, 50);
     }
 
     get documentGroups() {
@@ -609,6 +687,8 @@ export class DocumentsWorkspaceView extends Component {
                     uslDocumentsWorkspace: true,
                     uslDocumentId: documentId || null,
                     uslVersionId: versionId || null,
+                    uslDocumentsRecordContext: this.recordContextKey,
+                    uslDocumentsReturnRecord: null,
                 },
                 "",
                 url
@@ -624,6 +704,95 @@ export class DocumentsWorkspaceView extends Component {
             this.state.selected?.id,
             this.state.selected?.selected_version_id
         );
+    }
+
+    ensureRecordReturnHistory() {
+        if (
+            !this.recordContext ||
+            browser.history.state?.uslDocumentsRecordContext === this.recordContextKey
+        ) {
+            return;
+        }
+        try {
+            const url = new URL(browser.location.href);
+            const baseState = { ...(browser.history.state || {}) };
+            browser.history.replaceState(
+                {
+                    ...baseState,
+                    skipRouteChange: true,
+                    uslDocumentsWorkspace: false,
+                    uslDocumentsReturnRecord: {
+                        resModel: this.recordContext.resModel,
+                        resId: this.recordContext.resId,
+                    },
+                },
+                "",
+                url
+            );
+            browser.history.pushState(
+                {
+                    ...baseState,
+                    skipRouteChange: true,
+                    uslDocumentsWorkspace: true,
+                    uslDocumentId: this.state.selected?.id || null,
+                    uslVersionId:
+                        this.state.selected?.selected_version_id || null,
+                    uslDocumentsRecordContext: this.recordContextKey,
+                    uslDocumentsReturnRecord: null,
+                },
+                "",
+                url
+            );
+        } catch {
+            // Odoo breadcrumbs remain available if a browser blocks History API writes.
+        }
+    }
+
+    clearDetailState() {
+        this.state.selected = null;
+        this.state.editingMetadata = false;
+        this.state.tagPickerOpen = false;
+    }
+
+    requestHistoryBack() {
+        if (this.closeHistoryTimer) {
+            browser.clearTimeout(this.closeHistoryTimer);
+        }
+        this.closeHistoryTimer = browser.setTimeout(() => {
+            this.closeHistoryTimer = null;
+            browser.history.back();
+        }, 0);
+    }
+
+    cancelHistoryBack() {
+        if (this.closeHistoryTimer) {
+            browser.clearTimeout(this.closeHistoryTimer);
+            this.closeHistoryTimer = null;
+        }
+        if (this.closeCanonicalTimer) {
+            browser.clearTimeout(this.closeCanonicalTimer);
+            this.closeCanonicalTimer = null;
+        }
+    }
+
+    scheduleCanonicalClose() {
+        if (this.closeCanonicalTimer) {
+            browser.clearTimeout(this.closeCanonicalTimer);
+        }
+        this.closeCanonicalTimer = browser.setTimeout(() => {
+            this.closeCanonicalTimer = null;
+            const urlState = this.readUrlState();
+            if (!this.state.selected && urlState.documentId) {
+                // Odoo can leave the previous list entry carrying the URL of
+                // the detail entry. Rewrite that reached entry as the list;
+                // the untouched forward entry can still reopen the document.
+                this.closingDetail = false;
+                this.hasLocalListHistory = false;
+                this.writeNavigationState("replace");
+                this.persistState();
+                this.restoreScroll();
+            }
+        }, 150);
     }
 
     restoreScroll() {
@@ -644,19 +813,90 @@ export class DocumentsWorkspaceView extends Component {
 
     async handlePopState(event) {
         const historyState = event.state || {};
-        if (!historyState.uslDocumentsWorkspace) {
+        const routedState = historyState.nextState || {};
+        const urlState = this.readUrlState();
+        const targetsDocument = Boolean(
+            Number(
+                historyState.uslDocumentId ||
+                    routedState.uslDocumentId ||
+                    urlState.documentId
+            )
+        );
+        let returnRecord =
+            historyState.uslDocumentsReturnRecord ||
+            routedState.uslDocumentsReturnRecord;
+        if (
+            !returnRecord &&
+            this.recordContext &&
+            !this.state.selected &&
+            !this.closingDetail &&
+            !targetsDocument
+        ) {
+            // The host router may retain the record URL while replacing the
+            // custom return marker with its normalized action state. At the
+            // record-context list level, Back still means return to the record.
+            returnRecord = this.recordContext;
+        }
+        if (returnRecord) {
+            this.closingDetail = false;
+            await this.action.doAction(
+                {
+                    type: "ir.actions.act_window",
+                    res_model: returnRecord.resModel,
+                    res_id: Number(returnRecord.resId),
+                    views: [[false, "form"]],
+                    target: "current",
+                },
+                { clearBreadcrumbs: true }
+            );
             return;
         }
-        const documentId = Number(historyState.uslDocumentId) || null;
+        const isDocumentsState =
+            historyState.uslDocumentsWorkspace ||
+            routedState.uslDocumentsWorkspace ||
+            Boolean(urlState.filters || urlState.documentId);
+        if (!isDocumentsState) {
+            this.closingDetail = false;
+            return;
+        }
+        const hasOwn = (object, key) =>
+            Object.prototype.hasOwnProperty.call(object, key);
+        const rawDocumentId = hasOwn(historyState, "uslDocumentId")
+            ? historyState.uslDocumentId
+            : hasOwn(routedState, "uslDocumentId")
+              ? routedState.uslDocumentId
+              : urlState.documentId;
+        const rawVersionId = hasOwn(historyState, "uslVersionId")
+            ? historyState.uslVersionId
+            : hasOwn(routedState, "uslVersionId")
+              ? routedState.uslVersionId
+              : urlState.versionId;
+        const documentId = Number(rawDocumentId) || null;
+        const versionId = rawVersionId || null;
+        if (this.closingDetail && documentId) {
+            // Odoo's router may have normalized the open-document entry more
+            // than once and may only retain its own nested route state. The
+            // URL is therefore an intentional fallback: skip every duplicate
+            // automatically so one close click always reaches the list entry.
+            this.requestHistoryBack();
+            return;
+        }
         if (!documentId) {
-            this.state.selected = null;
-            this.state.editingMetadata = false;
-            this.state.tagPickerOpen = false;
+            this.cancelHistoryBack();
+            this.closingDetail = false;
+            this.hasLocalListHistory = false;
+            this.clearDetailState();
+            // Odoo can preserve its own route state while retaining the URL
+            // from a later detail entry. Canonicalize the list entry so reload
+            // stays closed while the untouched forward entry can reopen it.
+            this.writeNavigationState("replace");
             this.persistState();
             this.restoreScroll();
             return;
         }
-        await this.openDocumentById(documentId, historyState.uslVersionId);
+        this.closingDetail = false;
+        this.hasLocalListHistory = true;
+        await this.openDocumentById(documentId, versionId);
     }
 
     workspaceKwargs() {
@@ -679,6 +919,25 @@ export class DocumentsWorkspaceView extends Component {
         this.state.page = 1;
         this.state.selected = null;
         await this.load();
+    }
+
+    migrateLegacyTagFilters() {
+        const tagIds = [...this.state.tagIds];
+        if (!tagIds.length) {
+            return false;
+        }
+        this.state.tagIds = [];
+        for (const tagId of tagIds) {
+            const tag =
+                this.state.tags.find((item) => item.id === Number(tagId)) || {
+                    id: Number(tagId),
+                    name: `Tag ${tagId}`,
+                };
+            this.addTagSearchFilter(tag);
+        }
+        this.persistState();
+        this.replaceNavigationState();
+        return true;
     }
 
     async load() {
@@ -908,12 +1167,49 @@ export class DocumentsWorkspaceView extends Component {
         return this.load();
     }
 
-    toggleTagFilter(tagId) {
-        this.state.tagIds = this.state.tagIds.includes(tagId)
-            ? this.state.tagIds.filter((id) => id !== tagId)
-            : [...this.state.tagIds, tagId];
-        this.state.page = 1;
-        return this.load();
+    tagShortcutSearchItem(tag) {
+        return Object.values(this.searchModel.searchItems).find(
+            (item) =>
+                item.uslTagShortcutId === tag.id ||
+                (item.type === "filter" &&
+                    item.description === `Tag: ${tag.name}` &&
+                    this.searchModel.query.some(
+                        (query) => query.searchItemId === item.id
+                    ))
+        );
+    }
+
+    isTagShortcutActive(tag) {
+        const item = this.tagShortcutSearchItem(tag);
+        return Boolean(
+            item &&
+                this.searchModel.query.some(
+                    (query) => query.searchItemId === item.id
+                )
+        );
+    }
+
+    addTagSearchFilter(tag) {
+        this.searchModel.createNewFilters([
+            {
+                description: `Tag: ${tag.name}`,
+                domain: [["tag_ids", "in", [tag.id]]],
+                uslTagShortcutId: tag.id,
+            },
+        ]);
+    }
+
+    toggleTagFilter(tag) {
+        const existing = this.tagShortcutSearchItem(tag);
+        if (existing) {
+            this.searchModel.toggleSearchItem(existing.id);
+            return;
+        }
+        this.addTagSearchFilter(tag);
+    }
+
+    onTagShortcutSearch(event) {
+        this.state.tagShortcutQuery = event.target.value;
     }
 
     isSmartShortcutActive(shortcut) {
@@ -1019,6 +1315,7 @@ export class DocumentsWorkspaceView extends Component {
 
     async select(document) {
         this.persistState();
+        this.closingDetail = false;
         this.hasLocalListHistory = true;
         this.writeNavigationState("push", document.id);
         await this.openDocumentById(document.id);
@@ -1099,13 +1396,13 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     closeDetail() {
+        this.clearDetailState();
+        this.persistState();
         if (this.hasLocalListHistory) {
-            browser.history.back();
+            this.closingDetail = true;
+            this.requestHistoryBack();
+            this.scheduleCanonicalClose();
         } else {
-            this.state.selected = null;
-            this.state.editingMetadata = false;
-            this.state.tagPickerOpen = false;
-            this.persistState();
             this.writeNavigationState("replace");
             this.restoreScroll();
         }
@@ -1747,3 +2044,7 @@ registry.category("actions").add(
     "usl_documents.workspace",
     DocumentsWorkspace
 );
+registry.category("fields").add("usl_open_documents", {
+    component: OpenDocumentsField,
+    supportedTypes: ["integer"],
+});

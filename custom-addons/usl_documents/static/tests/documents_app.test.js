@@ -1,9 +1,10 @@
 import { beforeEach, expect, test } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
+import { animationFrame, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
 import {
     contains,
+    mockService,
     mountWithCleanup,
     onRpc,
 } from "@web/../tests/web_test_helpers";
@@ -421,9 +422,22 @@ test("detail prioritizes original, classification, versions, and linked records"
     expect(
         new URL(browser.location.href).searchParams.get("usl_document")
     ).toBe("7");
+    browser.history.pushState(
+        { nextState: { actionStack: [] } },
+        "",
+        browser.location.href
+    );
+    browser.history.pushState(
+        { nextState: { actionStack: [] } },
+        "",
+        browser.location.href
+    );
     await contains(".o_usl_documents_detail .btn-close").click();
-    await animationFrame();
+    await tick();
     expect(".o_usl_documents_detail").toHaveCount(0);
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_document")
+    ).toBe(null);
     browser.history.forward();
     await animationFrame();
     expect(".o_usl_documents_detail").toHaveCount(1);
@@ -500,9 +514,10 @@ test("top tag shortcuts compose with native search facets", async () => {
         { id: 21, name: "Tax & reporting", color: "#31a354" },
         { id: 22, name: "Contracts & legal", color: "#8c6bb1" },
     ];
-    let lastTagIds = [];
+    let lastDomain = [];
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
-        lastTagIds = kwargs.shortcut_tag_ids;
+        expect(kwargs.shortcut_tag_ids).toEqual([]);
+        lastDomain = kwargs.search_domain;
         return { ...emptyWorkspace, tags };
     });
     await mountWithCleanup(DocumentsWorkspace, {
@@ -513,11 +528,94 @@ test("top tag shortcuts compose with native search facets", async () => {
     await contains(".o_usl_filter_shortcuts .o_usl_tag_chip", {
         text: "Tax & reporting",
     }).click();
-    expect(lastTagIds).toEqual([21]);
+    expect(lastDomain).toEqual([["tag_ids", "in", [21]]]);
+    expect(".o_searchview_facet").toHaveText(/Tag: Tax & reporting/);
     expect(".o_usl_filter_shortcuts .is-selected").toHaveText(/Tax & reporting/);
     await contains(".o_usl_filter_shortcuts .is-selected").click();
-    expect(lastTagIds).toEqual([]);
+    expect(lastDomain).toEqual([]);
+    expect(".o_searchview_facet").toHaveCount(0);
     expect(".o_usl_filter_shortcuts .is-selected").toHaveCount(0);
+});
+
+test("large tag catalogs stay readable in a bounded searchable picker", async () => {
+    const tags = Array.from({ length: 20 }, (_, index) => ({
+        id: index + 1,
+        name:
+            index === 19
+                ? "A deliberately long archive classification tag"
+                : `Archive tag ${String(index + 1).padStart(2, "0")}`,
+        color: "#31a354",
+        document_count: 20 - index,
+    }));
+    let lastDomain = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        lastDomain = kwargs.search_domain;
+        return { ...emptyWorkspace, tags };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect(
+        ".o_usl_filter_shortcuts > .o_usl_tag_chip"
+    ).toHaveCount(6);
+    expect(".o_usl_more_tags summary").toHaveText(/More tags \(14\)/);
+    await contains(".o_usl_more_tags summary").click();
+    await contains(".o_usl_more_tags input").fill("deliberately long");
+    expect(".o_usl_more_tags_results .dropdown-item").toHaveCount(1);
+    expect(".o_usl_more_tags_results .dropdown-item").toHaveAttribute(
+        "title",
+        "Filter by tag: A deliberately long archive classification tag"
+    );
+    await contains(".o_usl_more_tags_results .dropdown-item").click();
+    expect(lastDomain).toEqual([["tag_ids", "in", [20]]]);
+    expect(".o_searchview_facet").toHaveText(
+        /Tag: A deliberately long archive classification tag/
+    );
+});
+
+test("Back from a record-context workspace returns to the linked record", async () => {
+    let returnedAction = null;
+    let returnedOptions = null;
+    mockService("action", {
+        async doAction(actionToRun, options) {
+            returnedAction = actionToRun;
+            returnedOptions = options;
+        },
+    });
+    onRpc("usl.document", "workspace_data", () => emptyWorkspace);
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: {
+            action: action({
+                res_model: "account.move",
+                res_id: 12,
+                linked_filter: true,
+            }),
+        },
+    });
+    expect(browser.history.state.uslDocumentsRecordContext).toBe(
+        "account.move:12"
+    );
+
+    const popState = new Event("popstate");
+    Object.defineProperty(popState, "state", {
+        value: {
+            nextState: { actionStack: [] },
+        },
+    });
+    browser.dispatchEvent(popState);
+    await tick();
+
+    expect(returnedAction).toEqual({
+        type: "ir.actions.act_window",
+        res_model: "account.move",
+        res_id: 12,
+        views: [[false, "form"]],
+        target: "current",
+    });
+    expect(returnedOptions).toEqual({ clearBreadcrumbs: true });
 });
 
 test("native search offers OCR content and Paperless custom-field facets", async () => {
@@ -694,14 +792,17 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
     expect(workspaces.at(-1).group_by).toEqual(["company_id"]);
     await contains(".o_usl_document_card .o_usl_tag_chip").click();
     expect(calls).toBe(3);
-    expect(workspaces.at(-1).shortcut_tag_ids).toEqual([1]);
+    expect(workspaces.at(-1).shortcut_tag_ids).toEqual([]);
+    expect(workspaces.at(-1).search_domain).toEqual([
+        ["tag_ids", "in", [1]],
+    ]);
     await contains(".o_usl_filter_shortcuts button", {
         text: "Needs review",
     }).click();
     expect(calls).toBe(4);
-    expect(workspaces.at(-1).search_domain).toEqual([
-        ["review_state", "=", "needs_attention"],
-    ]);
+    expect(JSON.stringify(workspaces.at(-1).search_domain)).toMatch(
+        /tag_ids.*review_state/
+    );
     expect(
         ".o_usl_filter_shortcuts [data-shortcut-key='needs_review']"
     ).toHaveClass("btn-primary");
@@ -709,7 +810,9 @@ test("native Filters, Group By, Favorites and tag shortcuts stay uncluttered", a
         ".o_usl_filter_shortcuts [data-shortcut-key='needs_review']"
     ).click();
     expect(calls).toBe(5);
-    expect(workspaces.at(-1).search_domain).toEqual([]);
+    expect(workspaces.at(-1).search_domain).toEqual([
+        ["tag_ids", "in", [1]],
+    ]);
 });
 
 test("Trash shows attribution and keeps linked documents recoverable", async () => {

@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="usl_documents.OpenDocumentsField">
+        <button type="button"
+                class="btn btn-link p-0 text-nowrap o_usl_open_documents"
+                t-att-title="label"
+                t-att-aria-label="label"
+                t-on-click.stop="open">
+            <i class="fa fa-folder-open-o me-1" aria-hidden="true"/>
+            <t t-esc="label"/>
+        </button>
+    </t>
+
     <t t-name="usl_documents.PermanentDeleteDialog">
         <Dialog title="'Permanently delete document?'" size="'md'">
             <p>
@@ -123,17 +134,55 @@
                         <button t-foreach="visibleTagShortcuts" t-as="tag"
                                 t-key="'tag:' + tag.id"
                                 type="button"
-                                t-att-class="'o_usl_tag_chip btn btn-sm ' + (state.tagIds.includes(tag.id) ? 'is-selected' : '')"
+                                t-att-class="'o_usl_tag_chip btn btn-sm ' + (this.isTagShortcutActive(tag) ? 'is-selected' : '')"
                                 t-att-style="'--tag-color:' + tag.color"
                                 t-att-title="'Filter by tag: ' + tag.name"
-                                t-on-click="() => this.toggleTagFilter(tag.id)">
-                            <t t-esc="tag.name"/>
+                                t-on-click="() => this.toggleTagFilter(tag)">
+                            <span class="o_usl_tag_chip_label" t-esc="tag.name"/>
                         </button>
-                        <span t-if="state.tags.length &gt; visibleTagShortcuts.length"
-                              class="small text-muted text-nowrap"
-                              title="Search for any other tag in the search bar">
-                            +<t t-esc="state.tags.length - visibleTagShortcuts.length"/> tags
-                        </span>
+                        <details t-if="overflowTagShortcuts.length"
+                                 class="o_usl_more_tags position-relative">
+                            <summary class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap">
+                                More tags (<t t-esc="overflowTagShortcuts.length"/>)
+                            </summary>
+                            <div class="o_usl_more_tags_menu dropdown-menu show p-2 shadow">
+                                <label class="visually-hidden" for="o_usl_tag_shortcut_search">
+                                    Search tags
+                                </label>
+                                <input id="o_usl_tag_shortcut_search"
+                                       type="search"
+                                       class="form-control form-control-sm mb-2"
+                                       placeholder="Search tags…"
+                                       t-att-value="state.tagShortcutQuery"
+                                       t-on-input="onTagShortcutSearch"/>
+                                <div class="o_usl_more_tags_results" role="listbox"
+                                     aria-label="Available tag filters">
+                                    <button t-foreach="tagShortcutResults" t-as="tag"
+                                            t-key="'more-tag:' + tag.id"
+                                            type="button"
+                                            t-att-class="'dropdown-item d-flex align-items-center gap-2 rounded ' + (this.isTagShortcutActive(tag) ? 'active' : '')"
+                                            t-att-title="'Filter by tag: ' + tag.name"
+                                            t-on-click="() => this.toggleTagFilter(tag)">
+                                        <span class="o_usl_tag_color flex-shrink-0"
+                                              t-att-style="'--tag-color:' + tag.color"/>
+                                        <span class="text-truncate flex-grow-1"
+                                              t-esc="tag.name"/>
+                                        <span class="small opacity-75"
+                                              t-esc="tag.document_count || 0"/>
+                                    </button>
+                                    <div t-if="!tagShortcutResults.length"
+                                         class="small text-muted p-2">
+                                        No matching tags. Use the search bar to create a
+                                        structured Tags filter.
+                                    </div>
+                                </div>
+                                <div t-if="tagShortcutResults.length === 50"
+                                     class="small text-muted border-top mt-2 pt-2 px-2">
+                                    Showing the first 50 matches. Refine the search to find
+                                    another tag.
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </header>
 
@@ -264,8 +313,9 @@
                                                 t-as="tag" t-key="tag.id" type="button"
                                                 class="o_usl_tag_chip btn btn-sm"
                                                 t-att-style="'--tag-color:' + tag.color + ';--tag-text:' + tag.text_color"
-                                                t-on-click.stop="() => this.toggleTagFilter(tag.id)"
-                                                t-esc="tag.name"/>
+                                                t-on-click.stop="() => this.toggleTagFilter(tag)">
+                                            <span class="o_usl_tag_chip_label" t-esc="tag.name"/>
+                                        </button>
                                         <span t-if="document.tags.length &gt; 3"
                                               class="badge rounded-pill text-bg-light">
                                             +<t t-esc="document.tags.length - 3"/>

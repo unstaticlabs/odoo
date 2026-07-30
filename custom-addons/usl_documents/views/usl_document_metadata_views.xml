@@ -10,10 +10,9 @@
                 <field name="parent_id"/>
                 <field name="matching_algorithm"/>
                 <field name="is_inbox_tag" optional="show"/>
-                <field name="accessible_document_count" string="Documents"/>
+                <field name="accessible_document_count" string="Documents"
+                       widget="usl_open_documents"/>
                 <field name="active" optional="hide"/>
-                <button name="action_open_documents" type="object"
-                        string="Open documents" icon="fa-folder-open-o"/>
             </list>
         </field>
     </record>
@@ -28,7 +27,7 @@
                         <button name="action_open_documents" type="object"
                                 class="oe_stat_button" icon="fa-folder-open-o">
                             <field name="accessible_document_count"
-                                   widget="statinfo" string="Documents"/>
+                                   widget="statinfo" string="Open documents"/>
                         </button>
                     </div>
                     <div class="oe_title">
@@ -85,10 +84,9 @@
                 <field name="partner_visible_id" optional="show"/>
                 <field name="matching_algorithm"/>
                 <field name="match" optional="hide"/>
-                <field name="accessible_document_count" string="Documents"/>
+                <field name="accessible_document_count" string="Documents"
+                       widget="usl_open_documents"/>
                 <field name="active" optional="hide"/>
-                <button name="action_open_documents" type="object"
-                        string="Open documents" icon="fa-folder-open-o"/>
             </list>
         </field>
     </record>
@@ -114,7 +112,7 @@
                         <button name="action_open_documents" type="object"
                                 class="oe_stat_button" icon="fa-folder-open-o">
                             <field name="accessible_document_count"
-                                   widget="statinfo" string="Documents"/>
+                                   widget="statinfo" string="Open documents"/>
                         </button>
                     </div>
                     <div class="oe_title">
@@ -177,10 +175,9 @@
                 <field name="name"/>
                 <field name="matching_algorithm"/>
                 <field name="match" optional="hide"/>
-                <field name="accessible_document_count" string="Documents"/>
+                <field name="accessible_document_count" string="Documents"
+                       widget="usl_open_documents"/>
                 <field name="active" optional="hide"/>
-                <button name="action_open_documents" type="object"
-                        string="Open documents" icon="fa-folder-open-o"/>
             </list>
         </field>
     </record>
@@ -195,7 +192,7 @@
                         <button name="action_open_documents" type="object"
                                 class="oe_stat_button" icon="fa-folder-open-o">
                             <field name="accessible_document_count"
-                                   widget="statinfo" string="Documents"/>
+                                   widget="statinfo" string="Open documents"/>
                         </button>
                     </div>
                     <div class="oe_title">
