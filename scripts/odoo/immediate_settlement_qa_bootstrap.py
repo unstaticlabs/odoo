@@ -1,4 +1,4 @@
-"""Prepare a disposable Exact Foreign-Amount Settlement QA database."""
+"""Prepare a disposable three-action foreign-currency settlement QA database."""
 
 import logging
 import os
@@ -98,8 +98,9 @@ def _ensure_case(
     partner_name,
     document_date,
     statement_date,
+    line_name="Cloudflare service",
 ):
-    statement_reference = f"SHINE CARD {reference.rsplit('-', 1)[-1]} 4.40"
+    statement_reference = f"SHINE CARD {reference} 4.40"
     bill = env["account.move"].sudo().search(
         [
             ("company_id", "=", company.id),
@@ -127,7 +128,7 @@ def _ensure_case(
                     "invoice_line_ids": [
                         Command.create(
                             {
-                                "name": "Cloudflare service",
+                                "name": line_name,
                                 "account_id": expense_account.id,
                                 "quantity": 1.0,
                                 "price_unit": 5.0,
@@ -203,7 +204,7 @@ def bootstrap(env):
     france = env.ref("base.fr")
     company.write(
         {
-            "name": "Exact Settlement QA",
+            "name": "Three-Action Settlement QA",
             "country_id": france.id,
             "account_fiscal_country_id": france.id,
             "currency_id": eur.id,
@@ -261,6 +262,8 @@ def bootstrap(env):
     document_date = fields.Date.today() - timedelta(days=2)
     statement_date = document_date + timedelta(days=1)
     delayed_document_date = fields.Date.today() - timedelta(days=12)
+    locked_document_date = fields.Date.today() - timedelta(days=40)
+    locked_statement_date = locked_document_date + timedelta(days=1)
     _ensure_rate(
         env,
         usd,
@@ -282,7 +285,33 @@ def bootstrap(env):
         document_date,
         5.03 / 4.40,
     )
+    _ensure_rate(
+        env,
+        usd,
+        company,
+        locked_document_date - timedelta(days=1),
+        5.0 / 4.38,
+    )
+    _ensure_rate(
+        env,
+        usd,
+        company,
+        locked_document_date,
+        5.03 / 4.40,
+    )
 
+    payment_rate_bill, payment_rate_statement = _ensure_case(
+        env,
+        company=company,
+        currency=usd,
+        purchase_journal=purchase_journal,
+        bank_journal=bank_journal,
+        expense_account=expense_account,
+        reference="QA-IMS-CLOUDFLARE-PAYMENT-RATE",
+        partner_name="Cloudflare · Use payment rate",
+        document_date=document_date,
+        statement_date=statement_date,
+    )
     settle_bill, settle_statement = _ensure_case(
         env,
         company=company,
@@ -291,7 +320,7 @@ def bootstrap(env):
         bank_journal=bank_journal,
         expense_account=expense_account,
         reference="QA-IMS-CLOUDFLARE-SETTLE",
-        partner_name="Cloudflare · Settle demo",
+        partner_name="Cloudflare · Settle with native FX",
         document_date=document_date,
         statement_date=statement_date,
     )
@@ -314,11 +343,71 @@ def bootstrap(env):
         purchase_journal=purchase_journal,
         bank_journal=bank_journal,
         expense_account=expense_account,
-        reference="QA-IMS-DELAYED-BLOCKER",
-        partner_name="Cloudflare · Delayed blocker",
+        reference="QA-IMS-DELAYED-SETTLE",
+        partner_name="Cloudflare · Delayed Settle",
         document_date=delayed_document_date,
         statement_date=statement_date,
     )
+    conflicting_bill, conflicting_statement = _ensure_case(
+        env,
+        company=company,
+        currency=usd,
+        purchase_journal=purchase_journal,
+        bank_journal=bank_journal,
+        expense_account=expense_account,
+        reference="QA-IMS-CONFLICTING-FOREIGN",
+        partner_name="Cloudflare · Conflicting bank USD",
+        document_date=document_date,
+        statement_date=statement_date,
+    )
+    conflicting_statement.write(
+        {
+            "foreign_currency_id": usd.id,
+            "amount_currency": -5.03,
+        },
+    )
+    fixed_asset_account = env["account.account"].sudo().search(
+        [
+            ("company_ids", "in", company.id),
+            ("code", "=", "QAFA001"),
+        ],
+        limit=1,
+    )
+    if not fixed_asset_account:
+        fixed_asset_account = env["account.account"].sudo().create(
+            {
+                "name": "QA unsupported fixed asset",
+                "code": "QAFA001",
+                "account_type": "asset_fixed",
+                "company_ids": [Command.set(company.ids)],
+            },
+        )
+    complex_bill, complex_statement = _ensure_case(
+        env,
+        company=company,
+        currency=usd,
+        purchase_journal=purchase_journal,
+        bank_journal=bank_journal,
+        expense_account=fixed_asset_account,
+        reference="QA-IMS-COMPLEX-ASSET",
+        partner_name="Cloudflare · Complex asset fallback",
+        document_date=document_date,
+        statement_date=statement_date,
+        line_name="Unsupported fixed-asset purchase",
+    )
+    locked_bill, locked_statement = _ensure_case(
+        env,
+        company=company,
+        currency=usd,
+        purchase_journal=purchase_journal,
+        bank_journal=bank_journal,
+        expense_account=expense_account,
+        reference="QA-IMS-LOCKED",
+        partner_name="Cloudflare · Locked settlement",
+        document_date=locked_document_date,
+        statement_date=locked_statement_date,
+    )
+    company.tax_lock_date = fields.Date.today() - timedelta(days=30)
 
     base_user = env.ref("base.group_user")
     accountant = _ensure_user(
@@ -338,56 +427,106 @@ def bootstrap(env):
         company=company,
     )
 
-    settle_term = settle_bill.line_ids.filtered(
+    payment_rate_term = payment_rate_bill.line_ids.filtered(
         lambda line: line.display_type == "payment_term" and not line.reconciled,
     )
-    _liquidity, settle_source, _other = settle_statement._seek_for_lines()
-    settle_eligibility = settle_bill.with_user(
+    _liquidity, payment_rate_source, _other = (
+        payment_rate_statement._seek_for_lines()
+    )
+    settle_eligibility = payment_rate_bill.with_user(
         accountant,
     )._get_immediate_settlement_eligibility(
-        settle_source.with_user(accountant),
+        payment_rate_source.with_user(accountant),
+    )
+    payment_rate_eligibility = payment_rate_bill.with_user(
+        accountant,
+    )._get_payment_rate_settlement_eligibility(
+        payment_rate_source.with_user(accountant),
     )
     _liquidity, delayed_source, _other = delayed_statement._seek_for_lines()
-    delayed_eligibility = delayed_bill.with_user(
+    delayed_settle_eligibility = delayed_bill.with_user(
         accountant,
     )._get_immediate_settlement_eligibility(
         delayed_source.with_user(accountant),
     )
+    delayed_payment_rate_eligibility = delayed_bill.with_user(
+        accountant,
+    )._get_payment_rate_settlement_eligibility(
+        delayed_source.with_user(accountant),
+    )
+    _liquidity, conflicting_source, _other = (
+        conflicting_statement._seek_for_lines()
+    )
+    conflicting_eligibility = conflicting_bill.with_user(
+        accountant,
+    )._get_immediate_settlement_eligibility(
+        conflicting_source.with_user(accountant),
+    )
+    _liquidity, complex_source, _other = complex_statement._seek_for_lines()
+    complex_settle_eligibility = complex_bill.with_user(
+        accountant,
+    )._get_immediate_settlement_eligibility(
+        complex_source.with_user(accountant),
+    )
+    complex_payment_rate_eligibility = complex_bill.with_user(
+        accountant,
+    )._get_payment_rate_settlement_eligibility(
+        complex_source.with_user(accountant),
+    )
+    _liquidity, locked_source, _other = locked_statement._seek_for_lines()
+    locked_eligibility = locked_bill.with_user(
+        accountant,
+    )._get_immediate_settlement_eligibility(
+        locked_source.with_user(accountant),
+    )
     _logger.info(
         "QA facts: terms=%s foreign=%s company=%s bank=%s bank_currency=%s "
         "bank_foreign=%s eligible=%s reason=%s synthetic=%s difference=%s "
-        "delayed_eligible=%s delayed_reason=%s",
-        len(settle_term),
-        abs(settle_term.amount_residual_currency),
-        abs(settle_term.amount_residual),
-        abs(settle_statement.amount),
-        settle_statement.foreign_currency_id.display_name,
-        settle_statement.amount_currency,
+        "payment_rate_eligible=%s delayed_settle=%s delayed_payment_rate=%s",
+        len(payment_rate_term),
+        abs(payment_rate_term.amount_residual_currency),
+        abs(payment_rate_term.amount_residual),
+        abs(payment_rate_statement.amount),
+        payment_rate_statement.foreign_currency_id.display_name,
+        payment_rate_statement.amount_currency,
         settle_eligibility["eligible"],
         settle_eligibility["reason"],
         settle_eligibility.get("synthetic_foreign_amount"),
         settle_eligibility.get("settlement_difference"),
-        delayed_eligibility["eligible"],
-        delayed_eligibility["reason"],
+        payment_rate_eligibility["eligible"],
+        delayed_settle_eligibility["eligible"],
+        delayed_payment_rate_eligibility["eligible"],
     )
     if (
-        len(settle_term) != 1
-        or not usd.is_zero(abs(settle_term.amount_residual_currency) - 5.0)
-        or not eur.is_zero(abs(settle_term.amount_residual) - 4.38)
-        or not eur.is_zero(abs(settle_statement.amount) - 4.40)
-        or settle_statement.foreign_currency_id
-        or settle_statement.amount_currency
+        len(payment_rate_term) != 1
+        or not usd.is_zero(abs(payment_rate_term.amount_residual_currency) - 5.0)
+        or not eur.is_zero(abs(payment_rate_term.amount_residual) - 4.38)
+        or not eur.is_zero(abs(payment_rate_statement.amount) - 4.40)
+        or payment_rate_statement.foreign_currency_id
+        or payment_rate_statement.amount_currency
         or not settle_eligibility["eligible"]
+        or not payment_rate_eligibility["eligible"]
         or not usd.is_zero(
             settle_eligibility["synthetic_foreign_amount"] - 5.03,
         )
         or not eur.is_zero(settle_eligibility["settlement_difference"] - 0.02)
-        or delayed_eligibility["eligible"]
+        or not delayed_settle_eligibility["eligible"]
+        or delayed_payment_rate_eligibility["eligible"]
+        or conflicting_eligibility["eligible"]
+        or not complex_settle_eligibility["eligible"]
+        or complex_payment_rate_eligibility["eligible"]
+        or locked_eligibility["eligible"]
     ):
         raise RuntimeError(INVALID_QA_FACTS)
 
     env.cr.commit()
-    _logger.info("Exact Foreign-Amount Settlement QA is ready.")
+    _logger.info("Three-Action Foreign-Currency Settlement QA is ready.")
+    _logger.info(
+        "Use payment rate case: %s %s %s",
+        payment_rate_bill.display_name,
+        payment_rate_bill.id,
+        payment_rate_statement.id,
+    )
     _logger.info(
         "Settle case: %s %s %s",
         settle_bill.display_name,
@@ -401,10 +540,28 @@ def bootstrap(env):
         add_statement.id,
     )
     _logger.info(
-        "Delayed blocker: %s %s %s",
+        "Delayed Settle case: %s %s %s",
         delayed_bill.display_name,
         delayed_bill.id,
         delayed_statement.id,
+    )
+    _logger.info(
+        "Conflicting foreign fact case: %s %s %s",
+        conflicting_bill.display_name,
+        conflicting_bill.id,
+        conflicting_statement.id,
+    )
+    _logger.info(
+        "Complex asset fallback case: %s %s %s",
+        complex_bill.display_name,
+        complex_bill.id,
+        complex_statement.id,
+    )
+    _logger.info(
+        "Locked case: %s %s %s",
+        locked_bill.display_name,
+        locked_bill.id,
+        locked_statement.id,
     )
 
 

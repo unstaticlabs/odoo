@@ -7,8 +7,9 @@ Controls, Reports and the compatibility product module:
 
 - governed fiscal-year behavior;
 - payment and partner suggestions;
-- exact foreign-amount settlement for company-currency bank transactions whose
-  foreign amount was estimated by Odoo;
+- three-action foreign-currency settlement: native Add, exact Settle with
+  native FX, and immediate-event payment-rate valuation on the existing bank
+  move;
 - bank matching and reconciliation compatibility;
 - analytic measures and entry-direction safeguards;
 - scoped read-only accounting evidence protection.
