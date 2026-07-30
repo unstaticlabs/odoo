@@ -12,12 +12,14 @@ amount. The invoice payment row can offer three actions:
 Example:
 
 ```text
-Bank €4.40 · Invoice $5.00 · Odoo estimate $5.03
-Recommended: Use payment rate · no FX
+Odoo estimate $5.03     [Add] [Settle] [Use payment rate]
 ```
 
 All available actions remain on the same compact row. The recommended action
-is highlighted. Hover or focus an action to see its accounting consequence.
+is highlighted; alternatives use secondary styling. Hover or focus an action
+to see its accounting consequence. The short **Best match** cue keeps the full
+matching evidence and any source warning in a tooltip instead of repeating it
+on the invoice.
 
 ## Choose the action
 
@@ -45,9 +47,6 @@ and rate policy and for a complete, never-paid document that Odoo can legally
 reset and repost. Documents with taxes, stock valuation, fixed assets,
 deferrals, mixed-sign lines, fees, withholding, sent/active EDI records, secure
 hashes, or other ambiguous facts keep Add and, where safe, Settle.
-
-A small **Review** indicator explains why Use payment rate is unavailable or
-what source fact needs attention. It does not add a permanent warning panel.
 
 ## Check or undo the result
 

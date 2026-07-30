@@ -17,30 +17,17 @@
             </attribute>
         </xpath>
         <xpath expr="//t[@t-foreach='info.lines']/tr" position="after">
-            <tr t-if="info.outstanding and (line.match_reason or line.settlement_facts or line.show_settlement_review)"
+            <tr t-if="info.outstanding and line.match_reason"
                 class="o_rebuild_payment_suggestion_detail">
                 <td/>
                 <td colspan="3"
                     class="o_rebuild_payment_suggestion_context text-start text-wrap">
-                    <span t-if="line.is_best_match and line.match_summary"
-                          class="o_rebuild_payment_suggestion_evidence"
-                          t-att-title="line.match_reason"
+                    <span class="o_rebuild_payment_suggestion_evidence"
+                          t-att-title="line.settlement_review_reason
+                                       ? line.match_reason + ' · ' + line.settlement_review_reason
+                                       : line.match_reason"
                           data-bs-toggle="tooltip"
-                          t-out="line.is_best_match
-                                 ? 'Best match · ' + line.match_summary
-                                 : line.match_summary"/>
-                    <span t-if="line.settlement_facts"
-                          class="d-block o_rebuild_payment_suggestion_facts"
-                          t-out="line.settlement_facts"/>
-                    <span t-if="line.settlement_recommendation"
-                          class="d-block o_rebuild_payment_suggestion_recommendation"
-                          t-out="line.settlement_recommendation"/>
-                    <span t-if="line.show_settlement_review"
-                          class="o_rebuild_payment_suggestion_review"
-                          t-att-title="line.settlement_review_reason"
-                          data-bs-toggle="tooltip">
-                        Review
-                    </span>
+                          t-out="line.is_best_match ? 'Best match' : 'Possible match'"/>
                 </td>
             </tr>
         </xpath>

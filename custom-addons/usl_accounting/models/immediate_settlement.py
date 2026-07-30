@@ -2508,20 +2508,6 @@ class AccountMove(models.Model):
                     else False
                 )
                 if context["eligible"]:
-                    document_label = {
-                        "in_invoice": _("Bill"),
-                        "in_refund": _("Vendor credit"),
-                        "in_receipt": _("Purchase receipt"),
-                        "out_invoice": _("Invoice"),
-                        "out_refund": _("Credit note"),
-                        "out_receipt": _("Sales receipt"),
-                    }.get(move.move_type, _("Document"))
-                    item["settlement_facts"] = _(
-                        "Bank %(company)s · %(document)s %(foreign)s",
-                        company=context["company_label"],
-                        document=document_label,
-                        foreign=context["foreign_label"],
-                    )
                     item["odoo_estimate_label"] = _("Odoo estimate")
                     item["amount_is_odoo_estimate"] = (
                         not context["facts"].get("authoritative_foreign")
@@ -2540,26 +2526,6 @@ class AccountMove(models.Model):
                                 abs(context["synthetic_difference"]),
                             ),
                         )
-                    if payment_rate["eligible"]:
-                        item["settlement_recommendation"] = _(
-                            "Recommended: Use payment rate · no FX",
-                        )
-                    elif settle["eligible"]:
-                        difference_type = context["settlement_difference_type"]
-                        if difference_type == "none":
-                            consequence = _("no settlement difference")
-                        else:
-                            consequence = _(
-                                "%(amount)s FX %(kind)s",
-                                amount=move.company_currency_id.format(
-                                    abs(context["settlement_difference"]),
-                                ),
-                                kind=difference_type,
-                            )
-                        item["settlement_recommendation"] = _(
-                            "Recommended: Settle · %(consequence)s",
-                            consequence=consequence,
-                        )
                 plausible_reason = (
                     payment_rate["reason"]
                     if payment_rate.get("plausible")
@@ -2569,7 +2535,6 @@ class AccountMove(models.Model):
                     else False
                 )
                 item["settlement_review_reason"] = plausible_reason
-                item["show_settlement_review"] = bool(plausible_reason)
             widget = dict(widget)
             widget["content"] = content
             move.invoice_outstanding_credits_debits_widget = widget
