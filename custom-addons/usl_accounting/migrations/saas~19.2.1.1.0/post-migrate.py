@@ -1,7 +1,4 @@
-from odoo import SUPERUSER_ID, api
-
-
 def migrate(cr, version):
-    env = api.Environment(cr, SUPERUSER_ID, {})
-    companies = env["res.company"].search([])
-    companies._ensure_immediate_settlement_journal()
+    # This preview migration originally created an IMST journal. The exact
+    # foreign-amount design uses the existing bank move instead.
+    return

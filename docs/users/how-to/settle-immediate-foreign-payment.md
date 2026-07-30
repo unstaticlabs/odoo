@@ -1,30 +1,47 @@
-# Settle an immediate foreign-currency payment
+# Settle an exact foreign amount
 
-Use **Settle** when a foreign-currency invoice or bill was converted by the
-bank immediately and the suggested payment shows both the exact foreign
-amount and the actual amount charged or received in company currency.
+Use **Settle** when a foreign-currency invoice or bill is suggested against a
+company-currency bank transaction and Odoo estimated the foreign amount
+because the bank did not report it.
+
+Example:
+
+```text
+Cloudflare bill:          $5.00
+Actual bank debit:        €4.40
+Odoo estimated payment:   $5.03
+```
 
 1. Open the posted invoice or bill.
-2. Find the payment under **Outstanding Credits** or **Outstanding Debits**.
-3. Review the payment identity and amount.
-4. Choose **Settle** to match it at the bank's executed rate.
+2. Find the bank transaction under **Outstanding Credits** or **Outstanding
+   Debits**.
+3. Check the exact document amount, actual bank amount, discarded Odoo
+   estimate, and expected settlement gain or loss.
+4. Select **Settle**.
 
-**Add** always remains available. Choose **Add** for the normal Odoo
-reconciliation treatment, especially when a foreign receivable or payable was
-outstanding over time. Standard Odoo accounting may then create an exchange
-gain or loss.
+Settle uses `$5.00` from the selected document, preserves the actual `€4.40`
+bank debit, and reconciles normally. Odoo may record a legitimate
+company-currency exchange gain or loss. It will not leave the synthetic
+`$0.03` difference open.
 
-Odoo shows **Settle** only when the amounts, currencies, direction, dates,
-rate, accounting period, permissions, and document structure pass the
-company's policy. If **Standard FX only** appears, its helper explains why
-**Settle** is unavailable. Do not work around an amount discrepancy by
-changing the payment; review the bank transaction and any separate fee first.
+**Add** remains unchanged and available beside Settle. Use Add whenever you
+want the existing matching behavior or when the bank supplied authoritative
+foreign-currency data.
 
-After success, the payment history shows **Settled at payment rate**. Open its
-information popover to inspect the executed currency pair, executed and
-reference rates, and source. Accountants can open the linked Immediate
-Settlement record for the complete adjustment and allocation audit.
+Settle is absent when the match is ambiguous, outside company policy, already
+allocated, locked, protected, or contains another amount such as a fee or
+withholding. Review those cases in Bank Matching; do not force the amount.
 
-To undo the match, use Odoo's unreconciliation action. Odoo reverses the
-linked settlement adjustment and restores the document and payment residuals.
-Do not try to edit or cancel the adjustment journal entry directly.
+After success, the payment history shows a trace such as:
+
+```text
+Settled · $5.00 · €0.02 FX loss
+```
+
+Open the information icon to inspect the bank amount, invoice-derived foreign
+amount, discarded estimate, carrying value, exchange account, rates, dates,
+and provenance.
+
+To undo the settlement, use the normal **Unreconcile** action or open the Exact
+Settlement audit record and choose **Reverse Settlement**. The bill and bank
+suspense reopen, and the bank transaction returns to having no foreign amount.

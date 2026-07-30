@@ -4,7 +4,7 @@
         "USL Accounting cockpit, controls, reports, declarations, "
         "and audit evidence."
     ),
-    "version": "saas~19.2.1.8.3",
+    "version": "saas~19.2.1.8.4",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -36,6 +36,7 @@
         "data/french_declaration_rules.xml",
         "data/accounting_framework.xml",
         "data/einvoice_readiness.xml",
+        "views/immediate_settlement_views.xml",
         "views/rebuild_account_migration_views.xml",
         "views/account_closing_declaration_views.xml",
         "views/accounting_framework_views.xml",
@@ -44,7 +45,6 @@
         "views/einvoice_readiness_views.xml",
         "views/accounting_action_guidance_views.xml",
         "views/reconciliation_model_views.xml",
-        "views/immediate_settlement_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

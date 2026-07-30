@@ -58,6 +58,16 @@
         color: $text-muted;
     }
 
+    .o_rebuild_payment_suggestion_settlement_preview {
+        margin-top: map-get($spacers, 1);
+        color: $body-color;
+        font-weight: $font-weight-semibold;
+    }
+
+    .o_rebuild_payment_suggestion_settlement_estimate {
+        font-size: $font-size-sm;
+    }
+
     .o_rebuild_payment_suggestion_settlement_blocker {
         margin-left: map-get($spacers, 1);
         border-bottom: 1px dotted currentColor;
