@@ -325,17 +325,14 @@
         <field name="model">res.company</field>
         <field name="inherit_id" ref="view_company_rebuild_einvoice_readiness_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_rebuild_approve_einvoice_activation']" position="attributes">
-                <attribute name="title">Record management approval for production activation. This does not register or connect the company.</attribute>
-            </xpath>
-            <xpath expr="//button[@name='action_rebuild_revoke_einvoice_activation']" position="attributes">
-                <attribute name="title">Revoke activation approval and suspend scheduled exchange immediately.</attribute>
+            <xpath expr="//button[@name='action_rebuild_begin_einvoice_activation']" position="attributes">
+                <attribute name="title">Review the company setup, record management approval and start the native Odoo Approved Platform registration. E-reporting remains disabled.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_rebuild_enable_einvoice_exchange']" position="attributes">
-                <attribute name="title">Start scheduled exchanges with the already connected production provider.</attribute>
+                <attribute name="title">Resume incoming-invoice checks for this connected company.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_rebuild_suspend_einvoice_exchange']" position="attributes">
-                <attribute name="title">Stop scheduled exchanges without deleting provider configuration or received evidence.</attribute>
+                <attribute name="title">Pause incoming-invoice checks without deleting received bills or evidence.</attribute>
             </xpath>
         </field>
     </record>

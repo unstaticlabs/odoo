@@ -8,28 +8,4 @@
     <function model="res.company"
         name="_rebuild_apply_default_einvoice_provider"/>
 
-    <record id="account_peppol.ir_cron_peppol_get_new_documents" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="account_peppol.ir_cron_peppol_get_message_status" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="account_peppol.ir_cron_peppol_get_participant_status" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="account_peppol.ir_cron_peppol_webhook_keepalive" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="account_peppol_response.ir_cron_peppol_auto_register_services" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="l10n_fr_pdp.ir_cron_pdp_send_lifecycles" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows" model="ir.cron">
-        <field name="active" eval="False"/>
-    </record>
 </odoo>
