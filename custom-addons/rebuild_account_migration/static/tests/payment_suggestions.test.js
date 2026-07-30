@@ -112,7 +112,7 @@ class AccountMove extends models.Model {
                         immediate_settlement_reason:
                             "Use the document's exact $5.00. Odoo records €0.02 FX loss.",
                         payment_rate_settlement_reason:
-                            "Use $5.00 at the bank's €4.40 rate. No FX is recorded.",
+                            "Value the document at the bank's €4.40 rate and match $5.00. No FX.",
                         recommended_settlement_action: "payment_rate",
                         settlement_facts:
                             "Bank €4.40 · Bill $5.00",
@@ -156,6 +156,9 @@ class AccountMove extends models.Model {
                             "Use Odoo's $5.03 estimate. This may leave a $0.03 difference.",
                         amount_is_odoo_estimate: true,
                         odoo_estimate_label: "Odoo estimate",
+                        settlement_review_reason:
+                            "Use payment rate is limited to 3 days; this transaction is 8 days from the document.",
+                        show_settlement_review: true,
                     },
                 ],
                 move_id: 5,
@@ -216,7 +219,7 @@ class AccountMove extends models.Model {
                         immediate_settlement_reason:
                             "Add already uses the exact foreign amount for this bank transaction.",
                         payment_rate_settlement_reason:
-                            "Use $5.00 at the bank's €4.38 rate. No FX is recorded.",
+                            "Value the document at the bank's €4.38 rate and match $5.00. No FX.",
                         recommended_settlement_action: "payment_rate",
                         settlement_facts:
                             "Bank €4.38 · Bill $5.00",
@@ -249,14 +252,18 @@ class AccountMove extends models.Model {
                         is_refund: false,
                         is_immediate_settlement: true,
                         is_payment_rate_settlement: true,
-                        settlement_summary: "$5.00 · €4.40 · no FX",
+                        is_document_reprice: true,
+                        settlement_summary: "$5.00 · Bill €4.40 · no FX",
                         settlement_method: "Use payment rate",
                         executed_pair:
                             "$5.00 from the document = €4.40 reported on the bank statement",
                         synthetic_estimate: "$5.03",
                         carrying_value: "€4.38",
-                        economic_adjustment_label: "€0.02",
-                        economic_account_names: "604000 Hosting",
+                        original_document_value: "€4.38",
+                        repriced_document_value: "€4.40",
+                        document_revaluation_label: "€0.02",
+                        original_invoice_currency_rate: 1.141553,
+                        applied_invoice_currency_rate: 1.136364,
                         executed_rate: 0.88,
                         reference_rate: 0.874,
                         provenance:
@@ -440,7 +447,7 @@ test("immediate suggestion shows all three actions and recommends payment rate",
     expect(".payment_rate_assign").toHaveClass("btn-primary");
     expect(".payment_rate_assign").toHaveAttribute(
         "title",
-        "Use $5.00 at the bank's €4.40 rate. No FX is recorded."
+        "Value the document at the bank's €4.40 rate and match $5.00. No FX."
     );
     expect(".o_rebuild_payment_suggestion_facts").toHaveText(
         "Bank €4.40 · Bill $5.00"
@@ -517,7 +524,11 @@ test("delayed payment recommends Settle and keeps payment-rate warning in helper
     expect(".o_rebuild_payment_suggestion_recommendation").toHaveText(
         "Recommended: Settle · €0.02 FX loss"
     );
-    expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
+    expect(".o_rebuild_payment_suggestion_review").toHaveCount(1);
+    expect(".o_rebuild_payment_suggestion_review").toHaveAttribute(
+        "title",
+        "Use payment rate is limited to 3 days; this transaction is 8 days from the document."
+    );
 });
 
 test("conflicting facts keep Add with one unobtrusive review indicator", async () => {
@@ -610,7 +621,7 @@ test("settled payment trace distinguishes bank facts from Odoo's estimate", asyn
     expect(".account_payment_popover").toHaveText(/EXCH\/2026\/00001/);
 });
 
-test("payment-rate trace shows bank value, no FX, and economic allocation", async () => {
+test("payment-rate trace shows document repricing without technical allocation", async () => {
     await mountView({
         type: "form",
         resModel: "account.move",
@@ -623,14 +634,23 @@ test("payment-rate trace shows bank value, no FX, and economic allocation", asyn
     });
 
     expect(".o_payment_label").toHaveText(
-        /Payment rate · \$5.00 · €4.40 · no FX on/
+        /Payment rate · \$5.00 · Bill €4.40 · no FX on/
     );
     await contains(".js_payment_info").click();
     expect(".account_payment_popover").toHaveText(/Method:\s*Use payment rate/);
-    expect(".account_payment_popover").toHaveText(/Economic adjustment:\s*€0.02/);
     expect(".account_payment_popover").toHaveText(
-        /Adjusted accounts:\s*604000 Hosting/
+        /Original document value:\s*€4.38/
     );
+    expect(".account_payment_popover").toHaveText(
+        /Payment-rate document value:\s*€4.40/
+    );
+    expect(".account_payment_popover").toHaveText(
+        /Document revaluation:\s*€0.02/
+    );
+    expect(".account_payment_popover").toHaveText(/Original document rate:\s*1.141553/);
+    expect(".account_payment_popover").toHaveText(/Applied document rate:\s*1.136364/);
+    expect(".account_payment_popover").not.toHaveText(/Economic adjustment:/);
+    expect(".account_payment_popover").not.toHaveText(/Adjusted accounts:/);
     expect(".account_payment_popover").not.toHaveText(/Exchange account:/);
     expect(".account_payment_popover").not.toHaveText(/Native exchange entry:/);
 });

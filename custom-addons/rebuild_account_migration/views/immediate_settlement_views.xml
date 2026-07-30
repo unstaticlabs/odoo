@@ -64,9 +64,11 @@
                 <field name="preview_settlement_difference" optional="hide"/>
                 <field name="settlement_difference"/>
                 <field name="settlement_difference_type" widget="badge"/>
-                <field name="economic_adjustment_amount"/>
+                <field name="economic_adjustment_amount" optional="hide"/>
+                <field name="document_revaluation_amount"/>
                 <field name="provenance"/>
                 <field name="mechanism" optional="hide"/>
+                <field name="payment_rate_application" optional="hide"/>
                 <field name="state" widget="badge"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
@@ -98,6 +100,7 @@
                             <field name="statement_line_id"/>
                             <field name="bank_move_id"/>
                             <field name="mechanism"/>
+                            <field name="payment_rate_application"/>
                             <field name="user_id"/>
                         </group>
                         <group>
@@ -115,8 +118,12 @@
                             <field name="preview_settlement_difference"/>
                             <field name="settlement_difference"/>
                             <field name="settlement_difference_type"/>
-                            <field name="exchange_account_id"/>
-                            <field name="economic_adjustment_amount"/>
+                            <field
+                                name="exchange_account_id"
+                                invisible="mechanism == 'payment_rate'"/>
+                            <field
+                                name="economic_adjustment_amount"
+                                invisible="mechanism != 'legacy_adjustment' and payment_rate_application != 'legacy_bank_adjustment'"/>
                         </group>
                         <group>
                             <field name="executed_rate"/>
@@ -125,6 +132,19 @@
                             <field name="benchmark_company_amount"/>
                             <field name="policy_date_distance"/>
                             <field name="policy_warning"/>
+                        </group>
+                    </group>
+                    <group
+                        string="Document Valuation"
+                        invisible="payment_rate_application != 'document_reprice'">
+                        <group>
+                            <field name="original_document_company_amount"/>
+                            <field name="repriced_document_company_amount"/>
+                            <field name="document_revaluation_amount"/>
+                        </group>
+                        <group>
+                            <field name="original_invoice_currency_rate"/>
+                            <field name="applied_invoice_currency_rate"/>
                         </group>
                     </group>
                     <group>
@@ -153,9 +173,17 @@
                                 <field name="partial_reconcile_ids"/>
                                 <field name="source_line_id_snapshot"/>
                                 <field name="provenance_details"/>
+                                <field
+                                    name="original_document_line_snapshot"
+                                    invisible="payment_rate_application != 'document_reprice'"/>
+                                <field
+                                    name="repriced_document_line_snapshot"
+                                    invisible="payment_rate_application != 'document_reprice'"/>
                             </group>
                         </page>
-                        <page string="Economic Allocations" invisible="mechanism not in ('payment_rate', 'legacy_adjustment')">
+                        <page
+                            string="Legacy Economic Allocations"
+                            invisible="mechanism != 'legacy_adjustment' and payment_rate_application != 'legacy_bank_adjustment'">
                             <group>
                                 <field name="payment_line_id"/>
                                 <field name="payment_move_id"/>

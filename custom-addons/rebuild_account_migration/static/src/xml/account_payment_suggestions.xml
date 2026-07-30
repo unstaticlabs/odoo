@@ -163,11 +163,31 @@
                     <td class="fw-bolder">Native exchange entry:</td>
                     <td class="ps-1" t-out="props.exchange_move_names"/>
                 </tr>
-                <tr t-if="props.is_payment_rate_settlement">
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Original document value:</td>
+                    <td class="ps-1" t-out="props.original_document_value"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Payment-rate document value:</td>
+                    <td class="ps-1" t-out="props.repriced_document_value"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Document revaluation:</td>
+                    <td class="ps-1" t-out="props.document_revaluation_label"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Original document rate:</td>
+                    <td class="ps-1" t-out="props.original_invoice_currency_rate"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Applied document rate:</td>
+                    <td class="ps-1" t-out="props.applied_invoice_currency_rate"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and !props.is_document_reprice">
                     <td class="fw-bolder">Economic adjustment:</td>
                     <td class="ps-1" t-out="props.economic_adjustment_label"/>
                 </tr>
-                <tr t-if="props.is_payment_rate_settlement and props.economic_account_names">
+                <tr t-if="props.is_payment_rate_settlement and !props.is_document_reprice and props.economic_account_names">
                     <td class="fw-bolder">Adjusted accounts:</td>
                     <td class="ps-1" t-out="props.economic_account_names"/>
                 </tr>

@@ -1240,13 +1240,14 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         statement_line, source_line = self._bank_candidate(bill)
         move_model = self.env.registry["account.move"]
         original_post = move_model._post
+        failure_message = "Simulated repost failure"
 
         def fail_repost(records, soft=True):
             if bill in records:
-                raise UserError("Simulated repost failure")
+                raise UserError(failure_message)
             return original_post(records, soft=soft)
 
-        with self.assertRaisesRegex(UserError, "Simulated repost failure"):
+        with self.assertRaisesRegex(UserError, failure_message):
             with self.env.cr.savepoint():
                 with patch.object(move_model, "_post", fail_repost):
                     bill.js_use_payment_rate_outstanding_line(source_line.id)
