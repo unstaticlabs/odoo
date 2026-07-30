@@ -22,13 +22,9 @@ Runtime ownership inside the repository follows this order:
 The verified production add-on dependency direction is:
 
 ```text
-native Odoo + pinned OCA
-          |
-          v
-   usl_accounting
-          |
-          v
-rebuild_account_migration <--- usl_expense_batch <--- native hr_expense
+ pinned OCA auth_oidc ---> usl_pocketid -------------------+
+ native/OCA Accounting -> usl_accounting -----------------+--> rebuild_account_migration
+ native hr_expense -----> usl_expense_batch --------------+
   (product compatibility, stable XML-ID ownership and reconstruction)
 
 usl_bootstrap ---> native modules only (disposable test fixture)
@@ -100,6 +96,7 @@ identifiers. It is explicitly rejected for this increment.
 | Existing security, views, actions, menus and seeded definitions | `rebuild_account_migration` | compatibility ownership | XML-ID continuity characterization test |
 | Configurable-definition mixin | compatibility module for this stage | generated model XML-ID ownership, left unchanged | XML-ID continuity characterization test |
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
+| Pocket ID authentication and identity governance | `usl_pocketid` over pinned OCA `auth_oidc` | runtime authentication boundary | issuer/audience/nonce/PKCE/JWKS, identity lifecycle and named-profile tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
 
@@ -130,6 +127,7 @@ menus.
 
 | Repository | Commit |
 | --- | --- |
+| `server-auth` | `f51fe1b36965b78ac935e80c6b95d7115440a1b4` |
 | `account-financial-reporting` | `aa34bf33fc96fbae7fb5a2b9609b807b4e20514c` |
 | `account-reconcile` | `a9bbab67e42f3b762e9c34b30b6c1a77f9c373fb` |
 | `bank-statement-import` | `7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c` |

@@ -118,6 +118,35 @@ bootstrap_einvoice_qa() {
   printf 'Read-only: qa.reviewer / qa-reviewer\n'
 }
 
+configure_pocket_id() {
+  local status=0
+  if [[ -z "${ODOO_DEV_DB:-}" || "$DEV_DB" == "odoo_dev" \
+      || "$DEV_DB" == "odoo_online_source_saas_19_2" ]]; then
+    printf \
+      'Refusing Pocket ID configuration without an explicit safe candidate database.\n' \
+      >&2
+    return 2
+  fi
+  if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
+      || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
+    printf \
+      'Refusing Pocket ID configuration while an electronic-invoice live guard is enabled.\n' \
+      >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < "$ROOT/scripts/odoo/pocket_id_configure.py" \
+    || status=$?
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  print_url
+  return "$status"
+}
+
 cleanup_test_database() {
   local database="$1"
   case "$database" in
@@ -243,6 +272,9 @@ case "${1:-help}" in
   bootstrap-einvoice-qa)
     bootstrap_einvoice_qa
     ;;
+  configure-pocket-id)
+    configure_pocket_id
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -275,6 +307,8 @@ Commands:
   test-tag TAG  Run one installed backend/browser test tag on odoo_dev
   bootstrap-einvoice-qa
                 Prepare safe e-invoicing QA data and local test accounts
+  configure-pocket-id
+                Dry-run or apply Pocket ID environment and named-user policy
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

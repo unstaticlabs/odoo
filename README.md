@@ -335,6 +335,10 @@ scripts/odoo-dev test base    # run an Odoo module test pass
 scripts/odoo-dev test-js rebuild_account_migration  # frontend unit tests
 scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
+scripts/odoo-dev configure-pocket-id  # dry-run/apply Pocket ID user policy
+scripts/pocket-id-dev bootstrap       # generate ignored local Pocket ID secrets
+scripts/pocket-id-dev configure-odoo  # provision Pocket ID and candidate Odoo
+scripts/pocket-id-dev one-time-link valentin  # test-only named-user login
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
@@ -353,6 +357,13 @@ These helpers serve the database selected by `ODOO_DEV_DB` (default:
 effective runtime filter before printing the login URL. If you invoke
 `docker compose` directly instead, keep `ODOO_DB_FILTER` in the local `.env`
 aligned with the database you intend to serve.
+
+The isolated local Pocket ID workflow is pinned in `compose.pocket-id.yaml`,
+binds Pocket ID only to loopback, targets only
+`odoo_saas_19_2_candidate_01`, and generates its environment-only credentials
+in the ignored mode-0600 `.pocket-id.env`. Follow the
+[Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
+the client secret, break-glass password or raw subjects in Git.
 
 ### Optional bootstrap fixture
 
