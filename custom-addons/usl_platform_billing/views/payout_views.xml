@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_platform_billing_payout_list" model="ir.ui.view">
+        <field name="name">usl.platform.billing.payout.list</field>
+        <field name="model">usl.platform.billing.payout</field>
+        <field name="arch" type="xml">
+            <list string="Platform Payouts"
+                  decoration-danger="validation_status == 'error'"
+                  decoration-warning="validation_status == 'warning'"
+                  decoration-success="state == 'paid'">
+                <field name="payout_date"/>
+                <field name="platform_id"/>
+                <field name="platform_reference"/>
+                <field name="platform_currency_id" column_invisible="True"/>
+                <field name="net_platform_amount"/>
+                <field name="commission_platform_amount"/>
+                <field name="bank_currency_id" column_invisible="True"/>
+                <field name="bank_received_amount" sum="Bank total"/>
+                <field name="bank_statement_line_id" optional="show"/>
+                <field name="validation_status" widget="badge"
+                       decoration-success="validation_status == 'ok'"
+                       decoration-warning="validation_status == 'warning'"
+                       decoration-danger="validation_status == 'error'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'paid'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_platform_billing_payout_search" model="ir.ui.view">
+        <field name="name">usl.platform.billing.payout.search</field>
+        <field name="model">usl.platform.billing.payout</field>
+        <field name="arch" type="xml">
+            <search string="Platform Payouts">
+                <field name="name"/>
+                <field name="platform_reference"/>
+                <field name="platform_id"/>
+                <field name="session_id"/>
+                <filter name="unmatched" string="Bank unmatched"
+                        domain="[('bank_match_status', 'not in', ('reconciled',))]"/>
+                <filter name="needs_attention" string="Needs attention"
+                        domain="[('validation_status', 'in', ('warning', 'error'))]"/>
+                <filter name="date" string="Payout date" date="payout_date"/>
+                <group>
+                    <filter name="platform" string="Platform" domain="[]" context="{'group_by': 'platform_id'}"/>
+                    <filter name="session" string="Session" domain="[]" context="{'group_by': 'session_id'}"/>
+                    <filter name="state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_platform_billing_payout_form" model="ir.ui.view">
+        <field name="name">usl.platform.billing.payout.form</field>
+        <field name="model">usl.platform.billing.payout</field>
+        <field name="arch" type="xml">
+            <form string="Platform Payout">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,generated,posted,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Payout">
+                            <field name="session_id" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                            <field name="platform_id" readonly="state != 'draft'"/>
+                            <field name="payout_date" readonly="state != 'draft'"/>
+                            <field name="platform_reference" readonly="state != 'draft'"/>
+                            <field name="validation_status" widget="badge"/>
+                            <field name="validation_message" readonly="1"
+                                   invisible="not validation_message"/>
+                        </group>
+                        <group string="Platform Amounts">
+                            <field name="platform_currency_id" invisible="1"/>
+                            <field name="net_platform_amount" readonly="state != 'draft'"/>
+                            <field name="commission_rate_snapshot" readonly="state != 'draft'"/>
+                            <field name="gross_platform_amount" readonly="1"/>
+                            <field name="commission_platform_amount" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="bank" string="Bank">
+                            <group>
+                                <group>
+                                    <field name="bank_statement_line_id"/>
+                                    <field name="bank_currency_id" invisible="1"/>
+                                    <field name="bank_received_amount"/>
+                                    <field name="bank_match_status" widget="badge"/>
+                                </group>
+                                <group>
+                                    <field name="bank_journal_id" readonly="1"/>
+                                    <field name="bank_date" readonly="1"/>
+                                    <field name="bank_label" readonly="1"/>
+                                    <field name="bank_match_score" readonly="1"/>
+                                    <field name="bank_amount_difference" readonly="1"/>
+                                    <field name="bank_date_difference" readonly="1"/>
+                                </group>
+                            </group>
+                            <field name="bank_detection_reason" readonly="1"/>
+                        </page>
+                        <page name="documents" string="Accounting Documents">
+                            <group>
+                                <field name="customer_invoice_id" readonly="1"/>
+                                <field name="vendor_bill_id" readonly="1"/>
+                                <field name="compensation_move_id" readonly="1"/>
+                            </group>
+                        </page>
+                        <page name="evidence" string="Supporting Documents">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_platform_billing_payouts" model="ir.actions.act_window">
+        <field name="name">Platform Payouts</field>
+        <field name="res_model">usl.platform.billing.payout</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_platform_billing_payout_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No platform payouts yet</p>
+            <p>Create payouts inside a monthly billing session or import bank transactions.</p>
+        </field>
+    </record>
+</odoo>

@@ -67,6 +67,7 @@ TARGET_INIT_MODULES = [
     "analytic",
     "l10n_fr_account",
     *OCA_TARGET_MODULES,
+    "usl_platform_billing",
     "rebuild_account_migration",
 ]
 USL_BENCHMARK_START = "2024-01-10"

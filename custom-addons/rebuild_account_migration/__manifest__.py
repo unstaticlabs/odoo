@@ -27,6 +27,7 @@
         "spreadsheet_account",
         "usl_accounting",
         "usl_expense_batch",
+        "usl_platform_billing",
     ],
     "data": [
         "data/account_tour_data.xml",

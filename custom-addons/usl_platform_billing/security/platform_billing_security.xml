@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="rule_platform_company" model="ir.rule">
+        <field name="name">Platform billing configurations: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_platform"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_session_company" model="ir.rule">
+        <field name="name">Platform billing sessions: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_session"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_payout_company" model="ir.rule">
+        <field name="name">Platform billing payouts: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_payout"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

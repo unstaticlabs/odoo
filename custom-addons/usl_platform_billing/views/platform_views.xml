@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_platform_billing_platform_list" model="ir.ui.view">
+        <field name="name">usl.platform.billing.platform.list</field>
+        <field name="model">usl.platform.billing.platform</field>
+        <field name="arch" type="xml">
+            <list string="Content Platforms">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="currency_id"/>
+                <field name="commission_rate"/>
+                <field name="vendor_bill_grouping_mode"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_platform_billing_platform_search" model="ir.ui.view">
+        <field name="name">usl.platform.billing.platform.search</field>
+        <field name="model">usl.platform.billing.platform</field>
+        <field name="arch" type="xml">
+            <search string="Content Platforms">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="company" string="Company" domain="[]" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                    <filter name="currency" string="Currency" domain="[]" context="{'group_by': 'currency_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_platform_billing_platform_form" model="ir.ui.view">
+        <field name="name">usl.platform.billing.platform.form</field>
+        <field name="model">usl.platform.billing.platform</field>
+        <field name="arch" type="xml">
+            <form string="Content Platform">
+                <sheet>
+                    <widget name="web_ribbon" text="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id"/>
+                            <field name="commission_rate"/>
+                            <field name="vendor_bill_grouping_mode"/>
+                        </group>
+                        <group string="Partners">
+                            <field name="partner_id"/>
+                            <field name="customer_partner_id"/>
+                            <field name="supplier_partner_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="accounting" string="Accounting">
+                            <div class="alert alert-info" role="alert">
+                                Taxes, fiscal positions, accounts and payment terms come from
+                                native Odoo product and partner configuration.
+                            </div>
+                            <group>
+                                <group string="Gross Revenue">
+                                    <field name="revenue_product_id"/>
+                                    <field name="sale_journal_id"/>
+                                </group>
+                                <group string="Commission">
+                                    <field name="commission_product_id"/>
+                                    <field name="purchase_journal_id"/>
+                                    <field name="auto_create_compensation"/>
+                                    <field name="compensation_journal_id"
+                                           required="auto_create_compensation"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="bank" string="Bank Matching">
+                            <group>
+                                <group>
+                                    <field name="bank_journal_id"/>
+                                    <field name="bank_label_pattern" placeholder="OF inv {ref}"/>
+                                    <field name="bank_label_keywords" placeholder="ONLYFANS,FENIX"/>
+                                </group>
+                                <group>
+                                    <field name="company_currency_id" invisible="1"/>
+                                    <field name="bank_match_days_tolerance"/>
+                                    <field name="bank_match_amount_tolerance"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="analytic" string="Analytic">
+                            <field name="analytic_distribution"
+                                   widget="analytic_distribution"
+                                   groups="analytic.group_analytic_accounting"/>
+                        </page>
+                        <page name="automation" string="Automation">
+                            <group>
+                                <field name="auto_post_invoices"/>
+                            </group>
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="not auto_post_invoices">
+                                Generated invoices and bills will be posted immediately.
+                                Compensation remains part of the explicit posting action.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_platform_billing_platforms" model="ir.actions.act_window">
+        <field name="name">Content Platforms</field>
+        <field name="res_model">usl.platform.billing.platform</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_platform_billing_platform_search"/>
+        <field name="context">{'default_active': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Configure a content platform</p>
+            <p>Define partners, products, journals and bank recognition rules.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_platform_billing_bank_import_wizard_form" model="ir.ui.view">
+        <field name="name">usl.platform.billing.bank.import.wizard.form</field>
+        <field name="model">usl.platform.billing.bank.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Bank Transactions">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        Pattern matches take priority over known partners and keywords.
+                        Ambiguous rows are never selected automatically.
+                    </div>
+                    <group>
+                        <field name="session_id"/>
+                        <field name="candidate_count"/>
+                        <field name="selected_count"/>
+                    </group>
+                    <field name="candidate_ids">
+                        <list editable="bottom" create="false" delete="false"
+                              default_order="score desc"
+                              decoration-danger="confidence == 'ambiguous'"
+                              decoration-success="confidence == 'high'">
+                            <field name="selected"/>
+                            <field name="bank_date"/>
+                            <field name="bank_currency_id" column_invisible="True"/>
+                            <field name="bank_amount"/>
+                            <field name="bank_partner_id"/>
+                            <field name="bank_label"/>
+                            <field name="platform_id"/>
+                            <field name="extracted_reference"/>
+                            <field name="existing_payout_id"/>
+                            <field name="confidence" widget="badge"/>
+                            <field name="score"/>
+                            <field name="detection_reason"/>
+                            <field name="amount_difference" optional="hide"/>
+                            <field name="date_difference" optional="hide"/>
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <button name="action_import" string="Link selected transactions"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

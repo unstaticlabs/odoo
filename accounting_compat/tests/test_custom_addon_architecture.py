@@ -4,7 +4,6 @@ import ast
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CUSTOM_ADDONS = REPOSITORY_ROOT / "custom-addons"
 
@@ -57,12 +56,17 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         self.assertEqual(reverse_dependencies, set())
         self.assertNotIn("usl_bootstrap", manifests["rebuild_account_migration"]["depends"])
 
-    def test_compatibility_module_uses_foundation_and_expense_feature(self):
+    def test_compatibility_module_uses_integrated_product_features(self):
         manifests = _manifests()
         dependencies = set(manifests["rebuild_account_migration"]["depends"])
 
         self.assertIn("usl_accounting", dependencies)
         self.assertIn("usl_expense_batch", dependencies)
+        self.assertIn("usl_platform_billing", dependencies)
+        self.assertNotIn(
+            "rebuild_account_migration",
+            manifests["usl_platform_billing"].get("depends", ()),
+        )
         self.assertNotIn(
             "rebuild_account_migration",
             manifests["usl_accounting"].get("depends", ()),

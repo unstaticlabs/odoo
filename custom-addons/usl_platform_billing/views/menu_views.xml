@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_platform_billing_root"
+              name="Platform Billing"
+              action="action_platform_billing_sessions"
+              sequence="55"
+              web_icon="usl_platform_billing,static/description/icon.png"
+              groups="account.group_account_readonly,account.group_account_user,account.group_account_manager"/>
+    <menuitem id="menu_platform_billing_sessions"
+              name="Billing Sessions"
+              parent="menu_platform_billing_root"
+              action="action_platform_billing_sessions"
+              sequence="10"/>
+    <menuitem id="menu_platform_billing_payouts"
+              name="Payouts"
+              parent="menu_platform_billing_root"
+              action="action_platform_billing_payouts"
+              sequence="20"/>
+    <menuitem id="menu_platform_billing_platforms"
+              name="Platforms"
+              parent="menu_platform_billing_root"
+              action="action_platform_billing_platforms"
+              sequence="30"
+              groups="account.group_account_manager"/>
+</odoo>
