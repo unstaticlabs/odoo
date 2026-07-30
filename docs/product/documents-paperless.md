@@ -182,14 +182,17 @@ unrelated internal, HR, or private material. HR files require the HR archive
 role. Search results and direct routes apply Odoo authorization before
 returning a title, tag, thumbnail, preview, version, or byte.
 
-Direct Paperless work uses an individually mapped Paperless identity. Deep
-links are withheld until that identity and the document's Paperless
-object-level permissions are synchronized. A tag, correspondent, saved view, or
-matching rule never grants business access. Changes to an Odoo user's active
-companies, Documents roles, active state, or Paperless identity mapping
-immediately resynchronize affected document permissions. An access reduction
-fails closed and rolls the Odoo change back when Paperless cannot revoke the
-old permission safely.
+Direct Paperless work uses an individually mapped Paperless identity backed by
+the same immutable Pocket `(issuer, subject)` as the Odoo user. Odoo and
+Paperless use separate confidential OIDC clients; Pocket proves the person but
+never supplies companies or document roles. Deep links are withheld until the
+Pocket link, Paperless user, and document's Paperless object permissions are
+synchronized. A tag, correspondent, Pocket group, saved view, or matching rule
+never grants business access. Changes to an Odoo user's active companies,
+Documents roles, active/Pocket state, Pocket link, or Paperless mapping
+immediately resynchronize affected permissions. An access reduction fails
+closed and rolls the Odoo change back when Paperless cannot revoke the old
+permission safely.
 
 Tags, correspondents, document types, and shared Saved Views use Paperless's
 supported unowned/shared form. Direct identities receive only the global model

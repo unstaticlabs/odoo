@@ -8,6 +8,8 @@ ENVIRONMENT="${1:-qa}"
 case "$ENVIRONMENT" in
   qa)
     ENV_FILE="$ROOT/deploy/documents/qa.env"
+    SSO_ENV_FILE="$ROOT/.documents-qa-sso.env"
+    python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
     OVERRIDE="$ROOT/compose.documents.qa.yaml"
     PROJECT="codex-paperless-docs"
     DATABASE="odoo_usl_documents_test"
@@ -18,6 +20,7 @@ case "$ENVIRONMENT" in
       printf 'Set USL_DOCUMENTS_PREPROD_ENV to the populated pre-production env file.\n' >&2
       exit 2
     }
+    SSO_ENV_FILE=""
     OVERRIDE="$ROOT/compose.documents.preprod.yaml"
     PROJECT="${USL_DOCUMENTS_PREPROD_PROJECT:-usl-documents-preprod}"
     DATABASE="${USL_DOCUMENTS_PREPROD_DB:-odoo_usl_documents_preprod}"
@@ -41,15 +44,24 @@ case "$DATABASE" in
 esac
 
 scripts/documents-stack "$ENVIRONMENT" preflight >/dev/null
+if [[ "$ENVIRONMENT" = "qa" ]]; then
+  scripts/documents-stack qa up >/dev/null
+fi
+ENV_FILES=(--env-file "$ENV_FILE")
+if [[ -n "$SSO_ENV_FILE" ]]; then
+  ENV_FILES+=(--env-file "$SSO_ENV_FILE")
+fi
 COMPOSE=(
   docker compose
-  --env-file "$ENV_FILE"
+  "${ENV_FILES[@]}"
   -p "$PROJECT"
   -f "$ROOT/compose.yaml"
+  -f "$ROOT/compose.pocket-id.yaml"
   -f "$OVERRIDE"
   --profile paperless
 )
 PAPERLESS_SERVICES=(
+  pocket-id
   paperless-preflight
   paperless-db
   paperless-broker

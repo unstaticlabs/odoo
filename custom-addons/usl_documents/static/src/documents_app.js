@@ -856,10 +856,28 @@ export class DocumentsWorkspaceView extends Component {
                 uslDocumentsRecordContext: this.recordContextKey,
                 uslDocumentsReturnRecord: null,
             };
-            if (mode === "push") {
-                router.pushState(nextState, { sync: true });
+            const historyState = {
+                ...(browser.history.state || {}),
+                nextState,
+                // This client action owns its drawer and filter history.
+                // Prevent the webclient from remounting the action on Back;
+                // handlePopState restores the local state instead.
+                skipRouteChange: true,
+                uslDocumentsWorkspace: true,
+                uslDocumentId: documentId || null,
+                uslVersionId: versionId || null,
+                uslDocumentsRecordContext: this.recordContextKey,
+                uslDocumentsReturnRecord: null,
+            };
+            // The global Odoo router intentionally batches route changes.
+            // Using it for a local drawer can append a second canonicalized
+            // detail URL after this entry. A native Odoo-compatible history
+            // entry gives one click one entry, while retaining deep links and
+            // leaving the untouched Forward entry able to reopen the drawer.
+            if (mode === "push" && url.href !== browser.location.href) {
+                browser.history.pushState(historyState, "", url);
             } else {
-                router.replaceState(nextState, { sync: true });
+                browser.history.replaceState(historyState, "", url);
             }
         } catch {
             // Session storage remains the fallback for older embedded browsers.

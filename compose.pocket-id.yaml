@@ -45,6 +45,43 @@ services:
       USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
       USL_POCKET_ID_SCOPES: openid profile email groups
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: "0"
+      POCKET_ID_EXTRA_USERS_JSON: ${POCKET_ID_EXTRA_USERS_JSON:-[]}
+
+  paperless-preflight:
+    environment:
+      PAPERLESS_OIDC_ENABLED: "1"
+      PAPERLESS_PUBLIC_BASE_URL: ${PAPERLESS_PUBLIC_BASE_URL:-${PAPERLESS_PUBLIC_URL:-}}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-false}
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
+      POCKET_ID_APP_URL: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
+      POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
+      POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}
+      POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
+      POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.12.0@sha256:4a277d141d6069fd9a7b321a9aca80f4b9812b8fa122ee566d2f15900e3d8448}
+
+  paperless-webserver:
+    depends_on:
+      pocket-id:
+        condition: service_healthy
+    extra_hosts:
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
+    environment:
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
+        {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}","settings":{"server_url":"${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}","token_auth_method":"client_secret_basic"}}]}}
+      PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+      PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
+      PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
+      # Pocket restricts who may authenticate. Odoo remains the only business
+      # authorization authority, so identity-provider groups are never copied
+      # into Paperless permissions.
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-false}
+      PAPERLESS_REDIRECT_LOGIN_TO_SSO: ${PAPERLESS_REDIRECT_LOGIN_TO_SSO:-false}
+      # django-allauth defaults callback URLs to HTTPS independently of
+      # PAPERLESS_URL. Local QA is deliberately HTTP; production-like targets
+      # must set and validate HTTPS.
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: ${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:-https}
 
   init-db:
     depends_on:
@@ -62,6 +99,7 @@ services:
       USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
       USL_POCKET_ID_SCOPES: openid profile email groups
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: "0"
+      POCKET_ID_EXTRA_USERS_JSON: ${POCKET_ID_EXTRA_USERS_JSON:-[]}
 
   test:
     extra_hosts:

@@ -12,8 +12,11 @@ record rules, views, and one OWL client action. No upstream Odoo core file and
 no Paperless frontend code is copied or patched.
 
 ```text
-Odoo browser
-  -> Odoo record rules and Documents controllers
+Pocket ID
+  -> Odoo confidential OIDC client
+  -> Paperless confidential OIDC client
+
+Odoo browser -> Odoo record rules and Documents controllers
       -> Odoo business/link/cache models
       -> server-only Paperless REST API v10 client
           -> Paperless document, task, metadata, version, Saved View,
@@ -35,10 +38,29 @@ persistent actionable failures and idempotent retry lineage.
 filters. `usl.document.quick.filter` is a manager-configured catalog of
 one-click Odoo search/group shortcuts attached to shared Smart Views.
 `usl.paperless.user.mapping` maps an Odoo user to one individual Paperless
-user; no credential is sent to the client. New or changed mappings remain
-pending until **Verify identity** confirms both the remote Paperless user ID
-and username. Only verified mappings participate in document-object grants or
-receive Paperless deep links.
+user; no credential is sent to the client. In an SSO environment the mapping
+also references the same Odoo-governed `(issuer, subject)` identity used for
+Pocket login. New or changed mappings remain pending until **Verify identity**
+confirms the remote Paperless user ID/username and the active Pocket link.
+Only verified, currently safe mappings participate in document-object grants
+or receive Paperless deep links.
+
+Odoo and Paperless have separate Pocket client IDs, secrets, and callbacks.
+Pocket proves identity but does not supply Odoo companies, Documents roles, or
+Paperless permissions. Odoo profiles assign exact Documents groups, and the
+server-side permission synchronizer writes the resulting per-document grants
+to the mapped numeric Paperless user. Disabling the Odoo user or Pocket link
+revokes those grants fail-closed. Paperless group synchronization is disabled.
+Paperless's documented social-account default group grants only the minimal
+model capabilities needed to load its UI, personal settings, and shared
+catalogs. It never grants a document object. A pinned, idempotent initializer
+creates that local Paperless group and reconciles existing Pocket accounts.
+The non-human Paperless API account remains separate from every interactive
+identity.
+
+Local QA retains explicit `username/admin` accounts for repeatable role tests.
+Those mappings carry a QA-only marker that is accepted only when the Odoo
+process has `USL_DEPLOYMENT_ENV=qa`; pre-production cannot enable that path.
 
 Synchronized tags, correspondents, document types, and archive-native shared
 views use Paperless's supported unowned object form. This mirrors Odoo's shared
@@ -149,3 +171,9 @@ business context, or native navigation.
 The selected native client action plus relational cache/link boundary keeps
 Community Odoo upgradeable, leaves document reality in Paperless, and makes
 ordinary work available without a second login.
+
+For authentication, proxy-supplied `Remote-User` was rejected because a header
+mistake could bypass login, and one shared OIDC client was rejected because its
+redirects and secrets would couple two independently recoverable
+applications. Paperless's supported django-allauth OpenID Connect provider
+with a second Pocket client was selected.

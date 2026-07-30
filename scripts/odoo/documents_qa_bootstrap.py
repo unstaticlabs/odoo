@@ -290,10 +290,50 @@ qa_users = {
 }
 
 paperless_users = json.loads(os.environ.get("PAPERLESS_QA_IDENTITIES", "{}"))
+extra_pocket_users = {
+    item["username"]: item
+    for item in json.loads(os.environ.get("POCKET_ID_EXTRA_USERS_JSON", "[]"))
+}
+sso_specification = extra_pocket_users.get("documents-sso-user")
+sso_user = False
+if sso_specification:
+    sso_user = ensure_user(
+        "documents-sso-user",
+        "Documents Pocket QA User",
+        ["usl_documents.group_documents_user"],
+        main_company,
+    )
+    sso_user.sudo().with_context(
+        usl_documents_user_access_no_sync=True,
+    ).write(
+        {
+            "usl_identity_classification": "active",
+            "usl_pocketid_access": True,
+        },
+    )
+    provider = env.ref("usl_pocketid.provider_pocketid")
+    oidc_identity = env["usl.oidc.identity"].sudo().search(
+        [
+            ("issuer", "=", provider.usl_oidc_issuer),
+            ("subject", "=", sso_specification["id"]),
+        ],
+        limit=1,
+    )
+    if not oidc_identity:
+        env["usl.oidc.identity"].sudo().create(
+            {
+                "issuer": provider.usl_oidc_issuer,
+                "subject": sso_specification["id"],
+                "provider_id": provider.id,
+                "user_id": sso_user.id,
+            },
+        )
 identity_pairs = [
     (admin, "archive-admin"),
     *((user, username) for username, user in qa_users.items()),
 ]
+if sso_user and paperless_users.get("documents-sso-user"):
+    identity_pairs.append((sso_user, "documents-sso-user"))
 for user, username in identity_pairs:
     paperless_user_id = paperless_users.get(username)
     if not paperless_user_id:
@@ -307,6 +347,7 @@ for user, username in identity_pairs:
         "sync_state": "synchronized",
         "last_verified_at": fields.Datetime.now(),
         "active": True,
+        "qa_local_identity": True,
     }
     if mapping:
         mapping.sudo().with_context(

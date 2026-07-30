@@ -17,6 +17,7 @@ Open:
 
 - Odoo: `http://127.0.0.1:18080`
 - Paperless: `http://127.0.0.1:8010`
+- Pocket ID: `http://pocket-id-documents.localhost:18110`
 
 QA passwords are all `admin`:
 
@@ -31,6 +32,27 @@ QA passwords are all `admin`:
 Start as `admin/admin`, open **Documents**, and use the seeded synthetic
 archive. Do not run `down --volumes`, `scripts/odoo-dev reset`, or a bare
 `docker compose --profile paperless up`.
+
+The passwords above stay available only for fast local role testing. A separate
+`documents-sso-user` exists for the production authentication path. Generate
+that person's one-hour Pocket setup link with:
+
+```bash
+python3 scripts/pocket_id_dev.py \
+  --env-file .documents-qa-sso.env \
+  one-time-link documents-sso-user
+```
+
+Use it to enroll the Pocket user, then choose Pocket ID on both the Odoo and
+Paperless login screens. The first Paperless login creates that individual
+account through the supported OIDC flow. Run `make documents-qa-bootstrap`
+again to verify/map its new numeric Paperless identity and synchronize object
+permissions. Odoo and Paperless use separate clients but the same immutable
+person. Pocket groups do not add document access; the user must still see
+exactly the documents allowed by their Odoo company and Documents role.
+Both **Pocket ID** buttons must reach the same local Pocket tenant without a
+callback error. QA registers Paperless's exact HTTP callback; pre-production
+uses the equivalent HTTPS callback and disables Paperless password login.
 
 ## 1. Find text inside a document
 

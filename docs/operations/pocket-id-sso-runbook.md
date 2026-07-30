@@ -138,6 +138,21 @@ Create a confidential OIDC client in Pocket ID:
   `client_secret_post`;
 - allowed user group: the dedicated preproduction or production Odoo group.
 
+For Paperless, create a second confidential client with callback
+`https://<paperless-host>/accounts/oidc/pocket-id/login/callback/`. Never reuse
+the Odoo client ID or secret. Configure Paperless through its supported
+OpenID Connect provider, disable interactive password login outside QA, and
+keep `PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS=false`; Odoo continues to calculate
+the actual document-object permissions. Set
+`PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL=https` in production-like
+environments. Paperless/django-allauth uses this value when it constructs the
+OIDC callback, so it must match both `PAPERLESS_PUBLIC_URL` and the redirect
+registered in Pocket. Local HTTP QA is the only supported `http` exception.
+Set `PAPERLESS_SSO_BASE_GROUP` to the deployment's dedicated, non-business
+capability group. The qualified Documents stack creates it idempotently,
+assigns it through `PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS`, and reconciles
+existing Pocket accounts. Do not add document-object grants to this group.
+
 Pocket ID users enroll and use passkeys in Pocket ID. Do not create a second
 passkey in Odoo for the SSO journey.
 

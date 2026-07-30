@@ -367,6 +367,7 @@
                 <field name="user_id"/>
                 <field name="paperless_username"/>
                 <field name="paperless_user_id"/>
+                <field name="oidc_subject_fingerprint" optional="show"/>
                 <field name="sync_state" readonly="1"/>
                 <field name="last_verified_at"/>
                 <field name="active"/>
@@ -391,6 +392,8 @@
                         <field name="user_id"/>
                         <field name="paperless_username"/>
                         <field name="paperless_user_id"/>
+                        <field name="oidc_identity_id"/>
+                        <field name="oidc_subject_fingerprint"/>
                         <field name="active"/>
                         <field name="last_verified_at"/>
                         <field name="last_error"/>

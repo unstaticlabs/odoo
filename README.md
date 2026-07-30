@@ -342,6 +342,8 @@ scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
 scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
+scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
+scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 scripts/target-finalize               # apply target-only config after migration
 scripts/target-reconstruct            # rebuild canonical data and target config
 scripts/odoo-dev ruff custom-addons
@@ -379,6 +381,9 @@ ignored mode-0600 `.pocket-id.env`. Follow the
 [Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
 the client secret, break-glass password or raw subjects in Git. Production
 uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
+The Documents wrapper also registers a separate Paperless OIDC client and
+stores its QA-only credentials in ignored mode-0600
+`.documents-qa-sso.env`; it never reuses Odoo's client secret.
 
 ### Optional bootstrap fixture
 

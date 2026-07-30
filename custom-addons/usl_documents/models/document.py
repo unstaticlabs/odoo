@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import logging
+import os
 from datetime import UTC, datetime, timedelta
 
 from odoo import Command, _, api, fields, models
@@ -490,6 +491,7 @@ class UslDocument(models.Model):
                     client.public_url
                     and document.paperless_id
                     and mapping
+                    and mapping._identity_is_safe()
                     and document.permission_sync_state == "synchronized"
                 )
                 else False
@@ -2388,7 +2390,11 @@ class UslDocument(models.Model):
             ],
             limit=1,
         )
-        if self.permission_sync_state != "synchronized" or not mapping:
+        if (
+            self.permission_sync_state != "synchronized"
+            or not mapping
+            or not mapping._identity_is_safe()
+        ):
             raise UserError(
                 _(
                     "Open in Paperless is blocked until your individual archive "
@@ -2406,7 +2412,7 @@ class UslDocument(models.Model):
         mappings = self.env["usl.paperless.user.mapping"].search([
             ("active", "=", True),
             ("sync_state", "=", "synchronized"),
-        ])
+        ]).filtered(lambda mapping: mapping._identity_is_safe())
         for document in self:
             view_users = []
             change_users = []
@@ -2991,6 +2997,29 @@ class UslPaperlessUserMapping(models.Model):
     )
     paperless_user_id = fields.Integer(required=True, index=True)
     paperless_username = fields.Char(required=True)
+    oidc_identity_id = fields.Many2one(
+        "usl.oidc.identity",
+        string="Pocket ID identity",
+        ondelete="restrict",
+        groups="base.group_system",
+        help=(
+            "Immutable Pocket ID identity used by this Odoo user. Paperless "
+            "still keeps its own numeric user identity for object permissions."
+        ),
+    )
+    oidc_subject_fingerprint = fields.Char(
+        related="oidc_identity_id.subject_fingerprint",
+        string="Pocket identity",
+        readonly=True,
+    )
+    qa_local_identity = fields.Boolean(
+        string="QA local login",
+        groups="base.group_system",
+        help=(
+            "Explicit exception for the isolated QA environment's documented "
+            "username/admin test accounts. It is ignored everywhere else."
+        ),
+    )
     sync_state = fields.Selection(
         [
             ("pending", "Pending verification"),
@@ -3015,6 +3044,47 @@ class UslPaperlessUserMapping(models.Model):
     def _mapped_user_documents(self):
         return self.env["usl.document"].with_user(self.user_id).search([])
 
+    @api.model
+    def _pocket_provider(self):
+        return self.env.ref(
+            "usl_pocketid.provider_pocketid",
+            raise_if_not_found=False,
+        ).sudo()
+
+    def _identity_error(self):
+        self.ensure_one()
+        provider = self._pocket_provider()
+        if not provider or not provider.enabled:
+            return False
+        if (
+            self.qa_local_identity
+            and os.getenv("USL_DEPLOYMENT_ENV", "").strip() == "qa"
+        ):
+            return False
+        identity = self.oidc_identity_id.sudo()
+        if not identity:
+            return _(
+                "Link this user to their governed Pocket ID identity before "
+                "granting direct Paperless access.",
+            )
+        if (
+            not identity.active
+            or identity.provider_id != provider
+            or identity.issuer != provider.usl_oidc_issuer
+            or identity.user_id != self.user_id
+            or not self.user_id.active
+            or not self.user_id.usl_pocketid_access
+        ):
+            return _(
+                "The Pocket ID identity is disabled, mismatched, or no longer "
+                "authorized for this Odoo user.",
+            )
+        return False
+
+    def _identity_is_safe(self):
+        self.ensure_one()
+        return not self._identity_error()
+
     @api.model_create_multi
     def create(self, values_list):
         trusted_seed = (
@@ -3024,6 +3094,26 @@ class UslPaperlessUserMapping(models.Model):
         normalized = []
         for values in values_list:
             values = dict(values)
+            if values.get("qa_local_identity") and (
+                not trusted_seed
+                or os.getenv("USL_DEPLOYMENT_ENV", "").strip() != "qa"
+            ):
+                raise AccessError(
+                    _("Local Paperless identities are allowed only in isolated QA."),
+                )
+            if values.get("user_id") and not values.get("oidc_identity_id"):
+                provider = self._pocket_provider()
+                if provider and provider.enabled:
+                    identities = self.env["usl.oidc.identity"].sudo().search(
+                        [
+                            ("user_id", "=", values["user_id"]),
+                            ("issuer", "=", provider.usl_oidc_issuer),
+                            ("active", "=", True),
+                        ],
+                        limit=2,
+                    )
+                    if len(identities) == 1:
+                        values["oidc_identity_id"] = identities.id
             if not trusted_seed:
                 values.update(
                     {
@@ -3045,6 +3135,13 @@ class UslPaperlessUserMapping(models.Model):
             self.env.context.get("usl_documents_mapping_verification")
             and self.env.su
         )
+        if values.get("qa_local_identity") and (
+            not trusted_seed
+            or os.getenv("USL_DEPLOYMENT_ENV", "").strip() != "qa"
+        ):
+            raise AccessError(
+                _("Local Paperless identities are allowed only in isolated QA."),
+            )
         protected_fields = {"sync_state", "last_verified_at", "last_error"}
         if (
             protected_fields.intersection(values)
@@ -3053,7 +3150,13 @@ class UslPaperlessUserMapping(models.Model):
             raise AccessError(
                 _("Paperless verification state can only be changed by verification."),
             )
-        identity_fields = {"user_id", "paperless_user_id", "paperless_username"}
+        identity_fields = {
+            "user_id",
+            "paperless_user_id",
+            "paperless_username",
+            "oidc_identity_id",
+            "qa_local_identity",
+        }
         if identity_fields.intersection(values) and not (trusted_seed or verified_write):
             values.update(
                 {
@@ -3066,6 +3169,8 @@ class UslPaperlessUserMapping(models.Model):
             "user_id",
             "paperless_user_id",
             "paperless_username",
+            "oidc_identity_id",
+            "qa_local_identity",
             "sync_state",
             "active",
         }
@@ -3099,6 +3204,8 @@ class UslPaperlessUserMapping(models.Model):
                 or values.get("sync_state", mapping.sync_state) != "synchronized"
                 or "user_id" in effective_sync_fields
                 or "paperless_user_id" in effective_sync_fields
+                or "oidc_identity_id" in effective_sync_fields
+                or "qa_local_identity" in effective_sync_fields
             )
             for mapping in self
         )
@@ -3169,6 +3276,24 @@ class UslPaperlessUserMapping(models.Model):
             raise AccessError(_("Only Documents administrators verify identities."))
         errors = []
         for mapping in self:
+            identity_error = mapping._identity_error()
+            if identity_error:
+                mapping.sudo().with_context(
+                    usl_documents_mapping_verification=True,
+                ).write(
+                    {
+                        "sync_state": "failed",
+                        "last_error": identity_error,
+                    },
+                )
+                errors.append(
+                    _("%(identity)s: %(error)s")
+                    % {
+                        "identity": mapping.display_name,
+                        "error": identity_error,
+                    },
+                )
+                continue
             try:
                 payload = self.env["usl.document"]._paperless().get_user(
                     mapping.paperless_user_id,

@@ -166,6 +166,15 @@ must be configured deliberately:
 [Allowed User Groups](https://pocket-id.org/docs/configuration/allowed-groups),
 [OIDC client authentication](https://pocket-id.org/docs/guides/oidc-client-authentication).
 
+Paperless-ngx is a second relying party, not a proxy for the Odoo session. It
+uses its own confidential OIDC client and documented callback while resolving
+the same Pocket person. Paperless group synchronization remains disabled;
+Odoo's verified per-document grants are still authoritative. A Paperless-local
+default group supplies only enough global capability for its UI and catalogs
+to function; it does not make any document visible. The Odoo client secret,
+Paperless client secret, and non-human Paperless API token are three separate
+credentials.
+
 ## Activation state
 
 The repository now supplies an isolated, digest-pinned Pocket ID tenant,

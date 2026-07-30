@@ -49,8 +49,19 @@ services:
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
       PAPERLESS_PUBLIC_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: ${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:-https}
+      PAPERLESS_SSO_BASE_GROUP: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
       PAPERLESS_ALLOWED_HOSTS: ${PAPERLESS_ALLOWED_HOSTS:-localhost,127.0.0.1,paperless-webserver}
       PAPERLESS_EMPTY_TRASH_DELAY: ${PAPERLESS_EMPTY_TRASH_DELAY:-36500}
+      PAPERLESS_OIDC_ENABLED: ${PAPERLESS_OIDC_ENABLED:-0}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-false}
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: ${PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS:-false}
+      PAPERLESS_PUBLIC_BASE_URL: ${PAPERLESS_PUBLIC_BASE_URL:-}
+      POCKET_ID_APP_URL: ${POCKET_ID_APP_URL:-}
+      POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-}
+      POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:-}
+      POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
+      POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.12.0@sha256:4a277d141d6069fd9a7b321a9aca80f4b9812b8fa122ee566d2f15900e3d8448}
       ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
@@ -59,12 +70,29 @@ services:
       - /bin/sh
       - -ec
       - |
+        if [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ]; then
+          [ -n "$${POCKET_ID_CLIENT_ID}" ] || { echo "The Odoo Pocket client ID is required"; exit 1; }
+          [ -n "$${POCKET_ID_PAPERLESS_CLIENT_ID}" ] || { echo "The Paperless Pocket client ID is required"; exit 1; }
+          [ -n "$${POCKET_ID_PAPERLESS_CLIENT_SECRET}" ] || { echo "The Paperless Pocket client secret is required"; exit 1; }
+          [ "$${POCKET_ID_CLIENT_ID}" != "$${POCKET_ID_PAPERLESS_CLIENT_ID}" ] || { echo "Odoo and Paperless require separate Pocket clients"; exit 1; }
+          [ "$${PAPERLESS_PUBLIC_BASE_URL}" = "$${PAPERLESS_PUBLIC_URL}" ] || { echo "Paperless OIDC callback base must match its public URL"; exit 1; }
+          [ -n "$${PAPERLESS_SSO_BASE_GROUP}" ] || { echo "Paperless SSO base group is required"; exit 1; }
+          case "$${PAPERLESS_PUBLIC_URL}:$${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}" in
+            http://*:http|https://*:https) :;;
+            *) echo "Paperless OIDC callback protocol must match its public URL"; exit 1;;
+          esac
+        fi
         case "$${USL_DEPLOYMENT_ENV}" in
         preproduction|production)
           [ "$${#PAPERLESS_DB_PASSWORD}" -ge 24 ] || { echo "Paperless database secret is too short"; exit 1; }
           [ "$${#PAPERLESS_SECRET_KEY}" -ge 48 ] || { echo "Paperless application secret is too short"; exit 1; }
           [ "$${PAPERLESS_DB_PASSWORD}" != "paperless-change-me-dev-only" ] || exit 1
           [ "$${PAPERLESS_SECRET_KEY}" != "paperless-change-me-dev-only" ] || exit 1
+          [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ] || { echo "Paperless Pocket ID login must be enabled"; exit 1; }
+          [ "$${PAPERLESS_DISABLE_REGULAR_LOGIN}" = "true" ] || { echo "Paperless interactive password login must be disabled"; exit 1; }
+          [ "$${PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS}" = "false" ] || { echo "Pocket groups must not become Paperless authorization groups"; exit 1; }
+          [ -n "$${POCKET_ID_APP_URL}" ] || { echo "Pocket ID issuer is required"; exit 1; }
+          [ "$${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}" = "https" ] || { echo "Production Paperless OIDC callbacks must use HTTPS"; exit 1; }
           [ "$${ODOO_DB_PASSWORD}" != "odoo" ] || { echo "Odoo database password must not use the development default"; exit 1; }
           [ "$${ODOO_ADMIN_PASSWORD}" != "admin" ] || { echo "Odoo master password must not use the QA default"; exit 1; }
           case "$${ODOO_DB_FILTER}" in
@@ -77,7 +105,8 @@ services:
             "$${PAPERLESS_POSTGRES_IMAGE}" \
             "$${PAPERLESS_BROKER_IMAGE}" \
             "$${PAPERLESS_GOTENBERG_IMAGE}" \
-            "$${PAPERLESS_TIKA_IMAGE}"
+            "$${PAPERLESS_TIKA_IMAGE}" \
+            "$${POCKET_ID_IMAGE}"
           do
             case "$${image}" in
               ""|latest|*:latest|*@sha256:) echo "Every production-like image must be pinned: $${image:-<empty>}"; exit 1;;
@@ -86,6 +115,7 @@ services:
             esac
           done
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
+          case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
           case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
           case "$${PAPERLESS_ALLOWED_HOSTS}" in *localhost*|*127.0.0.1*) echo "Production-like allowed hosts must not include local QA hosts"; exit 1;; esac
           case "$${PAPERLESS_EMPTY_TRASH_DELAY}" in
@@ -196,6 +226,27 @@ services:
       - paperless-consume:/usr/src/paperless/consume
       - paperless-trash:/usr/src/paperless/trash
 
+  paperless-access-init:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    restart: "no"
+    depends_on:
+      paperless-webserver:
+        condition: service_healthy
+    working_dir: /usr/src/paperless/src
+    entrypoint: ["/bin/sh", "-ec"]
+    command: ["python manage.py shell < /opt/usl/paperless_access_init.py"]
+    environment:
+      PAPERLESS_REDIS: redis://paperless-broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME:-paperless}
+      PAPERLESS_DBUSER: ${PAPERLESS_DB_USER:-paperless}
+      PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
+      PAPERLESS_SSO_BASE_GROUP: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
+    volumes:
+      - ./deploy/documents/paperless_access_init.py:/opt/usl/paperless_access_init.py:ro
+
   paperless-gotenberg:
     profiles: ["paperless"]
     image: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}
@@ -252,6 +303,7 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       PAPERLESS_INTERNAL_URL: ${PAPERLESS_INTERNAL_URL:-http://paperless-webserver:8000}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
@@ -300,6 +352,7 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
       USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
@@ -392,6 +445,7 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
       USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}

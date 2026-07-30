@@ -41,6 +41,9 @@ class TestDocuments(TransactionCase):
             company_ids=[Command.set(cls.company_a.ids)],
             groups="usl_documents.group_documents_accountant",
         )
+        cls.env.ref(
+            "usl_pocketid.provider_pocketid",
+        )._usl_pocketid_environment_write({"enabled": False})
         cls.partner_a = cls.env["res.partner"].create({
             "name": "Archive Partner A",
             "company_id": cls.company_a.id,
@@ -206,8 +209,14 @@ class TestDocuments(TransactionCase):
                     res_model="res.partner",
                     res_id=self.partner_a.id,
                     company_id=self.company_a.id,
+                )
             )
-        )
+
+        self.assertEqual(result["state"], "duplicate")
+        self.assertEqual(result["document_id"], existing.id)
+        self.assertEqual(existing.link_count, 1)
+        self.assertEqual(existing.link_ids.version_id, "received-139")
+        upload.assert_not_called()
 
     def _verified_mapping(self, values):
         return (
@@ -217,11 +226,41 @@ class TestDocuments(TransactionCase):
             .create(values)
         )
 
-        self.assertEqual(result["state"], "duplicate")
-        self.assertEqual(result["document_id"], existing.id)
-        self.assertEqual(existing.link_count, 1)
-        self.assertEqual(existing.link_ids.version_id, "received-139")
-        upload.assert_not_called()
+    def _enable_pocket_provider(self):
+        provider = self.env.ref("usl_pocketid.provider_pocketid")
+        provider._usl_pocketid_environment_write(
+            {
+                "enabled": True,
+                "client_id": "odoo-documents-client",
+                "auth_endpoint": "https://identity.example.test/authorize",
+                "token_endpoint": "https://identity.example.test/token",
+                "jwks_uri": "https://identity.example.test/jwks",
+                "usl_oidc_issuer": "https://identity.example.test",
+                "usl_public_base_url": "https://odoo.example.test",
+                "usl_required_group": "documents-users",
+            },
+        )
+        return provider
+
+    def _pocket_identity(self, user=None, subject="documents-user-subject"):
+        user = user or self.user
+        provider = self._enable_pocket_provider()
+        user.sudo().with_context(
+            usl_documents_user_access_no_sync=True,
+        ).write(
+            {
+                "usl_identity_classification": "active",
+                "usl_pocketid_access": True,
+            },
+        )
+        return self.env["usl.oidc.identity"].create(
+            {
+                "provider_id": provider.id,
+                "issuer": provider.usl_oidc_issuer,
+                "subject": subject,
+                "user_id": user.id,
+            },
+        )
 
     def test_duplicate_in_trash_requires_restore_instead_of_new_binary(self):
         content = b"trashed supplier evidence"
@@ -1604,6 +1643,92 @@ class TestDocuments(TransactionCase):
             mapping.with_user(self.manager).action_mark_verified()
         self.assertEqual(mapping.sync_state, "synchronized")
         self.assertTrue(mapping.last_verified_at)
+
+    def test_pocket_profile_assigns_document_roles_without_copying_idp_groups(self):
+        definitions = self.env["res.users"]._usl_pocketid_profile_definitions()
+
+        self.assertIn(
+            "usl_documents.group_documents_manager",
+            definitions["administrator"]["groups"],
+        )
+        self.assertIn(
+            "usl_documents.group_documents_user",
+            definitions["collaborator"]["groups"],
+        )
+        self.assertNotIn(
+            "documents-users",
+            definitions["collaborator"]["groups"],
+        )
+
+    def test_enabled_pocket_requires_durable_identity_before_verification(self):
+        self._enable_pocket_provider()
+        mapping = self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 129,
+                "paperless_username": "documents-user",
+            },
+        )
+
+        action = mapping.with_user(self.manager).action_mark_verified()
+
+        self.assertEqual(mapping.sync_state, "failed")
+        self.assertIn("Pocket ID identity", mapping.last_error)
+        self.assertEqual(action["params"]["type"], "danger")
+
+    def test_verified_paperless_mapping_uses_same_pocket_identity(self):
+        identity = self._pocket_identity()
+        mapping = self.env["usl.paperless.user.mapping"].create(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 130,
+                "paperless_username": "documents-user",
+            },
+        )
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "get_user",
+                return_value={"id": 130, "username": "documents-user"},
+            ),
+            patch.object(PaperlessClient, "set_document_permissions"),
+        ):
+            mapping.with_user(self.manager).action_mark_verified()
+
+        self.assertEqual(mapping.oidc_identity_id, identity)
+        self.assertEqual(
+            mapping.oidc_subject_fingerprint,
+            identity.subject_fingerprint,
+        )
+        self.assertEqual(mapping.sync_state, "synchronized")
+
+    def test_disabling_pocket_identity_revokes_paperless_mapping(self):
+        document = self._document(1415)
+        identity = self._pocket_identity()
+        mapping = self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 131,
+                "paperless_username": "documents-user",
+                "oidc_identity_id": identity.id,
+                "sync_state": "synchronized",
+            },
+        )
+
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            identity.write({"active": False})
+
+        self.assertEqual(mapping.sync_state, "failed")
+        permission_call.assert_called_with(
+            document.paperless_id,
+            view_users=[],
+            change_users=[],
+        )
 
     def test_identity_verification_failure_remains_visible(self):
         mapping = self.env["usl.paperless.user.mapping"].create(

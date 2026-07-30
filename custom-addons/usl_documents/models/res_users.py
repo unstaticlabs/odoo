@@ -42,6 +42,12 @@ class ResUsers(models.Model):
             for user in tracked
         }
         result = super().write(values)
+        if {
+            "active",
+            "usl_pocketid_access",
+            "usl_identity_classification",
+        }.intersection(values):
+            self._invalidate_unsafe_paperless_mappings()
         if not before:
             return result
         after = tracked._documents_visible_for_permission_sync()
