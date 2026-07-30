@@ -5,7 +5,7 @@ import stat
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "pocket_id_dev.py"
 ROOT = SCRIPT_PATH.parents[1]
@@ -100,6 +100,55 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertNotIn("createdb", script)
         self.assertNotIn("dropdb", script)
         self.assertIn("canonical odoo_dev", script)
+
+    def test_login_link_resolves_any_exact_pocket_username(self):
+        api = Mock()
+        api.request.return_value = {
+            "data": [
+                {"id": "other-subject", "username": "other.user"},
+                {"id": "requested-subject", "username": "finance.operator"},
+            ],
+        }
+
+        user = POCKET_ID_DEV._find_user(api, {}, "finance.operator")
+
+        self.assertEqual(user["id"], "requested-subject")
+        api.request.assert_called_once_with(
+            "GET",
+            "/api/users?pagination%5Blimit%5D=100",
+        )
+
+    def test_login_link_rejects_missing_or_ambiguous_username(self):
+        api = Mock()
+        api.request.return_value = {
+            "data": [
+                {"id": "first", "username": "duplicate"},
+                {"id": "second", "username": "duplicate"},
+            ],
+        }
+        with self.assertRaisesRegex(
+            POCKET_ID_DEV.PocketIDError,
+            "ambiguous",
+        ):
+            POCKET_ID_DEV._find_user(api, {}, "duplicate")
+
+        api.request.return_value = {"data": []}
+        with self.assertRaisesRegex(
+            POCKET_ID_DEV.PocketIDError,
+            "not provisioned",
+        ):
+            POCKET_ID_DEV._find_user(api, {}, "missing")
+
+    def test_make_login_link_requires_an_explicit_username(self):
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("login-link:", makefile)
+        self.assertIn('if [ "$(origin USER)" != "command line" ]', makefile)
+        self.assertIn(
+            'scripts/pocket-id-dev one-time-link "$(USER)"',
+            makefile,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

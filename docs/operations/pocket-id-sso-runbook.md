@@ -52,13 +52,19 @@ scripts/pocket-id-dev configure-odoo
 scripts/pocket-id-dev status
 ```
 
-Generate a one-hour, single-user test login link without exposing a password:
+Generate a one-hour, single-user test login link without exposing a password.
+Pass the exact username of any existing user in the local Pocket ID tenant:
 
 ```bash
-scripts/pocket-id-dev one-time-link valentin
-scripts/pocket-id-dev one-time-link roger
-scripts/pocket-id-dev one-time-link prosper
+make login-link USER=valentin
+make login-link USER=roger
+make login-link USER=prosper
 ```
+
+The target requires `USER=` explicitly so the host operating-system username
+cannot be mistaken for the intended Pocket ID identity. The command resolves
+the username exactly and refuses missing or ambiguous matches. It does not
+create a user or change that user's Odoo permissions.
 
 Use these lifecycle controls for repeatable acceptance:
 
