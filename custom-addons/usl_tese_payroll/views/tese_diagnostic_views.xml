@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tese_diagnostic_list" model="ir.ui.view">
+        <field name="name">usl.tese.diagnostic.issue.list</field>
+        <field name="model">usl.tese.diagnostic.issue</field>
+        <field name="arch" type="xml">
+            <list string="TESE Diagnostics"
+                  create="false"
+                  edit="false"
+                  delete="false"
+                  decoration-danger="severity == 'blocking' and active"
+                  decoration-warning="severity == 'warning' and active"
+                  decoration-muted="resolved">
+                <field name="severity"
+                       widget="badge"
+                       decoration-danger="severity == 'blocking'"
+                       decoration-warning="severity == 'warning'"
+                       decoration-info="severity == 'info'"/>
+                <field name="category"/>
+                <field name="name"/>
+                <field name="object_display_name"/>
+                <field name="last_seen_at"/>
+                <field name="resolved"/>
+                <field name="company_id"
+                       groups="base.group_multi_company"
+                       optional="hide"/>
+                <button name="action_open_object"
+                        string="Open"
+                        type="object"
+                        icon="fa-external-link"
+                        invisible="not object_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tese_diagnostic_form" model="ir.ui.view">
+        <field name="name">usl.tese.diagnostic.issue.form</field>
+        <field name="model">usl.tese.diagnostic.issue</field>
+        <field name="arch" type="xml">
+            <form string="TESE Diagnostic" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_open_object"
+                            string="Open Affected Record"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="not object_id"/>
+                    <field name="severity" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon"
+                            text="Resolved"
+                            bg_color="text-bg-success"
+                            invisible="not resolved"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="category"/>
+                            <field name="stable_key"/>
+                            <field name="object_model"/>
+                            <field name="object_id"/>
+                            <field name="object_display_name"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                            <field name="resolved"/>
+                            <field name="first_seen_at"/>
+                            <field name="last_seen_at"/>
+                            <field name="resolved_at"/>
+                            <field name="run_label"/>
+                        </group>
+                    </group>
+                    <group string="Issue">
+                        <field name="message" nolabel="1"/>
+                    </group>
+                    <group string="Suggested Fix">
+                        <field name="suggested_fix" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tese_diagnostic_search" model="ir.ui.view">
+        <field name="name">usl.tese.diagnostic.issue.search</field>
+        <field name="model">usl.tese.diagnostic.issue</field>
+        <field name="arch" type="xml">
+            <search string="TESE Diagnostics">
+                <field name="name"/>
+                <field name="category"/>
+                <field name="object_display_name"/>
+                <filter name="active_issues"
+                        string="Active"
+                        domain="[('active', '=', True)]"/>
+                <filter name="blocking"
+                        string="Blocking"
+                        domain="[('severity', '=', 'blocking'), ('active', '=', True)]"/>
+                <filter name="resolved"
+                        string="Resolved"
+                        domain="[('resolved', '=', True)]"/>
+                <group>
+                    <filter name="severity"
+                            string="Severity"
+                            context="{'group_by': 'severity'}"/>
+                    <filter name="category"
+                            string="Category"
+                            context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tese_diagnostics" model="ir.actions.act_window">
+        <field name="name">Diagnostics</field>
+        <field name="res_model">usl.tese.diagnostic.issue</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tese_diagnostic_search"/>
+        <field name="context">{'search_default_active_issues': 1}</field>
+    </record>
+
+    <record id="action_run_tese_diagnostics" model="ir.actions.server">
+        <field name="name">Run TESE Diagnostics</field>
+        <field name="model_id" ref="model_usl_tese_diagnostic_issue"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_run_diagnostics()</field>
+    </record>
+</odoo>
