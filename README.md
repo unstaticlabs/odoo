@@ -336,7 +336,7 @@ scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
 scripts/odoo-dev bootstrap-immediate-settlement-qa
                                       # three-action foreign settlement QA cases
-make dismiss-tours                    # dismiss every installed tour for internal QA users
+make disable-tours                    # disable automatic tours for internal QA users
 scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
