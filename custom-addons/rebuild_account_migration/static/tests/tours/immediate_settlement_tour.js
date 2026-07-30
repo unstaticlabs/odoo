@@ -30,9 +30,9 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
             run: "click",
         },
         {
-            content: "Source facts and the economic allocation remain inspectable",
+            content: "Source facts and the document repricing remain inspectable",
             trigger:
-                ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Economic adjustment')",
+                ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Original document value'):contains('Payment-rate document value')",
         },
         {
             content: "Reverse the whole linked settlement",

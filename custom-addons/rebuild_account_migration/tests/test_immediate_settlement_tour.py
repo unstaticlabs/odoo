@@ -104,15 +104,29 @@ class TestImmediateSettlementBrowser(
         settlement = self.bill.immediate_settlement_ids
         self.assertEqual(settlement.state, "reversed")
         self.assertEqual(settlement.mechanism, "payment_rate")
+        self.assertEqual(
+            settlement.payment_rate_application,
+            "document_reprice",
+        )
         self.assertFalse(settlement.reversal_move_id)
         self.assertFalse(settlement.exchange_move_names)
         self.assertAlmostEqual(
-            settlement.economic_adjustment_amount,
+            settlement.document_revaluation_amount,
             0.02,
             places=2,
         )
-        self.assertTrue(settlement.allocation_ids)
-        self.assertFalse(settlement.allocation_ids.adjustment_line_id)
+        self.assertFalse(settlement.economic_adjustment_amount)
+        self.assertFalse(settlement.allocation_ids)
+        self.assertAlmostEqual(
+            settlement.original_document_company_amount,
+            4.38,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            settlement.repriced_document_company_amount,
+            4.40,
+            places=2,
+        )
         self.assertFalse(settlement.partial_reconcile_ids)
         self.assertEqual(self.bill.payment_state, "not_paid")
         term_line = self.bill.line_ids.filtered(
