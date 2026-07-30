@@ -1,7 +1,7 @@
 import hashlib
 import json
 import os
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date
 
 import psycopg2
@@ -924,6 +924,25 @@ class RebuildAccountImportRun(models.Model):
             ) AS exists
             """,
             {"table": table},
+        )
+        return bool(rows and rows[0]["exists"])
+
+    def _source_column_exists(self, conn, table, column):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT EXISTS (
+                SELECT 1
+                  FROM information_schema.columns
+                 WHERE table_schema = 'public'
+                   AND table_name = %(table)s
+                   AND column_name = %(column)s
+            ) AS exists
+            """,
+            {
+                "table": table,
+                "column": column,
+            },
         )
         return bool(rows and rows[0]["exists"])
 
@@ -6212,6 +6231,350 @@ class RebuildAccountImportRun(models.Model):
             "split_link_count": split_link_count,
         }
 
+    def _native_expense_bank_match_cache_rows(self, conn, options):
+        """Read every legacy suggestion surface without importing its schema."""
+        rows = []
+        if self._source_table_exists(conn, "x_sl_expense_bank_candidate"):
+            rows.extend(self._fetchall(
+                conn,
+                """
+                SELECT 'candidate' AS cache_kind,
+                       candidate.id AS cache_id,
+                       candidate.x_expense_id AS source_expense_id,
+                       candidate.x_bank_statement_line_id
+                           AS source_bank_statement_line_id,
+                       candidate.x_sequence AS source_sequence,
+                       candidate.x_score AS source_score,
+                       candidate.x_is_best AS source_is_best
+                  FROM x_sl_expense_bank_candidate candidate
+                  JOIN hr_expense expense
+                    ON expense.id = candidate.x_expense_id
+                 WHERE expense.company_id
+                       = ANY(%(source_company_ids)s)
+                   AND expense.date
+                       BETWEEN %(date_from)s AND %(date_to)s
+                 ORDER BY candidate.id
+                """,
+                options,
+            ))
+        relation_table = "x_hr_expense_bank_statement_line_rel"
+        if self._source_table_exists(conn, relation_table):
+            rows.extend(self._fetchall(
+                conn,
+                """
+                SELECT 'many2many' AS cache_kind,
+                       row_number() OVER (
+                           ORDER BY relation.expense_id,
+                                    relation.bank_statement_line_id
+                       ) AS cache_id,
+                       relation.expense_id AS source_expense_id,
+                       relation.bank_statement_line_id
+                           AS source_bank_statement_line_id,
+                       NULL::integer AS source_sequence,
+                       NULL::integer AS source_score,
+                       NULL::boolean AS source_is_best
+                  FROM x_hr_expense_bank_statement_line_rel relation
+                  JOIN hr_expense expense
+                    ON expense.id = relation.expense_id
+                 WHERE expense.company_id
+                       = ANY(%(source_company_ids)s)
+                   AND expense.date
+                       BETWEEN %(date_from)s AND %(date_to)s
+                 ORDER BY relation.expense_id,
+                          relation.bank_statement_line_id
+                """,
+                options,
+            ))
+        selected_field = "x_selected_bank_statement_line_id"
+        if self._source_column_exists(conn, "hr_expense", selected_field):
+            rows.extend(self._fetchall(
+                conn,
+                """
+                SELECT 'selected' AS cache_kind,
+                       expense.id AS cache_id,
+                       expense.id AS source_expense_id,
+                       expense.x_selected_bank_statement_line_id
+                           AS source_bank_statement_line_id,
+                       NULL::integer AS source_sequence,
+                       NULL::integer AS source_score,
+                       TRUE AS source_is_best
+                  FROM hr_expense expense
+                 WHERE expense.company_id
+                       = ANY(%(source_company_ids)s)
+                   AND expense.date
+                       BETWEEN %(date_from)s AND %(date_to)s
+                   AND expense.x_selected_bank_statement_line_id IS NOT NULL
+                 ORDER BY expense.id
+                """,
+                options,
+            ))
+        return rows
+
+    def _native_expense_legacy_bank_match_schema(self):
+        legacy_model_names = ["x_sl_expense_bank_candidate"]
+        legacy_field_names = [
+            "x_bank_match_candidate_ids",
+            "x_candidate_bank_statement_line_ids",
+            "x_selected_bank_statement_line_id",
+            "x_selected_bank_statement_line_preview",
+        ]
+        legacy_action_names = [
+            "SL - Dépense - Chercher débits candidats",
+            "SL - Dépense - Associer meilleur débit bancaire",
+            "SL - Candidat bancaire - Associer à la dépense",
+        ]
+        legacy_view_names = ["SL - Expense bank debit matching"]
+        Model = self.env["ir.model"].sudo()
+        Field = self.env["ir.model.fields"].sudo()
+        legacy_models = Model.search([
+            ("model", "in", legacy_model_names),
+        ])
+        legacy_fields = Field.search([
+            "|",
+            ("model", "in", legacy_model_names),
+            "&",
+            ("model", "=", "hr.expense"),
+            ("name", "in", legacy_field_names),
+        ])
+        legacy_actions = self.env["ir.actions.server"].sudo().search([
+            ("name", "in", legacy_action_names),
+        ])
+        legacy_views = self.env["ir.ui.view"].sudo().search([
+            "|",
+            ("model", "in", legacy_model_names),
+            ("name", "in", legacy_view_names),
+        ])
+        legacy_access = self.env["ir.model.access"].sudo().search([
+            ("model_id", "in", legacy_models.ids or [0]),
+        ])
+        counts = {
+            "model_count": len(legacy_models),
+            "field_count": len(legacy_fields),
+            "action_count": len(legacy_actions),
+            "view_count": len(legacy_views),
+            "access_count": len(legacy_access),
+        }
+        return {
+            **counts,
+            "absent": not any(counts.values()),
+        }
+
+    @staticmethod
+    def _native_expense_bank_match_business_counts(env):
+        return {
+            "expense_count": env["hr.expense"].sudo().search_count([]),
+            "move_count": env["account.move"].sudo().search_count([]),
+            "move_line_count": env[
+                "account.move.line"
+            ].sudo().search_count([]),
+            "payment_count": env["account.payment"].sudo().search_count([]),
+            "partial_reconcile_count": env[
+                "account.partial.reconcile"
+            ].sudo().search_count([]),
+            "full_reconcile_count": env[
+                "account.full.reconcile"
+            ].sudo().search_count([]),
+        }
+
+    def _native_expense_recompute_bank_matches(
+        self,
+        cache_rows,
+        expenses_by_source_id,
+        options,
+    ):
+        """Recompute operational suggestions and classify source cache facts."""
+        Candidate = self.env["usl.expense.bank.match.candidate"].sudo()
+        Expense = self.env["hr.expense"].sudo()
+        expense_ids = [
+            expense.id for expense in expenses_by_source_id.values()
+        ]
+        eligible_expenses = Expense.browse(
+            expense_ids,
+        ).filtered(
+            lambda expense: (
+                expense._usl_bank_match_is_eligible()
+                and expense.date
+                and not expense.currency_id.is_zero(
+                    expense._usl_bank_match_amount(),
+                )
+            ),
+        )
+        counts_before = self._native_expense_bank_match_business_counts(
+            self.env,
+        )
+        refresh_errors = []
+        first_signature = []
+        second_signature = []
+        if eligible_expenses:
+            try:
+                with self.env.cr.savepoint():
+                    eligible_expenses.with_context(
+                        usl_expense_bank_match_migration=True,
+                    )._usl_refresh_bank_match_candidates()
+                    candidates = Candidate.search([
+                        ("expense_id", "in", eligible_expenses.ids),
+                    ])
+                    first_signature = sorted(
+                        (
+                            candidate.id,
+                            candidate.expense_id.id,
+                            candidate.bank_statement_line_id.id,
+                            candidate.state,
+                            candidate.rank,
+                            candidate.fingerprint,
+                        )
+                        for candidate in candidates
+                    )
+                    eligible_expenses.with_context(
+                        usl_expense_bank_match_migration=True,
+                    )._usl_refresh_bank_match_candidates()
+                    candidates = Candidate.search([
+                        ("expense_id", "in", eligible_expenses.ids),
+                    ])
+                    second_signature = sorted(
+                        (
+                            candidate.id,
+                            candidate.expense_id.id,
+                            candidate.bank_statement_line_id.id,
+                            candidate.state,
+                            candidate.rank,
+                            candidate.fingerprint,
+                        )
+                        for candidate in candidates
+                    )
+            except Exception as exc:  # noqa: BLE001
+                refresh_errors.append({
+                    "exception_type": type(exc).__name__,
+                    "exception_message": str(exc),
+                })
+
+        source_bank_ids = sorted({
+            row["source_bank_statement_line_id"]
+            for row in cache_rows
+            if row["source_bank_statement_line_id"]
+        })
+        bank_lines_by_source_id = {
+            line.rebuild_source_id: line
+            for line in self.env[
+                "account.bank.statement.line"
+            ].sudo().search([
+                (
+                    "rebuild_source_model",
+                    "=",
+                    "account.bank.statement.line",
+                ),
+                (
+                    "rebuild_source_snapshot",
+                    "=",
+                    options["source_snapshot_id"],
+                ),
+                ("rebuild_source_id", "in", source_bank_ids or [0]),
+            ])
+        }
+        target_pairs = {
+            (
+                candidate.expense_id.id,
+                candidate.bank_statement_line_id.id,
+            )
+            for candidate in Candidate.search([
+                (
+                    "expense_id",
+                    "in",
+                    expense_ids or [0],
+                ),
+            ])
+            if candidate.state == "available"
+        }
+        source_pair_counts = Counter(
+            (
+                row["source_expense_id"],
+                row["source_bank_statement_line_id"],
+            )
+            for row in cache_rows
+        )
+        expenses_by_source_bank = defaultdict(set)
+        for row in cache_rows:
+            expenses_by_source_bank[
+                row["source_bank_statement_line_id"]
+            ].add(row["source_expense_id"])
+
+        classifications = []
+        classification_counts = Counter()
+        flag_counts = Counter()
+        for row in cache_rows:
+            expense = expenses_by_source_id.get(row["source_expense_id"])
+            bank_line = bank_lines_by_source_id.get(
+                row["source_bank_statement_line_id"],
+            )
+            flags = []
+            source_pair = (
+                row["source_expense_id"],
+                row["source_bank_statement_line_id"],
+            )
+            if source_pair_counts[source_pair] > 1:
+                flags.append("shared_source_cache")
+            if len(expenses_by_source_bank[
+                row["source_bank_statement_line_id"]
+            ]) > 1:
+                flags.append("ambiguous_bank_line")
+            if row["cache_kind"] == "selected":
+                flags.append("selected_in_source")
+
+            if not expense:
+                classification = "missing_target_expense"
+            elif not bank_line:
+                classification = "missing_target_bank_line"
+            elif (
+                bank_line.is_reconciled
+                or expense.state in ("posted", "in_payment", "paid")
+            ):
+                classification = "already_settled_native_truth"
+            elif (expense.id, bank_line.id) in target_pairs:
+                classification = "reproducible_current_suggestion"
+            else:
+                classification = "stale_source_cache"
+            classification_counts[classification] += 1
+            flag_counts.update(flags)
+            classifications.append({
+                "cache_kind": row["cache_kind"],
+                "cache_id": row["cache_id"],
+                "source_expense_id": row["source_expense_id"],
+                "source_bank_statement_line_id": row[
+                    "source_bank_statement_line_id"
+                ],
+                "classification": classification,
+                "flags": flags,
+            })
+
+        counts_after = self._native_expense_bank_match_business_counts(
+            self.env,
+        )
+        legacy_schema = self._native_expense_legacy_bank_match_schema()
+        return {
+            "source_cache_association_count": len(cache_rows),
+            "classified_association_count": len(classifications),
+            "classification_counts": dict(sorted(
+                classification_counts.items(),
+            )),
+            "flag_counts": dict(sorted(flag_counts.items())),
+            "eligible_expense_count": len(eligible_expenses),
+            "current_candidate_count": Candidate.search_count([
+                (
+                    "expense_id",
+                    "in",
+                    expense_ids or [0],
+                ),
+            ]),
+            "refresh_error_count": len(refresh_errors),
+            "refresh_errors": refresh_errors,
+            "refresh_idempotent": first_signature == second_signature,
+            "business_counts_before": counts_before,
+            "business_counts_after": counts_after,
+            "accounting_unchanged": counts_before == counts_after,
+            "legacy_target_schema": legacy_schema,
+            "classification_examples": classifications[:50],
+        }
+
     def run_source_faithful_expense_materialization_from_source(self, options):
         """Materialize source expenses without duplicating imported accounting.
 
@@ -6623,6 +6986,16 @@ class RebuildAccountImportRun(models.Model):
                     options,
                 ),
             )
+            bank_match_cache_stats = (
+                self._native_expense_recompute_bank_matches(
+                    self._native_expense_bank_match_cache_rows(
+                        conn,
+                        options,
+                    ),
+                    expenses_by_source_id,
+                    options,
+                )
+            )
             for source_account_id in account_ids_to_archive:
                 accounts[source_account_id].active = False
 
@@ -6857,12 +7230,31 @@ class RebuildAccountImportRun(models.Model):
             attachment_issue_count = self._attachment_issue_count(
                 attachment_stats,
             )
+            bank_match_issue_count = sum((
+                bank_match_cache_stats["refresh_error_count"],
+                int(not bank_match_cache_stats["refresh_idempotent"]),
+                int(not bank_match_cache_stats["accounting_unchanged"]),
+                int(
+                    not bank_match_cache_stats[
+                        "legacy_target_schema"
+                    ]["absent"],
+                ),
+                int(
+                    bank_match_cache_stats[
+                        "classified_association_count"
+                    ]
+                    != bank_match_cache_stats[
+                        "source_cache_association_count"
+                    ],
+                ),
+            ))
             status = (
                 "passed"
                 if (
                     not blocked_cases
                     and not mismatch_cases
                     and not attachment_issue_count
+                    and not bank_match_issue_count
                 )
                 else "partial"
             )
@@ -6889,6 +7281,7 @@ class RebuildAccountImportRun(models.Model):
                 "blocked_case_count": len(blocked_cases),
                 "state_counts": dict(sorted(state_counts.items())),
                 "attachments": attachment_stats,
+                "expense_bank_matches": bank_match_cache_stats,
                 "mismatch_examples": mismatch_cases[:20],
                 "blocked_examples": blocked_cases[:20],
             }
@@ -6907,6 +7300,7 @@ class RebuildAccountImportRun(models.Model):
                     len(blocked_cases)
                     + len(mismatch_cases)
                     + attachment_issue_count
+                    + bank_match_issue_count
                 ),
                 "statistics_json": stats,
                 "notes": (
