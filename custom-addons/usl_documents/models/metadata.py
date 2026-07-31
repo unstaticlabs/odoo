@@ -731,8 +731,51 @@ class UslDocumentQuickFilter(models.Model):
     _description = "Documents One-click Shortcut"
     _order = "sequence, name, id"
 
+    _GROUP_BY_SELECTION = [
+        ("company_id", "Company"),
+        ("correspondent_id", "Correspondent"),
+        ("document_type_id", "Document type"),
+        ("linked_employee_id", "Employee"),
+        ("confidentiality", "Privacy"),
+        ("review_state", "Review status"),
+        ("document_date:month", "Document month"),
+        ("paperless_created:month", "Archive month"),
+    ]
+    _SORT_BY_SELECTION = [
+        ("name", "Document"),
+        ("document_date", "Document date"),
+        ("paperless_created", "Archive date"),
+        ("correspondent_id", "Correspondent"),
+        ("document_type_id", "Document type"),
+        ("company_id", "Company"),
+        ("tag_sort_key", "Tags"),
+        ("status_sort_key", "Status"),
+    ]
+    _SORT_DIRECTION_SELECTION = [
+        ("asc", "Ascending"),
+        ("desc", "Descending"),
+    ]
+    _EDITOR_FIELDS = {
+        "filter_domain",
+        "group_by_1",
+        "group_by_2",
+        "group_by_3",
+        "sort_by_1",
+        "sort_direction_1",
+        "sort_by_2",
+        "sort_direction_2",
+        "sort_by_3",
+        "sort_direction_3",
+    }
+
     name = fields.Char(required=True, translate=True)
-    key = fields.Char(required=True, index=True, readonly=True, copy=False)
+    key = fields.Char(
+        required=True,
+        index=True,
+        readonly=True,
+        copy=False,
+        default=lambda self: f"shortcut_{uuid.uuid4().hex}",
+    )
     icon = fields.Char(default="fa-filter")
     sequence = fields.Integer(default=10)
     ir_filter_id = fields.Many2one(
@@ -757,6 +800,66 @@ class UslDocumentQuickFilter(models.Model):
         ),
     )
     active = fields.Boolean(default=True)
+    filter_domain = fields.Text(
+        string="Filters",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+        help="The native Odoo filter conditions applied by this shortcut.",
+    )
+    group_by_1 = fields.Selection(
+        _GROUP_BY_SELECTION,
+        string="First grouping",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    group_by_2 = fields.Selection(
+        _GROUP_BY_SELECTION,
+        string="Second grouping",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    group_by_3 = fields.Selection(
+        _GROUP_BY_SELECTION,
+        string="Third grouping",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    sort_by_1 = fields.Selection(
+        _SORT_BY_SELECTION,
+        string="Sort first by",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    sort_direction_1 = fields.Selection(
+        _SORT_DIRECTION_SELECTION,
+        string="First direction",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    sort_by_2 = fields.Selection(
+        _SORT_BY_SELECTION,
+        string="Sort second by",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    sort_direction_2 = fields.Selection(
+        _SORT_DIRECTION_SELECTION,
+        string="Second direction",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    sort_by_3 = fields.Selection(
+        _SORT_BY_SELECTION,
+        string="Sort third by",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
+    sort_direction_3 = fields.Selection(
+        _SORT_DIRECTION_SELECTION,
+        string="Third direction",
+        compute="_compute_filter_editor",
+        inverse="_inverse_filter_editor",
+    )
 
     _quick_filter_key_unique = models.Constraint(
         "UNIQUE(key)", "A Documents shortcut key must be unique.",
@@ -768,14 +871,154 @@ class UslDocumentQuickFilter(models.Model):
                 _("Only Documents administrators may configure shared shortcuts."),
             )
 
+    @api.depends(
+        "ir_filter_id.domain",
+        "ir_filter_id.context",
+        "ir_filter_id.sort",
+    )
+    def _compute_filter_editor(self):
+        for shortcut in self:
+            groups = shortcut._filter_group_by()
+            ordering = shortcut._filter_order_by()
+            shortcut.filter_domain = (
+                shortcut.ir_filter_id.domain if shortcut.ir_filter_id else "[]"
+            )
+            for position in range(3):
+                group = groups[position] if position < len(groups) else False
+                order = ordering[position] if position < len(ordering) else {}
+                shortcut[f"group_by_{position + 1}"] = group
+                shortcut[f"sort_by_{position + 1}"] = order.get("name", False)
+                shortcut[f"sort_direction_{position + 1}"] = (
+                    "asc" if order.get("asc", True) else "desc"
+                ) if order else "asc"
+
+    def _inverse_filter_editor(self):
+        """Editor values are persisted atomically by create/write overrides."""
+
+    @api.model
+    def _default_ir_filter_values(self, name):
+        return {
+            "name": name,
+            "model_id": "usl.document",
+            "action_id": self.env.ref(
+                "usl_documents.action_documents_workspace",
+            ).id,
+            "domain": "[]",
+            "context": "{}",
+            "sort": "[]",
+            "user_ids": [Command.clear()],
+            "is_default": False,
+        }
+
+    def _editor_ir_filter_values(self, editor_values):
+        self.ensure_one()
+        current_context = self._filter_context()
+        current_groups = self._filter_group_by()
+        current_ordering = self._filter_order_by()
+
+        domain = editor_values.get(
+            "filter_domain",
+            self.ir_filter_id.domain if self.ir_filter_id else "[]",
+        )
+        groups = []
+        ordering = []
+        allowed_groups = dict(self._GROUP_BY_SELECTION)
+        allowed_ordering = dict(self._SORT_BY_SELECTION)
+        for position in range(3):
+            group_key = f"group_by_{position + 1}"
+            group = editor_values.get(
+                group_key,
+                current_groups[position] if position < len(current_groups) else False,
+            )
+            if group:
+                if group not in allowed_groups:
+                    raise ValidationError(_("Unsupported document grouping."))
+                groups.append(group)
+
+            sort_key = f"sort_by_{position + 1}"
+            direction_key = f"sort_direction_{position + 1}"
+            current_order = (
+                current_ordering[position]
+                if position < len(current_ordering)
+                else {}
+            )
+            sort_field = editor_values.get(
+                sort_key,
+                current_order.get("name", False),
+            )
+            direction = editor_values.get(
+                direction_key,
+                "asc" if current_order.get("asc", True) else "desc",
+            )
+            if sort_field:
+                if sort_field not in allowed_ordering:
+                    raise ValidationError(_("Unsupported document ordering field."))
+                if direction not in dict(self._SORT_DIRECTION_SELECTION):
+                    raise ValidationError(_("Unsupported document ordering direction."))
+                ordering.append(
+                    f"{sort_field}{' desc' if direction == 'desc' else ''}",
+                )
+
+        context = dict(current_context)
+        if groups:
+            context["group_by"] = groups
+        else:
+            context.pop("group_by", None)
+        return self._validated_ir_filter_values(
+            {
+                "domain": domain or "[]",
+                "context": context,
+                "sort": ordering,
+            },
+        )
+
     @api.model_create_multi
     def create(self, values_list):
+        self._require_manager()
         normalized = []
+        pending_editor_values = []
         for values in values_list:
             values = dict(values)
+            editor_values = {
+                key: values.pop(key)
+                for key in self._EDITOR_FIELDS
+                if key in values
+            }
             values.setdefault("key", f"shortcut_{uuid.uuid4().hex}")
+            if not values.get("ir_filter_id"):
+                native_values = self._default_ir_filter_values(values.get("name"))
+                ir_filter = self.env["ir.filters"].create(native_values)
+                values["ir_filter_id"] = ir_filter.id
             normalized.append(values)
-        return super().create(normalized)
+            pending_editor_values.append(editor_values)
+        shortcuts = super().create(normalized)
+        for shortcut, editor_values in zip(shortcuts, pending_editor_values):
+            if editor_values:
+                shortcut.ir_filter_id.write(
+                    shortcut._editor_ir_filter_values(editor_values),
+                )
+        return shortcuts
+
+    def write(self, values):
+        self._require_manager()
+        values = dict(values)
+        editor_values = {
+            key: values.pop(key)
+            for key in self._EDITOR_FIELDS
+            if key in values
+        }
+        result = super().write(values)
+        for shortcut in self:
+            native_values = {}
+            if editor_values:
+                native_values.update(
+                    shortcut._editor_ir_filter_values(editor_values),
+                )
+            if "name" in values:
+                native_values["name"] = shortcut.name
+            if native_values:
+                shortcut.ir_filter_id.write(native_values)
+        return result
 
     def unlink(self):
         native_filters = self.mapped("ir_filter_id")
@@ -858,7 +1101,18 @@ class UslDocumentQuickFilter(models.Model):
         context = values.get("context") or "{}"
         sort = values.get("sort") or "[]"
         try:
-            parsed_domain = ast.literal_eval(domain)
+            parsed_domain = (
+                domain
+                if isinstance(domain, list)
+                else safe_eval(
+                    domain,
+                    {
+                        "uid": self.env.uid,
+                        "context_today": lambda: fields.Date.context_today(self),
+                        "relativedelta": relativedelta,
+                    },
+                )
+            )
             parsed_context = (
                 context
                 if isinstance(context, dict)
@@ -875,7 +1129,7 @@ class UslDocumentQuickFilter(models.Model):
             raise ValidationError(_("Invalid saved-search definition."))
         Domain(parsed_domain)
         return {
-            "domain": repr(parsed_domain),
+            "domain": domain if isinstance(domain, str) else repr(parsed_domain),
             "context": repr(parsed_context),
             "sort": json.dumps(parsed_sort),
         }
@@ -972,22 +1226,6 @@ class UslDocumentQuickFilter(models.Model):
                 )
             ],
         }
-
-    @api.model
-    def action_open_builder(self):
-        self._require_manager()
-        action = self.env["ir.actions.actions"]._for_xml_id(
-            "usl_documents.action_documents_workspace",
-        )
-        action["params"] = {"shortcut_builder": True}
-        return action
-
-    def action_edit_in_workspace(self):
-        self.ensure_one()
-        self._require_manager()
-        action = self.action_open_builder()
-        action["params"]["shortcut_id"] = self.id
-        return action
 
     def workspace_values(self):
         self.ensure_one()

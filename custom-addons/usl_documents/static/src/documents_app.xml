@@ -191,24 +191,6 @@
 
             <main class="flex-grow-1 min-w-0 d-flex flex-column">
                 <header class="o_usl_documents_toolbar border-bottom bg-white p-3">
-                    <div t-if="state.shortcutBuilder"
-                         class="alert alert-info py-2 mb-3 d-flex flex-wrap align-items-center gap-2">
-                        <i class="fa fa-bolt"/>
-                        <div class="flex-grow-1">
-                            <strong>
-                                <t t-if="state.shortcutBuilderValues">Edit one-click shortcut</t>
-                                <t t-else="">Create a one-click shortcut</t>
-                            </strong>
-                            <div class="small">
-                                Build it with the search bar, Filters, Group By, and
-                                sortable list headers, then save.
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-sm"
-                                t-on-click="openShortcutSaveDialog">
-                            Save shortcut
-                        </button>
-                    </div>
                     <div t-if="recordContext" class="alert alert-info py-2 mb-3">
                         Upload a document or choose one from the archive to link it to
                         this record.

@@ -264,12 +264,15 @@ correspondent criteria remain synchronized with the Paperless Saved View by
 stable ID; Odoo-only company, confidentiality, links, and group shortcuts are
 clearly kept in Odoo.
 
-To maintain them, build the desired query in Documents using the same
-**Filters**, **Group By**, and list-header sorting that users already know.
-Then choose **Favorites > Save as one-click shortcut**, give it a name/icon,
-and choose the shared Smart Views where it should appear. Under
-**Configuration > One-click shortcuts**, **New** opens this same Documents
-search builder and editing reopens the saved facets, grouping, and order.
+To capture an active Documents query, choose
+**Favorites > Save as one-click shortcut**, give it a name/icon, and choose
+the shared Smart Views where it should appear. To review or change the whole
+shortcut in one place, open **Configuration > One-click shortcuts**. The form
+directly shows its Odoo filter conditions, three optional Group By levels,
+three optional Sort levels, Smart View placement, icon, sequence, and active
+state. **New** creates a shortcut in this same form. Add a filter condition,
+choose a grouping and descending sort, save, reopen the record, and confirm
+every value remains visible without opening a separate “Saved search” item.
 These shortcuts do not silently rewrite a Paperless Saved View when a user
 toggles one for a temporary search.
 
