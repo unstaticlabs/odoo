@@ -27,8 +27,10 @@ The application is deliberately an external-payroll accounting workflow:
 - **Paid** is derived from the actual residuals of salary, social and
   withholding liability lines. It is never trusted from a checkbox or a
   migrated Studio status.
-- Automatic settlement is allowed only for one unique, exact and safe bank
-  candidate. Ambiguous, partial, rounded or foreign-currency cases remain in
+- Automatic settlement is allowed only for one unique and safe bank
+  candidate. Salary must be exact. A unique URSSAF candidate may differ by at
+  most EUR 5; the real bank amount is used and the exact remainder stays open
+  on `431000`. Ambiguous, partial, larger or foreign-currency cases remain in
   the OCA Bank Matching workspace for an accountant.
 
 ## Alternatives considered
@@ -88,7 +90,7 @@ settlement bridge can be created.
 
 Preparation enforces:
 
-1. one payroll record per employee, company, year and month;
+1. one payroll record per employee, company and canonical payroll month;
 2. one provider reference per company;
 3. one active profile for the employee and period;
 4. an HR employee version applicable to the period;
@@ -99,9 +101,12 @@ Preparation enforces:
 9. debit equals credit in company currency;
 10. the `421000` amount equals net paid.
 
-The posting date is the payroll period end. Salary is normally due on the
-following day. The initial TESE collection suggestion is one month later on
-the fifteenth and remains editable until the accounting snapshot is frozen.
+`pay_period` stores the canonical month as its first day and is rendered with
+the native month picker. New records propose the oldest missing completed
+month, then the month after the latest payroll without going beyond the
+current month. The posting date is the payroll period end. Salary is normally
+due on the following day. The initial TESE collection suggestion is one month
+later on the fifteenth. Explicit user dates remain unchanged.
 
 ## Workflow and immutability
 
@@ -118,11 +123,20 @@ use an explicit accounting reversal and a new payroll record.
 
 Candidate scoring is advisory. It considers amount, date, partner, employee
 or provider label and reference. The automatic action rechecks the current
-line, currency, residual, reconcilability, date safety, uniqueness and exact
-amount immediately before settlement. A social payment spanning several
-liability accounts uses a balanced settlement bridge in the payroll journal;
-the bank suspense line and each liability are then reconciled in their native
-accounts.
+line, currency, residual, reconcilability, date safety and uniqueness
+immediately before settlement. A social payment spanning several liability
+accounts uses a balanced settlement bridge in the payroll journal; the bank
+suspense line and each declared liability are reconciled in their native
+accounts. An URSSAF rounding remainder of at most EUR 5 stays visibly open on
+`431000`; it is not auto-posted to an income or expense account.
+
+Before posting, **Update settings** can revise provider figures, native
+employment terms, or both in one atomic flow. It closes and archives the
+previous TESE profile, preserves all eleven components in a dated copy,
+creates a native employee version through `employee.create_version` (or a
+first contract when none exists), and reapplies both versions to the payroll.
+A linked draft entry is regenerated; posted accounting remains immutable.
+The operation requires both HR and Accounting Administrator roles.
 
 ## Security and privacy
 

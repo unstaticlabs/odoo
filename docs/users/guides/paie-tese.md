@@ -26,16 +26,38 @@ l’ancien profil ou renseignez sa date de fin avant de créer le suivant.
 
 ## Enregistrer un mois
 
-1. Ouvrez l’application **Paie TESE**, puis **Paies**, et créez une fiche.
-2. Sélectionnez l’employé, le mois, l’année et saisissez la référence TESE.
-3. Cliquez sur **Préparer**.
-4. Contrôlez la période, la version RH retenue, le brut, le net, les
-   cotisations, le prélèvement à la source et les onze lignes comptables.
-5. Lisez les avertissements si le brut ou les heures TESE diffèrent de la
-   fiche RH. Un avertissement n’altère pas l’historique RH.
-6. Cliquez sur **Créer l’écriture brouillon** et examinez-la.
-7. Joignez le bulletin PDF fourni par TESE.
-8. Cliquez sur **Comptabiliser**.
+1. Ouvrez l’application **Paie TESE** et cliquez sur **Nouveau**.
+2. Vérifiez le mois proposé. Odoo choisit le plus ancien mois terminé qui
+   manque pour l’employé ; s’il n’en manque aucun, il propose le mois suivant.
+3. Comparez la synthèse avec la déclaration TESE : **Net payé**,
+   **Prélèvement URSSAF**, brut, cotisations et prélèvement à la source.
+4. Joignez le bulletin PDF officiel fourni par TESE.
+5. Cliquez sur **Préparer**, puis contrôlez l’écriture comptable.
+6. Cliquez sur **Créer l’écriture brouillon**, puis **Comptabiliser**.
+
+Les dates usuelles sont proposées automatiquement : salaire le premier jour
+après le mois de paie et prélèvement URSSAF le 15 du mois suivant. Une date
+saisie manuellement est conservée.
+
+Le premier onglet reproduit la lecture utile du bulletin sans créer un second
+bulletin légal. L’onglet **Paiements** montre ce qui est attendu, ce qui a été
+trouvé en banque, l’écart et le solde encore ouvert. L’onglet
+**Comptabilité** contient l’écriture et les onze lignes figées.
+
+## Mettre à jour les paramètres
+
+Depuis une paie encore brouillon, cliquez sur **Mettre à jour les paramètres**
+si la déclaration TESE ou le contrat a changé.
+
+- Modifiez les chiffres TESE, les conditions d’emploi, ou les deux.
+- La date d’effet est le mois de paie.
+- Odoo archive et clôture l’ancien profil TESE, crée le nouveau profil et, si
+  nécessaire, une nouvelle version native du contrat.
+- La paie est immédiatement repréparée avec ces versions.
+
+Une écriture comptable encore brouillon est régénérée. Une écriture
+comptabilisée reste immuable. Cette opération exige les droits Administrateur
+RH et Administrateur comptable.
 
 Le PDF est obligatoire. Après comptabilisation, le bulletin, son instantané
 comptable et le justificatif ne peuvent plus être modifiés. Une correction
@@ -54,14 +76,24 @@ montant, de la date, du contact, du libellé et de la référence, mais elle
 n’est jamais une validation.
 
 Le rapprochement automatique n’est proposé que lorsqu’il existe un seul
-candidat exact et sûr. S’il y a plusieurs candidats, un écart d’arrondi, un
-paiement partiel ou une devise différente, ouvrez **Rapprochement bancaire**
-et documentez la décision comptable. L’application ne force pas un écart sur
-un compte de cotisations.
+candidat sûr. Pour l’URSSAF, un écart d’arrondi de 5 € maximum est accepté :
+le vrai montant bancaire est utilisé, les dettes déclarées sont soldées et
+l’écart exact reste ouvert sur `431000` avec le statut
+**Arrondi à apurer**. Il n’est jamais envoyé automatiquement sur `658` ou
+`758`, et la paie n’est pas présentée comme payée.
+
+S’il y a plusieurs candidats, un écart supérieur à 5 €, un paiement partiel
+ou une structure inhabituelle, ouvrez **Rapprochement bancaire** et
+documentez la décision comptable.
 
 Le statut **Payée** apparaît uniquement lorsque les soldes résiduels du
 salaire et de toutes les dettes TESE sont nuls. Une ancienne case cochée ou un
 statut importé ne suffit pas.
+
+Les filtres **Paiements ouverts**, **Salaire ouvert**, **URSSAF ouvert**,
+**Arrondi à apurer**, **Payée** et **PDF manquant** permettent de retrouver
+rapidement le travail restant. La liste d’accueil montre toutes les paies par
+défaut.
 
 ## Contrôler les anomalies
 
@@ -85,6 +117,13 @@ Ouvrez **Configuration → Comptes de paie** pour afficher uniquement les onze
 comptes utilisés par les profils TESE. Cette vue réutilise le plan comptable
 Odoo : une modification faite ici est donc la même modification que dans
 **Comptabilité → Configuration → Plan comptable**.
+
+## Retrouver les anciens profils
+
+Ouvrez **Profils de paie** dans le menu principal de l’application. La vue
+affiche les profils en cours. Utilisez les filtres **Tous** ou **Archivés**
+pour retrouver les anciennes versions, leurs dates de validité, leur contrat
+lié et leur historique d’utilisation.
 
 ## Droits
 

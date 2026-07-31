@@ -123,13 +123,18 @@ Validation must prove all of the following:
 3. every payroll has one provider PDF and eleven snapshot components;
 4. debit and credit remain equal in company currency;
 5. five records are paid and four remain open based on current residuals;
-6. all 30 messages, 57 tracking values and three followers map to native HR
+6. both employees point to their exact current version, all three HR versions
+   exist (including the employee-less template), and every profile/payroll
+   points to its exact employee and HR version;
+7. all four profiles are found with `active_test=False`, with exactly one
+   active and three archived, exact validity, figures and eleven components;
+8. all 30 messages, 57 tracking values and three followers map to native HR
    records;
-7. all 14 employee-folder PDFs have their source bytes/checksums;
-8. a second import changes no counts and creates no duplicate;
-9. product and migration add-on tests pass;
-10. `make product-migration-boundary` passes;
-11. finalization preserves business counts while removing
+9. all 14 employee-folder PDFs have their source bytes/checksums;
+10. a second import changes no counts and creates no duplicate;
+11. product and migration add-on tests pass;
+12. `make product-migration-boundary` passes;
+13. finalization preserves business counts while removing
     `usl_tese_restore`, its three models and all of its XML IDs.
 
 Retain the command summaries as private reconstruction evidence. Do not
