@@ -2740,6 +2740,11 @@ class RebuildAccountImportRun(models.Model):
                 JOIN account_reconcile_model model
                   ON model.id = relation.account_reconcile_model_id
                 WHERE model.company_id = ANY(%(source_company_ids)s)
+                UNION
+                SELECT peppol_purchase_journal_id
+                FROM res_company
+                WHERE id = ANY(%(source_company_ids)s)
+                  AND peppol_purchase_journal_id IS NOT NULL
             )
             ORDER BY aj.company_id, aj.id
             """,
@@ -2785,7 +2790,94 @@ class RebuildAccountImportRun(models.Model):
             else:
                 journal = Journal.create(vals)
             journals[row["id"]] = journal
+        self._sync_company_einvoice_configuration(
+            conn,
+            options,
+            companies,
+            journals,
+        )
         return journals
+
+    def _sync_company_einvoice_configuration(
+        self,
+        conn,
+        options,
+        companies,
+        journals,
+    ):
+        """Carry safe business setup forward without copying a live identity."""
+        required_columns = (
+            ("res_company", "account_peppol_contact_email"),
+            ("res_company", "account_peppol_phone_number"),
+            ("res_company", "peppol_purchase_journal_id"),
+            ("res_company", "account_peppol_proxy_state"),
+            ("res_partner", "peppol_eas"),
+            ("res_partner", "peppol_endpoint"),
+        )
+        if not all(
+            self._source_column_exists(conn, table, column)
+            for table, column in required_columns
+        ):
+            return
+
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT company.id,
+                   company.account_peppol_contact_email,
+                   company.account_peppol_phone_number,
+                   company.peppol_purchase_journal_id,
+                   company.account_peppol_proxy_state,
+                   partner.peppol_eas,
+                   partner.peppol_endpoint
+              FROM res_company company
+              JOIN res_partner partner ON partner.id = company.partner_id
+             WHERE company.id = ANY(%(source_company_ids)s)
+             ORDER BY company.id
+            """,
+            options,
+        )
+        for row in rows:
+            company = companies.get(row["id"])
+            if not company:
+                continue
+            registry_digits = "".join(
+                character
+                for character in (company.company_registry or "")
+                if character.isdigit()
+            )
+            values = {
+                "rebuild_einvoice_provider": "odoo_pdp",
+                "rebuild_einvoice_environment": "development",
+                "rebuild_einvoice_activation_approved": False,
+                "rebuild_einvoice_approved_by_id": False,
+                "rebuild_einvoice_approved_at": False,
+                "rebuild_einvoice_exchange_enabled": False,
+                "account_peppol_proxy_state": "not_registered",
+                "l10n_fr_pdp_send_to_ppf": False,
+                "l10n_fr_pdp_pilot_phase": False,
+            }
+            if row["account_peppol_contact_email"]:
+                values["account_peppol_contact_email"] = row[
+                    "account_peppol_contact_email"
+                ]
+            if row["account_peppol_phone_number"]:
+                values["account_peppol_phone_number"] = row[
+                    "account_peppol_phone_number"
+                ]
+            if row["peppol_purchase_journal_id"] in journals:
+                values["peppol_purchase_journal_id"] = journals[
+                    row["peppol_purchase_journal_id"]
+                ].id
+            if (
+                company.account_fiscal_country_id.code == "FR"
+                and len(registry_digits) >= 9
+            ):
+                values.update({
+                    "peppol_eas": "0225",
+                    "peppol_endpoint": registry_digits[:9],
+                })
+            company.sudo().write(values)
 
     def _reconciliation_model_map(
         self,

@@ -1,68 +1,52 @@
-# Prepare and Process Electronic-Invoice Reception
+# Prepare Electronic-Invoice Reception
 
-France requires every VAT-registered business to receive regulated electronic
-invoices through an approved platform from 1 September 2026. This Accounting
-release is **ready but inactive** until production activation.
+France requires VAT-registered businesses to be able to receive electronic
+invoices through an approved platform from 1 September 2026. USL uses Odoo
+Approved Platform for this workflow. Preparation and self-checks do not connect
+the company to the live service.
 
-## Check readiness safely
+## Complete the four setup steps
 
-1. Open **Accounting > Configuration > Invoicing > E-Invoicing**.
-2. Select the company. Read the state literally:
-   - **Configuration incomplete** lists company or journal details to finish;
-   - **Not yet verified** means the safe reception test has not passed;
-   - **Test passed** proves the safe software journey for this company;
-   - **Ready but inactive** means the software is prepared and no live
-     reception is running;
-   - **Production activation required** identifies a deliberate production step;
-   - **Active** means scheduled production reception is enabled.
-3. Follow **Next Action**. It shows only the current phase: company setup,
-   offline test or production activation.
-4. Under **Reception setup**, complete the accounting country, VAT number,
-   SIREN/SIRET, French scheme `0225` identifier and purchase journal.
-5. Select **Test Reception**. This creates a synthetic two-line
-   supplier invoice without contacting a supplier, directory or platform.
-6. On the **Safe test** evidence, confirm **Draft Bill Created**, €175 total,
-   two lines and the original XML.
-7. Open the vendor bill and its **E-Invoice Evidence** tab. Do not post the test
-   bill as a real supplier liability.
+1. Open **Accounting > Configuration > Invoicing > Electronic Invoicing**.
+2. Open the company.
+3. Complete:
+   - **Company identity**: France, VAT number and SIREN/SIRET;
+   - **Incoming bills**: the purchase journal where received invoices become
+     draft vendor bills;
+   - **Accounting contact**: the email and phone used during onboarding;
+   - **Reception self-check**: select **Run self-check**.
 
-No provider contact is needed for these checks. Production identity
-verification, acceptance of the platform terms and French-directory
-registration happen later in the approved production change window.
+The self-check decodes a representative UBL invoice through the same native
+import path used in production. It verifies the supplier, taxes, two invoice
+lines, total and original document, then rolls the test transaction back. It
+does not create a lasting bill, partner, attachment or reception item, and it
+does not contact a supplier, directory or platform.
 
-Odoo Approved Platform Demo mode is also safe in the disposable QA database:
-it simulates registration and reception locally. Do not treat **Authenticate**,
-**Refresh**, **Pilot Phase**, **Validate Registration (Production)**, a live
-poll or **Remove from Approved Platform** as harmless tests. Those actions
-contact or alter real external services once production access is authorized.
+The result remains valid only for the tested setup. Changing the company
+identity, purchase journal or accounting contact returns the company to
+**Ready to test**.
 
-## Process a received invoice
+## Read the status
 
-After the production runbook has been completed:
+- **Needs setup**: one of the four setup steps is incomplete.
+- **Ready to test**: configuration is complete; run the self-check.
+- **Ready for production**: software and setup are validated, but no live
+  connection exists.
+- **Activation in progress**: production onboarding or registration is not
+  finished.
+- **Receiving**: incoming-invoice checks are enabled for this company.
+- **Needs attention**: a received document or connection check needs action.
 
-1. Open **Accounting > Review > Electronic Invoice Reception**.
-2. Open the new **Draft Bill Created** item.
-3. Compare supplier, reference, date, currency, lines, VAT and total with the
-   original structured document.
-4. Select **Open Vendor Bill**, complete the normal Accounting review, and post
-   only when correct.
-5. Pay and reconcile it through the ordinary vendor-bill and Bank Matching
-   workflow. The original file and reception evidence remain linked.
+The screen presents the appropriate action for the current state. E-reporting
+is deliberately separate and remains **Not enabled — separate 2027 rollout**.
 
-## Understand exceptions
+## What happens to an incoming invoice
 
-- **Duplicate Controlled**: no second bill was created. Open the original link
-  and confirm whether the supplier intended a new legal document.
-- **Action Required**: the original is safe. Correct the stated condition and
-  ask an Accounting Manager to select **Retry Processing**.
-- **Rejected by Platform**: preserve the item and follow the platform/supplier
-  investigation; do not manually duplicate it.
-- **Authentication required** or **Platform temporarily unavailable**: suspend
-  reception if needed and follow the operator recovery procedure.
+UBL, CII and Factur-X invoices and credit notes enter the ordinary Vendor Bills
+workflow as native drafts. The original structured document remains attached.
+Posting, payment and reconciliation then use the normal Accounting actions.
 
-Read-only accountants can inspect evidence and draft bills but cannot run the
-test, retry processing, post, configure or activate.
-
-When the production change is approved, follow
-[Activate electronic-invoice reception in production](activate-electronic-invoice-reception.md).
-It is the complete switch, first-invoice and rollback checklist.
+Continue with [Review an incoming electronic invoice](review-incoming-electronic-invoice.md).
+Production operators use the separate
+[activation guide](activate-electronic-invoice-reception.md) during an approved
+production change.

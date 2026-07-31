@@ -14,9 +14,10 @@ configuring or locking records.
 
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
-inactive**: no directory registration, production provider endpoint, scheduled
-reception or e-reporting may be enabled before the deliberate production
-activation procedure is approved.
+inactive**: its self-check leaves no synthetic accounting records, and no
+directory registration, production provider connection or reception may be
+enabled before deliberate production activation. E-reporting is a separate
+disabled rollout.
 
 Primary entry points:
 
@@ -27,6 +28,8 @@ Primary entry points:
 - `/usl/user-docs` for role- and task-based user guidance;
 - `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` for the
   production reception switch and rollback checklist;
+- `/usl/user-docs/how-to/review-incoming-electronic-invoice.md` for the normal
+  vendor-bill review and exception journey;
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)

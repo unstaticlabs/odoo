@@ -71,6 +71,13 @@ not have equivalent Community/OCA replacements on the pinned baseline.
 Replacing them during a structural refactor would be a product redesign and
 is therefore rejected.
 
+The e-invoice boundary deliberately remains thin: native Odoo owns UBL/CII/
+Factur-X decoding, Approved Platform registration, draft vendor bills and
+approval/refusal responses. The compatibility module owns the business
+readiness state, non-polluting self-check, company enablement, evidence access
+and external-call guards. Global cron state is never used as company
+configuration.
+
 ### Reassign all XML IDs to the new modules
 
 This would make the source tree look cleaner, but it changes uninstall

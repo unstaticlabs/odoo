@@ -121,12 +121,16 @@ Journal entries, journal items, payments, assets, general reconciliation and clo
 
 ## Review
 
-Accounting Hygiene and other focused review work. Technical audit tools are available only in the advanced area.
+Accounting Hygiene and other focused review work. Technical audit tools are
+available only in the advanced area.
 
-**Electronic Invoice Reception** lists every approved-platform delivery as
-**Draft Bill Created**, **Duplicate Controlled**, **Rejected by Platform** or
-**Action Required**. It links the original structured document to the native
-draft bill without exposing provider internals.
+## Vendors
+
+**Incoming E-Invoices** lists approved-platform deliveries using business
+outcomes: **Ready for Review**, **Duplicate Ignored**, **Rejected** or
+**Needs Attention**. Successful rows open the native vendor bill. Provider
+references, payload hashes and attempt diagnostics remain available only to a
+technical administrator.
 
 ## Reporting
 

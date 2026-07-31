@@ -1,132 +1,187 @@
 # French Electronic-Invoicing Validation Evidence
 
-Status date: 29 July 2026
+Status date: 31 July 2026
 
-## Automated evidence
+## Verified product boundary
 
-The durable backend suite is
+The fork uses Odoo's native French Approved Platform and electronic-document
+models. The USL layer governs readiness, inactive-until-production safety and
+plain-language evidence; it does not implement a second exchange or invoice
+engine.
+
+The delivered state is:
+
+- incoming UBL, CII and Factur-X documents become native draft vendor bills or
+  refunds with their original document attached;
+- duplicate, malformed, rejected and retryable messages remain explicit and
+  idempotent;
+- Accounting Managers can prepare, test, activate, monitor or pause reception;
+- read-only accountants can inspect bills and evidence but cannot change the
+  setup or accounting;
+- reception is company-scoped;
+- reception and e-reporting have separate deployment guards;
+- the offline self-check retains only its status, time, configuration
+  fingerprint and concise outcome;
+- no provider registration, directory lookup, live retrieval, invoice
+  response or e-reporting call can run while its guard is `0`.
+
+## Durable automated coverage
+
+Backend coverage lives in
 `custom-addons/rebuild_account_migration/tests/test_einvoice_reception.py`.
-It covers:
+It verifies:
 
-- fresh module installation and module upgrade;
-- French company identifiers, scheme `0225`, journal and honest readiness;
-- UBL invoice, UBL credit note, CII and Factur-X;
-- two VAT rates, EUR and USD;
-- native draft vendor bill/refund creation and original-file preservation;
-- posting, payment and payable reconciliation;
-- same-message idempotency and same-payload duplicate prevention;
-- malformed input, rejected delivery, five-attempt recovery boundary,
-  authentication and temporary-provider guidance;
-- mocked provider success/failure;
-- Accounting Manager and read-only accountant permissions;
-- multi-company evidence isolation;
-- reception-only scheduled jobs, disabled auto-registration/e-reporting and
-  hard external-call guards;
-- absence of migration, reconstruction, parity and debug menus from daily
-  Accounting roles.
+- readiness blockers, defaults, action routing and configuration-fingerprint
+  invalidation;
+- repeatable, non-polluting self-check through Odoo's native decoder;
+- self-check preservation across a no-op module initialization;
+- UBL, CII and Factur-X invoices and credit notes;
+- multiple tax rates and currencies;
+- original attachments on native bills;
+- provider UUID and payload duplicate detection;
+- malformed, unsupported, rejected and retryable messages;
+- retry idempotency and the five-attempt boundary;
+- native draft review, posting, payment and reconciliation;
+- mocked native approval and refusal responses, including a refusal reason;
+- live-call guards and the independent e-reporting boundary;
+- manager/reviewer access and multi-company isolation;
+- company-scoped pause and resume;
+- upgrade preservation of a valid active production configuration;
+- safe removal of only untouched synthetic bills retained by the superseded
+  self-check.
 
-The browser tours are
+Source-mapping coverage in
+`custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py`
+verifies that reconstruction carries the accounting contact, phone and mapped
+purchase journal, derives scheme `0225` from the French company identifier, and
+does not copy a proxy user, credential, KYC state or live connection claim.
+
+Focused browser journeys live in
 `custom-addons/rebuild_account_migration/static/tests/tours/einvoice_reception_tours.js`.
-They exercise the Accounting Manager from readiness through the offline
-document, native bill and evidence, and the read-only accountant from reception
-evidence to the non-postable draft.
+They cover the manager setup/self-check journey and read-only inspection of an
+incoming electronic invoice. Provider boundaries are mocked in automated tests
+and unexpected real requests fail the suite.
 
-## Safe fixture
-
+The safe fixture
 `custom-addons/rebuild_account_migration/static/src/einvoice/representative_ubl_invoice.xml`
-is a synthetic supplier invoice. At runtime the buyer identifiers and dates are
-replaced with the current company. It contains €100 at 20% VAT and €50 at 10%
-VAT for a €175 total. It never represents a real supplier or provider message.
+contains two synthetic lines: €100 at 20% VAT and €50 at 10% VAT, for a €175
+total. It does not represent a real supplier or provider message.
 
-## Commands and results
+## 31 July release validation
 
-Validation uses an isolated Compose project and disposable PostgreSQL volume,
-not `odoo_dev`, `odoo_online_source_saas_19_2` or the shared candidate
-databases. The final installation database was
-`odoo_peppol_release_20260728` in Compose project
-`usl-peppol-qa-20260728`; both names are disposable test evidence, not
-deployment targets. The user-facing QA database is
-`odoo_peppol_qa_20260728` in the same isolated project.
+All commands used:
 
-The following final checks passed on 28–29 July 2026:
+```bash
+USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
+  scripts/odoo-dev test rebuild_account_migration \
+  odoo_einvoice_hardening_final2_20260731
 
-| Check | Command scope | Result |
-|---|---|---|
-| Fresh installation and reception backend suite | test image on `odoo_peppol_release_20260728`, `--init=rebuild_account_migration --test-tags=/rebuild_account_migration:TestFrenchEinvoiceReception --without-demo=true` | 99 modules installed; 7 methods / 9 Odoo assertions; 0 failures, 0 errors |
-| Explicit module upgrade and prior reception regression | test image on `odoo_peppol_release_20260728`, `--update=rebuild_account_migration --test-tags=/rebuild_account_migration:TestRebuildAccountMigration.test_french_einvoice_reception_is_offline_traceable_and_deduplicated --without-demo=true` | Upgrade completed; 1 method / 3 Odoo assertions; 0 failures, 0 errors |
-| Browser acceptance | Chromium test image on `odoo_peppol_defaults_test2_20260728`, `--test-tags=/rebuild_account_migration:TestFrenchEinvoiceReceptionBrowser` | Accounting Manager 9/9 steps and read-only accountant 6/6 steps; 0 failures, 0 errors |
-| Deployed QA acceptance | `scripts/odoo-dev bootstrap-einvoice-qa`, followed by in-app browser review | French commercial chart, EUR, 20% and 10% VAT, €175 total, original UBL, normal Confirm action, Odoo PA Demo invoice, manager controls and read-only visibility verified |
-| Production user guide | focused renderer test plus authenticated review of `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` | Fresh install passed; production prerequisites, onboarding, startup, first invoice, rollback and unsafe-action boundary render correctly; all 28 user-doc links resolve |
-| Python lint | `ruff check` on the reception model, new suite and modified regression suite, using the current Ruff container | Passed |
-| Python syntax | `python3 -m compileall -q` on the same Python files | Passed |
-| XML syntax | `xmllint --noout` on the cron data, readiness views and representative UBL | Passed |
-| Patch hygiene | `git diff --check` | Passed |
+USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
+  scripts/odoo-dev test-tag \
+  '/rebuild_account_migration:TestFrenchEinvoiceReception'
 
-All Odoo runs used the test image with the worktree's `custom-addons` mounted,
-the repository's OCA paths mounted read-only, cron disabled, and both live
-guards at their default `0`. Provider success, authentication failure and
-temporary failure were mocked; no live registration, lookup, retrieval,
-delivery or e-reporting request was made.
+USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
+  make target-reconstruct
 
-## Target-branch integration evidence
+USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
+  make deploy
 
-The feature was integrated into `saas-19.2-usl-feat-accounting` on 29 July
-2026. Integration validation used the normal `usl-odoo-saas-19-2` Compose
-project and did not restore or alter the preserved source database.
+make product-migration-boundary
+make user-docs-build
+```
 
-| Check | Isolated target | Result |
-|---|---|---|
-| Complete clean module installation and backend regression suite | Disposable database `odoo_merge_einvoice_clean_final_20260729`, removed by the test helper | 79 modules installed; 129 tests; 0 failures, 0 errors |
-| Browser acceptance on the integrated assets | Disposable database `odoo_merge_einvoice_browser_20260729`, removed after the run | Accounting Manager 9/9 steps and read-only accountant 6/6 steps; 0 failures, 0 errors |
-| Existing candidate upgrade | `odoo_saas_19_2_candidate_01`, using `scripts/odoo-dev deploy rebuild_account_migration` | Module upgraded to `saas~19.2.1.7.49`; all required standard e-document modules installed; application restarted healthy |
-| Consolidated frontend regressions | Chromium test image on `odoo_saas_19_2_candidate_01` | 22 tests / 95 assertions across the Accounting add-on; 0 failures, 0 errors |
-| Inactive-until-production boundary after upgrade | Read-only database inspection plus effective Compose configuration | All Peppol retrieval, registration, status and webhook jobs inactive; both live guards resolved to `0` |
-| User documentation | MkDocs 1.6.1 / Material 9.6.20 clean build to a disposable directory | Build passed without warnings |
+Results:
 
-The integration review also corrected two merge-sensitive risks before those
-checks:
+| Check | Result |
+|---|---|
+| Clean module install and complete suite | 157 post-install tests; module statistics report 166 Accounting tests, 3 OCA tests and 6 Web wrapper tests; 0 failures, 0 errors |
+| Desktop and mobile JavaScript | 25 tests / 94 assertions per viewport; all passed |
+| Focused reception backend suite after final changes | 13 post-install methods / 15 Odoo test statistics; 0 failures, 0 errors |
+| Focused manager and reviewer browser journeys | 2 HttpCase methods; manager 4/4 steps and reviewer 6/6 steps; 0 failures, 0 errors |
+| Product/migration boundary | Passed; migration add-ons and models remain outside the delivered product path |
+| User documentation | MkDocs build passed without warnings |
+| Static checks | Ruff, Python compilation, XML parsing and `git diff --check` passed |
 
-- module updates now preserve an existing company identifier, provider choice
-  and e-reporting preference instead of silently replacing business
-  configuration;
-- the QA bootstrap always restarts the normal Odoo service after a failed
-  bootstrap attempt.
+Expected malformed-document logs and denied reviewer writes occurred only in
+negative tests. They are not test failures.
 
-Two failed integration attempts were diagnostic rather than accepted
-fallbacks. The first clean runs exposed stale assertions retained during the
-test-file conflict resolution; the expectations were updated to the current
-guard and lifecycle contract. The first browser attempts used an image built
-before the current Markdown dependency and then inherited the development
-database filter; the current test image was rebuilt and the disposable
-database filter made explicit. The final clean and browser runs above are the
-passing evidence.
+## Canonical reconstruction and parity
 
-Resolved validation iterations are retained here for honesty:
+`make target-reconstruct` rebuilt the single canonical developer/QA database,
+`odoo_dev`, from the preserved Online source. It also completed the downstream
+Projects restoration and removed its temporary migration module.
 
-- the first isolated install could not resolve OCA dependencies because the
-  worktree's OCA directories were empty; the existing repository OCA trees
-  were subsequently mounted read-only;
-- early backend runs exposed and fixed country-neutral tax setup, scheduler
-  user permissions, inactive test currency, CII payment-account setup,
-  retained-attachment retry access and embedded Factur-X extraction;
-- the first browser runs exposed and fixed a changed status selector, durable
-  readiness action view binding and the company-name cell click target;
-- the first QA bootstrap exposed legacy shell argument ordering, a transaction
-  boundary around native PDF generation, and a generic USD chart; the final
-  bootstrap uses the French commercial chart and EUR;
-- browser tours were first skipped in the runtime image because it intentionally
-  lacks browser-test dependencies; they then passed in the repository test
-  image with Chromium and `websocket-client`;
-- Ruff `0.12.2` could not parse the repository's newer rule set; the current
-  Ruff image then identified two comment-style findings, which were fixed
-  before the final passing run.
+Accounting parity passed with:
 
-## Not verified by software tests
+| Object or control | Reconstructed result |
+|---|---:|
+| Journal entries | 5,044 |
+| Posted / draft entries | 4,849 / 193 |
+| Journal items | 11,871 |
+| Expenses | 360 |
+| Payments | 110 |
+| Bank transactions | 3,046 |
+| Partial / full reconciliations | 2,584 / 1,260 |
+| Historical currency rates | 1,889 |
+| Analytic lines | 632 |
+| Assets / schedule lines / posted depreciation moves | 3 / 91 / 28 |
+| Unbalanced posted entries | 0 |
+| Duplicate source representations | 0 |
 
-- USL's production identity acceptance and applicable provider terms;
-- approved-platform production credentials and support route;
-- live French directory registration and effective date;
-- delivery of the first real supplier invoice;
-- production backup/rollback rehearsal and Accounting Manager acceptance.
+The controlled closed slice contains 2,046 posted moves and 4,809 lines, with
+€1,064,045.02 debit and credit.
 
-Those are deliberate activation prerequisites, not hidden implementation work.
+The reconstructed electronic-invoice setup for Unstatic Labs contains the
+source accounting contact and phone, the mapped **Achats** journal and French
+identifier `0225:983982950`. It deliberately contains no proxy identity or live
+connection claim.
+
+The Accounting Manager then ran the offline self-check on `odoo_dev`. Before
+and after counts were identical:
+
+```text
+account.move                     5,044 → 5,044
+res.partner                         67 → 67
+ir.attachment                      824 → 824
+rebuild.einvoice.reception           0 → 0
+```
+
+After a repeated module upgrade, the persisted state remained:
+
+```text
+Business status                   Ready for production
+Self-check                        Passed and current
+Environment                       Development
+Approved Platform proxy state     Not registered
+Production approval               False
+Incoming exchange enabled         False
+E-reporting enabled               False
+Pilot mode                        False
+Legacy synthetic test bills       0
+```
+
+An earlier validation iteration exposed that Odoo's high-level platform import
+wrapper can commit during decoding, which defeated an outer savepoint and left
+one synthetic draft bill. The self-check now calls the selected native decoder
+directly inside a forced rollback savepoint. Upgrade cleanup removed that
+untouched legacy test bill, and dedicated regression coverage protects both
+the cleanup and the zero-count invariant.
+
+## External effects and production-only acceptance
+
+Both live guards stayed `0` throughout installation, reconstruction, module
+updates and tests. Provider success, failure, approval and refusal were mocked.
+No live registration, directory query, invoice retrieval, response or
+e-reporting occurred.
+
+Software validation cannot prove:
+
+- USL's eligibility for the selected Approved Platform;
+- contract, KYC and legal-representative acceptance;
+- production credentials and secret storage;
+- French directory registration;
+- receipt of the first real supplier invoice;
+- the production backup, suspension and rollback rehearsal.
+
+These remain explicit production activation steps, not hidden development
+work. E-reporting remains a separate 2027 rollout.
