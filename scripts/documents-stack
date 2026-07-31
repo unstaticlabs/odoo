@@ -97,6 +97,10 @@ validate_config() {
     printf 'Rendered Odoo database filter does not target %s.\n' "$DATABASE" >&2
     return 1
   }
+  grep -Fq "ODOO_DB_NAME: ${DATABASE}" <<<"$config" || {
+    printf 'Rendered Odoo runtime database does not target %s.\n' "$DATABASE" >&2
+    return 1
+  }
   grep -Fq "USL_EINVOICE_LIVE_ENABLED: \"0\"" <<<"$config" || {
     printf 'Electronic-invoice live safety flag is not disabled.\n' >&2
     return 1
@@ -152,7 +156,16 @@ provision_qa_sso() {
 
 runtime_status() {
   "${COMPOSE[@]}" ps
-  local runtime_filter
+  local runtime_database runtime_filter
+  runtime_database="$(
+    "${COMPOSE[@]}" exec -T odoo \
+      sed -n 's/^db_name[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \
+      | tr -d '\r' | tail -n 1
+  )"
+  [[ "$runtime_database" = "$DATABASE" ]] || {
+    printf 'Runtime database mismatch: %s\n' "${runtime_database:-<empty>}" >&2
+    return 1
+  }
   runtime_filter="$(
     "${COMPOSE[@]}" exec -T odoo \
       sed -n 's/^dbfilter[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \

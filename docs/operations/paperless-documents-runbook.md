@@ -10,7 +10,8 @@ files, profile, ports, and safety checks together.
 Local QA is fixed to:
 
 - Compose project `codex-paperless-docs`;
-- Odoo database `odoo_usl_documents_test` and filter
+- Odoo database `odoo_usl_documents_test`, hard runtime binding
+  `db_name = odoo_usl_documents_test`, and web filter
   `^odoo_usl_documents_test$`;
 - Odoo `http://127.0.0.1:18080` and gevent port `18072`;
 - Paperless `http://127.0.0.1:8010`;
@@ -34,6 +35,11 @@ The QA target uses `codex-paperless-docs-odoo:documents-qa`, never the
 canonical development image. Run `build` after Dockerfile, Python dependency,
 or upstream/OCA dependency changes; ordinary mounted add-on edits need only
 `update`.
+
+The explicit `db_name` binding prevents this stack's cron worker from opening
+other development, restore, or migration databases that happen to share the
+PostgreSQL container. The `dbfilter` alone protects HTTP database selection but
+is not the runtime isolation boundary for scheduled jobs.
 
 `update` updates `usl_documents`, its required `usl_pocketid` identity
 foundation, and the optional `usl_documents_accounting` bridge when installed,

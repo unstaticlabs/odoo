@@ -4,6 +4,7 @@ db_host = ${ODOO_DB_HOST}
 db_port = ${ODOO_DB_PORT}
 db_user = ${ODOO_DB_USER}
 db_password = ${ODOO_DB_PASSWORD}
+${ODOO_DB_NAME_CONFIG}
 addons_path = ${ODOO_ADDONS_PATH}
 data_dir = ${ODOO_DATA_DIR}
 http_port = ${ODOO_HTTP_PORT}
