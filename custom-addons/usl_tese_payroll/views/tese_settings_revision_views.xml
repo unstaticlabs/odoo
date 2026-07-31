@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tese_settings_revision_form" model="ir.ui.view">
+        <field name="name">usl.tese.settings.revision.wizard.form</field>
+        <field name="model">usl.tese.settings.revision.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Update Payroll Settings">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="payslip_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h1>Update recurring payroll settings</h1>
+                    <p class="text-muted mb-0">
+                        Copy the current settings, record only what changed,
+                        and start the new version in the selected month.
+                    </p>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="profile_id"/>
+                            <field name="source_version_id"/>
+                        </group>
+                        <group>
+                            <field name="effective_period"
+                                   options="{'min_precision': 'months', 'max_precision': 'months'}"/>
+                            <field name="update_tese"/>
+                            <field name="update_contract"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="tese" string="TESE Figures">
+                            <group>
+                                <group string="Pay">
+                                    <field name="default_hours"
+                                           readonly="not update_tese"/>
+                                    <field name="gross_salary"
+                                           readonly="not update_tese"/>
+                                    <field name="employee_contribution_total"
+                                           readonly="not update_tese"/>
+                                    <field name="employer_contribution_total"
+                                           readonly="not update_tese"/>
+                                    <field name="net_social"
+                                           readonly="not update_tese"/>
+                                </group>
+                                <group string="Net Paid">
+                                    <field name="net_before_tax"
+                                           readonly="not update_tese"/>
+                                    <field name="income_tax_base"
+                                           readonly="not update_tese"/>
+                                    <field name="income_tax_rate"
+                                           readonly="not update_tese"/>
+                                    <field name="income_tax_amount"
+                                           readonly="not update_tese"/>
+                                    <field name="net_paid"
+                                           readonly="not update_tese"
+                                           class="fw-bold"/>
+                                </group>
+                            </group>
+                            <separator string="Accounting detail"/>
+                            <field name="component_line_ids"
+                                   readonly="not update_tese">
+                                <list editable="bottom"
+                                      create="false"
+                                      delete="false">
+                                    <field name="sequence"
+                                           column_invisible="True"
+                                           force_save="1"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="code" force_save="1"/>
+                                    <field name="name" force_save="1"/>
+                                    <field name="account_id" force_save="1"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="contract" string="Employment Terms">
+                            <div class="alert alert-info"
+                                 role="alert"
+                                 invisible="update_contract">
+                                Turn on <strong>Employment terms changed</strong>
+                                above to create a native contract version.
+                            </div>
+                            <group>
+                                <group string="Pay and Time">
+                                    <field name="wage"
+                                           readonly="not update_contract"/>
+                                    <field name="resource_calendar_id"
+                                           readonly="not update_contract"/>
+                                    <field name="hours_per_week"
+                                           readonly="not update_contract"/>
+                                </group>
+                                <group string="Contract">
+                                    <field name="contract_type_id"
+                                           readonly="not update_contract"/>
+                                    <field name="contract_date_start"
+                                           readonly="not update_contract"/>
+                                    <field name="contract_date_end"
+                                           widget="date_dynamic_min"
+                                           options="{'min_date_field': 'contract_date_start'}"
+                                           readonly="not update_contract"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_apply"
+                            string="Create and Apply"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -3,7 +3,7 @@ from datetime import date
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 from odoo.tools.safe_eval import safe_eval
 
 from ..models.constants import TESE_COMPONENTS
@@ -160,8 +160,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             "company_id": self.company.id,
             "employee_id": self.employee.id,
             "profile_id": self.profile.id,
-            "pay_month": month,
-            "pay_year": year,
+            "pay_period": date(year, month, 1),
             "tese_reference": reference or f"TESE-{year}-{month:02d}",
         })
 
@@ -222,7 +221,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(payslip.period_start, date(2028, 2, 1))
         self.assertEqual(payslip.period_end, date(2028, 2, 29))
         self.assertEqual(payslip.payment_date, date(2028, 3, 1))
-        self.assertEqual(payslip.tese_payment_date, date(2028, 4, 15))
+        self.assertEqual(payslip.tese_payment_date, date(2028, 3, 15))
         self.assertEqual(payslip.hr_version_id, self.employee.version_id)
         self.assertEqual(len(payslip.component_line_ids), 11)
         self.assertEqual(payslip.total_debit, 3850.0)
@@ -240,10 +239,10 @@ class TestTesePayroll(AccountTestInvoicingCommon):
                 "valid_from": date(2026, 6, 1),
             })
 
-        payslip = self._new_payslip()
         self.profile.sudo().component_line_ids.filtered(
             lambda line: line.code == "421000",
         ).amount = 2299.0
+        payslip = self._new_payslip()
         with self.assertRaisesRegex(
             ValidationError,
             "not balanced",
@@ -327,7 +326,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             | payslip._debt_lines("tese")
         ))
 
-    def test_duplicate_exact_and_rounding_difference_use_bank_matching(self):
+    def test_duplicate_exact_requires_bank_matching(self):
         payslip = self._posted_payslip()
         self._bank_line(
             2300.0,
@@ -343,28 +342,290 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         payslip.action_refresh_candidates()
         self.assertEqual(payslip.salary_payment_candidate_count, 2)
-        self.assertIn("exact candidates", payslip.salary_payment_match_message)
-        with self.assertRaisesRegex(UserError, "unique exact safe"):
+        self.assertIn(
+            "plausible candidates",
+            payslip.salary_payment_match_message,
+        )
+        with self.assertRaisesRegex(UserError, "unique safe"):
             payslip.action_reconcile_salary()
 
-        payslip.with_context(
-            _tese_internal_write=True,
-        ).sudo().tese_bank_difference = 0.01
-        tese_candidate = {
-            "line": self._bank_line(
-                1550.0,
-                payslip.tese_payment_date,
-                self.collector,
-                "PRELEVEMENT URSSAF TESE",
-            ),
-            "amount": 1550.0,
-        }
-        with self.assertRaisesRegex(UserError, "difference"):
-            payslip._create_settlement_bridge(
-                "tese",
-                tese_candidate,
-                payslip._debt_lines("tese"),
+    def test_guided_period_uses_oldest_missing_completed_month(self):
+        for month in range(1, 6):
+            self._new_payslip(
+                month=month,
+                reference=f"GUIDED-2026-{month:02d}",
             )
+        suggested = self.env["usl.tese.payslip"]._suggest_pay_period(
+            self.employee,
+            self.company,
+            today=date(2026, 7, 1),
+        )
+        self.assertEqual(suggested, date(2026, 6, 1))
+
+        june = self._new_payslip(month=6, reference="GUIDED-2026-06")
+        self.assertEqual(june.pay_period, date(2026, 6, 1))
+        self.env.flush_all()
+        suggested = self.env["usl.tese.payslip"]._suggest_pay_period(
+            self.employee,
+            self.company,
+            today=date(2026, 7, 1),
+        )
+        self.assertEqual(suggested, date(2026, 7, 1))
+        self._new_payslip(month=7, reference="GUIDED-2026-07")
+        with self.assertRaisesRegex(UserError, "already exists"):
+            self.env["usl.tese.payslip"]._suggest_pay_period(
+                self.employee,
+                self.company,
+                today=date(2026, 7, 1),
+            )
+
+    def test_period_is_normalized_and_dates_default_without_overriding_manual(self):
+        payslip = self.env["usl.tese.payslip"].with_user(
+            self.workflow_user,
+        ).create({
+            "company_id": self.company.id,
+            "employee_id": self.employee.id,
+            "profile_id": self.profile.id,
+            "pay_period": date(2028, 2, 20),
+            "payment_date": date(2028, 3, 3),
+            "tese_payment_date": date(2028, 4, 18),
+            "tese_reference": "TESE-MANUAL-DATES",
+        })
+        self.assertEqual(payslip.pay_period, date(2028, 2, 1))
+        self.assertEqual(payslip.period_end, date(2028, 2, 29))
+        self.assertEqual(payslip.payment_date, date(2028, 3, 3))
+        self.assertEqual(payslip.tese_payment_date, date(2028, 4, 18))
+
+    def test_new_draft_prefills_recurring_provider_figures(self):
+        defaults = self.env["usl.tese.payslip"].with_user(
+            self.workflow_user,
+        ).with_context(
+            default_employee_id=self.employee.id,
+        ).default_get([
+            "company_id",
+            "employee_id",
+            "profile_id",
+            "pay_period",
+            "gross_salary",
+            "net_paid",
+            "tese_detailed_total",
+            "tese_bank_amount",
+        ])
+        self.assertEqual(defaults["profile_id"], self.profile.id)
+        self.assertEqual(defaults["gross_salary"], 3000.0)
+        self.assertEqual(defaults["net_paid"], 2300.0)
+        self.assertEqual(defaults["tese_detailed_total"], 1550.0)
+        self.assertEqual(defaults["tese_bank_amount"], 1550.0)
+
+    def test_urssaf_rounding_remains_visibly_open_on_431(self):
+        payslip = self._posted_payslip()
+        self._bank_line(
+            2300.0,
+            payslip.payment_date,
+            self.employee.work_contact_id,
+            "VIR ALICE PAYROLL",
+        )
+        self._bank_line(
+            1550.55,
+            payslip.tese_payment_date,
+            self.collector,
+            "PRELEVEMENT URSSAF TESE",
+        )
+        payslip.action_refresh_candidates()
+        payslip.action_reconcile_salary()
+        payslip.action_reconcile_tese()
+
+        self.assertEqual(payslip.tese_bank_amount, 1550.55)
+        self.assertEqual(payslip.tese_bank_difference, 0.55)
+        self.assertEqual(payslip.state, "to_reconcile")
+        self.assertEqual(payslip.payment_status, "rounding_open")
+        self.assertEqual(payslip.rounding_open_amount, 0.55)
+        rounding_lines = payslip.tese_settlement_move_id.line_ids.filtered(
+            lambda line: (
+                line.account_id.code == "431000"
+                and not payslip.currency_id.is_zero(line.amount_residual)
+            ),
+        )
+        self.assertEqual(len(rounding_lines), 1)
+        self.assertEqual(abs(rounding_lines.amount_residual), 0.55)
+
+    def test_negative_urssaf_rounding_remains_open_on_431(self):
+        payslip = self._posted_payslip()
+        self._bank_line(
+            2300.0,
+            payslip.payment_date,
+            self.employee.work_contact_id,
+            "VIR ALICE PAYROLL",
+        )
+        self._bank_line(
+            1549.45,
+            payslip.tese_payment_date,
+            self.collector,
+            "PRELEVEMENT URSSAF TESE",
+        )
+        payslip.action_refresh_candidates()
+        payslip.action_reconcile_salary()
+        payslip.action_reconcile_tese()
+
+        self.assertEqual(payslip.tese_bank_difference, -0.55)
+        self.assertEqual(payslip.payment_status, "rounding_open")
+        self.assertEqual(payslip.rounding_open_amount, 0.55)
+        rounding_lines = payslip._tracked_liability_lines("tese").filtered(
+            lambda line: line.account_id.code == "431000",
+        )
+        self.assertEqual(len(rounding_lines), 1)
+        self.assertEqual(abs(rounding_lines.amount_residual), 0.55)
+
+    def test_urssaf_rounding_above_five_euros_is_not_automatic(self):
+        payslip = self._posted_payslip()
+        self._bank_line(
+            1555.01,
+            payslip.tese_payment_date,
+            self.collector,
+            "PRELEVEMENT URSSAF TESE",
+        )
+        payslip.action_refresh_candidates()
+        self.assertFalse(payslip.tese_payment_best_line_id)
+        with self.assertRaisesRegex(UserError, "unique safe"):
+            payslip.action_reconcile_tese()
+
+    def test_external_reconciliation_updates_payment_badge_from_residuals(self):
+        payslip = self._posted_payslip()
+        self.assertEqual(payslip.payment_status, "open_both")
+        salary_debt = payslip._debt_lines("salary")
+        external_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "company_id": self.company.id,
+            "journal_id": self.payroll_journal.id,
+            "date": payslip.payment_date,
+            "ref": "External Bank Matching salary settlement",
+            "line_ids": [
+                Command.create({
+                    "name": "Salary paid through Bank Matching",
+                    "account_id": salary_debt.account_id.id,
+                    "partner_id": self.employee.work_contact_id.id,
+                    "debit": 2300.0,
+                }),
+                Command.create({
+                    "name": "Bank counterpart",
+                    "account_id": self.bank_journal.suspense_account_id.id,
+                    "credit": 2300.0,
+                }),
+            ],
+        })
+        external_move.action_post()
+        external_salary = external_move.line_ids.filtered(
+            lambda line: line.account_id == salary_debt.account_id,
+        )
+        (salary_debt + external_salary).reconcile()
+
+        self.assertEqual(payslip.salary_open_amount, 0.0)
+        self.assertEqual(payslip.payment_status, "tese_open")
+
+    def test_combined_revision_creates_contract_and_profile_versions(self):
+        payslip = self._new_payslip()
+        Wizard = self.env["usl.tese.settings.revision.wizard"].with_user(
+            self.config_user,
+        ).with_context(
+            default_payslip_id=payslip.id,
+            default_profile_id=self.profile.id,
+            default_employee_id=self.employee.id,
+            default_effective_period=payslip.pay_period,
+        )
+        with Form(Wizard) as wizard_form:
+            wizard_form.update_contract = True
+            wizard_form.wage = 3100.0
+            wizard = wizard_form.save()
+        wizard.action_apply()
+
+        self.assertEqual(payslip.state, "prepared")
+        self.assertNotEqual(payslip.profile_id, self.profile)
+        self.assertFalse(self.profile.active)
+        self.assertEqual(self.profile.valid_to, date(2026, 6, 30))
+        self.assertEqual(payslip.profile_id.valid_from, date(2026, 7, 1))
+        self.assertEqual(payslip.hr_version_id.date_version, date(2026, 7, 1))
+        self.assertEqual(payslip.hr_version_id.wage, 3100.0)
+        self.assertEqual(
+            payslip.profile_id.hr_version_id,
+            payslip.hr_version_id,
+        )
+        self.assertEqual(len(payslip.profile_id.component_line_ids), 11)
+
+    def test_combined_revision_creates_first_contract_when_missing(self):
+        employee = self.env["hr.employee"].sudo().create({
+            "name": "Bob First Contract",
+            "company_id": self.company.id,
+            "work_email": "bob.first.contract@example.test",
+        })
+        self.assertFalse(employee._is_in_contract(date(2026, 7, 1)))
+        profile = self.profile.with_user(self.config_user).copy(default={
+            "name": "Bob TESE 2026",
+            "employee_id": employee.id,
+            "hr_version_id": False,
+            "last_used_date": False,
+        })
+        payslip = self.env["usl.tese.payslip"].with_user(
+            self.workflow_user,
+        ).create({
+            "company_id": self.company.id,
+            "employee_id": employee.id,
+            "profile_id": profile.id,
+            "pay_period": date(2026, 7, 1),
+            "tese_reference": "TESE-FIRST-CONTRACT",
+        })
+        Wizard = self.env["usl.tese.settings.revision.wizard"].with_user(
+            self.config_user,
+        ).with_context(
+            default_payslip_id=payslip.id,
+            default_profile_id=profile.id,
+            default_employee_id=employee.id,
+            default_effective_period=payslip.pay_period,
+        )
+        with Form(Wizard) as wizard_form:
+            wizard_form.update_contract = True
+            wizard_form.wage = 2800.0
+            wizard = wizard_form.save()
+        wizard.action_apply()
+
+        self.assertTrue(employee._is_in_contract(date(2026, 7, 1)))
+        self.assertEqual(
+            payslip.hr_version_id.contract_date_start,
+            date(2026, 7, 1),
+        )
+        self.assertEqual(payslip.hr_version_id.wage, 2800.0)
+        self.assertEqual(payslip.profile_id.hr_version_id, payslip.hr_version_id)
+
+    def test_combined_revision_refreshes_existing_draft_entry(self):
+        payslip = self._new_payslip()
+        payslip.action_prepare()
+        payslip.action_create_draft_entry()
+        draft_move = payslip.move_id
+        Wizard = self.env["usl.tese.settings.revision.wizard"].with_user(
+            self.config_user,
+        ).with_context(
+            default_payslip_id=payslip.id,
+            default_profile_id=self.profile.id,
+            default_employee_id=self.employee.id,
+            default_effective_period=payslip.pay_period,
+        )
+        with Form(Wizard) as wizard_form:
+            wizard_form.update_contract = True
+            wizard_form.wage = 3200.0
+            wizard = wizard_form.save()
+        wizard.action_apply()
+
+        self.assertEqual(payslip.state, "to_post")
+        self.assertEqual(payslip.move_id, draft_move)
+        self.assertEqual(draft_move.state, "draft")
+
+    def test_used_profile_requires_a_dated_revision(self):
+        self._new_payslip()
+        with self.assertRaisesRegex(UserError, "next dated version"):
+            self.profile.with_user(self.config_user).gross_salary = 3100.0
+        with self.assertRaisesRegex(UserError, "next dated settings version"):
+            self.profile.component_line_ids[:1].with_user(
+                self.config_user,
+            ).amount = 1.0
 
     def test_security_requires_combined_roles(self):
         Payslip = self.env["usl.tese.payslip"]

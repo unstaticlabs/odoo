@@ -1,12 +1,9 @@
-# Translation of Odoo Server.
-# This file contains the translation of the following modules:
-#       * usl_tese_payroll
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-30 14:37+0000\n"
-"PO-Revision-Date: 2026-07-30 14:37+0000\n"
+"POT-Creation-Date: 2026-07-31 00:00+0000\n"
+"PO-Revision-Date: 2026-07-31 00:00+0000\n"
 "Last-Translator: Unstatic Labs\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -19,10 +16,30 @@ msgstr ""
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "%(count)s exact candidates found. Review them in Bank Matching."
+msgid ""
+"%(count)s TESE settings profiles cover this month; exactly one is required."
+msgstr "%(count)s profils TESE couvrent ce mois ; un seul est requis."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "%(count)s contract versions cover this month; exactly one is required."
 msgstr ""
-"%(count)s candidats exacts trouvés. Examinez-les dans le rapprochement "
+"%(count)s versions de contrat couvrent ce mois ; une seule est requise."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "%(count)s plausible candidates found. Review them in Bank Matching."
+msgstr ""
+"%(count)s candidats plausibles trouvés. Vérifiez-les dans le rapprochement "
 "bancaire."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "%(employee)s — TESE %(period)s"
+msgstr "%(employee)s — TESE %(period)s"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -42,6 +59,11 @@ msgstr ""
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "<span class=\"o_stat_text\">Accounting Items</span>"
+msgstr "<span class=\"o_stat_text\">Éléments comptables</span>"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "<span class=\"o_stat_text\">Employee</span>"
 msgstr "<span class=\"o_stat_text\">Employé</span>"
 
@@ -52,13 +74,8 @@ msgstr "<span class=\"o_stat_text\">Pièce comptable</span>"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "<span class=\"o_stat_text\">Matching Items</span>"
-msgstr "<span class=\"o_stat_text\">Éléments à rapprocher</span>"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "<span class=\"o_stat_text\">Payroll PDF</span>"
-msgstr "<span class=\"o_stat_text\">PDF de paie</span>"
+msgid "<span class=\"o_stat_text\">Official TESE PDF</span>"
+msgstr "<span class=\"o_stat_text\">PDF TESE officiel</span>"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_move_form_tese_payroll
@@ -66,15 +83,9 @@ msgid "<span class=\"o_stat_text\">TESE Payroll</span>"
 msgstr "<span class=\"o_stat_text\">Paie TESE</span>"
 
 #. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid ""
-"A TESE bank difference cannot be bridged automatically. Use Bank Matching "
-"and document the rounding or partial amount."
-msgstr ""
-"Une différence bancaire TESE ne peut pas être comblée automatiquement. "
-"Utilisez le rapprochement bancaire et documentez l’arrondi ou le montant "
-"partiel."
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "<span>to</span>"
+msgstr "<span>au</span>"
 
 #. module: usl_tese_payroll
 #: model:ir.model.constraint,message:usl_tese_payroll.constraint_account_move_tese_payslip_role_unique
@@ -160,6 +171,7 @@ msgstr ""
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__account_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__account_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__account_id
 msgid "Account"
 msgstr "Compte"
 
@@ -170,16 +182,65 @@ msgid "Account %(account)s is not available to %(company)s."
 msgstr "Le compte %(account)s n'est pas disponible pour %(company)s."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Accounting"
+msgstr "Comptabilité"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__component_line_ids
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
 msgid "Accounting Components"
 msgstr "Composants comptables"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__component_line_ids
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Accounting Detail"
+msgstr "Détail comptable"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__component_line_ids
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "Accounting Snapshot"
 msgstr "Instantané comptable"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+msgid "Accounting Stage"
+msgstr "Étape comptable"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Accounting detail"
+msgstr "Détail comptable"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+msgid ""
+"Accounting details already used by payroll history cannot be deleted. Create "
+"the next dated settings version instead."
+msgstr ""
+"Le détail comptable déjà utilisé par l’historique de paie ne peut pas être "
+"supprimé. Créez plutôt la prochaine version datée."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+msgid ""
+"Accounting details already used by payroll history cannot be edited. Create "
+"the next dated settings version instead."
+msgstr ""
+"Le détail comptable déjà utilisé par l’historique de paie ne peut pas être "
+"modifié. Créez plutôt la prochaine version datée."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+msgid ""
+"Accounting details already used by payroll history cannot be extended. "
+"Create the next dated settings version instead."
+msgstr ""
+"Le détail comptable déjà utilisé par l’historique de paie ne peut pas être "
+"complété. Créez plutôt la prochaine version datée."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__message_needaction
@@ -191,7 +252,6 @@ msgstr "Nécessite une action"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__active
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__active
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_search
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
 msgid "Active"
 msgstr "Actif"
 
@@ -236,8 +296,19 @@ msgid "Activity Type Icon"
 msgstr "Icône de type d'activité"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Actual URSSAF Debit"
+msgstr "Prélèvement URSSAF réel"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
+msgid "All"
+msgstr "Tous"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__amount
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__amount
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__amount
 msgid "Amount"
 msgstr "Montant"
 
@@ -248,12 +319,41 @@ msgstr ""
 "Un salarié ne peut disposer que d’un seul bulletin de paie TESE par mois."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Applicable Period"
+msgstr "Période d’application"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Applied Contract"
+msgstr "Contrat appliqué"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Applied Settings"
+msgstr "Paramètres appliqués"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Applied TESE Settings"
+msgstr "Paramètres TESE appliqués"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Applied TESE settings %(profile)s and contract version %(version)s."
+msgstr ""
+"Paramètres TESE %(profile)s et version de contrat %(version)s appliqués."
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__633500
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__633500
 msgid "Apprenticeship tax"
 msgstr "Taxe d’apprentissage"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile__review_status__archived
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
 msgid "Archived"
 msgstr "Archivé"
 
@@ -292,12 +392,12 @@ msgstr "Nombre de pièces jointes"
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid ""
-"Automatic reconciliation requires one unique exact safe candidate. Refresh "
-"suggestions and use Bank Matching for differences or ambiguity."
+"Automatic reconciliation requires one unique safe candidate. Refresh "
+"suggestions and use Bank Matching for ambiguity or larger differences."
 msgstr ""
-"Le rapprochement automatique nécessite un candidat exact, unique et sûr. "
-"Actualisez les suggestions et utilisez le rapprochement bancaire en cas "
-"d’écart ou d’ambiguïté."
+"Le rapprochement automatique nécessite un candidat unique et sûr. Actualisez "
+"les suggestions et utilisez le rapprochement bancaire en cas d’ambiguïté ou "
+"d’écart plus important."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__balance_difference
@@ -306,8 +406,18 @@ msgstr "Différence de solde"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Bank Matching"
-msgstr "Rapprochement bancaire"
+msgid "Bank Amount"
+msgstr "Montant bancaire"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Bank Date"
+msgstr "Date bancaire"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Bank Label"
+msgstr "Libellé bancaire"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__bank_reconcile_message
@@ -331,6 +441,7 @@ msgid "Blocking"
 msgstr "Bloquant"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__can_configure
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__can_configure
 msgid "Can Configure"
 msgstr "Peut configurer"
@@ -342,19 +453,15 @@ msgstr "Le flux de travail peut-il"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
 msgid "Cancel"
 msgstr "Annuler"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__cancelled
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__cancelled
 msgid "Cancelled"
 msgstr "Annulé"
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "Candidates refreshed. Salary: %(salary)s TESE: %(tese)s"
-msgstr "Des candidats rafraîchis. Salaire : %(salary)s TESE : %(tese)s"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__category
@@ -372,8 +479,41 @@ msgstr ""
 "RH et Comptable."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Check Status"
+msgstr "État du contrôle"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Choose a payroll month, not an individual day."
+msgstr "Choisissez un mois de paie, pas un jour précis."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Choose a payroll month."
+msgstr "Choisissez un mois de paie."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid ""
+"Choose an employee and current TESE settings before creating a revision."
+msgstr ""
+"Choisissez un employé et les paramètres TESE actuels avant de créer une "
+"nouvelle version."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Choose an employee and payroll month."
+msgstr "Choisissez un employé et un mois de paie."
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__code
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__code
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__code
 msgid "Code"
 msgstr "Code"
 
@@ -384,15 +524,13 @@ msgstr "Code"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__company_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__company_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__company_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__company_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__company_id
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_configuration
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
 msgid "Company"
 msgstr "Société"
-
-#. module: usl_tese_payroll
-#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_company_configuration
-msgid "TESE Companies"
-msgstr "Sociétés TESE"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -402,14 +540,14 @@ msgstr ""
 "Le composant %(code)s doit utiliser le côté %(side)s et le rôle %(role)s."
 
 #. module: usl_tese_payroll
-#: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_configuration
-msgid "Configuration"
-msgstr "Configuration"
-
-#. module: usl_tese_payroll
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_accounts
 msgid "Comptes de paie"
 msgstr "Comptes de paie"
+
+#. module: usl_tese_payroll
+#: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_configuration
+msgid "Configuration"
+msgstr "Configuration"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -432,13 +570,41 @@ msgstr ""
 "ceux des RH."
 
 #. module: usl_tese_payroll
-#: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_profiles
-msgid ""
-"Connect one employee record to provider figures and the French payroll "
-"accounts."
-msgstr ""
-"Connectez un dossier d'employé aux chiffres du prestataire et aux comptes de "
-"paie français."
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Contract"
+msgstr "Contrat"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__contract_date_end
+msgid "Contract End"
+msgstr "Fin du contrat"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Contract Monthly Hours"
+msgstr "Heures mensuelles du contrat"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__contract_date_start
+msgid "Contract Start"
+msgstr "Début du contrat"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__contract_type_id
+msgid "Contract Type"
+msgstr "Type de contrat"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_list
+msgid "Contract Version"
+msgstr "Version du contrat"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Contract Wage"
+msgstr "Salaire du contrat"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__control_checklist
@@ -446,9 +612,13 @@ msgid "Control Checklist"
 msgstr "Liste des contrôles"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Controls"
-msgstr "Contrôles"
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid ""
+"Copy the current settings, record only what changed,\n"
+"                        and start the new version in the selected month."
+msgstr ""
+"Copiez les paramètres actuels, indiquez uniquement les changements,\n"
+"                        puis démarrez la nouvelle version au mois choisi."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -468,13 +638,29 @@ msgstr "Corrigez le lien avant de poursuivre le flux de travail."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Create Journal Entry"
-msgstr "Créer la pièce comptable"
+msgid "Create Draft Entry"
+msgstr "Créer la pièce brouillon"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Create Next Version"
+msgstr "Créer la version suivante"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Create and Apply"
+msgstr "Créer et appliquer"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+msgid "Create payroll settings revision"
+msgstr "Créer une nouvelle version des paramètres de paie"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_profiles
-msgid "Create a TESE payroll profile"
-msgstr "Créer un profil de paie TESE"
+msgid "Create recurring TESE settings"
+msgstr "Créer des paramètres TESE récurrents"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -483,13 +669,32 @@ msgid "Create the draft payroll entry before posting it."
 msgstr "Créez le brouillon d’écriture de paie avant de le valider."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_payslips
+msgid "Create the next payroll"
+msgstr "Créer la prochaine paie"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__create_uid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__create_uid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__create_uid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__create_uid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__create_uid
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__create_uid
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__create_uid
 msgid "Created by"
 msgstr "Créé par"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Created from %(profile)s for %(period)s."
+msgstr "Créé depuis %(profile)s pour %(period)s."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Created from %(profile)s with contract version %(version)s."
+msgstr "Créé depuis %(profile)s avec la version de contrat %(version)s."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__create_date
@@ -497,6 +702,8 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__create_date
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__create_date
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__create_date
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__create_date
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -511,8 +718,25 @@ msgstr "Crédit"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__currency_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__currency_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__currency_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__currency_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__currency_id
 msgid "Currency"
 msgstr "Devise"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
+msgid "Current"
+msgstr "En cours"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__source_version_id
+msgid "Current Contract Version"
+msgstr "Version actuelle du contrat"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__profile_id
+msgid "Current TESE Settings"
+msgstr "Paramètres TESE actuels"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip_line__side__debit
@@ -521,15 +745,41 @@ msgid "Debit"
 msgstr "Débit"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Declared"
+msgstr "Déclaré"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__default_hours
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Declared Monthly Hours"
+msgstr "Heures mensuelles déclarées"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Declared URSSAF Total"
+msgstr "Total URSSAF déclaré"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__default_hours
 msgid "Default Hours"
 msgstr "Heures par défaut"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Details"
+msgstr "Détails"
 
 #. module: usl_tese_payroll
 #: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_diagnostics
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_diagnostics
 msgid "Diagnostics"
 msgstr "Diagnostics"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Difference"
+msgstr "Écart"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_account_move__display_name
@@ -540,6 +790,8 @@ msgstr "Diagnostics"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__display_name
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__display_name
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__display_name
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__display_name
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
 
@@ -574,11 +826,17 @@ msgid "Draft"
 msgstr "Brouillon"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__effective_period
+msgid "Effective Month"
+msgstr "Mois d’effet"
+
+#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 #: model:ir.model,name:usl_tese_payroll.model_hr_employee
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__employee_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__employee_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__employee_id
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
 msgid "Employee"
@@ -593,6 +851,7 @@ msgstr "Contact employé"
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__employee_contribution_total
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__employee_contribution_total
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__employee_contribution_total
 msgid "Employee Contribution Total"
 msgstr "Total des cotisations salariales"
 
@@ -612,6 +871,11 @@ msgid "Employee Snapshot Name"
 msgstr "Nom de l'instantané de l'employé"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Employee and Contract"
+msgstr "Employé et contrat"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,help:usl_tese_payroll.field_usl_tese_profile__hr_wage_reference
 msgid "Employee's monthly gross wage."
 msgstr "Salaire brut mensuel de l'employé."
@@ -619,6 +883,7 @@ msgstr "Salaire brut mensuel de l'employé."
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__employer_contribution_total
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__employer_contribution_total
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__employer_contribution_total
 msgid "Employer Contribution Total"
 msgstr "Total des cotisations patronales"
 
@@ -630,26 +895,31 @@ msgstr "Cotisation patronale"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__645200
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__645200
 msgid "Employer provident contributions"
 msgstr "Cotisations patronales de prévoyance"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__645100
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__645100
 msgid "Employer social-security contributions"
 msgstr "Cotisations patronales de sécurité sociale"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__645300
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__645300
 msgid "Employer supplementary-pension contributions"
 msgstr "Cotisations patronales de retraite complémentaire"
 
 #. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid ""
-"Enter a payroll month between 1 and 12 and a year between 2020 and 2100."
-msgstr ""
-"Saisissez un mois de paie entre 1 et 12 et une année entre 2020 et 2100."
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Employment Terms"
+msgstr "Conditions d’emploi"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__update_contract
+msgid "Employment terms changed"
+msgstr "Les conditions d’emploi ont changé"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -659,13 +929,18 @@ msgstr "Chaque compte de passif réglé doit être rapprochable."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Final Check"
-msgstr "Vérification finale"
+msgid "Expected"
+msgstr "Attendu"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Finalize"
-msgstr "Finaliser"
+msgid "Expected Date"
+msgstr "Date prévue"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Expected Debit"
+msgstr "Prélèvement prévu"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__first_seen_at
@@ -713,7 +988,9 @@ msgstr ""
 "ne crée ni ne réécrit jamais de comptes."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_list
 msgid "Gross"
 msgstr "Brut"
@@ -721,6 +998,7 @@ msgstr "Brut"
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__gross_salary
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__gross_salary
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__gross_salary
 msgid "Gross Salary"
 msgstr "Salaire brut"
 
@@ -728,13 +1006,9 @@ msgstr "Salaire brut"
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip_line__role__gross
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__641100
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__role__gross
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__641100
 msgid "Gross remuneration"
 msgstr "Rémunération brute"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "HR and Profile Snapshot"
-msgstr "Instantané RH et du profil"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__has_message
@@ -749,13 +1023,23 @@ msgid ""
 "Have the Accounting Administrator review the chart configuration; TESE "
 "Payroll never changes accounts silently."
 msgstr ""
-"Demandez à l'administrateur comptable de revoir la configuration du "
-"plan comptable ; Paie TESE ne modifie jamais un compte silencieusement."
+"Demandez à l'administrateur comptable de revoir la configuration du plan "
+"comptable ; Paie TESE ne modifie jamais un compte silencieusement."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "History and Checks"
+msgstr "Historique et contrôles"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__hours
 msgid "Hours"
 msgstr "Heures"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__hours_per_week
+msgid "Hours Per Week"
+msgstr "Heures par semaine"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__hr_hours_reference
@@ -786,6 +1070,8 @@ msgstr "Instantané du salaire RH"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__id
 msgid "ID"
 msgstr "ID"
 
@@ -818,18 +1104,21 @@ msgstr "Si coché, certains messages ont une erreur de livraison."
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__income_tax_amount
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__income_tax_amount
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__income_tax_amount
 msgid "Income Tax Amount"
 msgstr "Montant du prélèvement à la source"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__income_tax_base
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__income_tax_base
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__income_tax_base
 msgid "Income Tax Base"
 msgstr "Assiette du prélèvement à la source"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__income_tax_rate
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__income_tax_rate
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__income_tax_rate
 msgid "Income Tax Rate"
 msgstr "Taux du prélèvement à la source"
 
@@ -855,6 +1144,11 @@ msgid "Journal Entry"
 msgstr "Pièce comptable"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_profiles
+msgid "Keep one dated version for every change declared to TESE."
+msgstr "Conservez une version datée pour chaque changement déclaré à TESE."
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__last_seen_at
 msgid "Last Seen At"
 msgstr "Vu pour la dernière fois à"
@@ -865,6 +1159,8 @@ msgstr "Vu pour la dernière fois à"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__write_uid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__write_uid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__write_uid
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__write_uid
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__write_uid
 msgid "Last Updated by"
 msgstr "Mis à jour par"
 
@@ -874,6 +1170,8 @@ msgstr "Mis à jour par"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__write_date
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__write_date
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__write_date
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__write_date
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__write_date
 msgid "Last Updated on"
 msgstr "Mis à jour le"
 
@@ -889,14 +1187,29 @@ msgstr "Lien pour revoir"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
-msgid "Load French Defaults"
-msgstr "Charger les valeurs françaises par défaut"
+msgid "Load French Accounts"
+msgstr "Charger les comptes français"
 
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
 msgid "Load and review the 11 French accounting components."
 msgstr "Chargez et révisez les 11 composants comptables français."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Match Salary"
+msgstr "Rapprocher le salaire"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Match URSSAF Debit"
+msgstr "Rapprocher le prélèvement URSSAF"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Matching Diagnostics"
+msgstr "Diagnostic du rapprochement"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__message
@@ -921,9 +1234,15 @@ msgid "Missing PDF"
 msgstr "PDF manquant"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
 msgid "Month"
 msgstr "Mois"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__wage
+msgid "Monthly Wage"
+msgstr "Salaire mensuel"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__move_ref
@@ -942,36 +1261,39 @@ msgstr "Échéance de mon activité"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__name
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__name
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__name
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__name
 msgid "Name"
 msgstr "Nom"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
-msgid "Needs Attention"
-msgstr "A besoin d'attention"
-
-#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__net_before_tax
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__net_before_tax
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__net_before_tax
 msgid "Net Before Tax"
 msgstr "Net avant impôt"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__net_paid
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__net_paid
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__net_paid
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_list
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
 msgid "Net Paid"
 msgstr "Net payé"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__net_social
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__net_social
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__net_social
 msgid "Net Social"
 msgstr "Net social"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__421000
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__421000
 msgid "Net salary payable"
 msgstr "Salaire net à payer"
 
@@ -1013,6 +1335,12 @@ msgstr "Aucun candidat trouvé."
 
 #. module: usl_tese_payroll
 #. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "No contract version covers the selected payroll month."
+msgstr "Aucune version de contrat ne couvre le mois de paie sélectionné."
+
+#. module: usl_tese_payroll
+#. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "No payroll PDF is linked."
 msgstr "Aucun PDF de paie n’est lié."
@@ -1022,6 +1350,11 @@ msgstr "Aucun PDF de paie n’est lié."
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "No payroll journal entry is linked."
 msgstr "Aucune écriture au journal de paie n'est liée."
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__not_posted
+msgid "Not posted"
+msgstr "Non comptabilisé"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__message_needaction_counter
@@ -1063,10 +1396,30 @@ msgid "Object Model"
 msgstr "Modèle objet"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Official TESE PDF"
+msgstr "PDF TESE officiel"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"One URSSAF debit is ready. The %(difference).2f difference will remain "
+"visible on 431000."
+msgstr ""
+"Un prélèvement URSSAF est prêt. L’écart de %(difference).2f restera visible "
+"sur le compte 431000."
+
+#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "One unique exact safe candidate is available for reconciliation."
 msgstr "Un candidat unique et sûr est disponible pour le rapprochement."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Ongoing"
+msgstr "En cours"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1081,6 +1434,12 @@ msgid "Only a payroll draft without a journal entry can be prepared."
 msgstr "Seule une feuille de paie sans pièce comptable peut être préparée."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Only add a note when the TESE document needs explanation."
+msgstr ""
+"Ajoutez une note uniquement si le document TESE nécessite une explication."
+
+#. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_list
 msgid "Open"
 msgstr "Ouvert"
@@ -1089,6 +1448,16 @@ msgstr "Ouvert"
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_form
 msgid "Open Affected Record"
 msgstr "Ouvrir l'enregistrement concerné"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Open Bank Matching"
+msgstr "Ouvrir le rapprochement bancaire"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
+msgid "Open Payments"
+msgstr "Paiements à régler"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,help:usl_tese_payroll.field_usl_tese_profile__hr_version_id
@@ -1100,6 +1469,7 @@ msgstr ""
 "qu'il s'agit bien de celui applicable à la période de paie."
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__paid
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__paid
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
 msgid "Paid"
@@ -1112,18 +1482,27 @@ msgid ""
 "Paid payroll has reopened liabilities: salary %(salary).2f; TESE %(tese).2f."
 msgstr ""
 "Une paie payée présente de nouveau des dettes ouvertes : salaire %"
-"(salary).2f ; TESE %"
-"(tese).2f."
+"(salary).2f ; TESE %(tese).2f."
 
 #. module: usl_tese_payroll
-#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__pay_month
-msgid "Pay Month"
-msgstr "Mois de paie"
+#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_payroll_accounts
+msgid "Paie TESE — Comptes de paie"
+msgstr "Paie TESE — Comptes de paie"
 
 #. module: usl_tese_payroll
-#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__pay_year
-msgid "Pay Year"
-msgstr "Année de paie"
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Pay"
+msgstr "Rémunération"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Pay and Time"
+msgstr "Salaire et temps de travail"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Paycheck"
+msgstr "Bulletin"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__payment_check_message
@@ -1136,12 +1515,25 @@ msgid "Payment Check Ok"
 msgstr "Contrôle des paiements réussi"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__payment_status
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
+msgid "Payment Status"
+msgstr "État du paiement"
+
+#. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "Payments"
 msgstr "Paiements"
 
 #. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Payments refreshed. Salary: %(salary)s URSSAF: %(tese)s"
+msgstr "Paiements actualisés. Salaire : %(salary)s URSSAF : %(tese)s"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__account_move__tese_move_role__payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "Payroll"
 msgstr "Paie"
 
@@ -1153,32 +1545,36 @@ msgid "Payroll Journal Entry"
 msgstr "Pièce comptable de paie"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__pay_period
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Payroll Month"
+msgstr "Mois de paie"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__attachment_id
 msgid "Payroll PDF"
 msgstr "PDF de paie"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
 msgid "Payroll Period"
 msgstr "Période de paie"
 
 #. module: usl_tese_payroll
-#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_profiles
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_profiles
 msgid "Payroll Profiles"
 msgstr "Profils de paie"
-
-#. module: usl_tese_payroll
-#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_payroll_accounts
-msgid "Paie TESE — Comptes de paie"
-msgstr "Paie TESE — Comptes de paie"
 
 #. module: usl_tese_payroll
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_records
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
 msgid "Payroll Records"
 msgstr "Paies"
+
+#. module: usl_tese_payroll
+#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_profiles
+msgid "Payroll Settings"
+msgstr "Paramètres de paie"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1189,9 +1585,24 @@ msgstr "Les instantanés de comptabilité de paie sont immuables."
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"Payroll already exists through the current month. Open the existing payroll "
+"instead."
+msgstr ""
+"La paie existe déjà jusqu’au mois en cours. Ouvrez plutôt la paie existante."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Payroll finalized: salary and TESE liabilities are fully settled."
 msgstr ""
 "Paie finalisée : les salaires et les dettes TESE sont entièrement réglés."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Payroll month"
+msgstr "Mois de paie"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1238,6 +1649,7 @@ msgstr "Les instantanés de paie sont immuables après préparation."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__payslip_id
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__payslip_id
 msgid "Payslip"
 msgstr "Paie"
 
@@ -1257,14 +1669,19 @@ msgid "Period End"
 msgstr "Fin de période"
 
 #. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__period_label
+msgid "Period Label"
+msgstr "Libellé de période"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__period_start
 msgid "Period Start"
 msgstr "Début de période"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Post"
-msgstr "Comptabiliser"
+msgid "Post Entry"
+msgstr "Comptabiliser la pièce"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1293,9 +1710,23 @@ msgstr ""
 "Créez une contrepassation explicite au lieu de les annuler."
 
 #. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"Posted, paid, or cancelled payrolls keep their original settings snapshot."
+msgstr ""
+"Les paies comptabilisées, payées ou annulées conservent leurs paramètres "
+"d’origine."
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__hr_version_id
 msgid "Preferred Employee Record"
 msgstr "Dossier d'employé préféré"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Preparation Checks"
+msgstr "Contrôles de préparation"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__preparation_message
@@ -1314,17 +1745,8 @@ msgstr "Avertissements de préparation"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Prepare"
-msgstr "Préparer"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_payslips
-msgid ""
-"Prepare the payroll entry, retain its PDF, and settle every salary and "
-"social liability."
-msgstr ""
-"Préparez la fiche de paie, conservez son PDF et réglez chaque salaire et "
-"dette sociale."
+msgid "Prepare Payroll"
+msgstr "Préparer la paie"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__prepared
@@ -1345,6 +1767,7 @@ msgstr ""
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__633300
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__633300
 msgid "Professional training contribution"
 msgstr "Contribution à la formation professionnelle"
 
@@ -1390,18 +1813,19 @@ msgstr ""
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__437020
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__437020
 msgid "Provident liabilities"
 msgstr "Dettes de prévoyance"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
-msgid "Provider Figures"
-msgstr "Montants du prestataire"
+msgid "Provider"
+msgstr "Prestataire"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Provider Payroll"
-msgstr "Paie du prestataire"
+msgid "Provider Evidence"
+msgstr "Justificatif du prestataire"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1436,19 +1860,9 @@ msgid "Ready to post"
 msgstr "Prête à comptabiliser"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Reconcile Salary"
-msgstr "Rapprocher le salaire"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Reconcile TESE"
-msgstr "Rapprocher TESE"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_payslips
-msgid "Record provider payroll"
-msgstr "Enregistrer la paie du prestataire"
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+msgid "Recurring TESE Settings"
+msgstr "Paramètres TESE récurrents"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -1478,8 +1892,8 @@ msgstr "Actualisez les paiements et renvoyez la paie au rapprochement."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Reset to Prepared"
-msgstr "Revenir à l’état préparé"
+msgid "Reset"
+msgstr "Réinitialiser"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__resolved
@@ -1497,11 +1911,6 @@ msgstr "Résolu à"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__activity_user_id
 msgid "Responsible User"
 msgstr "Utilisateur responsable"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
-msgid "Review"
-msgstr "Révision"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__review_message
@@ -1525,6 +1934,32 @@ msgstr "Vérifiez l'entrée liée et l'état de la paie."
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__role
 msgid "Role"
 msgstr "Rôle"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+msgid "Rounding"
+msgstr "Arrondi"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Rounding Difference"
+msgstr "Écart d’arrondi"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__rounding_open_amount
+msgid "Rounding Open Amount"
+msgstr "Arrondi restant"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
+msgid "Rounding to Clear"
+msgstr "Arrondi à solder"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__rounding_open
+msgid "Rounding to clear"
+msgstr "Arrondi à solder"
 
 #. module: usl_tese_payroll
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_run_diagnostics
@@ -1566,9 +2001,15 @@ msgid "Salary"
 msgstr "Salaire"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Salary Payment"
-msgstr "Paiement du salaire"
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
+msgid "Salary Open"
+msgstr "Salaire à régler"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__salary_open_amount
+msgid "Salary Open Amount"
+msgstr "Salaire restant"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__salary_payment_candidate_amount
@@ -1621,6 +2062,25 @@ msgid "Salary Settlement Entry"
 msgstr "Pièce de règlement du salaire"
 
 #. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"Salary and URSSAF debit matched. Rounding to clear: %(amount).2f on 431000."
+msgstr ""
+"Salaire et prélèvement URSSAF rapprochés. Arrondi à solder : %(amount).2f "
+"sur le compte 431000."
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__open_both
+msgid "Salary and URSSAF open"
+msgstr "Salaire et URSSAF à régler"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__salary_open
+msgid "Salary open"
+msgstr "Salaire à régler"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip_line__role__salary
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__role__salary
 msgid "Salary payable"
@@ -1630,6 +2090,12 @@ msgstr "Salaire à payer"
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__account_move__tese_move_role__salary_settlement
 msgid "Salary settlement"
 msgstr "Règlement du salaire"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Select TESE figures, employment terms, or both."
+msgstr "Sélectionnez les chiffres TESE, les conditions d’emploi, ou les deux."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1653,19 +2119,43 @@ msgstr "Sélectionnez l'URSSAF ou le partenaire prestataire sur la société."
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__sequence
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile_line__sequence
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__sequence
 msgid "Sequence"
 msgstr "Séquence"
+
+#. module: usl_tese_payroll
+#: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_settings
+msgid "Settings"
+msgstr "Paramètres"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+msgid ""
+"Settings already used by payroll history cannot be edited. Create the next "
+"dated version instead."
+msgstr ""
+"Les paramètres déjà utilisés par l’historique de paie ne peuvent pas être "
+"modifiés. Créez plutôt la prochaine version datée."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Settings can only be applied before the payroll entry is posted."
+msgstr ""
+"Les paramètres ne peuvent être appliqués qu’avant la comptabilisation de la "
+"pièce de paie."
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__setup_message
+msgid "Setup Message"
+msgstr "Message de configuration"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__severity
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_search
 msgid "Severity"
 msgstr "Gravité"
-
-#. module: usl_tese_payroll
-#: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_settings
-msgid "Settings"
-msgstr "Paramètres"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip_line__side
@@ -1681,8 +2171,14 @@ msgstr "Responsabilité sociale"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__431000
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__431000
 msgid "Social-security liabilities"
 msgstr "Dettes sociales"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Source and Dates"
+msgstr "Source et dates"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__stable_key
@@ -1695,7 +2191,7 @@ msgid "State"
 msgstr "État"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "Status"
 msgstr "Statut"
 
@@ -1714,20 +2210,31 @@ msgstr ""
 "Planifié : activités futures."
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Still Open"
+msgstr "Reste à régler"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_diagnostic_issue__suggested_fix
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_form
 msgid "Suggested Fix"
 msgstr "Correction suggérée"
 
 #. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Superseded by %(profile)s from %(date)s."
+msgstr "Remplacé par %(profile)s à partir du %(date)s."
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__437030
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__437030
 msgid "Supplementary-pension liabilities"
 msgstr "Engagements de pension complémentaire"
 
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
 msgid "TESE"
 msgstr "TESE"
 
@@ -1735,11 +2242,6 @@ msgstr "TESE"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__tese_bank_amount
 msgid "TESE Bank Amount"
 msgstr "Montant bancaire TESE"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "TESE Collection"
-msgstr "Prélèvement TESE"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__tese_payment_date
@@ -1752,6 +2254,11 @@ msgstr "Date de prélèvement TESE"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__collector_partner_id
 msgid "TESE Collector"
 msgstr "Organisme collecteur TESE"
+
+#. module: usl_tese_payroll
+#: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_company_configuration
+msgid "TESE Companies"
+msgstr "Sociétés TESE"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_form
@@ -1773,14 +2280,22 @@ msgid "TESE Entry Role"
 msgstr "Rôle de la pièce TESE"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "TESE Figures"
+msgstr "Chiffres TESE"
+
+#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/account_move.py:0
 #: code:addons/usl_tese_payroll/models/hr_employee.py:0
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
 #: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_payslips
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_account_bank_statement_line__tese_payslip_id
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_account_move__tese_payslip_id
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_root
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_configuration
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_employee_form_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -1830,7 +2345,6 @@ msgstr "PDF de paie TESE"
 
 #. module: usl_tese_payroll
 #: model:ir.model,name:usl_tese_payroll.model_usl_tese_profile
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
 msgid "TESE Payroll Profile"
 msgstr "Profil de paie TESE"
 
@@ -1838,12 +2352,6 @@ msgstr "Profil de paie TESE"
 #: model:ir.model,name:usl_tese_payroll.model_usl_tese_profile_line
 msgid "TESE Payroll Profile Component"
 msgstr "Composant de profil de paie TESE"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_list
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
-msgid "TESE Payroll Profiles"
-msgstr "Profils de paie TESE"
 
 #. module: usl_tese_payroll
 #: model:ir.model,name:usl_tese_payroll.model_usl_tese_payslip
@@ -1857,6 +2365,25 @@ msgid "TESE Payroll Records"
 msgstr "Paies TESE"
 
 #. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_list
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
+msgid "TESE Payroll Settings"
+msgstr "Paramètres de paie TESE"
+
+#. module: usl_tese_payroll
+#: model:ir.model,name:usl_tese_payroll.model_usl_tese_settings_revision_line
+msgid "TESE Payroll Settings Revision Accounting Line"
+msgstr "Ligne comptable de révision des paramètres de paie TESE"
+
+#. module: usl_tese_payroll
+#: model:ir.model,name:usl_tese_payroll.model_usl_tese_settings_revision_wizard
+msgid "TESE Payroll Settings and Contract Revision"
+msgstr "Révision des paramètres de paie TESE et du contrat"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__tese_reference
 msgid "TESE Reference"
 msgstr "Référence TESE"
@@ -1866,6 +2393,7 @@ msgstr "Référence TESE"
 #: code:addons/usl_tese_payroll/models/res_company.py:0
 #: model:ir.actions.server,name:usl_tese_payroll.action_open_tese_settings
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_company_form_tese_configuration
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "TESE Settings"
 msgstr "Paramètres TESE"
 
@@ -1901,6 +2429,11 @@ msgstr "Total détaillé TESE : %(amount).2f"
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "TESE difference: %(amount).2f"
 msgstr "Différence TESE : %(amount).2f"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__update_tese
+msgid "TESE figures changed"
+msgstr "Les chiffres TESE ont changé"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1999,6 +2532,12 @@ msgstr "Le paiement %(kind)s a été rapproché."
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The 431000 payroll account is missing."
+msgstr "Le compte de paie 431000 est manquant."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid ""
 "The PDF is linked but is not yet the payroll record's native attachment."
 msgstr ""
@@ -2014,9 +2553,23 @@ msgstr ""
 
 #. module: usl_tese_payroll
 #. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "The TESE accounting detail must contain exactly eleven lines."
+msgstr "Le détail comptable TESE doit contenir exactement onze lignes."
+
+#. module: usl_tese_payroll
+#. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
 msgid "The TESE payroll journal is not configured."
 msgstr "Le journal de paie TESE n'est pas configuré."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The URSSAF difference exceeds the €5 safety limit. Use Bank Matching."
+msgstr ""
+"L’écart URSSAF dépasse la limite de sécurité de 5 €. Utilisez le "
+"rapprochement bancaire."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2032,11 +2585,10 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid ""
-"The best candidate is not a unique exact safe match. Review it in Bank "
-"Matching."
+"The best candidate is not a unique safe match. Review it in Bank Matching."
 msgstr ""
-"Le meilleur candidat n’est pas une correspondance unique et exacte. Examinez-"
-"le dans rapprochement bancaire."
+"Le meilleur candidat n’est pas un rapprochement unique et sûr. Vérifiez-le "
+"dans le rapprochement bancaire."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2108,6 +2660,32 @@ msgstr ""
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The linked payroll entry is posted and cannot be refreshed."
+msgstr ""
+"La pièce de paie liée est comptabilisée et ne peut pas être actualisée."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.actions.act_window,help:usl_tese_payroll.action_tese_payslips
+msgid ""
+"The month, employee, recurring settings, and payment dates are prepared for "
+"you."
+msgstr ""
+"Le mois, l’employé, les paramètres récurrents et les dates de paiement sont "
+"préparés pour vous."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"The negative URSSAF difference exceeds the 431000 liability. Use Bank "
+"Matching."
+msgstr ""
+"L’écart URSSAF négatif dépasse la dette du compte 431000. Utilisez le "
+"rapprochement bancaire."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "The payroll attachment must be a PDF."
 msgstr "La pièce jointe à la paie doit être au format PDF."
 
@@ -2126,9 +2704,15 @@ msgid "The payroll journal entry must be posted."
 msgstr "L’écriture du journal de paie doit être validée."
 
 #. module: usl_tese_payroll
-#: model:ir.model.constraint,message:usl_tese_payroll.constraint_usl_tese_payslip_month_range
-msgid "The payroll month must be between 1 and 12."
-msgstr "Le mois de paie doit être compris entre 1 et 12."
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The payroll month must be between 2020 and 2100."
+msgstr "Le mois de paie doit être compris entre 2020 et 2100."
+
+#. module: usl_tese_payroll
+#: model:ir.model.constraint,message:usl_tese_payroll.constraint_usl_tese_payslip_period_first_day
+msgid "The payroll month must be stored on its first day."
+msgstr "Le mois de paie doit être enregistré au premier jour du mois."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2142,11 +2726,6 @@ msgstr ""
 #: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
 msgid "The payroll status expects a posted journal entry."
 msgstr "Le statut de la paie attend une pièce comptable validée."
-
-#. module: usl_tese_payroll
-#: model:ir.model.constraint,message:usl_tese_payroll.constraint_usl_tese_payslip_year_range
-msgid "The payroll year must be between 2020 and 2100."
-msgstr "L’année de paie doit être comprise entre 2020 et 2100."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2206,15 +2785,37 @@ msgstr ""
 
 #. module: usl_tese_payroll
 #. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "The selected liability is already settled."
-msgstr "Le passif sélectionné est déjà réglé."
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "The revision month must match the payroll month."
+msgstr "Le mois de la nouvelle version doit correspondre au mois de paie."
 
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "The selected profile is inactive or outside the payroll period."
-msgstr "Le profil sélectionné est inactif ou hors période de paie."
+msgid ""
+"The salary and URSSAF debit are matched. %(amount).2f remains open on 431000 "
+"for the URSSAF rounding difference."
+msgstr ""
+"Le salaire et le prélèvement URSSAF sont rapprochés. %(amount).2f reste "
+"ouvert sur le compte 431000 pour l’écart d’arrondi URSSAF."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The selected TESE settings do not cover the payroll month."
+msgstr "Les paramètres TESE sélectionnés ne couvrent pas le mois de paie."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The selected TESE settings do not cover this month."
+msgstr "Les paramètres TESE sélectionnés ne couvrent pas ce mois."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The selected liability is already settled."
+msgstr "Le passif sélectionné est déjà réglé."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2235,9 +2836,9 @@ msgstr ""
 "                        plan comptable français."
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
-msgid "To Reconcile"
-msgstr "À rapprocher"
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
+msgid "To Review"
+msgstr "À vérifier"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__to_reconcile
@@ -2246,13 +2847,13 @@ msgstr "À rapprocher"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile__review_status__to_review
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
 msgid "To review"
 msgstr "À revoir"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
 msgid "Total"
 msgstr "Total"
 
@@ -2279,10 +2880,54 @@ msgid "Total debit: %(amount).2f"
 msgstr "Débit total : %(amount).2f"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid ""
+"Turn on <strong>Employment terms changed</strong>\n"
+"                                above to create a native contract version."
+msgstr ""
+"Activez <strong>Les conditions d’emploi ont changé</strong>\n"
+"                                ci-dessus pour créer une version de contrat "
+"native."
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields,help:usl_tese_payroll.field_usl_tese_payslip__activity_exception_decoration
 #: model:ir.model.fields,help:usl_tese_payroll.field_usl_tese_profile__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Type d'activité d'exception enregistrée."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+msgid "URSSAF"
+msgstr "URSSAF"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "URSSAF Contributions"
+msgstr "Cotisations URSSAF"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+msgid "URSSAF Debit"
+msgstr "Prélèvement URSSAF"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "URSSAF Debit Date"
+msgstr "Date du prélèvement URSSAF"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__tese_open_amount
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
+msgid "URSSAF Open"
+msgstr "URSSAF à régler"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__tese_open
+msgid "URSSAF open"
+msgstr "URSSAF à régler"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,help:usl_tese_payroll.field_res_company__tese_collector_partner_id
@@ -2290,6 +2935,33 @@ msgid "URSSAF or another provider collecting payroll social liabilities."
 msgstr ""
 "L'URSSAF ou un autre organisme de recouvrement des charges sociales sur les "
 "salaires."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "URSSAF rounding to clear — %(payroll)s"
+msgstr "Arrondi URSSAF à solder — %(payroll)s"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Update Payroll Settings"
+msgstr "Mettre à jour les paramètres de paie"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Update Settings or Contract"
+msgstr "Mettre à jour les paramètres ou le contrat"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Update payroll settings"
+msgstr "Mettre à jour les paramètres de paie"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
+msgid "Update recurring payroll settings"
+msgstr "Mettre à jour les paramètres de paie récurrents"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__valid_from
@@ -2326,20 +2998,36 @@ msgstr "Historique de communication du site web"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Withholding"
-msgstr "Retenue"
+msgid "Withholding Included"
+msgstr "Prélèvement à la source inclus"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
-msgid "Withholding and Payment"
-msgstr "Retenue et paiement"
+msgid "Withholding and Net"
+msgstr "Prélèvement et net"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Withholding and URSSAF"
+msgstr "Prélèvement et URSSAF"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip_line__role__income_tax
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__code__442100
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile_line__role__income_tax
+#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_settings_revision_line__code__442100
 msgid "Withholding income tax"
 msgstr "Retenue d'impôt sur le revenu"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_line__wizard_id
+msgid "Wizard"
+msgstr "Assistant"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_settings_revision_wizard__resource_calendar_id
+msgid "Working Hours"
+msgstr "Horaires de travail"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2423,6 +3111,11 @@ msgid "profile_id"
 msgstr "identifiant_profil"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "remains on 431000"
+msgstr "reste sur le compte 431000"
+
+#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "the 421000 salary liability must equal net paid"
@@ -2453,3 +3146,78 @@ msgid ""
 "the journal entry is not balanced (%(debit).2f debit / %(credit).2f credit)"
 msgstr ""
 "l'pièce comptable n'est pas soldée (débit %(debit).2f / crédit %(credit).2f)"
+
+#~ msgid ""
+#~ "A TESE bank difference cannot be bridged automatically. Use Bank Matching "
+#~ "and document the rounding or partial amount."
+#~ msgstr ""
+#~ "Une différence bancaire TESE ne peut pas être comblée automatiquement. "
+#~ "Utilisez le rapprochement bancaire et documentez l’arrondi ou le montant "
+#~ "partiel."
+
+#~ msgid ""
+#~ "Connect one employee record to provider figures and the French payroll "
+#~ "accounts."
+#~ msgstr ""
+#~ "Connectez un dossier d'employé aux chiffres du prestataire et aux comptes "
+#~ "de paie français."
+
+#~ msgid ""
+#~ "Enter a payroll month between 1 and 12 and a year between 2020 and 2100."
+#~ msgstr ""
+#~ "Saisissez un mois de paie entre 1 et 12 et une année entre 2020 et 2100."
+
+#~ msgid "Final Check"
+#~ msgstr "Vérification finale"
+
+#~ msgid "Finalize"
+#~ msgstr "Finaliser"
+
+#~ msgid "HR and Profile Snapshot"
+#~ msgstr "Instantané RH et du profil"
+
+#~ msgid "Needs Attention"
+#~ msgstr "A besoin d'attention"
+
+#~ msgid "Pay Year"
+#~ msgstr "Année de paie"
+
+#~ msgid "Post"
+#~ msgstr "Comptabiliser"
+
+#~ msgid "Prepare"
+#~ msgstr "Préparer"
+
+#~ msgid ""
+#~ "Prepare the payroll entry, retain its PDF, and settle every salary and "
+#~ "social liability."
+#~ msgstr ""
+#~ "Préparez la fiche de paie, conservez son PDF et réglez chaque salaire et "
+#~ "dette sociale."
+
+#~ msgid "Reconcile Salary"
+#~ msgstr "Rapprocher le salaire"
+
+#~ msgid "Reconcile TESE"
+#~ msgstr "Rapprocher TESE"
+
+#~ msgid "Record provider payroll"
+#~ msgstr "Enregistrer la paie du prestataire"
+
+#~ msgid "Reset to Prepared"
+#~ msgstr "Revenir à l’état préparé"
+
+#~ msgid "Review"
+#~ msgstr "Révision"
+
+#~ msgid "TESE Collection"
+#~ msgstr "Prélèvement TESE"
+
+#~ msgid "TESE Payroll Profiles"
+#~ msgstr "Profils de paie TESE"
+
+#~ msgid "To Reconcile"
+#~ msgstr "À rapprocher"
+
+#~ msgid "Withholding"
+#~ msgstr "Retenue"

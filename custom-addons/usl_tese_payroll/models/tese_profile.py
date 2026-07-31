@@ -1,7 +1,12 @@
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from .constants import TESE_COMPONENT_BY_CODE, TESE_COMPONENT_CODES, TESE_COMPONENTS
+from .constants import (
+    TESE_COMPONENT_BY_CODE,
+    TESE_COMPONENT_CODES,
+    TESE_COMPONENTS,
+    TESE_INTERNAL_WRITE_TOKEN,
+)
 
 
 class UslTeseProfile(models.Model):
@@ -99,6 +104,24 @@ class UslTeseProfile(models.Model):
         "CHECK(valid_to IS NULL OR valid_from IS NULL OR valid_to >= valid_from)",
         "The profile end date cannot be earlier than its start date.",
     )
+    _VERSIONED_FIELDS = {
+        "company_id",
+        "employee_id",
+        "hr_version_id",
+        "collector_partner_id",
+        "valid_from",
+        "default_hours",
+        "gross_salary",
+        "employee_contribution_total",
+        "employer_contribution_total",
+        "net_social",
+        "net_before_tax",
+        "income_tax_base",
+        "income_tax_rate",
+        "income_tax_amount",
+        "net_paid",
+        "component_line_ids",
+    }
 
     @api.depends_context("uid")
     def _compute_can_configure(self):
@@ -118,7 +141,7 @@ class UslTeseProfile(models.Model):
 
     @api.depends("employee_id")
     def _compute_payslip_count(self):
-        grouped = self.env["usl.tese.payslip"]._read_group(
+        grouped = self.env["usl.tese.payslip"].sudo()._read_group(
             [("profile_id", "in", self.ids)],
             ["profile_id"],
             ["__count"],
@@ -216,10 +239,39 @@ class UslTeseProfile(models.Model):
     @api.model_create_multi
     def create(self, values_list):
         self._check_configuration_access()
+        internal_write = (
+            self.env.context.get("_tese_internal_write")
+            is TESE_INTERNAL_WRITE_TOKEN
+        )
+        profile_ids = {
+            values.get("profile_id") for values in values_list
+            if values.get("profile_id")
+        }
+        if (
+            not internal_write
+            and self.env["usl.tese.profile"].browse(profile_ids).filtered(
+                "payslip_count",
+            )
+        ):
+            raise UserError(_(
+                "Accounting details already used by payroll history cannot be "
+                "extended. Create the next dated settings version instead.",
+            ))
         return super().create(values_list)
 
     def write(self, values):
         self._check_configuration_access()
+        internal_write = (
+            self.env.context.get("_tese_internal_write")
+            is TESE_INTERNAL_WRITE_TOKEN
+        )
+        if not internal_write and self._VERSIONED_FIELDS & set(values):
+            used_profiles = self.filtered("payslip_count")
+            if used_profiles:
+                raise UserError(_(
+                    "Settings already used by payroll history cannot be "
+                    "edited. Create the next dated version instead.",
+                ))
         return super().write(values)
 
     def unlink(self):
@@ -234,6 +286,11 @@ class UslTeseProfile(models.Model):
 
     def action_load_french_defaults(self):
         self._check_configuration_access()
+        if self.filtered("payslip_count"):
+            raise UserError(_(
+                "Settings already used by payroll history cannot be edited. "
+                "Create the next dated version instead.",
+            ))
         Account = self.env["account.account"]
         for profile in self:
             commands = [Command.clear()]
@@ -329,6 +386,25 @@ class UslTeseProfile(models.Model):
             },
         }
 
+    def action_open_settings_revision(self):
+        self.ensure_one()
+        self._check_configuration_access()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Create payroll settings revision"),
+            "res_model": "usl.tese.settings.revision.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {
+                "default_profile_id": self.id,
+                "default_employee_id": self.employee_id.id,
+                "default_effective_period": (
+                    fields.Date.context_today(self).replace(day=1)
+                ),
+            },
+        }
+
 
 class UslTeseProfileLine(models.Model):
     _name = "usl.tese.profile.line"
@@ -396,8 +472,30 @@ class UslTeseProfileLine(models.Model):
 
     def write(self, values):
         self._check_configuration_access()
+        internal_write = (
+            self.env.context.get("_tese_internal_write")
+            is TESE_INTERNAL_WRITE_TOKEN
+        )
+        if not internal_write and self.filtered(
+            lambda line: line.profile_id.payslip_count,
+        ):
+            raise UserError(_(
+                "Accounting details already used by payroll history cannot be "
+                "edited. Create the next dated settings version instead.",
+            ))
         return super().write(values)
 
     def unlink(self):
         self._check_configuration_access()
+        internal_write = (
+            self.env.context.get("_tese_internal_write")
+            is TESE_INTERNAL_WRITE_TOKEN
+        )
+        if not internal_write and self.filtered(
+            lambda line: line.profile_id.payslip_count,
+        ):
+            raise UserError(_(
+                "Accounting details already used by payroll history cannot be "
+                "deleted. Create the next dated settings version instead.",
+            ))
         return super().unlink()

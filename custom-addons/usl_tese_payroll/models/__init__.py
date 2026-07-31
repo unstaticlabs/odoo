@@ -5,4 +5,5 @@ from . import (
     tese_diagnostic,
     tese_payslip,
     tese_profile,
+    tese_settings_revision,
 )
