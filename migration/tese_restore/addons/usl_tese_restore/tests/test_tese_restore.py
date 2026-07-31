@@ -132,6 +132,16 @@ class TestTeseRestore(TransactionCase):
             "x_last_used_date": date(2026, 1, 31),
             **account_values,
         }
+        archived_profile = {
+            **profile,
+            "id": 11,
+            "x_name": "Archived TESE profile",
+            "x_active": False,
+            "x_valid_from": date(2025, 1, 1),
+            "x_valid_to": date(2025, 12, 31),
+            "x_review_status": "archived",
+            "x_last_used_date": date(2025, 12, 31),
+        }
         payslip = {
             "id": 20,
             "x_name": "Imported January payroll",
@@ -203,7 +213,7 @@ class TestTeseRestore(TransactionCase):
                 "employee_type": "employee",
                 "active": True,
             }],
-            "profiles": [profile],
+            "profiles": [archived_profile, profile],
             "payslips": [payslip],
             "partners": [
                 {
@@ -297,7 +307,7 @@ class TestTeseRestore(TransactionCase):
         self.assertEqual(first, second)
         self.assertEqual(first["employees"], 1)
         self.assertEqual(first["versions"], 1)
-        self.assertEqual(first["profiles"], 1)
+        self.assertEqual(first["profiles"], 2)
         self.assertEqual(first["payslips"], 1)
         self.assertEqual(first["payroll_moves"], 1)
         self.assertEqual(first["payroll_pdfs"], 1)
@@ -317,7 +327,24 @@ class TestTeseRestore(TransactionCase):
             ("tese_reference", "=", "TESE-IMPORTED-01"),
         ])
         self.assertEqual(payslip.move_id, self.move)
+        self.assertEqual(payslip.pay_period, date(2026, 1, 1))
+        self.assertEqual(
+            payslip.employee_id.current_version_id,
+            payslip.hr_version_id,
+        )
+        self.assertEqual(payslip.profile_id.hr_version_id, payslip.hr_version_id)
         self.assertEqual(payslip.state, "to_reconcile")
         self.assertEqual(len(payslip.component_line_ids), 11)
         self.assertEqual(payslip.attachment_id.mimetype, "application/pdf")
         self.assertEqual(self.move.tese_payslip_id, payslip)
+        profiles = self.env["usl.tese.profile"].sudo().with_context(
+            active_test=False,
+        ).search([
+            ("name", "in", ["Imported TESE profile", "Archived TESE profile"]),
+        ])
+        self.assertEqual(len(profiles), 2)
+        self.assertEqual(len(profiles.filtered("active")), 1)
+        self.assertEqual(
+            len(profiles.filtered(lambda profile: not profile.active)),
+            1,
+        )

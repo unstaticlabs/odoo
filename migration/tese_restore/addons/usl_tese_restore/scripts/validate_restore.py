@@ -122,6 +122,18 @@ if checksum_mismatches:
     )
 
 payload = run._load_source_payload()
+profile_mappings = env["usl.tese.restore.mapping"].sudo().search([
+    ("source_model", "=", "x_tese_payroll_profile"),
+    ("target_model", "=", "usl.tese.profile"),
+])
+all_profiles = env["usl.tese.profile"].sudo().with_context(
+    active_test=False,
+).browse(profile_mappings.mapped("target_id")).exists()
+if len(all_profiles.filtered("active")) != 1:
+    fail("Exactly one restored TESE profile must remain active.")
+if len(all_profiles.filtered(lambda profile: not profile.active)) != 3:
+    fail("Exactly three restored TESE profiles must remain archived.")
+
 for row in payload["employees"]:
     employee = mapped("hr.employee", row["id"], "hr.employee")
     parity(bool(employee), "hr.employee", row["id"], "mapping")
@@ -147,6 +159,17 @@ for row in payload["employees"]:
             row["id"],
             target_field,
         )
+    expected_current_version = mapped(
+        "hr.version",
+        row.get("current_version_id"),
+        "hr.version",
+    )
+    parity(
+        employee.current_version_id == expected_current_version,
+        "hr.employee",
+        row["id"],
+        "current_version_id",
+    )
 
 for row in payload["versions"]:
     version = mapped("hr.version", row["id"], "hr.version")
@@ -251,6 +274,28 @@ for row in payload["profiles"]:
             row["id"],
             target_field,
         )
+    expected_employee = mapped(
+        "hr.employee",
+        row.get("x_employee_id"),
+        "hr.employee",
+    )
+    expected_version = mapped(
+        "hr.version",
+        row.get("x_hr_version_id"),
+        "hr.version",
+    )
+    parity(
+        profile.employee_id == expected_employee,
+        "x_tese_payroll_profile",
+        row["id"],
+        "employee_id",
+    )
+    parity(
+        profile.hr_version_id == expected_version,
+        "x_tese_payroll_profile",
+        row["id"],
+        "hr_version_id",
+    )
     lines_by_code = {
         line.code: line for line in profile.component_line_ids
     }
@@ -303,6 +348,12 @@ for row in payload["payslips"]:
         row["id"],
         "name",
     )
+    parity(
+        payslip.pay_period == row.get("x_period_start"),
+        "x_tese_payslip",
+        row["id"],
+        "pay_period",
+    )
     for source_field, target_field in payslip_fields:
         parity(
             (getattr(payslip, target_field) or False)
@@ -317,6 +368,27 @@ for row in payload["payslips"]:
                 getattr(payslip, target_field),
                 row.get(source_field),
             ),
+            "x_tese_payslip",
+            row["id"],
+            target_field,
+        )
+    for source_field, source_model, target_model, target_field in (
+        ("x_employee_id", "hr.employee", "hr.employee", "employee_id"),
+        (
+            "x_profile_id",
+            "x_tese_payroll_profile",
+            "usl.tese.profile",
+            "profile_id",
+        ),
+        ("x_hr_version_id", "hr.version", "hr.version", "hr_version_id"),
+    ):
+        expected_record = mapped(
+            source_model,
+            row.get(source_field),
+            target_model,
+        )
+        parity(
+            getattr(payslip, target_field) == expected_record,
             "x_tese_payslip",
             row["id"],
             target_field,

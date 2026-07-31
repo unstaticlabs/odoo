@@ -791,12 +791,15 @@ class UslTeseRestoreRun(models.Model):
                 profiles[row["id"]] = profile
                 continue
             Profile = self.env["usl.tese.profile"].sudo().with_context(
+                _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
                 tracking_disable=True,
                 mail_create_nolog=True,
                 mail_create_nosubscribe=True,
             )
             if profile:
-                profile.write(values)
+                profile.with_context(
+                    _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
+                ).write(values)
                 lines_by_code = {
                     line.code: line for line in profile.component_line_ids
                 }
@@ -804,12 +807,14 @@ class UslTeseRestoreRun(models.Model):
                     line_values = command[2]
                     line = lines_by_code.get(line_values["code"])
                     if line:
-                        line.write(line_values)
+                        line.with_context(
+                            _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
+                        ).write(line_values)
                     else:
                         line_values["profile_id"] = profile.id
-                        self.env["usl.tese.profile.line"].sudo().create(
-                            line_values,
-                        )
+                        self.env["usl.tese.profile.line"].sudo().with_context(
+                            _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
+                        ).create(line_values)
             else:
                 values["component_line_ids"] = commands
                 profile = Profile.create(values)
@@ -932,8 +937,7 @@ class UslTeseRestoreRun(models.Model):
                 "employee_id": employee.id,
                 "hr_version_id": version.id if version else False,
                 "collector_partner_id": collector.id,
-                "pay_month": row["x_pay_month"],
-                "pay_year": row["x_pay_year"],
+                "pay_period": row["x_period_start"],
                 "period_start": row.get("x_period_start"),
                 "period_end": row.get("x_period_end"),
                 "payment_date": row.get("x_payment_date"),
