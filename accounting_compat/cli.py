@@ -409,10 +409,18 @@ def git_value(*args: str) -> str | None:
         return None
 
 
+def display_path(path: Path) -> str:
+    """Keep repository paths concise without rejecting external private inputs."""
+    resolved = path.resolve()
+    if resolved.is_relative_to(ROOT):
+        return str(resolved.relative_to(ROOT))
+    return str(resolved)
+
+
 def git_tracking_status(paths: Iterable[Path]) -> list[dict[str, Any]]:
     records = []
     for path in paths:
-        rel = str(path.relative_to(ROOT)) if path.is_absolute() else str(path)
+        rel = display_path(path) if path.is_absolute() else str(path)
         tracked = bool(git_value("ls-files", "--", rel))
         ignored = False
         ignore_rule = None
@@ -704,9 +712,9 @@ def source_validation_manifest(source_dir: str) -> dict[str, Any]:
     manifest = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "source_dir": str(package.path.relative_to(ROOT)) if package.path.is_relative_to(ROOT) else str(package.path),
+        "source_dir": display_path(package.path),
         "dump": {
-            "path": str(package.dump_path.relative_to(ROOT)) if package.dump_path.exists() else str(package.dump_path),
+            "path": display_path(package.dump_path),
             "exists": package.dump_path.exists(),
             "format": dump_format,
             "size_bytes": dump_size,
@@ -2060,8 +2068,8 @@ def source_snapshot_date() -> str | None:
     return max(candidates) if candidates else source_max_accounting_date()
 
 
-def source_snapshot_id() -> str:
-    package = source_package(DEFAULT_SOURCE_DIR)
+def source_snapshot_id(source_dir: str = DEFAULT_SOURCE_DIR) -> str:
+    package = source_package(source_dir)
     return f"source-{sha256_file(package.dump_path)[:12]}"
 
 
@@ -9096,8 +9104,8 @@ def duplicate_target_traces(table: str) -> list[dict[str, Any]]:
     )
 
 
-def target_lock_enforcement_check() -> dict[str, Any]:
-    snapshot_id = source_snapshot_id()
+def target_lock_enforcement_check(source_dir: str = DEFAULT_SOURCE_DIR) -> dict[str, Any]:
+    snapshot_id = source_snapshot_id(source_dir)
     lock_script = PRIVATE_ARTIFACTS / "target-lock-check.py"
     lock_script.write_text(
         "\n".join(
@@ -9820,7 +9828,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "duplicate_asset_depreciation_schedule_traces": duplicate_target_traces("rebuild_account_asset_depreciation_schedule_line"),
         "duplicate_currency_rate_traces": duplicate_target_traces("res_currency_rate"),
     }
-    lock_enforcement = target_lock_enforcement_check()
+    lock_enforcement = target_lock_enforcement_check(args.source_dir)
     passed = (
         all(item["passed"] for item in comparisons.values())
         and sequence_chronology_matches
@@ -13196,7 +13204,7 @@ def fec(args: argparse.Namespace) -> dict[str, Any]:
                 "company = env['res.company'].search([",
                 "    ('rebuild_source_model', '=', 'res.company'),",
                 "    ('rebuild_source_id', '=', 1),",
-                f"    ('rebuild_source_snapshot', '=', {source_snapshot_id()!r}),",
+                f"    ('rebuild_source_snapshot', '=', {source_snapshot_id(args.source_dir)!r}),",
                 "], limit=1)",
                 "if not company:",
                 "    company = env['res.company'].search([], order='id', limit=1)",

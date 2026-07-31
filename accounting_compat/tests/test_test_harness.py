@@ -2,11 +2,29 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from accounting_compat.cli import source_snapshot_id, source_validation_manifest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class OdooTestHarnessTest(unittest.TestCase):
+    def test_source_validation_accepts_external_absolute_package_path(self):
+        with TemporaryDirectory() as directory:
+            package = Path(directory)
+            dump = package / "dump.sql"
+            dump.write_text("-- PostgreSQL database dump\n", encoding="utf-8")
+            (package / "filestore").mkdir()
+
+            manifest = source_validation_manifest(str(package))
+            snapshot_id = source_snapshot_id(str(package))
+
+        self.assertEqual(manifest["status"], "passed")
+        self.assertEqual(manifest["source_dir"], str(package.resolve()))
+        self.assertEqual(manifest["dump"]["path"], str(dump.resolve()))
+        self.assertTrue(snapshot_id.startswith("source-"))
+
     def test_test_service_receives_selected_database_filter(self):
         compose = (REPOSITORY_ROOT / "compose.yaml").read_text(encoding="utf-8")
         test_service = compose.split("\n  test:\n", 1)[1].split(
