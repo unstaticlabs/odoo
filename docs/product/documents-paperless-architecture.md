@@ -97,6 +97,10 @@ use the same mechanism as ordinary Odoo views. Smart-View shortcut chips create
 normal SearchModel filters/groupings and restore the saved Odoo ordering.
 Managers capture them from the active native search state; the add-on validates
 their domain, context, order fields, and shared Smart View scope server-side.
+The shortcut configuration form exposes synchronized proxy fields for the
+native filter domain, grouping, and ordering. Writes update the same
+`ir.filters` record atomically, including the saved-search name; no second
+filter definition is stored on the shortcut model.
 Top tag chips update one SearchModel facet whose stable-ID `in` condition means
 “any selected tag”; the search bar and the chips therefore always describe the
 same query. Reusable shortcuts may use synchronized Paperless tag,

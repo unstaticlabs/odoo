@@ -233,16 +233,12 @@
         <field name="name">usl.document.quick.filter.list</field>
         <field name="model">usl.document.quick.filter</field>
         <field name="arch" type="xml">
-            <list string="One-click Shortcuts" decoration-muted="not active"
-                  create="0">
-                <header>
-                    <button name="action_open_builder" type="object"
-                            string="New shortcut" class="btn-primary"
-                            display="always"/>
-                </header>
+            <list string="One-click Shortcuts" decoration-muted="not active">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="ir_filter_id" string="Saved search"/>
+                <field name="filter_domain" string="Filters" optional="show"/>
+                <field name="group_by_1" string="Group by" optional="show"/>
+                <field name="sort_by_1" string="Sort by" optional="show"/>
                 <field name="smart_view_ids" widget="many2many_tags"
                        string="Smart views" optional="show"/>
                 <field name="active"/>
@@ -255,19 +251,14 @@
         <field name="model">usl.document.quick.filter</field>
         <field name="arch" type="xml">
             <form string="One-click Shortcut">
-                <header>
-                    <button name="action_edit_in_workspace" type="object"
-                            string="Edit search in Documents"
-                            class="btn-primary"/>
-                </header>
                 <sheet>
+                    <field name="ir_filter_id" invisible="1"/>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="For example: Current supplier documents"/></h1>
                     </div>
                     <group>
                         <group>
-                            <field name="ir_filter_id" readonly="1"/>
                             <field name="smart_view_ids" widget="many2many_tags"
                                    domain="[('scope', '=', 'shared')]"
                                    options="{'no_create': True, 'no_quick_create': True}"/>
@@ -279,10 +270,31 @@
                             <field name="key" readonly="1"/>
                         </group>
                     </group>
+                    <separator string="Filters"/>
+                    <field name="filter_domain" nolabel="1" widget="domain"
+                           options="{'model': 'usl.document', 'foldable': False, 'allow_expressions': True}"/>
+                    <group>
+                        <group string="Group By">
+                            <field name="group_by_1"/>
+                            <field name="group_by_2"/>
+                            <field name="group_by_3"/>
+                        </group>
+                        <group string="Sort">
+                            <field name="sort_by_1"/>
+                            <field name="sort_direction_1"
+                                   invisible="not sort_by_1"/>
+                            <field name="sort_by_2"/>
+                            <field name="sort_direction_2"
+                                   invisible="not sort_by_2"/>
+                            <field name="sort_by_3"/>
+                            <field name="sort_direction_3"
+                                   invisible="not sort_by_3"/>
+                        </group>
+                    </group>
                     <div class="alert alert-info" role="status">
-                        Build or update this shortcut with the same search bar used in
-                        Documents. It can combine filters, groupings, and sorting while
-                        the Smart View’s Paperless-compatible definition remains
+                        This is the complete one-click shortcut. Filters, grouping, and
+                        sorting are saved together and compose with the selected Smart
+                        Views. The Smart View’s Paperless-compatible definition remains
                         unchanged.
                     </div>
                 </sheet>

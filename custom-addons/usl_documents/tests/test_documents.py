@@ -1137,6 +1137,66 @@ class TestDocuments(TransactionCase):
                 self.user,
             ).save_from_search("Unsafe shared control", values)
 
+    def test_shortcut_definition_is_created_and_edited_from_one_form(self):
+        view = self.env.ref("usl_documents.smart_view_accounting")
+        shortcut = self.env["usl.document.quick.filter"].create(
+            {
+                "name": "Current company review",
+                "filter_domain": "[('submitted_by_id', '=', uid)]",
+                "group_by_1": "company_id",
+                "group_by_2": "document_date:month",
+                "sort_by_1": "document_date",
+                "sort_direction_1": "desc",
+                "sort_by_2": "name",
+                "sort_direction_2": "asc",
+                "smart_view_ids": [Command.set(view.ids)],
+            },
+        )
+
+        self.assertTrue(shortcut.ir_filter_id)
+        self.assertTrue(shortcut.key.startswith("shortcut_"))
+        self.assertEqual(shortcut.ir_filter_id.name, shortcut.name)
+        self.assertEqual(
+            shortcut.ir_filter_id.domain,
+            "[('submitted_by_id', '=', uid)]",
+        )
+        self.assertEqual(
+            shortcut._filter_group_by(),
+            ["company_id", "document_date:month"],
+        )
+        self.assertEqual(
+            shortcut._filter_order_by(),
+            [
+                {"name": "document_date", "asc": False},
+                {"name": "name", "asc": True},
+            ],
+        )
+
+        shortcut.write(
+            {
+                "name": "Unlinked by correspondent",
+                "filter_domain": "[('has_linked_record', '=', False)]",
+                "group_by_1": "correspondent_id",
+                "group_by_2": False,
+                "sort_by_1": "correspondent_id",
+                "sort_direction_1": "asc",
+                "sort_by_2": False,
+            },
+        )
+
+        self.assertEqual(shortcut.ir_filter_id.name, shortcut.name)
+        self.assertEqual(
+            shortcut._filter_domain(),
+            [("has_linked_record", "=", False)],
+        )
+        self.assertEqual(shortcut._filter_group_by(), ["correspondent_id"])
+        self.assertEqual(
+            shortcut._filter_order_by(),
+            [{"name": "correspondent_id", "asc": True}],
+        )
+        with self.assertRaises(AccessError):
+            shortcut.with_user(self.user).write({"group_by_1": "company_id"})
+
     def test_archive_native_saved_view_uses_stable_paperless_identity(self):
         tag = self._tag(332, "Contracts")
         view = self.env.ref("usl_documents.smart_view_contracts")

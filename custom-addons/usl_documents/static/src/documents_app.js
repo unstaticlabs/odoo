@@ -426,8 +426,6 @@ export class DocumentsWorkspaceView extends Component {
             onCreateEdit: () => {},
         });
         const params = this.props.action.params || {};
-        this.shortcutBuilderRequested = Boolean(params.shortcut_builder);
-        this.shortcutBuilderId = Number(params.shortcut_id) || false;
         this.recordContext =
             params.res_model && params.res_id
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
@@ -542,8 +540,6 @@ export class DocumentsWorkspaceView extends Component {
             failedOperations: [],
             canUpload: false,
             truncated: false,
-            shortcutBuilder: false,
-            shortcutBuilderValues: false,
         });
         this.searchReady = false;
         this.metadataSaveQueue = Promise.resolve();
@@ -572,9 +568,6 @@ export class DocumentsWorkspaceView extends Component {
         this.onPopState = (event) => this.handlePopState(event);
         useBus(this.searchModel, "update", () => this.onNativeSearchUpdate());
         onWillStart(async () => {
-            if (this.shortcutBuilderRequested) {
-                await this.prepareShortcutBuilder();
-            }
             await this.load();
             if (this.migrateLegacyTagFilters()) {
                 await this.load();
@@ -656,46 +649,6 @@ export class DocumentsWorkspaceView extends Component {
 
     get sharedViews() {
         return this.state.smartViews.filter((view) => !view.personal);
-    }
-
-    async prepareShortcutBuilder() {
-        const values = await this.orm.call(
-            "usl.document.quick.filter",
-            "builder_values",
-            [this.shortcutBuilderId]
-        );
-        this.state.shortcutBuilder = true;
-        this.state.shortcutBuilderValues = values.shortcut || false;
-        const shortcut = values.shortcut;
-        if (!shortcut) {
-            return;
-        }
-        this.searchModel.clearQuery();
-        if (shortcut.domain?.length) {
-            this.searchModel.createNewFilters([
-                {
-                    description: shortcut.name,
-                    domain: shortcut.domain,
-                    uslShortcutBuilder: true,
-                },
-            ]);
-        }
-        for (const rawGroupBy of shortcut.group_by || []) {
-            const [fieldName, interval] = rawGroupBy.split(":");
-            this.searchModel.createNewGroupBy(fieldName, { interval });
-        }
-        this.state.orderBy = shortcut.order_by || [];
-    }
-
-    openShortcutSaveDialog() {
-        this.dialog.add(ShortcutSaveDialog, {
-            shortcut: this.state.shortcutBuilderValues || false,
-            onSaved: async () => {
-                await this.action.doAction(
-                    "usl_documents.action_usl_document_quick_filters"
-                );
-            },
-        });
     }
 
     get isSavingMetadata() {

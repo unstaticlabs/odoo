@@ -69,7 +69,11 @@ every tag simultaneously. Managers maintain reusable shortcuts under
 one appears. Each shortcut is a shared native Odoo saved search (`ir.filters`)
 containing the same domain, grouping, and ordering that the search bar uses.
 Managers can capture the current query from **Favorites > Save as one-click
-shortcut** or reopen a shortcut in Documents to edit it; personal Favorites
+shortcut**. The complete definition is also visible and editable on one
+**Configuration > One-click shortcuts** form: Odoo's visual filter builder,
+up to three grouping levels, up to three sort levels, placement, icon, and
+sequence. The underlying `ir.filters` record remains authoritative but is no
+longer exposed as a separate item that users must open. Personal Favorites
 remain private.
 
 Selected document, selected version, filters, sort, card/list layout, page, and
