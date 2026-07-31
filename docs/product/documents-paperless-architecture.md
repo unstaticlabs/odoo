@@ -101,6 +101,12 @@ The shortcut configuration form exposes synchronized proxy fields for the
 native filter domain, grouping, and ordering. Writes update the same
 `ir.filters` record atomically, including the saved-search name; no second
 filter definition is stored on the shortcut model.
+The Smart View configuration action supplies `default_scope=shared`; creation
+resolves that context server-side because readonly form defaults are not
+guaranteed to be included in an Odoo create payload. Every new shared view gets
+a generated stable key before it is exposed by `accessible_views()`. Its
+**Open Documents** action passes that key as `initial_workspace`, so the client
+action opens the newly created definition directly.
 Top tag chips update one SearchModel facet whose stable-ID `in` condition means
 “any selected tag”; the search bar and the chips therefore always describe the
 same query. Reusable shortcuts may use synchronized Paperless tag,

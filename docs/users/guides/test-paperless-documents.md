@@ -249,12 +249,22 @@ historical pin.
 ## 9. Compare shared Smart Views with Paperless
 
 1. In Odoo, open **Configuration > Smart views**.
-2. Open **Contracts & legal**, **Banking**, or **Tax & reporting**.
-3. Confirm it shows a stable Paperless Saved View identity.
-4. In Paperless as `archive-admin/admin`, open the Saved Views management list
+2. Select **New**, give the view a name, and choose the tags, document types,
+   or correspondents that define it.
+3. Save it and select **Open Documents**. Confirm the new shared view is
+   selected and visible in the Documents sidebar.
+4. Return to **Configuration > Smart views** and open **Contracts & legal**,
+   **Banking**, or **Tax & reporting**.
+5. Confirm it shows a stable Paperless Saved View identity.
+6. In Paperless as `archive-admin/admin`, open the Saved Views management list
    and find the same three shared definitions. The Paperless sidebar shows only
    views that this Paperless user has chosen to favorite.
-5. Make a harmless archive-native change, synchronize, and check Odoo again.
+7. Make a harmless archive-native change, synchronize, and check Odoo again.
+
+The Smart View configuration screen always creates shared views. Personal
+searches remain private Odoo Favorites. Enabling **Available in Paperless**
+also publishes the compatible archive criteria as a shared Paperless Saved
+View; leaving it disabled keeps the shared navigation view in Odoo only.
 
 The **One-click filters** on the Odoo Smart View are Odoo interaction
 shortcuts, not Paperless Saved View fields. A manager can choose useful
