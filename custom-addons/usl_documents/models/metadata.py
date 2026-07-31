@@ -1251,7 +1251,11 @@ class UslDocumentSmartView(models.Model):
     _order = "scope, sequence, name, id"
 
     name = fields.Char(required=True, translate=True)
-    key = fields.Char(index=True, copy=False)
+    key = fields.Char(
+        index=True,
+        copy=False,
+        default=lambda self: f"view_{uuid.uuid4().hex}",
+    )
     icon = fields.Char(default="fa-folder-o")
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
@@ -1366,9 +1370,16 @@ class UslDocumentSmartView(models.Model):
                 raise AccessError(
                     _("Paperless synchronization fields cannot be edited manually."),
                 )
-            if values.get("scope", "personal") == "shared":
+            scope = (
+                values.get("scope")
+                or self.env.context.get("default_scope")
+                or "personal"
+            )
+            if scope == "shared":
                 self._require_manager()
+                values["scope"] = "shared"
                 values["user_id"] = False
+                values.setdefault("key", f"view_{uuid.uuid4().hex}")
             else:
                 values["scope"] = "personal"
                 values["user_id"] = self.env.user.id
@@ -1524,6 +1535,18 @@ class UslDocumentSmartView(models.Model):
                 for item in quick_filters.sorted("sequence")
             ],
         }
+
+    def action_open_documents(self):
+        """Open Documents with this Smart View selected."""
+        self.ensure_one()
+        self.check_access("read")
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "usl_documents.action_documents_workspace",
+        )
+        action["params"] = {
+            "initial_workspace": self.key or f"view:{self.id}",
+        }
+        return action
 
     def _paperless_filter_rules(self):
         self.ensure_one()

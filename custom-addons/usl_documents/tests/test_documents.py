@@ -829,6 +829,43 @@ class TestDocuments(TransactionCase):
         self.assertEqual(renamed["count"], 1)
         self.assertEqual(view.tag_ids.paperless_id, 309)
 
+    def test_smart_view_created_from_configuration_is_shared_and_visible(self):
+        tag = self._tag(1314, "Executive review")
+        view = (
+            self.env["usl.document.smart.view"]
+            .with_user(self.manager)
+            .with_context(default_scope="shared")
+            .create(
+                {
+                    "name": "Executive documents",
+                    "system_rule": "metadata",
+                    "tag_ids": [Command.set(tag.ids)],
+                },
+            )
+        )
+
+        self.assertEqual(view.scope, "shared")
+        self.assertFalse(view.user_id)
+        self.assertTrue(view.key.startswith("view_"))
+        workspace = (
+            self.env["usl.document"]
+            .with_user(self.user)
+            .workspace_data(workspace=view.key)
+        )
+        self.assertIn(
+            view.key,
+            [item["key"] for item in workspace["smart_views"]],
+        )
+        action = view.with_user(self.manager).action_open_documents()
+        self.assertEqual(action["params"]["initial_workspace"], view.key)
+
+        personal = self.env["usl.document.smart.view"].with_user(self.user).create(
+            {"name": "Private documents"},
+        )
+        self.assertEqual(personal.scope, "personal")
+        self.assertEqual(personal.user_id, self.user)
+        self.assertFalse(personal.key)
+
     def test_personal_saved_view_is_private_and_replays_filters(self):
         tag = self._tag(314, "Tax")
         matching = self._document(

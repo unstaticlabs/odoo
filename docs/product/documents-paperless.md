@@ -76,6 +76,14 @@ sequence. The underlying `ir.filters` record remains authoritative but is no
 longer exposed as a separate item that users must open. Personal Favorites
 remain private.
 
+Managers create shared navigation views under **Configuration > Smart views**.
+A new view receives a stable identity, appears immediately in every authorized
+user's Documents sidebar, and provides **Open Documents** for direct review.
+Optional **Available in Paperless** publication writes compatible tag,
+correspondent, document-type, and text criteria to a shared Paperless Saved
+View. Personal searches remain ordinary Odoo Favorites rather than being
+silently created from the shared configuration screen.
+
 Selected document, selected version, filters, sort, card/list layout, page, and
 scroll position are represented in navigation state. Back closes the detail
 and returns to the same list position; Forward reopens it. A reload or deep
