@@ -55,14 +55,15 @@ Three approaches were assessed:
 
 - Commission is strictly between 0% and 100%.
 - Non-empty platform references are unique per company/platform.
-- A payout has one optional bank transaction. A pooled bank transaction may
-  carry several positive payout allocations whose total cannot exceed the
-  transaction amount.
+- A payout may have several positive bank allocations, and a bank transaction
+  may serve several payouts. Allocations cannot exceed either the payout or
+  the incoming transaction.
 - Platform, session, payout, journals and linked records must share a company.
-- Bank candidates exclude outgoing, reconciled and cross-company
-  transactions. Unallocated amounts on a pooled transaction remain eligible.
-  Pattern recognition takes priority over partner recognition, then configured
-  keywords. Posted sessions also consider later delayed receipts.
+- **All eligible** shows every positive, posted, unreconciled transaction from
+  an allowed company bank journal, including distant dates, unusual amounts,
+  unknown labels and unallocated remainders. Recognition does not hide these
+  rows. It ranks configured label patterns first, known partners second and
+  keywords third. **Recommended only** is an optional narrower view.
 - Posting warns when the monthly session has no payout for an active platform.
   An operator may confirm the documented exception.
 - Auto-posting is configurable and disabled by default.

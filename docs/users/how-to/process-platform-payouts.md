@@ -18,10 +18,18 @@ receives a Platform Billing role.
 5. Check every platform reference and net platform amount.
 6. Choose **Check**. Correct any blocking message before continuing.
 
-Pattern matches are considered before known partners and keywords. Outgoing,
-reconciled and other-company transactions are not candidates. An unallocated
-remainder of a pooled receipt may appear again. Ambiguous matches are not
-selected automatically.
+The wizard opens on **All eligible**. This means every open incoming
+transaction from an allowed bank journal is visible, even when its date,
+amount or label is unusual. Matching is only a recommendation:
+
+- configured label pattern first;
+- known platform partner second;
+- configured keywords third.
+
+Use **Recommended only** when you want a shorter suggested list. Outgoing,
+reconciled, unposted, fully allocated, wrong-company and disallowed-journal
+transactions are excluded, and the summary explains the excluded counts.
+Ambiguous or unknown rows remain manually selectable in **All eligible**.
 
 ## Generate and post
 
@@ -40,18 +48,33 @@ cannot be reset from this application.
 
 ## Reconcile the payout
 
-1. For received payouts, select the correct incoming bank transaction and enter
-   the amount allocated to that payout.
-2. Choose **Reconcile bank**.
-3. Leave delayed payouts without a bank transaction. The session stays
+1. Choose **Import bank transactions** on any Draft, Ready, Generated or
+   Posted session.
+2. Select the open payouts to settle. Payouts from other open sessions are
+   shown too.
+3. Select the received bank transactions and adjust amounts when the payment
+   is partial.
+4. Choose **Link selected transactions**. The selected payout total and the
+   value represented by the selected bank transactions must match.
+5. Choose **Reconcile bank**.
+6. Leave delayed payouts without a bank transaction. The session stays
    **Posted** and its invoice remains an open customer debt.
-4. When one later receipt covers several months, open each posted session and
-   allocate its share of the same receipt. Reconcile after all shares equal the
-   receipt total.
-5. Review blocked receipt groups individually. Other valid groups remain
+7. When one later receipt covers several months, select all affected payouts
+   in one wizard and allocate the pooled receipt once.
+8. When one payout arrives in instalments, link and reconcile the first
+   receipt, then repeat for the remaining open amount when it arrives.
+9. Review blocked receipt groups individually. Other valid groups remain
    processed.
-6. The session becomes **Paid** only when all required documents are settled
+10. The session becomes **Paid** only when all required documents are settled
    and every payout has a reconciled bank transaction.
+
+Automatic pooled reconciliation works when the selected invoices use the same
+customer and invoice currency. In plain language, one bank receipt can
+automatically close several invoices when the same platform owes all of them
+in the same currency. If a receipt combines different platform customers or,
+for example, EUR and USD invoices, the app records the reviewed allocations
+but does not guess how to split customers or exchange rates. Finish that mixed
+case in Odoo's standard Accounting reconciliation screen.
 
 For a foreign-currency platform, the bank amount remains unchanged in the bank
 currency. Odoo/OCA uses the platform amount as foreign currency and creates any

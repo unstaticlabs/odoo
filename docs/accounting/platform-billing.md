@@ -21,7 +21,9 @@ Posting is independent from cash receipt. Until a payout is received, the
 posted customer invoice residual remains an open receivable in standard
 Accounting reconciliation views. A later platform payment may cover several
 months: each payout stores its positive share of the same bank transaction and
-the application submits all linked open receivable lines together.
+the application submits all linked open receivable lines together. A payout
+may also be paid in instalments; each received transaction stores the part it
+settles, and the session remains Posted until the full debt is reconciled.
 
 ## Currency
 
@@ -55,8 +57,9 @@ retains signed `amount_currency` when the platform currency differs.
 - Generated posted moves remain balanced.
 - The source Accounting reconstruction owns the accounting values; historical
   platform restoration adds only application relations.
-- A payout has at most one invoice, one commission bill, one compensation
-  entry and one bank transaction; one transaction may be shared by payouts.
+- A payout has at most one invoice, one commission bill and one compensation
+  entry. It may have several bank allocations, while one transaction may be
+  shared by several payouts.
 - A generated document links its session, platform and all contributing
   payouts.
 - A session is paid only when all required invoices/bills are settled and
