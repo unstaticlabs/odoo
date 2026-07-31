@@ -494,7 +494,13 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
             ],
         )
         self.assertEqual(len(restored), 2)
-        self.assertEqual(restored.bank_statement_line_id, bank_line)
+        self.assertEqual(restored.bank_statement_line_ids, bank_line)
+        self.assertEqual(
+            self.env["usl.platform.billing.bank.allocation"].search_count(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            ),
+            2,
+        )
 
     def test_overallocated_pooled_source_bank_link_is_blocking(self):
         payload = self._payload()

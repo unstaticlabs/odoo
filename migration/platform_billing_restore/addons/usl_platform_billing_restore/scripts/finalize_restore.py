@@ -55,7 +55,7 @@ def business_snapshot():
                         record.customer_invoice_id.id,
                         record.vendor_bill_id.id,
                         record.compensation_move_id.id,
-                        record.bank_statement_line_id.id,
+                        tuple(sorted(record.bank_statement_line_ids.ids)),
                     )
                     for record in payouts.sorted("id")
                 ],

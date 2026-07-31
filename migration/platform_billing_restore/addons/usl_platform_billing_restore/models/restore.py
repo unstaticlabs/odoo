@@ -1030,21 +1030,6 @@ class UslPlatformBillingRestoreRun(models.Model):
                 "commission_rate_snapshot": row[
                     "x_commission_rate_snapshot"
                 ],
-                "bank_received_amount": row["x_bank_received_amount"],
-                "bank_statement_line_id": _record_id(bank_line),
-                "bank_match_score": int(row["x_bank_match_score"] or 0),
-                "bank_match_status": (
-                    "reconciled"
-                    if bank_line and bank_line.is_reconciled
-                    else "selected"
-                    if bank_line
-                    else "unmatched"
-                ),
-                "bank_amount_difference": row[
-                    "x_bank_amount_difference"
-                ],
-                "bank_date_difference": row["x_bank_date_difference"],
-                "bank_detection_reason": row["x_bank_detection_reason"],
                 "state": "draft",
             }
             record = self._upsert(
@@ -1064,18 +1049,48 @@ class UslPlatformBillingRestoreRun(models.Model):
                 finalized_values={
                     field_name: value
                     for field_name, value in values.items()
-                    if field_name
-                    not in {
-                        "bank_amount_difference",
-                        "bank_date_difference",
-                        "bank_detection_reason",
-                        "bank_match_score",
-                        "bank_match_status",
-                        "state",
-                    }
+                    if field_name != "state"
                 },
             )
             if record:
+                if bank_line:
+                    allocation = self.env[
+                        "usl.platform.billing.bank.allocation"
+                    ].sudo().search(
+                        [
+                            ("payout_id", "=", record.id),
+                            ("bank_statement_line_id", "=", bank_line.id),
+                        ],
+                        limit=1,
+                    )
+                    if not allocation:
+                        payout_amount = (
+                            row["x_bank_received_amount"]
+                            if currency == session.bank_currency_id
+                            else row["x_net_platform_amount"]
+                        )
+                        self.env[
+                            "usl.platform.billing.bank.allocation"
+                        ].sudo()._action_create(
+                            {
+                                "payout_id": record.id,
+                                "bank_statement_line_id": bank_line.id,
+                                "bank_amount": row["x_bank_received_amount"],
+                                "payout_amount": payout_amount,
+                                "score": int(
+                                    row["x_bank_match_score"] or 0,
+                                ),
+                                "amount_difference": row[
+                                    "x_bank_amount_difference"
+                                ],
+                                "date_difference": row[
+                                    "x_bank_date_difference"
+                                ],
+                                "detection_reason": row[
+                                    "x_bank_detection_reason"
+                                ],
+                            },
+                        )
                 restored[row["id"]] = record
         return restored
 
@@ -1255,8 +1270,7 @@ class UslPlatformBillingRestoreRun(models.Model):
                     payout.customer_invoice_id,
                 ) and self._document_paid(payout.vendor_bill_id)
                 bank_paid = bool(
-                    payout.bank_statement_line_id
-                    and payout.bank_statement_line_id.is_reconciled,
+                    payout.bank_match_status == "reconciled",
                 )
                 state = "paid" if required_paid and bank_paid else "posted"
             else:
@@ -1469,7 +1483,11 @@ class UslPlatformBillingRestoreRun(models.Model):
                             record.customer_invoice_id.id,
                             record.vendor_bill_id.id,
                             record.compensation_move_id.id,
-                            record.bank_statement_line_id.id,
+                            tuple(
+                                sorted(
+                                    record.bank_statement_line_ids.ids,
+                                ),
+                            ),
                         )
                         for source_id, record in sorted(payouts.items())
                     ],
