@@ -48,4 +48,11 @@
         <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+
+    <record id="rule_bank_allocation_company" model="ir.rule">
+        <field name="name">Platform billing bank allocations: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_bank_allocation"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

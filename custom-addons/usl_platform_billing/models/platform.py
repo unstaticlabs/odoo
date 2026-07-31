@@ -7,7 +7,7 @@ from odoo.exceptions import ValidationError
 class UslPlatformBillingPlatform(models.Model):
     _name = "usl.platform.billing.platform"
     _description = "Content Platform Billing Configuration"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "analytic.mixin"]
     _order = "name, id"
     _check_company_auto = True
 
@@ -124,10 +124,6 @@ class UslPlatformBillingPlatform(models.Model):
     company_currency_id = fields.Many2one(
         "res.currency",
         related="company_id.currency_id",
-    )
-    analytic_distribution = fields.Json(
-        string="Analytic Distribution",
-        tracking=True,
     )
     vendor_bill_grouping_mode = fields.Selection(
         [

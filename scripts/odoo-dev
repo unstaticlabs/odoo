@@ -188,6 +188,29 @@ bootstrap_einvoice_qa() {
   printf 'Read-only: qa.reviewer / qa-reviewer\n'
 }
 
+bootstrap_platform_billing_qa() {
+  local status=0
+  compose up -d --wait db
+  compose stop odoo >/dev/null 2>&1 || true
+  compose --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_PLATFORM_BILLING_QA_BOOTSTRAP=1 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < "$ROOT/scripts/odoo/platform_billing_qa_bootstrap.py" \
+    || status=$?
+  compose up -d --force-recreate --wait odoo
+  print_url
+  if ((status)); then
+    return "$status"
+  fi
+  printf '\nPlatform Billing QA demo is ready.\n'
+  printf 'Manager: qa.platform.manager / qa-platform-manager\n'
+  printf 'Operator: qa.platform.operator / qa-platform-operator\n'
+  printf 'Reviewer: qa.platform.reviewer / qa-platform-reviewer\n'
+  printf 'Accountant without app access: qa.platform.accountant / qa-platform-accountant\n'
+}
+
 cleanup_test_database() {
   local database="$1"
   case "$database" in
@@ -320,6 +343,9 @@ case "${1:-help}" in
   bootstrap-einvoice-qa)
     bootstrap_einvoice_qa
     ;;
+  bootstrap-platform-billing-qa)
+    bootstrap_platform_billing_qa
+    ;;
   ruff)
     compose --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -356,6 +382,8 @@ Commands:
                 Audit the restored platform-billing QA database
   bootstrap-einvoice-qa
                 Prepare safe e-invoicing QA data and local test accounts
+  bootstrap-platform-billing-qa
+                Prepare deterministic Platform Billing QA records and users
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

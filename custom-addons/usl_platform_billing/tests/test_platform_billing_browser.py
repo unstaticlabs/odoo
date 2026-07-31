@@ -47,6 +47,7 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
                     "default_journal_misc"
                 ].id,
                 "bank_journal_id": cls.company_data["default_journal_bank"].id,
+                "bank_label_pattern": "Browser payout {ref}",
                 "auto_create_compensation": True,
             },
         )
@@ -56,7 +57,8 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             password="platform_billing_browser_manager",
             groups=(
                 "usl_platform_billing.group_platform_billing_manager,"
-                "account.group_validate_bank_account"
+                "account.group_validate_bank_account,"
+                "analytic.group_analytic_accounting"
             ),
             company_id=cls.company.id,
             lang="en_US",
@@ -113,10 +115,16 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
                 "date": fields.Date.from_string("2026-07-20"),
             },
         )
-        cls.payout.write(
+        cls.env[
+            "usl.platform.billing.bank.allocation"
+        ]._action_create(
             {
+                "payout_id": cls.payout.id,
                 "bank_statement_line_id": cls.bank_line.id,
-                "bank_received_amount": 80.0,
+                "bank_amount": 80.0,
+                "payout_amount": 80.0,
+                "score": 100,
+                "detection_reason": "Prepared browser allocation",
             },
         )
 
@@ -176,6 +184,137 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             self.billing_session.vendor_bill_ids.payment_state,
             "paid",
         )
+
+    def test_manager_can_open_platform_configuration(self):
+        action = self.env.ref(
+            "usl_platform_billing.action_platform_billing_platforms",
+        )
+        self.start_tour(
+            f"/odoo/action-{action.id}",
+            "usl_platform_billing_manager_config_journey",
+            login=self.manager.login,
+        )
+        self.assertIn("analytic_precision", self.platform._fields)
+
+    def test_operator_imports_a_bank_transaction_as_a_new_payout(self):
+        session = self.env["usl.platform.billing.session"].create(
+            {
+                "name": "Browser bank import creation",
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-09-01"),
+                "invoice_date": fields.Date.from_string("2026-09-30"),
+                "due_date": fields.Date.from_string("2026-09-30"),
+                "bank_currency_id": self.currency.id,
+            },
+        )
+        statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Browser payout creation",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "date": fields.Date.from_string("2026-09-20"),
+            },
+        )
+        bank_line = self.env["account.bank.statement.line"].create(
+            {
+                "name": "Browser payout BROWSER-CREATE-001",
+                "payment_ref": "Browser payout BROWSER-CREATE-001",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "statement_id": statement.id,
+                "amount": 80.0,
+                "date": fields.Date.from_string("2026-09-20"),
+            },
+        )
+        action = self.env.ref(
+            "usl_platform_billing.action_platform_billing_sessions",
+        )
+
+        self.start_tour(
+            f"/odoo/action-{action.id}/{session.id}",
+            "usl_platform_billing_bank_create_journey",
+            login=self.operator.login,
+        )
+
+        payout = session.payout_ids
+        self.assertEqual(len(payout), 1)
+        self.assertEqual(payout.platform_reference, "BROWSER-CREATE-001")
+        self.assertEqual(payout.bank_statement_line_id, bank_line)
+        self.assertEqual(payout.bank_match_status, "selected")
+
+    def test_operator_links_one_pooled_receipt_to_two_sessions(self):
+        first = self.env["usl.platform.billing.session"].create(
+            {
+                "name": "Browser pooled receipt one",
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-10-01"),
+                "invoice_date": fields.Date.from_string("2026-10-31"),
+                "due_date": fields.Date.from_string("2026-10-31"),
+                "bank_currency_id": self.currency.id,
+            },
+        )
+        second = self.env["usl.platform.billing.session"].create(
+            {
+                "name": "Browser pooled receipt two",
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-11-01"),
+                "invoice_date": fields.Date.from_string("2026-11-30"),
+                "due_date": fields.Date.from_string("2026-11-30"),
+                "bank_currency_id": self.currency.id,
+            },
+        )
+        for session, reference, payout_date in (
+            (first, "BROWSER-POOL-ONE", "2026-10-15"),
+            (second, "BROWSER-POOL-TWO", "2026-11-15"),
+        ):
+            self.env["usl.platform.billing.payout"].create(
+                {
+                    "session_id": session.id,
+                    "platform_id": self.platform.id,
+                    "payout_date": fields.Date.from_string(payout_date),
+                    "platform_reference": reference,
+                    "net_platform_amount": 80.0,
+                },
+            )
+            session.action_check()
+            session.action_generate_documents()
+            session.with_context(
+                skip_platform_coverage_warning=True,
+            ).action_post_documents()
+        statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Browser pooled receipt",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "date": fields.Date.from_string("2026-12-20"),
+            },
+        )
+        bank_line = self.env["account.bank.statement.line"].create(
+            {
+                "name": "Browser pooled receipt 160",
+                "payment_ref": "Browser pooled receipt 160",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "statement_id": statement.id,
+                "amount": 160.0,
+                "date": fields.Date.from_string("2026-12-20"),
+            },
+        )
+        action = self.env.ref(
+            "usl_platform_billing.action_platform_billing_sessions",
+        )
+
+        self.start_tour(
+            f"/odoo/action-{action.id}/{first.id}",
+            "usl_platform_billing_pooled_link_journey",
+            login=self.operator.login,
+        )
+
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(first.state, "paid")
+        self.assertEqual(second.state, "paid")
+        allocations = self.env[
+            "usl.platform.billing.bank.allocation"
+        ].search([("bank_statement_line_id", "=", bank_line.id)])
+        self.assertEqual(len(allocations), 2)
+        first.action_reconcile_bank()
+        self.assertEqual(len(allocations), 2)
 
     def test_reviewer_readonly_journey(self):
         self.billing_session.with_user(self.manager).action_check()

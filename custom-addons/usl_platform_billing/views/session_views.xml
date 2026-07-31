@@ -120,7 +120,7 @@
                             <button name="action_open_bank_import" string="Import bank transactions"
                                     groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                                     type="object" class="oe_highlight"
-                                    invisible="state not in ('draft', 'ready', 'posted')"/>
+                                    invisible="state not in ('draft', 'ready', 'generated', 'posted')"/>
                             <field name="payout_ids"
                                    readonly="state not in ('draft', 'ready')">
                                 <list editable="bottom"
@@ -135,7 +135,9 @@
                                     <field name="commission_platform_amount" readonly="1"/>
                                     <field name="bank_currency_id" column_invisible="True"/>
                                     <field name="bank_received_amount" sum="Bank total"/>
-                                    <field name="bank_statement_line_id" optional="show"/>
+                                    <field name="bank_statement_line_ids"
+                                           widget="many2many_tags" optional="show"/>
+                                    <field name="bank_match_status" widget="badge"/>
                                     <field name="validation_status" widget="badge"/>
                                     <field name="validation_message" optional="hide"/>
                                 </list>

@@ -150,6 +150,48 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             },
         )
 
+    def _allocation(
+        self,
+        payout,
+        bank_line,
+        *,
+        bank_amount=None,
+        payout_amount=None,
+        score=100,
+    ):
+        return self.env[
+            "usl.platform.billing.bank.allocation"
+        ]._action_create(
+            {
+                "payout_id": payout.id,
+                "bank_statement_line_id": bank_line.id,
+                "bank_amount": (
+                    bank_line.amount if bank_amount is None else bank_amount
+                ),
+                "payout_amount": (
+                    payout.net_platform_amount
+                    if payout_amount is None
+                    else payout_amount
+                ),
+                "score": score,
+                "detection_reason": "Test allocation",
+            },
+        )
+
+    def _bank_wizard(self, session, *, mode="link"):
+        wizard = self.env[
+            "usl.platform.billing.bank.import.wizard"
+        ].create(
+            {
+                "session_id": session.id,
+                "mode": mode,
+                "candidate_scope": "all",
+            },
+        )
+        wizard._populate_payout_candidates()
+        wizard._populate_candidates()
+        return wizard
+
     def test_session_list_defaults_to_all_records(self):
         action = self.env.ref(
             "usl_platform_billing.action_platform_billing_sessions",
@@ -240,11 +282,6 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 "customer_invoice_id": False,
                 "vendor_bill_id": False,
                 "compensation_move_id": False,
-                "bank_match_status": "unmatched",
-                "bank_match_score": 0,
-                "bank_amount_difference": 0.0,
-                "bank_date_difference": 0,
-                "bank_detection_reason": False,
             },
         )
         payout.with_user(self.operator).write(
@@ -253,18 +290,11 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 "customer_invoice_id": False,
                 "vendor_bill_id": False,
                 "compensation_move_id": False,
-                "bank_match_status": "unmatched",
-                "bank_match_score": 0,
-                "bank_amount_difference": 0.0,
-                "bank_date_difference": 0,
-                "bank_detection_reason": False,
             },
         )
 
         with self.assertRaises(AccessError):
             session.with_user(self.operator).write({"state": "ready"})
-        with self.assertRaises(AccessError):
-            payout.with_user(self.operator).write({"bank_match_status": "selected"})
         unrelated_invoice = self.init_invoice(
             "out_invoice",
             partner=self.platform_partner,
@@ -286,6 +316,22 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                     "platform_reference": "WEB-2026-12-002",
                     "net_platform_amount": 80.0,
                     "state": "posted",
+                },
+            )
+        bank_line = self._bank_line(
+            80.0,
+            label="Workflow protection WEB-2026-12-001",
+            bank_date="2026-12-20",
+        )
+        with self.assertRaises(AccessError):
+            self.env[
+                "usl.platform.billing.bank.allocation"
+            ].with_user(self.operator).create(
+                {
+                    "payout_id": payout.id,
+                    "bank_statement_line_id": bank_line.id,
+                    "bank_amount": 80.0,
+                    "payout_amount": 80.0,
                 },
             )
 
@@ -360,12 +406,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
 
         bank_line = self._bank_line(80.0)
-        payout.write(
-            {
-                "bank_statement_line_id": bank_line.id,
-                "bank_received_amount": 80.0,
-            },
-        )
+        self._allocation(payout, bank_line)
         original_bank_amount = bank_line.amount
         session.action_reconcile_bank()
 
@@ -417,7 +458,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         wizard = self.env["usl.platform.billing.bank.import.wizard"].create(
             {"session_id": session.id},
         )
-        platform, reference, score, reason, confidence = wizard._detect_platform(
+        platform, reference, score, reason, confidence, rule = wizard._detect_platform(
             bank_line,
             self.platform,
         )
@@ -425,6 +466,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(reference, payout.platform_reference)
         self.assertEqual(score, 100)
         self.assertEqual(confidence, "high")
+        self.assertEqual(rule, "regex")
         self.assertIn("pattern", reason.lower())
 
         competing = self.platform.copy(
@@ -433,13 +475,70 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 "bank_label_pattern": self.platform.bank_label_pattern,
             },
         )
-        platform, _reference, _score, reason, confidence = wizard._detect_platform(
+        (
+            platform,
+            _reference,
+            _score,
+            reason,
+            confidence,
+            rule,
+        ) = wizard._detect_platform(
             bank_line,
             self.platform | competing,
         )
         self.assertFalse(platform)
         self.assertEqual(confidence, "ambiguous")
+        self.assertEqual(rule, "ambiguous")
         self.assertIn("CreatorHub", reason)
+
+    def test_all_eligible_candidates_are_visible_and_create_mode_is_action_safe(self):
+        session = self._session(name="All eligible — July 2026")
+        unmatched = self._bank_line(
+            321.45,
+            label="Unrecognised incoming transfer",
+            bank_date="2025-01-10",
+        )
+        wizard = self._bank_wizard(session, mode="create")
+
+        candidate = wizard.candidate_ids.filtered(
+            lambda line: line.bank_statement_line_id == unmatched,
+        )
+        self.assertEqual(len(candidate), 1)
+        self.assertFalse(candidate.recommended)
+        self.assertEqual(candidate.match_rule, "none")
+        self.assertIn("Recognition rules affect ranking", wizard.eligibility_summary)
+
+        candidate.write(
+            {
+                "selected": True,
+                "platform_id": self.platform.id,
+                "import_platform_amount": 321.45,
+            },
+        )
+        wizard.action_create_payouts()
+
+        payout = session.payout_ids
+        self.assertEqual(len(payout), 1)
+        self.assertEqual(payout.platform_reference, f"BANK-{unmatched.id}")
+        self.assertEqual(payout.bank_statement_line_id, unmatched)
+        self.assertEqual(payout.bank_received_amount, 321.45)
+        self.assertEqual(payout.bank_match_status, "selected")
+
+    def test_recommended_scope_is_a_ranking_filter_not_an_eligibility_rule(self):
+        session = self._session(name="Candidate scopes — July 2026")
+        self._payout(session)
+        unmatched = self._bank_line(
+            19.99,
+            label="Unrecognised incoming transfer",
+            bank_date="2024-01-10",
+        )
+        wizard = self._bank_wizard(session)
+        self.assertIn(unmatched, wizard.candidate_ids.bank_statement_line_id)
+
+        wizard.candidate_scope = "recommended"
+        wizard._populate_candidates()
+
+        self.assertNotIn(unmatched, wizard.candidate_ids.bank_statement_line_id)
 
     def test_platform_roles_are_opt_in_and_server_side_enforced(self):
         session = self._session()
@@ -474,8 +573,12 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             session.with_user(self.operator).write({"state": "paid"})
         with self.assertRaises(AccessError):
             payout.with_user(self.operator).write({"state": "paid"})
+        bank_line = self._bank_line(80.0)
+        allocation = self._allocation(payout, bank_line)
         with self.assertRaises(AccessError):
-            payout.with_user(self.operator).write({"bank_match_status": "reconciled"})
+            allocation.with_user(self.operator).write({"bank_amount": 70.0})
+        with self.assertRaises(AccessError):
+            allocation.with_user(self.operator).unlink()
 
     def test_posted_unpaid_payout_remains_open_receivable(self):
         session = self._session()
@@ -492,6 +595,84 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         session.action_reconcile_bank()
         self.assertEqual(session.state, "posted")
         self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
+
+    def test_one_payout_can_be_settled_by_two_partial_receipts(self):
+        session = self._session(name="Partial receipts — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        first_line = self._bank_line(
+            40.0,
+            label="First partial CH-2026-07-001",
+            bank_date="2026-08-20",
+        )
+        self._allocation(
+            payout,
+            first_line,
+            bank_amount=40.0,
+            payout_amount=40.0,
+        )
+
+        session.action_reconcile_bank()
+
+        self.assertTrue(first_line.is_reconciled)
+        self.assertEqual(payout.bank_match_status, "partial")
+        self.assertEqual(payout.remaining_platform_amount, 40.0)
+        self.assertEqual(session.customer_invoice_ids.amount_residual, 40.0)
+        self.assertEqual(session.state, "posted")
+
+        second_line = self._bank_line(
+            40.0,
+            label="Second partial CH-2026-07-001",
+            bank_date="2026-09-20",
+        )
+        wizard = self._bank_wizard(session)
+        candidate = wizard.candidate_ids.filtered(
+            lambda line: line.bank_statement_line_id == second_line,
+        )
+        self.assertEqual(len(candidate), 1)
+        candidate.selected = True
+        wizard.action_link_payouts()
+        session.action_reconcile_bank()
+
+        self.assertTrue(second_line.is_reconciled)
+        self.assertEqual(len(payout.bank_statement_line_ids), 2)
+        self.assertFalse(payout.bank_statement_line_id)
+        self.assertEqual(payout.bank_match_status, "reconciled")
+        self.assertEqual(session.customer_invoice_ids.amount_residual, 0.0)
+        self.assertEqual(session.state, "paid")
+
+    def test_bank_allocations_reject_duplicates_and_overallocation(self):
+        session = self._session(name="Allocation constraints — July 2026")
+        payout = self._payout(session)
+        bank_line = self._bank_line(80.0)
+        self._allocation(
+            payout,
+            bank_line,
+            bank_amount=40.0,
+            payout_amount=40.0,
+        )
+        with (
+            self.assertRaises(IntegrityError),
+            self.cr.savepoint(),
+            mute_logger("odoo.sql_db"),
+        ):
+            self._allocation(
+                payout,
+                bank_line,
+                bank_amount=40.0,
+                payout_amount=40.0,
+            )
+        second_line = self._bank_line(
+            50.0,
+            label="Over-allocation candidate",
+        )
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self._allocation(
+                payout,
+                second_line,
+                bank_amount=50.0,
+                payout_amount=50.0,
+            )
 
     def test_delayed_pooled_receipt_reconciles_multiple_sessions(self):
         july = self._session(name="Pooled receipt — July 2026")
@@ -515,32 +696,30 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             bank_date="2026-10-20",
         )
 
-        july_wizard = self.env[
-            "usl.platform.billing.bank.import.wizard"
-        ].create({"session_id": july.id})
-        july_wizard._populate_candidates()
-        july_candidate = july_wizard.candidate_ids.filtered(
+        wizard = self._bank_wizard(july)
+        august_line = wizard.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == august_payout,
+        )
+        self.assertEqual(len(august_line), 1)
+        august_line.selected = True
+        wizard._populate_candidates()
+        candidate = wizard.candidate_ids.filtered(
             lambda candidate: candidate.bank_statement_line_id == bank_line,
         )
-        self.assertEqual(len(july_candidate), 1)
-        self.assertEqual(july_candidate.allocated_bank_amount, 80.0)
-        july_candidate.selected = True
-        july_wizard.action_import()
-
-        august_wizard = self.env[
-            "usl.platform.billing.bank.import.wizard"
-        ].create({"session_id": august.id})
-        august_wizard._populate_candidates()
-        august_candidate = august_wizard.candidate_ids.filtered(
-            lambda candidate: candidate.bank_statement_line_id == bank_line,
-        )
-        self.assertEqual(len(august_candidate), 1)
-        self.assertEqual(august_candidate.allocated_bank_amount, 40.0)
-        august_candidate.selected = True
-        august_wizard.action_import()
+        self.assertEqual(len(candidate), 1)
+        self.assertEqual(candidate.allocated_bank_amount, 120.0)
+        candidate.selected = True
+        wizard.action_link_payouts()
+        wizard.action_link_payouts()
 
         self.assertEqual(july_payout.bank_statement_line_id, bank_line)
         self.assertEqual(august_payout.bank_statement_line_id, bank_line)
+        self.assertEqual(
+            self.env["usl.platform.billing.bank.allocation"].search_count(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            ),
+            2,
+        )
         july.action_reconcile_bank()
 
         self.assertTrue(bank_line.is_reconciled)
@@ -548,6 +727,13 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(august.state, "paid")
         self.assertEqual(july.customer_invoice_ids.payment_state, "paid")
         self.assertEqual(august.customer_invoice_ids.payment_state, "paid")
+        wizard.action_link_payouts()
+        self.assertEqual(
+            self.env["usl.platform.billing.bank.allocation"].search_count(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            ),
+            2,
+        )
 
     def test_posting_warns_when_an_active_platform_is_missing(self):
         missing_platform = self.platform.copy({"name": "Missing CreatorHub"})
@@ -594,11 +780,11 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         payout = self._payout(session)
         self._generate_and_post(session)
         bank_line = self._bank_line(80.0)
-        payout.write(
-            {
-                "bank_statement_line_id": bank_line.id,
-                "bank_received_amount": 79.0,
-            },
+        self._allocation(
+            payout,
+            bank_line,
+            bank_amount=79.0,
+            payout_amount=79.0,
         )
 
         session.action_reconcile_bank()
@@ -639,11 +825,11 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         )
         self._generate_and_post(session)
         bank_line = self._bank_line(40.0, label="FX payout FX-001")
-        payout.write(
-            {
-                "bank_statement_line_id": bank_line.id,
-                "bank_received_amount": 40.0,
-            },
+        self._allocation(
+            payout,
+            bank_line,
+            bank_amount=40.0,
+            payout_amount=80.0,
         )
 
         session.action_reconcile_bank()

@@ -21,7 +21,12 @@ The temporary Odoo Online importer lives only under
    post the documents and optional compensation entries.
 5. Select incoming bank transactions and reconcile them. A delayed payout
    stays as an open customer receivable; one later pooled receipt can be
-   allocated across several payouts and sessions.
+   allocated across several payouts and sessions, and several partial receipts
+   can settle one payout.
+
+The bank wizard shows **All eligible** open incoming transactions by default.
+Configured patterns, partners, keywords, dates and amounts rank recommendations
+but do not hide valid manual choices. **Recommended only** is optional.
 
 Auto-posting is off by default. Posted entries cannot be reset or deleted from
 the application. Mixed platform currencies are summarized separately, while
@@ -48,3 +53,17 @@ scripts/odoo-dev test usl_platform_billing odoo_test_platform_billing
 scripts/odoo-dev ruff custom-addons/usl_platform_billing
 make product-migration-boundary
 ```
+
+## Local QA demo
+
+On an isolated `odoo_dev` project with both electronic-invoice live flags set
+to `0`, prepare the repeatable demo data with:
+
+```bash
+scripts/odoo-dev bootstrap-platform-billing-qa
+```
+
+The command prints the four local-only logins. Search Billing Sessions for
+`QA DEMO`: the retained records cover delayed customer debt, a EUR 160 pooled
+receipt for two EUR 80 payouts, a EUR 30 partial receipt, a USD payout received
+as EUR 72, and creation from an unlinked bank transaction.

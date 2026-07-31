@@ -7,40 +7,109 @@
             <form string="Import Bank Transactions">
                 <sheet>
                     <div class="alert alert-info" role="alert">
-                        Pattern matches take priority over known partners and keywords.
-                        Ambiguous rows are never selected automatically.
+                        <strong>All eligible</strong> shows every open incoming bank
+                        transaction. Pattern, partner, keyword, date, currency and
+                        amount checks only rank recommendations; they never prevent
+                        manual selection.
                     </div>
                     <group>
-                        <field name="session_id"/>
+                        <group>
+                            <field name="session_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="bank_currency_id"/>
+                        </group>
+                        <group>
+                            <field name="mode" widget="radio"/>
+                            <field name="candidate_scope" widget="radio"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-secondary" role="status">
+                        <field name="eligibility_summary" nolabel="1" readonly="1"/>
+                        <field name="selection_summary" nolabel="1" readonly="1"/>
+                    </div>
+
+                    <group string="Registered open payouts"
+                           invisible="mode != 'link'">
+                        <field name="payout_candidate_count"/>
+                        <field name="selected_payout_count"/>
+                    </group>
+                    <field name="payout_candidate_ids"
+                           invisible="mode != 'link'">
+                        <list editable="bottom" create="false" delete="false"
+                              default_order="payout_date, id"
+                              decoration-success="selected">
+                            <button name="action_select" string="Select"
+                                    type="object" icon="fa-plus"
+                                    invisible="selected"/>
+                            <button name="action_unselect" string="Remove"
+                                    type="object" icon="fa-minus"
+                                    invisible="not selected"/>
+                            <field name="selected" widget="boolean_toggle" readonly="1"/>
+                            <field name="session_id"/>
+                            <field name="platform_id"/>
+                            <field name="payout_date"/>
+                            <field name="platform_reference"/>
+                            <field name="payout_currency_id" column_invisible="True"/>
+                            <field name="remaining_payout_amount"/>
+                            <field name="allocated_payout_amount"/>
+                        </list>
+                    </field>
+
+                    <group string="Eligible open incoming bank transactions">
                         <field name="candidate_count"/>
                         <field name="selected_count"/>
                     </group>
                     <field name="candidate_ids">
                         <list editable="bottom" create="false" delete="false"
-                              default_order="score desc"
-                              decoration-danger="confidence == 'ambiguous'"
-                              decoration-success="confidence == 'high'">
-                            <field name="selected"/>
+                              default_order="recommended desc, score desc, bank_date desc"
+                              decoration-success="recommended"
+                              decoration-warning="confidence == 'ambiguous'">
+                            <button name="action_select" string="Select"
+                                    type="object" icon="fa-plus"
+                                    invisible="selected"/>
+                            <button name="action_unselect" string="Remove"
+                                    type="object" icon="fa-minus"
+                                    invisible="not selected"/>
+                            <field name="selected" widget="boolean_toggle" readonly="1"/>
+                            <field name="recommended" widget="boolean_toggle" readonly="1"/>
                             <field name="bank_date"/>
+                            <field name="bank_journal_id"/>
                             <field name="bank_currency_id" column_invisible="True"/>
                             <field name="bank_amount"/>
+                            <field name="remaining_bank_amount"/>
                             <field name="allocated_bank_amount"/>
-                            <field name="bank_partner_id"/>
+                            <field name="bank_partner_id" optional="show"/>
                             <field name="bank_label"/>
-                            <field name="platform_id"/>
-                            <field name="extracted_reference"/>
-                            <field name="existing_payout_id"/>
+                            <field name="platform_id"
+                                   readonly="parent.mode != 'create'"/>
+                            <field name="platform_currency_id" column_invisible="True"/>
+                            <field name="extracted_reference"
+                                   readonly="parent.mode != 'create'"
+                                   column_invisible="parent.mode != 'create'"/>
+                            <field name="import_platform_amount"
+                                   column_invisible="parent.mode != 'create'"/>
+                            <field name="bank_foreign_currency_id"
+                                   column_invisible="True"/>
+                            <field name="bank_foreign_amount" optional="hide"/>
                             <field name="confidence" widget="badge"/>
+                            <field name="match_rule" widget="badge"/>
                             <field name="score"/>
                             <field name="detection_reason"/>
-                            <field name="amount_difference" optional="hide"/>
-                            <field name="date_difference" optional="hide"/>
+                            <field name="currency_reason" optional="show"/>
+                            <field name="amount_difference" optional="show"/>
+                            <field name="date_difference" optional="show"/>
                         </list>
                     </field>
                 </sheet>
                 <footer>
-                    <button name="action_import" string="Link selected transactions"
-                            type="object" class="btn-primary"/>
+                    <button name="action_create_payouts"
+                            string="Import selected as payouts"
+                            type="object" class="btn-primary"
+                            invisible="mode != 'create'"/>
+                    <button name="action_link_payouts"
+                            string="Link selected transactions"
+                            type="object" class="btn-primary"
+                            invisible="mode != 'link'"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>

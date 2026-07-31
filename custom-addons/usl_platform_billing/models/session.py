@@ -198,7 +198,9 @@ class UslPlatformBillingSession(models.Model):
         "payout_ids.net_platform_amount",
         "payout_ids.gross_platform_amount",
         "payout_ids.commission_platform_amount",
-        "payout_ids.bank_statement_line_id",
+        "payout_ids.bank_allocation_ids",
+        "payout_ids.bank_allocation_ids.bank_statement_line_id",
+        "payout_ids.bank_allocation_ids.bank_amount",
         "payout_ids.bank_received_amount",
         "generated_move_ids",
     )
@@ -229,7 +231,7 @@ class UslPlatformBillingSession(models.Model):
             session.payout_count = len(session.payout_ids)
             session.generated_move_count = len(session.generated_move_ids)
             session.bank_transaction_count = len(
-                session.payout_ids.bank_statement_line_id,
+                session.payout_ids.bank_statement_line_ids,
             )
             session.total_bank_received = sum(
                 session.payout_ids.mapped("bank_received_amount"),
@@ -258,7 +260,10 @@ class UslPlatformBillingSession(models.Model):
             ),
             "posted": (
                 _("Reconcile bank"),
-                _("Select each bank transaction, then reconcile the net receipts."),
+                _(
+                    "Link received bank transactions. Delayed amounts remain "
+                    "open until they are received.",
+                ),
             ),
             "paid": (
                 _("Complete"),
@@ -876,20 +881,27 @@ class UslPlatformBillingSession(models.Model):
             "res_model": "account.bank.statement.line",
             "view_mode": "list,form",
             "domain": [
-                ("id", "in", self.payout_ids.bank_statement_line_id.ids),
+                ("id", "in", self.payout_ids.bank_statement_line_ids.ids),
             ],
         }
 
     def action_open_bank_import(self):
         self.ensure_one()
         self._check_operator()
-        if self.state not in {"draft", "ready", "posted"}:
+        if self.state not in {"draft", "ready", "generated", "posted"}:
             raise UserError(
-                _("Bank transactions can only be linked to draft, ready or posted sessions."),
+                _(
+                    "Bank transactions can only be linked to draft, ready, "
+                    "generated or posted sessions.",
+                ),
             )
         wizard = self.env["usl.platform.billing.bank.import.wizard"].create(
-            {"session_id": self.id},
+            {
+                "session_id": self.id,
+                "mode": "link" if self.payout_ids else "create",
+            },
         )
+        wizard._populate_payout_candidates()
         wizard._populate_candidates()
         return {
             "type": "ir.actions.act_window",
@@ -929,8 +941,7 @@ class UslPlatformBillingSession(models.Model):
                 for move in session.customer_invoice_ids | session.vendor_bill_ids
             )
             bank_paid = bool(session.payout_ids) and all(
-                payout.bank_statement_line_id
-                and payout.bank_statement_line_id.is_reconciled
+                payout.bank_match_status == "reconciled"
                 for payout in session.payout_ids
             )
             state = "paid" if invoices_paid and bank_paid else "posted"
@@ -948,28 +959,29 @@ class UslPlatformBillingSession(models.Model):
                 raise UserError(_("Post the generated documents before bank reconciliation."))
             blocked = []
             affected_sessions = session
-            linked_payouts = session.payout_ids.filtered("bank_statement_line_id")
-            for bank_line in linked_payouts.bank_statement_line_id:
-                payouts = self.env["usl.platform.billing.payout"].search(
+            linked_allocations = session.payout_ids.bank_allocation_ids
+            for bank_line in linked_allocations.bank_statement_line_id:
+                allocations = self.env[
+                    "usl.platform.billing.bank.allocation"
+                ].search(
                     [("bank_statement_line_id", "=", bank_line.id)],
                 )
-                affected_sessions |= payouts.session_id
+                affected_sessions |= allocations.session_id
                 try:
                     with self.env.cr.savepoint():
-                        payouts._reconcile_bank_transaction()
+                        allocations._reconcile_bank_transaction()
                 except (UserError, ValidationError) as error:
-                    payouts._workflow_write(
-                        {
-                            "bank_match_status": "blocked",
-                            "bank_detection_reason": str(error),
-                        },
-                    )
+                    allocations._action_write({"blocked_reason": str(error)})
                     blocked.append(
                         f"{bank_line.display_name}: {error}",
                     )
             affected_sessions._refresh_state()
             body = _("Bank reconciliation finished.")
-            delayed_count = len(session.payout_ids - linked_payouts)
+            delayed_count = len(
+                session.payout_ids.filtered(
+                    lambda payout: payout.bank_match_status != "reconciled",
+                ),
+            )
             if delayed_count:
                 body += "<br/>" + _(
                     "%(count)s payout(s) remain open while payment is delayed.",
@@ -978,7 +990,7 @@ class UslPlatformBillingSession(models.Model):
             if blocked:
                 body += "<br/>" + "<br/>".join(blocked)
             session.message_post(body=body, subtype_xmlid="mail.mt_note")
-        return True
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
 
     def action_cancel(self):
         self._check_operator()

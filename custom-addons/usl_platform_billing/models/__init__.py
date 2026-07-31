@@ -1,1 +1,1 @@
-from . import account_move, payout, platform, session
+from . import account_move, bank_allocation, payout, platform, session

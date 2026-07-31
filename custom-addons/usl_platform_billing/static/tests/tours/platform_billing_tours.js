@@ -200,6 +200,110 @@ registry.category("web_tour.tours").add("usl_platform_billing_manager_journey", 
     ],
 });
 
+registry.category("web_tour.tours").add("usl_platform_billing_manager_config_journey", {
+    steps: () => [
+        {
+            content: "The manager can open a platform configuration",
+            trigger:
+                ".o_list_view .o_data_row td[name='name']:contains('Browser CreatorHub')",
+            run: "click",
+        },
+        {
+            content: "Open native analytic configuration",
+            trigger: ".o_form_view .nav-link:contains('Analytic')",
+            run: "click",
+        },
+        {
+            content: "The native analytic distribution widget loads",
+            trigger:
+                ".o_form_view .o_field_widget[name='analytic_distribution']",
+        },
+        {
+            content: "Open bank matching configuration",
+            trigger: ".o_form_view .nav-link:contains('Bank Matching')",
+            run: "click",
+        },
+        {
+            content: "The manager can edit platform matching settings",
+            trigger:
+                ".o_form_view .o_field_widget[name='bank_label_pattern']",
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_platform_billing_bank_create_journey", {
+    steps: () => [
+        {
+            content: "Open bank import from an empty session",
+            trigger: "button[name='action_open_bank_import']",
+            run: "click",
+        },
+        {
+            content: "All eligible transactions are visible by default",
+            trigger:
+                ".modal .o_field_widget[name='candidate_scope']:contains('All eligible')",
+        },
+        {
+            content: "The matching transaction is available",
+            trigger:
+                ".modal .o_data_row:has(td[name='bank_label']:contains('BROWSER-CREATE-001')) button[name='action_select']",
+            run: "click",
+        },
+        {
+            content: "Create the payout through the real app action",
+            trigger: ".modal button[name='action_create_payouts']",
+            run: "click",
+        },
+        {
+            content: "The payout and its bank transaction are linked",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row td[name='platform_reference']:contains('BROWSER-CREATE-001')",
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_platform_billing_pooled_link_journey", {
+    steps: () => [
+        {
+            content: "The first delayed session is posted",
+            trigger:
+                ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current",
+        },
+        {
+            content: "Open bank transaction linking",
+            trigger: "button[name='action_open_bank_import']",
+            run: "click",
+        },
+        {
+            content: "Select the second delayed payout",
+            trigger:
+                ".modal .o_data_row:has(td[name='platform_reference']:contains('BROWSER-POOL-TWO')) button[name='action_select']",
+            run: "click",
+        },
+        {
+            content: "Select the pooled receipt",
+            trigger:
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser pooled receipt 160')) button[name='action_select']",
+            run: "click",
+        },
+        {
+            content: "Link the pooled receipt to both payouts",
+            trigger: ".modal button[name='action_link_payouts']",
+            run: "click",
+        },
+        {
+            content: "Reconcile both delayed debts through the saved allocations",
+            trigger: "button[name='action_reconcile_bank']",
+            run: "click",
+        },
+        {
+            content: "The first session is paid",
+            trigger:
+                ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current",
+        },
+    ],
+});
+
 registry.category("web_tour.tours").add("usl_platform_billing_reviewer_journey", {
     steps: () => [
         {
