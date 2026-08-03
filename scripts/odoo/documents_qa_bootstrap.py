@@ -188,7 +188,25 @@ params.set_int(
 )
 
 admin = env.ref("base.user_admin")
-admin.write({"password": "admin"})
+admin.write(
+    {
+        "password": "admin",
+        # Canonical Pocket policy deliberately does not imply business roles
+        # from system administration. This QA-only fixture needs explicit
+        # access to create and link its synthetic accounting, HR, expense, and
+        # project examples; production users remain governed independently.
+        "group_ids": [
+            Command.link(env.ref(xmlid).id)
+            for xmlid in (
+                "usl_documents.group_documents_manager",
+                "account.group_account_manager",
+                "hr.group_hr_manager",
+                "hr_expense.group_hr_expense_manager",
+                "project.group_project_manager",
+            )
+        ],
+    }
+)
 documents = env["usl.document"].with_user(admin)
 client = documents._paperless()
 policy = client.ensure_fail_closed_ingestion_policy()
