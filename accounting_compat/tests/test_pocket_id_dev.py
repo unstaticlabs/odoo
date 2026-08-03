@@ -261,6 +261,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             'run --rm --no-deps paperless-access-init',
             stack,
         )
+        self.assertIn(
+            'codename="view_user"',
+            stack,
+        )
+        self.assertNotIn("Permission.objects.all()", stack)
+        self.assertIn("service.set_unusable_password()", stack)
         self.assertIn('provider="pocket-id"', initializer)
         self.assertIn('f"view_{model}"', initializer)
         self.assertNotIn("view_user", initializer)
