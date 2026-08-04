@@ -47,6 +47,8 @@ PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
 stop_product
 TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore all
 stop_product
+COMPOSE_PROJECT_NAME="$compose_project" scripts/platform-billing-restore all
+stop_product
 DOCUMENTS_CANONICAL_TARGET=1 \
   DOCUMENTS_CANONICAL_RESET=1 \
   DOCUMENTS_TARGET_DATABASE=odoo_dev \

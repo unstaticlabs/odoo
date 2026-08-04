@@ -37,6 +37,7 @@ CURRENT_DISTRIBUTION_SCOPES = {
     "hr",
     "identity",
     "native_reference",
+    "platform_billing",
     "product_master",
     "projects",
     "tese_payroll",

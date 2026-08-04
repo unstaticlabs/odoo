@@ -1,4 +1,3 @@
-import base64
 from datetime import date, timedelta
 
 from odoo import Command, fields
@@ -58,7 +57,7 @@ class TestExpenseBankMatching(TestExpenseCommon):
         currency=None,
     ):
         currency = currency or self.env.company.currency_id
-        expense = self.env["hr.expense"].create({
+        return self.env["hr.expense"].create({
             "name": name,
             "date": expense_date or self.match_date,
             "employee_id": self.expense_employee.id,
@@ -72,16 +71,6 @@ class TestExpenseBankMatching(TestExpenseCommon):
                 str(self.analytic_account_1.id): 100,
             },
         })
-        receipt = self.env["ir.attachment"].create({
-            "name": "expense-bank-match-receipt.txt",
-            "type": "binary",
-            "datas": base64.b64encode(b"Expense bank matching test receipt"),
-            "mimetype": "text/plain",
-            "res_model": expense._name,
-            "res_id": expense.id,
-        })
-        expense.message_main_attachment_id = receipt
-        return expense
 
     def _bank_line(
         self,

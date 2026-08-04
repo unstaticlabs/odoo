@@ -49,6 +49,13 @@ after Accounting and Projects while Accounting source bindings still exist,
 then uninstalls before Accounting finalization. The normal product service
 cannot load either temporary add-on.
 
+Platform Billing follows that contract as the next downstream stage.
+`usl_platform_billing` is the ongoing product application. The temporary
+`usl_platform_billing_restore` importer links reconstructed sessions and
+payouts to their existing native accounting moves, validates repeatability,
+then uninstalls and removes its physical source columns. The product module
+does not depend on either temporary importer.
+
 ## Required shape
 
 - Product modules may contain only behavior needed after cutover.

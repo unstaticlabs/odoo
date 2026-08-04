@@ -235,15 +235,15 @@ accounting_compat/private/snapshots/<snapshot-id>/
 
 ## Current validated replay scope
 
-As of the clean 26 July 2026 rehearsal against source dump `ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e`, the importer materializes the complete scoped source-company population as native Odoo records:
+As of the clean 4 August 2026 rehearsal against source dump `e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`, the importer materializes the complete scoped source-company population as native Odoo records:
 
-- `5,044` source `account.move` records: `4,849` posted, `193` draft and `2` cancelled;
-- `11,871` source move lines, including the source display/note line without an account;
+- `5,067` source `account.move` records: `4,885` posted, `180` draft and `2` cancelled;
+- `11,941` source move lines, including the source display/note line without an account;
 - `110` native payments: `97` move-backed and `13` historical workflow payments whose source `move_id` is null;
-- `3,046` bank statement lines;
-- `2,584` partial and `1,260` full reconciliations, with zero missing endpoints;
-- `1,889` historical currency rates;
-- `632` analytic lines;
+- `3,062` bank statement lines;
+- `2,595` partial and `1,267` full reconciliations, with zero missing endpoints;
+- `1,907` historical currency rates;
+- `655` analytic lines;
 - `3` assets and `91` depreciation schedule lines;
 - `110` deferred-schedule relations, all linked to native source-traced moves;
 - `414/414` Accounting-scope attachments in exact replay, with zero missing files, checksum mismatches, duplicate traces or unmapped targets.
@@ -394,14 +394,14 @@ unsupported across editions, while the bounded proof database intentionally
 does not contain the complete source. The selected clean replay keeps one
 canonical product flow and leaves Track B as isolated engine evidence.
 
-The current source snapshot contains `5,044` moves, `11,871` move lines, `360`
+The current source snapshot contains `5,067` moves, `11,941` move lines, `363`
 expenses and `3` assets. `make accounting-dev-import` preserves each source
 move identity, imports every expense as a native record, restores its direct
 evidence and creates no duplicate accounting representation. Historical
 sequence gaps and chronology decreases already present in the Online source are
 preserved and reported; the importer does not silently resequence history.
 
-The exact target validates the posted replay through the `2026-07-31` source
+The exact target validates the posted replay through the `2026-08-04` source
 snapshot. Source and target have the same `16` sequence gaps and `104`
 sequence-ordered date decreases. This proves exact preservation; the
 accountant-owned P2 explanation/acceptance gate remains explicit.
@@ -736,7 +736,7 @@ deliberately deferred; it is not represented by a hidden runtime review model.
 The annual PDF is company-prepared and explicitly non-attested; professional
 attestation remains outside generated scope.
 
-The depreciation and deferral schedules link directly to native source-traced moves, including future drafts. All `195` non-posted source moves and all `467` affected source lines are native records with their original draft/cancelled state. All `13` source payments without a journal entry are native immutable payments that preserve source workflow state and invoice links without generating duplicate ledger entries. All reconciliation endpoints are present: the target contains `2,584` source-traced partial reconciliations and `1,260` source-traced full reconciliations, with no boundary queue or policy-review fallback.
+The depreciation and deferral schedules link directly to native source-traced moves, including future drafts. All `182` non-posted source moves are native records with their original draft/cancelled state. All `13` source payments without a journal entry are native immutable payments that preserve source workflow state and invoice links without generating duplicate ledger entries. All reconciliation endpoints are present: the target contains `2,595` source-traced partial reconciliations and `1,267` source-traced full reconciliations, with no boundary queue or policy-review fallback.
 
 The importer now represents all `38` active source `account.report` records as `rebuild.account.source.report` catalogue records. These records preserve source report identity, English and French names, country, root report, custom handler model, source filter flags, line/column/expression/external-value counts, line-code samples, expression-engine summary, parity decision, target-equivalent status, target evidence key, parity level and trace metadata. The current rule set classifies `23` reports as `MANDATORY_PARITY`, `10` as `OPERATIONAL_PARITY`, `3` as `ACCOUNTANT_REQUESTED` and `2` as `REMOVED_AS_UNUSED` association reports. All `38` reports now have a partial target equivalent or explicit legal-form scope decision, and `0` active source reports are missing an assigned target treatment. The importer also preserves the source report structure as Odoo evidence records: `702` report lines, `1,227` expressions and `141` columns. Target validation and the source-target comparison artifact compare all source report catalogue, line, expression and column rows with no missing, extra or mismatched records. This is a technical compatibility catalogue, not a copy of Enterprise report code.
 

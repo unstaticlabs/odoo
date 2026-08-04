@@ -140,6 +140,56 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"${COMPOSE[@]}" --profile test build test', test_tag)
         self.assertIn("run_with_odoo_stopped test test odoo", test_tag)
 
+    def test_platform_restore_tests_use_browser_capable_image(self):
+        helper = (
+            REPOSITORY_ROOT / "scripts" / "platform-billing-restore"
+        ).read_text(encoding="utf-8")
+        makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
+        test_restore = helper.split("\ntest_restore() {\n", 1)[1].split(
+            "\ncase ",
+            1,
+        )[0]
+
+        self.assertIn("compose build odoo", test_restore)
+        self.assertIn("compose --profile test build test", test_restore)
+        self.assertIn("compose --profile test run --rm", test_restore)
+        self.assertIn("platform-billing-migration-addons:ro", test_restore)
+        self.assertIn("test \\", test_restore)
+        self.assertNotIn("platform-billing-migration \\", test_restore)
+        self.assertIn(
+            "COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) "
+            "scripts/platform-billing-restore test",
+            makefile,
+        )
+
+    def test_platform_qa_helpers_require_an_isolated_compose_project(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
+            encoding="utf-8",
+        )
+        scope_guard = helper.split(
+            "\nverify_platform_billing_qa_scope() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        audit_helper = helper.split(
+            "\naudit_platform_billing_qa() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        bootstrap_helper = helper.split(
+            "\nbootstrap_platform_billing_qa() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+
+        self.assertIn('"$COMPOSE_PROJECT" != usl-odoo-fp-*', scope_guard)
+        self.assertIn('"${COMPOSE_PROJECT_NAME:-}"', scope_guard)
+        self.assertIn("com.docker.compose.project.working_dir", scope_guard)
+        self.assertGreaterEqual(audit_helper.count("platform_billing_compose"), 3)
+        self.assertIn("verify_platform_billing_qa_scope", audit_helper)
+        self.assertGreaterEqual(
+            bootstrap_helper.count("platform_billing_compose"),
+            3,
+        )
+        self.assertIn("verify_platform_billing_qa_scope", bootstrap_helper)
+
     def test_dev_lifecycle_disables_automatic_tours(self):
         helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
             encoding="utf-8",

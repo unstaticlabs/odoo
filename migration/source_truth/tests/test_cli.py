@@ -79,6 +79,14 @@ class SourceTruthAuditCase(unittest.TestCase):
             "tese_payroll",
         )
         self.assertEqual(
+            classify("x_content_payout_line", contract["model_rules"]),
+            "platform_billing",
+        )
+        self.assertEqual(
+            classify("x_content_payout_attachment_rel", contract["table_rules"]),
+            "platform_billing",
+        )
+        self.assertEqual(
             classify("res.users.apikeys", contract["model_rules"]),
             "credential_state",
         )

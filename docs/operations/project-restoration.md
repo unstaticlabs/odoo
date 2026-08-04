@@ -39,19 +39,19 @@ The inspected snapshot contains:
 
 | Perimeter | Source records |
 | --- | ---: |
-| Projects | 17 |
-| Tasks and one task template | 1,793 |
-| Project stages / task stages | 4 / 99 |
-| Tags / milestones / recurrences / updates | 122 / 3 / 14 / 16 |
-| Task assignees / tags / parents / dependencies | 387 / 3,075 / 1,221 / 227 |
-| Project stage / tag / favourite links | 103 / 16 / 13 |
-| Task milestone / recurrence links | 66 / 9 |
-| Chatter messages / tracking values | 18,458 / 7,506 |
-| Message parents / recipients / attachment links | 14,432 / 48 / 13 |
-| Followers / activities | 2,051 / 658 |
+| Projects | 18 |
+| Tasks and one task template | 1,834 |
+| Project stages / task stages | 4 / 102 |
+| Tags / milestones / recurrences / updates | 135 / 3 / 15 / 16 |
+| Task assignees / tags / parents / dependencies | 417 / 3,196 / 1,234 / 227 |
+| Project stage / tag / favourite links | 106 / 16 / 13 |
+| Task milestone / recurrence links | 66 / 10 |
+| Chatter messages / tracking values | 19,127 / 7,720 |
+| Message parents / recipients / attachment links | 15,032 / 48 / 13 |
+| Followers / activities | 2,109 / 700 |
 | Binary attachments | 38 (15,433,661 bytes) |
-| Project aliases / named local parts | 17 / 11 |
-| Analytic projects / linked expenses | 2 / 116 |
+| Project aliases / named local parts | 18 / 11 |
+| Analytic projects / linked expenses | 2 / 117 |
 
 During migration, temporary source bindings carry the source database, model,
 identifier, snapshot, status and note. A newer snapshot or importer
@@ -100,7 +100,7 @@ permanent Odoo models.
 
 ## Deliberate exclusions
 
-- The 17 Enterprise Documents folder shells are empty. They are counted and
+- The 18 Enterprise Documents folder shells are empty. They are counted and
   reported but not recreated. Project/task attachments are restored normally.
 - The proprietary Enterprise Gantt client is not copied. `planned_date_begin`
   is retained beside the native deadline in task form and list views, so the
@@ -173,9 +173,10 @@ make target-reconstruct
 ```
 
 It runs Accounting reconstruction and parity first, then this Projects
-workflow, removes the temporary importer, validates the product boundary and
-applies target-only Pocket ID configuration last. Use the Project-specific
-commands below only when iterating on this migration stage in isolation.
+workflow and the downstream Platform Billing restoration. It removes both
+temporary importers, validates the product boundary and applies target-only
+Pocket ID configuration last. Use the Project-specific commands below only
+when iterating on this migration stage in isolation.
 
 Before product review:
 

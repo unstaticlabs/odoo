@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_platform_billing_session_list" model="ir.ui.view">
+        <field name="name">usl.platform.billing.session.list</field>
+        <field name="model">usl.platform.billing.session</field>
+        <field name="arch" type="xml">
+            <list string="Platform Billing Sessions"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state in ('ready', 'generated')"
+                  decoration-success="state == 'paid'">
+                <field name="name"/>
+                <field name="period_month"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="invoice_date"/>
+                <field name="payout_count"/>
+                <field name="bank_currency_id" column_invisible="True"/>
+                <field name="total_bank_received" sum="Bank total"/>
+                <field name="next_action"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('ready', 'generated')"
+                       decoration-primary="state == 'posted'"
+                       decoration-success="state == 'paid'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_platform_billing_session_search" model="ir.ui.view">
+        <field name="name">usl.platform.billing.session.search</field>
+        <field name="model">usl.platform.billing.session</field>
+        <field name="arch" type="xml">
+            <search string="Platform Billing Sessions">
+                <field name="name"/>
+                <field name="payout_ids"/>
+                <filter name="open" string="Open"
+                        domain="[('state', 'not in', ('paid', 'cancelled'))]"/>
+                <filter name="ready" string="Ready" domain="[('state', '=', 'ready')]"/>
+                <filter name="posted" string="Awaiting bank" domain="[('state', '=', 'posted')]"/>
+                <filter name="period" string="Period" date="period_month"/>
+                <group>
+                    <filter name="state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter name="company" string="Company" domain="[]" context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_platform_billing_session_form" model="ir.ui.view">
+        <field name="name">usl.platform.billing.session.form</field>
+        <field name="model">usl.platform.billing.session</field>
+        <field name="arch" type="xml">
+            <form string="Platform Billing Session">
+                <header>
+                    <button name="action_prefill" string="Prefill" type="object"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            invisible="state not in ('draft', 'ready')"/>
+                    <button name="action_check" string="Check" type="object"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_generate_documents" string="Generate drafts"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            type="object" class="oe_highlight" invisible="state != 'ready'"/>
+                    <button name="action_post_documents" string="Post documents"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            type="object" class="oe_highlight" invisible="state != 'generated'"/>
+                    <button name="action_reconcile_bank" string="Reconcile bank"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            type="object" class="oe_highlight" invisible="state != 'posted'"/>
+                    <button name="action_reset_drafts" string="Reset drafts"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            type="object" invisible="state != 'generated'"/>
+                    <button name="action_cancel" string="Cancel"
+                            groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                            type="object" invisible="state not in ('draft', 'ready')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,ready,generated,posted,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_generated_moves" type="object"
+                                class="oe_stat_button" icon="fa-book"
+                                invisible="generated_move_count == 0">
+                            <field name="generated_move_count" widget="statinfo"
+                                   string="Journal Entries"/>
+                        </button>
+                        <button name="action_open_bank_transactions" type="object"
+                                class="oe_stat_button" icon="fa-bank"
+                                invisible="bank_transaction_count == 0">
+                            <field name="bank_transaction_count" widget="statinfo"
+                                   string="Bank Transactions"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="state not in ('draft', 'ready')"/></h1>
+                    </div>
+                    <group>
+                        <group string="Session">
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="state not in ('draft', 'ready')"/>
+                            <field name="period_month" readonly="state not in ('draft', 'ready')"/>
+                            <field name="invoice_date" readonly="state not in ('draft', 'ready')"/>
+                            <field name="due_date" readonly="state not in ('draft', 'ready')"/>
+                            <field name="bank_currency_id" readonly="state not in ('draft', 'ready')"/>
+                        </group>
+                        <group string="Guidance">
+                            <field name="next_action" readonly="1"/>
+                            <field name="guidance" readonly="1"/>
+                            <field name="total_bank_received" readonly="1"/>
+                            <field name="generated_at" readonly="1"/>
+                            <field name="generated_by_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not platform_coverage_warning or state in ('paid', 'cancelled')">
+                        <field name="platform_coverage_warning" nolabel="1" readonly="1"/>
+                    </div>
+                    <notebook>
+                        <page name="payouts" string="Payouts">
+                            <button name="action_open_bank_import" string="Import bank transactions"
+                                    groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
+                                    type="object" class="oe_highlight"
+                                    invisible="state not in ('draft', 'ready', 'generated', 'posted')"/>
+                            <field name="payout_ids"
+                                   readonly="state not in ('draft', 'ready')">
+                                <list editable="bottom"
+                                      decoration-danger="validation_status == 'error'"
+                                      decoration-warning="validation_status == 'warning'">
+                                    <field name="validation_status" string="Validation" widget="badge"
+                                           decoration-success="validation_status == 'ok'"
+                                           decoration-warning="validation_status == 'warning'"
+                                           decoration-danger="validation_status == 'error'"/>
+                                    <field name="bank_match_status" string="Bank" widget="badge"
+                                           decoration-muted="bank_match_status == 'unmatched'"
+                                           decoration-info="bank_match_status == 'selected'"
+                                           decoration-warning="bank_match_status == 'partial'"
+                                           decoration-success="bank_match_status == 'reconciled'"
+                                           decoration-danger="bank_match_status == 'blocked'"/>
+                                    <field name="platform_id"/>
+                                    <field name="payout_date"/>
+                                    <field name="platform_reference"/>
+                                    <field name="platform_currency_id"/>
+                                    <field name="net_platform_amount" string="Original Payout"/>
+                                    <field name="commission_rate_snapshot" optional="hide"/>
+                                    <field name="gross_platform_amount" readonly="1"/>
+                                    <field name="commission_platform_amount" readonly="1"/>
+                                    <field name="currency_valuation_method" readonly="1"
+                                           optional="show"/>
+                                    <field name="effective_bank_rate_label" readonly="1"
+                                           optional="show"/>
+                                    <field name="bank_currency_id" column_invisible="True"/>
+                                    <field name="bank_received_amount" sum="Bank total"/>
+                                    <field name="bank_statement_line_ids"
+                                           widget="many2many_tags" optional="show"/>
+                                    <field name="validation_message" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="summary" string="Currency Summary">
+                            <field name="currency_summary" readonly="1" nolabel="1"/>
+                        </page>
+                        <page name="documents" string="Accounting Documents">
+                            <field name="generated_move_ids" readonly="1">
+                                <list create="false" edit="false">
+                                    <field name="move_type"/>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="currency_id"/>
+                                    <field name="amount_total"/>
+                                    <field name="amount_residual"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-success="state == 'posted'"
+                                           decoration-danger="state == 'cancel'"/>
+                                    <field name="platform_billing_payment_state"
+                                           string="Payment Status"
+                                           widget="badge"
+                                           decoration-muted="platform_billing_payment_state in ('not_paid', 'reversed')"
+                                           decoration-info="platform_billing_payment_state == 'in_payment'"
+                                           decoration-warning="platform_billing_payment_state == 'partial'"
+                                           decoration-success="platform_billing_payment_state in ('paid', 'not_applicable')"
+                                           decoration-danger="platform_billing_payment_state == 'blocked'"/>
+                                    <field name="platform_billing_platform_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_platform_billing_sessions" model="ir.actions.act_window">
+        <field name="name">Platform Billing Sessions</field>
+        <field name="res_model">usl.platform.billing.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_platform_billing_session_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a monthly billing session</p>
+            <p>Review platform payouts before generating invoices and commission bills.</p>
+        </field>
+    </record>
+</odoo>

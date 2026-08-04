@@ -43,7 +43,8 @@ The complete canonical lifecycle is:
 
 ```text
 Online dump → Accounting import/parity → Documents product/security
-→ identity/Product/HR → Projects → Paie TESE → Paperless archive
+→ identity/Product/HR → Projects → Paie TESE → Platform Billing
+→ Paperless archive
 → uninstall migration modules → product-boundary checks → target configuration
 ```
 
@@ -56,7 +57,8 @@ isolated read-only source service, refreshes source controls and extraction,
 then resets `odoo_dev`; it does not depend on a previously running source
 container.
 The orchestrator keeps the web process stopped between reset, import,
-validation and every restoration stage so browser traffic and scheduled jobs
+validation and every downstream restoration stage so browser traffic and
+scheduled jobs
 cannot observe or mutate an intermediate target.
 
 The Accounting importer is the temporary `usl_accounting_restore` add-on under

@@ -1,10 +1,9 @@
-# Unstatic Labs Odoo Distribution
+# Unstatic Labs Odoo Community fork
 
-This repository defines the USL Odoo Distribution: a versioned, deployable
-assembly of Odoo Community `saas~19.2`, pinned OCA dependencies, isolated USL
-modules, runtime configuration, migration tooling, tests and documentation.
-Two documented distribution-level core patches remain where no stable
-extension point exists.
+This repository is Unstatic Labs’ production-oriented Accounting product on
+Odoo Community `saas~19.2`. It extends upstream through isolated modules under
+`custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
+unchanged.
 
 Accounting v1 provides the daily cockpit for journals, invoices, bills,
 expenses, payments, bank transactions and reconciliation, plus assets,
@@ -20,10 +19,9 @@ authorized through Odoo.
 
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
-inactive**: its self-check leaves no synthetic accounting records, and no
-directory registration, production provider connection or reception may be
-enabled before deliberate production activation. E-reporting is a separate
-disabled rollout.
+inactive**: no directory registration, production provider endpoint, scheduled
+reception or e-reporting may be enabled before the deliberate production
+activation procedure is approved.
 
 Primary entry points:
 
@@ -35,8 +33,6 @@ Primary entry points:
 - `/usl/user-docs` for role- and task-based user guidance;
 - `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` for the
   production reception switch and rollback checklist;
-- `/usl/user-docs/how-to/review-incoming-electronic-invoice.md` for the normal
-  vendor-bill review and exception journey;
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
@@ -52,7 +48,7 @@ Primary entry points:
   deterministic replay contract.
 
 The integration baseline is upstream commit
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
 validation evidence are private local artifacts and must never be committed.
 
 ## Upstream Odoo
@@ -63,9 +59,9 @@ installation and developer documentation is available from
 
 ## Docker and Dev Container setup
 
-This distribution includes two local workflows for Odoo `saas~19.2`
-Community. The branch is pinned to upstream commit
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
+This fork includes two local workflows for Odoo `saas~19.2` Community. The
+branch is pinned to upstream commit
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
@@ -215,8 +211,7 @@ actually runs. Init, test and Dev Container helper services remain at zero.
 Set `ODOO_MAX_CRON_THREADS=0` explicitly while restoring or auditing an
 imported database.
 
-Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the
-change is an explicitly justified and documented distribution-level patch.
+Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
 
 The production custom-module boundaries are:
 
@@ -232,8 +227,11 @@ The production custom-module boundaries are:
 - `usl_documents`: the Odoo Documents workspace, Paperless synchronization
   and record-level authorization;
 - `usl_documents_accounting`: Accounting-specific document links and evidence;
-- `usl_locale`: shared day-first date presentation;
 - `usl_pocketid`: Pocket ID authentication and identity governance;
+- `usl_platform_billing`: the independent content-platform payout billing
+  application;
+- `usl_platform_billing_pocketid`: governed Pocket ID access for Platform
+  Billing administrators;
 - `rebuild_account_migration`: the historical compatibility owner for stable
   operational product models and XML IDs. Despite its technical name, it
   contains no importer, source bindings, parity objects or migration UI;
@@ -244,8 +242,8 @@ See
 [`docs/accounting/custom-addon-architecture.md`](docs/accounting/custom-addon-architecture.md)
 for dependency direction, ownership policy and future extraction rules.
 
-One-off Accounting, identity, Product, HR, Projects, Paie TESE and Documents
-restoration lives under `migration/`.
+One-off Accounting, identity, Product, HR, Projects, Paie TESE, Platform
+Billing and Documents restoration lives under `migration/`.
 The normal Odoo service cannot load that path. `make target-reconstruct` loads
 the temporary importer through a dedicated service, validates the restored
 facts, uninstalls it, and refuses the target unless the normal product registry
@@ -413,7 +411,8 @@ Odoo policy when configuration or modules are updated.
 Source parity and target configuration remain separate stages. The Online dump
 has no Pocket ID state, so `scripts/target-reconstruct` validates Accounting,
 installs Documents security before restoring identities, restores Product,
-HR, Projects and Paie TESE, rebuilds the Paperless archive, finalizes every
+HR, Projects, Paie TESE and Platform Billing, rebuilds the Paperless archive,
+and finalizes every
 temporary migration module out of the product, and finally applies Pocket ID.
 Migration tooling is a maintained repository deliverable under `migration/`
 and `scripts/`; it is not installed or exposed in the normal Odoo UI.

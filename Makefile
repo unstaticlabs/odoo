@@ -17,6 +17,7 @@ TESE_QA_GENERATION ?= 01
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
 .PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
 .PHONY: tese-restore tese-restore-install tese-restore-import tese-restore-validate tese-restore-idempotence tese-restore-finalize tese-product-validate tese-qa-bootstrap
+.PHONY: platform-billing-restore platform-billing-restore-install platform-billing-restore-import platform-billing-restore-validate platform-billing-restore-idempotence platform-billing-restore-finalize platform-billing-product-validate platform-billing-restore-test
 .PHONY: product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
@@ -230,6 +231,30 @@ tese-product-validate:
 
 tese-qa-bootstrap:
 	$(ODOO_DEV) bootstrap-tese-payroll-qa $(TESE_QA_GENERATION)
+
+platform-billing-restore:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore all
+
+platform-billing-restore-install:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore install
+
+platform-billing-restore-import:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore import
+
+platform-billing-restore-validate:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore validate
+
+platform-billing-restore-idempotence:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore idempotence
+
+platform-billing-restore-finalize:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore finalize
+
+platform-billing-product-validate:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore product-validate
+
+platform-billing-restore-test:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/platform-billing-restore test
 
 product-migration-boundary:
 	scripts/check-product-migration-boundary

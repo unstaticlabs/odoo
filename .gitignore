@@ -66,6 +66,9 @@ usl-online-dump/
 /accounting_compat/private/
 /artifacts/accounting-compat/private/
 /artifacts/migration/private/
+/artifacts/platform-billing-restore/
 /artifacts/user-docs/site/
 /output/
 /tmp/
+/.pocket-id.env
+/.pocket-id-*.env

@@ -17,7 +17,8 @@ Accounting v1 is engineering-complete for internal daily use. The release
 preserves the current Odoo Online `saas~19.2` accounting state while keeping
 USL behavior isolated in custom add-ons and maintained OCA dependencies.
 The same distribution now includes restored Projects, governed Pocket ID SSO,
-the focused Paie TESE workflow and a Paperless-backed Documents application.
+the focused Paie TESE workflow, Platform Billing and a Paperless-backed
+Documents application.
 
 ### Shipped
 
@@ -44,6 +45,10 @@ the focused Paie TESE workflow and a Paperless-backed Documents application.
 - Paie TESE records the provider PDF, dated HR/profile context, balanced
   payroll entry and native bank reconciliation without becoming a second
   legal payroll calculator.
+- Platform Billing preserves platforms, monthly sessions, payouts, invoices,
+  commission bills and delayed or pooled bank settlement in native Accounting,
+  including bank-derived foreign-currency rates without rewriting posted
+  ledger values.
 - Paperless-backed Documents provides authorized search, OCR, previews,
   metadata, versions, Trash and links to Accounting, Contacts, Employees and
   Paie TESE records without duplicating originals in Odoo.

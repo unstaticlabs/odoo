@@ -165,12 +165,18 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "scripts/accounting-compat dev-validate",
             "scripts/project-restore all",
             "scripts/tese-restore all",
+            "scripts/platform-billing-restore all",
             "scripts/target-finalize",
         ]
         positions = [script.index(step) for step in ordered_steps]
 
         self.assertEqual(positions, sorted(positions))
         self.assertGreaterEqual(script.count("stop_product"), 5)
+        self.assertIn(
+            'COMPOSE_PROJECT_NAME="$compose_project" '
+            "scripts/platform-billing-restore all",
+            script,
+        )
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", script)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", script)
 

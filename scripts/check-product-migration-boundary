@@ -12,6 +12,9 @@ MIGRATION_ADDONS = {
     ),
     "usl_project_restore": ROOT / "migration" / "project_restore" / "addons",
     "usl_tese_restore": ROOT / "migration" / "tese_restore" / "addons",
+    "usl_platform_billing_restore": (
+        ROOT / "migration" / "platform_billing_restore" / "addons"
+    ),
 }
 MIGRATION_PATHS = {
     "accounting-migration": ("/mnt/accounting-migration-addons",),
@@ -22,6 +25,10 @@ MIGRATION_PATHS = {
     "tese-migration": (
         "/mnt/accounting-migration-addons",
         "/mnt/tese-migration-addons",
+    ),
+    "platform-billing-migration": (
+        "/mnt/accounting-migration-addons",
+        "/mnt/platform-billing-migration-addons",
     ),
 }
 
@@ -65,8 +72,15 @@ service_text = {
     "accounting-migration": compose_service(
         compose, "accounting-migration", "project-migration",
     ),
-    "project-migration": compose_service(compose, "project-migration", "tese-migration"),
-    "tese-migration": compose_service(compose, "tese-migration", "test"),
+    "project-migration": compose_service(
+        compose, "project-migration", "tese-migration",
+    ),
+    "tese-migration": compose_service(
+        compose, "tese-migration", "platform-billing-migration",
+    ),
+    "platform-billing-migration": compose_service(
+        compose, "platform-billing-migration", "test",
+    ),
 }
 all_migration_paths = {
     path for paths in MIGRATION_PATHS.values() for path in paths
@@ -95,6 +109,7 @@ restore_harnesses = {
     "Accounting": ROOT / "scripts" / "accounting-restore",
     "Projects": ROOT / "scripts" / "project-restore",
     "TESE": ROOT / "scripts" / "tese-restore",
+    "Platform Billing": ROOT / "scripts" / "platform-billing-restore",
 }
 for perimeter, harness_path in restore_harnesses.items():
     harness = harness_path.read_text()
@@ -103,6 +118,14 @@ for perimeter, harness_path in restore_harnesses.items():
             f"The {perimeter} restoration harness does not explicitly pass "
             "its migration-only add-ons path.",
         )
+
+platform_restore_harness = restore_harnesses["Platform Billing"].read_text()
+if "PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT" not in platform_restore_harness:
+    errors.append(
+        "The platform restoration harness lacks the isolated-project switch.",
+    )
+if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
+    errors.append("The platform restoration harness lacks its project guard.")
 
 runtime_modules = {
     PRODUCT_ADDONS / "usl_project": (
@@ -116,6 +139,13 @@ runtime_modules = {
         "rebuild_source_",
         "source_snapshot",
         "TESE Restoration",
+    ),
+    PRODUCT_ADDONS / "usl_platform_billing": (
+        "usl.platform.billing.restore",
+        "usl_platform_billing_restore",
+        "rebuild_source_",
+        "/mnt/platform-billing-migration-addons",
+        "x_content_bank_candidate",
     ),
 }
 for runtime_module, forbidden_values in runtime_modules.items():
@@ -159,6 +189,28 @@ for path in runtime_accounting.rglob("*"):
             errors.append(
                 f"Product file {path.relative_to(ROOT)} contains "
                 f"migration-only reference {forbidden!r}.",
+            )
+
+runtime_platform = PRODUCT_ADDONS / "usl_platform_billing"
+for path in runtime_platform.rglob("*"):
+    if (
+        not path.is_file()
+        or "__pycache__" in path.parts
+        or "tests" in path.parts
+    ):
+        continue
+    text = path.read_text(errors="ignore")
+    for forbidden in (
+        "usl.platform.billing.restore",
+        "usl_platform_billing_restore",
+        "rebuild_source_",
+        "/mnt/platform-billing-migration-addons",
+        "x_content_bank_candidate",
+    ):
+        if forbidden in text:
+            errors.append(
+                f"Product file {path.relative_to(ROOT)} contains "
+                f"{forbidden!r}.",
             )
 
 if errors:

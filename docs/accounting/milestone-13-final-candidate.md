@@ -50,24 +50,24 @@ decisions outside this engineering release.
 
 The final release harness restored the current source, completed independent
 exact and native validation tracks, and reconstructed the product candidate
-from scratch. `dev-validate-status.json` was generated at
-`2026-07-26T17:05:39Z`.
+from scratch. `dev-validate-status.json` was regenerated from dump
+`e1d95464d1ff…cdd9` on `4 August 2026`.
 
 | Object | Verified count |
 | --- | ---: |
-| Accounting moves | 5,044 |
-| Posted / draft / cancelled moves | 4,849 / 193 / 2 |
-| Native move lines, all states | 11,871 |
-| Business documents | 348 |
-| Native expenses | 360 |
+| Accounting moves | 5,067 |
+| Posted / draft / cancelled moves | 4,885 / 180 / 2 |
+| Native move lines, all states | 11,941 |
+| Business documents | 349 |
+| Native expenses | 363 |
 | Native payments, including no-entry historical records | 110 |
-| Bank statement lines | 3,046 |
-| Partial / full reconciliations | 2,584 / 1,260 |
-| Historical currency rates | 1,889 |
-| Analytic lines | 632 |
-| Assets / schedule lines / posted depreciation links | 3 / 91 / 28 |
+| Bank statement lines | 3,062 |
+| Partial / full reconciliations | 2,595 / 1,267 |
+| Historical currency rates | 1,907 |
+| Analytic lines | 655 |
+| Assets / schedule lines / posted depreciation links | 3 / 91 / 31 |
 | Deferred schedule lines / posted entries | 110 / 37 |
-| Accounting attachments reconstructed / readable | 704 / 704 |
+| Accounting attachments reconstructed / readable | 710 / 710 |
 
 For 1 October 2025 through 30 June 2026, source and target both contain
 2,694 posted moves and 6,319 journal items with EUR 1,708,270.52 debit and

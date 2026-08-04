@@ -119,10 +119,11 @@ their own stages pass.
 
 `make target-reconstruct` restores the source package, runs the current
 Distribution gate, creates a clean target, replays Accounting, installs the
-Documents security model, restores identity, Product, HR, Projects and Paie
-TESE, rebuilds the Paperless archive, removes every temporary migration module
-and its allow-listed physical provenance columns, then applies target-only
-configuration. It is blocked while any shipped scope is incomplete. The strict
+Documents security model, restores identity, Product, HR, Projects, Paie TESE
+and Platform Billing, rebuilds the Paperless archive, removes every temporary
+migration module and its allow-listed physical provenance columns, then
+applies target-only configuration. It is blocked while any shipped scope is
+incomplete. The strict
 whole-source gate separately prevents this product claim from being mistaken
 for delivery of every Online application.
 
@@ -138,13 +139,24 @@ the audit found 214 populated persistent models and 90 populated relation or
 unmapped tables. It verified 2,312 referenced filestore objects across 1,774
 files without an integrity error.
 
-Accounting, global identity, Product Master, HR, Projects, Paie TESE and the
-Paperless Documents archive have implemented translation stages. The current
-Distribution gate passes. The strict whole-source gate remains blocked—
-correctly—on collaboration history, unscoped attachments, Knowledge, Sign,
-user preferences, sales/marketing configuration, Studio data and source AI
-configuration. These are explicit future product scopes, not silently copied
-or represented as current product parity.
+Accounting, global identity, Product Master, HR, Projects, Paie TESE, Platform
+Billing and the Paperless Documents archive have implemented translation
+stages. The current Distribution gate passes. The strict whole-source gate
+remains blocked—correctly—on collaboration history, unscoped attachments,
+Knowledge, Sign, user preferences, sales/marketing configuration, Studio data
+and source AI configuration. These are explicit future product scopes, not
+silently copied or represented as current product parity.
+
+### Platform Billing stage
+
+Platform Billing runs after Accounting, Projects and Paie TESE and before the
+Documents archive. The temporary importer links source platforms, sessions and
+payouts to the already reconstructed native journal entries. It does not
+recreate those entries or import the source suggestion cache: suggestions are
+recomputed from current bank data. A repeated import must retain the same
+application and ledger digests. Finalization uninstalls the importer and
+removes its allow-listed physical source columns before the ordinary product
+registry is accepted.
 
 ### Documents archive stage
 
@@ -208,7 +220,7 @@ same archive/root/link/catalog counts without creating another attachment or
 business relationship. For dump SHA-256
 `e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`, the
 clean import evidence SHA-256 is
-`aed7c866416f609fc9d8b0a3d4de547e74eca045ee036e21270fd6ccdac7ca67`; the
+`07b41266218444060609c797c9665d4e63400603a88e8dc8edefc700fa156aa3`; the
 non-resetting reuse proof is
 `24ff482cfaa855d1ed44748571c59b4884fb674bfadc325a37786e664082de38`.
 Paperless's archive sanity checker reported no integrity error. Browser

@@ -1,0 +1,2734 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_platform_billing
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-04 15:25+0000\n"
+"PO-Revision-Date: 2026-08-04 00:00+0200\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "%(count)s bank allocation(s) saved."
+msgstr "%(count)s allocation(s) bancaire(s) enregistrée(s)."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "%(count)s payout(s) remain open while payment is delayed."
+msgstr "%(count)s versement(s) restent ouverts dans l’attente du paiement."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "%(label)s (%(account)s) has an incompatible account type."
+msgstr "%(label)s (%(account)s) a un type de compte incompatible."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(label)s has no %(currency)s countervalue. Link this mixed currency case "
+"separately or reconcile it in Accounting."
+msgstr ""
+"%(label)s n'a pas de contre-valeur en %(currency)s. Liez séparément ce cas "
+"multidevise ou rapprochez-le dans Comptabilité."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "%(label)s is missing."
+msgstr "%(label)s est manquant."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "%(payout)s: %(message)s"
+msgstr "%(payout)s : %(message)s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"%(platform)s (%(currency)s): gross %(gross).2f, commission %(commission).2f, "
+"net %(net).2f"
+msgstr ""
+"%(platform)s (%(currency)s) : brut %(gross).2f, commission %(commission).2f, "
+"net %(net).2f"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "%(platform)s is missing: %(fields)s"
+msgstr "%(platform)s : éléments manquants : %(fields)s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "%(platform)s: %(message)s"
+msgstr "%(platform)s : %(message)s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "%s is no longer an eligible open incoming bank transaction."
+msgstr "%s n'est plus une transaction bancaire entrante ouverte éligible."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "%s is no longer an open payout."
+msgstr "%s n'est plus un versement ouvert."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "%s remains to be linked to a bank transaction."
+msgstr "%s reste à lier à une transaction bancaire."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "1 %(platform)s = %(rate).6f %(company)s"
+msgstr "1 %(platform)s = %(rate).6f %(company)s"
+
+#. module: usl_platform_billing
+#: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_bank_allocation_payout_bank_line_unique
+msgid "A bank transaction can be allocated to a payout only once."
+msgstr ""
+"Une transaction bancaire ne peut être allouée qu'une seule fois à un "
+"versement."
+
+#. module: usl_platform_billing
+#: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_session_company_period_name_unique
+msgid "A billing session name must be unique for the company and month."
+msgstr ""
+"Le nom d’une session de facturation doit être unique par société et par mois."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__recommendation_marker
+msgid ""
+"A green dot marks a transaction suggested by the configured recognition "
+"rules."
+msgstr ""
+"Un point vert signale une transaction suggérée par les règles de "
+"reconnaissance configurées."
+
+#. module: usl_platform_billing
+#: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_platform_name_company_unique
+msgid "A platform name must be unique within a company."
+msgstr "Le nom d’une plateforme doit être unique au sein d’une société."
+
+#. module: usl_platform_billing
+#: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_payout_platform_reference_unique
+msgid "A platform payout reference must be unique within the company."
+msgstr ""
+"La référence d’un versement de plateforme doit être unique au sein de la "
+"société."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Add analytic distribution"
+msgstr "Ajouter une répartition analytique"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "A same-currency payout must equal its allocated bank amount."
+msgstr "Un versement dans la même devise doit être égal à son montant bancaire alloué."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Accounting"
+msgstr "Comptabilité"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Accounting Documents"
+msgstr "Pièces comptables"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Accounting checks passed. The session is ready to generate."
+msgstr ""
+"Les contrôles comptables ont réussi. La session est prête pour la génération."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid ""
+"Accounts come from the selected products and partners. Fiscal\n"
+"                                positions may remap them on the final "
+"invoice or bill."
+msgstr ""
+"Les comptes proviennent des produits et partenaires sélectionnés. Les "
+"positions fiscales peuvent les remplacer sur la facture client ou "
+"fournisseur finale."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_needaction
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_needaction
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_needaction
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_needaction
+msgid "Action Needed"
+msgstr "Nécessite une action"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_ids
+msgid "Activities"
+msgstr "Activités"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_exception_decoration
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_exception_decoration
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Indicateur d’exception d’activité"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_plans_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_plans_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plans d'activité"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_state
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_state
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_state
+msgid "Activity State"
+msgstr "Statut de l'activité"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_type_icon
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_type_icon
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Icône de type d'activité"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Add at least one payout."
+msgstr "Ajoutez au moins un versement."
+
+#. module: usl_platform_billing
+#: model:res.groups,name:usl_platform_billing.group_platform_billing_manager
+msgid "Administrator"
+msgstr "Administrateur"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "All generated documents and selected bank transactions are settled."
+msgstr ""
+"Toutes les pièces générées et les transactions bancaires sélectionnées sont "
+"réglées."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__candidate_scope__all
+msgid "All open"
+msgstr "Toutes les transactions ouvertes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__candidate_scope
+msgid ""
+"All open keeps every eligible incoming transaction available. Suggested only "
+"applies the configured recognition rules."
+msgstr ""
+"Toutes les transactions ouvertes affiche chaque encaissement éligible. "
+"Suggestions uniquement applique les règles de reconnaissance configurées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "All payouts must belong to the session company."
+msgstr "Tous les versements doivent appartenir à la société de la session."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid ""
+"Allocate the complete bank transaction before reconciliation: %(allocated)s "
+"of %(actual)s is currently allocated."
+msgstr ""
+"Allouez la totalité de la transaction bancaire avant le rapprochement : %"
+"(allocated)s sur %(actual)s sont actuellement alloués."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__bank_amount
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_received_amount
+msgid "Allocated Bank Amount"
+msgstr "Montant bancaire affecté"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Allocations cannot exceed the bank transaction amount."
+msgstr ""
+"Les allocations ne peuvent pas dépasser le montant de la transaction "
+"bancaire."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Allocations cannot exceed the platform payout amount."
+msgstr ""
+"Les allocations ne peuvent pas dépasser le montant du versement de la "
+"plateforme."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__ambiguous
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__match_rule__ambiguous
+msgid "Ambiguous"
+msgstr "Ambigu"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Ambiguous between: %s"
+msgstr "Ambigu entre : %s"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_amount
+msgid "Amount"
+msgstr "Montant"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__amount_difference
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__amount_difference
+msgid "Amount Difference"
+msgstr "Écart de montant"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_foreign_amount
+msgid "Amount in Currency"
+msgstr "Montant en devise"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__allocated_bank_amount
+msgid "Amount to Allocate"
+msgstr "Montant à allouer"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Amount to Link"
+msgstr "Montant à lier"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__allocated_payout_amount
+msgid "Amount to Settle"
+msgstr "Montant à régler"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "An allocation already exists with different amounts."
+msgstr "Une allocation existe déjà avec des montants différents."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Analytic"
+msgstr "Analytique"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__analytic_distribution
+msgid "Analytic Distribution"
+msgstr "Répartition Analytique"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__analytic_precision
+msgid "Analytic Precision"
+msgstr "Précision analytique"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_attachment_count
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_attachment_count
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_attachment_count
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid ""
+"Automatic pooled reconciliation needs one customer partner. The links are "
+"saved; reconcile this mixed payment in Accounting."
+msgstr ""
+"Le rapprochement groupé automatique nécessite un seul client. Les liens sont "
+"enregistrés ; rapprochez ce paiement mixte dans Comptabilité."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid ""
+"Automatic pooled reconciliation needs one invoice currency. The links are "
+"saved; reconcile this mixed payment in Accounting."
+msgstr ""
+"Le rapprochement groupé automatique nécessite une seule devise de facture. "
+"Les liens sont enregistrés ; rapprochez ce paiement mixte dans Comptabilité."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Automation"
+msgstr "Automatisation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__remaining_bank_amount
+msgid "Available"
+msgstr "Disponible"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Awaiting bank"
+msgstr "En attente de banque"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_list
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Bank"
+msgstr "Banque"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_account_id
+msgid "Bank Account"
+msgstr "Compte bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_allocation_ids
+msgid "Bank Allocations"
+msgstr "Allocations bancaires"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_amount_difference
+msgid "Bank Amount Difference"
+msgstr "Écart de montant bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_match_amount_tolerance
+msgid "Bank Amount Tolerance"
+msgstr "Tolérance sur le montant bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__bank_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__bank_currency_id
+msgid "Bank Currency"
+msgstr "Devise bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_date_difference
+msgid "Bank Date Difference"
+msgstr "Écart de date bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_detection_reason
+msgid "Bank Detection Reason"
+msgstr "Motif de détection bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_journal_id
+msgid "Bank Journal"
+msgstr "Journal de banque"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_label
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Bank Label"
+msgstr "Libellé bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_label_keywords
+msgid "Bank Label Keywords"
+msgstr "Mots-clés du libellé bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_label_pattern
+msgid "Bank Label Pattern"
+msgstr "Motif du libellé bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_match_score
+msgid "Bank Match Score"
+msgstr "Score de rapprochement bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__bank_match_status
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_match_status
+msgid "Bank Match Status"
+msgstr "Statut du rapprochement bancaire"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Bank Matching"
+msgstr "Rapprochement bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_statement_line_id
+msgid "Bank Statement Line"
+msgstr "Ligne de relevé bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__total_bank_received
+msgid "Bank Total"
+msgstr "Total bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__bank_statement_line_id
+msgid "Bank Transaction"
+msgstr "Transaction bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__bank_transaction_count
+msgid "Bank Transaction Count"
+msgstr "Nombre de transactions bancaires"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__candidate_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_statement_line_ids
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Bank Transactions"
+msgstr "Transactions bancaires"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Bank allocations can only be changed by Platform Billing actions."
+msgstr ""
+"Les allocations bancaires ne peuvent être modifiées que par les actions de "
+"Facturation plateformes."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Bank allocations can only be created by Platform Billing actions."
+msgstr ""
+"Les allocations bancaires ne peuvent être créées que par les actions de "
+"Facturation plateformes."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Bank allocations can only be removed by Platform Billing actions."
+msgstr ""
+"Les allocations bancaires ne peuvent être supprimées que par les actions de "
+"Facturation plateformes."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Bank and payout currencies are identical"
+msgstr "Les devises de la banque et du versement sont identiques"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Bank matching tolerances cannot be negative."
+msgstr ""
+"Les tolérances de rapprochement bancaire ne peuvent pas être négatives."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Bank reconciliation finished."
+msgstr "Le rapprochement bancaire est terminé."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_list
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_list
+msgid "Bank total"
+msgstr "Total bancaire"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Bank transaction carries %(currency)s %(amount).2f"
+msgstr "La transaction bancaire porte %(amount).2f %(currency)s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"Bank transactions can only be linked to draft, ready, generated or posted "
+"sessions."
+msgstr ""
+"Les transactions bancaires ne peuvent être liées qu’aux sessions à l’état "
+"brouillon, prête, générée ou comptabilisée."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+msgid "Bank unmatched"
+msgstr "Sans rapprochement bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_rate_company_amount
+msgid "Bank-Rate Company Amount"
+msgstr "Montant société au taux bancaire"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__currency_valuation_method
+msgid ""
+"Bank-created payouts value their generated documents from the actual company-"
+"currency bank amount. Other payouts use Odoo's reference rate."
+msgstr ""
+"Les versements créés depuis la banque valorisent leurs pièces avec le montant "
+"bancaire réel dans la devise de la société. Les autres versements utilisent "
+"le taux de référence Odoo."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Bank-rate and reference-rate payouts require separate documents."
+msgstr "Les versements au taux bancaire et au taux de référence nécessitent des pièces distinctes."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"Bank-rate payouts with different effective rates require separate documents."
+msgstr ""
+"Les versements dont les taux bancaires effectifs diffèrent nécessitent des "
+"pièces distinctes."
+
+#. module: usl_platform_billing
+#: model:ir.ui.menu,name:usl_platform_billing.menu_platform_billing_sessions
+msgid "Billing Sessions"
+msgstr "Sessions de facturation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_allocation__state__blocked
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__bank_match_status__blocked
+msgid "Blocked"
+msgstr "Bloqué"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__blocked_reason
+msgid "Blocked Reason"
+msgstr "Motif du blocage"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__commission_platform_amount
+msgid "Calculated Commission"
+msgstr "Commission calculée"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__gross_platform_amount
+msgid "Calculated Gross"
+msgstr "Montant brut calculé"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__cancelled
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__cancelled
+msgid "Cancelled"
+msgstr "Annulé"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__candidate_scope
+msgid "Candidate Scope"
+msgstr "Périmètre des candidats"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Check"
+msgstr "Contrôle"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Check the session before generating documents."
+msgstr "Contrôlez la session avant de générer les pièces."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__bank_label_keywords
+msgid ""
+"Comma-separated fallback keywords used only after pattern and partner "
+"matching."
+msgstr ""
+"Mots-clés de repli séparés par des virgules, utilisés uniquement après la "
+"recherche par motif et partenaire."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Commission"
+msgstr "Commission"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__commission_rate
+msgid "Commission %"
+msgstr "% de commission"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__commission_rate_snapshot
+msgid "Commission % Snapshot"
+msgstr "% de commission figé"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__commission_account_id
+msgid "Commission Account"
+msgstr "Compte de commission"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__vendor_bill_ids
+msgid "Commission Bills"
+msgstr "Factures fournisseur de commission"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__commission_product_id
+msgid "Commission Product"
+msgstr "Produit de commission"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Commission payable compensation"
+msgstr "Compensation de la dette de commission"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Commission product account"
+msgstr "Compte du produit de commission"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Commission receivable compensation"
+msgstr "Compensation de la créance de commission"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__company_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__company_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__company_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__company_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__company_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__effective_bank_rate
+msgid "Company-currency units for one unit of platform currency."
+msgstr "Unités de devise société pour une unité de devise plateforme."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__bank_rate_company_amount
+msgid "Company-currency value supplied by the bank transaction."
+msgstr "Contre-valeur en devise société fournie par la transaction bancaire."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__compensation_move_ids
+msgid "Compensation Entries"
+msgstr "Écritures de compensation"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__compensation_journal_id
+msgid "Compensation Journal"
+msgstr "Journal de compensation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__compensation_move_id
+msgid "Compensation Move"
+msgstr "Écriture de compensation"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Complete"
+msgstr "Terminer"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Complete the imported payout amount before continuing."
+msgstr "Complétez le montant du versement importé avant de continuer."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Complete the original payout amount for the imported bank transaction."
+msgstr "Complétez le montant d’origine du versement importé depuis la banque."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Complete the payout accounting details before continuing."
+msgstr "Complétez les informations comptables du versement avant de continuer."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Complete the payouts, then run the accounting checks."
+msgstr "Complétez les versements, puis lancez les contrôles comptables."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__confidence
+msgid "Confidence"
+msgstr "Niveau de confiance"
+
+#. module: usl_platform_billing
+#: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_platforms
+msgid "Configure a content platform"
+msgstr "Configurer une plateforme de contenu"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Configure receivable and payable accounts on %(platform)s partners."
+msgstr ""
+"Configurez les comptes clients et fournisseurs sur les partenaires de %"
+"(platform)s."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Configured label pattern"
+msgstr "Motif de libellé configuré"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__match_rule__regex
+msgid "Configured pattern"
+msgstr "Motif configuré"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_post_confirm_wizard
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Confirm Incomplete Platform Coverage"
+msgstr "Confirmer la couverture incomplète des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_bank_statement_line__platform_billing_platform_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_platform_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Content Platform"
+msgstr "Plateforme de contenu"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_platform
+msgid "Content Platform Billing Configuration"
+msgstr "Configuration de la facturation d’une plateforme de contenu"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_session
+msgid "Content Platform Billing Session"
+msgstr "Session de facturation de plateformes de contenu"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_payout
+msgid "Content Platform Payout"
+msgstr "Versement d’une plateforme de contenu"
+
+#. module: usl_platform_billing
+#: model:ir.actions.act_window,name:usl_platform_billing.action_platform_billing_platforms
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_list
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
+msgid "Content Platforms"
+msgstr "Plateformes de contenu"
+
+#. module: usl_platform_billing
+#: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_sessions
+msgid "Create a monthly billing session"
+msgstr "Créer une session de facturation mensuelle"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__auto_create_compensation
+msgid "Create compensation entry"
+msgstr "Créer une écriture de compensation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__mode__create
+msgid "Create payouts from bank transactions"
+msgstr "Créer des versements depuis les transactions bancaires"
+
+#. module: usl_platform_billing
+#: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_payouts
+msgid ""
+"Create payouts inside a monthly billing session or import bank transactions."
+msgstr ""
+"Créez les versements dans une session mensuelle ou importez des transactions "
+"bancaires."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Create the customer invoices and commission bills."
+msgstr "Créez les factures clients et les factures fournisseur de commission."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__create_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__create_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__company_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__company_currency_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
+msgid "Currency"
+msgstr "Devise"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__currency_reason
+msgid "Currency Reason"
+msgstr "Explication de la devise"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__currency_summary
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Currency Summary"
+msgstr "Récapitulatif par devise"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__currency_valuation_method
+msgid "Currency Valuation Method"
+msgstr "Méthode de valorisation en devise"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Customer"
+msgstr "Client"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__customer_invoice_id
+msgid "Customer Invoice"
+msgstr "Facture client"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__customer_invoice_ids
+msgid "Customer Invoices"
+msgstr "Factures clients"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__customer_partner_id
+msgid "Customer Partner"
+msgstr "Partenaire client"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__customer_receivable_account_id
+msgid "Customer Receivable Account"
+msgstr "Compte client"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Customer invoices and commission bills were generated."
+msgstr ""
+"Les factures clients et les factures fournisseur de commission ont été "
+"générées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Customer receivable account"
+msgstr "Compte client"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__bank_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_date
+msgid "Date"
+msgstr "Date"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__date_difference
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__date_difference
+msgid "Date Difference"
+msgstr "Écart de date"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_match_days_tolerance
+msgid "Date Tolerance (days)"
+msgstr "Tolérance de date (jours)"
+
+#. module: usl_platform_billing
+#: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_platforms
+msgid "Define partners, products, journals and bank recognition rules."
+msgstr ""
+"Définissez les partenaires, produits, journaux et règles de reconnaissance "
+"bancaire."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__detection_reason
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__detection_reason
+msgid "Detection Reason"
+msgstr "Motif de détection"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__display_name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__distribution_analytic_account_ids
+msgid "Distribution Analytic Account"
+msgstr "Compte analytique de répartition"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Documents were posted and configured compensations reconciled."
+msgstr ""
+"Les pièces ont été comptabilisées et les compensations configurées ont été "
+"rapprochées."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__draft
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__due_date
+msgid "Due Date"
+msgstr "Date d'échéance"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Each configured journal must have the required accounting type."
+msgstr "Chaque journal configuré doit être du type comptable requis."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__effective_bank_rate
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__currency_valuation_method__bank
+msgid "Effective Bank Rate"
+msgstr "Taux bancaire effectif"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__effective_bank_rate_label
+msgid "Effective Rate"
+msgstr "Taux effectif"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid ""
+"Effective bank-rate valuation requires a bank transaction in the company "
+"currency."
+msgstr ""
+"La valorisation au taux bancaire effectif nécessite une transaction bancaire "
+"dans la devise de la société."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Effective bank-rate valuation requires a bank transaction."
+msgstr "La valorisation au taux bancaire effectif nécessite une transaction bancaire."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__commission_account_id
+msgid ""
+"Effective default account from the commission product. A fiscal position may "
+"remap it on the bill."
+msgstr ""
+"Compte par défaut issu du produit de commission. Une position fiscale peut "
+"le remplacer sur la facture fournisseur."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__revenue_account_id
+msgid ""
+"Effective default account from the revenue product. A fiscal position may "
+"remap it on the invoice."
+msgstr ""
+"Compte par défaut issu du produit de chiffre d’affaires. Une position "
+"fiscale peut le remplacer sur la facture client."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Enter the payout date."
+msgstr "Saisissez la date du versement."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Enter the platform payout reference."
+msgstr "Saisissez la référence du versement de la plateforme."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__validation_status__error
+msgid "Error"
+msgstr "Erreur"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Every linked customer invoice must be posted first."
+msgstr "Chaque facture client liée doit d’abord être comptabilisée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Every platform setting must belong to the platform company."
+msgstr "Chaque paramètre de la plateforme doit appartenir à sa société."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__bank_label_pattern
+msgid ""
+"Expected bank label pattern. Use {ref} where the platform reference occurs, "
+"for example: OF inv {ref}."
+msgstr ""
+"Motif attendu du libellé bancaire. Utilisez {ref} à l’emplacement de la "
+"référence de la plateforme, par exemple : OF inv {ref}."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__extracted_reference
+msgid "Extracted Reference"
+msgstr "Référence extraite"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_follower_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_follower_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_follower_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_follower_ids
+msgid "Followers"
+msgstr "Abonnés"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_partner_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_partner_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_partner_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnés (Partenaires)"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__activity_type_icon
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__activity_type_icon
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Icône Font Awesome par ex. fa-tasks"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_foreign_currency_id
+msgid "Foreign Currency"
+msgstr "Devise étrangère"
+
+#. module: usl_platform_billing
+#: model:res.groups,comment:usl_platform_billing.group_platform_billing_manager
+msgid ""
+"Full platform billing access, including configuration and eligible record "
+"deletion."
+msgstr ""
+"Accès complet à la facturation des plateformes, y compris la configuration "
+"et la suppression des enregistrements autorisés."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Generate drafts"
+msgstr "Générer les brouillons"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__generated
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__generated
+msgid "Generated"
+msgstr "Généré"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__generated_at
+msgid "Generated At"
+msgstr "Généré le"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__generated_by_id
+msgid "Generated By"
+msgstr "Généré par"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__generated_move_ids
+msgid "Generated Journal Entries"
+msgstr "Écritures comptables générées"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__generated_move_count
+msgid "Generated Move Count"
+msgstr "Nombre d’écritures générées"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Generated drafts were deleted; payout inputs were preserved."
+msgstr ""
+"Les brouillons générés ont été supprimés ; les données des versements ont "
+"été conservées."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid ""
+"Generated invoices and bills will be posted immediately.\n"
+"                                Compensation remains part of the explicit "
+"posting action."
+msgstr ""
+"Les factures clients et fournisseur générées seront comptabilisées "
+"immédiatement.\n"
+"                                La compensation reste déclenchée par "
+"l’action explicite de comptabilisation."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Generated payouts cannot change their accounting basis."
+msgstr "La base comptable des versements générés ne peut plus être modifiée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Generated sessions cannot change their accounting basis."
+msgstr "La base comptable des sessions générées ne peut plus être modifiée."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Go Back"
+msgstr "Revenir"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Gross Revenue"
+msgstr "Chiffre d’affaires brut"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Gross platform revenue — %s"
+msgstr "Chiffre d’affaires brut de la plateforme — %s"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__guidance
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Guidance"
+msgstr "Instructions"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__has_message
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__has_message
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__has_message
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__has_message
+msgid "Has Message"
+msgstr "A un message"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__high
+msgid "High"
+msgstr "Haute"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_exception_icon
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_exception_icon
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_exception_icon
+msgid "Icon"
+msgstr "Icône"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__activity_exception_icon
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__activity_exception_icon
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icône pour indiquer une activité d'exception."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Identity"
+msgstr "Identité"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_needaction
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__message_needaction
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__message_needaction
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si coché, de nouveaux messages demandent votre attention."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_sms_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__message_has_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__message_has_sms_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__message_has_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__message_has_sms_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__message_has_error
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si coché, certains messages ont une erreur de livraison."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Import Bank Transactions"
+msgstr "Importer des transactions bancaires"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Import bank transactions"
+msgstr "Importer des transactions bancaires"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Import selected as payouts"
+msgstr "Importer la sélection comme versements"
+
+#. module: usl_platform_billing
+#: model:res.groups,comment:usl_platform_billing.group_platform_billing_reader
+msgid ""
+"Inspect platform billing configurations, sessions, payouts and linked "
+"accounting evidence."
+msgstr ""
+"Consulter les configurations, sessions et versements des plateformes ainsi "
+"que les justificatifs comptables associés."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__invoice_date
+msgid "Invoice Date"
+msgstr "Date de facturation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_is_follower
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_is_follower
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_is_follower
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_is_follower
+msgid "Is Follower"
+msgstr "Est un abonné"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__bank_journal_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_journal_id
+msgid "Journal"
+msgstr "Journal"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__bank_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_currency_id
+msgid "Journal Currency"
+msgstr "Devise du journal"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Journal Entries"
+msgstr "Pièces comptables"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_account_move
+msgid "Journal Entry"
+msgstr "Pièce comptable"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__match_rule__keyword
+msgid "Keyword"
+msgstr "Mot-clé"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Keyword: %s"
+msgstr "Mot-clé : %s"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__match_rule__partner
+msgid "Known partner"
+msgstr "Partenaire connu"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Known platform partner"
+msgstr "Partenaire de plateforme connu"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__bank_label
+msgid "Label"
+msgstr "Libellé"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__write_uid
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__write_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__supplier_partner_id
+msgid "Leave empty to use the main partner on commission bills."
+msgstr ""
+"Laissez vide pour utiliser le partenaire principal sur les factures de "
+"commission."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__customer_partner_id
+msgid "Leave empty to use the main partner on customer invoices."
+msgstr ""
+"Laissez vide pour utiliser le partenaire principal sur les factures clients."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__mode__link
+msgid "Link bank transactions to registered payouts"
+msgstr "Lier des transactions bancaires aux versements enregistrés"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"Link received bank transactions. Delayed amounts remain open until they are "
+"received."
+msgstr ""
+"Liez les transactions bancaires reçues. Les montants retardés restent "
+"ouverts jusqu'à leur réception."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Link selected transactions"
+msgstr "Lier les transactions sélectionnées"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_allocation__state__linked
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__bank_match_status__selected
+msgid "Linked"
+msgstr "Lié"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__low
+msgid "Low"
+msgstr "Basse"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__partner_id
+msgid "Main Partner"
+msgstr "Partenaire principal"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__recommendation_marker
+msgid "Match"
+msgstr "Correspondance"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__match_rule
+msgid "Match Rule"
+msgstr "Règle de correspondance"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__medium
+msgid "Medium"
+msgstr "Médium"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_error
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_has_error
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_has_error
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_has_error
+msgid "Message Delivery error"
+msgstr "Erreur d'envoi du message"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_ids
+msgid "Messages"
+msgstr "Messages"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__missing_active_platform_ids
+msgid "Missing Active Platforms"
+msgstr "Plateformes actives manquantes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__mode
+msgid "Mode"
+msgstr "Mode"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__my_activity_date_deadline
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__my_activity_date_deadline
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "Échéance de mon activité"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__name
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+msgid "Needs attention"
+msgstr "Nécessite une attention"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "New payouts can only be imported into a draft session."
+msgstr ""
+"Les nouveaux versements ne peuvent être importés que dans une session en "
+"brouillon."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__next_action
+msgid "Next Action"
+msgstr "Prochaine action"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_date_deadline
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_date_deadline
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Date limite de l'activité à venir"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_summary
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_summary
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_summary
+msgid "Next Activity Summary"
+msgstr "Résumé de l'activité suivante"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_type_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_type_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_type_id
+msgid "Next Activity Type"
+msgstr "Type d'activités à venir"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "No bank countervalue is available for %s"
+msgstr "Aucune contre-valeur bancaire n'est disponible pour %s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "No bank transaction has been selected yet."
+msgstr "Aucune transaction bancaire n’a encore été sélectionnée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "No configured recognition rule matched"
+msgstr "Aucune règle de reconnaissance configurée ne correspond"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "No open receivable remains on the linked invoices."
+msgstr "Aucune créance ouverte ne subsiste sur les factures liées."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__account_move__platform_billing_payment_state__not_applicable
+msgid "No Payment Required"
+msgstr "Aucun paiement requis"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"No payout is registered for these active platforms: %(platforms)s. Monthly "
+"billing should normally cover every active platform; you may continue after "
+"confirming the exception."
+msgstr ""
+"Aucun versement n’est enregistré pour ces plateformes actives : %"
+"(platforms)s. La facturation mensuelle devrait normalement couvrir chaque "
+"plateforme active ; vous pouvez continuer après avoir confirmé l’exception."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "No payouts."
+msgstr "Aucun versement."
+
+#. module: usl_platform_billing
+#: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_payouts
+msgid "No platform payouts yet"
+msgstr "Aucun versement de plateforme pour le moment"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "No registered payout selected"
+msgstr "Aucun versement enregistré sélectionné"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__match_rule__none
+msgid "No rule"
+msgstr "Aucune règle"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__none
+msgid "None"
+msgstr "Aucun"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_needaction_counter
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_needaction_counter
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_needaction_counter
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Nombre d'actions"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_error_counter
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_has_error_counter
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_has_error_counter
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_has_error_counter
+msgid "Number of errors"
+msgstr "Nombre d'erreurs"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_needaction_counter
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__message_needaction_counter
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__message_needaction_counter
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Nombre de messages nécessitant une action"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_error_counter
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__message_has_error_counter
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__message_has_error_counter
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages avec des erreurs d'envoi"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "OCA reconciliation could not balance this bank transaction."
+msgstr "Le rapprochement OCA n’a pas pu solder cette transaction bancaire."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "OF inv {ref}"
+msgstr "OF inv {ref}"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "ONLYFANS,FENIX"
+msgstr "ONLYFANS,FENIX"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__currency_valuation_method__reference
+msgid "Odoo Reference Rate"
+msgstr "Taux de référence Odoo"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Optional default analytic distribution for generated invoice and commission lines."
+msgstr "Répartition analytique par défaut facultative pour les lignes de facture et de commission générées."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_platform__vendor_bill_grouping_mode__per_payout
+msgid "One bill per payout"
+msgstr "Une facture fournisseur par versement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_platform__vendor_bill_grouping_mode__monthly
+msgid "One bill per session"
+msgstr "Une facture fournisseur par session"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Only Platform Billing administrators can delete payouts."
+msgstr ""
+"Seuls les administrateurs de la Facturation plateformes peuvent supprimer "
+"des versements."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only Platform Billing administrators can delete sessions."
+msgstr ""
+"Seuls les administrateurs de la Facturation plateformes peuvent supprimer "
+"des sessions."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only Platform Billing operators can run this action."
+msgstr ""
+"Seuls les opérateurs de la Facturation plateformes peuvent exécuter cette "
+"action."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only Platform Billing users can inspect this session."
+msgstr ""
+"Seuls les utilisateurs de la Facturation plateformes peuvent consulter cette "
+"session."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Only an incoming transaction from a bank journal can be allocated."
+msgstr ""
+"Seule une transaction entrante d’un journal de banque peut être allouée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only draft or cancelled sessions can be deleted."
+msgstr ""
+"Seules les sessions à l’état brouillon ou annulé peuvent être supprimées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only draft or ready sessions can be cancelled."
+msgstr "Seules les sessions à l’état brouillon ou prêt peuvent être annulées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Only draft payouts can be deleted."
+msgstr "Seuls les versements à l’état brouillon peuvent être supprimés."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only draft sessions can be checked."
+msgstr "Seules les sessions à l’état brouillon peuvent être contrôlées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only generated draft sessions can be reset."
+msgstr ""
+"Seules les sessions générées comportant des brouillons peuvent être "
+"réinitialisées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only generated sessions can be posted."
+msgstr "Seules les sessions générées peuvent être comptabilisées."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Open"
+msgstr "Ouvert"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__payout_candidate_ids
+msgid "Open Payouts"
+msgstr "Versements ouverts"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_bank_import_wizard_payout_line
+msgid "Open Platform Payout Candidate"
+msgstr "Versement ouvert de plateforme candidat"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Open incoming bank transactions"
+msgstr "Transactions bancaires entrantes ouvertes"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Open payouts"
+msgstr "Versements ouverts"
+
+#. module: usl_platform_billing
+#: model:res.groups,name:usl_platform_billing.group_platform_billing_operator
+msgid "Operator"
+msgstr "Opérateur"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Original Payout"
+msgstr "Versement d’origine"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__paid
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__paid
+msgid "Paid"
+msgstr "Payé"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__payout_amount
+msgid ""
+"Part of the platform payout settled by this bank transaction. It may differ "
+"from the bank amount when currencies differ."
+msgstr ""
+"Part du versement de la plateforme réglée par cette transaction bancaire. "
+"Elle peut différer du montant bancaire lorsque les devises diffèrent."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__bank_match_status__partial
+msgid "Partially Reconciled"
+msgstr "Partiellement rapproché"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_partner_id
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Partners"
+msgstr "Partenaires"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_list_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Payment Status"
+msgstr "Statut de paiement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_payment_state
+msgid "Platform Payment Status"
+msgstr "Statut de paiement de la plateforme"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__payout_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__payout_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+msgid "Payout"
+msgstr "Versement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__payout_count
+msgid "Payout Count"
+msgstr "Nombre de versements"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__payout_date
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__payout_date
+msgid "Payout Date"
+msgstr "Date du versement"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+msgid "Payout date"
+msgstr "Date du versement"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Payout reference %(reference)s already belongs to session %(session)s."
+msgstr ""
+"La référence de versement %(reference)s appartient déjà à la session %"
+"(session)s."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__payout_ids
+#: model:ir.ui.menu,name:usl_platform_billing.menu_platform_billing_payouts
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Payouts"
+msgstr "Versements"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Period"
+msgstr "Période"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__period_month
+msgid "Period Month"
+msgstr "Mois de la période"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__platform_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__platform_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__platform_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+msgid "Platform"
+msgstr "Plateforme"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+msgid "Platform Amounts"
+msgstr "Montants de la plateforme"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_bank_import_wizard_line
+msgid "Platform Bank Transaction Candidate"
+msgstr "Transaction bancaire candidate pour une plateforme"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Platform Bank Transactions"
+msgstr "Transactions bancaires des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.ui.menu,name:usl_platform_billing.menu_platform_billing_root
+#: model:res.groups.privilege,name:usl_platform_billing.res_groups_privilege_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_form_platform_billing
+msgid "Platform Billing"
+msgstr "Facturation plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.actions.act_window,name:usl_platform_billing.action_platform_billing_moves
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_list_platform_billing
+msgid "Platform Billing Journal Entries"
+msgstr "Écritures comptables de facturation des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_bank_statement_line__platform_billing_session_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_session_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Platform Billing Session"
+msgstr "Session de facturation des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.actions.act_window,name:usl_platform_billing.action_platform_billing_sessions
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_list
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Platform Billing Sessions"
+msgstr "Sessions de facturation des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__platform_coverage_warning
+msgid "Platform Coverage Warning"
+msgstr "Avertissement de couverture des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__payout_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__platform_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__payout_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__platform_currency_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__currency_id
+msgid "Platform Currency"
+msgstr "Devise de la plateforme"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__net_platform_amount
+msgid "Platform Net"
+msgstr "Net plateforme"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+msgid "Platform Payout"
+msgstr "Versement de plateforme"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_bank_allocation
+msgid "Platform Payout Bank Allocation"
+msgstr "Allocation bancaire d’un versement de plateforme"
+
+#. module: usl_platform_billing
+#: model:ir.actions.act_window,name:usl_platform_billing.action_platform_billing_payouts
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_bank_statement_line__platform_billing_payout_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_payout_ids
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_list
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+msgid "Platform Payouts"
+msgstr "Versements des plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__platform_reference
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__platform_reference
+msgid "Platform Reference"
+msgstr "Référence de la plateforme"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Platform billing check failed:<br/>%s"
+msgstr "Le contrôle de facturation des plateformes a échoué :<br/>%s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Platform commission compensation — %s"
+msgstr "Compensation de la commission de plateforme — %s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Platform commission — %s"
+msgstr "Commission de plateforme — %s"
+
+#. module: usl_platform_billing
+#: model:ir.ui.menu,name:usl_platform_billing.menu_platform_billing_platforms
+msgid "Platforms"
+msgstr "Plateformes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__missing_platform_ids
+msgid "Platforms Without Payouts"
+msgstr "Plateformes sans versement"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Post Anyway"
+msgstr "Comptabiliser quand même"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Post documents"
+msgstr "Comptabiliser les pièces"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__auto_post_invoices
+msgid "Post invoices and bills during generation"
+msgstr "Comptabiliser les factures lors de la génération"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Post the generated documents before bank reconciliation."
+msgstr "Comptabilisez les pièces générées avant le rapprochement bancaire."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__posted
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__posted
+msgid "Posted"
+msgstr "Publié"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Posted journal entries cannot be reset from this app."
+msgstr ""
+"Les écritures comptabilisées ne peuvent pas être réinitialisées depuis cette "
+"application."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Prefill"
+msgstr "Préremplir"
+
+#. module: usl_platform_billing
+#: model:res.groups,comment:usl_platform_billing.group_platform_billing_operator
+msgid ""
+"Prepare, generate, post and reconcile platform billing sessions without "
+"configuring platforms."
+msgstr ""
+"Préparer, générer, comptabiliser et rapprocher les sessions de facturation "
+"des plateformes sans configurer les plateformes."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Process one bank transaction at a time."
+msgstr "Traitez une transaction bancaire à la fois."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__purchase_journal_id
+msgid "Purchase Journal"
+msgstr "Journal des achats"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__rating_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__rating_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__rating_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__rating_ids
+msgid "Ratings"
+msgstr "Évaluations"
+
+#. module: usl_platform_billing
+#: model:res.groups,name:usl_platform_billing.group_platform_billing_reader
+msgid "Read-only"
+msgstr "Lecture seule"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__validation_status__ok
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__ready
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Ready"
+msgstr "Prêt"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__recommended
+msgid "Recommended"
+msgstr "Recommandé"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Reconcile bank"
+msgstr "Rapprocher la banque"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_allocation__state__reconciled
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__bank_match_status__reconciled
+msgid "Reconciled"
+msgstr "Rapproché"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_reconciled_amount
+msgid "Reconciled Bank Amount"
+msgstr "Montant bancaire rapproché"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "Reconciled, paid or cancelled bank allocations cannot be removed."
+msgstr ""
+"Les allocations bancaires rapprochées, payées ou annulées ne peuvent pas "
+"être supprimées."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__remaining_payout_amount
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__remaining_platform_amount
+msgid "Remaining Payout Amount"
+msgstr "Montant restant du versement"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Remove"
+msgstr "Retirer"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Reset drafts"
+msgstr "Réinitialiser les brouillons"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_user_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_user_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_user_id
+msgid "Responsible User"
+msgstr "Utilisateur responsable"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__revenue_account_id
+msgid "Revenue Account"
+msgstr "Compte de chiffre d’affaires"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__revenue_product_id
+msgid "Revenue Product"
+msgstr "Produit de chiffre d’affaires"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Revenue product account"
+msgstr "Compte du produit de chiffre d’affaires"
+
+#. module: usl_platform_billing
+#: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_sessions
+msgid ""
+"Review platform payouts before generating invoices and commission bills."
+msgstr ""
+"Contrôlez les versements des plateformes avant de générer les factures "
+"clients et de commission."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Review the drafts before posting and compensating them."
+msgstr ""
+"Contrôlez les brouillons avant de les comptabiliser et de les compenser."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_sms_error
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__message_has_sms_error
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__message_has_sms_error
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Erreur d'envoi SMS"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__sale_journal_id
+msgid "Sale Journal"
+msgstr "Journal des ventes"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__score
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__score
+msgid "Score"
+msgstr "Note"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Select"
+msgstr "Sélectionner"
+
+#. module: usl_platform_billing
+#: model:ir.model,name:usl_platform_billing.model_usl_platform_billing_bank_import_wizard
+msgid "Select Platform Bank Transactions"
+msgstr "Sélectionner les transactions bancaires des plateformes"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Select a platform."
+msgstr "Sélectionnez une plateforme."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Select at least one bank transaction."
+msgstr "Sélectionnez au moins une transaction bancaire."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Select at least one registered payout."
+msgstr "Sélectionnez au moins un versement enregistré."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid ""
+"Select the open payouts first, then select the payment that\n"
+"                        settles them."
+msgstr ""
+"Sélectionnez les versements ouverts, puis l’encaissement qui les règle."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Select the platform currency."
+msgstr "Sélectionnez la devise de la plateforme."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__selected
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__selected
+msgid "Selected"
+msgstr "Sélectionné"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"Selected payout amounts total %(payout)s %(currency)s, but the selected bank "
+"transactions represent %(bank)s %(currency)s. Adjust the selected amounts so "
+"they match."
+msgstr ""
+"Le total des versements sélectionnés est de %(payout)s %(currency)s, mais "
+"les transactions bancaires sélectionnées représentent %(bank)s %(currency)s. "
+"Ajustez les montants sélectionnés pour qu'ils correspondent."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Selected payouts use several currencies"
+msgstr "Les versements sélectionnés utilisent plusieurs devises"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"Selected payouts use several currencies. Link each currency separately; the "
+"saved links can then be reconciled in Accounting."
+msgstr ""
+"Les versements sélectionnés utilisent plusieurs devises. Liez chaque devise "
+"séparément ; les liens enregistrés pourront ensuite être rapprochés dans "
+"Comptabilité."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__session_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__session_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__session_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__session_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__session_id
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Session"
+msgstr "Session"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__payout_amount
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__settled_platform_amount
+msgid "Settled Payout Amount"
+msgstr "Montant réglé du versement"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Show"
+msgstr "Afficher"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_statement_line_id
+msgid "Single Bank Transaction"
+msgstr "Transaction bancaire unique"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Some bank transactions could not be linked"
+msgstr "Certaines transactions bancaires n’ont pas pu être liées"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__state
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__state
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__state
+msgid "State"
+msgstr "État"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_search
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
+msgid "Status"
+msgstr "Statut"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__activity_state
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__activity_state
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Statut basé sur les activités\n"
+"En retard : l'échéance est déjà dépassée\n"
+"Aujourd'hui : la date d'activité est aujourd'hui\n"
+"Planifié : activités futures."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__platform_id
+msgid "Suggested Platform"
+msgstr "Plateforme suggérée"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__candidate_scope__recommended
+msgid "Suggested only"
+msgstr "Suggestions uniquement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__supplier_partner_id
+msgid "Supplier Partner"
+msgstr "Partenaire fournisseur"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__supplier_payable_account_id
+msgid "Supplier Payable Account"
+msgstr "Compte fournisseur"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "Supplier payable account"
+msgstr "Compte fournisseur"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__attachment_ids
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_form
+msgid "Supporting Documents"
+msgstr "Documents justificatifs"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Switch to payout creation mode first."
+msgstr "Passez d'abord en mode de création de versement."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "Switch to registered-payout linking mode first."
+msgstr "Passez d'abord en mode de liaison des versements enregistrés."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"The allocation for %(label)s must be positive and cannot exceed the "
+"remaining %(amount)s."
+msgstr ""
+"L’allocation pour %(label)s doit être positive et ne peut pas dépasser les %"
+"(amount)s restants."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_foreign_amount
+msgid ""
+"The amount expressed in an optional other currency if it is a multi-currency "
+"entry."
+msgstr ""
+"Le montant exprimé dans une autre devise facultative s'il s'agit d'une "
+"écriture multidevise."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"The amount selected for %(payout)s must be positive and cannot exceed %"
+"(remaining)s."
+msgstr ""
+"Le montant sélectionné pour %(payout)s doit être positif et ne peut pas "
+"dépasser %(remaining)s."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid ""
+"The bank amount must be positive and the payout amount cannot be negative."
+msgstr ""
+"Le montant bancaire doit être positif et le montant du versement ne peut pas "
+"être négatif."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "The bank journal needs a valid liquidity account."
+msgstr "Le journal de banque doit utiliser un compte de trésorerie valide."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "The bank label pattern can contain {ref} only once."
+msgstr "Le motif du libellé bancaire ne peut contenir {ref} qu’une seule fois."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "The bank label pattern is invalid: %s"
+msgstr "Le motif du libellé bancaire est invalide : %s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "The bank transaction and payout must belong to the same company."
+msgstr ""
+"La transaction bancaire et le versement doivent appartenir à la même société."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid ""
+"The bank transaction carries another foreign currency. Keep the links and "
+"reconcile it manually in Accounting."
+msgstr ""
+"La transaction bancaire porte une autre devise étrangère. Conservez les "
+"liens et rapprochez-la manuellement dans Comptabilité."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid ""
+"The bank transaction has an unexpected foreign currency. Keep the links and "
+"reconcile it manually in Accounting."
+msgstr ""
+"La transaction bancaire utilise une devise étrangère inattendue. Conservez "
+"les liens et rapprochez-la manuellement dans Comptabilité."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "The bank transaction must use the session bank currency."
+msgstr ""
+"La transaction bancaire doit utiliser la devise bancaire de la session."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "The bank transaction remains unreconciled."
+msgstr "La transaction bancaire reste non rapprochée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid ""
+"The bank-created payout must be fully allocated before its effective rate "
+"can be applied."
+msgstr ""
+"Le versement créé depuis la banque doit être entièrement alloué avant "
+"l’application de son taux effectif."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "The billing period must be the first day of a month."
+msgstr "La période de facturation doit correspondre au premier jour d’un mois."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/platform.py:0
+msgid "The commission rate must be strictly between 0% and 100%."
+msgstr ""
+"Le taux de commission doit être strictement compris entre 0 % et 100 %."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The commission snapshot must be between 0% and 100%."
+msgstr "Le taux de commission figé doit être compris entre 0 % et 100 %."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The effective bank rate could not be derived."
+msgstr "Le taux bancaire effectif n’a pas pu être calculé."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_foreign_currency_id
+msgid "The optional other currency if it is a multi-currency entry."
+msgstr "L'autre devise facultative s'il s'agit d'une écriture multidevise."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid "The payout allocation plan is incomplete."
+msgstr "Le plan d'allocation des versements est incomplet."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The payout currency differs from the platform currency."
+msgstr "La devise du versement diffère de celle de la plateforme."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The payout must use the configured platform currency."
+msgstr "Le versement doit utiliser la devise configurée pour la plateforme."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The platform and session companies must match."
+msgstr "La société de la plateforme doit correspondre à celle de la session."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The platform belongs to another company."
+msgstr "La plateforme appartient à une autre société."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The platform net amount cannot be negative."
+msgstr "Le montant net de la plateforme ne peut pas être négatif."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The platform net amount must be positive."
+msgstr "Le montant net de la plateforme doit être positif."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/bank_allocation.py:0
+msgid "The selected bank transaction is not posted."
+msgstr "La transaction bancaire sélectionnée n’est pas comptabilisée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "This session already has generated documents."
+msgstr "Cette session comporte déjà des pièces générées."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "This session is closed without further processing."
+msgstr "Cette session est clôturée sans traitement supplémentaire."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "To complete"
+msgstr "À compléter"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__activity_exception_decoration
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__activity_exception_decoration
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Type d'activité d'exception enregistrée."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__bank_match_status__unmatched
+msgid "Unmatched"
+msgstr "Non rapproché"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_payout_list
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Validation"
+msgstr "Validation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__validation_message
+msgid "Validation Message"
+msgstr "Message de validation"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__validation_status
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__validation_status
+msgid "Validation Status"
+msgstr "Statut de validation"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Vendor"
+msgstr "Fournisseur"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__vendor_bill_id
+msgid "Vendor Bill"
+msgstr "Facture fournisseur"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__vendor_bill_grouping_mode
+msgid "Vendor Bill Grouping Mode"
+msgstr "Mode de regroupement des factures fournisseur"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__validation_status__warning
+msgid "Warning"
+msgstr "Avertissement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_post_confirm_wizard__warning_message
+msgid "Warning Message"
+msgstr "Message d’avertissement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__website_message_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__website_message_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__website_message_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__website_message_ids
+msgid "Website Messages"
+msgstr "Messages du site web"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_allocation__website_message_ids
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__website_message_ids
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_platform__website_message_ids
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_session__website_message_ids
+msgid "Website communication history"
+msgstr "Historique de communication du site web"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__wizard_id
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_payout_line__wizard_id
+msgid "Wizard"
+msgstr "Assistant"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Workflow fields can only be changed by app actions."
+msgstr ""
+"Les champs de processus ne peuvent être modifiés que par les actions de "
+"l’application."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "You cannot inspect a session from another company."
+msgstr "Vous ne pouvez pas consulter une session d’une autre société."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "You cannot operate a session from another company."
+msgstr "Vous ne pouvez pas traiter une session d’une autre société."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "id"
+msgstr "id"
+
+#~ msgid ""
+#~ "Select the received payments to add as draft payouts. Complete\n"
+#~ "                        platform, reference, currency and original payout "
+#~ "amount in the\n"
+#~ "                        session after importing."
+#~ msgstr ""
+#~ "Sélectionnez les encaissements à ajouter comme versements en brouillon. "
+#~ "Après l’import, complétez la plateforme, la référence, la devise et le "
+#~ "montant d’origine dans la session."

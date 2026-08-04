@@ -2,11 +2,11 @@
 
 Status: accepted architecture decision  
 Baseline: Odoo Community `saas~19.2` at
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`
 
 ## Decision
 
-USL keeps one Odoo Distribution repository. Odoo core, the exact OCA
+USL keeps one forked distribution repository. Odoo core, the exact OCA
 integration pins, the isolated USL add-ons, deployment code, reconstruction
 harness and durable specifications must evolve together for a release to be
 reproducible. Splitting those concerns into separate distribution repositories
@@ -17,19 +17,22 @@ Runtime ownership inside the repository follows this order:
 1. native Odoo Community;
 2. maintained OCA functionality;
 3. isolated USL add-ons;
-4. a distribution-level core patch only when no stable extension point exists.
+4. a fork-level Odoo patch only when no stable extension point exists.
 
 The verified production add-on dependency direction is:
 
 ```text
- pinned OCA auth_oidc ---> usl_pocketid -------------------+
- native web ------------> usl_locale ----> usl_accounting -+--> rebuild_account_migration
-                                      \--> usl_documents
- native hr_expense -----> usl_expense_batch --------------+
+ pinned OCA auth_oidc ---> usl_pocketid --------------------+
+                                      \--> usl_documents    |
+ native web ------------> usl_locale ----> usl_accounting --+--> rebuild_account_migration
+                                      \--> usl_documents    |
+ native hr_expense -----> usl_expense_batch ---------------+
   (product compatibility and stable operational XML-ID ownership)
 
  native project --------> usl_project
- native HR + Accounting -> usl_tese_payroll
+ native HR + Accounting + usl_documents -> usl_tese_payroll
+ native/OCA Accounting -> usl_platform_billing
+ usl_pocketid + usl_platform_billing -> usl_platform_billing_pocketid
 
 usl_bootstrap ---> native modules only (disposable test fixture)
 
@@ -37,6 +40,8 @@ migration/accounting_restore/usl_accounting_restore
   ---> rebuild_account_migration (temporary import-time dependency only)
   <--- migration/project_restore/usl_project_restore
   <--- migration/tese_restore/usl_tese_restore
+migration/platform_billing_restore/usl_platform_billing_restore
+  ---> rebuild_account_migration + usl_platform_billing
 ```
 
 `rebuild_account_migration` remains the installed compatibility module during
@@ -79,13 +84,6 @@ not have equivalent Community/OCA replacements on the pinned baseline.
 Replacing them during a structural refactor would be a product redesign and
 is therefore rejected.
 
-The e-invoice boundary deliberately remains thin: native Odoo owns UBL/CII/
-Factur-X decoding, Approved Platform registration, draft vendor bills and
-approval/refusal responses. The compatibility module owns the business
-readiness state, non-polluting self-check, company enablement, evidence access
-and external-call guards. Global cron state is never used as company
-configuration.
-
 ### Reassign all XML IDs to the new modules
 
 This would make the source tree look cleaner, but it changes uninstall
@@ -120,7 +118,8 @@ identifiers. It is explicitly rejected for this increment.
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
 | Pocket ID authentication and identity governance | `usl_pocketid` over pinned OCA `auth_oidc` | runtime authentication boundary | issuer/audience/nonce/PKCE/JWKS, identity lifecycle and named-profile tests |
 | Pocket ID accountant-reviewer profile | compatibility extension over `usl_pocketid` | the stable reviewer group XML ID is still owned here; the base SSO module has no reverse Accounting dependency | clean `usl_pocketid` install plus product-profile integration test |
-| Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project finalization, product-boundary guard and target-finalization order tests |
+| Platform Billing Pocket ID profile bridge | `usl_platform_billing_pocketid` | auto-installed integration over two independent product modules | only governed administrator and break-glass profiles receive the app administrator group |
+| Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project and Platform Billing finalization, product-boundary guard and target-finalization order tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
 
@@ -142,8 +141,9 @@ menus.
   `usl_accounting`; no ownership transfer is required.
 - Source parity and target environment policy are separate. Odoo Online has no
   Pocket ID state; canonical `odoo_dev` receives SSO only after imported
-  Accounting, identity, Product, HR, Projects, Paie TESE and Documents data
-  pass their controls and temporary migration modules are removed.
+  Accounting, identity, Product, HR, Projects, Paie TESE, Platform Billing and
+  Documents data pass their controls and
+  temporary migration modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or

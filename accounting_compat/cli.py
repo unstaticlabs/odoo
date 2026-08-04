@@ -26,16 +26,30 @@ if TYPE_CHECKING:
 
 
 TOOL_VERSION = "0.1.0"
-COMPOSE_PROJECT = os.environ.get(
-    "ACCOUNTING_COMPAT_COMPOSE_PROJECT",
-    "usl-odoo-saas-19-2",
+
+
+def resolve_compose_project(environment: dict[str, str]) -> str:
+    return (
+        environment.get("ACCOUNTING_COMPAT_COMPOSE_PROJECT")
+        or environment.get("COMPOSE_PROJECT_NAME")
+        or environment.get("ODOO_SAAS_COMPOSE_PROJECT")
+        or "usl-odoo-saas-19-2"
+    )
+
+
+COMPOSE_PROJECT = resolve_compose_project(os.environ)
+REQUIRE_ISOLATED_PROJECT = (
+    os.environ.get("ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT") == "1"
+)
+VERIFY_COMPOSE_SCOPE = (
+    os.environ.get("ACCOUNTING_COMPAT_VERIFY_COMPOSE_SCOPE") == "1"
 )
 SOURCE_DB = "odoo_online_source_saas_19_2"
 EXACT_VALIDATION_DB = "odoo_saas_19_2_validation_exact"
 NATIVE_VALIDATION_DB = "odoo_saas_19_2_validation_native"
 DEV_QA_DB = os.environ.get("ACCOUNTING_COMPAT_DEV_DB", "odoo_dev")
 READONLY_ROLE = "accounting_source_ro"
-DEFAULT_SOURCE_DIR = "usl-online-dump"
+DEFAULT_SOURCE_DIR = os.environ.get("ACCOUNTING_COMPAT_SOURCE_DIR", "usl-online-dump")
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
 SOURCE_DB_SERVICE = "accounting-source-db"
 TARGET_DB_SERVICE = "db"
@@ -63,6 +77,7 @@ TARGET_INIT_MODULES = [
     "analytic",
     "l10n_fr_account",
     *OCA_TARGET_MODULES,
+    "usl_platform_billing",
     "rebuild_account_migration",
     "usl_accounting_restore",
 ]
@@ -287,6 +302,8 @@ def compose_args(*args: str) -> list[str]:
     if args[:4] == ["--profile", "init", "run", "--rm"] and "init-db" in args:
         args[1] = "accounting-migration"
         args[args.index("init-db")] = "accounting-migration"
+    if VERIFY_COMPOSE_SCOPE:
+        verify_compose_scope()
     command = ["docker", "compose", "-p", COMPOSE_PROJECT, *args]
     if "accounting-migration" in args:
         insert_at = len(command) - 1 - command[::-1].index(
@@ -297,6 +314,53 @@ def compose_args(*args: str) -> list[str]:
             f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
         ]
     return command
+
+
+def verify_compose_scope() -> None:
+    containers = subprocess.run(
+        [
+            "docker",
+            "ps",
+            "-aq",
+            "--filter",
+            f"label=com.docker.compose.project={COMPOSE_PROJECT}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    for container_id in containers:
+        labels = subprocess.run(
+            [
+                "docker",
+                "inspect",
+                "--format",
+                (
+                    '{{ index .Config.Labels "com.docker.compose.project" }}'
+                    " "
+                    '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}'
+                ),
+                container_id,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if labels != f"{COMPOSE_PROJECT} {ROOT}":
+            raise HarnessError(
+                "Compose scope mismatch for "
+                f"{container_id}: expected {COMPOSE_PROJECT} {ROOT}, got {labels}.",
+            )
+
+
+def require_isolated_compose_project() -> None:
+    if REQUIRE_ISOLATED_PROJECT and not COMPOSE_PROJECT.startswith(
+        "usl-odoo-fp-",
+    ):
+        raise HarnessError(
+            "This run requires a dedicated usl-odoo-fp-* Compose project; "
+            f"resolved {COMPOSE_PROJECT!r}.",
+        )
 
 
 def source_postgres_env() -> dict[str, str]:
@@ -345,7 +409,10 @@ def source_package(source_dir: str) -> SourcePackage:
     return SourcePackage(root, root / "dump.sql", root / "filestore")
 
 
-def configure_source_mount(source_dir: str) -> SourcePackage:
+def configure_source_mount(
+    source_dir: str,
+    environment: dict[str, str] | None = None,
+) -> SourcePackage:
     """Use one canonical source path for host checks and Compose mounts.
 
     Previously ``--source-dir`` changed host-side validation while Compose kept
@@ -354,7 +421,8 @@ def configure_source_mount(source_dir: str) -> SourcePackage:
     the exact path inherited by every Docker Compose child.
     """
     package = source_package(source_dir)
-    os.environ["USL_ONLINE_DUMP_DIR"] = str(package.path)
+    target_environment = os.environ if environment is None else environment
+    target_environment["USL_ONLINE_DUMP_DIR"] = str(package.path)
     return package
 
 
@@ -14788,6 +14856,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     configure_source_mount(args.source_dir)
     try:
+        require_isolated_compose_project()
         if args.stage == "source-validate":
             print_summary(args.stage, validate_source(args))
         elif args.stage == "source-restore":

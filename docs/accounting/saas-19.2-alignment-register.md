@@ -201,7 +201,7 @@ historical alignment evidence; they are not current deployment targets.
 | Native expenses and documents | `validation-native-expenses`, `validation-native-documents` | Passed: 325 expenses, 176 generated expense moves, 284 documents and their source attachments |
 | Native assets and deferrals | `validation-native-assets`, `validation-native-deferrals` | Passed: 3 assets, 91 schedule lines, 28 depreciation moves; 5 schedules, 82 lines and 34 deferral moves in native scope |
 | Native settlement and reconciliation | expense, document, general, categorization and external-bank replay stages | Passed; 97 company payments reconciled, 95 employee expenses paid, and all selected reconciliation edges preserved |
-| Native analytics | `validation-native-analytics` | Passed for 632 analytic lines and their distributions |
+| Native analytics | `validation-native-analytics` | Passed for 655 analytic lines and their distributions |
 | Reports and exports | `reports` | Passed: 51 implemented, 4 not applicable, 1 explicitly deferred; drill-down plus PDF/XLSX and role access probes passed |
 | FEC | `fec`, structural preflight and official DGFiP source validator | Passed: 4,781 data rows and EUR 1,064,045.02 debit and credit |
 | Focused manager browser | Overview, Journals, Transactions, linked entry, Bank Matching, Trial Balance and drill-down | Passed; the cached Transactions compatibility alias remains because the target view still exercises it |
@@ -213,20 +213,20 @@ historical alignment evidence; they are not current deployment targets.
 The freshly validated source package is newer than the numeric checkpoint
 quoted in the initial execution request. Acceptance therefore uses the
 source-derived controls keyed by dump SHA-256, not stale lower counts. The
-current source contains 5,044 moves across both companies: 4,849 posted, 193
-draft and 2 cancelled. Exact replay imports all 5,044 moves and 11,871 native
+current source contains 5,067 moves across both companies: 4,885 posted, 180
+draft and 2 cancelled. Exact replay imports all 5,067 moves and 11,941 native
 move lines; the one posted display-only note remains a native `line_note`
 rather than being fabricated as an accounting line.
 
 The passed broad controls include:
 
 - 97 move-backed payments plus 13 native immutable no-entry payments;
-- 3,046 bank statement lines;
-- all 2,584 partial and 1,260 full reconciliations, with no source endpoint
+- 3,062 bank statement lines;
+- all 2,595 partial and 1,267 full reconciliations, with no source endpoint
   represented by a migration placeholder;
-- 1,889 historical currency rates;
-- 632 analytic lines;
-- 3 assets, 91 depreciation schedule lines and 28 imported depreciation moves;
+- 1,907 historical currency rates;
+- 655 analytic lines;
+- 3 assets, 91 depreciation schedule lines and 31 imported depreciation moves;
 - 110 deferred lines and 37 posted deferral entries;
 - 414 accounting attachments, including 265 source-designated main
   attachments, all readable and checksum-matched.

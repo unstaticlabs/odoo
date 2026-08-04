@@ -56,6 +56,11 @@
       "disposition": "translated",
       "evidence": "the temporary TESE stage restores profiles, payroll records, native HR and Accounting links, official evidence and lifecycle state with exact-count and idempotency validation"
     },
+    "platform_billing": {
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "the temporary Platform Billing stage restores four platforms, three sessions, 31 payouts and all 51 generated Accounting links with stable application and ledger digests; transient legacy candidates are regenerated"
+    },
     "studio": {
       "status": "incomplete",
       "disposition": "translate_or_archive",
@@ -97,6 +102,7 @@
     {"match": "sign.*", "scope": "signing"},
     {"match": "hr.*", "scope": "hr"},
     {"match": "x_tese_*", "scope": "tese_payroll"},
+    {"match": "x_content_*", "scope": "platform_billing"},
     {"match": "x_*", "scope": "studio"},
     {"match": "res.company", "scope": "identity"},
     {"match": "res.partner", "scope": "identity"},
@@ -157,6 +163,7 @@
     {"match": "sign*", "scope": "signing"},
     {"match": "hr_*", "scope": "hr"},
     {"match": "x_tese_*", "scope": "tese_payroll"},
+    {"match": "x_content_*", "scope": "platform_billing"},
     {"match": "x_*", "scope": "studio"},
     {"match": "mail_*", "scope": "collaboration"},
     {"match": "message_*", "scope": "collaboration"},

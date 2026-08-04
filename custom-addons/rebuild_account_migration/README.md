@@ -17,8 +17,8 @@ tooling.
 - analytical pivot/list/graph reporting;
 - assets, deferrals, currency and FEC integration;
 - scoped read-only accountant access;
-- electronic-invoice reception readiness, non-polluting offline self-check,
-  incoming document evidence and company-scoped production activation.
+- electronic-invoice reception readiness, inactive until approved production
+  activation.
 
 Normal Accounting menus and the product registry expose only operational
 concepts. Reconstruction, source comparison, parity review, source bindings
@@ -53,13 +53,6 @@ and leave expenses, moves, lines, payments and reconciliations unchanged. The
 legacy `x_sl_expense_bank_candidate` model, `x_*` fields, server actions, ACLs
 and inherited view are never imported. That stage is implemented by the
 temporary `usl_accounting_restore` module, not by this product module.
-
-French e-invoicing reuses Odoo's native Approved Platform decoder,
-registration and response workflows. The compatibility-owned `rebuild.*`
-records provide one readiness state, a business inbox and upgrade-safe
-company-scoped reception. Reconstruction carries only the accounting contact
-and mapped purchase journal, derives `0225:SIREN`, and resets every live
-credential, registration, approval and e-reporting flag.
 
 The authenticated user guide at `/usl/user-docs` renders the repository files
 under `docs/users/` with the pinned CommonMark runtime. Common Markdown
