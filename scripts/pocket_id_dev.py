@@ -179,6 +179,10 @@ def _write_new_env(path: Path) -> None:
     odoo_port = os.getenv("USL_POCKET_ID_DEV_ODOO_PORT", "8069").strip()
     gevent_port = os.getenv("USL_POCKET_ID_DEV_GEVENT_PORT", "8072").strip()
     pocket_port = os.getenv("USL_POCKET_ID_DEV_POCKET_PORT", "1411").strip()
+    paperless_port = os.getenv(
+        "USL_POCKET_ID_DEV_PAPERLESS_PORT",
+        "8010",
+    ).strip()
     odoo_hostname = os.getenv(
         "USL_POCKET_ID_DEV_ODOO_HOSTNAME",
         "odoo.localhost",
@@ -199,7 +203,7 @@ def _write_new_env(path: Path) -> None:
         raise PocketIDError(
             "Local Pocket ID must target the canonical odoo_dev database.",
         )
-    ports = (odoo_port, gevent_port, pocket_port)
+    ports = (odoo_port, gevent_port, pocket_port, paperless_port)
     if any(not port.isdigit() or not 1 <= int(port) <= 65535 for port in ports):
         raise PocketIDError("Local service ports must be between 1 and 65535.")
     if len(set(ports)) != len(ports):
@@ -228,7 +232,7 @@ def _write_new_env(path: Path) -> None:
         "PAPERLESS_CORS_ALLOWED_HOSTS": paperless_public_url,
         "PAPERLESS_CSRF_TRUSTED_ORIGINS": paperless_public_url,
         "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
-        "PAPERLESS_HTTP_PORT": "8010",
+        "PAPERLESS_HTTP_PORT": paperless_port,
         "PAPERLESS_SECRET_KEY": secrets.token_urlsafe(64),
         "POCKET_ID_APP_URL": f"http://{pocket_hostname}:{pocket_port}",
         "POCKET_ID_CLIENT_ID": "usl-odoo-preproduction",
