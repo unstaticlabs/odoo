@@ -52,6 +52,9 @@ may use the canonical default.
 Each production release records:
 
 - version and included changes;
+- Git commit, upstream baseline, OCA pins and patched bundle digest;
+- qualified image reference, image ID and embedded revision labels;
+- database UUID, installed module versions and migration-input SHA-256;
 - approver;
 - deployment time;
 - validation results;

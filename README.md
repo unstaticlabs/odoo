@@ -46,9 +46,11 @@ Primary entry points:
 - [Source-truth migration](docs/operations/source-truth-migration.md) for the
   current-product gate, whole-source coverage ledger, filestore integrity and
   deterministic replay contract.
+- [Pre-production release](docs/operations/preproduction-release.md) for the
+  one-command qualified build, reconstruction, gate, deployment and rollback.
 
 The integration baseline is upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
 validation evidence are private local artifacts and must never be committed.
 
 ## Upstream Odoo
@@ -61,7 +63,7 @@ installation and developer documentation is available from
 
 This fork includes two local workflows for Odoo `saas~19.2` Community. The
 branch is pinned to upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`. Local development uses one
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
@@ -77,15 +79,18 @@ The root `Dockerfile` uses purpose-specific stages:
 - `node-dependencies` resolves `rtlcss` without shipping npm's build tooling;
 - `runtime` contains only shared runtime libraries and configuration;
 - `base` adds the Odoo source for self-contained QA/deployment images;
+- `distribution` embeds the exact USL add-ons, patched pinned OCA bundle and
+  user documentation for a qualified runtime with no checkout mounts;
 - `test` adds Chromium only for browser-capable automated tests;
 - `dev` adds developer tools but uses the repository bind mount instead of
   embedding a second copy of the source tree.
 
 The root `.dockerignore` is an allowlist containing only files copied by the
-Dockerfile. Private dumps, filestores, Git history, custom/OCA add-ons,
-documentation and migration artifacts are therefore never sent to the Docker
-builder. Custom add-ons, pinned OCA add-ons and user documentation remain
-available through the explicit Compose mounts.
+Dockerfile. Private dumps, filestores, Git history and migration artifacts are
+never sent to the builder. Development uses explicit Compose mounts for custom
+add-ons, pinned OCA add-ons and user documentation. The qualified
+`distribution` stage copies those same release inputs into the image, and
+`compose.preprod.yaml` removes the checkout mounts at runtime.
 
 System packages, Python wheels, Odoo core and standard add-ons use separate
 cache boundaries. Editing ordinary Python/XML/JavaScript source does not
@@ -400,6 +405,18 @@ make rebuild   # rebuild images, then deploy
 make target-finalize    # reapply and validate target-only configuration
 make target-reconstruct # recreate odoo_dev from the dump, then finalize it
 ```
+
+The exact pre-production release lifecycle is one host command from a clean
+release branch:
+
+```bash
+scripts/preprod-release all /absolute/path/to/usl-online-dump
+```
+
+It synchronizes the pinned OCA commits, builds a commit-tagged self-contained
+image, reconstructs `odoo_dev`, records the dump/image/module identity in the
+database, starts the no-bind-mount runtime and runs the source, database,
+schema, image and service gates. Both regulatory live guards remain `0`.
 
 The main checkout owns the default `usl-odoo-saas-19-2` Compose project.
 Linked worktrees must use a dedicated project and non-conflicting ports; every
