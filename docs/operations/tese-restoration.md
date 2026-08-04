@@ -53,7 +53,7 @@ The provided snapshot contains:
 | HR chatter messages | 30 |
 | Tracking values | 57 |
 | Followers | 3 |
-| Residual-derived Paid / To reconcile | 5 / 4 |
+| Residual-derived Settled / To reconcile | 5 / 4 |
 
 The 14 employee-folder PDFs include five earlier payroll documents and the
 nine PDFs linked to the migrated payroll records. The nine accounting-linked
@@ -70,7 +70,8 @@ actual current versions.
 Profiles and payroll snapshots preserve provider figures, validity dates,
 account mappings, HR references and the eleven accounting components.
 Migrated Studio state flags are not authoritative. After linking each posted
-move, the product recomputes **Paid** or **To reconcile** from native residuals.
+move, the product recomputes **Settled** or **To reconcile** from native
+residuals.
 
 ## Safe commands
 

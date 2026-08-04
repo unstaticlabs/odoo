@@ -407,9 +407,11 @@ def filestore_inventory(path: Path) -> dict[str, Any]:
 
 
 def git_value(*args: str) -> str | None:
+    if shutil.which("git") is None:
+        return None
     try:
         return run_stdout(["git", *args])
-    except HarnessError:
+    except (FileNotFoundError, HarnessError):
         return None
 
 
@@ -419,9 +421,13 @@ def display_path(path: Path) -> str:
 
 def git_tracking_status(paths: Iterable[Path]) -> list[dict[str, Any]]:
     records = []
+    git_available = shutil.which("git") is not None
     for path in paths:
         rel = display_path(path)
-        if path.is_absolute() and not path.is_relative_to(ROOT):
+        if (
+            not git_available
+            or (path.is_absolute() and not path.is_relative_to(ROOT))
+        ):
             records.append({
                 "path": rel,
                 "tracked": False,

@@ -10,6 +10,7 @@ from unittest.mock import patch
 from accounting_compat.cli import (
     build_parser,
     configure_source_mount,
+    git_tracking_status,
     source_snapshot_id,
     source_validation_manifest,
 )
@@ -18,6 +19,20 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class OdooTestHarnessTest(unittest.TestCase):
+    def test_git_tracking_audit_degrades_when_git_is_unavailable(self):
+        with patch("accounting_compat.cli.shutil.which", return_value=None):
+            records = git_tracking_status([REPOSITORY_ROOT / "README.md"])
+
+        self.assertEqual(
+            records,
+            [{
+                "path": "README.md",
+                "tracked": False,
+                "ignored": False,
+                "ignore_rule": None,
+            }],
+        )
+
     def test_source_argument_and_compose_mount_use_the_same_external_path(self):
         with TemporaryDirectory() as temporary_directory:
             source_directory = Path(temporary_directory).resolve()
