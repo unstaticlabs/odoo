@@ -53,6 +53,16 @@ class ReleaseIdentityTest(unittest.TestCase):
         ):
             ast.parse((ROOT / relative_path).read_text(encoding="utf-8"))
 
+    def test_database_identity_uses_saas_19_typed_parameters(self):
+        identity_script = (
+            ROOT / "scripts" / "odoo" / "release_identity.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('params.get_str("database.uuid")', identity_script)
+        self.assertIn('params.set_str("usl.release.identity"', identity_script)
+        self.assertNotIn("get_param", identity_script)
+        self.assertNotIn("set_param", identity_script)
+
     def test_full_boundary_and_release_gate_include_database_state(self):
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
         release = (ROOT / "scripts" / "preprod-release").read_text(
