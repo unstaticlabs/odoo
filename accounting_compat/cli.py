@@ -3772,7 +3772,6 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             f"    'date_to': {source_date_to!r},",
             "    'source_company_ids': [1, 8],",
             "    'preserve_business_documents': True,",
-            "    'classify_confirmed_vat_refund': False,",
             "})",
             "expense_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native expenses',",
@@ -7088,158 +7087,6 @@ def target_bank_statement_line_rows() -> list[dict[str, Any]]:
     )
 
 
-def target_confirmed_vat_refund_reclassification_rows() -> list[dict[str, Any]]:
-    return query_rows(
-        EXACT_VALIDATION_DB,
-        """
-        SELECT correction.rebuild_source_id::text AS source_statement_line_id,
-               company.rebuild_source_id::text AS source_company_id,
-               correction.id::text AS correction_move_id,
-               correction.name::text AS correction_move_name,
-               correction.date::text AS correction_date,
-               correction.state::text AS correction_state,
-               COALESCE(correction.ref::text, '') AS correction_reference,
-               count(correction_line.id)::text AS correction_line_count,
-               round(sum(correction_line.debit)::numeric, 2)::text AS correction_debit,
-               round(sum(correction_line.credit)::numeric, 2)::text AS correction_credit,
-               round(sum(correction_line.balance)::numeric, 2)::text AS correction_balance,
-               round(sum(correction_line.amount_residual)::numeric, 2)::text AS correction_residual,
-               count(*) FILTER (
-                   WHERE COALESCE(
-                       correction_account.code_store->>company.id::text,
-                       correction_account.code_store->>'1',
-                       correction_account.code_store::text
-                   ) LIKE '471%'
-                     AND round(correction_line.debit::numeric, 2) = 942.00
-                     AND round(correction_line.credit::numeric, 2) = 0.00
-               )::text AS clearing_line_count,
-               count(*) FILTER (
-                   WHERE COALESCE(
-                       correction_account.code_store->>company.id::text,
-                       correction_account.code_store->>'1',
-                       correction_account.code_store::text
-                   ) LIKE '445670%'
-                     AND round(correction_line.debit::numeric, 2) = 0.00
-                     AND round(correction_line.credit::numeric, 2) = 942.00
-               )::text AS vat_line_count,
-               bank_move.date::text AS bank_date,
-               round(bank_line.amount::numeric, 2)::text AS bank_amount,
-               round(bank_line.amount_residual::numeric, 2)::text AS bank_amount_residual,
-               bank_line.is_reconciled::text AS bank_is_reconciled,
-               COALESCE(bank_line.payment_ref::text, '') AS bank_payment_reference,
-               COALESCE((
-                   SELECT round(sum(bank_move_line.amount_residual)::numeric, 2)::text
-                   FROM account_move_line bank_move_line
-                   JOIN account_account bank_account ON bank_account.id = bank_move_line.account_id
-                   WHERE bank_move_line.move_id = bank_line.move_id
-                     AND COALESCE(
-                         bank_account.code_store->>company.id::text,
-                         bank_account.code_store->>'1',
-                         bank_account.code_store::text
-                     ) LIKE '471%'
-               ), 'missing') AS bank_suspense_residual,
-               COALESCE((
-                   SELECT round(sum(vat_move_line.amount_residual)::numeric, 2)::text
-                   FROM account_move_line vat_move_line
-                   JOIN account_move vat_move ON vat_move.id = vat_move_line.move_id
-                   JOIN account_account vat_account ON vat_account.id = vat_move_line.account_id
-                   WHERE vat_move_line.company_id = company.id
-                     AND vat_move.state = 'posted'
-                     AND COALESCE(
-                         vat_account.code_store->>company.id::text,
-                         vat_account.code_store->>'1',
-                         vat_account.code_store::text
-                     ) LIKE '445670%'
-               ), 'missing') AS vat_account_residual
-        FROM account_move correction
-        JOIN res_company company ON company.id = correction.company_id
-        JOIN account_bank_statement_line bank_line
-          ON bank_line.company_id = correction.company_id
-         AND bank_line.rebuild_source_model = 'account.bank.statement.line'
-         AND bank_line.rebuild_source_id = correction.rebuild_source_id
-        JOIN account_move bank_move ON bank_move.id = bank_line.move_id
-        JOIN account_move_line correction_line ON correction_line.move_id = correction.id
-        JOIN account_account correction_account ON correction_account.id = correction_line.account_id
-        WHERE correction.rebuild_source_model = 'account.move.usl_vat_refund_reclassification'
-          AND company.rebuild_source_id = 1
-        GROUP BY correction.id,
-                 company.rebuild_source_id,
-                 company.id,
-                 bank_line.id,
-                 bank_move.id
-        ORDER BY correction.id
-        """,
-        set_readonly_role=False,
-    )
-
-
-def confirmed_vat_refund_reclassification_control(
-    source_bank_rows: list[dict[str, Any]],
-    target_bank_rows: list[dict[str, Any]],
-) -> dict[str, Any]:
-    evidence_rows = target_confirmed_vat_refund_reclassification_rows()
-    evidence = evidence_rows[0] if len(evidence_rows) == 1 else {}
-    source_by_key = {str(row["source_statement_line_id"]): row for row in source_bank_rows}
-    target_by_key = {str(row["source_statement_line_id"]): row for row in target_bank_rows}
-    source_row = source_by_key.get(str(evidence.get("source_statement_line_id") or ""), {})
-    target_row = target_by_key.get(str(evidence.get("source_statement_line_id") or ""), {})
-    checks = {
-        "single_traced_correction": len(evidence_rows) == 1,
-        "source_company": source_row.get("source_company_id") == "1",
-        "source_amount": source_row.get("amount") == "942.00",
-        "source_residual": source_row.get("amount_residual") == "-942.00",
-        "source_unreconciled": source_row.get("is_reconciled") == "false",
-        "source_dgfip_reference": "dgfip" in str(source_row.get("payment_ref") or "").lower(),
-        "target_same_statement_line": bool(target_row)
-        and target_row.get("source_move_id") == source_row.get("source_move_id"),
-        "target_same_amount_and_date": bool(target_row)
-        and target_row.get("amount") == source_row.get("amount")
-        and target_row.get("date") == source_row.get("date"),
-        "target_reconciled": target_row.get("amount_residual") == "0.00"
-        and target_row.get("is_reconciled") == "true",
-        "correction_posted_on_bank_date": evidence.get("correction_state") == "posted"
-        and evidence.get("correction_date") == evidence.get("bank_date"),
-        "correction_balanced": evidence.get("correction_line_count") == "2"
-        and evidence.get("correction_debit") == "942.00"
-        and evidence.get("correction_credit") == "942.00"
-        and evidence.get("correction_balance") == "0.00",
-        "correction_accounts": evidence.get("clearing_line_count") == "1"
-        and evidence.get("vat_line_count") == "1",
-        "correction_reconciled": evidence.get("correction_residual") == "0.00"
-        and evidence.get("bank_suspense_residual") == "0.00"
-        and evidence.get("vat_account_residual") == "0.00",
-    }
-    passed = all(checks.values())
-    return {
-        "classification": "CONFIRMED_SOURCE_TRACED_TRANSFORMATION" if passed else "TRANSFORMATION_DEFECT",
-        "source_statement_line_id": evidence.get("source_statement_line_id"),
-        "approved_field_changes": {
-            "amount_residual": {"source": "-942.00", "target": "0.00"},
-            "is_reconciled": {"source": "false", "target": "true"},
-        } if passed else {},
-        "checks": checks,
-        "source_row": source_row,
-        "target_row": target_row,
-        "target_correction_evidence": evidence_rows,
-        "passed": passed,
-    }
-
-
-def apply_confirmed_bank_transformations(
-    source_bank_rows: list[dict[str, Any]],
-    transformation: dict[str, Any],
-) -> list[dict[str, Any]]:
-    comparable_rows = [dict(row) for row in source_bank_rows]
-    if not transformation.get("passed"):
-        return comparable_rows
-    source_statement_line_id = str(transformation["source_statement_line_id"])
-    for row in comparable_rows:
-        if str(row["source_statement_line_id"]) == source_statement_line_id:
-            row.update({"amount_residual": "0.00", "is_reconciled": "true"})
-            break
-    return comparable_rows
-
-
 def source_analytic_line_rows() -> list[dict[str, Any]]:
     snapshot = source_snapshot_date() or USL_BENCHMARK_END
     return query_rows(
@@ -9280,20 +9127,6 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "is_reconciled",
         "move_statement_linked",
     ]
-    confirmed_vat_refund = confirmed_vat_refund_reclassification_control(
-        source_bank_statement_lines,
-        target_bank_statement_lines,
-    )
-    confirmed_vat_refund["raw_source_comparison"] = compare_rows(
-        source_bank_statement_lines,
-        target_bank_statement_lines,
-        key="source_statement_line_id",
-        fields=bank_statement_line_fields,
-    )
-    comparable_source_bank_statement_lines = apply_confirmed_bank_transformations(
-        source_bank_statement_lines,
-        confirmed_vat_refund,
-    )
     source_analytic_lines = source_analytic_line_rows()
     target_analytic_lines = target_analytic_line_rows()
     source_accounting_attachments = source_accounting_attachment_rows()
@@ -9598,7 +9431,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             ],
         ),
         "bank_statement_lines": compare_rows(
-            comparable_source_bank_statement_lines,
+            source_bank_statement_lines,
             target_bank_statement_lines,
             key="source_statement_line_id",
             fields=bank_statement_line_fields,
@@ -9850,7 +9683,6 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         and not invariant_failures["duplicate_asset_traces"]
         and not invariant_failures["duplicate_asset_depreciation_schedule_traces"]
         and not invariant_failures["duplicate_currency_rate_traces"]
-        and confirmed_vat_refund["passed"]
         and lock_enforcement.get("status") == "passed"
     )
     controls = {
@@ -9891,16 +9723,13 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "resequence posted history."
             ),
         },
-        "confirmed_transformations": {
-            "usl_vat_refund_942": confirmed_vat_refund,
-        },
         "invariant_failures": invariant_failures,
         "lock_enforcement": lock_enforcement,
         "limitations": [
             "Native move, line, payment and reconciliation comparisons cover every source state for companies 1 and 8; balance benchmarks remain scoped to posted entries.",
             "The target database contains the complete replay through the source snapshot date for source companies 1 and 8.",
             "Currency-rate parity is intentionally broader than the posted benchmark slice because native Track B invoices, payments and exchange differences require the restored rates through the source snapshot date.",
-            "Source report definitions, all native payments, bank statement lines, analytic lines, scoped accounting attachments and asset depreciation evidence are compared in the broad replay controls. The exact €942 DGFiP statement-line residual and reconciliation state are normalized only when the confirmed source-traced VAT correction control passes. Final report-variant acceptance remains outside this data-parity control.",
+            "Source report definitions, all native payments, bank statement lines, analytic lines, scoped accounting attachments and asset depreciation evidence are compared without source-specific normalization. Final report-variant acceptance remains outside this data-parity control.",
         ],
         "status": "passed" if passed else "failed",
         "classification": "POSTED_LEDGER_SLICE_PARITY" if passed else "TRANSFER_DEFECT",
