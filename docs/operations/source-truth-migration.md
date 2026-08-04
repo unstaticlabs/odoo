@@ -96,12 +96,33 @@ the audit found 214 populated persistent models and 90 populated relation or
 unmapped tables. It verified 2,312 referenced filestore objects across 1,774
 files without an integrity error.
 
-Accounting, global identity, Product Master, and Projects have implemented
+Accounting, global identity, Product Master, HR, and Projects have implemented
 translation stages.
 The gate remains blocked—correctly—on collaboration history, unscoped
-attachments, Documents, Knowledge, Sign, remaining HR, user preferences,
+attachments, Documents, Knowledge, Sign, user preferences,
 sales/marketing configuration, Studio data, and source AI
 configuration. These are engineering migration gaps, not approved exclusions.
+
+The HR stage restores the full native Community perimeter: employees, all
+effective-dated employee versions (including an unassigned contract template),
+resources, working calendars and their attendance intervals, departments,
+jobs, work locations, contract and departure reference data, payroll structure
+types, skills, skill levels, and résumé line types. It preserves private contact,
+identity, compensation, bank-allocation, and employment fields through the ORM,
+then proves that a non-HR internal user cannot read a private employee field.
+`hr.employee.public` is a runtime SQL view and is deliberately recomputed rather
+than copied as an independent data set. Chatter, attachments, Documents folder
+identities, and Studio/TESE fields remain owned by their declared migration
+scopes and are counted as delegated HR evidence rather than silently discarded.
+The source contains one stale resource timezone that disagrees with its current
+employee version. Odoo 19 computes the resource timezone from that version, so
+the target deterministically uses the effective-dated employee value and records
+the source disagreement in the run evidence instead of creating an ORM state the
+target would immediately overwrite.
+The identity stage necessarily creates a default calendar when it creates a
+company. The HR stage replaces that generated placeholder with the restored
+source calendar and removes it only after proving that no company, employee,
+version, payroll structure, or leave still references it.
 
 The identity stage restores all source contacts, users, company memberships,
 supported access groups, contact categories, industries, and bank accounts. It

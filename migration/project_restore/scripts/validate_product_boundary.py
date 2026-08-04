@@ -10,6 +10,7 @@ migration_modules = env["ir.module.module"].sudo().search(
             "in",
             [
                 "usl_identity_restore",
+                "usl_hr_restore",
                 "usl_product_restore",
                 "usl_project_restore",
             ],
@@ -27,6 +28,7 @@ if active_migration_modules:
 
 forbidden_models = {
     "usl.identity.restore.run",
+    "usl.hr.restore.run",
     "usl.product.restore.run",
     "usl.project.restore.run",
     "usl.project.restore.issue",
@@ -38,6 +40,17 @@ if loaded_forbidden_models:
     )
 
 business_models = {
+    "hr.contract.type",
+    "hr.department",
+    "hr.departure.reason",
+    "hr.job",
+    "hr.payroll.structure.type",
+    "hr.resume.line.type",
+    "hr.skill",
+    "hr.skill.level",
+    "hr.skill.type",
+    "hr.version",
+    "hr.work.location",
     "project.project",
     "project.task",
     "project.project.stage",
@@ -56,6 +69,9 @@ business_models = {
     "res.partner.category",
     "res.partner.industry",
     "res.users",
+    "resource.calendar",
+    "resource.calendar.attendance",
+    "resource.resource",
     "product.attribute",
     "product.category",
     "product.pricelist",
@@ -101,6 +117,7 @@ technical_xmlids = env["ir.model.data"].sudo().search_count(
             "in",
             [
                 "usl_identity_restore",
+                "usl_hr_restore",
                 "usl_product_restore",
                 "usl_project_restore",
             ],

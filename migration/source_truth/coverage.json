@@ -47,9 +47,9 @@
       "evidence": "signed originals and audit evidence are not yet reconstructed"
     },
     "hr": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "translated",
-      "evidence": "expenses are covered by Accounting but the remaining HR perimeter is not"
+      "evidence": "Accounting restores expenses; the temporary HR stage restores the complete employee, version, organization, calendar, work-location and skill perimeter with private-field access validation"
     },
     "studio": {
       "status": "incomplete",
