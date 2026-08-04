@@ -1,4 +1,7 @@
+import base64
+import hashlib
 import os
+from pathlib import Path
 
 import psycopg2
 import psycopg2.extras
@@ -7,6 +10,22 @@ from odoo import Command, fields, models
 
 
 RESTORE_REVISION = 1
+SOURCE_FILESTORE = Path(
+    os.getenv("PRODUCT_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
+).resolve()
+
+
+def source_binary(row):
+    path = (SOURCE_FILESTORE / row["store_fname"]).resolve()
+    if SOURCE_FILESTORE not in path.parents or not path.is_file():
+        raise RuntimeError(f"Product source attachment {row['id']} is missing or unsafe")
+    content = path.read_bytes()
+    if len(content) != row["file_size"]:
+        raise RuntimeError(f"Product source attachment {row['id']} size changed")
+    checksum = hashlib.sha1(content, usedforsecurity=False).hexdigest()
+    if checksum != row["checksum"]:
+        raise RuntimeError(f"Product source attachment {row['id']} checksum changed")
+    return content
 
 
 class ProductSourceReader:
@@ -66,6 +85,16 @@ class ProductSourceReader:
                            standard_price, volume, weight, active,
                            create_date, write_date
                       FROM product_product
+                     ORDER BY id
+                    """,
+                ),
+                "images": self._rows(
+                    cursor,
+                    """
+                    SELECT id, res_id, store_fname, checksum, file_size, mimetype
+                      FROM ir_attachment
+                     WHERE res_model = 'product.template'
+                       AND res_field = 'image_1920'
                      ORDER BY id
                     """,
                 ),
@@ -338,6 +367,14 @@ class UslProductRestoreRun(models.Model):
                 },
             )
 
+        for row in source["images"]:
+            template = templates.get(row["res_id"])
+            if not template:
+                raise RuntimeError(
+                    f"Product image {row['id']} references missing template {row['res_id']}",
+                )
+            template.write({"image_1920": base64.b64encode(source_binary(row))})
+
         pricelists = {}
         for row in source["pricelists"]:
             name = self._text(row["name"])
@@ -379,6 +416,7 @@ class UslProductRestoreRun(models.Model):
             "customer_taxes": sum(len(value) for value in customer_taxes.values()),
             "supplier_taxes": sum(len(value) for value in supplier_taxes.values()),
             "pricelists": len(pricelists),
+            "images": len(source["images"]),
         }
         if counts != source["counts"]:
             raise RuntimeError(f"Product source/target counts differ: {source['counts']} != {counts}")

@@ -5,6 +5,7 @@ of the expense-only subset required by Accounting. It is a temporary migration
 add-on and leaves no migration schema in the delivered product.
 
 The stage restores all source product categories, product templates, variants,
+original high-resolution product images,
 attributes, sales prices, company-dependent costs, customer and supplier taxes,
 units of measure, descriptions, English/French translations, and pricelists.
 All 23 source templates have exactly one variant; the importer verifies that

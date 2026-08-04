@@ -1,12 +1,17 @@
 # ruff: noqa: F821, T201
 
+import base64
 import hashlib
 import json
 from decimal import Decimal
 
 from odoo.exceptions import AccessError
 
-from odoo.addons.usl_hr_restore.models.restore import HrSourceReader, source_options
+from odoo.addons.usl_hr_restore.models.restore import (
+    HrSourceReader,
+    source_binary,
+    source_options,
+)
 
 
 def normalized(value):
@@ -392,6 +397,21 @@ for row in source["versions"]:
 for row in source["company_calendars"]:
     source_rows.append(("company_calendar", row["id"], row["resource_calendar_id"]))
     target_rows.append(("company_calendar", row["id"], companies[row["id"]].resource_calendar_id.rebuild_source_id))
+
+for row in source["images"]:
+    source_content = source_binary(row)
+    target_content = base64.b64decode(mapped["employees"][row["res_id"]].image_1920)
+    assert target_content == source_content
+    source_rows.append(("image", row["id"], row["res_id"], row["checksum"], row["file_size"]))
+    target_rows.append(
+        (
+            "image",
+            row["id"],
+            row["res_id"],
+            hashlib.sha1(target_content, usedforsecurity=False).hexdigest(),
+            len(target_content),
+        ),
+    )
 
 if source_rows != target_rows:
     for index, (source_row, target_row) in enumerate(zip(source_rows, target_rows)):

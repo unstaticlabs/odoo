@@ -19,7 +19,7 @@
     "identity": {
       "status": "implemented",
       "disposition": "translated",
-      "evidence": "temporary identity restore imports all contacts, users, companies, industries, categories, banks and relations with digest parity; authentication is re-enrolled"
+      "evidence": "temporary identity restore imports all contacts, original contact images, users, companies, industries, categories, banks and relations with digest parity; authentication is re-enrolled"
     },
     "collaboration": {
       "status": "incomplete",
@@ -29,7 +29,7 @@
     "attachments": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "Accounting and Projects currently import only scoped attachments"
+      "evidence": "the complete attachment ledger integrity-checks and assigns all 2,322 rows; Accounting, Projects, and native identity/product/HR images are restored, while archive and collaboration actions remain gated"
     },
     "documents": {
       "status": "incomplete",
@@ -49,7 +49,7 @@
     "hr": {
       "status": "implemented",
       "disposition": "translated",
-      "evidence": "Accounting restores expenses; the temporary HR stage restores the complete employee, version, organization, calendar, work-location and skill perimeter with private-field access validation"
+      "evidence": "Accounting restores expenses; the temporary HR stage restores the complete employee, original employee image, version, organization, calendar, work-location and skill perimeter with private-field access validation"
     },
     "studio": {
       "status": "incomplete",
@@ -64,7 +64,7 @@
     "product_master": {
       "status": "implemented",
       "disposition": "translated",
-      "evidence": "temporary product restore imports the complete service catalog, variants, categories, attributes, prices, taxes and pricelists with multilingual digest parity"
+      "evidence": "temporary product restore imports the complete service catalog, variants, original product images, categories, attributes, prices, taxes and pricelists with multilingual digest parity"
     },
     "sales_marketing": {
       "status": "incomplete",

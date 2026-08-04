@@ -1,4 +1,7 @@
+import base64
+import hashlib
 import os
+from pathlib import Path
 
 import psycopg2
 import psycopg2.extras
@@ -7,6 +10,22 @@ from odoo import Command, fields, models
 
 
 RESTORE_REVISION = 1
+SOURCE_FILESTORE = Path(
+    os.getenv("HR_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
+).resolve()
+
+
+def source_binary(row):
+    path = (SOURCE_FILESTORE / row["store_fname"]).resolve()
+    if SOURCE_FILESTORE not in path.parents or not path.is_file():
+        raise RuntimeError(f"HR source attachment {row['id']} is missing or unsafe")
+    content = path.read_bytes()
+    if len(content) != row["file_size"]:
+        raise RuntimeError(f"HR source attachment {row['id']} size changed")
+    checksum = hashlib.sha1(content, usedforsecurity=False).hexdigest()
+    if checksum != row["checksum"]:
+        raise RuntimeError(f"HR source attachment {row['id']} checksum changed")
+    return content
 
 
 class HrSourceReader:
@@ -143,6 +162,13 @@ class HrSourceReader:
                 SELECT employee_id, bank_account_id
                   FROM employee_bank_account_rel
                  ORDER BY employee_id, bank_account_id
+            """,
+            "images": """
+                SELECT id, res_id, store_fname, checksum, file_size, mimetype
+                  FROM ir_attachment
+                 WHERE res_model = 'hr.employee'
+                   AND res_field = 'image_1920'
+                 ORDER BY id
             """,
             "bank_references": """
                 SELECT DISTINCT bank.id, bank.partner_id, bank.company_id,
@@ -797,6 +823,14 @@ class UslHrRestoreRun(models.Model):
                 },
             )
 
+        for row in source["images"]:
+            employee = employees.get(row["res_id"])
+            if not employee:
+                raise RuntimeError(
+                    f"HR image {row['id']} references missing employee {row['res_id']}",
+                )
+            employee.write({"image_1920": base64.b64encode(source_binary(row))})
+
         for row in source["departments"]:
             departments[row["id"]].write(
                 {"manager_id": employees.get(row["manager_id"]).id if row["manager_id"] else False},
@@ -897,6 +931,7 @@ class UslHrRestoreRun(models.Model):
             "employees": len(employees),
             "versions": len(versions),
             "employee_bank_accounts": sum(len(value) for value in employee_banks.values()),
+            "images": len(source["images"]),
         }
         if counts != source["counts"]:
             raise RuntimeError(f"HR source/target counts differ: {source['counts']} != {counts}")

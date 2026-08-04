@@ -1,11 +1,13 @@
 # ruff: noqa: F821, T201
 
+import base64
 import hashlib
 import json
 from decimal import Decimal
 
 from odoo.addons.usl_product_restore.models.restore import (
     ProductSourceReader,
+    source_binary,
     source_options,
 )
 
@@ -240,7 +242,31 @@ parity = {
     "attributes": (digest(attribute_source), digest(attribute_target)),
     "products": (digest(source_rows), digest(target_rows)),
     "pricelists": (digest(pricelist_source), digest(pricelist_target)),
+    "images": (
+        digest(
+            [
+                (row["id"], row["res_id"], row["checksum"], row["file_size"])
+                for row in source["images"]
+            ],
+        ),
+        digest(
+            [
+                (
+                    row["id"],
+                    row["res_id"],
+                    hashlib.sha1(
+                        base64.b64decode(templates[row["res_id"]].image_1920),
+                        usedforsecurity=False,
+                    ).hexdigest(),
+                    len(base64.b64decode(templates[row["res_id"]].image_1920)),
+                )
+                for row in source["images"]
+            ],
+        ),
+    ),
 }
+for row in source["images"]:
+    assert base64.b64decode(templates[row["res_id"]].image_1920) == source_binary(row)
 examples = []
 for source_row, target_row in zip(source_rows, target_rows, strict=True):
     fields = sorted(

@@ -1,11 +1,13 @@
 # ruff: noqa: F821, T201
 
+import base64
 import hashlib
 import json
 from decimal import Decimal
 
 from odoo.addons.usl_identity_restore.models.restore import (
     IdentitySourceReader,
+    source_binary,
     source_options,
 )
 
@@ -315,7 +317,32 @@ parity = {
         digest([(row["id"], run._text(row["name"]), row["color"], row["parent_id"], row["active"]) for row in source["categories"]]),
         digest([(source_id, record.name, record.color, record.parent_id.rebuild_source_id or None, record.active) for source_id, record in sorted(categories.items())]),
     ),
+    "images": (
+        digest(
+            [
+                (row["id"], row["res_id"], row["checksum"], row["file_size"])
+                for row in source["images"]
+            ],
+        ),
+        digest(
+            [
+                (
+                    row["id"],
+                    row["res_id"],
+                    hashlib.sha1(
+                        base64.b64decode(partners[row["res_id"]].image_1920),
+                        usedforsecurity=False,
+                    ).hexdigest(),
+                    len(base64.b64decode(partners[row["res_id"]].image_1920)),
+                )
+                for row in source["images"]
+            ],
+        ),
+    ),
 }
+
+for row in source["images"]:
+    assert base64.b64decode(partners[row["res_id"]].image_1920) == source_binary(row)
 parity_examples = {}
 for area, (source_rows, target_rows) in {
     "partners": (source_partner_rows, target_partner_rows),

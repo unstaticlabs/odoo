@@ -75,6 +75,36 @@ package itself.
 Unreferenced filestore objects are counted and hashed, not deleted. They may be
 database leftovers, but destructive cleanup is never part of reconstruction.
 
+## Attachment disposition ledger
+
+The source-wide inventory proves the filestore is intact. The separate
+attachment ledger then accounts for every `ir.attachment` source identity and
+every action that its bytes require. Run it against the same isolated source:
+
+```bash
+USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
+MIGRATION_SOURCE_CONTAINER=codex-migration-audit-accounting-source-db-1 \
+make attachment-ledger
+```
+
+`make attachment-ledger-gate` is deliberately blocking until all downstream
+actions have passed. The private JSON and CSV evidence are dump-SHA-bound and
+record source identity, filename, owner, size, checksum, Documents identities,
+and required actions. They distinguish operational attachments, Paperless
+originals, signed evidence, chatter files, native images, generated thumbnails
+and assets, URLs, dashboards, unassigned evidence, and credential material.
+One row may require both an operational Odoo copy and a Paperless archive copy;
+the ledger records both rather than incorrectly treating this legally useful
+duplication as a migration duplicate.
+
+For the current source, all 2,322 attachment rows are classified and all 2,312
+stored references pass path, size, and SHA-1 compatibility checks. There are no
+unowned rows. Accounting and Projects already restore their scoped evidence.
+Identity, Product Master, and HR restore all 32 high-resolution user-authored
+images byte-for-byte through native ORM fields; Odoo regenerates their smaller
+variants. Remaining Paperless, Sign, Knowledge, preference, AI, and
+collaboration actions keep the attachment gate blocked.
+
 ## Deterministic reconstruction
 
 `make target-reconstruct` restores the source package, runs the whole-source
@@ -103,7 +133,8 @@ attachments, Documents, Knowledge, Sign, user preferences,
 sales/marketing configuration, Studio data, and source AI
 configuration. These are engineering migration gaps, not approved exclusions.
 
-The HR stage restores the full native Community perimeter: employees, all
+The HR stage restores the full native Community perimeter: employees, their
+original high-resolution images, all
 effective-dated employee versions (including an unassigned contract template),
 resources, working calendars and their attendance intervals, departments,
 jobs, work locations, contract and departure reference data, payroll structure
@@ -124,7 +155,8 @@ company. The HR stage replaces that generated placeholder with the restored
 source calendar and removes it only after proving that no company, employee,
 version, payroll structure, or leave still references it.
 
-The identity stage restores all source contacts, users, company memberships,
+The identity stage restores all source contacts and their original
+high-resolution images, users, company memberships,
 supported access groups, contact categories, industries, and bank accounts. It
 maps the Online administrator to the Pocket-managed `valentin` target identity;
 built-in runtime users remain native. Passwords, TOTP seeds, API keys, sessions,

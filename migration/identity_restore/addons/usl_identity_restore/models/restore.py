@@ -1,4 +1,7 @@
+import base64
+import hashlib
 import os
+from pathlib import Path
 
 import psycopg2
 import psycopg2.extras
@@ -7,6 +10,22 @@ from odoo import Command, fields, models
 
 
 RESTORE_REVISION = 1
+SOURCE_FILESTORE = Path(
+    os.getenv("IDENTITY_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
+).resolve()
+
+
+def source_binary(row):
+    path = (SOURCE_FILESTORE / row["store_fname"]).resolve()
+    if SOURCE_FILESTORE not in path.parents or not path.is_file():
+        raise RuntimeError(f"Identity source attachment {row['id']} is missing or unsafe")
+    content = path.read_bytes()
+    if len(content) != row["file_size"]:
+        raise RuntimeError(f"Identity source attachment {row['id']} size changed")
+    checksum = hashlib.sha1(content, usedforsecurity=False).hexdigest()
+    if checksum != row["checksum"]:
+        raise RuntimeError(f"Identity source attachment {row['id']} checksum changed")
+    return content
 
 
 class IdentitySourceReader:
@@ -64,6 +83,16 @@ class IdentitySourceReader:
                            is_company, partner_share, message_bounce,
                            supplier_rank, customer_rank, create_date, write_date
                       FROM res_partner
+                     ORDER BY id
+                    """,
+                ),
+                "images": self._rows(
+                    cursor,
+                    """
+                    SELECT id, res_id, store_fname, checksum, file_size, mimetype
+                      FROM ir_attachment
+                     WHERE res_model = 'res.partner'
+                       AND res_field = 'image_1920'
                      ORDER BY id
                     """,
                 ),
@@ -508,6 +537,16 @@ class UslIdentityRestoreRun(models.Model):
                 },
             )
 
+        for row in source["images"]:
+            partner = partners.get(row["res_id"])
+            if not partner:
+                raise RuntimeError(
+                    f"Identity image {row['id']} references missing partner {row['res_id']}",
+                )
+            partner.sudo().with_context(tracking_disable=True).write(
+                {"image_1920": base64.b64encode(source_binary(row))},
+            )
+
         banks = {}
         for row in source["banks"]:
             banks[row["id"]] = self._upsert(
@@ -566,6 +605,7 @@ class UslIdentityRestoreRun(models.Model):
                 + len(runtime_user_groups)
                 + len(deferred_user_groups)
             ),
+            "images": len(source["images"]),
         }
         if counts != source["counts"]:
             raise RuntimeError(f"Identity source/target counts differ: {source['counts']} != {counts}")
