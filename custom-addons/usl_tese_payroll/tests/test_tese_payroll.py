@@ -466,7 +466,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         wizard.default_hours = 35.0 * 52.0 / 12.0
         self.assertFalse(wizard.comparison_warning)
 
-    def test_urssaf_rounding_remains_visibly_open_on_431(self):
+    def test_urssaf_rounding_settles_payroll_and_carries_431_credit(self):
         payslip = self._posted_payslip()
         self._bank_line(
             2300.0,
@@ -486,9 +486,18 @@ class TestTesePayroll(AccountTestInvoicingCommon):
 
         self.assertEqual(payslip.tese_bank_amount, 1550.55)
         self.assertEqual(payslip.tese_bank_difference, 0.55)
-        self.assertEqual(payslip.state, "to_reconcile")
-        self.assertEqual(payslip.payment_status, "rounding_open")
+        self.assertEqual(payslip.state, "paid")
+        self.assertEqual(payslip.payment_status, "paid")
+        self.assertTrue(payslip.payment_check_ok)
+        self.assertTrue(payslip.tese_payment_reconciled)
+        self.assertEqual(payslip.tese_open_amount, 0.0)
         self.assertEqual(payslip.rounding_open_amount, 0.55)
+        self.assertIn("credit", payslip.payment_check_message)
+        self.assertIn("No payroll action", payslip.payment_check_message)
+        self.assertEqual(
+            payslip.rounding_carryover_message,
+            payslip.payment_check_message,
+        )
         rounding_lines = payslip.tese_settlement_move_id.line_ids.filtered(
             lambda line: (
                 line.account_id.code == "431000"
@@ -497,14 +506,12 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(len(rounding_lines), 1)
         self.assertEqual(abs(rounding_lines.amount_residual), 0.55)
-        action = payslip.action_open_rounding_reconciliation()
-        self.assertEqual(action["res_model"], "account.account.reconcile")
-        self.assertEqual(
-            action["context"]["default_account_move_lines"],
-            rounding_lines.ids,
+        issues = self.env["usl.tese.diagnostic.issue"]._collect_company_issues(
+            self.company,
         )
+        self.assertNotIn(f"payslip:{payslip.id}:residual", issues)
 
-    def test_negative_urssaf_rounding_remains_open_on_431(self):
+    def test_urssaf_rounding_settles_payroll_and_carries_431_due(self):
         payslip = self._posted_payslip()
         self._bank_line(
             2300.0,
@@ -523,8 +530,12 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         payslip.action_reconcile_tese()
 
         self.assertEqual(payslip.tese_bank_difference, -0.55)
-        self.assertEqual(payslip.payment_status, "rounding_open")
+        self.assertEqual(payslip.state, "paid")
+        self.assertEqual(payslip.payment_status, "paid")
+        self.assertTrue(payslip.payment_check_ok)
+        self.assertEqual(payslip.tese_open_amount, 0.0)
         self.assertEqual(payslip.rounding_open_amount, 0.55)
+        self.assertIn("due", payslip.payment_check_message)
         rounding_lines = payslip._tracked_liability_lines("tese").filtered(
             lambda line: line.account_id.code == "431000",
         )
@@ -774,6 +785,17 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             "search_default_needs_attention",
             safe_eval(payroll_action.context or "{}"),
         )
+        payroll_form = self.env.ref(
+            "usl_tese_payroll.view_tese_payslip_form",
+        ).arch_db
+        payroll_search = self.env.ref(
+            "usl_tese_payroll.view_tese_payslip_search",
+        ).arch_db
+        self.assertNotIn("action_open_rounding_reconciliation", payroll_form)
+        self.assertIn("rounding_carryover_message", payroll_form)
+        self.assertIn("text-bg-success\">Matched", payroll_form)
+        self.assertIn("URSSAF Carry-over", payroll_search)
+        self.assertNotIn("'rounding_open'", payroll_search)
 
         configuration_menu = self.env.ref(
             "usl_tese_payroll.menu_tese_payroll_configuration",

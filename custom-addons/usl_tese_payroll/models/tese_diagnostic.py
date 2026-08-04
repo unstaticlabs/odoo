@@ -213,7 +213,10 @@ class UslTeseDiagnosticIssue(models.Model):
                 salary_ok, tese_ok, salary_open, tese_open = (
                     payslip._residual_status()
                 )
-                if not salary_ok or not tese_ok:
+                tese_settled = tese_ok or payslip._is_tese_carryover_only(
+                    tese_open,
+                )
+                if not salary_ok or not tese_settled:
                     self._issue(
                         issues,
                         key=f"payslip:{payslip.id}:residual",
@@ -221,7 +224,7 @@ class UslTeseDiagnosticIssue(models.Model):
                         category="settlement",
                         record=payslip,
                         message=_(
-                            "Paid payroll has reopened liabilities: salary "
+                            "Settled payroll has reopened payments: salary "
                             "%(salary).2f; TESE %(tese).2f.",
                             salary=salary_open,
                             tese=tese_open,

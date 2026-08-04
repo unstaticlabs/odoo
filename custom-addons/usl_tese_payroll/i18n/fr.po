@@ -1404,11 +1404,11 @@ msgstr "PDF TESE officiel"
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid ""
-"One URSSAF debit is ready. The %(difference).2f difference will remain "
-"visible on 431000."
+"One URSSAF debit is ready. Its %(difference).2f difference will be carried "
+"forward on 431000. Next: check the bank transaction, then match it."
 msgstr ""
-"Un prélèvement URSSAF est prêt. L’écart de %(difference).2f restera visible "
-"sur le compte 431000."
+"Un prélèvement URSSAF est prêt. Son écart de %(difference).2f sera reporté "
+"sur 431000. Étape suivante : vérifiez l’opération bancaire, puis rapprochez-la."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1472,17 +1472,17 @@ msgstr ""
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__paid
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__paid
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
-msgid "Paid"
-msgstr "Payé"
+msgid "Settled"
+msgstr "Soldée"
 
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
 msgid ""
-"Paid payroll has reopened liabilities: salary %(salary).2f; TESE %(tese).2f."
+"Settled payroll has reopened payments: salary %(salary).2f; TESE %(tese).2f."
 msgstr ""
-"Une paie payée présente de nouveau des dettes ouvertes : salaire %"
-"(salary).2f ; TESE %(tese).2f."
+"Une paie soldée présente de nouveau des paiements ouverts : salaire %"
+"(salary).2f ; TESE %(tese).2f."
 
 #. module: usl_tese_payroll
 #: model:ir.actions.act_window,name:usl_tese_payroll.action_tese_payroll_accounts
@@ -1594,9 +1594,12 @@ msgstr ""
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "Payroll finalized: salary and TESE liabilities are fully settled."
+msgid ""
+"Payroll settled: salary and TESE liabilities are fully paid. No further "
+"payment action is required."
 msgstr ""
-"Paie finalisée : les salaires et les dettes TESE sont entièrement réglés."
+"Paie soldée : le salaire et les dettes TESE sont entièrement payés. Aucune "
+"autre action de paiement n’est requise."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1713,9 +1716,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid ""
-"Posted, paid, or cancelled payrolls keep their original settings snapshot."
+"Posted, settled, or cancelled payrolls keep their original settings snapshot."
 msgstr ""
-"Les paies comptabilisées, payées ou annulées conservent leurs paramètres "
+"Les paies comptabilisées, soldées ou annulées conservent leurs paramètres "
 "d’origine."
 
 #. module: usl_tese_payroll
@@ -1936,30 +1939,14 @@ msgid "Role"
 msgstr "Rôle"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
-msgid "Rounding"
-msgstr "Arrondi"
-
-#. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "Rounding Difference"
 msgstr "Écart d’arrondi"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__rounding_open_amount
-msgid "Rounding Open Amount"
-msgstr "Arrondi restant"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_search
-msgid "Rounding to Clear"
-msgstr "Arrondi à solder"
-
-#. module: usl_tese_payroll
-#: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__rounding_open
-msgid "Rounding to clear"
-msgstr "Arrondi à solder"
+msgid "URSSAF Carry-over"
+msgstr "Report URSSAF"
 
 #. module: usl_tese_payroll
 #: model:ir.ui.menu,name:usl_tese_payroll.menu_tese_payroll_run_diagnostics
@@ -2060,15 +2047,6 @@ msgstr "Paiement de salaire rapproché"
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__salary_settlement_move_id
 msgid "Salary Settlement Entry"
 msgstr "Pièce de règlement du salaire"
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid ""
-"Salary and URSSAF debit matched. Rounding to clear: %(amount).2f on 431000."
-msgstr ""
-"Salaire et prélèvement URSSAF rapprochés. Arrondi à solder : %(amount).2f "
-"sur le compte 431000."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__open_both
@@ -2792,16 +2770,6 @@ msgstr "Le mois de la nouvelle version doit correspondre au mois de paie."
 #. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid ""
-"The salary and URSSAF debit are matched. %(amount).2f remains open on 431000 "
-"for the URSSAF rounding difference."
-msgstr ""
-"Le salaire et le prélèvement URSSAF sont rapprochés. %(amount).2f reste "
-"ouvert sur le compte 431000 pour l’écart d’arrondi URSSAF."
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "The selected TESE settings do not cover the payroll month."
 msgstr "Les paramètres TESE sélectionnés ne couvrent pas le mois de paie."
 
@@ -3111,11 +3079,6 @@ msgid "profile_id"
 msgstr "identifiant_profil"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "remains on 431000"
-msgstr "reste sur le compte 431000"
-
-#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "the 421000 salary liability must equal net paid"
@@ -3148,63 +3111,10 @@ msgstr ""
 "l'pièce comptable n'est pas soldée (débit %(debit).2f / crédit %(credit).2f)"
 
 #. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "Clear Rounding"
-msgstr "Apurer l’arrondi"
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "Clear URSSAF Rounding — %(payroll)s"
-msgstr "Apurer l’arrondi URSSAF — %(payroll)s"
-
-#. module: usl_tese_payroll
-#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
-msgid "URSSAF rounding is not another bank transaction."
-msgstr "L’arrondi URSSAF n’est pas une nouvelle opération bancaire."
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "No URSSAF rounding item remains open. Next: refresh the payroll payment status."
-msgstr "Aucun arrondi URSSAF ne reste ouvert. Étape suivante : actualisez l’état des paiements de la paie."
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid "Next: use Clear Rounding to match the visible 431000 item in General Reconciliation."
-msgstr "Étape suivante : utilisez Apurer l’arrondi pour lettrer l’élément 431000 visible dans le lettrage général."
-
-#. module: usl_tese_payroll
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Bank Matching — %(payroll)s"
 msgstr "Rapprochement bancaire — %(payroll)s"
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid ""
-"The salary and URSSAF debit are matched. %(amount).2f remains open on 431000 "
-"for the URSSAF rounding difference. Next: use Clear Rounding to match that "
-"item in General Reconciliation."
-msgstr ""
-"Le salaire et le prélèvement URSSAF sont rapprochés. %(amount).2f reste "
-"ouvert sur 431000 pour l’écart d’arrondi URSSAF. Étape suivante : utilisez "
-"Apurer l’arrondi pour lettrer cet élément dans le lettrage général."
-
-#. module: usl_tese_payroll
-#. odoo-python
-#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
-msgid ""
-"Salary and URSSAF debit matched. Rounding to clear: %(amount).2f on 431000. "
-"This is not another bank transaction. Next: use Clear Rounding and select an "
-"opposite 431000 item in General Reconciliation."
-msgstr ""
-"Salaire et prélèvement URSSAF rapprochés. Arrondi à apurer : %(amount).2f "
-"sur 431000. Ce n’est pas une nouvelle opération bancaire. Étape suivante : "
-"utilisez Apurer l’arrondi et sélectionnez un élément 431000 de sens opposé "
-"dans le lettrage général."
 
 #~ msgid ""
 #~ "A TESE bank difference cannot be bridged automatically. Use Bank Matching "
@@ -3398,8 +3308,8 @@ msgid "Change amounts only when the TESE declaration changed. Accounts and compo
 msgstr "Modifiez les montants uniquement si la déclaration TESE a changé. Les comptes et les rôles comptables restent fixes."
 
 #. module: usl_tese_payroll
-msgid "Only change <strong>Expected / Matched Bank Debit</strong> when TESE announces a collection amount different from the declared total. It guides bank matching; the declared liabilities stay unchanged, and a safe difference stays open on 431000."
-msgstr "Ne modifiez le <strong>Prélèvement bancaire attendu / rapproché</strong> que si TESE annonce un prélèvement différent du total déclaré. Il guide le rapprochement bancaire ; les dettes déclarées restent inchangées et un écart sûr reste ouvert sur le compte 431000."
+msgid "Only change <strong>Expected / Matched Bank Debit</strong> when TESE announces a collection amount different from the declared total. It guides bank matching; the declared liabilities stay unchanged, and a safe difference is carried forward on 431000."
+msgstr "Ne modifiez le <strong>Prélèvement bancaire attendu / rapproché</strong> que si TESE annonce un prélèvement différent du total déclaré. Il guide le rapprochement bancaire ; les dettes déclarées restent inchangées et un écart sûr est reporté sur le compte 431000."
 
 #. module: usl_tese_payroll
 msgid "The official PDF remains linked as evidence. Next: no document action is required."
@@ -3439,3 +3349,90 @@ msgstr "Étape suivante : alignez TESE avec les RH, ou conservez l'écart unique
 #: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
 msgid "Align the TESE profile with HR, or confirm that the difference is intentional."
 msgstr "Alignez le profil TESE avec les RH, ou confirmez que l'écart est intentionnel."
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,help:usl_tese_payroll.field_usl_tese_payslip__tese_bank_amount
+msgid ""
+"Before posting, enter the collection amount announced by TESE only when it "
+"differs from the declared liabilities. After matching, this field records "
+"the real bank debit. A safe difference is carried forward on 431000; it is "
+"never written off automatically."
+msgstr ""
+"Avant la comptabilisation, saisissez le prélèvement annoncé par TESE "
+"uniquement s’il diffère des dettes déclarées. Après rapprochement, ce champ "
+"conserve le prélèvement bancaire réel. Un écart sûr est reporté sur 431000 ; "
+"il n’est jamais soldé automatiquement."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_list
+msgid "Carry-over"
+msgstr "Report"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Carry-over on 431000"
+msgstr "Report sur 431000"
+
+#. module: usl_tese_payroll
+#: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__rounding_carryover_message
+msgid "Carry-over Note"
+msgstr "Note de report"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"Payroll settled. URSSAF carry-over: %(amount)s %(direction)s on 431000. No "
+"payroll action is needed."
+msgstr ""
+"Paie soldée. Report URSSAF : %(amount)s %(direction)s sur 431000. Aucune "
+"action n’est requise sur cette paie."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Salary payment matched."
+msgstr "Paiement du salaire rapproché."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "The payroll is settled; no further action is required."
+msgstr "La paie est soldée ; aucune autre action n’est requise."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "URSSAF debit matched."
+msgstr "Prélèvement URSSAF rapproché."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid ""
+"Reconcile the one safe URSSAF transaction. A difference up to €5 is carried "
+"forward on 431000 without keeping this payroll open."
+msgstr ""
+"Rapprochez l’unique prélèvement URSSAF sûr. Un écart de 5 € maximum est "
+"reporté sur 431000 sans laisser cette paie ouverte."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "carried forward"
+msgstr "reporté"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "credit"
+msgstr "de crédit"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "due"
+msgstr "à payer"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Matched"
+msgstr "Rapproché"

@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import format_date
+from odoo.tools import format_amount, format_date
 
 from .constants import (
     TESE_COMPONENT_CODES,
@@ -40,7 +40,7 @@ class UslTesePayslip(models.Model):
             ("prepared", "Prepared"),
             ("to_post", "Ready to post"),
             ("to_reconcile", "To reconcile"),
-            ("paid", "Paid"),
+            ("paid", "Settled"),
             ("cancelled", "Cancelled"),
         ],
         required=True,
@@ -217,8 +217,8 @@ class UslTesePayslip(models.Model):
         help=(
             "Before posting, enter the collection amount announced by TESE only "
             "when it differs from the declared liabilities. After matching, this "
-            "field records the real bank debit. A safe difference is kept open on "
-            "431000; it is never written off automatically."
+            "field records the real bank debit. A safe difference is carried "
+            "forward on 431000; it is never written off automatically."
         ),
     )
     tese_bank_difference = fields.Monetary(readonly=True, copy=False)
@@ -234,9 +234,14 @@ class UslTesePayslip(models.Model):
         readonly=True,
     )
     rounding_open_amount = fields.Monetary(
+        string="URSSAF Carry-over",
         compute="_compute_payment_summary",
         store=True,
         readonly=True,
+    )
+    rounding_carryover_message = fields.Char(
+        string="Carry-over Note",
+        compute="_compute_rounding_carryover_message",
     )
     payment_status = fields.Selection(
         [
@@ -244,8 +249,7 @@ class UslTesePayslip(models.Model):
             ("open_both", "Salary and URSSAF open"),
             ("salary_open", "Salary open"),
             ("tese_open", "URSSAF open"),
-            ("rounding_open", "Rounding to clear"),
-            ("paid", "Paid"),
+            ("paid", "Settled"),
             ("cancelled", "Cancelled"),
         ],
         compute="_compute_payment_summary",
@@ -756,6 +760,45 @@ class UslTesePayslip(models.Model):
             ),
         )
 
+    def _is_tese_carryover_only(self, tese_open):
+        self.ensure_one()
+        return (
+            not self.currency_id.is_zero(tese_open)
+            and not self.currency_id.is_zero(self.tese_bank_difference)
+            and self.currency_id.is_zero(
+                tese_open - abs(self.tese_bank_difference),
+            )
+        )
+
+    def _tese_carryover_message(self):
+        self.ensure_one()
+        direction = _("credit") if self.tese_bank_difference > 0 else _("due")
+        return _(
+            "Payroll settled. URSSAF carry-over: %(amount)s %(direction)s on "
+            "431000. No payroll action is needed.",
+            amount=format_amount(
+                self.env,
+                abs(self.tese_bank_difference),
+                self.currency_id,
+            ),
+            direction=direction,
+        )
+
+    @api.depends(
+        "rounding_open_amount",
+        "tese_bank_difference",
+        "currency_id",
+    )
+    def _compute_rounding_carryover_message(self):
+        for payslip in self:
+            payslip.rounding_carryover_message = (
+                payslip._tese_carryover_message()
+                if not payslip.currency_id.is_zero(
+                    payslip.rounding_open_amount,
+                )
+                else False
+            )
+
     @api.depends(
         "state",
         "move_id.state",
@@ -774,20 +817,13 @@ class UslTesePayslip(models.Model):
                 abs(line.amount_residual)
                 for line in payslip._tracked_liability_lines("salary")
             )
-            tese_open = sum(
+            tese_residual = sum(
                 abs(line.amount_residual)
                 for line in payslip._tracked_liability_lines("tese")
             )
-            rounding_open = 0.0
-            if (
-                not payslip.currency_id.is_zero(
-                    payslip.tese_bank_difference,
-                )
-                and payslip.currency_id.is_zero(
-                    tese_open - abs(payslip.tese_bank_difference),
-                )
-            ):
-                rounding_open = tese_open
+            carryover_only = payslip._is_tese_carryover_only(tese_residual)
+            rounding_open = tese_residual if carryover_only else 0.0
+            tese_open = 0.0 if carryover_only else tese_residual
 
             payslip.salary_open_amount = salary_open
             payslip.tese_open_amount = tese_open
@@ -801,11 +837,6 @@ class UslTesePayslip(models.Model):
                 and payslip.currency_id.is_zero(tese_open)
             ):
                 status = "paid"
-            elif (
-                payslip.currency_id.is_zero(salary_open)
-                and not payslip.currency_id.is_zero(rounding_open)
-            ):
-                status = "rounding_open"
             elif (
                 not payslip.currency_id.is_zero(salary_open)
                 and not payslip.currency_id.is_zero(tese_open)
@@ -1594,10 +1625,10 @@ class UslTesePayslip(models.Model):
             )
         ):
             message = _(
-                "One URSSAF debit is ready. The %(difference).2f difference "
-                "will remain visible on 431000. Next: click Match URSSAF Debit "
-                "only after checking the bank transaction.",
-                difference=safe[0]["settlement_difference"],
+                "One URSSAF debit is ready. Its %(difference).2f difference "
+                "will be carried forward on 431000. Next: check the bank "
+                "transaction, then match it.",
+                difference=abs(safe[0]["settlement_difference"]),
             )
         else:
             message = _(
@@ -1612,27 +1643,27 @@ class UslTesePayslip(models.Model):
         self._check_workflow_access()
         if not self.move_id or self.move_id.state != "posted":
             raise UserError(_("Post the payroll journal entry first."))
-        salary_ok, tese_ok, _salary_open, _tese_open = self._residual_status()
+        salary_ok, tese_ok, _salary_open, tese_open = self._residual_status()
+        carryover_only = self._is_tese_carryover_only(tese_open)
+        tese_settled = tese_ok or carryover_only
         salary_ranked = [] if salary_ok else self._rank_candidates("salary")
-        tese_ranked = [] if tese_ok else self._rank_candidates("tese")
+        tese_ranked = [] if tese_settled else self._rank_candidates("tese")
         values = {
             **self._candidate_values("salary", salary_ranked),
             **self._candidate_values("tese", tese_ranked),
             "salary_payment_reconciled": salary_ok,
-            "tese_payment_reconciled": tese_ok,
-            "state": "paid" if salary_ok and tese_ok else "to_reconcile",
+            "tese_payment_reconciled": tese_settled,
+            "state": "paid" if salary_ok and tese_settled else "to_reconcile",
         }
+        if salary_ok:
+            values["salary_payment_match_message"] = _("Salary payment matched.")
+        if tese_settled:
+            values["tese_payment_match_message"] = _("URSSAF debit matched.")
         if (
             salary_ok
-            and not tese_ok
-            and not self.currency_id.is_zero(self.rounding_open_amount)
+            and carryover_only
         ):
-            values["bank_reconcile_message"] = _(
-                "The salary and URSSAF debit are matched. %(amount).2f remains "
-                "open on 431000 for the URSSAF rounding difference. Next: use "
-                "Clear Rounding to match that item in General Reconciliation.",
-                amount=self.rounding_open_amount,
-            )
+            values["bank_reconcile_message"] = self._tese_carryover_message()
         else:
             values["bank_reconcile_message"] = _(
                 "Payments refreshed. Salary: %(salary)s URSSAF: %(tese)s",
@@ -1831,13 +1862,10 @@ class UslTesePayslip(models.Model):
             })
         self.action_refresh_candidates()
         self.action_finalize(notify=False)
-        if self.state == "paid":
-            next_step = _("The payroll is fully paid; no further action is required.")
-        elif not self.currency_id.is_zero(self.rounding_open_amount):
-            next_step = _(
-                "Next: use Clear Rounding to match the visible 431000 item in "
-                "General Reconciliation.",
-            )
+        if not self.currency_id.is_zero(self.rounding_open_amount):
+            next_step = self._tese_carryover_message()
+        elif self.state == "paid":
+            next_step = _("The payroll is settled; no further action is required.")
         else:
             next_step = _("Next: match the remaining open payment.")
         return self._notify(
@@ -1860,26 +1888,17 @@ class UslTesePayslip(models.Model):
         if not self.move_id or self.move_id.state != "posted":
             raise UserError(_("The payroll journal entry must be posted."))
         salary_ok, tese_ok, salary_open, tese_open = self._residual_status()
-        if salary_ok and tese_ok:
+        carryover_only = self._is_tese_carryover_only(tese_open)
+        tese_settled = tese_ok or carryover_only
+        if salary_ok and tese_settled:
             state = "paid"
-            message = _(
-                "Payroll finalized: salary and TESE liabilities are fully "
-                "settled. Next: no further payment action is required.",
-            )
-        elif (
-            salary_ok
-            and not self.currency_id.is_zero(self.rounding_open_amount)
-            and self.currency_id.is_zero(
-                tese_open - self.rounding_open_amount,
-            )
-        ):
-            state = "to_reconcile"
-            message = _(
-                "Salary and URSSAF debit matched. Rounding to clear: "
-                "%(amount).2f on 431000. This is not another bank transaction. "
-                "Next: use Clear Rounding and select an opposite 431000 item "
-                "in General Reconciliation.",
-                amount=self.rounding_open_amount,
+            message = (
+                self._tese_carryover_message()
+                if carryover_only
+                else _(
+                    "Payroll settled: salary and TESE liabilities are fully "
+                    "paid. No further payment action is required.",
+                )
             )
         else:
             state = "to_reconcile"
@@ -1894,10 +1913,10 @@ class UslTesePayslip(models.Model):
             _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
         ).write({
             "state": state,
-            "payment_check_ok": salary_ok and tese_ok,
+            "payment_check_ok": salary_ok and tese_settled,
             "payment_check_message": message,
             "salary_payment_reconciled": salary_ok,
-            "tese_payment_reconciled": tese_ok,
+            "tese_payment_reconciled": tese_settled,
             "bank_reconcile_message": message,
         })
         if notify:
@@ -1956,7 +1975,7 @@ class UslTesePayslip(models.Model):
         self._check_workflow_access()
         if self.state in {"to_reconcile", "paid", "cancelled"}:
             raise UserError(_(
-                "Posted, paid, or cancelled payrolls keep their original "
+                "Posted, settled, or cancelled payrolls keep their original "
                 "settings snapshot.",
             ))
         return {
@@ -2090,26 +2109,6 @@ class UslTesePayslip(models.Model):
             "domain": domain,
             "context": context,
         })
-        return action
-
-    def action_open_rounding_reconciliation(self):
-        self.ensure_one()
-        rounding_lines = self._tracked_liability_lines("tese").filtered(
-            lambda line: (
-                line.account_id.code == "431000"
-                and not self.currency_id.is_zero(line.amount_residual)
-            ),
-        )
-        if not rounding_lines:
-            raise UserError(_(
-                "No URSSAF rounding item remains open. Next: refresh the payroll "
-                "payment status.",
-            ))
-        action = rounding_lines.action_reconcile_manually()
-        action["name"] = _(
-            "Clear URSSAF Rounding — %(payroll)s",
-            payroll=self.name,
-        )
         return action
 
     def action_open_pdf(self):

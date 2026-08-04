@@ -24,15 +24,16 @@ The application is deliberately an external-payroll accounting workflow:
   history.
 - Posting requires the provider PDF and creates or links one balanced journal
   entry. The PDF and payroll link remain visible from the entry.
-- **Paid** is derived from the actual residuals of salary, social and
-  withholding liability lines. It is never trusted from a checkbox or a
-  migrated Studio status.
+- **Settled** is derived from actual payment residuals. A recognized URSSAF
+  carry-over remains on `431000` without reopening the payroll. The status is
+  never trusted from a checkbox or a migrated Studio value.
 - Automatic settlement is allowed only for one unique and safe bank
   candidate. Salary must be exact. A unique URSSAF candidate may differ by at
   most EUR 5; the real bank amount is used and the exact remainder stays open
-  on `431000`. That ledger remainder is cleared through General Reconciliation;
-  ambiguous, partial, larger or foreign-currency bank transactions remain in
-  the OCA Bank Matching workspace for an accountant.
+  on `431000` as a carry-over. The payroll is settled once both real payments
+  are matched; later clearing belongs to normal accounting hygiene, not the
+  payroll record. Ambiguous, partial, larger or foreign-currency bank
+  transactions remain in the OCA Bank Matching workspace for an accountant.
 
 ## Alternatives considered
 
@@ -114,7 +115,7 @@ remain unchanged.
 
 The state sequence is:
 
-`Draft → Prepared → Ready to post → To reconcile → Paid`
+`Draft → Prepared → Ready to post → To reconcile → Settled`
 
 Cancellation is available only before posted accounting history exists.
 Preparation freezes the component snapshot when the draft entry is created.
@@ -130,7 +131,11 @@ immediately before settlement. A social payment spanning several liability
 accounts uses a balanced settlement bridge in the payroll journal; the bank
 suspense line and each declared liability are reconciled in their native
 accounts. An URSSAF rounding remainder of at most EUR 5 stays visibly open on
-`431000`; it is not auto-posted to an income or expense account.
+`431000`; it is not auto-posted to an income or expense account. It is shown
+as a neutral carry-over while the payroll remains settled. Treating it as an
+unpaid payroll would confuse payment completion with ledger hygiene; clearing
+it from the payroll would duplicate native accounting reconciliation. Both
+alternatives are therefore rejected.
 
 Before posting, **Update settings** can revise provider figures, native
 employment terms, or both in one atomic flow. It closes and archives the

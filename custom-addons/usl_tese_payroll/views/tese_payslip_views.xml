@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <list string="TESE Payroll"
                   decoration-info="payment_status == 'not_posted'"
-                  decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open', 'rounding_open')"
+                  decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open')"
                   decoration-success="payment_status == 'paid'"
                   decoration-muted="payment_status == 'cancelled'">
                 <field name="currency_id" column_invisible="True"/>
@@ -24,13 +24,14 @@
                        optional="hide"
                        sum="URSSAF Open"/>
                 <field name="rounding_open_amount"
-                       string="Rounding"
+                       string="URSSAF Carry-over"
                        optional="show"
-                       sum="Rounding"/>
+                       decoration-info="rounding_open_amount != 0"
+                       sum="Carry-over"/>
                 <field name="payment_status"
                        widget="badge"
                        decoration-info="payment_status == 'not_posted'"
-                       decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open', 'rounding_open')"
+                       decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open')"
                        decoration-success="payment_status == 'paid'"
                        decoration-muted="payment_status == 'cancelled'"/>
                 <field name="document_status"
@@ -59,7 +60,7 @@
                 <field name="move_id"/>
                 <filter name="open_payments"
                         string="Open Payments"
-                        domain="[('payment_status', 'in', ('open_both', 'salary_open', 'tese_open', 'rounding_open'))]"/>
+                        domain="[('payment_status', 'in', ('open_both', 'salary_open', 'tese_open'))]"/>
                 <filter name="salary_open"
                         string="Salary Open"
                         domain="[('payment_status', 'in', ('open_both', 'salary_open'))]"/>
@@ -67,10 +68,10 @@
                         string="URSSAF Open"
                         domain="[('payment_status', 'in', ('open_both', 'tese_open'))]"/>
                 <filter name="rounding_open"
-                        string="Rounding to Clear"
-                        domain="[('payment_status', '=', 'rounding_open')]"/>
+                        string="URSSAF Carry-over"
+                        domain="[('rounding_open_amount', '!=', 0)]"/>
                 <filter name="paid"
-                        string="Paid"
+                        string="Settled"
                         domain="[('payment_status', '=', 'paid')]"/>
                 <filter name="missing_pdf"
                         string="Missing PDF"
@@ -126,7 +127,7 @@
                             string="Refresh Payments"
                             type="object"
                             help="Search current bank transactions again and refresh open balances. This does not reconcile anything by itself."
-                            invisible="state not in ('to_reconcile', 'paid') or not can_workflow"/>
+                            invisible="state != 'to_reconcile' or not can_workflow"/>
                     <button name="action_reconcile_salary"
                             string="Match Salary"
                             type="object"
@@ -135,24 +136,18 @@
                     <button name="action_reconcile_tese"
                             string="Match URSSAF Debit"
                             type="object"
-                            help="Reconcile the one safe URSSAF transaction. A difference up to €5 remains open on 431000 for explicit clearing."
+                            help="Reconcile the one safe URSSAF transaction. A difference up to €5 is carried forward on 431000 without keeping this payroll open."
                             invisible="state != 'to_reconcile' or tese_payment_reconciled or tese_payment_candidate_count != 1 or not can_workflow"/>
                     <button name="action_open_bank_matching"
                             string="Open Bank Matching"
                             type="object"
                             help="Open unmatched bank transactions for this company. Use this for missing or ambiguous salary and URSSAF payments."
-                            invisible="state != 'to_reconcile' or rounding_open_amount"/>
-                    <button name="action_open_rounding_reconciliation"
-                            string="Clear Rounding"
-                            type="object"
-                            class="oe_highlight"
-                            help="Open the remaining 431000 item in General Reconciliation. Match it with an opposite 431000 item or a reviewed clearing entry; this does not create a write-off."
-                            invisible="state != 'to_reconcile' or not rounding_open_amount"/>
+                            invisible="state != 'to_reconcile'"/>
                     <button name="action_finalize"
                             string="Refresh Status"
                             type="object"
                             help="Recalculate the payment state from accounting residuals. This does not reconcile or write off any balance."
-                            invisible="state not in ('to_reconcile', 'paid') or not can_workflow"/>
+                            invisible="state != 'to_reconcile' or not can_workflow"/>
                     <button name="action_create_draft_entry"
                             string="Refresh Draft Entry"
                             type="object"
@@ -218,13 +213,9 @@
                         </button>
                     </div>
                     <widget name="web_ribbon"
-                            text="Paid"
+                            text="Settled"
                             bg_color="text-bg-success"
                             invisible="payment_status != 'paid'"/>
-                    <widget name="web_ribbon"
-                            text="Rounding to clear"
-                            bg_color="text-bg-warning"
-                            invisible="payment_status != 'rounding_open'"/>
                     <widget name="web_ribbon"
                             text="Cancelled"
                             bg_color="text-bg-secondary"
@@ -284,31 +275,26 @@
                                        widget="badge"
                                        nolabel="1"
                                        decoration-info="payment_status == 'not_posted'"
-                                       decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open', 'rounding_open')"
+                                       decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open')"
                                        decoration-success="payment_status == 'paid'"
                                        decoration-muted="payment_status == 'cancelled'"/>
-                                <div class="text-warning mt-2"
-                                     invisible="payment_status != 'rounding_open'">
+                                <div class="text-muted small mt-2"
+                                     invisible="not rounding_open_amount">
                                     <field name="rounding_open_amount"
                                            widget="monetary"
                                            nolabel="1"/>
-                                    remains on 431000
+                                    carried forward
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="alert alert-warning py-2"
+                    <div class="alert alert-info py-2"
                          role="status"
-                         invisible="payment_status != 'rounding_open'">
-                        <strong>URSSAF rounding is not another bank transaction.</strong>
-                        <field name="rounding_open_amount"
-                               widget="monetary"
+                         invisible="not rounding_open_amount">
+                        <field name="rounding_carryover_message"
                                nolabel="1"
-                               class="fw-bold"/>
-                        remains open on 431000. Use <strong>Clear Rounding</strong>
-                        above to match it with an opposite 431000 item or a reviewed
-                        clearing entry in General Reconciliation.
+                               class="fw-medium"/>
                     </div>
 
                     <div class="alert alert-warning"
@@ -417,7 +403,7 @@
                                 when TESE announces a collection amount different
                                 from the declared total. It guides bank matching;
                                 the declared liabilities stay unchanged, and a safe
-                                difference stays open on 431000.
+                                difference is carried forward on 431000.
                             </div>
                             <group string="Provider Notes">
                                 <field name="document_message" nolabel="1"/>
@@ -430,7 +416,7 @@
                         <page name="payments" string="Payments">
                             <div class="alert alert-info"
                                  role="alert"
-                                 invisible="not bank_reconcile_message">
+                                 invisible="not bank_reconcile_message or rounding_open_amount">
                                 <field name="bank_reconcile_message" nolabel="1"/>
                             </div>
                             <div class="row g-3">
@@ -456,8 +442,12 @@
                                     <field name="salary_payment_candidate_label"
                                            string="Bank Label"
                                            invisible="salary_payment_candidate_count == 0"/>
+                                    <div invisible="not salary_payment_reconciled">
+                                        <span class="badge text-bg-success">Matched</span>
+                                    </div>
                                     <field name="salary_payment_match_message"
-                                           nolabel="1"/>
+                                           nolabel="1"
+                                           invisible="salary_payment_reconciled"/>
                                   </group>
                                 </div>
                                 <div class="col-12 col-xl-6">
@@ -474,7 +464,7 @@
                                     <field name="tese_open_amount"
                                            string="Still Open"/>
                                     <field name="rounding_open_amount"
-                                           string="Rounding to Clear"
+                                           string="Carry-over on 431000"
                                            invisible="not rounding_open_amount"/>
                                     <field name="tese_payment_candidate_date"
                                            string="Bank Date"
@@ -488,8 +478,12 @@
                                     <field name="tese_payment_candidate_label"
                                            string="Bank Label"
                                            invisible="tese_payment_candidate_count == 0"/>
+                                    <div invisible="not tese_payment_reconciled">
+                                        <span class="badge text-bg-success">Matched</span>
+                                    </div>
                                     <field name="tese_payment_match_message"
-                                           nolabel="1"/>
+                                           nolabel="1"
+                                           invisible="tese_payment_reconciled"/>
                                   </group>
                                 </div>
                             </div>

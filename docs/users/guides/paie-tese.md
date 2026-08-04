@@ -42,8 +42,8 @@ Une date saisie manuellement est conservée.
 Le montant **Prélèvement bancaire attendu / rapproché** n'est pas un nouveau
 calcul de cotisations. Avant comptabilisation, ne le changez que si TESE
 annonce un prélèvement bancaire différent du total déclaré. Il sert à chercher
-le paiement. Le détail des dettes reste inchangé et l'écart sûr reste visible
-sur `431000` jusqu'à son apurement.
+le paiement. Le détail des dettes reste inchangé et l'écart sûr est reporté
+sur `431000` pour le suivi comptable.
 
 Le premier onglet reproduit la lecture utile du bulletin sans créer un second
 bulletin légal. L’onglet **Paiements** montre ce qui est attendu, ce qui a été
@@ -93,25 +93,21 @@ n’est jamais une validation.
 Le rapprochement automatique n’est proposé que lorsqu’il existe un seul
 candidat sûr. Pour l’URSSAF, un écart d’arrondi de 5 € maximum est accepté :
 le vrai montant bancaire est utilisé, les dettes déclarées sont soldées et
-l’écart exact reste ouvert sur `431000` avec le statut
-**Arrondi à apurer**. Il n’est jamais envoyé automatiquement sur `658` ou
-`758`, et la paie n’est pas présentée comme payée.
-
-Cet arrondi n’est pas une nouvelle opération bancaire. Cliquez sur
-**Apurer l’arrondi** pour ouvrir l’élément `431000` dans le lettrage général,
-puis sélectionnez un élément `431000` de sens opposé ou une écriture d’apurement
-revue par le responsable comptable.
+l’écart exact reste ouvert sur `431000` comme **report URSSAF**. La paie est
+**soldée** : aucune action supplémentaire n’est demandée ici. Le report reste
+visible jusqu’à sa compensation dans le suivi comptable normal. Il n’est
+jamais envoyé automatiquement sur `658` ou `758`.
 
 S’il y a plusieurs candidats, un écart supérieur à 5 €, un paiement partiel
 ou une structure inhabituelle, ouvrez **Rapprochement bancaire** et
 documentez la décision comptable.
 
-Le statut **Payée** apparaît uniquement lorsque les soldes résiduels du
-salaire et de toutes les dettes TESE sont nuls. Une ancienne case cochée ou un
-statut importé ne suffit pas.
+Le statut **Soldée** apparaît lorsque le salaire et le prélèvement URSSAF réel
+sont rapprochés. Un petit report URSSAF sûr peut rester sur `431000` sans
+rouvrir la paie. Une ancienne case cochée ou un statut importé ne suffit pas.
 
 Les filtres **Paiements ouverts**, **Salaire ouvert**, **URSSAF ouvert**,
-**Arrondi à apurer**, **Payée** et **PDF manquant** permettent de retrouver
+**Report URSSAF**, **Soldée** et **PDF manquant** permettent de retrouver
 rapidement le travail restant. La liste d’accueil montre toutes les paies par
 défaut.
 
