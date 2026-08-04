@@ -17,9 +17,9 @@
       "evidence": "version-controlled Community modules and target configuration"
     },
     "identity": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "translated",
-      "evidence": "Accounting and Projects currently import only referenced identities"
+      "evidence": "temporary identity restore imports all contacts, users, companies, industries, categories, banks and relations with digest parity; authentication is re-enrolled"
     },
     "collaboration": {
       "status": "incomplete",
@@ -95,6 +95,9 @@
     {"match": "res.company", "scope": "identity"},
     {"match": "res.partner", "scope": "identity"},
     {"match": "res.partner.*", "scope": "identity"},
+    {"match": "res.users.apikeys", "scope": "credential_state"},
+    {"match": "res.users.log", "scope": "credential_state"},
+    {"match": "res.users.settings*", "scope": "preferences"},
     {"match": "res.users", "scope": "identity"},
     {"match": "res.users.*", "scope": "identity"},
     {"match": "mail.*", "scope": "collaboration"},
@@ -152,6 +155,9 @@
     {"match": "message_*", "scope": "collaboration"},
     {"match": "res_company*", "scope": "identity"},
     {"match": "res_partner*", "scope": "identity"},
+    {"match": "res_users_apikeys*", "scope": "credential_state"},
+    {"match": "res_users_log*", "scope": "credential_state"},
+    {"match": "res_users_settings*", "scope": "preferences"},
     {"match": "res_users*", "scope": "identity"},
     {"match": "ir_attachment*", "scope": "attachments"},
     {"match": "ir_filters*", "scope": "preferences"},

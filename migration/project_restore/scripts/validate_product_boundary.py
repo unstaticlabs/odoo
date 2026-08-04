@@ -3,16 +3,20 @@
 import json
 
 
-migration_module = env["ir.module.module"].sudo().search(
-    [("name", "=", "usl_project_restore")],
-    limit=1,
+migration_modules = env["ir.module.module"].sudo().search(
+    [("name", "in", ["usl_identity_restore", "usl_project_restore"])],
 )
-if migration_module and migration_module.state not in {"uninstalled", "uninstallable"}:
+active_migration_modules = migration_modules.filtered(
+    lambda module: module.state not in {"uninstalled", "uninstallable"},
+)
+if active_migration_modules:
     raise RuntimeError(
-        f"Migration module remains active: {migration_module.state}.",
+        "Migration modules remain active: "
+        f"{sorted((module.name, module.state) for module in active_migration_modules)}.",
     )
 
 forbidden_models = {
+    "usl.identity.restore.run",
     "usl.project.restore.run",
     "usl.project.restore.issue",
 }
@@ -37,6 +41,10 @@ business_models = {
     "mail.tracking.value",
     "mail.alias",
     "mail.followers",
+    "res.partner.bank",
+    "res.partner.category",
+    "res.partner.industry",
+    "res.users",
 }
 forbidden_fields = {
     "rebuild_source_database",
@@ -72,7 +80,7 @@ if remaining_field_metadata:
     )
 
 technical_xmlids = env["ir.model.data"].sudo().search_count(
-    [("module", "=", "usl_project_restore")],
+    [("module", "in", ["usl_identity_restore", "usl_project_restore"])],
 )
 if technical_xmlids:
     raise RuntimeError(
@@ -112,9 +120,9 @@ if "planned_date_begin" not in env["project.task"]._fields:
     raise RuntimeError("The operational Planned Start field is unavailable.")
 
 summary = {
-    "migration_module_state": (
-        migration_module.state if migration_module else "absent"
-    ),
+    "migration_module_states": {
+        module.name: module.state for module in migration_modules
+    },
     "migration_model_metadata": migration_model_metadata,
     "migration_models_loaded": 0,
     "migration_field_metadata": remaining_field_metadata,

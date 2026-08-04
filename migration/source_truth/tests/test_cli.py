@@ -65,6 +65,15 @@ class SourceTruthAuditCase(unittest.TestCase):
             "documents",
         )
         self.assertEqual(classify("x_custom_truth", contract["model_rules"]), "studio")
+        self.assertEqual(
+            classify("res.users.apikeys", contract["model_rules"]),
+            "credential_state",
+        )
+        self.assertEqual(
+            classify("res.users.settings", contract["model_rules"]),
+            "preferences",
+        )
+        self.assertEqual(classify("res.users", contract["model_rules"]), "identity")
         self.assertIsNone(classify("unknown.business.model", contract["model_rules"]))
 
     def test_filestore_verifies_checksum_and_reports_orphan(self):
