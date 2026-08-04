@@ -41,6 +41,10 @@ class AttachmentClassificationTest(unittest.TestCase):
             {item["kind"] for item in actions},
             {"restore_operational_attachment", "archive_document_original"},
         )
+        self.assertEqual(
+            {item["state"] for item in actions},
+            {"implemented"},
+        )
 
     def test_only_high_resolution_image_is_restored(self):
         primary = self.classify(
@@ -56,7 +60,7 @@ class AttachmentClassificationTest(unittest.TestCase):
     def test_orphan_binary_is_never_silently_dropped(self):
         actions = self.classify({})
         self.assertEqual(actions[0]["kind"], "archive_unassigned_evidence")
-        self.assertEqual(actions[0]["state"], "pending")
+        self.assertEqual(actions[0]["state"], "implemented")
 
     def test_generated_company_stylesheet_is_recomputed(self):
         actions = self.classify({"name": "res.company.scss", "mimetype": "text/scss"})

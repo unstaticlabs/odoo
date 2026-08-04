@@ -43,6 +43,14 @@ class FakeDatabase:
                 "table_exists": True,
                 "record_count": 2,
             },
+            {
+                "model": "knowledge.article",
+                "table_name": "knowledge_article",
+                "owner_module": "knowledge",
+                "transient": False,
+                "table_exists": True,
+                "record_count": 1,
+            },
         ]
 
     def tables(self):
@@ -50,6 +58,7 @@ class FakeDatabase:
             {"table_name": "account_move", "record_count": 3},
             {"table_name": "documents_document", "record_count": 2},
             {"table_name": "document_tag_rel", "record_count": 1},
+            {"table_name": "knowledge_article", "record_count": 1},
         ]
 
     def attachments(self):
@@ -126,7 +135,7 @@ class SourceTruthAuditCase(unittest.TestCase):
             self.assertFalse(inventory["summary"]["complete"])
             self.assertEqual(
                 inventory["blocking"]["incomplete_populated_scopes"],
-                ["documents"],
+                ["knowledge"],
             )
 
     def test_invalid_contract_is_rejected(self):

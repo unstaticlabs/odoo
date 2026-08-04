@@ -15,7 +15,8 @@ The input is the preserved Odoo Online package:
 - the source filestore is mounted read-only;
 - regulatory live flags remain `0` throughout reconstruction;
 - private inventories, paths, checksums, and record evidence are written below
-  ignored `artifacts/migration/private/`;
+  ignored `artifacts/migration/private/` or the dump-bound
+  `accounting_compat/private/snapshots/source-*/evidence/` directory;
 - no shared Docker project is selected implicitly. Set an isolated Compose
   project or an exact source container.
 
@@ -102,8 +103,11 @@ stored references pass path, size, and SHA-1 compatibility checks. There are no
 unowned rows. Accounting and Projects already restore their scoped evidence.
 Identity, Product Master, and HR restore all 32 high-resolution user-authored
 images byte-for-byte through native ORM fields; Odoo regenerates their smaller
-variants. Remaining Paperless, Sign, Knowledge, preference, AI, and
-collaboration actions keep the attachment gate blocked.
+variants. The Documents stage archives every legacy Documents original and
+unassigned enterprise evidence file through the supported Paperless API, with
+byte-for-byte read-back and preview checks. Sign, Knowledge, preference, AI,
+and collaboration actions continue to keep the attachment gate blocked until
+their own stages pass.
 
 ## Deterministic reconstruction
 
@@ -126,12 +130,52 @@ the audit found 214 populated persistent models and 90 populated relation or
 unmapped tables. It verified 2,312 referenced filestore objects across 1,774
 files without an integrity error.
 
-Accounting, global identity, Product Master, HR, and Projects have implemented
-translation stages.
+Accounting, global identity, Product Master, HR, Projects, and the Paperless
+Documents archive have implemented translation stages.
 The gate remains blocked—correctly—on collaboration history, unscoped
-attachments, Documents, Knowledge, Sign, user preferences,
+attachments, Knowledge, Sign, user preferences,
 sales/marketing configuration, Studio data, and source AI
 configuration. These are engineering migration gaps, not approved exclusions.
+
+### Documents archive stage
+
+`make documents-restore` installs the delivered Documents modules and replays
+the complete source Documents perimeter into a separately managed Paperless
+3.0.4 archive. It is not a filestore copy:
+
+- one root is created per exact binary checksum, while every duplicate source
+  identity remains in the sealed migration manifest;
+- source tags, correspondent Contacts, folder paths, access policy, lifecycle,
+  company, accounting links, inactive state, and originals are preserved or
+  explicitly translated;
+- legacy public bearer links are revoked by policy and only their hashes remain
+  in private evidence;
+- Paperless originals are downloaded and SHA-256 verified; received PDFs and
+  generated searchable representations must preview as valid PDFs, while other
+  supported formats must return a non-empty typed preview; API v10 and actual
+  permission read-back must pass, and successful
+  runs may not add an Odoo binary attachment;
+- the three qualified text containers rejected by Paperless 3.0.4—the generated
+  FEC ZIP, an accounting XML, and calendar evidence—remain byte-for-byte Odoo
+  operational attachments and are checksum-linked to deterministic, searchable
+  PDF archive representations;
+- unsupported files are retained byte-for-byte in a visible failed migration
+  quarantine and keep the stage blocked.
+
+The runner defaults to the isolated `codex-migration-full` project and
+Paperless port `28010`; it refuses the development/QA projects and reserved
+ports. A second run must reuse every checksum root and relationship. Complete
+run evidence is dump-SHA-bound and stored outside the delivered database.
+
+The qualified full import and full validation each reconciled 567 source
+Documents identities and 9 unassigned evidence files into 548 checksum roots,
+with 0 failures, 9 roots in Trash, and 363 active business links. Both produced
+the sealed evidence SHA-256
+`554c3cecb791b80ce5e8bd59dbd969162ca08b83f931094cce3eecd7da453e2c`.
+Paperless's archive sanity checker reported no integrity error. Browser
+acceptance rendered both pages of an actual restored PDF, followed its restored
+vendor-bill link, and verified that the native Odoo search facet and selected
+document survive returning from that record.
 
 The HR stage restores the full native Community perimeter: employees, their
 original high-resolution images, all

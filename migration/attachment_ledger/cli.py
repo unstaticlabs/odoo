@@ -252,8 +252,8 @@ def classify_attachment(
             action(
                 "archive_document_original",
                 "documents",
-                "pending",
-                "one or more source Documents records identify this attachment as their original",
+                "implemented",
+                "the Documents archive stage verifies the exact original and preserves every source identity in sealed evidence",
             ),
         )
 
@@ -316,8 +316,8 @@ def classify_attachment(
                 action(
                     "archive_unassigned_evidence",
                     "documents",
-                    "pending",
-                    "unassigned source files are preserved in Needs review instead of being discarded",
+                    "implemented",
+                    "the Documents archive stage preserves unassigned source files in Needs review and verifies their archive bytes",
                 ),
             )
         else:

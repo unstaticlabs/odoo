@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:-codex-migration-full}"
+target_database="${DOCUMENTS_TARGET_DATABASE-odoo_dev}"
+source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_2}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+paperless_port="${DOCUMENTS_MIGRATION_PAPERLESS_PORT:-28010}"
+odoo_port="${DOCUMENTS_MIGRATION_ODOO_PORT:-28080}"
+odoo_gevent_port="${DOCUMENTS_MIGRATION_ODOO_GEVENT_PORT:-28072}"
+migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/hr-migration-addons"
+
+case "$compose_project" in
+    codex-migration-?*|usl-migration-?*) ;;
+    *)
+        echo "Refusing non-isolated Documents migration project $compose_project." >&2
+        exit 2
+        ;;
+esac
+case "$target_database" in
+    ""|odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native|*[!A-Za-z0-9_]*)
+        echo "Refusing unsafe Documents migration target $target_database." >&2
+        exit 2
+        ;;
+esac
+case "$paperless_port" in
+    8010|18010|8069|18080|*[!0-9]*)
+        echo "Refusing reserved or invalid migration port $paperless_port." >&2
+        exit 2
+        ;;
+esac
+case "$odoo_port:$odoo_gevent_port" in
+    8069:*|18080:*|*:8072|*:18072|*[!0-9:]*)
+        echo "Refusing reserved or invalid migration Odoo ports $odoo_port/$odoo_gevent_port." >&2
+        exit 2
+        ;;
+esac
+if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+    echo "Source dump or filestore is missing under $source_dump_dir." >&2
+    exit 2
+fi
+source_dump_dir="$(cd "$source_dump_dir" && pwd -P)"
+source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
+source_snapshot="source-${source_sha256:0:12}"
+
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export PAPERLESS_HTTP_PORT="$paperless_port"
+export PAPERLESS_PUBLIC_URL="http://127.0.0.1:$paperless_port"
+export PAPERLESS_ALLOWED_HOSTS="localhost,127.0.0.1,paperless-webserver"
+export PAPERLESS_CORS_ALLOWED_HOSTS="http://127.0.0.1:$paperless_port"
+export PAPERLESS_CSRF_TRUSTED_ORIGINS="http://127.0.0.1:$paperless_port"
+export PAPERLESS_EMPTY_TRASH_DELAY=36500
+export ODOO_HTTP_PORT="$odoo_port"
+export ODOO_GEVENT_PORT="$odoo_gevent_port"
+export ODOO_DB_NAME="$target_database"
+export ODOO_DB_FILTER="^${target_database}$"
+export PAPERLESS_INTERNAL_URL=http://paperless-webserver:8000
+export USL_POCKET_ID_ENABLED=0
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+compose=(docker compose -p "$compose_project")
+
+validate_source() {
+    "${compose[@]}" --profile accounting-compat up -d --wait accounting-source-db db
+    "${compose[@]}" exec -T -e PGOPTIONS='-c default_transaction_read_only=on' \
+        accounting-source-db psql \
+        -U "${ACCOUNTING_SOURCE_POSTGRES_USER:-odoo}" \
+        -d "$source_database" -Atc \
+        "SELECT current_setting('transaction_read_only'), count(*) FROM documents_document" \
+        | grep -Eq '^on\|645$' || {
+            echo "The qualified source database is absent or has unexpected Documents truth." >&2
+            exit 1
+        }
+}
+
+start_archive() {
+    "${compose[@]}" --profile paperless up -d --wait --pull never \
+        paperless-preflight paperless-db paperless-broker paperless-trash-init \
+        paperless-gotenberg paperless-tika paperless-webserver
+}
+
+validate_runtime() {
+    local database_exists runtime_database runtime_filter
+    runtime_database="$(
+        "${compose[@]}" exec -T odoo \
+            sed -n 's/^db_name[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \
+            | tr -d '\r' | tail -n 1
+    )"
+    runtime_filter="$(
+        "${compose[@]}" exec -T odoo \
+            sed -n 's/^dbfilter[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf \
+            | tr -d '\r' | tail -n 1
+    )"
+    [[ -z "$runtime_database" || "$runtime_database" = "$target_database" ]] || {
+        echo "Migration Odoo runtime database mismatch: $runtime_database" >&2
+        return 1
+    }
+    [[ "$runtime_filter" = "^${target_database}$" ]] || {
+        echo "Migration Odoo runtime filter mismatch: $runtime_filter" >&2
+        return 1
+    }
+    database_exists="$(
+        "${compose[@]}" exec -T db psql \
+            -U "${ODOO_DB_USER:-odoo}" -d postgres -Atc \
+            "SELECT count(*) FROM pg_database WHERE datname = '$target_database'" \
+            | tail -n 1
+    )"
+    [[ "$database_exists" = 1 ]] || {
+        echo "Migration Odoo target database is absent: $target_database" >&2
+        return 1
+    }
+    curl --fail --silent "http://127.0.0.1:$odoo_port/web/health?db_server_status=1" >/dev/null
+    curl --fail --silent "http://127.0.0.1:$paperless_port/api/" >/dev/null
+    printf 'Migration Odoo: http://127.0.0.1:%s\n' "$odoo_port"
+    printf 'Migration Paperless: http://127.0.0.1:%s\n' "$paperless_port"
+}
+
+serve_target() {
+    start_archive
+    "${compose[@]}" up -d --wait --pull never odoo
+    validate_runtime
+}
+
+provision_archive_identity() {
+    local setup
+    setup="$(
+        "${compose[@]}" --profile paperless exec -T paperless-webserver \
+            python manage.py shell \
+            < migration/documents_archive/scripts/paperless_migration_access.py
+    )"
+    documents_paperless_token="$(sed -n 's/^DOCUMENTS_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
+    documents_paperless_service_user_id="$(
+        sed -n 's/^DOCUMENTS_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1
+    )"
+    if [[ -z "$documents_paperless_token" || ! "$documents_paperless_service_user_id" =~ ^[0-9]+$ ]]; then
+        echo "Could not provision the scoped Paperless migration identity." >&2
+        exit 1
+    fi
+}
+
+install_module() {
+    local operation="--init=usl_documents,usl_documents_accounting"
+    if [[ "$("${compose[@]}" exec -T db psql -U "${ODOO_DB_USER:-odoo}" \
+        -d "$target_database" -Atc \
+        "SELECT count(*) FROM ir_module_module WHERE name IN ('usl_documents','usl_documents_accounting') AND state='installed'" \
+        | tail -n 1)" = 2 ]]; then
+        operation="--update=usl_documents,usl_documents_accounting"
+    fi
+    "${compose[@]}" --profile project-migration run --rm \
+        -e ODOO_INIT_DB="$target_database" project-migration \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        "$operation" --without-demo=true --stop-after-init --log-level=warn
+}
+
+run_restore() {
+    local evidence_dir evidence_label restore_log restore_result restore_status
+    provision_archive_identity
+    evidence_dir="accounting_compat/private/snapshots/$source_snapshot/evidence"
+    evidence_label="full-${command_name}"
+    if [[ "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+        evidence_label="limit-${DOCUMENTS_RESTORE_LIMIT}-${command_name}"
+    fi
+    restore_log="$evidence_dir/documents-restore-$evidence_label.log"
+    restore_result="$evidence_dir/documents-restore-$evidence_label.json"
+    mkdir -p "$evidence_dir"
+    restore_status=0
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e DOCUMENTS_SOURCE_DB_HOST="${DOCUMENTS_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e DOCUMENTS_SOURCE_DB_PORT="${DOCUMENTS_SOURCE_DB_PORT:-5432}" \
+        -e DOCUMENTS_SOURCE_DB_USER="${DOCUMENTS_SOURCE_DB_USER:-odoo}" \
+        -e DOCUMENTS_SOURCE_DB_PASSWORD="${DOCUMENTS_SOURCE_DB_PASSWORD:-odoo}" \
+        -e DOCUMENTS_SOURCE_DATABASE="$source_database" \
+        -e DOCUMENTS_SOURCE_FILESTORE=/mnt/accounting-source/filestore \
+        -e DOCUMENTS_SOURCE_SNAPSHOT="$source_snapshot" \
+        -e DOCUMENTS_SOURCE_DUMP_SHA256="$source_sha256" \
+        -e DOCUMENTS_RESTORE_LIMIT="${DOCUMENTS_RESTORE_LIMIT:-0}" \
+        -e DOCUMENTS_RESTORE_MAX_IN_FLIGHT="${DOCUMENTS_RESTORE_MAX_IN_FLIGHT:-16}" \
+        -e DOCUMENTS_RESTORE_TIMEOUT="${DOCUMENTS_RESTORE_TIMEOUT:-7200}" \
+        -e DOCUMENTS_PAPERLESS_URL=http://paperless-webserver:8000 \
+        -e DOCUMENTS_PAPERLESS_PUBLIC_URL="http://127.0.0.1:$paperless_port" \
+        -e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token" \
+        -e DOCUMENTS_PAPERLESS_SERVICE_USER_ID="$documents_paperless_service_user_id" \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/source_documents_restore.py \
+        | tee "$restore_log" \
+        || restore_status=${PIPESTATUS[0]}
+    if ((restore_status != 0)); then
+        return "$restore_status"
+    fi
+    python3 migration/documents_archive/evidence.py "$restore_log" "$restore_result"
+}
+
+case "$command_name" in
+    install)
+        validate_source
+        start_archive
+        install_module
+        ;;
+    import|validate)
+        validate_source
+        start_archive
+        run_restore
+        ;;
+    all)
+        validate_source
+        start_archive
+        install_module
+        run_restore
+        scripts/check-product-migration-boundary
+        ;;
+    serve)
+        "${compose[@]}" --profile accounting-compat up -d --wait db
+        serve_target
+        ;;
+    status)
+        "${compose[@]}" ps
+        validate_runtime
+        ;;
+    *)
+        echo "Usage: scripts/documents-restore [install|import|validate|all|serve|status]" >&2
+        exit 2
+        ;;
+esac
