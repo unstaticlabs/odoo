@@ -13,39 +13,13 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 export COMPOSE_IGNORE_ORPHANS=1
 
-compose_project="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-2}}"
-if [[ "${ODOO_DEV_REQUIRE_ISOLATED_PROJECT:-0}" == "1" \
-    && "$compose_project" != usl-odoo-fp-* ]]; then
-  printf 'Refusing non-isolated reconstruction project: %s\n' "$compose_project" >&2
-  exit 2
-fi
-
-verify_compose_scope() {
-  local container_id project_label working_dir_label
-  while IFS= read -r container_id; do
-    [[ -z "$container_id" ]] && continue
-    project_label="$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "$container_id")"
-    working_dir_label="$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' "$container_id")"
-    if [[ "$project_label" != "$compose_project" || "$working_dir_label" != "$ROOT" ]]; then
-      printf 'Compose scope mismatch on container %s.\n' "$container_id" >&2
-      return 2
-    fi
-  done < <(docker ps -aq --filter "label=com.docker.compose.project=$compose_project")
-}
-
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
 stop_product() {
-  verify_compose_scope
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
-}
-
-start_product_database() {
-  verify_compose_scope
-  docker compose -p "$compose_project" up -d --wait db
 }
 
 stop_product
 scripts/sync-oca-addons
-start_product_database
 scripts/accounting-compat dev-reset
 stop_product
 scripts/accounting-compat dev-import

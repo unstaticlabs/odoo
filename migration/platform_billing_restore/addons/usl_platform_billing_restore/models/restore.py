@@ -1587,9 +1587,8 @@ class UslPlatformBillingRestoreRun(models.Model):
             SOURCE_DUMP_SHA256,
         )
         if source_dump_sha256 not in APPROVED_SOURCE_DUMP_SHA256S:
-            raise RuntimeError(
-                "The Platform Billing source dump SHA-256 is not approved.",
-            )
+            message = "The Platform Billing source dump SHA-256 is not approved."
+            raise RuntimeError(message)
         payload = PlatformBillingSourceReader(options).read()
         run = env["usl.platform.billing.restore.run"].create(
             {

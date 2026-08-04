@@ -32,7 +32,6 @@ class OdooTestHarnessTest(unittest.TestCase):
             1,
         )[0]
 
-        self.assertIn('"${COMPOSE[@]}" build odoo', test_module)
         self.assertIn('"${COMPOSE[@]}" --profile test build test', test_module)
         self.assertIn('"${COMPOSE[@]}" --profile test run --rm', test_module)
         self.assertIn('-e ODOO_INIT_DB="$database"', test_module)
@@ -58,6 +57,34 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn("test \\", test_restore)
         self.assertNotIn("platform-billing-migration \\", test_restore)
 
+    def test_platform_qa_helpers_require_an_isolated_compose_project(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
+            encoding="utf-8",
+        )
+        scope_guard = helper.split(
+            "\nverify_platform_billing_qa_scope() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        audit_helper = helper.split(
+            "\naudit_platform_billing_qa() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        bootstrap_helper = helper.split(
+            "\nbootstrap_platform_billing_qa() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+
+        self.assertIn('"$COMPOSE_PROJECT" != usl-odoo-fp-*', scope_guard)
+        self.assertIn('"${COMPOSE_PROJECT_NAME:-}"', scope_guard)
+        self.assertIn("com.docker.compose.project.working_dir", scope_guard)
+        self.assertGreaterEqual(audit_helper.count("platform_billing_compose"), 3)
+        self.assertIn("verify_platform_billing_qa_scope", audit_helper)
+        self.assertGreaterEqual(
+            bootstrap_helper.count("platform_billing_compose"),
+            3,
+        )
+        self.assertIn("verify_platform_billing_qa_scope", bootstrap_helper)
+
     def test_dev_lifecycle_disables_automatic_tours(self):
         helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
             encoding="utf-8",
@@ -76,7 +103,6 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"$ROOT/scripts/odoo/disable_dev_tours.py"', helper)
         self.assertIn("disable-tours:", makefile)
         self.assertIn("scripts/odoo-dev disable-tours", finalizer)
-        self.assertIn('${ODOO_HTTP_PORT:-8069}', finalizer)
         self.assertIn('users.write({"tour_enabled": False})', disable_helper)
         self.assertNotIn("user_consumed_ids", disable_helper)
         self.assertNotIn("Command.link", disable_helper)

@@ -6,13 +6,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
+COMPOSE=(docker compose -p "$COMPOSE_PROJECT")
 DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
 DEV_MODULE="${ODOO_DEV_MODULE:-rebuild_account_migration}"
-if [[ "${ODOO_DEV_REQUIRE_ISOLATED_PROJECT:-0}" == "1" \
-      && "$COMPOSE_PROJECT" != usl-odoo-fp-* ]]; then
-  printf 'Refusing non-isolated development project: %s\n' "$COMPOSE_PROJECT" >&2
-  exit 2
-fi
 case "$DEV_DB" in
   ""|*[!A-Za-z0-9_]*)
     printf 'Refusing unsafe development database name: %s\n' "$DEV_DB" >&2
@@ -22,77 +18,23 @@ esac
 export ODOO_INIT_DB="$DEV_DB"
 export ODOO_DB_FILTER="^${DEV_DB}$"
 
-verify_compose_scope() {
-  if [[ "$PWD" != "$ROOT" ]]; then
-    printf 'Docker operation refused outside %s.\n' "$ROOT" >&2
-    return 2
-  fi
-  local container_id project_label working_dir_label
-  while IFS= read -r container_id; do
-    [[ -z "$container_id" ]] && continue
-    project_label="$(
-      docker inspect \
-        --format '{{ index .Config.Labels "com.docker.compose.project" }}' \
-        "$container_id"
-    )"
-    working_dir_label="$(
-      docker inspect \
-        --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' \
-        "$container_id"
-    )"
-    if [[ "$project_label" != "$COMPOSE_PROJECT" \
-          || "$working_dir_label" != "$ROOT" ]]; then
-      printf 'Compose scope mismatch on container %s.\n' "$container_id" >&2
-      printf 'Expected project=%s working_dir=%s.\n' \
-        "$COMPOSE_PROJECT" "$ROOT" >&2
-      return 2
-    fi
-  done < <(
-    docker ps -aq \
-      --filter "label=com.docker.compose.project=$COMPOSE_PROJECT"
-  )
-}
-
-compose() {
-  verify_compose_scope
-  docker compose -p "$COMPOSE_PROJECT" "$@"
-}
-
-COMPOSE=(compose)
-
 is_canonical_target() {
   [[ "$DEV_DB" == "odoo_dev" ]]
 }
 
 restore_development_runtime() {
   if is_canonical_target; then
-    pocket_id_dev start-runtime
+    "$ROOT/scripts/pocket-id-dev" start-runtime
   else
     "${COMPOSE[@]}" up -d --wait odoo
     print_url
   fi
 }
 
-pocket_id_dev() {
-  verify_compose_scope
-  if [[ "${ODOO_DEV_REQUIRE_ISOLATED_PROJECT:-0}" == "1" ]]; then
-    if [[ -z "${USL_POCKET_ID_DEV_POCKET_PORT:-}" ]]; then
-      printf 'Isolated Pocket ID requires USL_POCKET_ID_DEV_POCKET_PORT.\n' >&2
-      return 2
-    fi
-    export POCKET_ID_ENV_FILE="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id-${COMPOSE_PROJECT}.env}"
-    export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT"
-    export USL_POCKET_ID_DEV_ODOO_DB="$DEV_DB"
-    export USL_POCKET_ID_DEV_ODOO_PORT="${ODOO_HTTP_PORT:-8069}"
-    export USL_POCKET_ID_DEV_GEVENT_PORT="${ODOO_GEVENT_PORT:-8072}"
-  fi
-  "$ROOT/scripts/pocket-id-dev" "$@"
-}
-
 verify_runtime_database_filter() {
   local runtime_filter
   runtime_filter="$(
-    compose exec -T odoo sh -lc \
+    "${COMPOSE[@]}" exec -T odoo sh -lc \
       "sed -n 's/^dbfilter[[:space:]]*=[[:space:]]*//p' /etc/odoo/odoo.conf" \
       | tr -d '\r' \
       | tail -n 1
@@ -108,7 +50,7 @@ verify_runtime_database_filter() {
 print_url() {
   local published_port
   verify_runtime_database_filter
-  published_port="$(compose port odoo 8069 2>/dev/null | tail -n 1)"
+  published_port="$("${COMPOSE[@]}" port odoo 8069 2>/dev/null | tail -n 1)"
   published_port="${published_port##*:}"
   published_port="${published_port:-8069}"
   printf '\nDevelopment environment: http://localhost:%s/web/login?db=%s\n' \
@@ -130,7 +72,7 @@ deploy() {
     update_modules="usl_accounting,rebuild_account_migration"
   fi
   if is_canonical_target; then
-    pocket_id_dev configure-odoo "$update_modules"
+    "$ROOT/scripts/pocket-id-dev" configure-odoo "$update_modules"
     disable_dev_tours
     return
   fi
@@ -155,17 +97,62 @@ run_with_odoo_stopped() {
   local service="$2"
   shift 2
   local status=0
-  compose up -d --wait db
-  compose stop odoo >/dev/null 2>&1 || true
-  compose --profile "$profile" run --rm \
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile "$profile" run --rm \
     -e ODOO_INIT_DB="$DEV_DB" "$service" "$@" || status=$?
   restore_development_runtime
   return "$status"
 }
 
+verify_platform_billing_qa_scope() {
+  if [[ "$COMPOSE_PROJECT" != usl-odoo-fp-* ]]; then
+    printf \
+      'Platform Billing QA requires a dedicated usl-odoo-fp-* project; got %s.\n' \
+      "$COMPOSE_PROJECT" >&2
+    return 2
+  fi
+  if [[ "${COMPOSE_PROJECT_NAME:-}" != "$COMPOSE_PROJECT" ]]; then
+    printf \
+      'Platform Billing QA requires COMPOSE_PROJECT_NAME=%s for Pocket ID; got %s.\n' \
+      "$COMPOSE_PROJECT" "${COMPOSE_PROJECT_NAME:-<unset>}" >&2
+    return 2
+  fi
+
+  local container_id project_label working_dir_label
+  while IFS= read -r container_id; do
+    [[ -z "$container_id" ]] && continue
+    project_label="$(
+      docker inspect --format \
+        '{{ index .Config.Labels "com.docker.compose.project" }}' \
+        "$container_id"
+    )"
+    working_dir_label="$(
+      docker inspect --format \
+        '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' \
+        "$container_id"
+    )"
+    if [[ "$project_label" != "$COMPOSE_PROJECT" \
+        || "$working_dir_label" != "$ROOT" ]]; then
+      printf \
+        'Platform Billing QA scope mismatch on container %s.\n' \
+        "$container_id" >&2
+      return 2
+    fi
+  done < <(
+    docker ps -aq \
+      --filter "label=com.docker.compose.project=$COMPOSE_PROJECT"
+  )
+}
+
+platform_billing_compose() {
+  verify_platform_billing_qa_scope
+  "${COMPOSE[@]}" "$@"
+}
+
 test_js() {
   local module="${1:-$DEV_MODULE}"
-  compose --profile test build test
+  "${COMPOSE[@]}" --profile test build test
   run_with_odoo_stopped test test odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" \
@@ -186,40 +173,26 @@ test_tag() {
     --log-level=test
 }
 
-export_i18n() {
-  local module="${1:?Usage: scripts/odoo-dev export-i18n MODULE}"
-  case "$module" in
-    ""|*[!A-Za-z0-9_]*)
-      printf 'Refusing unsafe module name: %s\n' "$module" >&2
-      return 2
-      ;;
-  esac
-  compose --profile test build test
-  run_with_odoo_stopped test test odoo i18n export \
-    --config=/etc/odoo/odoo.conf \
-    --database="$DEV_DB" \
-    "$module"
-}
-
 audit_platform_billing_qa() {
   local status=0
-  compose up -d --wait db
-  compose stop odoo >/dev/null 2>&1 || true
-  compose --profile init run --rm -T \
+  platform_billing_compose up -d --wait db
+  platform_billing_compose stop odoo >/dev/null 2>&1 || true
+  platform_billing_compose --profile init run --rm -T \
     -e ODOO_INIT_DB="$DEV_DB" \
     init-db odoo shell \
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" < "$ROOT/scripts/odoo/platform_billing_qa_audit.py" \
     || status=$?
+  verify_platform_billing_qa_scope
   restore_development_runtime
   return "$status"
 }
 
 bootstrap_einvoice_qa() {
   local status=0
-  compose up -d --wait db
-  compose stop odoo >/dev/null 2>&1 || true
-  compose --profile init run --rm -T \
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
     -e ODOO_INIT_DB="$DEV_DB" \
     -e USL_EINVOICE_QA_BOOTSTRAP=1 \
     init-db odoo shell \
@@ -237,15 +210,16 @@ bootstrap_einvoice_qa() {
 
 bootstrap_platform_billing_qa() {
   local status=0
-  compose up -d --wait db
-  compose stop odoo >/dev/null 2>&1 || true
-  compose --profile init run --rm -T \
+  platform_billing_compose up -d --wait db
+  platform_billing_compose stop odoo >/dev/null 2>&1 || true
+  platform_billing_compose --profile init run --rm -T \
     -e ODOO_INIT_DB="$DEV_DB" \
     -e USL_PLATFORM_BILLING_QA_BOOTSTRAP=1 \
     init-db odoo shell \
     --config=/etc/odoo/odoo.conf \
     --database="$DEV_DB" < "$ROOT/scripts/odoo/platform_billing_qa_bootstrap.py" \
     || status=$?
+  verify_platform_billing_qa_scope
   restore_development_runtime
   if ((status)); then
     return "$status"
@@ -261,7 +235,7 @@ bootstrap_platform_billing_qa() {
 configure_pocket_id() {
   local status=0
   if is_canonical_target; then
-    pocket_id_dev configure-odoo usl_pocketid
+    "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
     return
   fi
   if [[ -z "${ODOO_DEV_DB:-}" \
@@ -317,12 +291,12 @@ cleanup_test_database() {
       return 2
       ;;
   esac
-  compose up -d --wait db
-  compose exec -T \
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" exec -T \
     -e TEST_DATABASE="$database" \
     db sh -c \
     'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
-  compose --profile init run --rm \
+  "${COMPOSE[@]}" --profile init run --rm \
     --entrypoint sh \
     -e TEST_DATABASE="$database" \
     init-db -c '
@@ -336,7 +310,6 @@ cleanup_test_database() {
 
 cleanup_test_container() {
   local container="$1"
-  verify_compose_scope
   docker rm --force "$container" >/dev/null 2>&1 || true
 }
 
@@ -368,7 +341,6 @@ test_module() {
   esac
   container="${COMPOSE_PROJECT}-test-${database}"
   trap 'finish_module_test "$database" "$container"' EXIT INT TERM
-  "${COMPOSE[@]}" build odoo
   "${COMPOSE[@]}" --profile test build test
   cleanup_test_container "$container"
   cleanup_test_database "$database"
@@ -392,11 +364,11 @@ test_module() {
 
 case "${1:-help}" in
   build)
-    compose build "${@:2}"
+    "${COMPOSE[@]}" build "${@:2}"
     ;;
   start)
     if is_canonical_target; then
-      pocket_id_dev configure-odoo usl_pocketid
+      "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
     else
       "${COMPOSE[@]}" up -d --wait db odoo
     fi
@@ -407,26 +379,26 @@ case "${1:-help}" in
     deploy "${2:-$DEV_MODULE}"
     ;;
   rebuild)
-    compose build odoo
+    "${COMPOSE[@]}" build odoo
     deploy "${2:-$DEV_MODULE}"
     ;;
   stop)
     if is_canonical_target; then
-      pocket_id_dev stop-stack
+      "$ROOT/scripts/pocket-id-dev" stop-stack
     else
       "${COMPOSE[@]}" down
     fi
     ;;
   restart)
     if is_canonical_target; then
-      pocket_id_dev start-runtime
+      "$ROOT/scripts/pocket-id-dev" start-runtime
     else
       "${COMPOSE[@]}" restart "${@:2}"
     fi
     ;;
   logs)
     if is_canonical_target; then
-      pocket_id_dev logs "${@:2}"
+      "$ROOT/scripts/pocket-id-dev" logs "${@:2}"
     else
       "${COMPOSE[@]}" logs -f "${@:2}"
     fi
@@ -435,11 +407,11 @@ case "${1:-help}" in
     "${COMPOSE[@]}" build odoo
     "${COMPOSE[@]}" --profile init run --rm init-db
     if is_canonical_target; then
-      pocket_id_dev configure-odoo usl_pocketid
+      "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
     fi
     ;;
   shell)
-    compose --profile devcontainer run --rm devcontainer bash
+    "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer bash
     ;;
   test)
     module="${2:-base}"
@@ -451,9 +423,6 @@ case "${1:-help}" in
     ;;
   test-tag)
     test_tag "${2:?Usage: scripts/odoo-dev test-tag TEST_TAG}"
-    ;;
-  export-i18n)
-    export_i18n "${2:?Usage: scripts/odoo-dev export-i18n MODULE}"
     ;;
   audit-platform-billing)
     audit_platform_billing_qa
@@ -474,21 +443,21 @@ case "${1:-help}" in
     bootstrap_immediate_settlement_qa
     ;;
   ruff)
-    compose --profile devcontainer run --rm devcontainer ruff check "${@:2}"
+    "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
   reset)
     if is_canonical_target; then
-      pocket_id_dev stop-stack
+      "$ROOT/scripts/pocket-id-dev" stop-stack
     fi
     "${COMPOSE[@]}" down --volumes --remove-orphans
     ;;
   update)
-    compose pull db
-    compose build --pull
+    "${COMPOSE[@]}" pull db
+    "${COMPOSE[@]}" build --pull
     ;;
   ps)
     if is_canonical_target; then
-      pocket_id_dev status
+      "$ROOT/scripts/pocket-id-dev" status
     else
       "${COMPOSE[@]}" ps
     fi
@@ -510,10 +479,8 @@ Commands:
   test [mod]   Run full backend/browser tests for a module
   test-js [mod] Run one module's frontend unit tests on odoo_dev
   test-tag TAG  Run one installed backend/browser test tag on odoo_dev
-  export-i18n MODULE
-                Export one installed module's English translation template
   audit-platform-billing
-                Audit the restored platform-billing QA database
+                Audit the restored Platform Billing QA database
   bootstrap-einvoice-qa
                 Prepare safe e-invoicing QA data and local test accounts
   bootstrap-platform-billing-qa

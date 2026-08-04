@@ -23,7 +23,7 @@ the exact revision used and rejects every unapproved hash.
 
 ## Isolation
 
-Use a dedicated Compose project such as `usl-odoo-fp-24ee`, dedicated volumes,
+Use a dedicated Compose project such as `usl-odoo-fp-qa`, dedicated volumes,
 and free ports such as `19469/19472`. The harness refuses any project name that
 does not start with `usl-odoo-fp-`. It verifies the repository working
 directory and Compose labels before operations.
@@ -43,9 +43,9 @@ accidental fallback to the canonical Compose project, while
 working-directory labels before every Compose operation.
 
 ```bash
-export COMPOSE_PROJECT_NAME=usl-odoo-fp-24ee
-export ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-fp-24ee
-export ACCOUNTING_COMPAT_COMPOSE_PROJECT=usl-odoo-fp-24ee
+export COMPOSE_PROJECT_NAME=usl-odoo-fp-qa
+export ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-fp-qa
+export ACCOUNTING_COMPAT_COMPOSE_PROJECT=usl-odoo-fp-qa
 export ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT=1
 export ACCOUNTING_COMPAT_VERIFY_COMPOSE_SCOPE=1
 export ACCOUNTING_COMPAT_SOURCE_DIR=/Users/valentin/Code/odoo/usl-online-dump
@@ -103,17 +103,18 @@ candidates are regenerated from operational bank statement lines.
 
 ## Rehearsal evidence
 
-The 2026-07-30 isolated rehearsal passed on both the exact validation database
-and `odoo_dev`. Each target restored 4 platforms, 3 sessions, 31 payouts and
-links to all 51 generated moves; 72 legacy candidate rows were excluded. Two
-successive imports produced application digest
-`ca766eff52149a543a2e243de08772d47f2b09389122b87d805355980b939b60`.
-Finalization preserved the business counts and digest, uninstalled the
-temporary module and left no migration residue.
+The 2026-08-04 isolated `odoo_dev` rehearsal passed from the current approved
+source export. It restored 4 platforms, 3 sessions, 31 payouts and links to all
+51 generated moves; 72 legacy candidate rows were excluded. Two successive
+imports produced application digest
+`4ef18172a624fd3f8f456a7aa0d437681c38f401f82b372969c62c124db92916`.
+Finalization preserved the 4/3/31/51 business counts and final-product digest,
+uninstalled the temporary module and left no migration residue.
 
-The exact Accounting target contained 5,044 moves, 11,871 lines, 414 verified
-attachments, 3,046 bank lines and 3,844 reconciliations. The original posted
-benchmark slice remained balanced at debit and credit `1,064,045.02`.
+The reconstructed Accounting target contained 5,067 moves, 11,941 lines,
+3,062 bank transactions, 2,595 partial reconciliations and 1,267 full
+reconciliations. The original posted benchmark slice remained balanced at
+debit and credit `1,064,045.02`; no posted move was unbalanced.
 
 ## Acceptance
 

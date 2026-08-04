@@ -2,11 +2,11 @@
 
 Status: accepted architecture decision  
 Baseline: Odoo Community `saas~19.2` at
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`
 
 ## Decision
 
-USL keeps one Odoo Distribution repository. Odoo core, the exact OCA
+USL keeps one forked distribution repository. Odoo core, the exact OCA
 integration pins, the isolated USL add-ons, deployment code, reconstruction
 harness and durable specifications must evolve together for a release to be
 reproducible. Splitting those concerns into separate distribution repositories
@@ -17,7 +17,7 @@ Runtime ownership inside the repository follows this order:
 1. native Odoo Community;
 2. maintained OCA functionality;
 3. isolated USL add-ons;
-4. a distribution-level core patch only when no stable extension point exists.
+4. a fork-level Odoo patch only when no stable extension point exists.
 
 The verified production add-on dependency direction is:
 
@@ -72,13 +72,6 @@ not have equivalent Community/OCA replacements on the pinned baseline.
 Replacing them during a structural refactor would be a product redesign and
 is therefore rejected.
 
-The e-invoice boundary deliberately remains thin: native Odoo owns UBL/CII/
-Factur-X decoding, Approved Platform registration, draft vendor bills and
-approval/refusal responses. The compatibility module owns the business
-readiness state, non-polluting self-check, company enablement, evidence access
-and external-call guards. Global cron state is never used as company
-configuration.
-
 ### Reassign all XML IDs to the new modules
 
 This would make the source tree look cleaner, but it changes uninstall
@@ -131,8 +124,8 @@ menus.
   `usl_accounting`; no ownership transfer is required.
 - Source parity and target environment policy are separate. Odoo Online has no
   Pocket ID state; canonical `odoo_dev` receives SSO only after imported
-  Accounting and Projects data pass their controls and temporary migration
-  modules are removed.
+  Accounting, Projects and Platform Billing data pass their controls and
+  temporary migration modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or

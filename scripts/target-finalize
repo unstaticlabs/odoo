@@ -16,11 +16,10 @@ if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
 fi
 
 scripts/check-product-migration-boundary
-scripts/odoo-dev deploy rebuild_account_migration
+scripts/pocket-id-dev configure-odoo rebuild_account_migration
 scripts/odoo-dev disable-tours
 scripts/check-product-migration-boundary
 
 printf '\nCanonical target finalized: odoo_dev\n'
-printf 'Product URL: http://odoo.localhost:%s/web/login?db=odoo_dev\n' \
-  "${ODOO_HTTP_PORT:-8069}"
+printf 'Product URL: http://odoo.localhost:8069/web/login?db=odoo_dev\n'
 printf 'Local login link: scripts/pocket-id-dev one-time-link valentin\n'

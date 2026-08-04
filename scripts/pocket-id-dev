@@ -16,15 +16,6 @@ load_environment() {
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
-  if [[ "${ODOO_DEV_REQUIRE_ISOLATED_PROJECT:-0}" == "1" ]]; then
-    expected_project="${ODOO_SAAS_COMPOSE_PROJECT:-}"
-    if [[ -z "$expected_project" \
-        || "$expected_project" != usl-odoo-fp-* \
-        || "$COMPOSE_PROJECT_NAME" != "$expected_project" ]]; then
-      printf 'Refusing Pocket ID outside the selected isolated project.\n' >&2
-      return 2
-    fi
-  fi
   if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
       || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
     printf 'Refusing Pocket ID while a live regulatory guard is enabled.\n' >&2

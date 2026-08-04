@@ -1,10 +1,9 @@
-# Unstatic Labs Odoo Distribution
+# Unstatic Labs Odoo Community fork
 
-This repository defines the USL Odoo Distribution: a versioned, deployable
-assembly of Odoo Community `saas~19.2`, pinned OCA dependencies, isolated USL
-modules, runtime configuration, migration tooling, tests and documentation.
-Two documented distribution-level core patches remain where no stable
-extension point exists.
+This repository is Unstatic Labs’ production-oriented Accounting product on
+Odoo Community `saas~19.2`. It extends upstream through isolated modules under
+`custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
+unchanged.
 
 Accounting v1 provides the daily cockpit for journals, invoices, bills,
 expenses, payments, bank transactions and reconciliation, plus assets,
@@ -15,10 +14,9 @@ configuring or locking records.
 
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
-inactive**: its self-check leaves no synthetic accounting records, and no
-directory registration, production provider connection or reception may be
-enabled before deliberate production activation. E-reporting is a separate
-disabled rollout.
+inactive**: no directory registration, production provider endpoint, scheduled
+reception or e-reporting may be enabled before the deliberate production
+activation procedure is approved.
 
 Primary entry points:
 
@@ -29,8 +27,6 @@ Primary entry points:
 - `/usl/user-docs` for role- and task-based user guidance;
 - `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` for the
   production reception switch and rollback checklist;
-- `/usl/user-docs/how-to/review-incoming-electronic-invoice.md` for the normal
-  vendor-bill review and exception journey;
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
@@ -41,7 +37,7 @@ Primary entry points:
   for keeping reconstruction machinery out of the delivered Odoo runtime.
 
 The integration baseline is upstream commit
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
 validation evidence are private local artifacts and must never be committed.
 
 ## Upstream Odoo
@@ -52,9 +48,9 @@ installation and developer documentation is available from
 
 ## Docker and Dev Container setup
 
-This distribution includes two local workflows for Odoo `saas~19.2`
-Community. The branch is pinned to upstream commit
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
+This fork includes two local workflows for Odoo `saas~19.2` Community. The
+branch is pinned to upstream commit
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
@@ -204,8 +200,7 @@ actually runs. Init, test and Dev Container helper services remain at zero.
 Set `ODOO_MAX_CRON_THREADS=0` explicitly while restoring or auditing an
 imported database.
 
-Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the
-change is an explicitly justified and documented distribution-level patch.
+Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
 
 The production custom-module boundaries are:
 
@@ -384,13 +379,6 @@ ignored mode-0600 `.pocket-id.env`. Follow the
 [Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
 the client secret, break-glass password or raw subjects in Git. Production
 uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
-
-The helpers apply `ODOO_DEV_DB` to Odoo's database filter and verify the
-effective runtime filter before printing the login URL. They also verify that
-existing Compose containers belong to the selected project and this worktree.
-Set `ODOO_DEV_REQUIRE_ISOLATED_PROJECT=1` for feature work that must use a
-dedicated `usl-odoo-fp-*` project. Direct Compose calls must keep
-`ODOO_DB_FILTER` aligned with the database being served.
 
 ### Optional bootstrap fixture
 
