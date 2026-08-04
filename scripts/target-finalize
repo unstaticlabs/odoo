@@ -21,5 +21,6 @@ scripts/odoo-dev disable-tours
 scripts/check-product-migration-boundary
 
 printf '\nCanonical target finalized: odoo_dev\n'
-printf 'Product URL: http://odoo.localhost:8069/web/login?db=odoo_dev\n'
+printf 'Product URL: http://odoo.localhost:%s/web/login?db=odoo_dev\n' \
+  "${ODOO_HTTP_PORT:-8069}"
 printf 'Local login link: scripts/pocket-id-dev one-time-link valentin\n'

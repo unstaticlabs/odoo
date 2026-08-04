@@ -76,6 +76,7 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"$ROOT/scripts/odoo/disable_dev_tours.py"', helper)
         self.assertIn("disable-tours:", makefile)
         self.assertIn("scripts/odoo-dev disable-tours", finalizer)
+        self.assertIn('${ODOO_HTTP_PORT:-8069}', finalizer)
         self.assertIn('users.write({"tour_enabled": False})', disable_helper)
         self.assertNotIn("user_consumed_ids", disable_helper)
         self.assertNotIn("Command.link", disable_helper)

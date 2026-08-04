@@ -92,6 +92,26 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", script)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", script)
 
+    def test_canonical_reconstruction_starts_clean_target_database(self):
+        script = (ROOT / "scripts" / "target-reconstruct").read_text(
+            encoding="utf-8",
+        )
+        start_database = script.split(
+            "\nstart_product_database() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+
+        self.assertIn("verify_compose_scope", start_database)
+        self.assertIn('up -d --wait db', start_database)
+        self.assertLess(
+            script.index("scripts/sync-oca-addons"),
+            script.index("start_product_database", script.index("stop_product\n")),
+        )
+        self.assertLess(
+            script.index("start_product_database", script.index("stop_product\n")),
+            script.index("scripts/accounting-compat dev-reset"),
+        )
+
     def test_isolated_qa_keeps_pocket_id_in_the_selected_project(self):
         helper = (ROOT / "scripts" / "odoo-dev").read_text(encoding="utf-8")
         pocket_helper = (ROOT / "scripts" / "pocket-id-dev").read_text(

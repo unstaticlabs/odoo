@@ -8,6 +8,7 @@ from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.usl_platform_billing_restore.models.restore import (
+    APPROVED_SOURCE_DUMP_SHA256S,
     BOOTSTRAP_SHA256,
     SOURCE_DUMP_SHA256,
 )
@@ -317,6 +318,13 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
         self.assertEqual(
             SOURCE_DUMP_SHA256,
             "ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e",
+        )
+        self.assertEqual(
+            APPROVED_SOURCE_DUMP_SHA256S,
+            {
+                "ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e",
+                "e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9",
+            },
         )
 
     def test_restore_links_history_and_is_idempotent(self):

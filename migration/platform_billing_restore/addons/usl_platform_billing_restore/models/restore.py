@@ -19,6 +19,12 @@ BOOTSTRAP_SHA256 = (
 SOURCE_DUMP_SHA256 = (
     "ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e"
 )
+APPROVED_SOURCE_DUMP_SHA256S = frozenset(
+    {
+        SOURCE_DUMP_SHA256,
+        "e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9",
+    },
+)
 TRACE_MODELS = {
     "company": ("res.company", "res.company"),
     "partner": ("res.partner", "res.partner"),
@@ -1576,15 +1582,20 @@ class UslPlatformBillingRestoreRun(models.Model):
 
     @classmethod
     def restore_from_source(cls, env, options):
+        source_dump_sha256 = options.get(
+            "source_dump_sha256",
+            SOURCE_DUMP_SHA256,
+        )
+        if source_dump_sha256 not in APPROVED_SOURCE_DUMP_SHA256S:
+            raise RuntimeError(
+                "The Platform Billing source dump SHA-256 is not approved.",
+            )
         payload = PlatformBillingSourceReader(options).read()
         run = env["usl.platform.billing.restore.run"].create(
             {
                 "source_database": options["database"],
                 "source_snapshot": options["snapshot"],
-                "source_dump_sha256": options.get(
-                    "source_dump_sha256",
-                    SOURCE_DUMP_SHA256,
-                ),
+                "source_dump_sha256": source_dump_sha256,
                 "bootstrap_sha256": options.get(
                     "bootstrap_sha256",
                     BOOTSTRAP_SHA256,

@@ -13,8 +13,13 @@ uninstalled during finalization.
 
 The retired bootstrap is identified by SHA-256
 `a7617a282cb812ae051f41b5a6c15047c950bf3e8b85ef3a4014757345053791`.
-The approved source dump is identified by SHA-256
+Approved source revisions are identified by SHA-256. The original baseline is
 `ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e`.
+The refreshed full export used by current `odoo_dev` is
+`e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`.
+Both contain the same Platform Billing slice (4 platforms, 3 sessions, 31
+payouts, 72 legacy candidates and 51 generated moves). The importer records
+the exact revision used and rejects every unapproved hash.
 
 ## Isolation
 
