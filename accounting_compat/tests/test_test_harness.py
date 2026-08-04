@@ -1,12 +1,96 @@
 from __future__ import annotations
 
+import hashlib
+import os
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
+from accounting_compat.cli import (
+    build_parser,
+    configure_source_mount,
+    git_tracking_status,
+    source_snapshot_id,
+    source_validation_manifest,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class OdooTestHarnessTest(unittest.TestCase):
+    def test_git_tracking_audit_degrades_when_git_is_unavailable(self):
+        with patch("accounting_compat.cli.shutil.which", return_value=None):
+            records = git_tracking_status([REPOSITORY_ROOT / "README.md"])
+
+        self.assertEqual(
+            records,
+            [{
+                "path": "README.md",
+                "tracked": False,
+                "ignored": False,
+                "ignore_rule": None,
+            }],
+        )
+
+    def test_source_argument_and_compose_mount_use_the_same_external_path(self):
+        with TemporaryDirectory() as temporary_directory:
+            source_directory = Path(temporary_directory).resolve()
+            with patch.dict(
+                os.environ,
+                {"USL_ONLINE_DUMP_DIR": str(source_directory)},
+            ):
+                args = build_parser().parse_args(["source-validate"])
+                configure_source_mount(args.source_dir)
+
+                self.assertEqual(args.source_dir, str(source_directory))
+                self.assertEqual(
+                    os.environ["USL_ONLINE_DUMP_DIR"],
+                    str(source_directory),
+                )
+
+    def test_snapshot_id_uses_the_selected_external_dump(self):
+        with TemporaryDirectory() as temporary_directory:
+            source_directory = Path(temporary_directory).resolve()
+            dump_content = b"-- selected external PostgreSQL dump\n"
+            (source_directory / "dump.sql").write_bytes(dump_content)
+            (source_directory / "filestore").mkdir()
+            expected_digest = hashlib.sha256(dump_content).hexdigest()[:12]
+
+            with patch.dict(
+                os.environ,
+                {"USL_ONLINE_DUMP_DIR": str(source_directory)},
+            ):
+                self.assertEqual(
+                    source_snapshot_id(),
+                    f"source-{expected_digest}",
+                )
+
+    def test_source_manifest_accepts_an_external_absolute_dump_path(self):
+        with TemporaryDirectory() as temporary_directory:
+            source_directory = (
+                Path(temporary_directory) / "external-source"
+            ).resolve()
+            source_directory.mkdir()
+            dump_path = source_directory / "dump.sql"
+            dump_path.write_text("-- PostgreSQL database dump\n", encoding="utf-8")
+            (source_directory / "filestore").mkdir()
+
+            manifest = source_validation_manifest(str(source_directory))
+
+        self.assertEqual(manifest["status"], "passed")
+        self.assertEqual(manifest["source_dir"], str(source_directory))
+        self.assertEqual(manifest["dump"]["path"], str(dump_path))
+        self.assertEqual(
+            manifest["git_tracking"][0],
+            {
+                "path": str(source_directory),
+                "tracked": False,
+                "ignored": False,
+                "ignore_rule": None,
+            },
+        )
+
     def test_test_service_receives_selected_database_filter(self):
         compose = (REPOSITORY_ROOT / "compose.yaml").read_text(encoding="utf-8")
         test_service = compose.split("\n  test:\n", 1)[1].split(

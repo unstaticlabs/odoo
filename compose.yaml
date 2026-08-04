@@ -214,6 +214,46 @@ services:
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
 
+  tese-migration:
+    profiles: ["tese-migration"]
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    depends_on:
+      db:
+        condition: service_healthy
+      accounting-source-db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_MAX_CRON_THREADS: 0
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+      USL_EINVOICE_LIVE_ENABLED: 0
+      USL_EREPORTING_LIVE_ENABLED: 0
+    command:
+      - odoo
+      - --config=/etc/odoo/odoo.conf
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/tese-migration-addons
+      - --database=${ODOO_INIT_DB:-odoo_dev}
+      - --without-demo=true
+      - --stop-after-init
+    restart: "no"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons:ro
+      - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
+
   test:
     profiles: ["test"]
     build:

@@ -138,6 +138,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             "scripts/accounting-compat dev-import",
             "scripts/accounting-compat dev-validate",
             "scripts/project-restore all",
+            "scripts/tese-restore all",
             "scripts/accounting-restore finalize",
             "scripts/target-finalize",
         ]
@@ -166,6 +167,22 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("usl.accounting.restore.source.mixin", project_traces)
         self.assertNotIn("rebuild.source.trace.mixin", project_traces)
+
+    def test_tese_restore_declares_temporary_accounting_dependency(self):
+        manifest = ast.literal_eval(
+            (
+                REPOSITORY_ROOT
+                / "migration/tese_restore/addons/usl_tese_restore/__manifest__.py"
+            ).read_text(encoding="utf-8"),
+        )
+        self.assertIn("usl_accounting_restore", manifest["depends"])
+        self.assertNotIn("rebuild_account_migration", manifest["depends"])
+
+        tese_script = (REPOSITORY_ROOT / "scripts/tese-restore").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("/mnt/accounting-migration-addons", tese_script)
+        self.assertIn("TESE_RESTORE_DEFER_PRODUCT_VALIDATE", tese_script)
 
 
 if __name__ == "__main__":

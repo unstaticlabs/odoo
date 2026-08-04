@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_tese_payroll" model="ir.ui.view">
+        <field name="name">res.company.form.tese.payroll</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="tese_payroll"
+                      string="TESE Payroll"
+                      groups="hr.group_hr_manager">
+                    <group>
+                        <field name="tese_payroll_journal_id"/>
+                        <field name="tese_collector_partner_id"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        These settings select existing accounting and partner
+                        records. TESE Payroll never creates or rewrites the
+                        French chart of accounts.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_tese_company_configuration" model="ir.actions.act_window">
+        <field name="name">TESE Companies</field>
+        <field name="res_model">res.company</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('id', 'in', allowed_company_ids)]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="view_company_form_tese_configuration" model="ir.ui.view">
+        <field name="name">res.company.form.tese.configuration</field>
+        <field name="model">res.company</field>
+        <field name="arch" type="xml">
+            <form string="TESE Settings"
+                  create="false"
+                  delete="false"
+                  duplicate="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Company"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group string="TESE Payroll">
+                        <field name="tese_payroll_journal_id"/>
+                        <field name="tese_collector_partner_id"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        These settings select existing accounting and partner
+                        records. TESE Payroll never creates or rewrites the
+                        French chart of accounts.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_open_tese_settings" model="ir.actions.server">
+        <field name="name">TESE Settings</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="group_ids"
+               eval="[(4, ref('account.group_account_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = env.company.action_open_tese_configuration()</field>
+    </record>
+</odoo>

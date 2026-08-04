@@ -43,6 +43,12 @@ then validates the normal product registry.
 The Projects product module does not depend on that exception. Only the
 temporary Projects importer depends on the temporary Accounting importer.
 
+Paie TESE follows the same downstream contract. `usl_tese_payroll` is the
+ongoing product application. The temporary `usl_tese_restore` importer runs
+after Accounting and Projects while Accounting source bindings still exist,
+then uninstalls before Accounting finalization. The normal product service
+cannot load either temporary add-on.
+
 ## Required shape
 
 - Product modules may contain only behavior needed after cutover.

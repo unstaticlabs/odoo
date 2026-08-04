@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_tese_payroll_accounts" model="ir.actions.act_window">
+        <field name="name">Paie TESE — Comptes de paie</field>
+        <field name="res_model">account.account</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="account.view_account_list"/>
+        <field name="search_view_id" ref="account.view_account_search"/>
+        <field name="domain">[('code', 'in', ['641100', '645100', '645200', '645300', '633300', '633500', '421000', '431000', '437020', '437030', '442100'])]</field>
+    </record>
+</odoo>

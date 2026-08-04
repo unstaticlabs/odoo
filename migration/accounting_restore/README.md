@@ -7,15 +7,15 @@ not a delivered Odoo product add-on.
 `usl_accounting_restore` is available only through migration and test Compose
 profiles. During restoration it provides source bindings, replay services and
 parity records needed to reconstruct the Online snapshot through Odoo's ORM.
-The downstream Projects importer temporarily depends on the same source
-identity layer. The normal `odoo`, `init-db` and Dev Container add-ons paths
-cannot load it.
+The downstream Projects and Paie TESE importers temporarily depend on the same
+source identity layer. The normal `odoo`, `init-db` and Dev Container add-ons
+paths cannot load it.
 
 The canonical lifecycle is:
 
 ```text
 reset target → install temporary importer → import → validate
-→ restore downstream Projects → uninstall importers
+→ restore downstream Projects and Paie TESE → uninstall importers
 → validate product-only registry → apply target configuration
 ```
 

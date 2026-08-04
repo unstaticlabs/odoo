@@ -27,10 +27,15 @@ The verified production add-on dependency direction is:
  native hr_expense -----> usl_expense_batch --------------+
   (product compatibility and stable operational XML-ID ownership)
 
+ native project --------> usl_project
+ native HR + Accounting -> usl_tese_payroll
+
 usl_bootstrap ---> native modules only (disposable test fixture)
 
 migration/accounting_restore/usl_accounting_restore
   ---> rebuild_account_migration (temporary import-time dependency only)
+  <--- migration/project_restore/usl_project_restore
+  <--- migration/tese_restore/usl_tese_restore
 ```
 
 `rebuild_account_migration` remains the installed compatibility module during
@@ -101,9 +106,11 @@ identifiers. It is explicitly rejected for this increment.
 | Interactive reports, definitions, PDF/XLSX and OCA report defaults | compatibility module for this stage | stable report/wizard-model ownership, left unchanged | report screen/export parity and report presentation tests |
 | Electronic-invoice readiness and offline reception evidence | compatibility module for this stage | stable reception-model ownership, left unchanged | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
 | Expense claims/batches | `usl_expense_batch` | retained independent feature | clean module and browser tests |
+| External-provider payroll and TESE settlement | `usl_tese_payroll` | focused product module over native HR/Accounting and OCA matching | clean module, security, accounting and settlement tests |
 | Overview and cash projections | compatibility module for this stage | operational cross-feature behavior, left unchanged | native ledger, controls and report tests |
 | Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
 | Source trace, importer, native replay, parity evidence and reconstruction models | temporary `migration/accounting_restore` add-on | migration-only and uninstalled at finalization | canonical harness, idempotency and final-registry boundary gates |
+| TESE source translation and parity evidence | temporary `migration/tese_restore` add-on | downstream migration-only importer, uninstalled before product acceptance | exact source counts, idempotency, finalization and product-boundary gates |
 | Existing security, views, actions, menus and seeded definitions | `rebuild_account_migration` | compatibility ownership | XML-ID continuity characterization test |
 | Configurable-definition mixin | compatibility module for this stage | generated model XML-ID ownership, left unchanged | XML-ID continuity characterization test |
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
@@ -131,8 +138,8 @@ menus.
   `usl_accounting`; no ownership transfer is required.
 - Source parity and target environment policy are separate. Odoo Online has no
   Pocket ID state; canonical `odoo_dev` receives SSO only after imported
-  Accounting and Projects data pass their controls and temporary migration
-  modules are removed.
+  Accounting, Projects and Paie TESE data pass their controls and temporary
+  migration modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or
@@ -187,6 +194,8 @@ This refactor does not modify either patch.
   the code grouped by feature and do not introduce reconstruction dependencies
   into runtime methods.
 - Extend expense-claim grouping in `usl_expense_batch`.
+- Extend external-provider payroll workflow in `usl_tese_payroll`; TESE remains
+  the legal calculation authority.
 - Put source extraction, source tracing, reconstruction and parity-only code
   under `migration/`; load it only in the dedicated migration service and
   uninstall it before product acceptance.
