@@ -58,6 +58,11 @@ class AttachmentClassificationTest(unittest.TestCase):
         self.assertEqual(actions[0]["kind"], "archive_unassigned_evidence")
         self.assertEqual(actions[0]["state"], "pending")
 
+    def test_generated_company_stylesheet_is_recomputed(self):
+        actions = self.classify({"name": "res.company.scss", "mimetype": "text/scss"})
+        self.assertEqual(actions[0]["kind"], "recompute_distribution_asset")
+        self.assertEqual(actions[0]["state"], "implemented")
+
     def test_private_key_is_explicitly_not_copied(self):
         actions = self.classify(
             {"res_model": "certificate.key", "res_field": "pem_key"},

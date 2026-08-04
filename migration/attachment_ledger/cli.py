@@ -193,6 +193,16 @@ def classify_attachment(
             ),
         ]
 
+    if not model and row.get("name") == "res.company.scss":
+        return [
+            action(
+                "recompute_distribution_asset",
+                "native_reference",
+                "implemented",
+                "the company report stylesheet is generated from target configuration",
+            ),
+        ]
+
     restored_scope = RESTORED_BUSINESS_MODELS.get(model)
     if restored_scope:
         result.append(
