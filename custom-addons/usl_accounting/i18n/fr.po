@@ -1,0 +1,3274 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_accounting
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-04 22:35+0000\n"
+"PO-Revision-Date: 2026-08-04 22:35+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_bank_match_wizard.py:0
+msgid " The vendor will change from %(before)s to %(after)s."
+msgstr " Le fournisseur passera de %(before)s à %(after)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid " Vendor: %(before)s → %(after)s."
+msgstr " Fournisseur : %(before)s → %(after)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "%(action)s — %(journal)s"
+msgstr "%(action)s — %(journal)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(amount)s FX %(kind)s"
+msgstr "%(amount)s FX %(kind)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_direction_guard.py:0
+msgid ""
+"%(code)s %(name)s is normally %(expected)s, but this draft uses it on the "
+"%(actual)s side."
+msgstr ""
+"%(code)s %(name)s est normalement %(expected)s, mais ce brouillon l'utilise "
+"du côté %(actual)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"%(company_currency)s amount from bank statement; foreign amount from "
+"selected document residual"
+msgstr ""
+"Montant %(company_currency)s provenant du relevé bancaire ; montant en "
+"devises du document sélectionné résiduel"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "%(confidence)s%% — %(evidence)s"
+msgstr "%(confidence)s%% — %(evidence)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "%(count)s bank suggestion(s) found."
+msgstr "%(count)s suggestion(s) bancaire(s) trouvée(s)."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "%(count)s other expense(s) may match this transaction"
+msgstr "%(count)s d'autres dépenses peuvent correspondre à cette transaction"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "%(date)s · %(amount)s · %(label)s"
+msgstr "%(date)s · %(amount)s · %(label)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(days)s days after the document"
+msgstr "%(days)s jours après le document"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "%(days)s days apart"
+msgstr "%(days)s jours d'intervalle"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(deviation).2f%% from the reference rate"
+msgstr "%(deviation).2f%% du taux de référence"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "%(difference)s amount difference"
+msgstr "Différence de montant %(difference)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "%(distance)s-day gap from %(reference)s"
+msgstr "Écart de %(distance)s jours par rapport à %(reference)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"%(foreign)s from the document = %(company)s reported on the bank statement"
+msgstr "%(foreign)s du document = %(company)s reporté sur le relevé bancaire"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(foreign)s · %(company)s · no FX"
+msgstr "%(foreign)s · %(company)s · pas de change"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(foreign)s · %(difference)s"
+msgstr "%(foreign)s · %(difference)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(foreign)s · %(document)s %(company)s · no FX"
+msgstr "%(foreign)s · %(document)s %(company)s · pas de change"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"%(method)s for %(document)s: %(foreign)s against %(company)s. Odoo's "
+"synthetic estimate %(synthetic)s was not used."
+msgstr ""
+"%(method)s pour %(document)s : %(foreign)s contre %(company)s. L'estimation "
+"synthétique Odoo, %(synthetic)s, n'a pas été utilisée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "%(reason)s Check: %(warning)s."
+msgstr "%(reason)s Vérifiez : %(warning)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid ""
+"%(reviewed)s transaction(s) reviewed: %(assigned)s reliable partner(s) "
+"inferred automatically from %(suggested)s evidence-backed suggestion(s)."
+msgstr ""
+"Transaction(s) %(reviewed)s examinée(s) : partenaire(s) fiable(s) "
+"%(assigned)s déduits automatiquement de la ou des suggestions fondées sur "
+"des justificatifs de %(suggested)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "%s is open again and can be matched differently."
+msgstr "%s est à nouveau ouvert et peut être associé différemment."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "1 day apart"
+msgstr "à 1 jour d'intervalle"
+
+#. module: usl_accounting
+#: model:ir.model.constraint,message:usl_accounting.constraint_usl_expense_bank_match_candidate_expense_bank_line_unique
+msgid "A bank transaction can only appear once for an expense."
+msgstr ""
+"Une transaction bancaire ne peut apparaître qu'une seule fois pour une "
+"dépense."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "A refused expense cannot be matched."
+msgstr "Une dépense refusée ne pourra pas être compensée."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_expense_bank_match_candidate__state__accepted
+msgid "Accepted"
+msgstr "Accepté"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__accepted_at
+msgid "Accepted At"
+msgstr "Accepté à"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__accepted_by_id
+msgid "Accepted By"
+msgstr "Accepté par"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Accepted company payment"
+msgstr "Paiement par la société accepté"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_account
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__account_id
+msgid "Account"
+msgstr "Compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__account_id_snapshot
+msgid "Account Id Snapshot"
+msgstr "Instantané de l'identifiant du compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_analytic_line__rebuild_financial_account_type
+msgid ""
+"Account Type is used for information purpose, to generate country-specific "
+"legal reports, and set the rules to close a fiscal year and generate opening"
+" entries."
+msgstr ""
+"Le type de compte est utilisé à titre informatif, pour générer des rapports "
+"légaux spécifiques à chaque pays et définir les règles de clôture d’un "
+"exercice fiscal ainsi que la génération des écritures d’ouverture."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Accounting Trace"
+msgstr "Trace comptable"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__active_immediate_settlement_id
+msgid "Active Immediate Settlement"
+msgstr "Règlement immédiat actif"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Add"
+msgstr "Ajouter"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Add already uses the exact foreign amount for this bank transaction."
+msgstr ""
+"Add utilise déjà le montant exact en devise étrangère pour cette transaction"
+" bancaire."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Adjusted accounts:"
+msgstr "Comptes ajustés :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__adjustment_line_id
+msgid "Adjustment Line"
+msgstr "Ligne de réglage"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__adjustment_line_id_snapshot
+msgid "Adjustment Line Id Snapshot"
+msgstr "Instantané de l'ID de ligne d'ajustement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__adjustment_line_name
+msgid "Adjustment Line Name"
+msgstr "Nom de la ligne d'ajustement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__adjustment_move_id
+msgid "Adjustment Move"
+msgstr "Mouvement d'ajustement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "All selected items must use the same account."
+msgstr "Tous les éléments sélectionnés doivent utiliser le même compte."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__allocation_ids
+msgid "Allocation"
+msgstr "Allocation"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_expense_bank_match_candidate__match_label__alternative
+msgid "Alternative"
+msgstr "Alternative"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Amount"
+msgstr "Montant"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__amount_difference
+msgid "Amount Difference"
+msgstr "Écart de montant"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__amount_is_exact
+msgid "Amount Is Exact"
+msgstr "Le montant est exact"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"An active foreign-currency settlement protects this accounting valuation. "
+"Undo the settlement first."
+msgstr ""
+"Un règlement actif en devises protège cette valorisation comptable. Annulez "
+"d’abord le règlement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__analytic_distribution_snapshot
+msgid "Analytic Distribution Snapshot"
+msgstr "Instantané de distribution analytique"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_analytic_line
+msgid "Analytic Line"
+msgstr "Ligne analytique"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Another suggestion was accepted."
+msgstr "Une autre suggestion a été acceptée."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__applied_invoice_currency_rate
+msgid "Applied Invoice Currency Rate"
+msgstr "Taux de change appliqué à la facture"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Applied document rate:"
+msgstr "Tarif document appliqué :"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid ""
+"Assigned partner %(candidate)s differs from document partner %(partner)s"
+msgstr ""
+"Le partenaire affecté %(candidate)s diffère du partenaire de document "
+"%(partner)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Assigned partner matches %(partner)s"
+msgstr "Le partenaire attribué correspond à %(partner)s."
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_ir_attachment
+msgid "Attachment"
+msgstr "Pièce jointe"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account__rebuild_entry_direction_policy__auto
+msgid "Automatic from French Account Code"
+msgstr "Automatique à partir du code compte français"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_expense_bank_match_candidate__state__available
+msgid "Available"
+msgstr "Disponible"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Available after posting"
+msgstr "Disponible après comptabilisation"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__bank_amount
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__bank_amount
+msgid "Bank Amount"
+msgstr "Montant bancaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__bank_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__bank_date
+msgid "Bank Date"
+msgstr "Date bancaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__bank_move_id
+msgid "Bank Entry"
+msgstr "Entrée bancaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__bank_label
+msgid "Bank Label"
+msgstr "Libellé bancaire"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_bank_statement_line
+msgid "Bank Statement Line"
+msgstr "Ligne de relevé bancaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__bank_statement_line_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__bank_statement_line_id
+msgid "Bank Transaction"
+msgstr "Transaction bancaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__bank_counterpart
+msgid "Bank counterpart"
+msgstr "Contrepartie bancaire"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Bank history suggests %(candidate)s, not document partner %(partner)s"
+msgstr ""
+"L'historique de la banque suggère %(candidate)s, et non le partenaire du "
+"document %(partner)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Bank history suggests partner %(partner)s"
+msgstr "L'historique de la banque suggère le partenaire %(partner)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Bank label"
+msgstr "Libellé bancaire"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Bank partner: %(partner)s"
+msgstr "Partenaire bancaire : %(partner)s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Bank transaction"
+msgstr "Opération bancaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__foreign_amount_source__bank_reported
+msgid "Bank-reported foreign amount"
+msgstr "Montant en devises déclaré par la banque"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_expense_bank_match_candidate__match_label__best
+msgid "Best match"
+msgstr "Meilleure rapprochement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Bill"
+msgstr "Facture"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__can_reconcile
+msgid "Can Reconcile"
+msgstr "Peut se lettrer"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__candidate_id
+msgid "Candidate"
+msgstr "Candidat"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_financial_account_type
+msgid "Catégorie de compte"
+msgstr "Catégorie de compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_spending
+msgid "Charges"
+msgstr "Frais"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_direction_guard.py:0
+msgid ""
+"Check the account direction before posting.\n"
+"\n"
+"%(details)s\n"
+"\n"
+"Correct the journal item, or use Confirm exceptional direction on the draft when this is a justified manual correction."
+msgstr ""
+"Vérifiez la direction du compte avant de comptabiliser.\n"
+"\n"
+"%(details)s\n"
+"\n"
+"Corrigez l'lignes d’écriture ou utilisez Confirmer l'orientation exceptionnelle sur le brouillon lorsqu'il s'agit d'une correction manuelle justifiée."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account_reconcile__selection_outcome__choose
+msgid "Choose a counterpart"
+msgstr "Choisissez une contrepartie"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid ""
+"Choose at least one debit and one credit. Items on the same side cannot be "
+"matched."
+msgstr ""
+"Choisissez au moins un débit et un crédit. Les éléments du même côté ne "
+"peuvent pas être assortis."
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_res_company
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_amount
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_amount
+msgid "Company Amount"
+msgstr "Montant de l'société"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_currency_id
+msgid "Company Currency"
+msgstr "Devise de la société"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_candidate_ids
+msgid "Company Payment Matches"
+msgstr "Correspondances de paiement de l’société"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Company payment match"
+msgstr "rapprochement de paiement de l'société"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__preview_settlement_difference
+msgid ""
+"Company-currency difference predicted before reconciliation. Settle records "
+"it as native FX; Use payment rate removes it by repricing the eligible "
+"document before reconciliation."
+msgstr ""
+"Différence entre la devise de l’société et prévue avant le rapprochement. "
+"Settle l'enregistre en tant qu'effet natif ; Utiliser le taux de paiement le"
+" supprime en retarifant le document éligible avant le rapprochement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__competing_expense_count
+msgid "Competing Expense Count"
+msgstr "Nombre de dépenses concurrentes"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Complete the expense amount and date before finding a match."
+msgstr ""
+"Complétez le montant et la date de la dépense avant de trouver une "
+"rapprochement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_partner_suggestion_confidence
+msgid "Confidence"
+msgstr "Niveau de confiance"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Configure Odoo's currency exchange accounts before settlement."
+msgstr "Configurez les comptes de change de Odoo avant le règlement."
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_expense_bank_match_wizard
+msgid "Confirm Expense Bank Match"
+msgstr "Confirmer la rapprochement bancaire des dépenses"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__confirmation_message
+msgid "Confirmation Message"
+msgstr "Message de confirmation"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_net_contribution
+msgid "Contribution nette"
+msgstr "Contribution nette"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Credit note"
+msgstr "Note de crédit"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_currency_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__currency_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__currency_id
+msgid "Currency"
+msgstr "Devise"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Date"
+msgstr "Date"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__date_difference
+msgid "Date Difference"
+msgstr "Écart de date"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Date within 31 days of %(reference)s"
+msgstr "Date dans les 31 jours suivant %(reference)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Date within 45 days of %(reference)s"
+msgstr "Date dans les 45 jours suivant %(reference)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__partner_name
+msgid "Declared partner name"
+msgstr "Nom du partenaire déclaré"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__synthetic_foreign_amount
+msgid "Discarded Odoo Estimate"
+msgstr "Estimation Odoo rejetée"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Discarded Odoo estimate:"
+msgstr "Estimation Odoo rejetée :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_journal__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_partial_reconcile__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_ir_attachment__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__document_id
+msgid "Document"
+msgstr "Document"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__reference_company_amount
+msgid "Document Carrying Value"
+msgstr "Valeur comptable des documents"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__document_date
+msgid "Document Date"
+msgstr "Date du document"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__document_line_ids
+msgid "Document Line"
+msgstr "Ligne de document"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__document_revaluation_amount
+msgid "Document Revaluation Amount"
+msgstr "Montant de réévaluation du document"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Document Valuation"
+msgstr "Valorisation des documents"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Document carrying value:"
+msgstr "Valeur comptable du document :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_document_id
+msgid "Document d’origine"
+msgstr "Document d’origine"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__payment_rate_application__document_reprice
+msgid "Document repricing"
+msgstr "Retarification des documents"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Document revaluation:"
+msgstr "Réévaluation des documents :"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Document-line rounding does not produce the exact bank amount at this "
+"payment rate. Use Settle instead."
+msgstr ""
+"L'arrondi des lignes de document ne produit pas le montant bancaire exact à "
+"ce taux de paiement. Utilisez plutôt Régler."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__economic_adjustment_amount
+msgid "Economic Adjustment Amount"
+msgstr "Montant de l'ajustement économique"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Economic adjustment:"
+msgstr "Ajustement économique :"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_mail_thread
+msgid "Email Thread"
+msgstr "Discussion par e-mail"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"Enter the expense date and a non-zero amount before finding bank "
+"transactions."
+msgstr ""
+"Saisissez la date de la dépense et un montant non nul avant de rechercher "
+"les transactions bancaires."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account__rebuild_entry_direction_policy
+msgid "Entry Direction Check"
+msgstr "Vérification de la direction d'entrée"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Evidence"
+msgstr "Justificatifs"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Evidence: %(evidence)s"
+msgstr "justificatif : %(evidence)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "Exact active bank-account ownership"
+msgstr "Propriété active exacte d'un compte bancaire"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Exact amount"
+msgstr "Montant exact"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__mechanism__bank_statement
+msgid "Exact amount with native FX"
+msgstr "Montant exact avec FX natif"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_settings_immediate_settlement
+msgid "Exact amounts and immediate payment rates"
+msgstr "Montants exacts et taux de paiement immédiat"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__bank_account
+msgid "Exact bank account"
+msgstr "Compte bancaire exact"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "Exact declared counterparty name"
+msgstr "Nom exact de la contrepartie déclarée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Exact foreign amount"
+msgstr "Montant étranger exact"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Exact foreign-amount settlement"
+msgstr "Règlement exact en montant en devises"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_direction_guard.py:0
+msgid ""
+"Exceptional account direction confirmed before posting:<br/>%(details)s"
+msgstr ""
+"Direction de compte exceptionnelle confirmée avant "
+"comptabilisation :<br/>%(details)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__exchange_account_id
+msgid "Exchange Account"
+msgstr "Compte d'échange"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__exchange_line_ids
+msgid "Exchange Line"
+msgstr "Ligne d'échange"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Exchange Loss"
+msgstr "Perte de change"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Exchange Profit"
+msgstr "Gain de change"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Exchange account:"
+msgstr "Compte d'échange :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__executed_rate
+msgid "Executed Rate"
+msgstr "Taux exécuté"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Executed rate:"
+msgstr "Taux exécuté :"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_hr_expense
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__expense_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__expense_id
+msgid "Expense"
+msgstr "Dépense"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__expense_amount
+msgid "Expense Amount"
+msgstr "Montant des dépenses"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_expense_bank_match_candidate
+msgid "Expense Bank Match Candidate"
+msgstr "Candidat à la rapprochement avec la banque de dépenses"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__expense_date
+msgid "Expense Date"
+msgstr "Date de la dépense"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__settlement_difference_type__gain
+msgid "FX gain"
+msgstr "Gain de change"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__settlement_difference_type__loss
+msgid "FX loss"
+msgstr "Perte de change"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Find bank transactions"
+msgstr "Rechercher des transactions bancaires"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Find the company bank debit before posting this expense."
+msgstr ""
+"Recherchez le débit bancaire de l'société avant de comptabiliser cette "
+"dépense."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__fingerprint
+msgid "Fingerprint"
+msgstr "Empreinte digitale"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__foreign_amount
+msgid "Foreign Amount"
+msgstr "Montant étranger"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__immediate_settlement_foreign_amount_source
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__foreign_amount_source
+msgid "Foreign Amount Source"
+msgstr "Source du montant en devises"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__currency_id
+msgid "Foreign Currency"
+msgstr "Devise étrangère"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+#: model:ir.model,name:usl_accounting.model_account_immediate_settlement
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_settings_immediate_settlement
+msgid "Foreign-Currency Settlement"
+msgstr "Règlement en devises"
+
+#. module: usl_accounting
+#: model:ir.actions.act_window,name:usl_accounting.action_account_immediate_settlement
+msgid "Foreign-Currency Settlements"
+msgstr "Règlements en devise"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Foreign-currency settlement %(name)s was reversed."
+msgstr "Le règlement en devise étrangère %(name)s a été annulé."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account_reconcile__selection_outcome__full
+msgid "Full match"
+msgstr "Rapprochement total"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__rebuild_reconciliation_state__full
+msgid "Fully matched"
+msgstr "Entièrement assorti"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_account_reconcile
+msgid "General Reconciliation"
+msgstr "Lettrage général"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__generated_line_ids
+msgid "Generated Journal Items"
+msgstr "Éléments de journal générés"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_financial_account_group_id
+msgid "Groupe de comptes"
+msgstr "Groupe de comptes"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__payment_rate_application
+msgid ""
+"How a payment-rate settlement was applied. New settlements reprice the "
+"document through Odoo's native draft/post workflow. The legacy value "
+"preserves preview-era bank adjustment records."
+msgstr ""
+"Comment un règlement au taux de paiement a été appliqué. Les nouveaux "
+"règlements retarifient le document via le flux de travail de brouillon/post "
+"natif d'Odoo. La valeur héritée préserve les enregistrements d’ajustement "
+"bancaire de la période d’aperçu."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_journal__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_partial_reconcile__id
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__id
+#: model:ir.model.fields,field_description:usl_accounting.field_ir_attachment__id
+#: model:ir.model.fields,field_description:usl_accounting.field_mail_thread__id
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__id
+#: model:ir.model.fields,field_description:usl_accounting.field_res_config_settings__id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__immediate_settlement_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__immediate_settlement_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__immediate_settlement_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_partial_reconcile__immediate_settlement_id
+msgid "Immediate Settlement"
+msgstr "Règlement immédiat"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__immediate_settlement_adjustment_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__immediate_settlement_adjustment_id
+msgid "Immediate Settlement Adjustment"
+msgstr "Ajustement immédiat du règlement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__immediate_settlement_count
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__immediate_settlement_count
+msgid "Immediate Settlement Count"
+msgstr "Nombre de règlements immédiats"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__immediate_settlement_document_id
+msgid "Immediate Settlement Document"
+msgstr "Document de règlement immédiat"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__immediate_settlement_role
+msgid "Immediate Settlement Role"
+msgstr "Rôle de règlement immédiat"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__immediate_settlement_source_line_id_snapshot
+msgid "Immediate Settlement Source Line Id Snapshot"
+msgstr "Instantané de l'identifiant de la ligne source du règlement immédiat"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Invoice"
+msgstr "Facture"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "It is no longer among the current suggestions."
+msgstr "Cela ne fait plus partie des suggestions actuelles."
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_journal
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__journal_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__journal_id
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Journal"
+msgstr "Journal"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_move
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__payment_move_id
+msgid "Journal Entry"
+msgstr "Pièce comptable"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_move_line
+msgid "Journal Item"
+msgstr "Écriture comptable"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Larger available payment"
+msgstr "Paiement disponible plus important"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Legacy Economic Allocations"
+msgstr "Allocations économiques héritées"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__payment_rate_application__legacy_bank_adjustment
+msgid "Legacy bank adjustment"
+msgstr "Ajustement bancaire hérité"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__valuation
+msgid "Legacy document valuation"
+msgstr "Valorisation des anciens documents"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__economic
+msgid "Legacy economic allocation"
+msgstr "Allocation économique héritée"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_linked_document
+msgid "Legacy linked document"
+msgstr "Document lié hérité"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__payment_bridge
+msgid "Legacy payment bridge"
+msgstr "Ancienne passerelle de paiement"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__mechanism__legacy_adjustment
+msgid "Legacy payment-rate adjustment"
+msgstr "Ajustement du taux de paiement existant"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_bank_statement_line__immediate_settlement_adjustment_id
+#: model:ir.model.fields,help:usl_accounting.field_account_move__immediate_settlement_adjustment_id
+msgid "Legacy preview-era adjustment link."
+msgstr "Lien d’ajustement de l’ère d’aperçu héritée."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__payment_line_id
+msgid "Legacy source journal item. New bank settlements use the snapshot ID."
+msgstr ""
+"lignes d’écriture source hérité. Les nouveaux règlements bancaires utilisent"
+" l'ID d'instantané."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__suspense_clear
+msgid "Legacy suspense clearing"
+msgstr "Suppression du suspense hérité"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_linked_move_id
+msgid "Linked document or entry"
+msgstr "Document ou entrée lié"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid ""
+"Look for unreconciled company bank debits with a close date and amount. This"
+" only prepares suggestions; it does not post or reconcile anything."
+msgstr ""
+"Recherchez les débits bancaires de l’société non rapprochés avec une date et"
+" un montant de clôture. Cela prépare uniquement des suggestions ; il ne "
+"publie ni ne rapproche rien."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Match"
+msgstr "Rapprocher"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__match_label
+msgid "Match Label"
+msgstr "rapprochement avec l'étiquette"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_matching_reference
+msgid "Match ref."
+msgstr "Référence de rapprochement"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_transaction_status__matched
+msgid "Matched"
+msgstr "Rapproché"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid ""
+"Matched bank transaction %(transaction)s to %(document)s. Partner: "
+"%(old_partner)s → %(new_partner)s. Account: %(old_account)s → "
+"%(new_account)s. The recommendation was based on %(evidence)s."
+msgstr ""
+"Transaction bancaire rapprochée %(transaction)s à %(document)s. Partenaire :"
+" %(old_partner)s → %(new_partner)s. Compte : %(old_account)s → "
+"%(new_account)s. La recommandation était basée sur %(evidence)s."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Matched by"
+msgstr "Correspondant à"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"Matched company-paid expense %(expense)s to bank transaction %(transaction)s"
+" using %(evidence)s.%(vendor_change)s"
+msgstr ""
+"Rapprochement des dépenses payées par l'société %(expense)s et de la "
+"transaction bancaire %(transaction)s à l'aide de "
+"%(evidence)s.%(vendor_change)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Matched items"
+msgstr "Articles correspondants"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Matched on"
+msgstr "Correspondant à"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Matching %(reference)s"
+msgstr "Correspondant à %(reference)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_transaction_status
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__rebuild_reconciliation_state
+msgid "Matching status"
+msgstr "Statut correspondant"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Matching undone"
+msgstr "rapprochement annulée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Matching undone — items are open again"
+msgstr "rapprochement annulée : les éléments sont à nouveau ouverts"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_res_company__immediate_settlement_max_days
+#: model:ir.model.fields,help:usl_accounting.field_res_config_settings__immediate_settlement_max_days
+msgid ""
+"Maximum calendar-day gap for treating a foreign-currency document and its "
+"bank transaction as one immediate economic event. Exact foreign-amount "
+"settlement remains available outside this delay."
+msgstr ""
+"Intervalle maximum d’un jour calendaire pour traiter un document en devise "
+"étrangère et sa transaction bancaire comme un seul événement économique "
+"immédiat. Le règlement exact en montant en devises reste disponible en "
+"dehors de ce délai."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_journal__immediate_settlement_max_days
+msgid "Maximum delay"
+msgstr "Délai maximum"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_res_company__immediate_settlement_max_rate_deviation
+#: model:ir.model.fields,help:usl_accounting.field_res_config_settings__immediate_settlement_max_rate_deviation
+msgid ""
+"Maximum deviation between the bank's inferred executed rate and Odoo's "
+"reference rate for the Use payment rate action."
+msgstr ""
+"Écart maximum entre le taux exécuté déduit de la banque et le taux de "
+"référence de Odoo pour l'action Utiliser le taux de paiement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_journal__immediate_settlement_max_rate_deviation
+msgid "Maximum rate deviation (%)"
+msgstr "Écart de débit maximal (%)"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__mechanism
+msgid "Mechanism"
+msgstr "Mécanisme"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Method:"
+msgstr "Méthode :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_analytic_line__rebuild_spending
+msgid ""
+"Montant analytique côté charges présenté comme une consommation positive. "
+"Une extourne réduit la mesure."
+msgstr ""
+"Montant analytique côté charges présenté comme une consommation positive. "
+"Une extourne réduit la mesure."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_analytic_line__rebuild_revenue
+msgid ""
+"Montant analytique côté produits avec le signe analytique natif. Un produit "
+"normal est positif ; une extourne réduit la mesure."
+msgstr ""
+"Montant analytique côté produits avec le signe analytique natif. Un produit "
+"normal est positif ; une extourne réduit la mesure."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__exchange_move_ids
+msgid "Native Exchange Entries"
+msgstr "Entrées d'échange natives"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__exchange_move_names
+msgid "Native Exchange Entry References"
+msgstr "Références d'entrée Exchange natives"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Native exchange entry:"
+msgstr "Entrée d'échange native :"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Native payment"
+msgstr "Paiement natif"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Native reconciliation produced an unexpected settlement difference. No "
+"accounting changes were saved."
+msgstr ""
+"La réconciliation autochtone a produit une différence de règlement "
+"inattendue. Aucune modification comptable n'a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "New"
+msgstr "Nouveau"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account__rebuild_entry_direction_policy__none
+msgid "No Direction Check"
+msgstr "Aucun contrôle de direction"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "No FX"
+msgstr "Pas d'effets"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid ""
+"No current suggestion. Select <strong>Find bank transactions</strong> to "
+"check the latest bank data."
+msgstr ""
+"Aucune suggestion actuelle. Sélectionner <strong>Rechercher des transactions"
+" bancaires</strong> pour vérifier les dernières données bancaires."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__settlement_difference_type__none
+msgid "No difference"
+msgstr "Aucune différence"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "No foreign-currency settlement is linked."
+msgstr "Aucun règlement en devises n’est lié."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_expense_bank_match_candidate__state__unavailable
+msgid "No longer available"
+msgstr "N'est plus disponible"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "No matching bank transaction was found."
+msgstr "Aucune transaction bancaire correspondante n'a été trouvée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "No matching was created"
+msgstr "Aucune rapprochement n'a été créée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "No partner assigned; selecting this match will set %(partner)s"
+msgstr ""
+"Aucun partenaire attribué ; la sélection de cette rapprochement définira "
+"%(partner)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "No settlement difference"
+msgstr "Aucune différence de règlement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "No settlement difference."
+msgstr "Aucune différence de règlement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "None"
+msgstr "Aucun"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account__rebuild_entry_direction_policy__credit
+msgid "Normally Credit"
+msgstr "Normalement crédit"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account__rebuild_entry_direction_policy__debit
+msgid "Normally Debit"
+msgstr "Normalement Débit"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"OCA could not balance this exact foreign-amount settlement. No accounting "
+"changes were saved."
+msgstr ""
+"L’OCA n’a pas pu équilibrer ce règlement exact en montant en devises. Aucune"
+" modification comptable n'a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Odoo could not restore the document's original valuation. No reversal "
+"changes were saved."
+msgstr ""
+"Odoo n'a ​​pas pu restaurer la valorisation originale du document. Aucune "
+"modification d'annulation n'a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"Odoo did not confirm the expected reconciliation. No expense match was "
+"accepted."
+msgstr ""
+"Odoo n'a ​​pas confirmé le rapprochement attendu. Aucune contrepartie de "
+"dépenses n’a été acceptée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"Odoo did not create the expected company payment for this expense. Review "
+"the expense and its journal entry."
+msgstr ""
+"Odoo n'a ​​pas créé le paiement attendu par l'société pour cette dépense. "
+"Passez en revue la dépense et son écriture comptable."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Odoo records %(amount)s FX %(kind)s."
+msgstr "Odoo enregistre %(amount)s FX %(kind)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"Odoo requires an additional posting step for this expense. Complete it, then"
+" use this bank transaction again."
+msgstr ""
+"Odoo nécessite une étape de validation supplémentaire pour cette dépense. "
+"Complétez-le, puis utilisez à nouveau cette transaction bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"Odoo requires an explicit duplicate-expense review. Complete that native "
+"review, then use this bank transaction again."
+msgstr ""
+"Odoo nécessite un examen explicite des dépenses en double. Terminez cette "
+"révision native, puis utilisez à nouveau cette transaction bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Only accountants can reverse a settlement."
+msgstr "Seuls les comptables peuvent annuler un règlement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Only accountants can settle a foreign-currency document."
+msgstr "Seuls les comptables peuvent régler un document en devise étrangère."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Only accountants can settle an exact foreign amount."
+msgstr "Seuls les comptables peuvent régler un montant étranger exact."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Only an Accounting Manager can refresh expense bank matches."
+msgstr ""
+"Seul un responsable comptable peut actualiser les correspondances bancaires "
+"des dépenses."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Only an Accounting Manager can refresh or use expense bank matches."
+msgstr ""
+"Seul un responsable comptable peut actualiser ou utiliser les "
+"correspondances bancaires de dépenses."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_direction_guard.py:0
+msgid "Only an Accounting user can confirm this exception."
+msgstr "Seul un utilisateur de Comptabilité peut confirmer cette exception."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_document_company_amount
+msgid "Original Document Company Amount"
+msgstr "Document original Société Montant"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_document_line_snapshot
+msgid "Original Document Line Snapshot"
+msgstr "Instantané de la ligne du document d'origine"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_invoice_currency_rate
+msgid "Original Invoice Currency Rate"
+msgstr "Taux de change de la facture originale"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__original_line_id
+msgid "Original Line"
+msgstr "Ligne originale"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_statement_foreign_amount
+msgid "Original Statement Foreign Amount"
+msgstr "Montant en devises du relevé original"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_statement_foreign_amount_source
+msgid "Original Statement Foreign Amount Source"
+msgstr "Source du montant en devises du relevé original"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_statement_foreign_currency_id
+msgid "Original Statement Foreign Currency"
+msgstr "Devise étrangère du relevé initial"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__source_line_id_snapshot
+msgid "Original Suggested Line ID"
+msgstr "ID de ligne suggéré d'origine"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Original document rate:"
+msgstr "Tarif document original :"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Original document value:"
+msgstr "Valeur du document original :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__payment_id
+msgid "Originator Payment"
+msgstr "Donneur d'ordre du paiement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_journal__immediate_settlement_policy_override
+msgid "Override payment-rate policy"
+msgstr "Remplacer la politique de taux de paiement"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Paid on"
+msgstr "Payé le"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_partial_reconcile
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__partial_reconcile_ids
+msgid "Partial Reconcile"
+msgstr "Rapprochement"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_account_reconcile__selection_outcome__partial
+msgid "Partial match"
+msgstr "Rapprochement partiel"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_transaction_status__partial
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__rebuild_reconciliation_state__partial
+msgid "Partially matched"
+msgstr "Partiellement assorti"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Partially matched — a residual remains"
+msgstr "Partiellement apparié – il reste un résidu"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__partner_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__partner_id
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_partner_auto_assigned
+msgid "Partner inferred automatically"
+msgstr "Partenaire déduit automatiquement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Partner inferred from bank history: %(partner)s"
+msgstr "Partenaire déduit de l'historique bancaire : %(partner)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_partner_suggestion_reason
+msgid "Partner matching evidence"
+msgstr "justificatif de rapprochement des partenaires"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_bank_statement_line__rebuild_partner_suggestion_id
+msgid ""
+"Partner suggested from exact bank details, an exact declared counterparty "
+"name, or consistent reconciled transaction history."
+msgstr ""
+"Partenaire suggéré à partir de coordonnées bancaires exactes, du nom exact "
+"de la contrepartie déclarée ou d'un historique de transactions rapproché et "
+"cohérent."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "Partner suggestions refreshed"
+msgstr "Suggestions de partenaires actualisées"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__payment_date
+msgid "Payment Date"
+msgstr "Date de règlement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__payment_line_id
+msgid "Payment Line"
+msgstr "Ligne de paiement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__payment_rate_application
+msgid "Payment Rate Application"
+msgstr "Demande de taux de paiement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Payment rate"
+msgstr "Taux de paiement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Payment rate applied to the document for %(foreign)s against %(company)s. "
+"Its company-currency value changed from %(original)s to %(repriced)s; no FX "
+"was recorded."
+msgstr ""
+"Taux de règlement appliqué au document pour %(foreign)s contre %(company)s. "
+"Sa valeur dans la devise de la société est passée de %(original)s à "
+"%(repriced)s ; aucun écart de change n’a été comptabilisé."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__mechanism__payment_rate
+msgid "Payment rate without FX"
+msgstr "Taux de paiement sans change"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Payment rate ·"
+msgstr "Taux de paiement ·"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__economic_adjustment_line_ids
+msgid "Payment-Rate Adjustment Lines"
+msgstr "Lignes d'ajustement du taux de paiement"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_journal_form_immediate_settlement
+msgid "Payment-Rate Policy"
+msgstr "Politique de taux de paiement"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Payment-rate document value:"
+msgstr "Valeur du document de taux de paiement :"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__payment_rate_economic
+msgid "Payment-rate economic adjustment"
+msgstr "Ajustement économique du taux de paiement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__immediate_settlement_max_days
+#: model:ir.model.fields,field_description:usl_accounting.field_res_config_settings__immediate_settlement_max_days
+msgid "Payment-rate maximum delay"
+msgstr "Délai maximum du taux de paiement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__immediate_settlement_max_rate_deviation
+#: model:ir.model.fields,field_description:usl_accounting.field_res_config_settings__immediate_settlement_max_rate_deviation
+msgid "Payment-rate maximum rate deviation (%)"
+msgstr "Écart maximal du taux de paiement (%)"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Payment-rate settlement"
+msgstr "Règlement du taux de paiement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Payment-rate settlement created an unexpected technical adjustment line. No "
+"accounting changes were saved."
+msgstr ""
+"Le règlement des taux de paiement a créé une ligne d’ajustement technique "
+"inattendue. Aucune modification comptable n'a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Payment-rate settlement unexpectedly created an exchange entry. No "
+"accounting changes were saved."
+msgstr ""
+"Le règlement au taux de paiement a créé de manière inattendue une écriture "
+"de change. Aucune modification comptable n'a été enregistrée."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__policy_date_distance
+msgid "Policy Date Distance"
+msgstr "Date de la police Distance"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__policy_warning
+msgid "Policy Warning"
+msgstr "Avertissement relatif aux règles"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Possible partial payment"
+msgstr "Paiement partiel possible"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Post the bill before matching an existing payment."
+msgstr "Validez la facture avant de rapprocher un paiement existant."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Post the invoice before matching an existing payment."
+msgstr "Validez la facture avant de rapprocher un paiement existant."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__preview_settlement_difference
+msgid "Previewed Carrying-Value Difference"
+msgstr "Différence de valeur comptable prévue"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_revenue
+msgid "Produits"
+msgstr "Produits"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_analytic_line__rebuild_net_contribution
+msgid ""
+"Produits moins charges ; cette valeur reste égale au montant analytique "
+"natif."
+msgstr ""
+"Produits moins charges ; cette valeur reste égale au montant analytique "
+"natif."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__proportion
+msgid "Proportion"
+msgstr "Proportion"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__provenance
+msgid "Provenance"
+msgstr "Provenance"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__provenance_details
+msgid "Provenance Details"
+msgstr "Détails de provenance"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Provenance:"
+msgstr "Provenance:"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Purchase receipt"
+msgstr "justificatif d'achat"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__rank
+msgid "Rank"
+msgstr "Rang"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__rate_deviation
+msgid "Rate Deviation"
+msgstr "Écart de taux"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_direction_exception_confirmed
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__rebuild_direction_exception_confirmed
+msgid "Rebuild Direction Exception Confirmed"
+msgstr "Exception de direction de reconstruction confirmée"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_direction_exception_message
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__rebuild_direction_exception_message
+msgid "Rebuild Direction Exception Message"
+msgstr "Message d'exception de direction de reconstruction"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_direction_exception_required
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__rebuild_direction_exception_required
+msgid "Rebuild Direction Exception Required"
+msgstr "Exception de direction de reconstruction requise"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_direction_exception_signature
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__rebuild_direction_exception_signature
+msgid "Rebuild Direction Exception Signature"
+msgstr "Reconstruire la signature d'exception de direction"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_matching_color
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move_line__rebuild_matching_color
+msgid "Rebuild Matching Color"
+msgstr "Reconstruire la couleur correspondante"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_review_will_reconcile
+msgid "Rebuild Review Will Reconcile"
+msgstr "L'examen de reconstruction réconciliera"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__reconciled_label
+msgid "Reconciled transaction label"
+msgstr "Étiquette de transaction rapprochée"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__reconciled_pattern
+msgid "Reconciled transaction pattern"
+msgstr "Modèle de transaction rapprochée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Reconciliation result — %s"
+msgstr "Résultat du rapprochement — %s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__reference_rate
+msgid "Reference Rate"
+msgstr "Taux de référence"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Reference match"
+msgstr "rapprochement de référence"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Reference rate:"
+msgstr "Tarif de référence :"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__benchmark_company_amount
+msgid "Reference-Rate Value"
+msgstr "Valeur du taux de référence"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__refreshed_at
+msgid "Refreshed At"
+msgstr "Actualisé à"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_remaining_amount
+msgid "Remaining"
+msgstr "Restant"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Reposting changed the document identity. No accounting changes were saved."
+msgstr ""
+"La recomptabilisation a modifié l’identité du document. Aucune modification "
+"comptable n’a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Reposting changed the document's accounts, analytics, or line structure. No "
+"accounting changes were saved."
+msgstr ""
+"La recomptabilisation a modifié les comptes, l’analytique ou la structure "
+"des lignes du document. Aucune modification comptable n’a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Reposting changed the document's foreign-currency amounts. No accounting "
+"changes were saved."
+msgstr ""
+"La recomptabilisation a modifié les montants en devises du document. Aucune "
+"modification comptable n’a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Reposting introduced tax metadata. No accounting changes were saved."
+msgstr ""
+"La recomptabilisation a ajouté des données fiscales. Aucune modification "
+"comptable n’a été enregistrée."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__repriced_document_company_amount
+msgid "Repriced Document Company Amount"
+msgstr "Montant de la société du document retarifé"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__repriced_document_line_snapshot
+msgid "Repriced Document Line Snapshot"
+msgstr "Instantané de ligne de document retarifé"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__reversal_move_id
+msgid "Reversal Move"
+msgstr "Extourne"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Reversal of legacy settlement %(name)s"
+msgstr "Annulation du règlement hérité %(name)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Reverse Settlement"
+msgstr "Règlement inversé"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__state__reversed
+msgid "Reversed"
+msgstr "Inversé"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__reversed_at
+msgid "Reversed At"
+msgstr "Inversé à"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__reversed_user_id
+msgid "Reversed User"
+msgstr "Utilisateur inversé"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Reversed on"
+msgstr "Extourné le"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_review_state
+msgid "Review status"
+msgstr "Statut de l'examen"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid ""
+"Review the selected bank transaction, then post this as a company-paid "
+"expense and reconcile its native payment."
+msgstr ""
+"Vérifiez la transaction bancaire sélectionnée, puis enregistrez-la comme "
+"dépense payée par l'société et rapprochez son paiement d'origine."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+msgid ""
+"Run Odoo's native expense approval and posting steps, then reconcile the "
+"generated company payment with this bank transaction."
+msgstr ""
+"Exécutez les étapes natives d'approbation et de comptabilisation des "
+"dépenses de Odoo, puis rapprochez le paiement de l'société généré avec cette"
+" transaction bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Sales receipt"
+msgstr "justificatif de vente"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Same currency"
+msgstr "Même devise"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Same day"
+msgstr "Le même jour"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "Same label matched %(count)s time(s) to one partner"
+msgstr "La même étiquette correspondait aux heures %(count)s à un partenaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__score
+msgid "Score"
+msgstr "Note"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "See exchange information"
+msgstr "Voir les informations de change"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "Select at least two journal items before matching."
+msgstr ""
+"Sélectionnez au moins deux éléments de journal avant de faire la "
+"rapprochement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selected_count
+msgid "Selected Count"
+msgstr "Nombre sélectionné"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selected_credit
+msgid "Selected Credit"
+msgstr "Crédit sélectionné"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selected_debit
+msgid "Selected Debit"
+msgstr "Débit sélectionné"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__immediate_settlement_foreign_amount_source__document_residual
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__foreign_amount_source__document_residual
+msgid "Selected document residual"
+msgstr "Résidu du document sélectionné"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selected_move_line_ids
+msgid "Selected items"
+msgstr "Articles sélectionnés"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selection_difference
+msgid "Selection Difference"
+msgstr "Différence de sélection"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selection_outcome
+msgid "Selection Outcome"
+msgstr "Résultat de la sélection"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_account_reconcile__selection_reference_date
+msgid "Selection Reference Date"
+msgstr "Date de référence de sélection"
+
+#. module: usl_accounting
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Settle"
+msgstr "Régler"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_settings_immediate_settlement
+msgid ""
+"Settle can replace a synthetic foreign estimate with the exact document "
+"amount. Use payment rate is additionally limited by the delay and reference-"
+"rate policies below."
+msgstr ""
+"Settle peut remplacer une estimation étrangère synthétique par le montant "
+"exact du document. Le taux de paiement d'utilisation est en outre limité par"
+" les politiques de retard et de taux de référence ci-dessous."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settle is available only for bank transactions."
+msgstr ""
+"Le règlement est disponible uniquement pour les transactions bancaires."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_immediate_settlement__state__settled
+msgid "Settled"
+msgstr "Soldée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Settled the exact document amount %(foreign)s against the bank amount "
+"%(company)s; %(difference)s. The foreign amount came from the selected "
+"document, not the bank feed."
+msgstr ""
+"Comptabilisé le montant exact du document %(foreign)s avec le montant "
+"bancaire %(company)s ; %(difference)s. Le montant en devises provenait du "
+"document sélectionné et non du flux bancaire."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Settled ·"
+msgstr "Réglé ·"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__settlement_id
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_immediate_settlement
+msgid "Settlement"
+msgstr "Règlement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__settlement_date
+msgid "Settlement Date"
+msgstr "Date de règlement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__settlement_difference
+msgid "Settlement Difference"
+msgstr "Différence de règlement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__settlement_difference_type
+msgid "Settlement Difference Type"
+msgstr "Type de différence de règlement"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_immediate_settlement_allocation
+msgid "Settlement Economic Allocation"
+msgstr "Allocation économique pour les établissements"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Settlement Result"
+msgstr "Résultat du règlement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Settlement accounting entries cannot be deleted directly. Undo the linked "
+"settlement instead."
+msgstr ""
+"Les écritures comptables de règlement ne peuvent pas être supprimées "
+"directement. Annulez plutôt le règlement lié."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Settlement accounting entries cannot be reset to draft directly. Undo the "
+"linked settlement first."
+msgstr ""
+"Les écritures comptables de règlement ne peuvent pas être réinitialisées "
+"directement en version préliminaire. Annulez d’abord le règlement lié."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement allocations are service-managed."
+msgstr "Les allocations de règlement sont gérées par le service."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement attempted to change the bank liquidity amount."
+msgstr "Le règlement a tenté de modifier le montant de la liquidité bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement attempted to change the document's tax lines."
+msgstr "Le règlement a tenté de modifier les lignes fiscales du document."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement audit records can only be created by the service."
+msgstr ""
+"Les enregistrements d'audit des règlements ne peuvent être créés que par le "
+"service."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement audit records cannot be deleted."
+msgstr ""
+"Les enregistrements d'audit de règlement ne peuvent pas être supprimés."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement audit records cannot be edited."
+msgstr ""
+"Les enregistrements d'audit de règlement ne peuvent pas être modifiés."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Settlement did not create the exact foreign-currency receivable or payable "
+"counterpart."
+msgstr ""
+"Le règlement n’a pas créé la contrepartie exacte en devises à recevoir ou à "
+"payer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement did not fully clear the bank suspense balance."
+msgstr "Le règlement n’a pas entièrement apuré le solde d’attente bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement did not fully clear the selected document amount."
+msgstr ""
+"Le règlement n’a pas entièrement compensé le montant du document "
+"sélectionné."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Settlement difference:"
+msgstr "Différence de règlement :"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__exchange_difference
+msgid "Settlement exchange difference"
+msgstr "Différence d'échange de règlement"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Settlement pair:"
+msgstr "Paire de règlements :"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Settlement trace fields are service-managed."
+msgstr "Les champs de trace des règlements sont gérés par le service."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Settlement-generated accounting lines cannot be deleted directly. Undo the "
+"linked settlement first."
+msgstr ""
+"Les lignes comptables générées par le règlement ne peuvent pas être "
+"supprimées directement. Annulez d’abord le règlement lié."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Settlement-generated accounting lines cannot be edited directly. Undo the "
+"linked settlement first."
+msgstr ""
+"Les lignes comptables générées par le règlement ne peuvent pas être "
+"modifiées directement. Annulez d’abord le règlement lié."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__economic_adjustment_amount
+msgid ""
+"Signed company-currency amount allocated to the original economic accounts "
+"by a preserved legacy payment-rate settlement."
+msgstr ""
+"Montant signé en devise de l'société alloué aux comptes économiques "
+"d'origine par un règlement au taux de paiement hérité préservé."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__settlement_difference
+msgid ""
+"Signed company-currency difference produced by OCA's native bank "
+"reconciliation. Positive uses the exchange-loss account."
+msgstr ""
+"Différence signée entre la devise de l'société et produite par le "
+"rapprochement bancaire natif d'OCA. Positive utilise le compte de pertes de "
+"change."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "Stable label pattern matched %(count)s time(s) to one partner"
+msgstr ""
+"Modèle d'étiquette stable correspondant aux heures %(count)s à un partenaire"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__exchange_move_names
+msgid ""
+"Stable reference snapshot retained if native reversal removes an entry."
+msgstr ""
+"Instantané de référence stable conservé si l’inversion native supprime une "
+"entrée."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__state
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__state
+msgid "State"
+msgstr "Statut"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__statement_line_id
+msgid "Statement Line"
+msgstr "Ligne de relevé"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_partner_suggestion_id
+msgid "Suggested partner"
+msgstr "Partenaire suggéré"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Suggested payments"
+msgstr "Paiements suggérés"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_partner_suggestion_source
+msgid "Suggestion source"
+msgstr "Source des suggestions"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Text match: %(terms)s"
+msgstr "rapprochement du texte : %(terms)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"The %(journal)s journal has no outbound payment method allowed for company-"
+"paid expenses."
+msgstr ""
+"Le journal %(journal)s ne dispose d’aucun moyen de paiement sortant autorisé"
+" pour les notes de frais payées par la société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/readonly_evidence.py:0
+msgid ""
+"The accountant review role can inspect accounting evidence but cannot add "
+"messages or attachments."
+msgstr ""
+"Le rôle de révision comptable peut inspecter les justificatifs comptables "
+"mais ne peut pas ajouter de messages ou de pièces jointes."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/readonly_evidence.py:0
+msgid "The accountant review role cannot add accounting attachments."
+msgstr ""
+"Le rôle de révision comptable ne peut pas ajouter de pièces jointes "
+"comptables."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/readonly_evidence.py:0
+msgid "The accountant review role cannot change accounting attachments."
+msgstr ""
+"Le rôle de révision comptable ne peut pas modifier les pièces jointes "
+"comptables."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/readonly_evidence.py:0
+msgid "The accountant review role cannot remove accounting attachments."
+msgstr ""
+"Le rôle de révision comptable ne peut pas supprimer les pièces jointes "
+"comptables."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"The amounts are close but not equal. Correct the expense or review the "
+"transaction in Bank Matching before continuing."
+msgstr ""
+"Les montants sont proches mais pas égaux. Corrigez la dépense ou examinez la"
+" transaction dans rapprochement bancaire avant de continuer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank amount does not identify a document residual or payment term with a"
+" coherent direction."
+msgstr ""
+"Le montant en banque n'identifie pas de document résiduel ou de délai de "
+"paiement avec une direction cohérente."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank amount matches more than one payment term. Review it in Bank "
+"Matching."
+msgstr ""
+"Le montant bancaire correspond à plusieurs conditions de paiement. Examinez-"
+"le dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The bank entry is protected by immutable accounting controls."
+msgstr ""
+"L'entrée bancaire est protégée par des contrôles comptables immuables."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The bank journal must use the company currency."
+msgstr "Le journal bancaire doit utiliser la devise de l'société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The bank journal suspense account must allow reconciliation."
+msgstr ""
+"Le compte d'attente du journal bancaire doit permettre le rapprochement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank or integration foreign amount conflicts with the document. Review "
+"it in Bank Matching."
+msgstr ""
+"Le montant bancaire ou étranger d’intégration est en conflit avec le "
+"document. Examinez-le dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank transaction contains another allocation, fee, or withholding. "
+"Review it in Bank Matching."
+msgstr ""
+"La transaction bancaire contient une autre allocation, des frais ou une "
+"retenue. Examinez-le dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid ""
+"The bank transaction has already been categorized to another account. Review"
+" it in Bank Matching."
+msgstr ""
+"La transaction bancaire a déjà été classée sur un autre compte. Examinez-le "
+"dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The bank transaction has no remaining company-currency amount."
+msgstr ""
+"La transaction bancaire ne comporte aucun montant restant dans la devise de "
+"l'société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank transaction includes a fee or withholding. Keep it separate in Bank"
+" Matching."
+msgstr ""
+"La transaction bancaire comprend des frais ou une retenue. Gardez-le séparé "
+"dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank transaction is assigned to another partner. Review it before "
+"settlement."
+msgstr ""
+"La transaction bancaire est affectée à un autre partenaire. Examinez-le "
+"avant le règlement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The bank transaction must still be on the journal's suspense account."
+msgstr ""
+"La transaction bancaire doit toujours être sur le compte d'attente du "
+"journal."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "The bank transaction was matched to %(expense)s."
+msgstr "La transaction bancaire a été rapprochée de %(expense)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank-reported foreign amount conflicts with the selected document "
+"residual."
+msgstr ""
+"Le montant en devises déclaré par la banque est en conflit avec le résiduel "
+"du document sélectionné."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The bank-reported foreign currency conflicts with the document. Review it in"
+" Bank Matching."
+msgstr ""
+"La devise étrangère déclarée par la banque est en conflit avec le document. "
+"Examinez-le dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "The bill must be posted before accounting entries can be reconciled."
+msgstr ""
+"La facture doit être validée avant que les écritures comptables puissent "
+"être rapprochées."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "The company payment is already matched."
+msgstr "Le paiement de l’société est déjà égalé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The document and bank transaction must use the same company."
+msgstr ""
+"Le document et la transaction bancaire doivent utiliser la même société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The document cannot be reset because its accounting period is locked: "
+"%(locks)s."
+msgstr ""
+"La pièce ne peut pas être réinitialisée car sa période comptable est "
+"verrouillée : %(locks)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The document must be posted and still open."
+msgstr "Le document doit être affiché et toujours ouvert."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The document must use a foreign currency."
+msgstr "Le document doit utiliser une devise étrangère."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid ""
+"The document partner or receivable/payable account is no longer available. "
+"Refresh the document before matching."
+msgstr ""
+"Le partenaire de document ou le compte à recevoir/à payer n'est plus "
+"disponible. Actualisez le document avant la mise en rapprochement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"The expense or bank transaction changed after this suggestion was prepared. "
+"Refresh the suggestions before continuing."
+msgstr ""
+"La dépense ou la transaction bancaire a changé après la préparation de cette"
+" suggestion. Actualisez les suggestions avant de continuer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"The expense payment does not contain one available outstanding line. Review "
+"its journal entry before matching."
+msgstr ""
+"Le règlement des dépenses ne contient aucune ligne impayée disponible. "
+"Vérifiez son écriture comptable avant de la rapprocher."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"The expense was not posted as a native company payment. No bank "
+"reconciliation was performed."
+msgstr ""
+"La dépense n'a pas été comptabilisée comme paiement par l'société locale. "
+"Aucun rapprochement bancaire n'a été effectué."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The linked bank entry is protected by a secure hash."
+msgstr "L'entrée bancaire liée est protégée par un hachage sécurisé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The linked bank transaction is no longer available."
+msgstr "La transaction bancaire liée n'est plus disponible."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The payment action could not be completed. Refresh and try again."
+msgstr ""
+"L'action de paiement n'a pas pu être complétée. Actualisez et réessayez."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The payment rate did not produce the exact bank amount on the document. No "
+"accounting changes were saved."
+msgstr ""
+"Le taux de paiement n'a pas produit le montant bancaire exact sur le "
+"document. Aucune modification comptable n'a été enregistrée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The payment rate is %(deviation).2f%% from Odoo's reference rate, above the "
+"%(maximum).2f%% policy."
+msgstr ""
+"Le taux de paiement est %(deviation).2f%% par rapport au taux de référence "
+"de Odoo, supérieur à la politique %(maximum).2f%%."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__payment_id
+msgid "The payment that created this entry"
+msgstr "Le paiement ayant généré cette pièce comptable"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The payment-rate delay cannot be negative."
+msgstr "Le retard du taux de paiement ne peut être négatif."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The payment-rate deviation must be between 0% and 100%."
+msgstr "L'écart du taux de paiement doit être compris entre 0% a et 100 %."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The repriced document is not open and posted. Restore it before reversing "
+"this settlement."
+msgstr ""
+"Le document retarifé n'est pas ouvert et comptabilisé. Restaurez-le avant "
+"d'annuler ce règlement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"The repriced document no longer matches its settlement snapshot and cannot "
+"be restored automatically."
+msgstr ""
+"Le document retarifé ne correspond plus à son instantané de règlement et ne "
+"peut pas être restauré automatiquement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The selected bank transaction is already reconciled."
+msgstr "La transaction bancaire sélectionnée est déjà rapprochée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The selected bank transaction is no longer posted."
+msgstr "L'opération bancaire sélectionnée n'est plus comptabilisée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"The selected transaction and expense payment do not fully balance. Review "
+"them in Bank Matching."
+msgstr ""
+"La transaction sélectionnée et le paiement des dépenses ne s'équilibrent pas"
+" complètement. Examinez-les dans rapprochement bancaire."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "The settlement period is locked: %(locks)s."
+msgstr "La période de règlement est verrouillée : %(locks)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_direction_guard.py:0
+msgid "There is no exceptional account direction to confirm."
+msgstr "Il n’y a pas de direction de compte exceptionnelle à confirmer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This bank journal must use editable OCA reconciliation."
+msgstr "Ce journal bancaire doit utiliser le rapprochement OCA modifiable."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This bank transaction already has an inferred foreign amount."
+msgstr ""
+"Cette transaction bancaire comporte déjà un montant en devises présumé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This bank transaction changed while settling. Refresh the document."
+msgstr ""
+"Cette transaction bancaire a changé lors du règlement. Actualisez le "
+"document."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "This bank transaction has no matching reference."
+msgstr "Cette transaction bancaire n'a pas de référence correspondante."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid ""
+"This bank transaction is no longer available. Refresh the bill and review "
+"the current suggestions."
+msgstr ""
+"Cette transaction bancaire n'est plus disponible. Actualisez la facture et "
+"examinez les suggestions actuelles."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"This bank transaction is no longer available. Refresh the expense and review"
+" the current suggestions."
+msgstr ""
+"Cette transaction bancaire n'est plus disponible. Actualisez la dépense et "
+"examinez les suggestions actuelles."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This bank transaction no longer exists. Refresh the document."
+msgstr "Cette transaction bancaire n'existe plus. Actualisez le document."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This bank transaction was already settled using %(method)s."
+msgstr "Cette transaction bancaire a déjà été réglée avec %(method)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This bank transaction was settled by another action."
+msgstr "Cette transaction bancaire a été réglée par une autre action."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_bank_match_wizard.py:0
+msgid ""
+"This changes Paid by to Company, uses the selected bank journal, completes "
+"the native submit/approve/post steps allowed for you, and reconciles the "
+"resulting company payment with this bank transaction.%(vendor_note)s"
+msgstr ""
+"Cela modifie Payé par en Société, utilise le journal bancaire sélectionné, "
+"termine les étapes natives de soumission/approbation/comptabilisation "
+"autorisées pour vous et rapproche le paiement de l'société résultant avec "
+"cette transaction bancaire.%(vendor_note)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"This document contains economic lines that cannot safely be repriced at the "
+"payment rate."
+msgstr ""
+"Ce document contient des lignes économiques qui ne peuvent pas être "
+"retarifiées en toute sécurité au taux de paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"This document has an active electronic-invoice record and cannot be repriced"
+" automatically."
+msgstr ""
+"Ce document possède un enregistrement de facture électronique actif et ne "
+"peut pas être retarifé automatiquement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"This document is protected from reset to draft. Use Settle without changing "
+"its original valuation."
+msgstr ""
+"Ce document est protégé contre la réinitialisation à l'état de brouillon. "
+"Utilisez Settle sans modifier sa valorisation d’origine."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "This document was already sent and cannot be repriced automatically."
+msgstr ""
+"Ce document a déjà été envoyé et ne peut pas être retarifé automatiquement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "This expense is already posted or settled."
+msgstr "Cette dépense est déjà comptabilisée ou réglée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid ""
+"This expense was already posted as employee-paid. Reset or correct it "
+"through the native accounting workflow before matching a company bank "
+"transaction."
+msgstr ""
+"Cette dépense était déjà comptabilisée comme payée par l'employé. "
+"Réinitialisez-le ou corrigez-le via le processus comptable natif avant de "
+"rapprocher une transaction bancaire de l'société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "This journal item has no matching reference."
+msgstr "Cet lignes d’écriture n'a pas de référence correspondante."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid ""
+"This payment is no longer an eligible suggestion. Refresh the bill and "
+"review the remaining amount."
+msgstr ""
+"Ce paiement n'est plus une suggestion éligible. Actualisez la facture et "
+"vérifiez le montant restant."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"This repriced document's journal items cannot be deleted directly. Undo the "
+"linked settlement first."
+msgstr ""
+"Les éléments de journal de ce document retarifé ne peuvent pas être "
+"supprimés directement. Annulez d’abord le règlement lié."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"This repriced document's journal items cannot be edited directly. Undo the "
+"linked settlement first."
+msgstr ""
+"Les éléments de journal de ce document retarifé ne peuvent pas être modifiés"
+" directement. Annulez d’abord le règlement lié."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"This settlement cannot be reversed because its accounting period is locked: "
+"%(locks)s."
+msgstr ""
+"Ce règlement est irréversible car sa période comptable est bloquée : "
+"%(locks)s."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_transaction_status__open
+msgid "To match"
+msgstr "Pour correspondre"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__trusted_source
+msgid "Trusted Source"
+msgstr "Source fiable"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+#: code:addons/usl_accounting/wizard/expense_bank_match_wizard.py:0
+msgid "Unassigned"
+msgstr "Non assigné"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__unavailable_reason
+msgid "Unavailable Reason"
+msgstr "Raison d'indisponibilité"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Undo the linked settlement instead of cancelling its accounting entry."
+msgstr "Annulez le règlement lié au lieu d'annuler son écriture comptable."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
+msgid "Unique partial counterparty-name match"
+msgstr "rapprochement partielle unique du nom de la contrepartie"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__rebuild_reconciliation_state__open
+msgid "Unreconciled"
+msgstr "Non réconcilié"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Use"
+msgstr "Utiliser"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Use Odoo's %(estimate)s estimate. This may leave a %(difference)s "
+"difference."
+msgstr ""
+"Utilisez l'estimation %(estimate)s de Odoo. Cela peut laisser une différence"
+" %(difference)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Use Odoo's existing %(amount)s candidate."
+msgstr "Utilisez le candidat %(amount)s existant de Odoo."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+msgid "Use and reconcile"
+msgstr "Utiliser et concilier"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+msgid "Use bank transaction"
+msgstr "Utiliser une transaction bancaire"
+
+#. module: usl_accounting
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Use payment rate"
+msgstr "Utiliser le taux de paiement"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Use payment rate is limited to %(maximum)s days; this transaction is "
+"%(days)s days from the document."
+msgstr ""
+"Le taux de paiement d'utilisation est limité à %(maximum)s jours ; cette "
+"transaction se situe à %(days)s jours à compter du document."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Use payment rate is not available when the document contains taxes. Use "
+"Settle to preserve its tax valuation."
+msgstr ""
+"Utiliser le taux de paiement n'est pas disponible lorsque le document "
+"contient des taxes. Utilisez Settle pour conserver sa valorisation fiscale."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Use payment rate requires a completely unpaid document. Use Settle for a "
+"remaining balance."
+msgstr ""
+"Utiliser le taux de paiement nécessite un document totalement impayé. "
+"Utilisez Régler pour un solde restant."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Use payment rate requires one bank transaction for the complete, never-paid "
+"document."
+msgstr ""
+"Utiliser le taux de paiement nécessite une seule opération bancaire pour le "
+"document complet et jamais payé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Use the document's exact %(foreign)s. %(consequence)s"
+msgstr "Utilisez le %(foreign)s exact du document. %(consequence)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_accepted_count
+msgid "Usl Bank Match Accepted Count"
+msgstr "Nombre de rapprochements bancaires Usl acceptées"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_available_count
+msgid "Usl Bank Match Available Count"
+msgstr "Nombre de rapprochements bancaires Usl disponibles"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_eligible
+msgid "Usl Bank Match Eligible"
+msgstr "Éligibilité à la rapprochement bancaire Usl"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_guidance
+msgid "Usl Bank Match Guidance"
+msgstr "Conseils de rapprochement avec la banque Usl"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_last_refreshed_at
+msgid "Usl Bank Match Last Refreshed At"
+msgstr "Usl Bank rapprochement dernière mise à jour à"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"Value the document at the bank's %(company)s rate and match %(foreign)s. No "
+"FX."
+msgstr ""
+"Valoriser le document au taux bancaire de %(company)s et rapprocher "
+"%(foreign)s, sans écart de change."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "Vendor credit"
+msgstr "Crédit fournisseur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+msgid "Vendor matches"
+msgstr "Correspondances de fournisseurs"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_account_account__rebuild_entry_direction_policy
+msgid ""
+"Warn before posting a journal item on the exceptional side of this account. "
+"Automatic mode protects French exchange-loss accounts 666 as normally debit "
+"and exchange-gain accounts 766 as normally credit. Native exchange "
+"adjustments, refunds and formal reversals remain allowed."
+msgstr ""
+"Avertir avant de poster un article de journal sur le côté exceptionnel de ce"
+" compte. Le mode automatique protège les comptes français de pertes de "
+"change 666 comme normalement débiteurs et les comptes de gains de change 766"
+" comme normalement créditeurs. Les ajustements de change natifs, les "
+"remboursements et les annulations formelles restent autorisés."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__evidence_summary
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__evidence_summary
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+msgid "Why suggested"
+msgstr "Pourquoi suggéré"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "You cannot inspect matching items for this company."
+msgstr ""
+"Vous ne pouvez pas inspecter les éléments correspondants pour cette société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "You do not have permission to revalue and repost this document."
+msgstr "Vous n’êtes pas autorisé à réévaluer et recomptabiliser ce document."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid ""
+"You need permission to reset and post the document before using its payment "
+"rate."
+msgstr ""
+"Vous avez besoin d'une autorisation pour réinitialiser et valider le "
+"document avant d'utiliser son taux de paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "bill date"
+msgstr "date de facture"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "company_id"
+msgstr "company_id"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "due date"
+msgstr "deux rendez-vous"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "matching facts"
+msgstr "faits correspondants"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement.py:0
+msgid "no settlement difference"
+msgstr "pas de différence de règlement"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "on"
+msgstr "le"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/account_reconcile_compat.py:0
+msgid "selected matching"
+msgstr "rapprochement sélectionnée"

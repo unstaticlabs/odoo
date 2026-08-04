@@ -1,0 +1,64 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_documents_accounting
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-04 22:35+0000\n"
+"PO-Revision-Date: 2026-08-04 22:35+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_documents_accounting
+#: model:ir.model,name:usl_documents_accounting.model_usl_document_link
+msgid "Archived Document Business Relationship"
+msgstr "Relation commerciale avec un document archivé"
+
+#. module: usl_documents_accounting
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_closing_period__archived_document_count
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_declaration__archived_document_count
+msgid "Archived Documents"
+msgstr "Documents archivés"
+
+#. module: usl_documents_accounting
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_closing_period__display_name
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_declaration__display_name
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_usl_document_link__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_documents_accounting
+#: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_closing_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_declaration_documents
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_documents_accounting
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_closing_period__id
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_declaration__id
+#: model:ir.model.fields,field_description:usl_documents_accounting.field_usl_document_link__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_documents_accounting
+#: model:ir.model,name:usl_documents_accounting.model_rebuild_account_closing_period
+msgid "USL Accounting Closing Workspace"
+msgstr "espaces de clôture comptable USL"
+
+#. module: usl_documents_accounting
+#: model:ir.model,name:usl_documents_accounting.model_rebuild_account_declaration
+msgid "USL French Declaration Obligation"
+msgstr "Obligation de déclaration USL en France"
+
+#. module: usl_documents_accounting
+#: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_closing_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_declaration_documents
+msgid "Upload"
+msgstr "Charger"

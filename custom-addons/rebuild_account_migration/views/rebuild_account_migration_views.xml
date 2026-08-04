@@ -260,6 +260,9 @@
         <field name="name">Accounting</field>
         <field name="action" eval="'ir.actions.client,%d' % ref('action_rebuild_accounting_home')"/>
     </record>
+    <record id="account.menu_finance" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Comptabilité</field>
+    </record>
     <record id="account.menu_finance_receivables" model="ir.ui.menu">
         <field name="sequence">2</field>
     </record>
@@ -267,6 +270,9 @@
         <field name="name">Journals</field>
         <field name="sequence">1</field>
         <field name="group_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
+    <record id="account.menu_board_journal_1" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Journaux</field>
     </record>
     <record id="account_statement_import_file.account_statement_import_menu" model="ir.ui.menu">
         <field name="active" eval="False"/>
@@ -419,6 +425,9 @@
         <field name="name">Vendors</field>
         <field name="sequence">3</field>
     </record>
+    <record id="account.menu_finance_payables" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Fournisseurs</field>
+    </record>
     <record id="account.action_move_in_invoice" model="ir.actions.act_window">
         <field name="context">{'search_default_in_invoice': 1, 'default_move_type': 'in_invoice'}</field>
     </record>
@@ -459,9 +468,15 @@
         <field name="name">Reporting</field>
         <field name="sequence">20</field>
     </record>
+    <record id="account.menu_finance_reports" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Rapports</field>
+    </record>
     <record id="account.account_audit_menu" model="ir.ui.menu">
         <field name="name">Review</field>
         <field name="sequence">7</field>
+    </record>
+    <record id="account.account_audit_menu" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Révision</field>
     </record>
     <record id="account_asset_management.menu_finance_assets" model="ir.ui.menu">
         <field name="parent_id" ref="account.menu_finance_entries"/>
@@ -4583,17 +4598,29 @@
         <field name="name">États financiers</field>
         <field name="sequence">2</field>
     </record>
+    <record id="account.account_reports_legal_statements_menu" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">États financiers</field>
+    </record>
     <record id="account.account_reports_partners_reports_menu" model="ir.ui.menu">
         <field name="name">Tiers et échéances</field>
         <field name="sequence">3</field>
+    </record>
+    <record id="account.account_reports_partners_reports_menu" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Tiers et échéances</field>
     </record>
     <record id="account.account_reports_taxes_and_fiscal_menu" model="ir.ui.menu">
         <field name="name">Fiscalité</field>
         <field name="sequence">4</field>
     </record>
+    <record id="account.account_reports_taxes_and_fiscal_menu" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Fiscalité</field>
+    </record>
     <record id="account.account_reports_management_menu" model="ir.ui.menu">
         <field name="name">Pilotage</field>
         <field name="sequence">5</field>
+    </record>
+    <record id="account.account_reports_management_menu" model="ir.ui.menu" context="{'lang': 'fr_FR'}">
+        <field name="name">Pilotage</field>
     </record>
     <menuitem
         id="menu_rebuild_account_reports_accounting_books"

@@ -77,3 +77,50 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
                     record,
                     f"{model_name} contains duplicate governed definition {key}",
                 )
+
+    def test_distribution_owns_french_navigation_terms(self):
+        expected_names = {
+            "account.menu_finance": "Comptabilité",
+            "account.menu_board_journal_1": "Journaux",
+            "account.menu_finance_payables": "Fournisseurs",
+            "account.menu_finance_reports": "Rapports",
+            "account.account_audit_menu": "Révision",
+            "account.account_reports_legal_statements_menu": "États financiers",
+            "account.account_reports_partners_reports_menu": "Tiers et échéances",
+            "account.account_reports_taxes_and_fiscal_menu": "Fiscalité",
+            "account.account_reports_management_menu": "Pilotage",
+            "account_reconcile_oca.menu_account_reconcile_model": (
+                "Règles de rapprochement bancaire"
+            ),
+            "account.action_account_reconcile_model": (
+                "Règles de rapprochement bancaire"
+            ),
+            "usl_platform_billing.selection__account_move__platform_billing_payment_state__in_payment": (
+                "En cours de paiement"
+            ),
+            "usl_platform_billing.selection__account_move__platform_billing_payment_state__invoicing_legacy": (
+                "Hérité de l’application Facturation"
+            ),
+            "usl_platform_billing.selection__account_move__platform_billing_payment_state__not_paid": (
+                "Non payé"
+            ),
+        }
+        for xmlid, expected_name in expected_names.items():
+            record = self.env.ref(xmlid)
+            self.assertEqual(
+                record.with_context(lang="fr_FR").name,
+                expected_name,
+                f"{xmlid} must not retain an obsolete upstream French name",
+            )
+
+        platform_view = self.env.ref(
+            "usl_platform_billing.view_platform_billing_platform_form",
+        ).with_context(lang="fr_FR")
+        self.assertIn(
+            "Répartition analytique par défaut facultative",
+            platform_view.arch_db,
+        )
+        self.assertNotIn(
+            "Optional default analytic distribution",
+            platform_view.arch_db,
+        )
