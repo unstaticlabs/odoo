@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_usl_paperless_tag_list" model="ir.ui.view">
+        <field name="name">usl.paperless.tag.list</field>
+        <field name="model">usl.paperless.tag</field>
+        <field name="arch" type="xml">
+            <list string="Tags" decoration-muted="not active">
+                <field name="color" widget="color"/>
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="matching_algorithm"/>
+                <field name="is_inbox_tag" optional="show"/>
+                <field name="accessible_document_count" string="Documents"
+                       widget="usl_open_documents"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_paperless_tag_form" model="ir.ui.view">
+        <field name="name">usl.paperless.tag.form</field>
+        <field name="model">usl.paperless.tag</field>
+        <field name="arch" type="xml">
+            <form string="Tag">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o">
+                            <field name="accessible_document_count"
+                                   widget="statinfo" string="Open documents"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="For example: Banking"/></h1>
+                    </div>
+                    <group>
+                        <group string="Appearance">
+                            <field name="color" widget="color"/>
+                            <field name="parent_id"
+                                   domain="[('id', '!=', id), ('active', '=', True)]"/>
+                            <field name="is_inbox_tag"/>
+                            <field name="active" groups="usl_documents.group_documents_manager"/>
+                        </group>
+                        <group string="Automatic classification">
+                            <field name="matching_algorithm" string="Method"/>
+                            <field name="rule_lines"
+                                   placeholder="One word or phrase per line"
+                                   invisible="matching_algorithm in ('0', '6')"/>
+                            <field name="is_insensitive"
+                                   invisible="matching_algorithm in ('0', '6')"/>
+                            <field name="document_count" readonly="1"
+                                   groups="usl_documents.group_documents_manager"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm != '6'">
+                        <b>Learn automatically</b> uses Paperless’s local classifier.
+                        Correctly tag reviewed documents and remove inbox tags; Paperless
+                        retrains periodically and learns when to apply this tag.
+                    </div>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm in ('0', '6')">
+                        Add as many terms or phrases as needed. <b>Any word</b> matches
+                        one line; <b>All words</b> requires every line. Exact, regex,
+                        and fuzzy methods use the full expression shown above.
+                    </div>
+                    <group string="Diagnostics" groups="usl_documents.group_documents_manager">
+                        <field name="paperless_id"/>
+                        <field name="last_synced_at"/>
+                        <field name="last_error" invisible="not last_error"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_paperless_correspondent_list" model="ir.ui.view">
+        <field name="name">usl.paperless.correspondent.list</field>
+        <field name="model">usl.paperless.correspondent</field>
+        <field name="arch" type="xml">
+            <list string="Correspondents" decoration-muted="not active">
+                <field name="name"/>
+                <field name="partner_visible_id" optional="show"/>
+                <field name="matching_algorithm"/>
+                <field name="match" optional="hide"/>
+                <field name="accessible_document_count" string="Documents"
+                       widget="usl_open_documents"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_paperless_correspondent_form" model="ir.ui.view">
+        <field name="name">usl.paperless.correspondent.form</field>
+        <field name="model">usl.paperless.correspondent</field>
+        <field name="arch" type="xml">
+            <form string="Correspondent">
+                <header>
+                    <button name="action_accept_suggested_partner" type="object"
+                            string="Use suggested Contact" class="btn-primary"
+                            invisible="not suggested_partner_id or partner_visible_id"/>
+                    <button name="action_reject_suggested_partner" type="object"
+                            string="Not this Contact"
+                            invisible="not suggested_partner_id or partner_visible_id"/>
+                    <button name="action_open_partner" type="object"
+                            string="Open Contact"
+                            invisible="not partner_visible_id"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o">
+                            <field name="accessible_document_count"
+                                   widget="statinfo" string="Open documents"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="For example: Acme Supplies"/></h1>
+                    </div>
+                    <group>
+                        <group string="Business identity">
+                            <field name="partner_mapping_hidden" invisible="1"/>
+                            <field name="partner_visible_id"
+                                   placeholder="Map to an existing Odoo Contact"
+                                   readonly="partner_mapping_hidden"/>
+                            <field name="suggested_partner_id" readonly="1"
+                                   invisible="not suggested_partner_id or partner_visible_id"/>
+                            <div class="alert alert-warning" role="status"
+                                 invisible="not partner_mapping_hidden">
+                                This correspondent already has a Contact mapping outside
+                                your accessible companies. Ask a Documents administrator
+                                to review it.
+                            </div>
+                            <div class="text-muted">
+                                Optional. Mapping does not link documents or grant access.
+                                Leave archive-only correspondents unmapped.
+                            </div>
+                        </group>
+                        <group string="Automatic classification">
+                            <field name="matching_algorithm" string="Method"/>
+                            <field name="rule_lines"
+                                   placeholder="One word or phrase per line"
+                                   invisible="matching_algorithm in ('0', '6')"/>
+                            <field name="is_insensitive"
+                                   invisible="matching_algorithm in ('0', '6')"/>
+                        </group>
+                        <group>
+                            <field name="document_count" readonly="1"
+                                   groups="usl_documents.group_documents_manager"/>
+                            <field name="active" groups="usl_documents.group_documents_manager"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm != '6'">
+                        Paperless learns this correspondent from reviewed, non-inbox
+                        examples and retrains its local classifier periodically.
+                    </div>
+                    <group string="Diagnostics" groups="usl_documents.group_documents_manager">
+                        <field name="paperless_id"/>
+                        <field name="last_synced_at"/>
+                        <field name="last_error" invisible="not last_error"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_paperless_document_type_list" model="ir.ui.view">
+        <field name="name">usl.paperless.document.type.list</field>
+        <field name="model">usl.paperless.document.type</field>
+        <field name="arch" type="xml">
+            <list string="Document Types" decoration-muted="not active">
+                <field name="name"/>
+                <field name="matching_algorithm"/>
+                <field name="match" optional="hide"/>
+                <field name="accessible_document_count" string="Documents"
+                       widget="usl_open_documents"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_paperless_document_type_form" model="ir.ui.view">
+        <field name="name">usl.paperless.document.type.form</field>
+        <field name="model">usl.paperless.document.type</field>
+        <field name="arch" type="xml">
+            <form string="Document Type">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o">
+                            <field name="accessible_document_count"
+                                   widget="statinfo" string="Open documents"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="For example: Supplier invoice"/></h1>
+                    </div>
+                    <group>
+                        <group string="Automatic classification">
+                            <field name="matching_algorithm" string="Method"/>
+                            <field name="rule_lines"
+                                   placeholder="One word or phrase per line"
+                                   invisible="matching_algorithm in ('0', '6')"/>
+                            <field name="is_insensitive"
+                                   invisible="matching_algorithm in ('0', '6')"/>
+                        </group>
+                        <group>
+                            <field name="document_count" readonly="1"
+                                   groups="usl_documents.group_documents_manager"/>
+                            <field name="active" groups="usl_documents.group_documents_manager"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="matching_algorithm != '6'">
+                        Paperless learns this type from reviewed, non-inbox examples
+                        and retrains its local classifier periodically.
+                    </div>
+                    <group string="Diagnostics" groups="usl_documents.group_documents_manager">
+                        <field name="paperless_id"/>
+                        <field name="last_synced_at"/>
+                        <field name="last_error" invisible="not last_error"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_document_quick_filter_list" model="ir.ui.view">
+        <field name="name">usl.document.quick.filter.list</field>
+        <field name="model">usl.document.quick.filter</field>
+        <field name="arch" type="xml">
+            <list string="One-click Shortcuts" decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="filter_domain" string="Filters" optional="show"/>
+                <field name="group_by_1" string="Group by" optional="show"/>
+                <field name="sort_by_1" string="Sort by" optional="show"/>
+                <field name="smart_view_ids" widget="many2many_tags"
+                       string="Smart views" optional="show"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_document_quick_filter_form" model="ir.ui.view">
+        <field name="name">usl.document.quick.filter.form</field>
+        <field name="model">usl.document.quick.filter</field>
+        <field name="arch" type="xml">
+            <form string="One-click Shortcut">
+                <sheet>
+                    <field name="ir_filter_id" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="For example: Current supplier documents"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="smart_view_ids" widget="many2many_tags"
+                                   domain="[('scope', '=', 'shared')]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="icon"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="key" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="Filters"/>
+                    <field name="filter_domain" nolabel="1" widget="domain"
+                           options="{'model': 'usl.document', 'foldable': False, 'allow_expressions': True}"/>
+                    <group>
+                        <group string="Group By">
+                            <field name="group_by_1"/>
+                            <field name="group_by_2"/>
+                            <field name="group_by_3"/>
+                        </group>
+                        <group string="Sort">
+                            <field name="sort_by_1"/>
+                            <field name="sort_direction_1"
+                                   invisible="not sort_by_1"/>
+                            <field name="sort_by_2"/>
+                            <field name="sort_direction_2"
+                                   invisible="not sort_by_2"/>
+                            <field name="sort_by_3"/>
+                            <field name="sort_direction_3"
+                                   invisible="not sort_by_3"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status">
+                        This is the complete one-click shortcut. Filters, grouping, and
+                        sorting are saved together and compose with the selected Smart
+                        Views. The Smart View’s Paperless-compatible definition remains
+                        unchanged.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_document_smart_view_list" model="ir.ui.view">
+        <field name="name">usl.document.smart.view.list</field>
+        <field name="model">usl.document.smart.view</field>
+        <field name="arch" type="xml">
+            <list string="Smart Views">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="system_rule"/>
+                <field name="tag_ids" widget="many2many_tags" optional="show"/>
+                <field name="document_type_ids" widget="many2many_tags" optional="show"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_document_smart_view_form" model="ir.ui.view">
+        <field name="name">usl.document.smart.view.form</field>
+        <field name="model">usl.document.smart.view</field>
+        <field name="arch" type="xml">
+            <form string="Smart View">
+                <header>
+                    <button name="action_open_documents" type="object"
+                            string="Open Documents" class="btn-primary"
+                            invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="scope" readonly="1" force_save="1"/>
+                            <field name="system_rule"/>
+                            <field name="days" invisible="system_rule != 'recent'"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="icon"/>
+                            <field name="sequence"/>
+                            <field name="key" readonly="1" force_save="1"/>
+                            <field name="quick_filter_ids" widget="many2many_tags"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                        </group>
+                    </group>
+                    <group string="Paperless metadata"
+                           invisible="system_rule != 'metadata'">
+                        <field name="tag_ids" widget="many2many_tags"/>
+                        <field name="document_type_ids" widget="many2many_tags"/>
+                        <field name="correspondent_ids" widget="many2many_tags"/>
+                    </group>
+                    <div class="alert alert-info" role="status"
+                         invisible="system_rule != 'metadata'">
+                        A document appears when it matches the configured Paperless
+                        metadata. Archive-native views are available in both applications.
+                    </div>
+                    <div class="alert alert-info" role="status"
+                         invisible="not quick_filter_ids">
+                        One-click shortcuts are optional Odoo controls shown below the
+                        search bar. Configure reusable shortcuts from
+                        <b>Configuration &gt; One-click shortcuts</b>.
+                    </div>
+                    <group string="Shared archive view">
+                        <field name="archive_native"
+                               invisible="system_rule not in ('metadata', 'saved')"/>
+                        <field name="paperless_id" readonly="1"
+                               invisible="not archive_native"
+                               groups="usl_documents.group_documents_manager"/>
+                        <field name="paperless_sync_state" readonly="1"
+                               invisible="not archive_native or paperless_sync_state == 'synchronized'"
+                               groups="usl_documents.group_documents_manager"/>
+                        <field name="paperless_sync_error" readonly="1"
+                               invisible="not paperless_sync_error"
+                               groups="usl_documents.group_documents_manager"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_usl_paperless_tags" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">usl.paperless.tag</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+    <record id="action_usl_paperless_correspondents" model="ir.actions.act_window">
+        <field name="name">Correspondents</field>
+        <field name="res_model">usl.paperless.correspondent</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+    <record id="action_usl_paperless_document_types" model="ir.actions.act_window">
+        <field name="name">Document types</field>
+        <field name="res_model">usl.paperless.document.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+    <record id="action_usl_document_smart_views" model="ir.actions.act_window">
+        <field name="name">Smart views</field>
+        <field name="res_model">usl.document.smart.view</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('scope', '=', 'shared')]</field>
+        <field name="context">{'default_scope': 'shared'}</field>
+    </record>
+    <record id="action_usl_document_quick_filters" model="ir.actions.act_window">
+        <field name="name">One-click shortcuts</field>
+        <field name="res_model">usl.document.quick.filter</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_usl_documents_tags" name="Tags"
+              parent="menu_usl_documents_root"
+              action="action_usl_paperless_tags" sequence="20"
+              groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_correspondents" name="Correspondents"
+              parent="menu_usl_documents_root"
+              action="action_usl_paperless_correspondents" sequence="30"
+              groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_document_types" name="Document types"
+              parent="menu_usl_documents_root"
+              action="action_usl_paperless_document_types" sequence="40"
+              groups="usl_documents.group_documents_user,usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_smart_views" name="Smart views"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_smart_views" sequence="40"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_quick_filters" name="One-click shortcuts"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_quick_filters" sequence="45"
+              groups="usl_documents.group_documents_manager"/>
+</odoo>

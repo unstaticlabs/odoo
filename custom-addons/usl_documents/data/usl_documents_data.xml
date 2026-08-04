@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_usl_documents_sync" model="ir.cron">
+        <field name="name">Documents: synchronize Paperless archive</field>
+        <field name="model_id" ref="model_usl_document"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_sync_from_paperless()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="ir_cron_usl_documents_poll" model="ir.cron">
+        <field name="name">Documents: track Paperless ingestion</field>
+        <field name="model_id" ref="model_usl_document_operation"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_poll_operations()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="ir_filter_quick_my_uploads" model="ir.filters">
+        <field name="name">My uploads</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[('submitted_by_id', '=', uid)]</field>
+        <field name="context">{}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_unlinked" model="ir.filters">
+        <field name="name">Not linked</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[('has_linked_record', '=', False)]</field>
+        <field name="context">{}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_needs_review" model="ir.filters">
+        <field name="name">Needs review</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[('review_state', '=', 'needs_attention')]</field>
+        <field name="context">{}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_last_30_days" model="ir.filters">
+        <field name="name">Last 30 days</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[('archive_added_at', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d'))]</field>
+        <field name="context">{}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_group_company" model="ir.filters">
+        <field name="name">Group by company</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[]</field>
+        <field name="context">{'group_by': ['company_id']}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_group_correspondent" model="ir.filters">
+        <field name="name">Group by correspondent</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[]</field>
+        <field name="context">{'group_by': ['correspondent_id']}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_group_document_type" model="ir.filters">
+        <field name="name">Group by type</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[]</field>
+        <field name="context">{'group_by': ['document_type_id']}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_group_employee" model="ir.filters">
+        <field name="name">Group by employee</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[]</field>
+        <field name="context">{'group_by': ['linked_employee_id']}</field>
+        <field name="sort">[]</field>
+    </record>
+    <record id="ir_filter_quick_group_document_month" model="ir.filters">
+        <field name="name">Group by month</field>
+        <field name="model_id">usl.document</field>
+        <field name="action_id" ref="action_documents_workspace"/>
+        <field name="domain">[]</field>
+        <field name="context">{'group_by': ['document_date:month']}</field>
+        <field name="sort">[]</field>
+    </record>
+
+    <record id="quick_filter_my_uploads" model="usl.document.quick.filter">
+        <field name="name">My uploads</field>
+        <field name="key">my_uploads</field>
+        <field name="icon">fa-user-o</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_my_uploads"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="quick_filter_unlinked" model="usl.document.quick.filter">
+        <field name="name">Not linked</field>
+        <field name="key">unlinked</field>
+        <field name="icon">fa-unlink</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_unlinked"/>
+        <field name="sequence">20</field>
+    </record>
+    <record id="quick_filter_needs_review" model="usl.document.quick.filter">
+        <field name="name">Needs review</field>
+        <field name="key">needs_review</field>
+        <field name="icon">fa-exclamation-circle</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_needs_review"/>
+        <field name="sequence">30</field>
+    </record>
+    <record id="quick_filter_last_30_days" model="usl.document.quick.filter">
+        <field name="name">Last 30 days</field>
+        <field name="key">last_30_days</field>
+        <field name="icon">fa-calendar</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_last_30_days"/>
+        <field name="sequence">40</field>
+    </record>
+    <record id="quick_filter_group_company" model="usl.document.quick.filter">
+        <field name="name">Group by company</field>
+        <field name="key">group_company</field>
+        <field name="icon">fa-building-o</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_group_company"/>
+        <field name="sequence">50</field>
+    </record>
+    <record id="quick_filter_group_correspondent" model="usl.document.quick.filter">
+        <field name="name">Group by correspondent</field>
+        <field name="key">group_correspondent</field>
+        <field name="icon">fa-address-card-o</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_group_correspondent"/>
+        <field name="sequence">60</field>
+    </record>
+    <record id="quick_filter_group_document_type" model="usl.document.quick.filter">
+        <field name="name">Group by type</field>
+        <field name="key">group_document_type</field>
+        <field name="icon">fa-file-o</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_group_document_type"/>
+        <field name="sequence">70</field>
+    </record>
+    <record id="quick_filter_group_employee" model="usl.document.quick.filter">
+        <field name="name">Group by employee</field>
+        <field name="key">group_employee</field>
+        <field name="icon">fa-user-circle-o</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_group_employee"/>
+        <field name="sequence">80</field>
+    </record>
+    <record id="quick_filter_group_document_month" model="usl.document.quick.filter">
+        <field name="name">Group by month</field>
+        <field name="key">group_document_month</field>
+        <field name="icon">fa-calendar-o</field>
+        <field name="ir_filter_id" ref="ir_filter_quick_group_document_month"/>
+        <field name="sequence">90</field>
+    </record>
+
+    <record id="smart_view_needs_review" model="usl.document.smart.view">
+        <field name="name">Needs review</field>
+        <field name="key">attention</field>
+        <field name="icon">fa-exclamation-circle</field>
+        <field name="sequence">10</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">attention</field>
+    </record>
+    <record id="smart_view_recent" model="usl.document.smart.view">
+        <field name="name">Recently added</field>
+        <field name="key">recent</field>
+        <field name="icon">fa-clock-o</field>
+        <field name="sequence">20</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">recent</field>
+        <field name="days">30</field>
+    </record>
+    <record id="smart_view_accounting" model="usl.document.smart.view">
+        <field name="name">Accounting</field>
+        <field name="key">accounting</field>
+        <field name="icon">fa-calculator</field>
+        <field name="sequence">30</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">accounting</field>
+    </record>
+    <record id="smart_view_contracts" model="usl.document.smart.view">
+        <field name="name">Contracts &amp; legal</field>
+        <field name="key">contracts</field>
+        <field name="icon">fa-file-text-o</field>
+        <field name="sequence">40</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">metadata</field>
+        <field name="archive_native" eval="True"/>
+    </record>
+    <record id="smart_view_banking" model="usl.document.smart.view">
+        <field name="name">Banking</field>
+        <field name="key">banking</field>
+        <field name="icon">fa-bank</field>
+        <field name="sequence">50</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">metadata</field>
+        <field name="archive_native" eval="True"/>
+    </record>
+    <record id="smart_view_tax" model="usl.document.smart.view">
+        <field name="name">Tax &amp; reporting</field>
+        <field name="key">tax</field>
+        <field name="icon">fa-balance-scale</field>
+        <field name="sequence">60</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">metadata</field>
+        <field name="archive_native" eval="True"/>
+    </record>
+    <record id="smart_view_hr" model="usl.document.smart.view">
+        <field name="name">HR</field>
+        <field name="key">hr</field>
+        <field name="icon">fa-lock</field>
+        <field name="sequence">70</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">hr</field>
+    </record>
+    <record id="smart_view_all" model="usl.document.smart.view">
+        <field name="name">All documents</field>
+        <field name="key">all</field>
+        <field name="icon">fa-archive</field>
+        <field name="sequence">80</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">all</field>
+    </record>
+    <record id="smart_view_trash" model="usl.document.smart.view">
+        <field name="name">Trash</field>
+        <field name="key">trash</field>
+        <field name="icon">fa-trash-o</field>
+        <field name="sequence">90</field>
+        <field name="scope">shared</field>
+        <field name="system_rule">trash</field>
+    </record>
+</odoo>

@@ -41,6 +41,9 @@ Primary entry points:
   repeatable Odoo Online project and task recovery.
 - [Product and migration boundary](docs/agents/product-migration-boundary.md)
   for keeping reconstruction machinery out of the delivered Odoo runtime.
+- [Source-truth migration](docs/operations/source-truth-migration.md) for the
+  blocking whole-dump coverage, filestore-integrity, and deterministic replay
+  contract.
 
 The integration baseline is upstream commit
 `6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
@@ -211,6 +214,9 @@ change is an explicitly justified and documented distribution-level patch.
 
 The production custom-module boundaries are:
 
+- `usl_locale`: the dependency-light presentation foundation that enforces
+  day-first (`DD/MM/YYYY`) dates through Odoo language formats and web-client
+  localization;
 - `usl_accounting`: dependency-light extensions of native and pinned OCA
   Accounting models;
 - `usl_expense_batch`: the independent Expenses claim-batch feature;
@@ -313,6 +319,11 @@ Email/Login: admin
 Password: admin
 ```
 
+Disposable human QA accounts use the same simple convention:
+`admin` / `admin` for the administrator and `<login>` / `admin` for every
+named QA user. This convention must never be used in staging or production and
+does not apply to database passwords, API tokens, or application secret keys.
+
 The Compose Odoo service uses:
 
 ```ini
@@ -334,8 +345,8 @@ scripts/odoo-dev bootstrap-einvoice-qa
 ```
 
 The bootstrap refuses existing company identities and any enabled live guard.
-It makes no network call. Log in as `qa.manager` / `qa-manager` or
-`qa.reviewer` / `qa-reviewer`.
+It makes no network call. Log in as `qa.manager` / `admin` or
+`qa.reviewer` / `admin`.
 
 ### Helper commands
 
@@ -361,8 +372,11 @@ make disable-tours                    # disable automatic tours for internal QA 
 scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
+scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
+scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 scripts/target-finalize               # apply target-only config after migration
 scripts/target-reconstruct            # rebuild canonical data and target config
+scripts/migration-source-truth inventory # audit all populated source perimeters
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
@@ -398,6 +412,9 @@ ignored mode-0600 `.pocket-id.env`. Follow the
 [Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
 the client secret, break-glass password or raw subjects in Git. Production
 uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
+The Documents wrapper also registers a separate Paperless OIDC client and
+stores its QA-only credentials in ignored mode-0600
+`.documents-qa-sso.env`; it never reuses Odoo's client secret.
 
 ### Optional bootstrap fixture
 

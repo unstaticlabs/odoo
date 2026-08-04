@@ -100,6 +100,11 @@ attachments = (
         [
             ("rebuild_source_model", "=", "ir.attachment"),
             ("rebuild_source_snapshot", "=", run.source_snapshot),
+            (
+                "rebuild_source_id",
+                "in",
+                [row["id"] for row in source["attachments"]] or [0],
+            ),
         ],
     )
 )
@@ -162,13 +167,21 @@ def external_id(record):
     return record.get_external_id().get(record.id) if record else None
 
 
-def traced_map(model, source_model, *, snapshot=run.source_snapshot):
+def traced_map(
+    model,
+    source_model,
+    *,
+    snapshot=run.source_snapshot,
+    source_ids=None,
+):
     domain = [
         ("rebuild_source_database", "=", run.source_database),
         ("rebuild_source_model", "=", source_model),
     ]
     if snapshot:
         domain.append(("rebuild_source_snapshot", "=", snapshot))
+    if source_ids is not None:
+        domain.append(("rebuild_source_id", "in", list(source_ids) or [0]))
     return {
         record.rebuild_source_id: record
         for record in (
@@ -182,10 +195,11 @@ def traced_map(model, source_model, *, snapshot=run.source_snapshot):
 
 project_map = {record.rebuild_source_id: record for record in projects}
 task_map = {record.rebuild_source_id: record for record in tasks}
-attachment_map = {
-    record.rebuild_source_id: record
-    for record in attachments
-}
+attachment_map = traced_map(
+    "ir.attachment",
+    "ir.attachment",
+    source_ids={row["id"] for row in source["attachments"]},
+)
 project_stage_map = traced_map(
     "project.project.stage",
     "project.project.stage",

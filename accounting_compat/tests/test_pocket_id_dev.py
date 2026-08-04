@@ -29,7 +29,89 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertEqual(values["POCKET_ID_PROSPER_ODOO_EMAIL"], "")
         self.assertEqual(values["ODOO_HTTP_PORT"], "8069")
         self.assertEqual(values["ODOO_GEVENT_PORT"], "8072")
+        self.assertEqual(
+            values["POCKET_ID_PAPERLESS_CLIENT_ID"],
+            "usl-paperless-preproduction",
+        )
+        self.assertEqual(
+            values["PAPERLESS_PUBLIC_BASE_URL"],
+            "http://paperless.localhost:8010",
+        )
         self.assertEqual(mode, 0o600)
+
+    def test_existing_environment_is_upgraded_with_separate_paperless_client(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / ".pocket-id.env"
+            with patch.dict(os.environ, {}, clear=True):
+                POCKET_ID_DEV._write_new_env(path)
+            original = POCKET_ID_DEV._read_env(path)
+            content = "\n".join(
+                line
+                for line in path.read_text(encoding="utf-8").splitlines()
+                if not line.startswith(
+                    (
+                        "PAPERLESS_PUBLIC_BASE_URL=",
+                        "POCKET_ID_PAPERLESS_CLIENT_ID=",
+                        "POCKET_ID_PAPERLESS_CLIENT_SECRET=",
+                    ),
+                )
+            )
+            path.write_text(content + "\n", encoding="utf-8")
+            path.chmod(0o600)
+
+            POCKET_ID_DEV._write_new_env(path)
+            upgraded = POCKET_ID_DEV._read_env(path)
+
+        self.assertEqual(
+            upgraded["POCKET_ID_PAPERLESS_CLIENT_ID"],
+            "usl-paperless-preproduction",
+        )
+        self.assertNotEqual(
+            original["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
+            upgraded["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
+        )
+
+    def test_paperless_client_has_distinct_supported_oidc_callback(self):
+        payload = POCKET_ID_DEV._paperless_client_payload(
+            {
+                "PAPERLESS_PUBLIC_BASE_URL": "https://documents.example.test/",
+                "POCKET_ID_PAPERLESS_CLIENT_ID": "paperless-client",
+            },
+        )
+
+        self.assertEqual(payload["id"], "paperless-client")
+        self.assertEqual(
+            payload["callbackURLs"],
+            [
+                "https://documents.example.test/"
+                "accounts/oidc/pocket-id/login/callback/",
+            ],
+        )
+        self.assertTrue(payload["pkceEnabled"])
+        self.assertTrue(payload["isGroupRestricted"])
+
+    def test_extra_qa_users_are_validated_and_provisioned(self):
+        payloads = POCKET_ID_DEV._extra_user_payloads(
+            {
+                "POCKET_ID_EXTRA_USERS_JSON": json.dumps(
+                    [
+                        {
+                            "username": "documents-user",
+                            "id": "documents-subject",
+                            "email": "documents-user@example.test",
+                            "display_name": "Documents User",
+                        },
+                    ],
+                ),
+                "POCKET_ID_VALENTIN_ID": "valentin-subject",
+                "POCKET_ID_ROGER_ID": "roger-subject",
+                "POCKET_ID_PROSPER_ID": "prosper-subject",
+            },
+            "documents-group",
+        )
+
+        self.assertEqual(payloads[0]["id"], "documents-subject")
+        self.assertEqual(payloads[0]["userGroupIds"], ["documents-group"])
 
     def test_policy_reuses_source_aligned_logins_without_synthetic_odoo_email(self):
         values = {
@@ -101,6 +183,11 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertNotIn("createdb", script)
         self.assertNotIn("dropdb", script)
         self.assertIn("canonical odoo_dev", script)
+        self.assertIn("--git-common-dir", script)
+        self.assertIn(
+            'DEFAULT_ENV_FILE="$(dirname "$GIT_COMMON_DIR")/.pocket-id.env"',
+            script,
+        )
 
     def test_login_link_resolves_any_exact_pocket_username(self):
         api = Mock()
@@ -149,6 +236,88 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             'scripts/pocket-id-dev one-time-link "$(USER)"',
             makefile,
         )
+
+    def test_documents_compose_bootstraps_bounded_paperless_sso_access(self):
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        pocket_overlay = (ROOT / "compose.pocket-id.yaml").read_text(
+            encoding="utf-8",
+        )
+        stack = (ROOT / "scripts" / "documents-stack").read_text(
+            encoding="utf-8",
+        )
+        initializer = (
+            ROOT / "deploy" / "documents" / "paperless_access_init.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("paperless-access-init:", compose)
+        self.assertIn(
+            "PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS:",
+            pocket_overlay,
+        )
+        self.assertIn(
+            "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:",
+            pocket_overlay,
+        )
+        self.assertIn(
+            'run --rm --no-deps paperless-access-init',
+            stack,
+        )
+        self.assertIn(
+            'codename="view_user"',
+            stack,
+        )
+        self.assertNotIn("Permission.objects.all()", stack)
+        self.assertIn("service.set_unusable_password()", stack)
+        self.assertIn('provider="pocket-id"', initializer)
+        self.assertIn('f"view_{model}"', initializer)
+        self.assertNotIn("view_user", initializer)
+        self.assertNotIn("change_document", initializer)
+
+    def test_documents_qa_uses_ports_isolated_from_canonical_development(self):
+        qa_env = (ROOT / "deploy" / "documents" / "qa.env").read_text(
+            encoding="utf-8",
+        )
+        sso_env = (ROOT / "scripts" / "documents_sso_env.py").read_text(
+            encoding="utf-8",
+        )
+        stack = (ROOT / "scripts" / "documents-stack").read_text(
+            encoding="utf-8",
+        )
+        runtime_config = (
+            ROOT / "scripts" / "odoo" / "documents_runtime_config.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("ODOO_HTTP_PORT=18080", qa_env)
+        self.assertIn("ODOO_GEVENT_PORT=18072", qa_env)
+        self.assertIn("PAPERLESS_HTTP_PORT=18010", qa_env)
+        self.assertIn("PAPERLESS_PUBLIC_URL=http://127.0.0.1:18010", qa_env)
+        self.assertIn(
+            'QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:18010"',
+            sso_env,
+        )
+        self.assertIn('qa_paperless_port" = "18010"', stack)
+        self.assertEqual(stack.count("sync_odoo_runtime_config"), 3)
+        self.assertIn("usl_documents.paperless_public_url", runtime_config)
+
+    def test_documents_recovery_restores_the_source_callback_environment(self):
+        recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
+            encoding="utf-8",
+        )
+        restore_source = recovery[
+            recovery.index("restore_source() {") :
+            recovery.index("\n}\n\ncleanup_restore()")
+        ]
+
+        self.assertIn(
+            'PAPERLESS_PUBLIC_URL="$SOURCE_PAPERLESS_PUBLIC_URL"',
+            restore_source,
+        )
+        self.assertIn(
+            'PAPERLESS_PUBLIC_BASE_URL="$SOURCE_PAPERLESS_PUBLIC_BASE_URL"',
+            restore_source,
+        )
+        self.assertNotIn("|| true", restore_source)
+        self.assertIn("if ! restore_source; then", recovery)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ set -eu
 : "${ODOO_DB_PORT:=${PGPORT:-5432}}"
 : "${ODOO_DB_USER:=${PGUSER:-odoo}}"
 : "${ODOO_DB_PASSWORD:=${PGPASSWORD:-odoo}}"
+: "${ODOO_DB_NAME:=}"
 : "${ODOO_ADMIN_PASSWORD:=admin}"
 : "${ODOO_HTTP_PORT:=8069}"
 : "${ODOO_GEVENT_PORT:=8072}"
@@ -22,7 +23,7 @@ set -eu
 : "${ODOO_DEV_MODE:=}"
 : "${ODOO_DEFAULT_PRODUCTIVITY_APPS:=True}"
 
-export ODOO_ADMIN_PASSWORD ODOO_DB_HOST ODOO_DB_PORT ODOO_DB_USER ODOO_DB_PASSWORD
+export ODOO_ADMIN_PASSWORD ODOO_DB_HOST ODOO_DB_PORT ODOO_DB_USER ODOO_DB_PASSWORD ODOO_DB_NAME
 export ODOO_ADDONS_PATH ODOO_DATA_DIR ODOO_HTTP_PORT ODOO_GEVENT_PORT ODOO_HTTP_INTERFACE
 export ODOO_WORKERS ODOO_MAX_CRON_THREADS ODOO_PROXY_MODE ODOO_LOG_LEVEL ODOO_LIMIT_TIME_CPU
 export ODOO_LIMIT_TIME_REAL ODOO_DB_FILTER ODOO_DEV_MODE ODOO_CONFIG ODOO_DEFAULT_PRODUCTIVITY_APPS
@@ -42,6 +43,7 @@ values = {
         "ODOO_DB_PORT",
         "ODOO_DB_USER",
         "ODOO_DB_PASSWORD",
+        "ODOO_DB_NAME",
         "ODOO_ADDONS_PATH",
         "ODOO_DATA_DIR",
         "ODOO_HTTP_PORT",
@@ -61,6 +63,11 @@ values = {
 rendered = template
 for key, value in values.items():
     rendered = rendered.replace("${" + key + "}", value)
+database_name = os.environ.get("ODOO_DB_NAME", "").strip()
+rendered = rendered.replace(
+    "${ODOO_DB_NAME_CONFIG}",
+    f"db_name = {database_name}" if database_name else "",
+)
 Path(os.environ.get("ODOO_CONFIG", "/etc/odoo/odoo.conf")).write_text(rendered)
 PY
 

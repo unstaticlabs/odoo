@@ -14,11 +14,14 @@ export USL_EREPORTING_LIVE_ENABLED=0
 export COMPOSE_IGNORE_ORPHANS=1
 
 compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+export ACCOUNTING_COMPAT_COMPOSE_PROJECT="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-$compose_project}"
 stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
 }
 
 stop_product
+scripts/accounting-compat source-restore
+scripts/migration-source-truth gate
 scripts/sync-oca-addons
 scripts/accounting-compat source-restore
 scripts/accounting-compat source-controls
@@ -29,8 +32,16 @@ scripts/accounting-compat dev-import
 stop_product
 scripts/accounting-compat dev-validate
 stop_product
+scripts/identity-restore all
+stop_product
+scripts/product-restore all
+stop_product
+scripts/hr-restore all
+stop_product
 PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
+stop_product
 TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore all
+stop_product
 scripts/accounting-restore finalize
 scripts/target-finalize
 

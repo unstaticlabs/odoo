@@ -34,6 +34,245 @@ services:
     volumes:
       - accounting-source-postgres-data:/var/lib/postgresql/data
 
+  paperless-preflight:
+    profiles: ["paperless"]
+    image: alpine:3.22.1
+    restart: "no"
+    environment:
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
+      POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+      PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
+      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:8.1.3-alpine}
+      PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}
+      PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}
+      PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
+      PAPERLESS_PUBLIC_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: ${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:-https}
+      PAPERLESS_SSO_BASE_GROUP: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
+      PAPERLESS_ALLOWED_HOSTS: ${PAPERLESS_ALLOWED_HOSTS:-localhost,127.0.0.1,paperless-webserver}
+      PAPERLESS_EMPTY_TRASH_DELAY: ${PAPERLESS_EMPTY_TRASH_DELAY:-36500}
+      PAPERLESS_OIDC_ENABLED: ${PAPERLESS_OIDC_ENABLED:-0}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-false}
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: ${PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS:-false}
+      PAPERLESS_PUBLIC_BASE_URL: ${PAPERLESS_PUBLIC_BASE_URL:-}
+      POCKET_ID_APP_URL: ${POCKET_ID_APP_URL:-}
+      POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-}
+      POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:-}
+      POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
+      POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.12.0@sha256:4a277d141d6069fd9a7b321a9aca80f4b9812b8fa122ee566d2f15900e3d8448}
+      ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        if [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ]; then
+          [ -n "$${POCKET_ID_CLIENT_ID}" ] || { echo "The Odoo Pocket client ID is required"; exit 1; }
+          [ -n "$${POCKET_ID_PAPERLESS_CLIENT_ID}" ] || { echo "The Paperless Pocket client ID is required"; exit 1; }
+          [ -n "$${POCKET_ID_PAPERLESS_CLIENT_SECRET}" ] || { echo "The Paperless Pocket client secret is required"; exit 1; }
+          [ "$${POCKET_ID_CLIENT_ID}" != "$${POCKET_ID_PAPERLESS_CLIENT_ID}" ] || { echo "Odoo and Paperless require separate Pocket clients"; exit 1; }
+          [ "$${PAPERLESS_PUBLIC_BASE_URL}" = "$${PAPERLESS_PUBLIC_URL}" ] || { echo "Paperless OIDC callback base must match its public URL"; exit 1; }
+          [ -n "$${PAPERLESS_SSO_BASE_GROUP}" ] || { echo "Paperless SSO base group is required"; exit 1; }
+          case "$${PAPERLESS_PUBLIC_URL}:$${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}" in
+            http://*:http|https://*:https) :;;
+            *) echo "Paperless OIDC callback protocol must match its public URL"; exit 1;;
+          esac
+        fi
+        case "$${USL_DEPLOYMENT_ENV}" in
+        preproduction|production)
+          [ "$${#PAPERLESS_DB_PASSWORD}" -ge 24 ] || { echo "Paperless database secret is too short"; exit 1; }
+          [ "$${#PAPERLESS_SECRET_KEY}" -ge 48 ] || { echo "Paperless application secret is too short"; exit 1; }
+          [ "$${PAPERLESS_DB_PASSWORD}" != "paperless-change-me-dev-only" ] || exit 1
+          [ "$${PAPERLESS_SECRET_KEY}" != "paperless-change-me-dev-only" ] || exit 1
+          [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ] || { echo "Paperless Pocket ID login must be enabled"; exit 1; }
+          [ "$${PAPERLESS_DISABLE_REGULAR_LOGIN}" = "true" ] || { echo "Paperless interactive password login must be disabled"; exit 1; }
+          [ "$${PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS}" = "false" ] || { echo "Pocket groups must not become Paperless authorization groups"; exit 1; }
+          [ -n "$${POCKET_ID_APP_URL}" ] || { echo "Pocket ID issuer is required"; exit 1; }
+          [ "$${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}" = "https" ] || { echo "Production Paperless OIDC callbacks must use HTTPS"; exit 1; }
+          [ "$${ODOO_DB_PASSWORD}" != "odoo" ] || { echo "Odoo database password must not use the development default"; exit 1; }
+          [ "$${ODOO_ADMIN_PASSWORD}" != "admin" ] || { echo "Odoo master password must not use the QA default"; exit 1; }
+          case "$${ODOO_DB_FILTER}" in
+            ""|"^odoo_dev$"|".*"|"^.*$") echo "Unsafe Odoo database filter"; exit 1;;
+          esac
+          for image in \
+            "$${POSTGRES_IMAGE}" \
+            "$${ODOO_IMAGE}" \
+            "$${PAPERLESS_IMAGE}" \
+            "$${PAPERLESS_POSTGRES_IMAGE}" \
+            "$${PAPERLESS_BROKER_IMAGE}" \
+            "$${PAPERLESS_GOTENBERG_IMAGE}" \
+            "$${PAPERLESS_TIKA_IMAGE}" \
+            "$${POCKET_ID_IMAGE}"
+          do
+            case "$${image}" in
+              ""|latest|*:latest|*@sha256:) echo "Every production-like image must be pinned: $${image:-<empty>}"; exit 1;;
+              *:*|*@sha256:*) :;;
+              *) echo "Image must include an exact tag or digest: $${image}"; exit 1;;
+            esac
+          done
+          case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
+          case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
+          case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
+          case "$${PAPERLESS_ALLOWED_HOSTS}" in *localhost*|*127.0.0.1*) echo "Production-like allowed hosts must not include local QA hosts"; exit 1;; esac
+          case "$${PAPERLESS_EMPTY_TRASH_DELAY}" in
+            ""|*[!0-9]*) echo "Paperless Trash retention must be an explicit number of days"; exit 1;;
+          esac
+          if [ "$${PAPERLESS_EMPTY_TRASH_DELAY}" -lt 36500 ]; then
+            echo "Paperless automatic Trash emptying must use the 100-year safety delay; Odoo owns retention approval"
+            exit 1
+          fi
+          ;;
+        esac
+
+  paperless-db:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PAPERLESS_DB_NAME:-paperless}
+      POSTGRES_USER: ${PAPERLESS_DB_USER:-paperless}
+      POSTGRES_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - paperless-postgres-data:/var/lib/postgresql/data
+
+  paperless-broker:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:8.1.3-alpine}
+    restart: unless-stopped
+    command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - paperless-broker-data:/data
+
+  paperless-trash-init:
+    profiles: ["paperless"]
+    image: alpine:3.22.1
+    restart: "no"
+    command: ["chown", "1000:1000", "/trash"]
+    volumes:
+      - paperless-trash:/trash
+
+  paperless-webserver:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    restart: unless-stopped
+    depends_on:
+      paperless-preflight:
+        condition: service_completed_successfully
+      paperless-db:
+        condition: service_healthy
+      paperless-broker:
+        condition: service_healthy
+      paperless-trash-init:
+        condition: service_completed_successfully
+      paperless-gotenberg:
+        condition: service_healthy
+      paperless-tika:
+        condition: service_healthy
+    environment:
+      PAPERLESS_REDIS: redis://paperless-broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME:-paperless}
+      PAPERLESS_DBUSER: ${PAPERLESS_DB_USER:-paperless}
+      PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+      PAPERLESS_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
+      PAPERLESS_ALLOWED_HOSTS: ${PAPERLESS_ALLOWED_HOSTS:-localhost,127.0.0.1,paperless-webserver}
+      PAPERLESS_CORS_ALLOWED_HOSTS: ${PAPERLESS_CORS_ALLOWED_HOSTS:-http://127.0.0.1:8010}
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: ${PAPERLESS_CSRF_TRUSTED_ORIGINS:-http://127.0.0.1:8010}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
+      PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE:-Europe/Paris}
+      PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE:-fra+eng}
+      PAPERLESS_CONSUMER_ENABLE_BARCODES: ${PAPERLESS_CONSUMER_ENABLE_BARCODES:-true}
+      PAPERLESS_CONSUMER_RECURSIVE: "true"
+      PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "false"
+      PAPERLESS_OCR_USER_ARGS: '{"invalidate_digital_signatures": false}'
+      PAPERLESS_EMPTY_TRASH_DELAY: ${PAPERLESS_EMPTY_TRASH_DELAY:-36500}
+      PAPERLESS_EMPTY_TRASH_DIR: /usr/src/paperless/trash
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://paperless-tika:9998
+    ports:
+      - "127.0.0.1:${PAPERLESS_HTTP_PORT:-8010}:8000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl --fail --silent http://127.0.0.1:8000/api/ >/dev/null &&
+          for service in svc-webserver svc-worker svc-consumer svc-scheduler;
+          do s6-svstat "/run/service/$$service" | grep -q '^up ' || exit 1;
+          done
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    volumes:
+      - paperless-data:/usr/src/paperless/data
+      - paperless-media:/usr/src/paperless/media
+      - paperless-export:/usr/src/paperless/export
+      - paperless-consume:/usr/src/paperless/consume
+      - paperless-trash:/usr/src/paperless/trash
+
+  paperless-access-init:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    restart: "no"
+    depends_on:
+      paperless-webserver:
+        condition: service_healthy
+    working_dir: /usr/src/paperless/src
+    entrypoint: ["/bin/sh", "-ec"]
+    command: ["python manage.py shell < /opt/usl/paperless_access_init.py"]
+    environment:
+      PAPERLESS_REDIS: redis://paperless-broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME:-paperless}
+      PAPERLESS_DBUSER: ${PAPERLESS_DB_USER:-paperless}
+      PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
+      PAPERLESS_SSO_BASE_GROUP: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
+    volumes:
+      - ./deploy/documents/paperless_access_init.py:/opt/usl/paperless_access_init.py:ro
+
+  paperless-gotenberg:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+      - --chromium-allow-list=file:///tmp/.*
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:3000/health >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  paperless-tika:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:9998/tika"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
   odoo:
     image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
     build:
@@ -54,6 +293,7 @@ services:
       ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
       ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_DB_NAME: ${ODOO_DB_NAME:-}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_HTTP_PORT: 8069
@@ -64,6 +304,8 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
+      PAPERLESS_INTERNAL_URL: ${PAPERLESS_INTERNAL_URL:-http://paperless-webserver:8000}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
       USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
@@ -111,6 +353,7 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
       USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
@@ -199,7 +442,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/hr-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -207,8 +450,12 @@ services:
     volumes:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons:ro
-      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+      - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
+      - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+      - ./migration/documents_archive:/mnt/documents-archive-migration:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
@@ -281,6 +528,7 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
       USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
@@ -347,3 +595,10 @@ volumes:
   accounting-source-postgres-data:
   odoo-data:
   odoo-dev-home:
+  paperless-postgres-data:
+  paperless-broker-data:
+  paperless-data:
+  paperless-media:
+  paperless-export:
+  paperless-consume:
+  paperless-trash:

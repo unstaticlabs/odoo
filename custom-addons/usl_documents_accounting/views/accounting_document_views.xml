@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rebuild_account_declaration_documents" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.archived.documents</field>
+        <field name="model">rebuild.account.declaration</field>
+        <field name="inherit_id" ref="rebuild_account_migration.view_rebuild_account_declaration_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_documents_workspace" type="object"
+                        class="oe_stat_button" icon="fa-cloud-upload"
+                        string="Upload" invisible="archived_document_count != 0"
+                        groups="usl_documents.group_documents_user"/>
+                <button name="action_open_documents_workspace" type="object"
+                        class="oe_stat_button" icon="fa-folder-open-o"
+                        invisible="archived_document_count == 0"
+                        groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                    <field name="archived_document_count" widget="statinfo"
+                           string="Documents"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_closing_documents" model="ir.ui.view">
+        <field name="name">rebuild.account.closing.period.archived.documents</field>
+        <field name="model">rebuild.account.closing.period</field>
+        <field name="inherit_id" ref="rebuild_account_migration.view_rebuild_account_closing_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_documents_workspace" type="object"
+                        class="oe_stat_button" icon="fa-cloud-upload"
+                        string="Upload" invisible="archived_document_count != 0"
+                        groups="usl_documents.group_documents_user"/>
+                <button name="action_open_documents_workspace" type="object"
+                        class="oe_stat_button" icon="fa-folder-open-o"
+                        invisible="archived_document_count == 0"
+                        groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                    <field name="archived_document_count" widget="statinfo"
+                           string="Documents"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

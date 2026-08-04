@@ -24,4 +24,4 @@ export const europeanDateFormatService = {
     },
 };
 
-registry.category("services").add("rebuild_european_date_format", europeanDateFormatService);
+registry.category("services").add("usl_european_date_format", europeanDateFormatService);

@@ -12,6 +12,7 @@
         "analytic",
         "hr_expense",
         "spreadsheet_account",
+        "usl_locale",
     ],
     "data": [
         "security/expense_bank_matching_security.xml",

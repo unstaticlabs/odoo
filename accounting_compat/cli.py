@@ -345,8 +345,17 @@ def source_package(source_dir: str) -> SourcePackage:
     return SourcePackage(root, root / "dump.sql", root / "filestore")
 
 
-def configure_source_mount(source_dir: str) -> None:
-    os.environ["USL_ONLINE_DUMP_DIR"] = str(source_package(source_dir).path)
+def configure_source_mount(source_dir: str) -> SourcePackage:
+    """Use one canonical source path for host checks and Compose mounts.
+
+    Previously ``--source-dir`` changed host-side validation while Compose kept
+    mounting the unrelated default path.  A run could therefore validate one
+    dump and import another (or an empty directory).  Resolve once and export
+    the exact path inherited by every Docker Compose child.
+    """
+    package = source_package(source_dir)
+    os.environ["USL_ONLINE_DUMP_DIR"] = str(package.path)
+    return package
 
 
 def sha256_file(path: Path) -> str:
@@ -422,7 +431,11 @@ def git_value(*args: str) -> str | None:
 
 
 def display_path(path: Path) -> str:
-    return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    """Keep repository paths concise without rejecting external private inputs."""
+    resolved = path.resolve()
+    if resolved.is_relative_to(ROOT):
+        return str(resolved.relative_to(ROOT))
+    return str(resolved)
 
 
 def git_tracking_status(paths: Iterable[Path]) -> list[dict[str, Any]]:
@@ -2088,9 +2101,9 @@ def source_snapshot_date() -> str | None:
     return max(candidates) if candidates else source_max_accounting_date()
 
 
-def source_snapshot_id() -> str:
+def source_snapshot_id(source_dir: str | None = None) -> str:
     package = source_package(
-        os.environ.get("USL_ONLINE_DUMP_DIR", DEFAULT_SOURCE_DIR),
+        source_dir or os.environ.get("USL_ONLINE_DUMP_DIR", DEFAULT_SOURCE_DIR),
     )
     return f"source-{sha256_file(package.dump_path)[:12]}"
 
@@ -8972,8 +8985,8 @@ def duplicate_target_traces(table: str) -> list[dict[str, Any]]:
     )
 
 
-def target_lock_enforcement_check() -> dict[str, Any]:
-    snapshot_id = source_snapshot_id()
+def target_lock_enforcement_check(source_dir: str = DEFAULT_SOURCE_DIR) -> dict[str, Any]:
+    snapshot_id = source_snapshot_id(source_dir)
     lock_script = PRIVATE_ARTIFACTS / "target-lock-check.py"
     lock_script.write_text(
         "\n".join(
@@ -9682,7 +9695,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "duplicate_asset_depreciation_schedule_traces": duplicate_target_traces("rebuild_account_asset_depreciation_schedule_line"),
         "duplicate_currency_rate_traces": duplicate_target_traces("res_currency_rate"),
     }
-    lock_enforcement = target_lock_enforcement_check()
+    lock_enforcement = target_lock_enforcement_check(args.source_dir)
     passed = (
         all(item["passed"] for item in comparisons.values())
         and sequence_chronology_matches
@@ -13054,7 +13067,7 @@ def fec(args: argparse.Namespace) -> dict[str, Any]:
                 "company = env['res.company'].search([",
                 "    ('rebuild_source_model', '=', 'res.company'),",
                 "    ('rebuild_source_id', '=', 1),",
-                f"    ('rebuild_source_snapshot', '=', {source_snapshot_id()!r}),",
+                f"    ('rebuild_source_snapshot', '=', {source_snapshot_id(args.source_dir)!r}),",
                 "], limit=1)",
                 "if not company:",
                 "    company = env['res.company'].search([], order='id', limit=1)",

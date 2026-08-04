@@ -10,8 +10,11 @@ USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ODOO_DEV ?= scripts/odoo-dev
 TESE_QA_GENERATION ?= 01
 
+.PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
 .PHONY: dev deploy rebuild login-link disable-tours target-finalize target-reconstruct oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
+.PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
+.PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
 .PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
 .PHONY: tese-restore tese-restore-install tese-restore-import tese-restore-validate tese-restore-idempotence tese-restore-finalize tese-product-validate tese-qa-bootstrap
 .PHONY: product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests
@@ -44,6 +47,132 @@ target-finalize:
 
 target-reconstruct:
 	scripts/target-reconstruct
+
+migration-source-inventory:
+	scripts/migration-source-truth inventory
+
+migration-source-gate:
+	scripts/migration-source-truth gate
+
+attachment-ledger:
+	scripts/attachment-ledger inventory
+
+attachment-ledger-gate:
+	scripts/attachment-ledger gate
+
+identity-restore:
+	scripts/identity-restore all
+
+identity-restore-install:
+	scripts/identity-restore install
+
+identity-restore-import:
+	scripts/identity-restore import
+
+identity-restore-validate:
+	scripts/identity-restore validate
+
+identity-restore-finalize:
+	scripts/identity-restore finalize
+
+product-restore:
+	scripts/product-restore all
+
+product-restore-install:
+	scripts/product-restore install
+
+product-restore-import:
+	scripts/product-restore import
+
+product-restore-validate:
+	scripts/product-restore validate
+
+product-restore-finalize:
+	scripts/product-restore finalize
+
+hr-restore:
+	scripts/hr-restore all
+
+hr-restore-install:
+	scripts/hr-restore install
+
+hr-restore-import:
+	scripts/hr-restore import
+
+hr-restore-validate:
+	scripts/hr-restore validate
+
+hr-restore-finalize:
+	scripts/hr-restore finalize
+
+documents-restore:
+	scripts/documents-restore all
+
+documents-restore-install:
+	scripts/documents-restore install
+
+documents-restore-import:
+	scripts/documents-restore import
+
+documents-restore-validate:
+	scripts/documents-restore validate
+
+documents-restore-serve:
+	scripts/documents-restore serve
+
+documents-restore-status:
+	scripts/documents-restore status
+
+documents-qa-build:
+	scripts/documents-stack qa build
+
+documents-qa-up:
+	scripts/documents-stack qa up
+
+documents-qa-update:
+	scripts/documents-stack qa update
+
+documents-qa-bootstrap:
+	scripts/documents-stack qa bootstrap
+
+documents-qa-status:
+	scripts/documents-stack qa status
+
+documents-qa-test:
+	scripts/documents-stack qa test
+
+documents-qa-test-pocket:
+	scripts/documents-stack qa test-pocket
+
+documents-qa-test-js:
+	scripts/documents-stack qa test-js
+
+documents-qa-acceptance:
+	scripts/documents-acceptance qa
+
+documents-qa-recovery-test:
+	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test qa
+
+documents-preprod-config:
+	scripts/documents-stack preprod config
+
+documents-preprod-preflight:
+	scripts/documents-stack preprod preflight
+
+documents-preprod-up:
+	scripts/documents-stack preprod up
+
+documents-preprod-acceptance:
+	scripts/documents-acceptance preprod
+
+documents-preprod-recovery-test:
+	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test preprod
+
+documents-acceptance:
+	scripts/documents-acceptance qa
+
+documents-recovery-test:
+	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test qa
 
 oca-addons-sync:
 	scripts/sync-oca-addons

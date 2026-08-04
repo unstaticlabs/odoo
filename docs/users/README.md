@@ -6,6 +6,7 @@ Start with [the guided Accounting tutorial](tutorials/accounting-application.md)
 
 ## Complete a task
 
+- [Try the Paperless-backed Documents application](guides/test-paperless-documents.md)
 - [Process a supplier bill](how-to/process-vendor-bill.md)
 - [Process an expense](how-to/process-expense.md)
 - [Group and review related expenses](guides/expense-batches.md)

@@ -23,7 +23,8 @@ The verified production add-on dependency direction is:
 
 ```text
  pinned OCA auth_oidc ---> usl_pocketid -------------------+
- native/OCA Accounting -> usl_accounting -----------------+--> rebuild_account_migration
+ native web ------------> usl_locale ----> usl_accounting -+--> rebuild_account_migration
+                                      \--> usl_documents
  native hr_expense -----> usl_expense_batch --------------+
   (product compatibility and stable operational XML-ID ownership)
 
@@ -96,6 +97,7 @@ identifiers. It is explicitly rejected for this increment.
 
 | Component | Resulting owner | Classification | Safety evidence |
 | --- | --- | --- | --- |
+| Day-first date presentation | `usl_locale` | shared runtime presentation foundation | language-format data, web-client localization tests and repository architecture guard |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
 | Foreign-currency settlement definitions, views and payment-widget assets | `usl_accounting` | runtime foundation over native/OCA | exact/native-FX, payment-rate, reversal, ACL and browser tests |
@@ -189,6 +191,9 @@ This refactor does not modify either patch.
 
 - Extend native/OCA behavior in `usl_accounting` when it is a shared
   operational Accounting concern.
+- Put product-wide locale presentation in `usl_locale`; feature modules must
+  use Odoo date components and must not introduce browser-native date inputs
+  or month-first date masks.
 - Extend a governed Control, report, declaration or e-invoice model in
   `rebuild_account_migration` while it remains the compatibility owner. Keep
   the code grouped by feature and do not introduce reconstruction dependencies

@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ENV_PATH = ROOT / ".pocket-id.env"
-REQUIRED_ENV_KEYS = {
+BASE_REQUIRED_ENV_KEYS = {
     "COMPOSE_PROJECT_NAME",
     "ODOO_INIT_DB",
     "ODOO_PUBLIC_BASE_URL",
@@ -38,6 +38,12 @@ REQUIRED_ENV_KEYS = {
     "POCKET_ID_VALENTIN_ID",
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
 }
+PAPERLESS_REQUIRED_ENV_KEYS = {
+    "PAPERLESS_PUBLIC_BASE_URL",
+    "POCKET_ID_PAPERLESS_CLIENT_ID",
+    "POCKET_ID_PAPERLESS_CLIENT_SECRET",
+}
+REQUIRED_ENV_KEYS = BASE_REQUIRED_ENV_KEYS | PAPERLESS_REQUIRED_ENV_KEYS
 USER_DEFINITIONS = {
     "valentin": {
         "id_key": "POCKET_ID_VALENTIN_ID",
@@ -73,7 +79,11 @@ class PocketIDError(RuntimeError):
     """A safe Pocket ID provisioning error."""
 
 
-def _read_env(path: Path) -> dict[str, str]:
+def _read_env(
+    path: Path,
+    *,
+    required_keys: set[str] = REQUIRED_ENV_KEYS,
+) -> dict[str, str]:
     if not path.exists():
         raise PocketIDError(
             f"{path.name} is missing; run scripts/pocket-id-dev bootstrap first.",
@@ -93,7 +103,7 @@ def _read_env(path: Path) -> dict[str, str]:
         if not separator or not key or any(character.isspace() for character in key):
             raise PocketIDError(f"Invalid {path.name} line {line_number}.")
         values[key] = value
-    missing = sorted(REQUIRED_ENV_KEYS - values.keys())
+    missing = sorted(required_keys - values.keys())
     if missing:
         raise PocketIDError(
             f"{path.name} is incomplete; missing: {', '.join(missing)}.",
@@ -103,8 +113,35 @@ def _read_env(path: Path) -> dict[str, str]:
 
 def _write_new_env(path: Path) -> None:
     if path.exists():
-        _read_env(path)
-        print(f"{path.name} already exists and passed validation.")
+        values = _read_env(path, required_keys=BASE_REQUIRED_ENV_KEYS)
+        additions = {}
+        if not values.get("PAPERLESS_PUBLIC_BASE_URL"):
+            additions["PAPERLESS_PUBLIC_BASE_URL"] = os.getenv(
+                "USL_POCKET_ID_DEV_PAPERLESS_URL",
+                "http://paperless.localhost:8010",
+            ).strip()
+        if not values.get("POCKET_ID_PAPERLESS_CLIENT_ID"):
+            additions["POCKET_ID_PAPERLESS_CLIENT_ID"] = (
+                "usl-paperless-preproduction"
+            )
+        if not values.get("POCKET_ID_PAPERLESS_CLIENT_SECRET"):
+            additions["POCKET_ID_PAPERLESS_CLIENT_SECRET"] = (
+                secrets.token_urlsafe(36)
+            )
+        if additions:
+            with path.open("a", encoding="utf-8") as stream:
+                stream.write(
+                    "\n# Paperless Pocket ID client; generated during schema upgrade.\n",
+                )
+                for key, value in additions.items():
+                    stream.write(f"{key}={value}\n")
+            _read_env(path)
+            print(
+                f"Upgraded {path.name} with the separate Paperless OIDC client.",
+            )
+        else:
+            _read_env(path)
+            print(f"{path.name} already exists and passed validation.")
         return
     project_name = os.getenv(
         "USL_POCKET_ID_DEV_COMPOSE_PROJECT",
@@ -153,6 +190,10 @@ def _write_new_env(path: Path) -> None:
         "ODOO_HTTP_PORT": odoo_port,
         "ODOO_INIT_DB": database,
         "ODOO_PUBLIC_BASE_URL": f"http://{odoo_hostname}:{odoo_port}",
+        "PAPERLESS_PUBLIC_BASE_URL": os.getenv(
+            "USL_POCKET_ID_DEV_PAPERLESS_URL",
+            "http://paperless.localhost:8010",
+        ).strip(),
         "POCKET_ID_APP_URL": f"http://{pocket_hostname}:{pocket_port}",
         "POCKET_ID_CLIENT_ID": "usl-odoo-preproduction",
         "POCKET_ID_CLIENT_SECRET": secrets.token_urlsafe(36),
@@ -167,6 +208,8 @@ def _write_new_env(path: Path) -> None:
         "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
         "POCKET_ID_PROSPER_ODOO_EMAIL": prosper_odoo_email,
         "POCKET_ID_PROSPER_ID": str(uuid.uuid4()),
+        "POCKET_ID_PAPERLESS_CLIENT_ID": "usl-paperless-preproduction",
+        "POCKET_ID_PAPERLESS_CLIENT_SECRET": secrets.token_urlsafe(36),
         "POCKET_ID_ROGER_ID": str(uuid.uuid4()),
         "POCKET_ID_STATIC_API_KEY": secrets.token_urlsafe(36),
         "POCKET_ID_VALENTIN_ID": str(uuid.uuid4()),
@@ -273,7 +316,64 @@ def _user_payload(
     }
 
 
-def _client_payload(values: dict[str, str]) -> dict[str, object]:
+def _extra_user_payloads(
+    values: dict[str, str],
+    group_id: str,
+) -> list[dict[str, object]]:
+    raw_users = values.get("POCKET_ID_EXTRA_USERS_JSON", "").strip()
+    if not raw_users:
+        return []
+    try:
+        specifications = json.loads(raw_users)
+    except json.JSONDecodeError as error:
+        raise PocketIDError("POCKET_ID_EXTRA_USERS_JSON is invalid JSON.") from error
+    if not isinstance(specifications, list):
+        raise PocketIDError("POCKET_ID_EXTRA_USERS_JSON must be a list.")
+    payloads = []
+    seen_usernames = set(USER_DEFINITIONS)
+    seen_ids = {
+        values[definition["id_key"]]
+        for definition in USER_DEFINITIONS.values()
+    }
+    for specification in specifications:
+        if not isinstance(specification, dict):
+            raise PocketIDError("Each extra Pocket ID user must be an object.")
+        username = specification.get("username")
+        user_id = specification.get("id")
+        email = specification.get("email")
+        display_name = specification.get("display_name")
+        if (
+            not all(
+                isinstance(value, str) and value.strip()
+                for value in (username, user_id, email, display_name)
+            )
+            or set(specification)
+            != {"username", "id", "email", "display_name"}
+        ):
+            raise PocketIDError("An extra Pocket ID user is incomplete.")
+        if username in seen_usernames or user_id in seen_ids:
+            raise PocketIDError("An extra Pocket ID user duplicates an identity.")
+        seen_usernames.add(username)
+        seen_ids.add(user_id)
+        payloads.append(
+            {
+                "id": user_id,
+                "username": username,
+                "email": email,
+                "emailVerified": True,
+                "firstName": display_name,
+                "lastName": "",
+                "displayName": display_name,
+                "isAdmin": False,
+                "disabled": False,
+                "userGroupIds": [group_id],
+                "locale": "en",
+            },
+        )
+    return payloads
+
+
+def _odoo_client_payload(values: dict[str, str]) -> dict[str, object]:
     return {
         "id": values["POCKET_ID_CLIENT_ID"],
         "name": "USL Odoo Preproduction",
@@ -290,6 +390,30 @@ def _client_payload(values: dict[str, str]) -> dict[str, object]:
         "skipConsent": True,
         "credentials": {"federatedIdentities": []},
         "launchURL": values["ODOO_PUBLIC_BASE_URL"],
+        "isGroupRestricted": True,
+    }
+
+
+def _paperless_client_payload(values: dict[str, str]) -> dict[str, object]:
+    paperless_url = values["PAPERLESS_PUBLIC_BASE_URL"].rstrip("/")
+    return {
+        "id": values["POCKET_ID_PAPERLESS_CLIENT_ID"],
+        "name": "USL Paperless Preproduction",
+        "description": (
+            "Paperless-ngx individual login through the shared USL identity provider"
+        ),
+        "callbackURLs": [
+            f"{paperless_url}/accounts/oidc/pocket-id/login/callback/",
+        ],
+        "logoutCallbackURLs": [],
+        "isPublic": False,
+        "pkceEnabled": True,
+        "pkceSupported": True,
+        "requiresReauthentication": False,
+        "requiresPushedAuthorizationRequests": False,
+        "skipConsent": True,
+        "credentials": {"federatedIdentities": []},
+        "launchURL": paperless_url,
         "isGroupRestricted": True,
     }
 
@@ -327,8 +451,12 @@ def _ensure_users(
         "user",
     )
     result = []
-    for username in USER_DEFINITIONS:
-        payload = _user_payload(values, username, group_id)
+    payloads = [
+        _user_payload(values, username, group_id)
+        for username in USER_DEFINITIONS
+    ] + _extra_user_payloads(values, group_id)
+    for payload in payloads:
+        username = str(payload["username"])
         matches = [user for user in users if user.get("username") == username]
         if len(matches) > 1:
             raise PocketIDError(f"Pocket ID username {username!r} is ambiguous.")
@@ -348,15 +476,15 @@ def _ensure_users(
 
 def _ensure_client(
     api: PocketIDAPI,
-    values: dict[str, str],
+    payload: dict[str, object],
+    secret: str,
     group_id: str,
 ) -> dict[str, object]:
     clients = _paginated_data(
         api.request("GET", "/api/oidc/clients?pagination%5Blimit%5D=100"),
         "OIDC client",
     )
-    payload = _client_payload(values)
-    client_id = values["POCKET_ID_CLIENT_ID"]
+    client_id = str(payload["id"])
     matches = [client for client in clients if client.get("id") == client_id]
     if matches:
         client = api.request("PUT", f"/api/oidc/clients/{client_id}", payload)
@@ -365,7 +493,7 @@ def _ensure_client(
     api.request(
         "POST",
         f"/api/oidc/clients/{client_id}/secret",
-        {"secret": values["POCKET_ID_CLIENT_SECRET"]},
+        {"secret": secret},
     )
     api.request(
         "PUT",
@@ -387,11 +515,24 @@ def provision(values: dict[str, str]) -> None:
         f"/api/user-groups/{group['id']}/users",
         {"userIds": [str(user["id"]) for user in users]},
     )
-    client = _ensure_client(api, values, str(group["id"]))
+    clients = [
+        _ensure_client(
+            api,
+            _odoo_client_payload(values),
+            values["POCKET_ID_CLIENT_SECRET"],
+            str(group["id"]),
+        ),
+        _ensure_client(
+            api,
+            _paperless_client_payload(values),
+            values["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
+            str(group["id"]),
+        ),
+    ]
     print(
         json.dumps(
             {
-                "client_id": client["id"],
+                "client_ids": [client["id"] for client in clients],
                 "group": group["name"],
                 "issuer": values["POCKET_ID_APP_URL"],
                 "users": [

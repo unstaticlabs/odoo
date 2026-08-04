@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_usl_document_search" model="ir.ui.view">
+        <field name="name">usl.document.search</field>
+        <field name="model">usl.document</field>
+        <field name="arch" type="xml">
+            <search string="Search Documents">
+                <field name="all_text"
+                       string="Search everywhere"
+                       filter_domain="[('all_text', 'ilike', self)]"/>
+                <field name="name" string="Title"/>
+                <field name="archive_text"
+                       string="Document content"
+                       filter_domain="[('archive_text', 'ilike', self)]"/>
+                <field name="tag_ids"/>
+                <field name="correspondent_id"/>
+                <field name="document_type_id"/>
+                <field name="company_id"/>
+                <field name="document_date"/>
+                <field name="source" invisible="1"/>
+                <field name="confidentiality" string="Privacy" invisible="1"/>
+                <field name="review_state" string="Review status" invisible="1"/>
+                <field name="availability_state" string="Availability" invisible="1"/>
+                <field name="has_linked_record" invisible="1"/>
+                <field name="archive_added_at" string="Added" invisible="1"/>
+                <field name="mapped_contact_id" invisible="1"/>
+                <field name="linked_employee_id" invisible="1"/>
+                <field name="custom_field_text" invisible="1"/>
+                <field name="paperless_id" invisible="1"/>
+                <filter name="my_uploads" string="My uploads"
+                        domain="[('submitted_by_id', '=', uid)]"/>
+                <filter name="needs_attention" string="Needs review"
+                        domain="[('review_state', '=', 'needs_attention')]"/>
+                <filter name="linked" string="Linked to Odoo"
+                        domain="[('has_linked_record', '=', True)]"/>
+                <filter name="unlinked" string="Not linked"
+                        domain="[('has_linked_record', '=', False)]"/>
+                <separator/>
+                <filter name="accounting" string="Accounting evidence"
+                        domain="[('accounting_evidence', '=', True)]"/>
+                <filter name="hr" string="HR documents"
+                        domain="[('confidentiality', '=', 'hr')]"/>
+                <filter name="available" string="Available"
+                        domain="[('availability_state', '=', 'available')]"/>
+                <filter name="needs_access_attention" string="Access needs attention"
+                        domain="[('permission_sync_state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="document_date_filter" string="Document date"
+                        date="document_date"/>
+                <filter name="archive_date_filter" string="Added"
+                        date="archive_added_at"/>
+                <group>
+                    <filter name="group_company" string="Company"
+                            context="{'group_by': 'company_id'}"/>
+                    <filter name="group_correspondent" string="Correspondent"
+                            context="{'group_by': 'correspondent_id'}"/>
+                    <filter name="group_document_type" string="Document type"
+                            context="{'group_by': 'document_type_id'}"/>
+                    <filter name="group_employee" string="Employee"
+                            context="{'group_by': 'linked_employee_id'}"/>
+                    <filter name="group_privacy" string="Privacy"
+                            context="{'group_by': 'confidentiality'}"/>
+                    <filter name="group_review" string="Review status"
+                            context="{'group_by': 'review_state'}"/>
+                    <filter name="group_document_month" string="Document month"
+                            context="{'group_by': 'document_date:month'}"/>
+                    <filter name="group_archive_month" string="Added month"
+                            context="{'group_by': 'archive_added_at:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_usl_document_list" model="ir.ui.view">
+        <field name="name">usl.document.list</field>
+        <field name="model">usl.document</field>
+        <field name="arch" type="xml">
+            <list string="Document Register"
+                  decoration-warning="review_state == 'needs_attention'"
+                  decoration-danger="availability_state in ('missing', 'trashed', 'failed', 'permission_error')">
+                <field name="name"/>
+                <field name="document_date"/>
+                <field name="company_id"/>
+                <field name="document_type_id"/>
+                <field name="correspondent_id"/>
+                <field name="tag_ids" widget="many2many_tags" optional="show"/>
+                <field name="confidentiality"/>
+                <field name="review_state"/>
+                <field name="availability_state"/>
+                <field name="link_count"/>
+                <field name="paperless_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_document_kanban" model="ir.ui.view">
+        <field name="name">usl.document.kanban</field>
+        <field name="model">usl.document</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" sample="1">
+                <field name="name"/>
+                <field name="document_date"/>
+                <field name="company_id"/>
+                <field name="document_type_id"/>
+                <field name="correspondent_id"/>
+                <field name="review_state"/>
+                <field name="availability_state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex gap-3">
+                            <img t-att-src="'/usl_documents/' + record.id.raw_value + '/thumbnail'"
+                                 class="rounded object-fit-cover"
+                                 style="width:72px;height:96px"
+                                 alt="Document thumbnail"/>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <strong class="d-block text-truncate"><field name="name"/></strong>
+                                <div class="text-muted"><field name="document_date"/></div>
+                                <div class="text-muted text-truncate"><field name="correspondent_id"/></div>
+                                <div class="mt-2">
+                                    <span t-if="record.review_state.raw_value === 'needs_attention'" class="badge text-bg-warning">Needs attention</span>
+                                    <span t-if="record.availability_state.raw_value !== 'available'" class="badge text-bg-danger"><field name="availability_state"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_usl_document_form" model="ir.ui.view">
+        <field name="name">usl.document.form</field>
+        <field name="model">usl.document</field>
+        <field name="arch" type="xml">
+            <form string="Archived Document">
+                <header>
+                    <button name="action_mark_reviewed" type="object" string="Mark reviewed"
+                            class="oe_highlight" invisible="review_state == 'reviewed'"/>
+                    <button name="action_open_paperless" type="object" string="Open in Paperless"
+                            icon="fa-external-link"/>
+                    <button name="action_sync_permissions" type="object" string="Synchronize permissions"
+                            icon="fa-shield" groups="usl_documents.group_documents_manager"
+                            invisible="permission_sync_state == 'synchronized'"/>
+                    <button name="action_approve_permanent_deletion" type="object"
+                            string="Approve deletion" icon="fa-check"
+                            groups="usl_documents.group_documents_manager"
+                            invisible="availability_state != 'trashed' or deletion_approved_at"/>
+                    <button name="action_permanently_delete_from_trash" type="object"
+                            string="Permanently delete" icon="fa-trash"
+                            groups="usl_documents.group_documents_manager"
+                            confirm="Permanently delete this archived file? This cannot be undone."
+                            invisible="availability_state != 'trashed' or not deletion_approved_at"/>
+                    <field name="review_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_links" type="object" class="oe_stat_button"
+                                icon="fa-link" groups="usl_documents.group_documents_manager">
+                            <field name="link_count" widget="statinfo" string="Odoo records"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Unavailable" bg_color="text-bg-danger"
+                            invisible="availability_state == 'available'"/>
+                    <div class="alert alert-danger" role="alert"
+                         invisible="permission_sync_state != 'failed'">
+                        <strong>Document access needs attention.</strong>
+                        <span>The file is blocked until its archive access can be verified.</span>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="confidentiality"/>
+                            <field name="accounting_evidence"/>
+                            <field name="document_date"/>
+                            <field name="source"/>
+                        </group>
+                        <group>
+                            <field name="availability_state"/>
+                            <field name="trashed_at" invisible="availability_state != 'trashed'"/>
+                            <field name="retention_until" invisible="availability_state != 'trashed'"/>
+                            <field name="retention_hold" invisible="availability_state != 'trashed'"
+                                   groups="usl_documents.group_documents_manager"/>
+                            <field name="deletion_reason" invisible="availability_state != 'trashed'"
+                                   groups="usl_documents.group_documents_manager"
+                                   placeholder="Required business reason before approval"/>
+                            <field name="deletion_approved_at" invisible="1"/>
+                            <field name="original_filename"/>
+                            <field name="mime_type"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Document" name="preview">
+                            <div class="alert alert-warning" role="status" invisible="availability_state == 'available'">
+                                The archived evidence is temporarily unavailable. The Odoo record remains usable.
+                            </div>
+                            <div class="d-flex gap-2" invisible="availability_state != 'available'">
+                                <button name="action_preview" type="object" string="Open preview" class="btn-primary" icon="fa-eye"/>
+                                <button name="action_download_original" type="object" string="Download original"
+                                        class="btn-primary" icon="fa-download"
+                                        title="Download the file that was received or uploaded."/>
+                                <button name="action_download_archive" type="object" string="Download searchable PDF"
+                                        icon="fa-file-pdf-o"
+                                        title="Download Paperless's processed copy. The original is unchanged."/>
+                            </div>
+                        </page>
+                        <page string="Classification" name="metadata">
+                            <group>
+                                <field name="correspondent_id"/>
+                                <field name="document_type_id"/>
+                                <field name="tag_ids" widget="many2many_tags"/>
+                                <field name="current_version_label"/>
+                                <field name="archive_added_at"/>
+                                <field name="paperless_modified"/>
+                            </group>
+                        </page>
+                        <page string="Versions" name="versions">
+                            <field name="version_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="0"
+                                      decoration-success="is_current">
+                                    <field name="label"/>
+                                    <field name="is_current"/>
+                                    <field name="is_received_original"/>
+                                    <field name="created_at"/>
+                                    <field name="original_filename"/>
+                                    <field name="mime_type"/>
+                                    <field name="page_count"/>
+                                    <field name="checksum" optional="hide"/>
+                                    <button name="action_preview" type="object" icon="fa-eye"
+                                            title="Preview this version"/>
+                                    <button name="action_download_original" type="object" icon="fa-download"
+                                            title="Download this original file"/>
+                                    <button name="action_download_archive" type="object" icon="fa-file-pdf-o"
+                                            title="Download this searchable PDF"/>
+                                    <button name="action_restore_as_current" type="object"
+                                            icon="fa-history" title="Restore as current"
+                                            invisible="is_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Linked records" name="links"
+                              groups="usl_documents.group_documents_manager">
+                            <field name="link_ids" context="{'default_document_id': id}">
+                                <list create="0" edit="0">
+                                    <field name="record_name"/>
+                                    <field name="res_model"/>
+                                    <field name="company_id"/>
+                                    <field name="version_id"/>
+                                    <field name="linked_by_id"/>
+                                    <field name="linked_at"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Diagnostics" name="diagnostics" groups="usl_documents.group_documents_manager">
+                            <group>
+                                <field name="paperless_id"/>
+                                <field name="permission_sync_state"/>
+                                <field name="permission_checked_at"/>
+                                <field name="permission_sync_error"/>
+                                <field name="last_error"/>
+                                <field name="checksum"/>
+                                <field name="archive_checksum"/>
+                                <field name="custom_fields_json"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_document_link_list" model="ir.ui.view">
+        <field name="name">usl.document.link.list</field>
+        <field name="model">usl.document.link</field>
+        <field name="arch" type="xml">
+            <list string="Linked Records">
+                <field name="document_id"/>
+                <field name="record_name"/>
+                <field name="res_model"/>
+                <field name="company_id"/>
+                <field name="version_id"/>
+                <field name="linked_by_id"/>
+                <field name="linked_at"/>
+                <button name="action_open_record" type="object" icon="fa-external-link" title="Open Odoo record"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_document_link_form" model="ir.ui.view">
+        <field name="name">usl.document.link.form</field>
+        <field name="model">usl.document.link</field>
+        <field name="arch" type="xml">
+            <form string="Linked Record">
+                <header>
+                    <button name="action_open_record" type="object" string="Open Odoo record" class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="document_id"/>
+                        <field name="record_name"/>
+                        <field name="res_model"/>
+                        <field name="res_id"/>
+                        <field name="company_id"/>
+                        <field name="version_id"/>
+                        <field name="linked_by_id"/>
+                        <field name="linked_at"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_usl_documents" model="ir.actions.act_window">
+        <field name="name">Document register</field>
+        <field name="res_model">usl.document</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_usl_document_search"/>
+    </record>
+
+    <record id="action_documents_workspace" model="ir.actions.client">
+        <field name="name">Documents</field>
+        <field name="tag">usl_documents.workspace</field>
+    </record>
+
+    <record id="action_usl_document_links" model="ir.actions.act_window">
+        <field name="name">Linked records</field>
+        <field name="res_model">usl.document.link</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_usl_document_operation_list" model="ir.ui.view">
+        <field name="name">usl.document.operation.list</field>
+        <field name="model">usl.document.operation</field>
+        <field name="arch" type="xml">
+            <list string="Ingestion history" create="0" delete="0"
+                  decoration-danger="state == 'failed'"
+                  decoration-warning="state == 'duplicate'">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="document_id"/>
+                <field name="retry_count" optional="hide"/>
+                <field name="error_message" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_usl_document_operations" model="ir.actions.act_window">
+        <field name="name">Ingestion history</field>
+        <field name="res_model">usl.document.operation</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_usl_paperless_user_mapping_list" model="ir.ui.view">
+        <field name="name">usl.paperless.user.mapping.list</field>
+        <field name="model">usl.paperless.user.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Individual Paperless Identities"
+                  decoration-danger="sync_state == 'failed'"
+                  decoration-warning="sync_state == 'pending'">
+                <field name="user_id"/>
+                <field name="paperless_username"/>
+                <field name="paperless_user_id"/>
+                <field name="oidc_subject_fingerprint" optional="show"/>
+                <field name="sync_state" readonly="1"/>
+                <field name="last_verified_at"/>
+                <field name="active"/>
+                <button name="action_mark_verified" type="object" string="Verify identity"
+                        invisible="sync_state == 'synchronized'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_paperless_user_mapping_form" model="ir.ui.view">
+        <field name="name">usl.paperless.user.mapping.form</field>
+        <field name="model">usl.paperless.user.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Paperless Identity">
+                <header>
+                    <button name="action_mark_verified" type="object" string="Verify identity"
+                            class="oe_highlight" invisible="sync_state == 'synchronized'"/>
+                    <field name="sync_state" widget="statusbar" readonly="1"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="user_id"/>
+                        <field name="paperless_username"/>
+                        <field name="paperless_user_id"/>
+                        <field name="oidc_identity_id"/>
+                        <field name="oidc_subject_fingerprint"/>
+                        <field name="active"/>
+                        <field name="last_verified_at"/>
+                        <field name="last_error"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_usl_paperless_user_mappings" model="ir.actions.act_window">
+        <field name="name">User access</field>
+        <field name="res_model">usl.paperless.user.mapping</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_archive_attachments_in_paperless" model="ir.actions.server">
+        <field name="name">Archive in Paperless</field>
+        <field name="model_id" ref="base.model_ir_attachment"/>
+        <field name="binding_model_id" ref="base.model_ir_attachment"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_archive_in_paperless()</field>
+        <field name="group_ids" eval="[Command.link(ref('group_documents_user'))]"/>
+    </record>
+
+    <menuitem id="menu_usl_documents_root" name="Documents" sequence="45"
+              groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant,usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_workspace" name="Documents" parent="menu_usl_documents_root"
+              action="action_documents_workspace" sequence="10"/>
+    <menuitem id="menu_usl_documents_configuration" name="Configuration"
+              parent="menu_usl_documents_root" sequence="90"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_archive" name="Document register"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_documents" sequence="60"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_links" name="Linked records"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_links" sequence="70"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_identities" name="User access"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_paperless_user_mappings" sequence="80"
+              groups="usl_documents.group_documents_manager"/>
+    <menuitem id="menu_usl_documents_operations" name="Ingestion history"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_operations" sequence="90"
+              groups="usl_documents.group_documents_manager"/>
+</odoo>
