@@ -202,6 +202,23 @@
                                 <span class="o_stat_text">Official TESE PDF</span>
                             </div>
                         </button>
+                        <button name="action_open_documents_workspace"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-cloud-upload"
+                                string="Upload"
+                                invisible="archived_document_count != 0"
+                                groups="usl_documents.group_documents_hr,usl_documents.group_documents_manager"/>
+                        <button name="action_open_documents_workspace"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-folder-open-o"
+                                invisible="archived_document_count == 0"
+                                groups="usl_documents.group_documents_hr,usl_documents.group_documents_manager">
+                            <field name="archived_document_count"
+                                   widget="statinfo"
+                                   string="Documents"/>
+                        </button>
                         <button name="action_open_matching_lines"
                                 type="object"
                                 class="oe_stat_button"

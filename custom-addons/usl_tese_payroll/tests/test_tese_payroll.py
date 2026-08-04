@@ -796,6 +796,18 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertIn("text-bg-success\">Matched", payroll_form)
         self.assertIn("URSSAF Carry-over", payroll_search)
         self.assertNotIn("'rounding_open'", payroll_search)
+        self.assertIn(
+            "usl.tese.payslip",
+            self.env["usl.document.link"]._allowed_models(),
+        )
+        self.assertIn(
+            "archived_document_count",
+            self.env["usl.tese.payslip"]._fields,
+        )
+        self.assertEqual(
+            payroll_form.count('name="action_open_documents_workspace"'),
+            2,
+        )
 
         configuration_menu = self.env.ref(
             "usl_tese_payroll.menu_tese_payroll_configuration",

@@ -39,7 +39,11 @@ BASE_REQUIRED_ENV_KEYS = {
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
 }
 PAPERLESS_REQUIRED_ENV_KEYS = {
+    "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL",
+    "PAPERLESS_DB_PASSWORD",
+    "PAPERLESS_PUBLIC_URL",
     "PAPERLESS_PUBLIC_BASE_URL",
+    "PAPERLESS_SECRET_KEY",
     "POCKET_ID_PAPERLESS_CLIENT_ID",
     "POCKET_ID_PAPERLESS_CLIENT_SECRET",
 }
@@ -115,11 +119,32 @@ def _write_new_env(path: Path) -> None:
     if path.exists():
         values = _read_env(path, required_keys=BASE_REQUIRED_ENV_KEYS)
         additions = {}
+        paperless_public_url = values.get("PAPERLESS_PUBLIC_BASE_URL") or os.getenv(
+            "USL_POCKET_ID_DEV_PAPERLESS_URL",
+            "http://paperless.localhost:8010",
+        ).strip()
         if not values.get("PAPERLESS_PUBLIC_BASE_URL"):
-            additions["PAPERLESS_PUBLIC_BASE_URL"] = os.getenv(
-                "USL_POCKET_ID_DEV_PAPERLESS_URL",
-                "http://paperless.localhost:8010",
-            ).strip()
+            additions["PAPERLESS_PUBLIC_BASE_URL"] = paperless_public_url
+        if not values.get("PAPERLESS_PUBLIC_URL"):
+            additions["PAPERLESS_PUBLIC_URL"] = paperless_public_url
+        if not values.get("PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL"):
+            additions["PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL"] = (
+                "https" if paperless_public_url.startswith("https://") else "http"
+            )
+        if not values.get("PAPERLESS_DB_PASSWORD"):
+            additions["PAPERLESS_DB_PASSWORD"] = secrets.token_urlsafe(36)
+        if not values.get("PAPERLESS_SECRET_KEY"):
+            additions["PAPERLESS_SECRET_KEY"] = secrets.token_urlsafe(64)
+        if not values.get("PAPERLESS_ALLOWED_HOSTS"):
+            additions["PAPERLESS_ALLOWED_HOSTS"] = (
+                "localhost,127.0.0.1,paperless-webserver,paperless.localhost"
+            )
+        if not values.get("PAPERLESS_CORS_ALLOWED_HOSTS"):
+            additions["PAPERLESS_CORS_ALLOWED_HOSTS"] = paperless_public_url
+        if not values.get("PAPERLESS_CSRF_TRUSTED_ORIGINS"):
+            additions["PAPERLESS_CSRF_TRUSTED_ORIGINS"] = paperless_public_url
+        if not values.get("PAPERLESS_HTTP_PORT"):
+            additions["PAPERLESS_HTTP_PORT"] = "8010"
         if not values.get("POCKET_ID_PAPERLESS_CLIENT_ID"):
             additions["POCKET_ID_PAPERLESS_CLIENT_ID"] = (
                 "usl-paperless-preproduction"
@@ -182,6 +207,10 @@ def _write_new_env(path: Path) -> None:
     for hostname in (odoo_hostname, pocket_hostname):
         if not SAFE_LOCALHOST_PATTERN.fullmatch(hostname):
             raise PocketIDError("Local service hostnames must use .localhost.")
+    paperless_public_url = os.getenv(
+        "USL_POCKET_ID_DEV_PAPERLESS_URL",
+        "http://paperless.localhost:8010",
+    ).strip()
     values = {
         "COMPOSE_PROJECT_NAME": project_name,
         "ODOO_DB_FILTER": f"^{database}$",
@@ -190,10 +219,17 @@ def _write_new_env(path: Path) -> None:
         "ODOO_HTTP_PORT": odoo_port,
         "ODOO_INIT_DB": database,
         "ODOO_PUBLIC_BASE_URL": f"http://{odoo_hostname}:{odoo_port}",
-        "PAPERLESS_PUBLIC_BASE_URL": os.getenv(
-            "USL_POCKET_ID_DEV_PAPERLESS_URL",
-            "http://paperless.localhost:8010",
-        ).strip(),
+        "PAPERLESS_PUBLIC_BASE_URL": paperless_public_url,
+        "PAPERLESS_PUBLIC_URL": paperless_public_url,
+        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "http",
+        "PAPERLESS_ALLOWED_HOSTS": (
+            "localhost,127.0.0.1,paperless-webserver,paperless.localhost"
+        ),
+        "PAPERLESS_CORS_ALLOWED_HOSTS": paperless_public_url,
+        "PAPERLESS_CSRF_TRUSTED_ORIGINS": paperless_public_url,
+        "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
+        "PAPERLESS_HTTP_PORT": "8010",
+        "PAPERLESS_SECRET_KEY": secrets.token_urlsafe(64),
         "POCKET_ID_APP_URL": f"http://{pocket_hostname}:{pocket_port}",
         "POCKET_ID_CLIENT_ID": "usl-odoo-preproduction",
         "POCKET_ID_CLIENT_SECRET": secrets.token_urlsafe(36),
@@ -577,6 +613,10 @@ def odoo_policy(values: dict[str, str]) -> None:
             "companies": ["Unstatic Labs"],
             "subject": values["POCKET_ID_ROGER_ID"],
             "create_if_missing": True,
+        },
+        {
+            "login": "roger@xaic.cat",
+            "profile": "historical",
         },
         {
             "login": "prosper",

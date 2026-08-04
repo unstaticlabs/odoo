@@ -22,7 +22,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONTRACT = ROOT / "migration/source_truth/coverage.json"
 DEFAULT_SOURCE_DIR = Path(
@@ -31,6 +30,17 @@ DEFAULT_SOURCE_DIR = Path(
 DEFAULT_ARTIFACTS = ROOT / "artifacts/migration/private"
 CONTRACT_SCHEMA = "usl-source-truth-coverage-v1"
 INVENTORY_SCHEMA = "usl-source-truth-inventory-v1"
+CURRENT_DISTRIBUTION_SCOPES = {
+    "accounting",
+    "credential_state",
+    "documents",
+    "hr",
+    "identity",
+    "native_reference",
+    "product_master",
+    "projects",
+    "tese_payroll",
+}
 
 
 class AuditError(RuntimeError):
@@ -366,7 +376,12 @@ def write_inventory(inventory: dict[str, Any], root: Path) -> Path:
     return destination
 
 
-def print_summary(inventory: dict[str, Any], destination: Path) -> None:
+def print_summary(
+    inventory: dict[str, Any],
+    destination: Path,
+    *,
+    show_full_status: bool = True,
+) -> None:
     summary = inventory["summary"]
     blocking = inventory["blocking"]
     print(f"Source dump: {inventory['source']['dump_sha256']}")
@@ -379,6 +394,8 @@ def print_summary(inventory: dict[str, Any], destination: Path) -> None:
         f"{inventory['filestore']['checked_stored_objects']} referenced objects verified",
     )
     print(f"Evidence: {destination}")
+    if not show_full_status:
+        return
     if summary["complete"]:
         print("PASS: every populated source scope is classified, implemented, and integrity-clean.")
         return
@@ -389,9 +406,53 @@ def print_summary(inventory: dict[str, Any], destination: Path) -> None:
             print(f"- {key}: {preview}")
 
 
+def current_distribution_blocking(inventory: dict[str, Any]) -> dict[str, Any]:
+    """Return blockers for reconstructing the product scopes shipped today.
+
+    Source-wide incomplete scopes stay visible in the inventory and continue to
+    block the stricter ``gate`` command. Their future product stages must not
+    prevent a deterministic rebuild of the already implemented distribution.
+    """
+    full = inventory["blocking"]
+    incomplete_current = sorted(
+        set(full["incomplete_populated_scopes"]) & CURRENT_DISTRIBUTION_SCOPES,
+    )
+    missing_contract = sorted(
+        scope
+        for scope in CURRENT_DISTRIBUTION_SCOPES
+        if inventory["contract"]["scopes"].get(scope, {}).get("status")
+        != "implemented"
+    )
+    return {
+        "attachment_integrity_errors": full["attachment_integrity_errors"],
+        "unclassified_populated_models": full["unclassified_populated_models"],
+        "unclassified_populated_tables": full["unclassified_populated_tables"],
+        "incomplete_current_distribution_scopes": incomplete_current,
+        "missing_current_distribution_contracts": missing_contract,
+    }
+
+
+def print_current_distribution_summary(inventory: dict[str, Any]) -> None:
+    blocking = current_distribution_blocking(inventory)
+    if any(blocking.values()):
+        print("BLOCKED: the current Odoo distribution cannot be reconstructed safely.")
+        for key, value in blocking.items():
+            if value:
+                preview = value[:12] if isinstance(value, list) else value
+                print(f"- {key}: {preview}")
+        return
+    deferred = sorted(
+        set(inventory["blocking"]["incomplete_populated_scopes"])
+        - CURRENT_DISTRIBUTION_SCOPES,
+    )
+    print("PASS: current distribution scopes are classified and integrity-clean.")
+    if deferred:
+        print(f"DEFERRED: source-wide product scopes still open: {deferred}")
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("inventory", "gate"))
+    parser.add_argument("command", choices=("inventory", "product-gate", "gate"))
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
@@ -450,7 +511,14 @@ def main(argv: list[str] | None = None) -> int:
             contract,
         )
         destination = write_inventory(inventory, args.artifacts)
-        print_summary(inventory, destination)
+        print_summary(
+            inventory,
+            destination,
+            show_full_status=args.command != "product-gate",
+        )
+        if args.command == "product-gate":
+            print_current_distribution_summary(inventory)
+            return 1 if any(current_distribution_blocking(inventory).values()) else 0
         return 1 if args.command == "gate" and not inventory["summary"]["complete"] else 0
     except (AuditError, OSError, ValueError) as error:
         print(f"Migration source-truth audit failed: {error}", file=sys.stderr)

@@ -1,5 +1,6 @@
 from . import (
     account_move,
+    documents,
     hr_employee,
     res_company,
     tese_diagnostic,

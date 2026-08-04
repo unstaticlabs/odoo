@@ -8,7 +8,6 @@ import psycopg2.extras
 
 from odoo import Command, fields, models
 
-
 RESTORE_REVISION = 1
 SOURCE_FILESTORE = Path(
     os.getenv("IDENTITY_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
@@ -527,15 +526,21 @@ class UslIdentityRestoreRun(models.Model):
             categories_by_partner.setdefault(row["partner_id"], []).append(categories[row["category_id"]].id)
         source_partner_rows = {row["id"]: row for row in source["partners"]}
         for source_id, partner in partners.items():
-            source_user_id = source_partner_rows[source_id]["user_id"]
-            partner.sudo().with_context(tracking_disable=True).write(
-                {
-                    "category_id": [Command.set(categories_by_partner.get(source_id, []))],
-                    "user_id": users[source_user_id].id
-                    if source_user_id in users
-                    else False,
-                },
-            )
+            source_partner = source_partner_rows[source_id]
+            source_user_id = source_partner["user_id"]
+            partner_values = {
+                "category_id": [Command.set(categories_by_partner.get(source_id, []))],
+                "user_id": users[source_user_id].id
+                if source_user_id in users
+                else False,
+            }
+            if source_id not in native_partner_ids:
+                # Odoo deactivates a partner while creating its archived user.
+                # Online can retain the contact independently, so restore the
+                # authoritative contact lifecycle afterward. Built-in runtime
+                # identities keep their native target lifecycle instead.
+                partner_values["active"] = source_partner["active"]
+            partner.sudo().with_context(tracking_disable=True).write(partner_values)
 
         for row in source["images"]:
             partner = partners.get(row["res_id"])

@@ -19,7 +19,8 @@ scripts/check-product-migration-boundary
 scripts/accounting-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
-scripts/pocket-id-dev configure-odoo rebuild_account_migration
+scripts/pocket-id-dev configure-odoo \
+  rebuild_account_migration,usl_documents,usl_documents_accounting,usl_tese_payroll
 scripts/odoo-dev disable-tours
 scripts/check-product-migration-boundary
 

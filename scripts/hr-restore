@@ -6,7 +6,7 @@ command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
 target_database="${HR_TARGET_DATABASE:-odoo_dev}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/hr-migration-addons"
+migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/hr-migration-addons"
 
 case "$target_database" in
     odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)

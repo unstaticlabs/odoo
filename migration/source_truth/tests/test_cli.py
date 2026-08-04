@@ -8,11 +8,11 @@ from migration.source_truth.cli import (
     AuditError,
     build_inventory,
     classify,
+    current_distribution_blocking,
     load_contract,
     source_package,
     verify_filestore,
 )
-
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -75,6 +75,10 @@ class SourceTruthAuditCase(unittest.TestCase):
         )
         self.assertEqual(classify("x_custom_truth", contract["model_rules"]), "studio")
         self.assertEqual(
+            classify("x_tese_payslip", contract["model_rules"]),
+            "tese_payroll",
+        )
+        self.assertEqual(
             classify("res.users.apikeys", contract["model_rules"]),
             "credential_state",
         )
@@ -136,6 +140,24 @@ class SourceTruthAuditCase(unittest.TestCase):
             self.assertEqual(
                 inventory["blocking"]["incomplete_populated_scopes"],
                 ["knowledge"],
+            )
+            self.assertFalse(any(current_distribution_blocking(inventory).values()))
+
+    def test_current_distribution_gate_keeps_structural_errors_blocking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "dump.sql").write_text("source", encoding="utf-8")
+            (root / "filestore").mkdir()
+            contract = load_contract(ROOT / "migration/source_truth/coverage.json")
+            inventory = build_inventory(source_package(root), FakeDatabase(), contract)
+            inventory["blocking"]["unclassified_populated_models"] = [
+                "unknown.business.model",
+            ]
+            self.assertEqual(
+                current_distribution_blocking(inventory)[
+                    "unclassified_populated_models"
+                ],
+                ["unknown.business.model"],
             )
 
     def test_invalid_contract_is_rejected(self):

@@ -5,7 +5,7 @@
     "category": "Technical",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
-    "depends": ["rebuild_account_migration", "hr_skills"],
+    "depends": ["usl_accounting_restore", "hr_skills"],
     "data": ["security/ir.model.access.csv"],
     "application": False,
     "installable": True,

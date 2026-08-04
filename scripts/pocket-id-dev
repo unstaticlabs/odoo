@@ -55,6 +55,11 @@ start_idp() {
   "${COMPOSE[@]}" up -d --wait pocket-id
 }
 
+start_paperless_runtime() {
+  "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-access-init
+}
+
 provision() {
   start_idp
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
@@ -82,6 +87,7 @@ configure_odoo() {
   local module="${1:-usl_pocketid}"
   local status=0 update_modules
   provision
+  start_paperless_runtime
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   update_modules="usl_pocketid"
   if [[ "$module" != "usl_pocketid" ]]; then
@@ -115,13 +121,16 @@ configure_odoo() {
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
   printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
   printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+  printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
 }
 
 start_runtime() {
   provision
+  start_paperless_runtime
   "${COMPOSE[@]}" up -d --wait db pocket-id odoo
   printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
   printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+  printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
 }
 
 one_time_link() {
@@ -243,7 +252,7 @@ Commands:
   provision                  Idempotently configure users, group, and OIDC client
   ensure-unlinked            Add the Pocket-only lifecycle-denial identity
   configure-odoo [MODULE]    Configure canonical odoo_dev and start its SSO stack
-  start-runtime              Start the already-configured canonical target stack
+  start-runtime              Start Odoo, Pocket ID, and Paperless for odoo_dev
   one-time-link USER         Generate a one-hour link for any Pocket ID user
   set-disabled USER BOOL     Enable or disable a named Pocket ID user
   set-profile USER EMAIL NAME

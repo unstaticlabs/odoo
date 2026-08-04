@@ -51,6 +51,11 @@
       "disposition": "translated",
       "evidence": "Accounting restores expenses; the temporary HR stage restores the complete employee, original employee image, version, organization, calendar, work-location and skill perimeter with private-field access validation"
     },
+    "tese_payroll": {
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "the temporary TESE stage restores profiles, payroll records, native HR and Accounting links, official evidence and lifecycle state with exact-count and idempotency validation"
+    },
     "studio": {
       "status": "incomplete",
       "disposition": "translate_or_archive",
@@ -91,6 +96,7 @@
     {"match": "knowledge.*", "scope": "knowledge"},
     {"match": "sign.*", "scope": "signing"},
     {"match": "hr.*", "scope": "hr"},
+    {"match": "x_tese_*", "scope": "tese_payroll"},
     {"match": "x_*", "scope": "studio"},
     {"match": "res.company", "scope": "identity"},
     {"match": "res.partner", "scope": "identity"},
@@ -150,6 +156,7 @@
     {"match": "knowledge*", "scope": "knowledge"},
     {"match": "sign*", "scope": "signing"},
     {"match": "hr_*", "scope": "hr"},
+    {"match": "x_tese_*", "scope": "tese_payroll"},
     {"match": "x_*", "scope": "studio"},
     {"match": "mail_*", "scope": "collaboration"},
     {"match": "message_*", "scope": "collaboration"},

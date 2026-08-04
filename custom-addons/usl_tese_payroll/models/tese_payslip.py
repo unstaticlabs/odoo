@@ -25,7 +25,7 @@ def _normalized(value):
 class UslTesePayslip(models.Model):
     _name = "usl.tese.payslip"
     _description = "TESE Payroll Record"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "usl.document.link.mixin"]
     _order = "period_end desc, employee_id, id desc"
     _check_company_auto = True
 

@@ -21,7 +21,7 @@ stop_product() {
 
 stop_product
 scripts/accounting-compat source-restore
-scripts/migration-source-truth gate
+scripts/migration-source-truth product-gate
 scripts/sync-oca-addons
 scripts/accounting-compat source-restore
 scripts/accounting-compat source-controls
@@ -32,6 +32,11 @@ scripts/accounting-compat dev-import
 stop_product
 scripts/accounting-compat dev-validate
 stop_product
+DOCUMENTS_CANONICAL_TARGET=1 \
+  DOCUMENTS_TARGET_DATABASE=odoo_dev \
+  COMPOSE_PROJECT_NAME="$compose_project" \
+  scripts/documents-restore prepare-target
+stop_product
 scripts/identity-restore all
 stop_product
 scripts/product-restore all
@@ -41,6 +46,12 @@ stop_product
 PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
 stop_product
 TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore all
+stop_product
+DOCUMENTS_CANONICAL_TARGET=1 \
+  DOCUMENTS_CANONICAL_RESET=1 \
+  DOCUMENTS_TARGET_DATABASE=odoo_dev \
+  COMPOSE_PROJECT_NAME="$compose_project" \
+  scripts/documents-restore all
 stop_product
 scripts/accounting-restore finalize
 scripts/target-finalize

@@ -5,7 +5,7 @@
     "category": "Technical",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
-    "depends": ["rebuild_account_migration", "usl_pocketid"],
+    "depends": ["usl_accounting_restore", "usl_pocketid"],
     "data": ["security/ir.model.access.csv"],
     "application": False,
     "installable": True,

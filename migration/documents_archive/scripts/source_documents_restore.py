@@ -780,6 +780,14 @@ expected_move_ids = {
 }
 if set(moves) != expected_move_ids:
     fail(f"Accounting move mappings are incomplete: {sorted(expected_move_ids - set(moves))}")
+tese_payroll_by_move_id = {}
+if "usl.tese.payslip" in env:
+    tese_payroll_by_move_id = {
+        payroll.move_id.id: payroll
+        for payroll in env["usl.tese.payslip"].sudo().search(
+            [("move_id", "in", [move.id for move in moves.values()])],
+        )
+    }
 employees = source_map(
     "hr.employee",
     [row["id"] for row in source["employee_folder_mappings"]],
@@ -1247,6 +1255,10 @@ for item in completed:
         ("account.move", target.id): target
         for target in target_moves.values()
     }
+    for target in target_moves.values():
+        payroll = tese_payroll_by_move_id.get(target.id)
+        if payroll:
+            target_links["usl.tese.payslip", payroll.id] = payroll
     partner_source_ids = {
         source_id
         for entry in group
