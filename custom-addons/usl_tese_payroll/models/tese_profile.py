@@ -98,6 +98,22 @@ class UslTeseProfile(models.Model):
     )
     hr_hours_reference = fields.Float(compute="_compute_hr_hours_reference")
     hr_mismatch_warning = fields.Text(compute="_compute_hr_mismatch_warning")
+    has_hr_mismatch = fields.Boolean(
+        compute="_compute_has_hr_mismatch",
+        store=True,
+    )
+    display_review_status = fields.Selection(
+        selection=[
+            ("to_review", "To review"),
+            ("ok", "Ready"),
+            ("warning", "Warning"),
+            ("archived", "Archived"),
+        ],
+        string="Status",
+        compute="_compute_display_review_status",
+        store=True,
+        index=True,
+    )
     can_configure = fields.Boolean(compute="_compute_can_configure")
 
     _validity_order = models.Constraint(
@@ -165,8 +181,7 @@ class UslTeseProfile(models.Model):
                 profile.gross_salary - version.wage,
             ):
                 warnings.append(_(
-                    "The provider gross amount (%(provider).2f) differs from "
-                    "the HR wage (%(hr).2f).",
+                    "Gross — TESE: %(provider).2f · HR: %(hr).2f.",
                     provider=profile.gross_salary,
                     hr=version.wage,
                 ))
@@ -177,17 +192,52 @@ class UslTeseProfile(models.Model):
                 and abs(profile.default_hours - profile.hr_hours_reference) > 0.01
             ):
                 warnings.append(_(
-                    "The provider hours (%(provider).2f) differ from the HR "
-                    "monthly hours (%(hr).2f).",
+                    "Monthly hours — TESE: %(provider).2f · HR: %(hr).2f.",
                     provider=profile.default_hours,
                     hr=profile.hr_hours_reference,
                 ))
             if warnings:
                 warnings.append(_(
-                    "Next: confirm the TESE declaration is intentional, or "
-                    "revise the TESE and HR versions before the next payroll.",
+                    "Next: align TESE with HR, or keep the difference only if "
+                    "it is intentional.",
                 ))
             profile.hr_mismatch_warning = "\n".join(warnings)
+
+    @api.depends(
+        "hr_version_id.wage",
+        "hr_version_id.hours_per_week",
+        "gross_salary",
+        "default_hours",
+        "currency_id",
+    )
+    def _compute_has_hr_mismatch(self):
+        for profile in self:
+            version = profile.hr_version_id
+            profile.has_hr_mismatch = bool(
+                version
+                and (
+                    not profile.currency_id.is_zero(
+                        profile.gross_salary - version.wage,
+                    )
+                    or (
+                        profile.default_hours
+                        and profile.hr_hours_reference
+                        and abs(
+                            profile.default_hours - profile.hr_hours_reference
+                        ) > 0.01
+                    )
+                )
+            )
+
+    @api.depends("active", "review_status", "has_hr_mismatch")
+    def _compute_display_review_status(self):
+        for profile in self:
+            if not profile.active:
+                profile.display_review_status = "archived"
+            elif profile.has_hr_mismatch:
+                profile.display_review_status = "warning"
+            else:
+                profile.display_review_status = profile.review_status
 
     @api.constrains("employee_id", "hr_version_id")
     def _check_hr_version_employee(self):

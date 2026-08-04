@@ -298,6 +298,15 @@
                         <field name="setup_message" nolabel="1"/>
                     </div>
 
+                    <div class="alert alert-warning py-2"
+                         role="alert"
+                         invisible="not profile_mismatch_warning or state not in ('draft', 'prepared', 'to_post')">
+                        <strong>TESE and HR differ</strong>
+                        <field name="profile_mismatch_warning"
+                               nolabel="1"
+                               class="d-block mt-1"/>
+                    </div>
+
                     <group invisible="state not in ('draft', 'prepared', 'to_post')">
                         <group string="Payroll Setup">
                             <field name="company_id"

@@ -417,6 +417,48 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(defaults["tese_detailed_total"], 1550.0)
         self.assertEqual(defaults["tese_bank_amount"], 1550.0)
 
+    def test_tese_hr_difference_is_visible_while_configuring(self):
+        self.profile.with_user(self.config_user).write({
+            "default_hours": 160.0,
+        })
+        self.assertIn(
+            "Monthly hours — TESE: 160.00 · HR: 151.67.",
+            self.profile.hr_mismatch_warning,
+        )
+        self.assertIn(
+            "Next: align TESE with HR",
+            self.profile.hr_mismatch_warning,
+        )
+        self.assertTrue(self.profile.has_hr_mismatch)
+        self.assertEqual(self.profile.display_review_status, "warning")
+
+        payslip = self.env["usl.tese.payslip"].with_user(
+            self.workflow_user,
+        ).create({
+            "company_id": self.company.id,
+            "employee_id": self.employee.id,
+            "profile_id": self.profile.id,
+            "pay_period": date(2026, 6, 1),
+            "tese_reference": "TESE-HR-VISIBLE-DIFFERENCE",
+        })
+        self.assertEqual(
+            payslip.profile_mismatch_warning,
+            self.profile.hr_mismatch_warning,
+        )
+
+        with Form(
+            self.env["usl.tese.settings.revision.wizard"].with_user(
+                self.config_user,
+            ).with_context(default_payslip_id=payslip.id),
+        ) as wizard_form:
+            wizard = wizard_form.save()
+        self.assertIn(
+            "Monthly hours — TESE: 160.00 · HR: 151.67.",
+            wizard.comparison_warning,
+        )
+        wizard.default_hours = 35.0 * 52.0 / 12.0
+        self.assertFalse(wizard.comparison_warning)
+
     def test_urssaf_rounding_remains_visibly_open_on_431(self):
         payslip = self._posted_payslip()
         self._bank_line(

@@ -165,7 +165,10 @@ class UslTeseDiagnosticIssue(models.Model):
                     category="hr",
                     record=profile,
                     message=profile.hr_mismatch_warning,
-                    fix=_("Confirm that the provider figures intentionally differ from HR."),
+                    fix=_(
+                        "Align the TESE profile with HR, or confirm that the "
+                        "difference is intentional.",
+                    ),
                 )
 
         payslips = self.env["usl.tese.payslip"].search([

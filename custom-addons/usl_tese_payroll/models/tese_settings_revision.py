@@ -93,6 +93,56 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
     contract_type_id = fields.Many2one("hr.contract.type")
     contract_date_start = fields.Date(string="Contract Start")
     contract_date_end = fields.Date(string="Contract End")
+    comparison_warning = fields.Text(
+        string="TESE / HR Difference",
+        compute="_compute_comparison_warning",
+    )
+
+    @api.depends(
+        "gross_salary",
+        "default_hours",
+        "update_contract",
+        "wage",
+        "hours_per_week",
+        "source_version_id.wage",
+        "source_version_id.hours_per_week",
+        "currency_id",
+    )
+    def _compute_comparison_warning(self):
+        for wizard in self:
+            version = wizard.source_version_id
+            hr_wage = wizard.wage if wizard.update_contract else version.wage
+            weekly_hours = (
+                wizard.hours_per_week
+                if wizard.update_contract
+                else version.hours_per_week
+            )
+            hr_monthly_hours = weekly_hours * 52.0 / 12.0
+            warnings = []
+            if wizard.currency_id and not wizard.currency_id.is_zero(
+                wizard.gross_salary - hr_wage,
+            ):
+                warnings.append(_(
+                    "Gross — TESE: %(provider).2f · HR: %(hr).2f.",
+                    provider=wizard.gross_salary,
+                    hr=hr_wage,
+                ))
+            if (
+                wizard.default_hours
+                and hr_monthly_hours
+                and abs(wizard.default_hours - hr_monthly_hours) > 0.01
+            ):
+                warnings.append(_(
+                    "Monthly hours — TESE: %(provider).2f · HR: %(hr).2f.",
+                    provider=wizard.default_hours,
+                    hr=hr_monthly_hours,
+                ))
+            if warnings:
+                warnings.append(_(
+                    "Next: align TESE with HR, or keep the difference only if "
+                    "it is intentional.",
+                ))
+            wizard.comparison_warning = "\n".join(warnings)
 
     @api.model
     def _month_start(self, value):

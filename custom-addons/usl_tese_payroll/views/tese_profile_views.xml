@@ -6,8 +6,8 @@
         <field name="arch" type="xml">
             <list string="TESE Payroll Settings"
                   decoration-muted="not active"
-                  decoration-warning="review_status in ('to_review', 'warning')"
-                  decoration-success="review_status == 'ok'">
+                  decoration-warning="display_review_status in ('to_review', 'warning')"
+                  decoration-success="display_review_status == 'ok'">
                 <field name="currency_id" column_invisible="True"/>
                 <field name="name"/>
                 <field name="employee_id" widget="many2one_avatar_employee"/>
@@ -22,11 +22,12 @@
                        string="Payrolls"
                        optional="show"/>
                 <field name="last_used_date" optional="show"/>
-                <field name="review_status"
+                <field name="display_review_status"
+                       string="Status"
                        widget="badge"
-                       decoration-warning="review_status in ('to_review', 'warning')"
-                       decoration-success="review_status == 'ok'"
-                       decoration-muted="review_status == 'archived'"/>
+                       decoration-warning="display_review_status in ('to_review', 'warning')"
+                       decoration-success="display_review_status == 'ok'"
+                       decoration-muted="display_review_status == 'archived'"/>
                 <field name="active" optional="hide"/>
                 <field name="company_id"
                        groups="base.group_multi_company"
@@ -55,7 +56,7 @@
                         context="{'active_test': False}"/>
                 <filter name="to_review"
                         string="To Review"
-                        domain="[('review_status', 'in', ('to_review', 'warning'))]"
+                        domain="[('display_review_status', 'in', ('to_review', 'warning'))]"
                         context="{'active_test': False}"/>
                 <separator/>
                 <group>
@@ -64,7 +65,7 @@
                             context="{'group_by': 'employee_id'}"/>
                     <filter name="status"
                             string="Review Status"
-                            context="{'group_by': 'review_status'}"/>
+                            context="{'group_by': 'display_review_status'}"/>
                     <filter name="company"
                             string="Company"
                             context="{'group_by': 'company_id'}"
@@ -91,7 +92,9 @@
                             type="object"
                             help="Load the fixed eleven French payroll accounts into this unused profile. Existing accounts are never created or renumbered."
                             invisible="not can_configure or payslip_count"/>
-                    <field name="review_status" widget="statusbar"/>
+                    <field name="display_review_status"
+                           string="Status"
+                           widget="statusbar"/>
                 </header>
                 <sheet>
                     <field name="can_configure" invisible="1"/>
@@ -195,10 +198,13 @@
                         </group>
                     </group>
 
-                    <div class="alert alert-warning"
+                    <div class="alert alert-warning py-2"
                          role="alert"
                          invisible="not hr_mismatch_warning">
-                        <field name="hr_mismatch_warning" nolabel="1"/>
+                        <strong>TESE and HR differ</strong>
+                        <field name="hr_mismatch_warning"
+                               nolabel="1"
+                               class="d-block mt-1"/>
                     </div>
 
                     <notebook>

@@ -35,6 +35,14 @@
                         If this wizard was opened from a payroll, that payroll
                         will be refreshed with the new versions.
                     </div>
+                    <div class="alert alert-warning py-2"
+                         role="alert"
+                         invisible="not comparison_warning">
+                        <strong>TESE and HR differ</strong>
+                        <field name="comparison_warning"
+                               nolabel="1"
+                               class="d-block mt-1"/>
+                    </div>
                     <notebook>
                         <page name="tese"
                               string="TESE Figures"

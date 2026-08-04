@@ -65,6 +65,11 @@ L'ancien profil n'est jamais supprimé. La liste affiche la version actuelle
 par défaut ; retirez le filtre **En cours** ou choisissez **Archivés** pour
 retrouver toutes les versions précédentes.
 
+Quand les montants bruts ou les heures TESE diffèrent du contrat RH, un
+avertissement court affiche les deux valeurs sur le profil, dans cet assistant
+et sur la paie en préparation. Alignez TESE avec le contrat, sauf si l'écart
+est réellement intentionnel.
+
 Une écriture comptable encore brouillon est régénérée. Une écriture
 comptabilisée reste immuable. Cette opération exige les droits Administrateur
 RH et Administrateur comptable.

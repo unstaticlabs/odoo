@@ -308,6 +308,11 @@ class UslTesePayslip(models.Model):
     can_workflow = fields.Boolean(compute="_compute_can_workflow")
     can_configure = fields.Boolean(compute="_compute_can_configure")
     setup_message = fields.Char(compute="_compute_setup_message")
+    profile_mismatch_warning = fields.Text(
+        string="TESE / HR Difference",
+        related="profile_id.hr_mismatch_warning",
+        readonly=True,
+    )
 
     _period_employee_unique = models.Constraint(
         "UNIQUE(company_id, employee_id, pay_period)",

@@ -3345,3 +3345,38 @@ msgstr "Ne modifiez le <strong>Prélèvement bancaire attendu / rapproché</stro
 #. module: usl_tese_payroll
 msgid "The official PDF remains linked as evidence. Next: no document action is required."
 msgstr "Le PDF officiel reste lié comme justificatif. Étape suivante : aucune action documentaire n'est requise."
+
+#. module: usl_tese_payroll
+msgid "TESE / HR Difference"
+msgstr "Écart TESE / RH"
+
+#. module: usl_tese_payroll
+msgid "TESE and HR differ"
+msgstr "TESE et les RH diffèrent"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Gross — TESE: %(provider).2f · HR: %(hr).2f."
+msgstr "Brut — TESE : %(provider).2f · RH : %(hr).2f."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Monthly hours — TESE: %(provider).2f · HR: %(hr).2f."
+msgstr "Heures mensuelles — TESE : %(provider).2f · RH : %(hr).2f."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_profile.py:0
+#: code:addons/usl_tese_payroll/models/tese_settings_revision.py:0
+msgid "Next: align TESE with HR, or keep the difference only if it is intentional."
+msgstr "Étape suivante : alignez TESE avec les RH, ou conservez l'écart uniquement s'il est intentionnel."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
+msgid "Align the TESE profile with HR, or confirm that the difference is intentional."
+msgstr "Alignez le profil TESE avec les RH, ou confirmez que l'écart est intentionnel."
