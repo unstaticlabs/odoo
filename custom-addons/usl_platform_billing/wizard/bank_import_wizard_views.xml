@@ -16,12 +16,7 @@
                             <field name="candidate_scope" string="Show"/>
                         </group>
                     </group>
-                    <div class="alert alert-info py-2" role="status"
-                         invisible="mode != 'create'">
-                        Select the received payments to add as draft payouts. Complete
-                        platform, reference, currency and original payout amount in the
-                        session after importing.
-                    </div>
+
                     <div class="alert alert-info py-2" role="status"
                          invisible="mode != 'link'">
                         Select the open payouts first, then select the payment that
