@@ -71,6 +71,16 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertEqual(boundary_script.count('LIKE %s'), 2)
         self.assertEqual(boundary_script.count('(\"rebuild_source_%\",)'), 2)
 
+    def test_schema_finalizer_removes_inherited_field_residue(self):
+        finalizer = (
+            ROOT / "migration" / "accounting_restore" / "scripts" / "finalize_schema.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("for model_name in env.registry.models", finalizer)
+        self.assertIn("metadata.with_context(force_delete=True).unlink()", finalizer)
+        self.assertIn("removed_migration_field_metadata", finalizer)
+        self.assertNotIn("PRODUCT_MODELS", finalizer)
+
     def test_full_boundary_and_release_gate_include_database_state(self):
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
         release = (ROOT / "scripts" / "preprod-release").read_text(
