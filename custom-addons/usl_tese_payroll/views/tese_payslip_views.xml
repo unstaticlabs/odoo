@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tese_payslip_list" model="ir.ui.view">
+        <field name="name">usl.tese.payslip.list</field>
+        <field name="model">usl.tese.payslip</field>
+        <field name="arch" type="xml">
+            <list string="TESE Payroll"
+                  decoration-info="payment_status == 'not_posted'"
+                  decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open')"
+                  decoration-success="payment_status == 'paid'"
+                  decoration-muted="payment_status == 'cancelled'">
+                <field name="currency_id" column_invisible="True"/>
+                <field name="period_label" string="Month"/>
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="tese_reference"/>
+                <field name="gross_salary" sum="Gross"/>
+                <field name="net_paid" sum="Net Paid"/>
+                <field name="tese_bank_amount" string="URSSAF Debit" sum="URSSAF"/>
+                <field name="salary_open_amount"
+                       string="Salary Open"
+                       optional="hide"
+                       sum="Salary Open"/>
+                <field name="tese_open_amount"
+                       optional="hide"
+                       sum="URSSAF Open"/>
+                <field name="rounding_open_amount"
+                       string="URSSAF Carry-over"
+                       optional="show"
+                       decoration-info="rounding_open_amount != 0"
+                       sum="Carry-over"/>
+                <field name="payment_status"
+                       widget="badge"
+                       decoration-info="payment_status == 'not_posted'"
+                       decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open')"
+                       decoration-success="payment_status == 'paid'"
+                       decoration-muted="payment_status == 'cancelled'"/>
+                <field name="document_status"
+                       widget="badge"
+                       decoration-success="document_status == 'ok'"
+                       decoration-warning="document_status in ('missing', 'warning')"/>
+                <field name="state"
+                       string="Accounting Stage"
+                       widget="badge"
+                       optional="hide"/>
+                <field name="company_id"
+                       groups="base.group_multi_company"
+                       optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tese_payslip_search" model="ir.ui.view">
+        <field name="name">usl.tese.payslip.search</field>
+        <field name="model">usl.tese.payslip</field>
+        <field name="arch" type="xml">
+            <search string="TESE Payroll">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="tese_reference"/>
+                <field name="move_id"/>
+                <filter name="open_payments"
+                        string="Open Payments"
+                        domain="[('payment_status', 'in', ('open_both', 'salary_open', 'tese_open'))]"/>
+                <filter name="salary_open"
+                        string="Salary Open"
+                        domain="[('payment_status', 'in', ('open_both', 'salary_open'))]"/>
+                <filter name="tese_open"
+                        string="URSSAF Open"
+                        domain="[('payment_status', 'in', ('open_both', 'tese_open'))]"/>
+                <filter name="rounding_open"
+                        string="URSSAF Carry-over"
+                        domain="[('rounding_open_amount', '!=', 0)]"/>
+                <filter name="paid"
+                        string="Settled"
+                        domain="[('payment_status', '=', 'paid')]"/>
+                <filter name="missing_pdf"
+                        string="Missing PDF"
+                        domain="[('attachment_id', '=', False)]"/>
+                <filter name="pay_period"
+                        string="Payroll Period"
+                        date="pay_period"/>
+                <separator/>
+                <group>
+                    <filter name="employee"
+                            string="Employee"
+                            context="{'group_by': 'employee_id'}"/>
+                    <filter name="payment_status_group"
+                            string="Payment Status"
+                            context="{'group_by': 'payment_status'}"/>
+                    <filter name="period"
+                            string="Month"
+                            context="{'group_by': 'pay_period:month'}"/>
+                    <filter name="company"
+                            string="Company"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_tese_payslip_form" model="ir.ui.view">
+        <field name="name">usl.tese.payslip.form</field>
+        <field name="model">usl.tese.payslip</field>
+        <field name="arch" type="xml">
+            <form string="TESE Payroll" duplicate="false">
+                <header>
+                    <button name="action_prepare"
+                            string="Prepare Payroll"
+                            type="object"
+                            class="oe_highlight"
+                            help="Freeze the selected TESE and HR settings into this payroll. Next, review the figures and create the draft journal entry."
+                            invisible="state != 'draft' or not can_workflow"/>
+                    <button name="action_create_draft_entry"
+                            string="Create Draft Entry"
+                            type="object"
+                            class="oe_highlight"
+                            help="Create a balanced draft journal entry from the frozen payroll figures. You can still revise settings before posting."
+                            invisible="state != 'prepared' or not can_workflow"/>
+                    <button name="action_post"
+                            string="Post Entry"
+                            type="object"
+                            class="oe_highlight"
+                            help="Post the payroll journal entry. The payroll figures and official PDF then become immutable."
+                            invisible="state != 'to_post' or not can_workflow"/>
+                    <button name="action_refresh_candidates"
+                            string="Refresh Payments"
+                            type="object"
+                            help="Search current bank transactions again and refresh open balances. This does not reconcile anything by itself."
+                            invisible="state != 'to_reconcile' or not can_workflow"/>
+                    <button name="action_reconcile_salary"
+                            string="Match Salary"
+                            type="object"
+                            help="Reconcile the one safe salary transaction with the open salary liability."
+                            invisible="state != 'to_reconcile' or salary_payment_reconciled or salary_payment_candidate_count != 1 or not can_workflow"/>
+                    <button name="action_reconcile_tese"
+                            string="Match URSSAF Debit"
+                            type="object"
+                            help="Reconcile the one safe URSSAF transaction. A difference up to €5 is carried forward on 431000 without keeping this payroll open."
+                            invisible="state != 'to_reconcile' or tese_payment_reconciled or tese_payment_candidate_count != 1 or not can_workflow"/>
+                    <button name="action_open_bank_matching"
+                            string="Open Bank Matching"
+                            type="object"
+                            help="Open unmatched bank transactions for this company. Use this for missing or ambiguous salary and URSSAF payments."
+                            invisible="state != 'to_reconcile'"/>
+                    <button name="action_finalize"
+                            string="Refresh Status"
+                            type="object"
+                            help="Recalculate the payment state from accounting residuals. This does not reconcile or write off any balance."
+                            invisible="state != 'to_reconcile' or not can_workflow"/>
+                    <button name="action_create_draft_entry"
+                            string="Refresh Draft Entry"
+                            type="object"
+                            help="Regenerate the linked draft journal entry from the current payroll figures. A posted entry is never changed."
+                            invisible="state != 'to_post' or not can_workflow"/>
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            help="Cancel this unposted payroll and its draft entry. Posted accounting cannot be cancelled here."
+                            invisible="state not in ('draft', 'prepared', 'to_post') or not can_workflow"/>
+                    <button name="action_reset_to_prepared"
+                            string="Reset"
+                            type="object"
+                            help="Return this cancelled payroll to Prepared so its draft entry can be reviewed again."
+                            invisible="state != 'cancelled' or not can_workflow"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,prepared,to_post,to_reconcile,paid"/>
+                </header>
+                <sheet>
+                    <field name="can_workflow" invisible="1"/>
+                    <field name="can_configure" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="salary_payment_candidate_count" invisible="1"/>
+                    <field name="tese_payment_candidate_count" invisible="1"/>
+                    <field name="salary_payment_reconciled" invisible="1"/>
+                    <field name="tese_payment_reconciled" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_move"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-book"
+                                invisible="not move_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </div>
+                        </button>
+                        <button name="action_open_employee"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-user">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Employee</span>
+                            </div>
+                        </button>
+                        <button name="action_open_pdf"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-pdf-o"
+                                invisible="not attachment_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Official TESE PDF</span>
+                            </div>
+                        </button>
+                        <button name="action_open_matching_lines"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-exchange"
+                                invisible="not move_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Accounting Items</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon"
+                            text="Settled"
+                            bg_color="text-bg-success"
+                            invisible="payment_status != 'paid'"/>
+                    <widget name="web_ribbon"
+                            text="Cancelled"
+                            bg_color="text-bg-secondary"
+                            invisible="state != 'cancelled'"/>
+
+                    <div class="oe_title mb-3">
+                        <label for="pay_period" string="Payroll"/>
+                        <h1>
+                            <field name="period_label" readonly="1"/>
+                        </h1>
+                        <h2 class="text-muted">
+                            <field name="employee_id"
+                                   widget="many2one_avatar_employee"
+                                   readonly="state != 'draft'"
+                                   nolabel="1"/>
+                        </h2>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted">Net Paid</div>
+                                <div class="fs-3 fw-bold">
+                                    <field name="net_paid"
+                                           widget="monetary"
+                                           nolabel="1"
+                                           readonly="1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted">URSSAF Debit</div>
+                                <div class="fs-3 fw-bold">
+                                    <field name="tese_bank_amount"
+                                           widget="monetary"
+                                           nolabel="1"
+                                           readonly="1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted">Gross</div>
+                                <div class="fs-4">
+                                    <field name="gross_salary"
+                                           widget="monetary"
+                                           nolabel="1"
+                                           readonly="1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="border rounded p-3 h-100">
+                                <div class="text-muted mb-2">Payments</div>
+                                <field name="payment_status"
+                                       widget="badge"
+                                       nolabel="1"
+                                       decoration-info="payment_status == 'not_posted'"
+                                       decoration-warning="payment_status in ('open_both', 'salary_open', 'tese_open')"
+                                       decoration-success="payment_status == 'paid'"
+                                       decoration-muted="payment_status == 'cancelled'"/>
+                                <div class="text-muted small mt-2"
+                                     invisible="not rounding_open_amount">
+                                    <field name="rounding_open_amount"
+                                           widget="monetary"
+                                           nolabel="1"/>
+                                    carried forward
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2"
+                         role="status"
+                         invisible="not rounding_open_amount">
+                        <field name="rounding_carryover_message"
+                               nolabel="1"
+                               class="fw-medium"/>
+                    </div>
+
+                    <div class="alert alert-warning"
+                         role="alert"
+                         invisible="not setup_message or state != 'draft'">
+                        <field name="setup_message" nolabel="1"/>
+                    </div>
+
+                    <div class="alert alert-warning py-2"
+                         role="alert"
+                         invisible="not profile_mismatch_warning or state not in ('draft', 'prepared', 'to_post')">
+                        <strong>TESE and HR differ</strong>
+                        <field name="profile_mismatch_warning"
+                               nolabel="1"
+                               class="d-block mt-1"/>
+                    </div>
+
+                    <group invisible="state not in ('draft', 'prepared', 'to_post')">
+                        <group string="Payroll Setup">
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                            <field name="pay_period"
+                                   options="{'min_precision': 'months', 'max_precision': 'months'}"
+                                   invisible="state != 'draft'"/>
+                            <field name="profile_id"
+                                   string="TESE Settings"
+                                   context="{'active_test': False}"
+                                   domain="[('company_id', '=', company_id), ('employee_id', '=', employee_id)]"
+                                   readonly="state != 'draft'"/>
+                            <field name="hr_version_id"
+                                   string="HR Contract Version"
+                                   readonly="1"/>
+                            <button name="action_open_settings_revision"
+                                    string="Revise Recurring Settings"
+                                    type="object"
+                                    class="btn-link p-0"
+                                    help="Create a dated TESE settings version and, if needed, a native HR contract version. The previous versions remain in history."
+                                    invisible="state not in ('draft', 'prepared', 'to_post') or not can_configure"/>
+                        </group>
+                        <group string="TESE Evidence and Dates">
+                            <field name="tese_reference"
+                                   readonly="state != 'draft'"/>
+                            <field name="attachment_id"
+                                   string="Official TESE PDF"
+                                   domain="[('mimetype', '=', 'application/pdf')]"
+                                   readonly="state in ('to_reconcile', 'paid')"/>
+                            <field name="document_status"
+                                   widget="badge"
+                                   decoration-success="document_status == 'ok'"
+                                   decoration-warning="document_status in ('missing', 'warning')"/>
+                            <field name="payment_date"
+                                   readonly="state not in ('draft', 'prepared')"/>
+                            <field name="tese_payment_date"
+                                   string="URSSAF Debit Date"
+                                   readonly="state not in ('draft', 'prepared')"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page name="paycheck" string="Paycheck">
+                            <group>
+                                <group string="Salary">
+                                    <field name="hours" readonly="1"/>
+                                    <field name="gross_salary" readonly="1"/>
+                                    <field name="employee_contribution_total"
+                                           string="Employee Contributions"
+                                           readonly="1"/>
+                                    <field name="net_social" readonly="1"/>
+                                    <field name="net_before_tax" readonly="1"/>
+                                    <field name="net_paid"
+                                           readonly="1"
+                                           class="fw-bold"/>
+                                </group>
+                                <group string="Withholding and URSSAF">
+                                    <field name="income_tax_base"
+                                           string="Withholding Base"
+                                           readonly="1"/>
+                                    <field name="income_tax_rate"
+                                           string="Withholding Rate"
+                                           readonly="1"/>
+                                    <field name="income_tax_amount"
+                                           string="Withholding Amount"
+                                           readonly="1"/>
+                                    <field name="employer_contribution_total"
+                                           string="Employer Contributions"
+                                           readonly="1"/>
+                                    <field name="tese_contribution_total"
+                                           string="URSSAF Contributions"/>
+                                    <field name="tese_income_tax_total"
+                                           string="Withholding Included"/>
+                                    <field name="tese_detailed_total"
+                                           string="Declared URSSAF Total"
+                                           class="fw-bold"/>
+                                    <field name="tese_bank_amount"
+                                           string="Expected / Matched Bank Debit"
+                                           readonly="state not in ('draft', 'prepared')"/>
+                                    <field name="tese_bank_difference"
+                                           string="Rounding Difference"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info py-2"
+                                 role="alert"
+                                 invisible="state not in ('draft', 'prepared')">
+                                Only change <strong>Expected / Matched Bank Debit</strong>
+                                when TESE announces a collection amount different
+                                from the declared total. It guides bank matching;
+                                the declared liabilities stay unchanged, and a safe
+                                difference is carried forward on 431000.
+                            </div>
+                            <group string="Provider Notes">
+                                <field name="document_message" nolabel="1"/>
+                                <field name="document_note"
+                                       readonly="state in ('to_reconcile', 'paid', 'cancelled')"
+                                       placeholder="Only add a note when the TESE document needs explanation."/>
+                            </group>
+                        </page>
+
+                        <page name="payments" string="Payments">
+                            <div class="alert alert-info"
+                                 role="alert"
+                                 invisible="not bank_reconcile_message or rounding_open_amount">
+                                <field name="bank_reconcile_message" nolabel="1"/>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-12 col-xl-6">
+                                  <group string="Salary">
+                                    <field name="net_paid"
+                                           string="Expected"
+                                           readonly="1"/>
+                                    <field name="payment_date"
+                                           string="Expected Date"
+                                           readonly="1"/>
+                                    <field name="salary_open_amount"
+                                           string="Still Open"/>
+                                    <field name="salary_payment_candidate_date"
+                                           string="Bank Date"
+                                           invisible="salary_payment_candidate_count == 0"/>
+                                    <field name="salary_payment_candidate_amount"
+                                           string="Bank Amount"
+                                           invisible="salary_payment_candidate_count == 0"/>
+                                    <field name="salary_payment_candidate_difference"
+                                           string="Difference"
+                                           invisible="salary_payment_candidate_count == 0"/>
+                                    <field name="salary_payment_candidate_label"
+                                           string="Bank Label"
+                                           invisible="salary_payment_candidate_count == 0"/>
+                                    <div invisible="not salary_payment_reconciled">
+                                        <span class="badge text-bg-success">Matched</span>
+                                    </div>
+                                    <field name="salary_payment_match_message"
+                                           nolabel="1"
+                                           invisible="salary_payment_reconciled"/>
+                                  </group>
+                                </div>
+                                <div class="col-12 col-xl-6">
+                                  <group string="URSSAF">
+                                    <field name="tese_detailed_total"
+                                           string="Declared"
+                                           readonly="1"/>
+                                    <field name="tese_bank_amount"
+                                           string="Expected Debit"
+                                           readonly="1"/>
+                                    <field name="tese_payment_date"
+                                           string="Expected Date"
+                                           readonly="1"/>
+                                    <field name="tese_open_amount"
+                                           string="Still Open"/>
+                                    <field name="rounding_open_amount"
+                                           string="Carry-over on 431000"
+                                           invisible="not rounding_open_amount"/>
+                                    <field name="tese_payment_candidate_date"
+                                           string="Bank Date"
+                                           invisible="tese_payment_candidate_count == 0"/>
+                                    <field name="tese_payment_candidate_amount"
+                                           string="Bank Amount"
+                                           invisible="tese_payment_candidate_count == 0"/>
+                                    <field name="tese_payment_candidate_difference"
+                                           string="Difference"
+                                           invisible="tese_payment_candidate_count == 0"/>
+                                    <field name="tese_payment_candidate_label"
+                                           string="Bank Label"
+                                           invisible="tese_payment_candidate_count == 0"/>
+                                    <div invisible="not tese_payment_reconciled">
+                                        <span class="badge text-bg-success">Matched</span>
+                                    </div>
+                                    <field name="tese_payment_match_message"
+                                           nolabel="1"
+                                           invisible="tese_payment_reconciled"/>
+                                  </group>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page name="accounting" string="Accounting">
+                            <group>
+                                <group>
+                                    <field name="move_id"/>
+                                    <field name="move_ref"/>
+                                    <field name="total_debit"/>
+                                    <field name="total_credit"/>
+                                    <field name="balance_difference"/>
+                                </group>
+                                <group>
+                                    <field name="collector_partner_id"/>
+                                    <field name="employee_partner_id"/>
+                                    <field name="preparation_ok"/>
+                                    <field name="salary_settlement_move_id"/>
+                                    <field name="tese_settlement_move_id"/>
+                                </group>
+                            </group>
+                            <field name="component_line_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="sequence" column_invisible="True"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="side"/>
+                                    <field name="role"/>
+                                    <field name="account_id"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page name="details" string="Details">
+                            <group string="Provider Record">
+                                <field name="tese_reference" readonly="1"/>
+                                <field name="attachment_id"
+                                       string="Official TESE PDF"
+                                       readonly="1"/>
+                                <field name="document_status" widget="badge"/>
+                                <field name="payslip_date" readonly="1"/>
+                                <field name="payment_date" readonly="1"/>
+                                <field name="tese_payment_date"
+                                       string="URSSAF Debit Date"
+                                       readonly="1"/>
+                            </group>
+                            <group>
+                                <group string="Applied TESE Settings">
+                                    <field name="profile_snapshot_label"/>
+                                    <field name="profile_valid_from_snapshot"/>
+                                    <field name="profile_valid_to_snapshot"/>
+                                    <field name="profile_snapshot_text"
+                                           nolabel="1"/>
+                                </group>
+                                <group string="Applied Contract">
+                                    <field name="employee_snapshot_name"/>
+                                    <field name="employee_partner_snapshot_id"/>
+                                    <field name="hr_wage_snapshot"/>
+                                    <field name="hr_hours_snapshot"/>
+                                </group>
+                            </group>
+                            <group string="Preparation Checks">
+                                <field name="preparation_message" nolabel="1"/>
+                                <field name="preparation_warnings" nolabel="1"/>
+                                <field name="control_checklist" nolabel="1"/>
+                            </group>
+                            <group string="Matching Diagnostics"
+                                   groups="base.group_no_one">
+                                <field name="salary_payment_best_line_id"/>
+                                <field name="salary_payment_candidate_count"/>
+                                <field name="salary_payment_match_score"/>
+                                <field name="tese_payment_best_line_id"/>
+                                <field name="tese_payment_candidate_count"/>
+                                <field name="tese_payment_match_score"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tese_payslips" model="ir.actions.act_window">
+        <field name="name">TESE Payroll</field>
+        <field name="res_model">usl.tese.payslip</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tese_payslip_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create the next payroll</p>
+            <p>The month, employee, recurring settings, and payment dates are prepared for you.</p>
+        </field>
+    </record>
+</odoo>

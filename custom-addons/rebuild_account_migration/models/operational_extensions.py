@@ -4,133 +4,15 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 
-class RebuildSourceTraceMixin(models.AbstractModel):
-    _name = "rebuild.source.trace.mixin"
-    _description = "USL Rebuild Source Trace"
-
-    rebuild_source_database = fields.Char(index=True, copy=False)
-    rebuild_source_model = fields.Char(index=True, copy=False)
-    rebuild_source_id = fields.Integer(index=True, copy=False)
-    rebuild_source_xmlid = fields.Char(index=True, copy=False)
-    rebuild_source_snapshot = fields.Char(index=True, copy=False)
-    rebuild_import_run_id = fields.Many2one(
-        "rebuild.account.import.run",
-        index=True,
-        copy=False,
-        ondelete="set null",
-    )
-    rebuild_import_status = fields.Selection(
-        [
-            ("imported", "Imported"),
-            ("reused", "Reused Existing Record"),
-            ("transformed", "Transformed"),
-            ("skipped", "Skipped"),
-            ("failed", "Failed"),
-        ],
-        index=True,
-        copy=False,
-    )
-    rebuild_import_note = fields.Text(copy=False)
-
-
-class ResCompany(models.Model):
-    _name = "res.company"
-    _inherit = ["res.company", "rebuild.source.trace.mixin"]
-
-
-class ResPartner(models.Model):
-    _name = "res.partner"
-    _inherit = ["res.partner", "rebuild.source.trace.mixin"]
-
-
 class ResCurrencyRate(models.Model):
-    _name = "res.currency.rate"
-    _inherit = ["res.currency.rate", "rebuild.source.trace.mixin"]
+    _inherit = "res.currency.rate"
 
     rebuild_rate_provider = fields.Char(index=True, readonly=True, copy=False)
     rebuild_rate_retrieved_at = fields.Datetime(readonly=True, copy=False)
 
 
-class AccountFiscalPosition(models.Model):
-    _name = "account.fiscal.position"
-    _inherit = ["account.fiscal.position", "rebuild.source.trace.mixin"]
-
-
-class AccountFiscalPositionAccount(models.Model):
-    _name = "account.fiscal.position.account"
-    _inherit = ["account.fiscal.position.account", "rebuild.source.trace.mixin"]
-
-
-class AccountPaymentTerm(models.Model):
-    _name = "account.payment.term"
-    _inherit = ["account.payment.term", "rebuild.source.trace.mixin"]
-
-
-class AccountPaymentTermLine(models.Model):
-    _name = "account.payment.term.line"
-    _inherit = ["account.payment.term.line", "rebuild.source.trace.mixin"]
-
-
-class HrEmployee(models.Model):
-    _name = "hr.employee"
-    _inherit = ["hr.employee", "rebuild.source.trace.mixin"]
-
-    # Keep migration provenance on the private employee model. Odoo exposes
-    # non-HR users to hr.employee.public, so trace fields must follow the same
-    # boundary as other private employee-only fields.
-    rebuild_source_database = fields.Char(
-        index=True,
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-    rebuild_source_model = fields.Char(
-        index=True,
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-    rebuild_source_id = fields.Integer(
-        index=True,
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-    rebuild_source_xmlid = fields.Char(
-        index=True,
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-    rebuild_source_snapshot = fields.Char(
-        index=True,
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-    rebuild_import_run_id = fields.Many2one(
-        "rebuild.account.import.run",
-        index=True,
-        copy=False,
-        ondelete="set null",
-        groups="hr.group_hr_user",
-    )
-    rebuild_import_status = fields.Selection(
-        [
-            ("imported", "Imported"),
-            ("reused", "Reused Existing Record"),
-            ("transformed", "Transformed"),
-            ("skipped", "Skipped"),
-            ("failed", "Failed"),
-        ],
-        index=True,
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-    rebuild_import_note = fields.Text(
-        copy=False,
-        groups="hr.group_hr_user",
-    )
-
-
 class HrExpense(models.Model):
-    _name = "hr.expense"
-    _inherit = ["hr.expense", "rebuild.source.trace.mixin"]
+    _inherit = "hr.expense"
 
     rebuild_receipt_state = fields.Selection(
         selection=[
@@ -157,15 +39,6 @@ class HrExpense(models.Model):
         compute="_compute_rebuild_expense_guidance",
         string="Next step",
     )
-
-    def _compute_price_unit(self):
-        super()._compute_price_unit()
-        source_price_unit = self.env.context.get(
-            "rebuild_source_expense_price_unit",
-        )
-        if source_price_unit is not None:
-            for expense in self.filtered(lambda record: record.state == "draft"):
-                expense.price_unit = source_price_unit
 
     @api.depends(
         "state",
@@ -196,20 +69,13 @@ class HrExpense(models.Model):
                     expense.rebuild_next_step = "submit"
             elif expense.state == "submitted":
                 expense.rebuild_next_step = (
-                    "receipt"
-                    if receipt_required and not has_receipt
-                    else "approve"
+                    "receipt" if receipt_required and not has_receipt else "approve"
                 )
             elif expense.state == "approved":
                 expense.rebuild_next_step = (
-                    "receipt"
-                    if receipt_required and not has_receipt
-                    else "post"
+                    "receipt" if receipt_required and not has_receipt else "post"
                 )
-            elif (
-                expense.state == "posted"
-                and expense.payment_mode == "own_account"
-            ):
+            elif expense.state == "posted" and expense.payment_mode == "own_account":
                 expense.rebuild_next_step = "payment"
             elif expense.state == "in_payment":
                 expense.rebuild_next_step = "processing"
@@ -267,19 +133,12 @@ class HrExpense(models.Model):
         if (
             auto_validate
             and self.manager_id == self.env.user
-            and self.env.user.has_group(
-                "hr_expense.group_hr_expense_manager",
-            )
+            and self.env.user.has_group("hr_expense.group_hr_expense_manager")
         ):
             return False
         return auto_validate
 
     def _check_rebuild_required_receipt(self):
-        # The deterministic source materializer restores the native workflow
-        # state before copying source attachments. Its own parity controls
-        # validate the restored evidence immediately afterwards.
-        if self.env.context.get("rebuild_source_materialization"):
-            return
         missing = self.filtered(
             lambda expense: (
                 expense.product_id.rebuild_receipt_required
@@ -351,8 +210,7 @@ class HrExpense(models.Model):
 
 
 class ProductProduct(models.Model):
-    _name = "product.product"
-    _inherit = ["product.product", "rebuild.source.trace.mixin"]
+    _inherit = "product.product"
 
     rebuild_receipt_required = fields.Boolean(
         string="Receipt required",
@@ -364,19 +222,8 @@ class ProductProduct(models.Model):
     )
 
 
-class AccountAccount(models.Model):
-    _name = "account.account"
-    _inherit = ["account.account", "rebuild.source.trace.mixin"]
-
-
-class AccountGroup(models.Model):
-    _name = "account.group"
-    _inherit = ["account.group", "rebuild.source.trace.mixin"]
-
-
 class AccountJournal(models.Model):
-    _name = "account.journal"
-    _inherit = ["account.journal", "rebuild.source.trace.mixin"]
+    _inherit = "account.journal"
 
     def _get_bank_statements_available_import_formats(self):
         formats = super()._get_bank_statements_available_import_formats()
@@ -406,9 +253,6 @@ class AccountStatementImport(models.TransientModel):
         def with_currency(statement):
             currency_code, account_number, statement_values = statement
             for statement_value in statement_values:
-                # QIF contains movements, not an authoritative account
-                # balance. Let Odoo derive the statement end from the
-                # journal's current balance and those movements.
                 statement_value.pop("balance_end_real", None)
             return (
                 currency_code or fallback_currency.name,
@@ -421,75 +265,19 @@ class AccountStatementImport(models.TransientModel):
         return with_currency(parsed)
 
 
-class AccountReconcileModel(models.Model):
-    _name = "account.reconcile.model"
-    _inherit = ["account.reconcile.model", "rebuild.source.trace.mixin"]
-
-
-class AccountReconcileModelLine(models.Model):
-    _name = "account.reconcile.model.line"
-    _inherit = [
-        "account.reconcile.model.line",
-        "rebuild.source.trace.mixin",
-    ]
-
-
-class AccountTaxGroup(models.Model):
-    _name = "account.tax.group"
-    _inherit = ["account.tax.group", "rebuild.source.trace.mixin"]
-
-
-class AccountTax(models.Model):
-    _name = "account.tax"
-    _inherit = ["account.tax", "rebuild.source.trace.mixin"]
-
-
-class AccountTaxRepartitionLine(models.Model):
-    _name = "account.tax.repartition.line"
-    _inherit = ["account.tax.repartition.line", "rebuild.source.trace.mixin"]
-
-
-class AccountAccountTag(models.Model):
-    _name = "account.account.tag"
-    _inherit = ["account.account.tag", "rebuild.source.trace.mixin"]
-
-
-class AccountMove(models.Model):
-    _name = "account.move"
-    _inherit = ["account.move", "rebuild.source.trace.mixin"]
-
-    rebuild_source_move_type = fields.Char(index=True, copy=False)
-
-
-class AccountMoveLine(models.Model):
-    _name = "account.move.line"
-    _inherit = ["account.move.line", "rebuild.source.trace.mixin"]
-
-
-class IrAttachment(models.Model):
-    _name = "ir.attachment"
-    _inherit = ["ir.attachment", "rebuild.source.trace.mixin"]
-
-    rebuild_source_attachment_res_model = fields.Char(index=True, copy=False)
-    rebuild_source_attachment_res_id = fields.Integer(index=True, copy=False)
-    rebuild_source_message_id = fields.Integer(index=True, copy=False)
-    rebuild_source_message_date = fields.Datetime(copy=False)
-    rebuild_source_message_subject = fields.Char(copy=False)
-    rebuild_source_is_main = fields.Boolean(copy=False)
-
-
 class AccountPayment(models.Model):
-    _name = "account.payment"
-    _inherit = ["account.payment", "rebuild.source.trace.mixin"]
+    _inherit = "account.payment"
 
+    # These fields are ongoing representations of historical business events,
+    # not source bindings. They preserve legitimate payments whose originating
+    # system stored workflow history without a second journal entry.
     usl_historical_no_ledger_effect = fields.Boolean(
         string="Historical payment without journal entry",
         copy=False,
         index=True,
         help=(
-            "Preserves a payment workflow record from the source system when "
-            "that record had no journal entry. Its accounting effect is "
-            "already represented by the linked invoices and reconciliations."
+            "Preserves a payment workflow record when its accounting effect "
+            "is already represented by linked documents and reconciliations."
         ),
     )
     usl_source_is_reconciled = fields.Boolean(copy=False)
@@ -506,7 +294,10 @@ class AccountPayment(models.Model):
     )
 
     def _get_outstanding_account(self, payment_type):
-        if self.env.context.get("usl_import_no_ledger_payment"):
+        if (
+            self.env.su
+            and self.env.context.get("usl_historical_payment_maintenance")
+        ):
             return self.env["account.account"]
         return super()._get_outstanding_account(payment_type)
 
@@ -545,55 +336,18 @@ class AccountPayment(models.Model):
         if (
             historical
             and protected_fields.intersection(vals)
-            and not self.env.context.get("usl_import_no_ledger_payment")
-        ):
-            message = (
-                "This historical payment exactly mirrors a source workflow "
-                "record that had no journal entry. Its accounting fields "
-                "cannot be changed; open the linked invoice or bill instead."
+            and not (
+                self.env.su
+                and self.env.context.get(
+                    "usl_historical_payment_maintenance",
+                )
             )
+        ):
             raise ValidationError(
-                message,
+                _(
+                    "This historical payment records a completed business "
+                    "event whose accounting effect is already represented. "
+                    "Open the linked document instead of editing the payment.",
+                ),
             )
         return super().write(vals)
-
-
-class AccountBankStatementLine(models.Model):
-    _name = "account.bank.statement.line"
-    _inherit = ["account.bank.statement.line", "rebuild.source.trace.mixin"]
-
-
-class AccountAnalyticPlan(models.Model):
-    _name = "account.analytic.plan"
-    _inherit = ["account.analytic.plan", "rebuild.source.trace.mixin"]
-
-
-class AccountAnalyticAccount(models.Model):
-    _name = "account.analytic.account"
-    _inherit = ["account.analytic.account", "rebuild.source.trace.mixin"]
-
-
-class AccountAnalyticLine(models.Model):
-    _name = "account.analytic.line"
-    _inherit = ["account.analytic.line", "rebuild.source.trace.mixin"]
-
-    rebuild_analytic_account_id = fields.Many2one(
-        "account.analytic.account",
-        index=True,
-        copy=False,
-        ondelete="set null",
-    )
-    rebuild_source_analytic_account_id = fields.Integer(index=True, copy=False)
-    rebuild_source_move_line_id = fields.Integer(index=True, copy=False)
-    rebuild_source_general_account_id = fields.Integer(index=True, copy=False)
-    rebuild_source_journal_id = fields.Integer(index=True, copy=False)
-
-
-class AccountFullReconcile(models.Model):
-    _name = "account.full.reconcile"
-    _inherit = ["account.full.reconcile", "rebuild.source.trace.mixin"]
-
-
-class AccountPartialReconcile(models.Model):
-    _name = "account.partial.reconcile"
-    _inherit = ["account.partial.reconcile", "rebuild.source.trace.mixin"]

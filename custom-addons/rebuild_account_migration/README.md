@@ -20,9 +20,11 @@ tooling.
 - electronic-invoice reception readiness, non-polluting offline self-check,
   incoming document evidence and company-scoped production activation.
 
-Normal Accounting menus expose only operational concepts. Reconstruction,
-source comparison, parity review and import objects are restricted to technical
-administrators and remain outside the product navigation.
+Normal Accounting menus and the product registry expose only operational
+concepts. Reconstruction, source comparison, parity review, source bindings
+and import objects are not part of this add-on. They live in the temporary
+`migration/accounting_restore` add-on path, which the canonical reconstruction
+uninstalls before the target is accepted.
 
 This product module does not alter standard Odoo tour state. The dev/QA
 deployment helper sets the native per-user `tour_enabled` preference to false
@@ -43,13 +45,14 @@ module remains their compatibility consumer and retains installed
 `rebuild.*` models and stable XML/data ownership. See the
 [custom add-on architecture decision](../../docs/accounting/custom-addon-architecture.md).
 
-The source-faithful expense stage reads the former Online expense-to-bank
+The one-off source-faithful expense stage reads the former Online expense-to-bank
 suggestion cache only as migration evidence. It classifies every candidate,
 many-to-many and selected-line association, recomputes current operational
 suggestions through `usl_accounting`, and proves that refreshes are idempotent
 and leave expenses, moves, lines, payments and reconciliations unchanged. The
 legacy `x_sl_expense_bank_candidate` model, `x_*` fields, server actions, ACLs
-and inherited view are never imported.
+and inherited view are never imported. That stage is implemented by the
+temporary `usl_accounting_restore` module, not by this product module.
 
 French e-invoicing reuses Odoo's native Approved Platform decoder,
 registration and response workflows. The compatibility-owned `rebuild.*`
@@ -75,7 +78,7 @@ scripts/odoo-dev test-js rebuild_account_migration
 
 The sole developer/QA product database is `odoo_dev`. Do not open the read-only
 source database with target code, and do not replace `odoo_dev` with a
-validation database. Reconstruction and parity commands are documented in
+validation database. One-off reconstruction and parity commands are documented in
 [`docs/operations/accounting-development-workflow.md`](../../docs/operations/accounting-development-workflow.md).
 
 ## Release evidence

@@ -8,10 +8,20 @@ USER_DOCS_PORT ?= 8079
 USER_DOCS_VENV ?= .venv-docs
 USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ODOO_DEV ?= scripts/odoo-dev
+TESE_QA_GENERATION ?= 01
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-
-.PHONY: dev deploy rebuild login-link disable-tours target-finalize target-reconstruct migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test oca-addons-sync project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-deps user-docs-serve user-docs-build
+.PHONY: dev deploy rebuild login-link disable-tours target-finalize target-reconstruct oca-addons-sync
+.PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
+.PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
+.PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
+.PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
+.PHONY: tese-restore tese-restore-install tese-restore-import tese-restore-validate tese-restore-idempotence tese-restore-finalize tese-product-validate tese-qa-bootstrap
+.PHONY: product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests
+.PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
+.PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
+.PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
+.PHONY: user-docs-deps user-docs-serve user-docs-build
 
 dev:
 	$(ODOO_DEV) start
@@ -188,6 +198,39 @@ project-restore-finalize:
 project-product-validate:
 	scripts/project-restore product-validate
 
+accounting-restore-finalize:
+	scripts/accounting-restore finalize
+
+accounting-product-validate:
+	scripts/accounting-restore product-validate
+
+accounting-restore-tests: oca-addons-sync
+	docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) test odoo --config=/etc/odoo/odoo.conf --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons --database=$(ACCOUNTING_TEST_DB) --init=usl_accounting_restore --without-demo=true --test-enable --test-tags=usl_accounting_restore --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
+
+tese-restore:
+	scripts/tese-restore all
+
+tese-restore-install:
+	scripts/tese-restore install
+
+tese-restore-import:
+	scripts/tese-restore import
+
+tese-restore-validate:
+	scripts/tese-restore validate
+
+tese-restore-idempotence:
+	scripts/tese-restore idempotence
+
+tese-restore-finalize:
+	scripts/tese-restore finalize
+
+tese-product-validate:
+	scripts/tese-restore product-validate
+
+tese-qa-bootstrap:
+	$(ODOO_DEV) bootstrap-tese-payroll-qa $(TESE_QA_GENERATION)
+
 product-migration-boundary:
 	scripts/check-product-migration-boundary
 
@@ -300,7 +343,7 @@ accounting-evidence:
 	$(ACCOUNTING_COMPAT) evidence
 
 accounting-addon-tests: oca-addons-sync
-	docker compose -p $(COMPOSE_PROJECT) --profile init run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) init-db odoo --config=/etc/odoo/odoo.conf --database=$(ACCOUNTING_TEST_DB) --init=rebuild_account_migration --without-demo=true --test-enable --test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
+	docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) test odoo --config=/etc/odoo/odoo.conf --database=$(ACCOUNTING_TEST_DB) --init=rebuild_account_migration --without-demo=true --test-enable --test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
 $(USER_DOCS_VENV)/.requirements-ready: requirements-docs.txt
 	python3 -m venv $(USER_DOCS_VENV)

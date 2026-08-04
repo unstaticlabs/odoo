@@ -22,14 +22,10 @@ class RebuildAccountAssuranceDecision(models.Model):
     )
     gate = fields.Selection(
         [
-            ("report_parity", "Report Parity"),
             ("fec_validation", "FEC Validation"),
             ("tax_external_value", "Tax External Value"),
-            ("discrepancy_acceptance", "Discrepancy Acceptance"),
-            ("scope_exclusion", "Scope Exclusion"),
             ("declaration_review", "Declaration Review"),
             ("closing_review", "Closing Review"),
-            ("milestone_closure", "Milestone Closure"),
             ("other", "Other"),
         ],
         required=True,
@@ -63,8 +59,6 @@ class RebuildAccountAssuranceDecision(models.Model):
     )
     company_id = fields.Many2one("res.company", index=True)
     period_key = fields.Char(index=True)
-    source_report_id = fields.Many2one("rebuild.account.source.report", index=True, ondelete="set null")
-    discrepancy_id = fields.Many2one("rebuild.account.discrepancy", index=True, ondelete="set null")
     external_value_id = fields.Many2one("rebuild.account.external.report.value", index=True, ondelete="set null")
     declaration_id = fields.Many2one(
         "rebuild.account.declaration",
@@ -76,11 +70,7 @@ class RebuildAccountAssuranceDecision(models.Model):
         index=True,
         ondelete="set null",
     )
-    import_run_id = fields.Many2one("rebuild.account.import.run", index=True, ondelete="set null")
     evidence_key = fields.Char(index=True)
-    source_value = fields.Text()
-    target_value = fields.Text()
-    difference = fields.Text()
     decision_summary = fields.Text(required=True, default="Pending review.")
     evidence_summary = fields.Text()
     remaining_risk = fields.Text()
@@ -111,12 +101,6 @@ class RebuildAccountAssuranceDecision(models.Model):
 
     @api.model
     def _default_name_from_values(self, vals):
-        if vals.get("source_report_id"):
-            report = self.env["rebuild.account.source.report"].browse(vals["source_report_id"])
-            return f"Report review - {report.display_name}"
-        if vals.get("discrepancy_id"):
-            discrepancy = self.env["rebuild.account.discrepancy"].browse(vals["discrepancy_id"])
-            return f"Discrepancy review - {discrepancy.display_name}"
         if vals.get("external_value_id"):
             external_value = self.env["rebuild.account.external.report.value"].browse(vals["external_value_id"])
             return f"External value review - {external_value.display_name}"
@@ -207,37 +191,12 @@ class RebuildAccountAssuranceDecision(models.Model):
         for decision in self:
             reviewer_name = decision.reviewer_name or decision.reviewer_user_id.name or self.env.user.name
             reviewed_at = decision.reviewed_at or fields.Datetime.now()
-            if decision.source_report_id:
-                decision._apply_source_report_decision(reviewer_name, reviewed_at)
             if decision.external_value_id:
                 decision._apply_external_value_decision(reviewer_name, reviewed_at)
-            if decision.discrepancy_id:
-                decision._apply_discrepancy_decision(reviewer_name)
             if decision.declaration_id:
                 decision._apply_declaration_decision()
             if decision.closing_period_id:
                 decision._apply_closing_decision()
-
-    def _apply_source_report_decision(self, reviewer_name, reviewed_at):
-        accepted_conclusions = {"accepted", "accepted_with_difference", "not_applicable"}
-        vals = {
-            "latest_evidence_status": f"recorded_review_decision:{self.conclusion}",
-        }
-        if self.conclusion in accepted_conclusions:
-            vals["parity_level"] = "level_4_accepted"
-            vals["parity_gap"] = self.remaining_risk if self.conclusion == "accepted_with_difference" else False
-        else:
-            vals["parity_gap"] = self.remaining_risk or self.decision_summary
-        note_lines = [
-            self.source_report_id.note or "",
-            (
-                f"Recorded review decision on {fields.Datetime.to_string(reviewed_at)} by {reviewer_name}: "
-                f"{dict(self._fields['conclusion'].selection).get(self.conclusion, self.conclusion)} - "
-                f"{self.decision_summary}"
-            ),
-        ]
-        vals["note"] = "\n".join(line for line in note_lines if line)
-        self.source_report_id.sudo().write(vals)
 
     def _apply_external_value_decision(self, reviewer_name, reviewed_at):
         status_by_conclusion = {
@@ -255,23 +214,6 @@ class RebuildAccountAssuranceDecision(models.Model):
             "decision": self.decision_summary,
             "reviewer_name": reviewer_name,
             "reviewed_at": reviewed_at,
-        })
-
-    def _apply_discrepancy_decision(self, reviewer_name):
-        status_by_conclusion = {
-            "accepted": "accepted",
-            "accepted_with_difference": "accepted",
-            "not_applicable": "accepted",
-            "requires_change": "investigating",
-            "rejected": "open",
-        }
-        status = status_by_conclusion.get(self.conclusion)
-        if not status:
-            return
-        self.discrepancy_id.sudo().write({
-            "status": status,
-            "decision": self.decision_summary,
-            "approver": reviewer_name,
         })
 
     def _apply_declaration_decision(self):
@@ -308,32 +250,6 @@ class RebuildAccountAssuranceDecision(models.Model):
         })
         if accepted:
             self.closing_period_id.sudo()._capture_accepted_snapshots(self)
-
-    def action_open_source_report(self):
-        self.ensure_one()
-        if not self.source_report_id:
-            raise UserError("This review decision is not linked to a source report.")
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Source Accounting Report",
-            "res_model": "rebuild.account.source.report",
-            "res_id": self.source_report_id.id,
-            "view_mode": "form",
-            "context": {"create": False, "delete": False},
-        }
-
-    def action_open_discrepancy(self):
-        self.ensure_one()
-        if not self.discrepancy_id:
-            raise UserError("This review decision is not linked to a discrepancy.")
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Accounting Discrepancy",
-            "res_model": "rebuild.account.discrepancy",
-            "res_id": self.discrepancy_id.id,
-            "view_mode": "form",
-            "context": {"create": False, "delete": False},
-        }
 
     def action_open_external_value(self):
         self.ensure_one()

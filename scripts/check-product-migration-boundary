@@ -1,80 +1,164 @@
 #!/usr/bin/env python3
-# ruff: noqa: I001, T201
+# ruff: noqa: T201
 
 import ast
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 PRODUCT_ADDONS = ROOT / "custom-addons"
-MIGRATION_ADDONS = ROOT / "migration" / "project_restore" / "addons"
+MIGRATION_ADDONS = {
+    "usl_accounting_restore": (
+        ROOT / "migration" / "accounting_restore" / "addons"
+    ),
+    "usl_project_restore": ROOT / "migration" / "project_restore" / "addons",
+    "usl_tese_restore": ROOT / "migration" / "tese_restore" / "addons",
+}
+MIGRATION_PATHS = {
+    "accounting-migration": ("/mnt/accounting-migration-addons",),
+    "project-migration": (
+        "/mnt/accounting-migration-addons",
+        "/mnt/project-migration-addons",
+    ),
+    "tese-migration": (
+        "/mnt/accounting-migration-addons",
+        "/mnt/tese-migration-addons",
+    ),
+}
 
 
 def manifest(path):
     return ast.literal_eval(path.read_text())
 
 
+def compose_service(compose, name, next_name):
+    return compose.split(f"  {name}:", 1)[1].split(f"\n  {next_name}:", 1)[0]
+
+
 errors = []
-if not (MIGRATION_ADDONS / "usl_project_restore" / "__manifest__.py").is_file():
-    errors.append("The project restoration add-on is not migration-isolated.")
+for migration_name, migration_path in MIGRATION_ADDONS.items():
+    if not (migration_path / migration_name / "__manifest__.py").is_file():
+        errors.append(f"The {migration_name} add-on is not migration-isolated.")
 
 for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
     addon_name = addon_manifest.parent.name
-    values = manifest(addon_manifest)
-    dependencies = set(values.get("depends", []))
-    if addon_name == "usl_project_restore" or "restore" in addon_name:
+    dependencies = set(manifest(addon_manifest).get("depends", []))
+    if addon_name in MIGRATION_ADDONS or "restore" in addon_name:
         errors.append(
             f"Migration-only add-on {addon_name} is on the product add-ons path.",
         )
-    if "usl_project_restore" in dependencies:
-        errors.append(
-            f"Product add-on {addon_name} depends on usl_project_restore.",
-        )
+    for migration_name in MIGRATION_ADDONS:
+        if migration_name in dependencies:
+            errors.append(
+                f"Product add-on {addon_name} depends on {migration_name}.",
+            )
 
 compose = (ROOT / "compose.yaml").read_text()
-restore_harness = (ROOT / "scripts/project-restore").read_text()
 default_addons_path = (
     "/opt/odoo/addons,/opt/odoo/odoo/addons,"
     "/mnt/custom-addons,/mnt/oca-addons"
 )
 if default_addons_path not in compose:
     errors.append("The expected production add-ons path guard is missing.")
-if "/mnt/project-migration-addons" not in compose:
-    errors.append("The dedicated migration add-ons mount is missing.")
-if (
-    "--addons-path="
-    + default_addons_path
-    + ",/mnt/project-migration-addons"
-    not in compose
-):
-    errors.append(
-        "The migration add-ons path is not confined to the migration service.",
-    )
-if '--addons-path="$migration_addons_path"' not in restore_harness:
-    errors.append(
-        "The project restoration harness does not explicitly pass the "
-        "migration-only add-ons path.",
-    )
 
-runtime_project = PRODUCT_ADDONS / "usl_project"
-for path in runtime_project.rglob("*"):
-    if (
-        not path.is_file()
-        or "__pycache__" in path.parts
-        or "tests" in path.parts
-    ):
-        continue
-    text = path.read_text(errors="ignore")
-    for forbidden in (
-        "restore",
+normal_odoo_service = compose_service(compose, "odoo", "init-db")
+service_text = {
+    "accounting-migration": compose_service(
+        compose, "accounting-migration", "project-migration",
+    ),
+    "project-migration": compose_service(compose, "project-migration", "tese-migration"),
+    "tese-migration": compose_service(compose, "tese-migration", "test"),
+}
+all_migration_paths = {
+    path for paths in MIGRATION_PATHS.values() for path in paths
+}
+for migration_path in sorted(all_migration_paths):
+    if migration_path in normal_odoo_service:
+        errors.append(
+            f"The normal Odoo service exposes migration path {migration_path}.",
+        )
+
+for service_name, expected_paths in MIGRATION_PATHS.items():
+    current_service = service_text[service_name]
+    expected_addons_path = default_addons_path + "," + ",".join(expected_paths)
+    if f"--addons-path={expected_addons_path}" not in current_service:
+        errors.append(
+            f"The {service_name} service does not expose exactly its required "
+            "temporary add-ons paths.",
+        )
+    for migration_path in all_migration_paths - set(expected_paths):
+        if migration_path in current_service:
+            errors.append(
+                f"The {service_name} service unexpectedly exposes {migration_path}.",
+            )
+
+restore_harnesses = {
+    "Accounting": ROOT / "scripts" / "accounting-restore",
+    "Projects": ROOT / "scripts" / "project-restore",
+    "TESE": ROOT / "scripts" / "tese-restore",
+}
+for perimeter, harness_path in restore_harnesses.items():
+    harness = harness_path.read_text()
+    if '--addons-path="$migration_addons_path"' not in harness:
+        errors.append(
+            f"The {perimeter} restoration harness does not explicitly pass "
+            "its migration-only add-ons path.",
+        )
+
+runtime_modules = {
+    PRODUCT_ADDONS / "usl_project": (
         "usl.project.restore",
         "rebuild_source_",
         "source_snapshot",
         "Restoration Runs",
+    ),
+    PRODUCT_ADDONS / "usl_tese_payroll": (
+        "usl.tese.restore",
+        "rebuild_source_",
+        "source_snapshot",
+        "TESE Restoration",
+    ),
+}
+for runtime_module, forbidden_values in runtime_modules.items():
+    for path in runtime_module.rglob("*"):
+        if (
+            not path.is_file()
+            or "__pycache__" in path.parts
+            or "tests" in path.parts
+            or path.suffix not in {".py", ".xml", ".csv", ".js"}
+        ):
+            continue
+        text = path.read_text(errors="ignore")
+        for forbidden in forbidden_values:
+            if forbidden in text:
+                errors.append(
+                    f"Product file {path.relative_to(ROOT)} contains "
+                    f"migration-only reference {forbidden!r}.",
+                )
+
+runtime_accounting = PRODUCT_ADDONS / "rebuild_account_migration"
+for path in runtime_accounting.rglob("*"):
+    if (
+        not path.is_file()
+        or "__pycache__" in path.parts
+        or "tests" in path.parts
+        or path.suffix not in {".py", ".xml", ".csv", ".js"}
+    ):
+        continue
+    text = path.read_text(errors="ignore")
+    for forbidden in (
+        "rebuild_source_",
+        "rebuild.account.import.run",
+        "rebuild.account.discrepancy",
+        "rebuild.account.source.report",
+        "rebuild.account.deferred.schedule.line",
+        "rebuild.account.analytic.override",
+        "action_open_latest_import_run",
+        "menu_rebuild_account_migration",
     ):
         if forbidden in text:
             errors.append(
-                f"Product file {path.relative_to(ROOT)} contains {forbidden!r}.",
+                f"Product file {path.relative_to(ROOT)} contains "
+                f"migration-only reference {forbidden!r}.",
             )
 
 if errors:

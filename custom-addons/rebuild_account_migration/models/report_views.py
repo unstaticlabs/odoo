@@ -2,41 +2,33 @@ from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
 
 
-BENCHMARK_PERIOD_KEY = "USL benchmark 2024-01-10 to 2025-09-30"
-CURRENT_PERIOD_KEY = "USL current from 2025-10-01"
-USL_MEDIA_PERIOD_KEY = "USL Media full posted replay"
+FIRST_FISCAL_YEAR_PERIOD_KEY = "Fiscal year 2024-01-10 to 2025-09-30"
+CURRENT_PERIOD_KEY = "Fiscal year from 2025-10-01"
+USL_MEDIA_PERIOD_KEY = "All posted accounting"
 
 PERIOD_CASE_SQL = """
     CASE
-        WHEN company.rebuild_source_id = 1
-         AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
-        THEN 'USL benchmark 2024-01-10 to 2025-09-30'
-        WHEN company.rebuild_source_id = 1
-         AND move.date >= DATE '2025-10-01'
-        THEN 'USL current from 2025-10-01'
-        WHEN company.rebuild_source_id = 8
-        THEN 'USL Media full posted replay'
-        ELSE 'Other imported posted replay'
+        WHEN move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
+        THEN 'Fiscal year 2024-01-10 to 2025-09-30'
+        WHEN move.date >= DATE '2025-10-01'
+        THEN 'Fiscal year from 2025-10-01'
+        ELSE 'Earlier posted accounting'
     END
 """
 
 ANALYTIC_PERIOD_CASE_SQL = """
     CASE
-        WHEN company.rebuild_source_id = 1
-         AND analytic.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
-        THEN 'USL benchmark 2024-01-10 to 2025-09-30'
-        WHEN company.rebuild_source_id = 1
-         AND analytic.date >= DATE '2025-10-01'
-        THEN 'USL current from 2025-10-01'
-        WHEN company.rebuild_source_id = 8
-        THEN 'USL Media full posted replay'
-        ELSE 'Other imported posted replay'
+        WHEN analytic.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
+        THEN 'Fiscal year 2024-01-10 to 2025-09-30'
+        WHEN analytic.date >= DATE '2025-10-01'
+        THEN 'Fiscal year from 2025-10-01'
+        ELSE 'Earlier analytic accounting'
     END
 """
 
 
 def _period_domain(record):
-    if record.period_key == BENCHMARK_PERIOD_KEY:
+    if record.period_key == FIRST_FISCAL_YEAR_PERIOD_KEY:
         return [
             ("move_id.date", ">=", "2024-01-10"),
             ("move_id.date", "<=", "2025-09-30"),
@@ -51,15 +43,13 @@ def _period_domain(record):
 def _base_journal_item_domain(record):
     return [
         ("company_id", "=", record.company_id.id),
-        ("rebuild_source_model", "=", "account.move.line"),
-        ("move_id.rebuild_source_model", "=", "account.move"),
         ("move_id.state", "=", "posted"),
         *_period_domain(record),
     ]
 
 
 def _analytic_line_period_domain(record):
-    if record.period_key == BENCHMARK_PERIOD_KEY:
+    if record.period_key == FIRST_FISCAL_YEAR_PERIOD_KEY:
         return [
             ("date", ">=", "2024-01-10"),
             ("date", "<=", "2025-09-30"),
@@ -108,7 +98,7 @@ def _single_journal_item_action(record):
     return _journal_items_action(
         record,
         [("id", "=", record.move_line_id.id)],
-        name="Imported Journal Item",
+        name="Journal Item",
     )
 
 
@@ -121,7 +111,7 @@ def _prefix_domain(field_name, prefixes):
 
 class RebuildAccountTrialBalanceLine(models.Model):
     _name = "rebuild.account.trial.balance.line"
-    _description = "USL Imported Trial Balance Line"
+    _description = "USL Trial Balance Line"
     _auto = False
     _order = "company_id, period_key, account_code"
 
@@ -159,13 +149,13 @@ class RebuildAccountTrialBalanceLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT min(line.id) AS id,
                        line.company_id,
-                       company.rebuild_source_id AS source_company_id,
+                       company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
                        {PERIOD_CASE_SQL} AS period_key,
                        min(move.date) AS date_from,
                        max(move.date) AS date_to,
                        account.id AS account_id,
-                       COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                       COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                        COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                        account.account_type AS account_type,
                        count(DISTINCT move.id) AS move_count,
@@ -177,15 +167,13 @@ class RebuildAccountTrialBalanceLine(models.Model):
                   JOIN account_move move ON move.id = line.move_id
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_account account ON account.id = line.account_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                  GROUP BY line.company_id,
-                          company.rebuild_source_id,
+                          company.id,
                           company.currency_id,
                           {PERIOD_CASE_SQL},
                           account.id,
-                          COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text),
+                          COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                           COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text),
                           account.account_type
             )
@@ -195,7 +183,7 @@ class RebuildAccountTrialBalanceLine(models.Model):
 
 class RebuildAccountGeneralLedgerLine(models.Model):
     _name = "rebuild.account.general.ledger.line"
-    _description = "USL Imported General Ledger Line"
+    _description = "USL General Ledger Line"
     _auto = False
     _order = "company_id, account_code, date, move_name, source_line_id"
 
@@ -234,7 +222,7 @@ class RebuildAccountGeneralLedgerLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT line.id AS id,
                        line.company_id,
-                       company.rebuild_source_id AS source_company_id,
+                       company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
                        {PERIOD_CASE_SQL} AS period_key,
                        move.date,
@@ -242,13 +230,13 @@ class RebuildAccountGeneralLedgerLine(models.Model):
                        journal.code AS journal_code,
                        move.id AS move_id,
                        line.id AS move_line_id,
-                       move.rebuild_source_id AS source_move_id,
-                       line.rebuild_source_id AS source_line_id,
-                       move.rebuild_source_move_type AS source_move_type,
+                       move.id AS source_move_id,
+                       line.id AS source_line_id,
+                       move.move_type AS source_move_type,
                        move.name AS move_name,
                        line.partner_id,
                        account.id AS account_id,
-                       COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                       COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                        COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                        line.name AS label,
                        line.debit,
@@ -262,9 +250,7 @@ class RebuildAccountGeneralLedgerLine(models.Model):
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_account account ON account.id = line.account_id
                   JOIN account_journal journal ON journal.id = move.journal_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND move.state = 'posted'
+                 WHERE move.state = 'posted'
             )
             """,
         )
@@ -272,7 +258,7 @@ class RebuildAccountGeneralLedgerLine(models.Model):
 
 class RebuildAccountJournalReportLine(models.Model):
     _name = "rebuild.account.journal.report.line"
-    _description = "USL Imported Journal Report Line"
+    _description = "USL Journal Report Line"
     _auto = False
     _order = "company_id, period_key, journal_code"
 
@@ -310,7 +296,7 @@ class RebuildAccountJournalReportLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT min(line.id) AS id,
                        line.company_id,
-                       company.rebuild_source_id AS source_company_id,
+                       company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
                        {PERIOD_CASE_SQL} AS period_key,
                        min(move.date) AS date_from,
@@ -328,11 +314,9 @@ class RebuildAccountJournalReportLine(models.Model):
                   JOIN account_move move ON move.id = line.move_id
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_journal journal ON journal.id = move.journal_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                  GROUP BY line.company_id,
-                          company.rebuild_source_id,
+                          company.id,
                           company.currency_id,
                           {PERIOD_CASE_SQL},
                           journal.id,
@@ -346,7 +330,7 @@ class RebuildAccountJournalReportLine(models.Model):
 
 class RebuildAccountPartnerLedgerLine(models.Model):
     _name = "rebuild.account.partner.ledger.line"
-    _description = "USL Imported Partner Ledger Line"
+    _description = "USL Partner Ledger Line"
     _auto = False
     _order = "company_id, partner_id, date, move_name, source_line_id"
 
@@ -390,7 +374,7 @@ class RebuildAccountPartnerLedgerLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT line.id AS id,
                        line.company_id,
-                       company.rebuild_source_id AS source_company_id,
+                       company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
                        {PERIOD_CASE_SQL} AS period_key,
                        move.date,
@@ -399,12 +383,12 @@ class RebuildAccountPartnerLedgerLine(models.Model):
                        journal.code AS journal_code,
                        move.id AS move_id,
                        line.id AS move_line_id,
-                       move.rebuild_source_id AS source_move_id,
-                       line.rebuild_source_id AS source_line_id,
+                       move.id AS source_move_id,
+                       line.id AS source_line_id,
                        move.name AS move_name,
                        line.partner_id,
                        account.id AS account_id,
-                       COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                       COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                        COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                        account.account_type,
                        line.name AS label,
@@ -423,9 +407,7 @@ class RebuildAccountPartnerLedgerLine(models.Model):
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_account account ON account.id = line.account_id
                   JOIN account_journal journal ON journal.id = move.journal_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                    AND line.partner_id IS NOT NULL
             )
             """,
@@ -434,7 +416,7 @@ class RebuildAccountPartnerLedgerLine(models.Model):
 
 class RebuildAccountOpenItemLine(models.Model):
     _name = "rebuild.account.open.item.line"
-    _description = "USL Imported Open Item Line"
+    _description = "USL Open Item Line"
     _auto = False
     _order = "company_id, date_maturity, partner_id, move_name, source_line_id"
 
@@ -474,7 +456,7 @@ class RebuildAccountOpenItemLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT line.id AS id,
                        line.company_id,
-                       company.rebuild_source_id AS source_company_id,
+                       company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
                        {PERIOD_CASE_SQL} AS period_key,
                        move.date,
@@ -483,12 +465,12 @@ class RebuildAccountOpenItemLine(models.Model):
                        journal.code AS journal_code,
                        move.id AS move_id,
                        line.id AS move_line_id,
-                       move.rebuild_source_id AS source_move_id,
-                       line.rebuild_source_id AS source_line_id,
+                       move.id AS source_move_id,
+                       line.id AS source_line_id,
                        move.name AS move_name,
                        line.partner_id,
                        account.id AS account_id,
-                       COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                       COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                        COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                        account.account_type,
                        line.name AS label,
@@ -506,9 +488,7 @@ class RebuildAccountOpenItemLine(models.Model):
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_account account ON account.id = line.account_id
                   JOIN account_journal journal ON journal.id = move.journal_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                    AND account.account_type IN ('asset_receivable', 'liability_payable')
                    AND (line.reconciled IS NOT TRUE OR abs(line.amount_residual) > 0.004)
             )
@@ -518,7 +498,7 @@ class RebuildAccountOpenItemLine(models.Model):
 
 class RebuildAccountAgedPartnerBalanceLine(models.Model):
     _name = "rebuild.account.aged.partner.balance.line"
-    _description = "USL Imported Aged Partner Balance Line"
+    _description = "USL Aged Partner Balance Line"
     _auto = False
     _order = "company_id, account_type, partner_id"
 
@@ -564,14 +544,14 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
                 WITH open_lines AS (
                     SELECT line.id,
                            line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            CASE
-                               WHEN company.rebuild_source_id = 1
+                               WHEN company.id = 1
                                 AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
                                THEN DATE '2025-09-30'
-                               ELSE DATE '2026-07-21'
+                               ELSE CURRENT_DATE
                            END AS as_of_date,
                            line.partner_id,
                            account.account_type,
@@ -580,18 +560,16 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
                                ELSE line.amount_residual
                            END AS presented_residual,
                            CASE
-                               WHEN company.rebuild_source_id = 1
+                               WHEN company.id = 1
                                 AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
                                THEN DATE '2025-09-30'
-                               ELSE DATE '2026-07-21'
+                               ELSE CURRENT_DATE
                            END - COALESCE(line.date_maturity, move.date) AS age_days
                       FROM account_move_line line
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                        AND account.account_type IN ('asset_receivable', 'liability_payable')
                        AND (line.reconciled IS NOT TRUE OR abs(line.amount_residual) > 0.004)
                 )
@@ -625,7 +603,7 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
 
 class RebuildAccountFinancialStatementLine(models.Model):
     _name = "rebuild.account.financial.statement.line"
-    _description = "USL Imported Financial Statement Line"
+    _description = "USL Financial Statement Line"
     _auto = False
     _order = "company_id, period_key, statement_key, section_sequence, account_code"
 
@@ -684,7 +662,7 @@ class RebuildAccountFinancialStatementLine(models.Model):
                 WITH account_lines AS (
                     SELECT min(line.id) AS id,
                            line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            CASE
@@ -714,7 +692,7 @@ class RebuildAccountFinancialStatementLine(models.Model):
                                ELSE 'Expenses'
                            END AS section_name,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            account.account_type,
                            count(line.id) AS move_line_count,
@@ -741,15 +719,13 @@ class RebuildAccountFinancialStatementLine(models.Model):
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                      GROUP BY line.company_id,
-                              company.rebuild_source_id,
+                              company.id,
                               company.currency_id,
                               {PERIOD_CASE_SQL},
                               account.id,
-                              COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text),
+                              COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text),
                               account.account_type
                 ),
@@ -790,7 +766,7 @@ class RebuildAccountFinancialStatementLine(models.Model):
 
 class RebuildAccountTaxReportLine(models.Model):
     _name = "rebuild.account.tax.report.line"
-    _description = "USL Imported VAT and Tax Report Line"
+    _description = "USL VAT and Tax Report Line"
     _auto = False
     _order = "company_id, period_key, report_section, tax_tag_name, account_code"
 
@@ -838,15 +814,15 @@ class RebuildAccountTaxReportLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH tax_grid_lines AS (
                     SELECT line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            'Tax grid tags' AS report_section,
                            tag.id AS tax_tag_id,
-                           tag.rebuild_source_id AS source_tax_tag_id,
+                           tag.id AS source_tax_tag_id,
                            COALESCE(tag.name->>'fr_FR', tag.name->>'en_US', tag.name::text) AS tax_tag_name,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            count(line.id) AS move_line_count,
                            round(sum(line.debit)::numeric, 2) AS debit,
@@ -859,23 +835,21 @@ class RebuildAccountTaxReportLine(models.Model):
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                      GROUP BY line.company_id,
-                              company.rebuild_source_id,
+                              company.id,
                               company.currency_id,
                               {PERIOD_CASE_SQL},
                               tag.id,
-                              tag.rebuild_source_id,
+                              tag.id,
                               COALESCE(tag.name->>'fr_FR', tag.name->>'en_US', tag.name::text),
                               account.id,
-                              COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text),
+                              COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)
                 ),
                 vat_account_lines AS (
                     SELECT line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            'VAT accounts' AS report_section,
@@ -883,7 +857,7 @@ class RebuildAccountTaxReportLine(models.Model):
                            NULL::integer AS source_tax_tag_id,
                            NULL::text AS tax_tag_name,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            count(line.id) AS move_line_count,
                            round(sum(line.debit)::numeric, 2) AS debit,
@@ -894,16 +868,14 @@ class RebuildAccountTaxReportLine(models.Model):
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
-                       AND COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) LIKE '445%'
+                 WHERE move.state = 'posted'
+                       AND COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) LIKE '445%'
                      GROUP BY line.company_id,
-                              company.rebuild_source_id,
+                              company.id,
                               company.currency_id,
                               {PERIOD_CASE_SQL},
                               account.id,
-                              COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text),
+                              COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)
                 ),
                 combined AS (
@@ -923,7 +895,7 @@ class RebuildAccountTaxReportLine(models.Model):
 
 class RebuildAccountEuTaxReportLine(models.Model):
     _name = "rebuild.account.eu.tax.report.line"
-    _description = "USL Imported EC/OSS Tax Review Line"
+    _description = "USL EC/OSS Tax Review Line"
     _auto = False
     _order = "company_id, period_key, report_type, country_code, partner_name, tax_name, account_code"
 
@@ -990,7 +962,7 @@ class RebuildAccountEuTaxReportLine(models.Model):
                 WITH tax_rel_lines AS (
                     SELECT line.id AS move_line_id,
                            line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            line.move_id,
@@ -1009,11 +981,11 @@ class RebuildAccountEuTaxReportLine(models.Model):
                            ) AS country_code,
                            COALESCE(country.name->>'fr_FR', country.name->>'en_US', country.name::text) AS country_name,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            account.account_type,
                            tax.id AS tax_id,
-                           tax.rebuild_source_id AS source_tax_id,
+                           tax.id AS source_tax_id,
                            COALESCE(tax.name->>'fr_FR', tax.name->>'en_US', tax.name::text) AS tax_name,
                            NULL::integer AS tax_tag_id,
                            NULL::integer AS source_tax_tag_id,
@@ -1032,14 +1004,12 @@ class RebuildAccountEuTaxReportLine(models.Model):
                       JOIN account_account account ON account.id = line.account_id
                  LEFT JOIN res_partner partner ON partner.id = line.partner_id
                  LEFT JOIN res_country country ON country.id = partner.country_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                 ),
                 tag_rel_lines AS (
                     SELECT line.id AS move_line_id,
                            line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            line.move_id,
@@ -1058,14 +1028,14 @@ class RebuildAccountEuTaxReportLine(models.Model):
                            ) AS country_code,
                            COALESCE(country.name->>'fr_FR', country.name->>'en_US', country.name::text) AS country_name,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            account.account_type,
                            NULL::integer AS tax_id,
                            NULL::integer AS source_tax_id,
                            NULL::text AS tax_name,
                            tag.id AS tax_tag_id,
-                           tag.rebuild_source_id AS source_tax_tag_id,
+                           tag.id AS source_tax_tag_id,
                            COALESCE(tag.name->>'fr_FR', tag.name->>'en_US', tag.name::text) AS tax_tag_name,
                            NULL::text AS type_tax_use,
                            line.debit,
@@ -1081,9 +1051,7 @@ class RebuildAccountEuTaxReportLine(models.Model):
                       JOIN account_account account ON account.id = line.account_id
                  LEFT JOIN res_partner partner ON partner.id = line.partner_id
                  LEFT JOIN res_country country ON country.id = partner.country_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                 ),
                 tagged AS (
                     SELECT 'ec_sales_list' AS report_type,
@@ -1202,7 +1170,7 @@ class RebuildAccountEuTaxReportLine(models.Model):
 
 class RebuildAccountBankReconciliationLine(models.Model):
     _name = "rebuild.account.bank.reconciliation.line"
-    _description = "USL Imported Bank Reconciliation Line"
+    _description = "USL Bank Reconciliation Line"
     _auto = False
     _order = "company_id, period_key, journal_code, date, source_statement_line_id"
 
@@ -1254,14 +1222,14 @@ class RebuildAccountBankReconciliationLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT bsl.id AS id,
                        bsl.company_id,
-                       company.rebuild_source_id AS source_company_id,
+                       company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
                        {PERIOD_CASE_SQL} AS period_key,
                        move.date,
                        journal.id AS journal_id,
                        journal.code AS journal_code,
                        bsl.id AS statement_line_id,
-                       bsl.rebuild_source_id AS source_statement_line_id,
+                       bsl.id AS source_statement_line_id,
                        move.id AS move_id,
                        move.name AS move_name,
                        bsl.partner_id,
@@ -1288,12 +1256,10 @@ class RebuildAccountBankReconciliationLine(models.Model):
                   JOIN account_journal journal ON journal.id = bsl.journal_id
                   LEFT JOIN res_partner partner ON partner.id = bsl.partner_id
                   LEFT JOIN account_move_line line ON line.move_id = move.id
-                 WHERE bsl.rebuild_source_model = 'account.bank.statement.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                  GROUP BY bsl.id,
                           bsl.company_id,
-                          company.rebuild_source_id,
+                          company.id,
                           company.currency_id,
                           {PERIOD_CASE_SQL},
                           move.date,
@@ -1320,7 +1286,7 @@ class RebuildAccountBankReconciliationLine(models.Model):
 
 class RebuildAccountCurrencyReportLine(models.Model):
     _name = "rebuild.account.currency.report.line"
-    _description = "USL Imported Currency Gain, Loss and Exposure Line"
+    _description = "USL Currency Gain, Loss and Exposure Line"
     _auto = False
     _order = "company_id, period_key, report_section, currency_id, account_code, partner_id"
 
@@ -1372,12 +1338,12 @@ class RebuildAccountCurrencyReportLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH base_lines AS (
                     SELECT line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            line.currency_id,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            account.account_type,
                            line.partner_id,
@@ -1393,9 +1359,7 @@ class RebuildAccountCurrencyReportLine(models.Model):
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                 ),
                 combined AS (
                     SELECT company_id,
@@ -1510,7 +1474,7 @@ class RebuildAccountCurrencyReportLine(models.Model):
 
 class RebuildAccountManagementSummaryLine(models.Model):
     _name = "rebuild.account.management.summary.line"
-    _description = "USL Imported Cash Flow and Executive Summary Line"
+    _description = "USL Cash Flow and Executive Summary Line"
     _auto = False
     _order = "company_id, period_key, report_key, line_sequence"
 
@@ -1591,7 +1555,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH base_lines AS (
                     SELECT line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
                            account.account_type,
@@ -1604,9 +1568,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                 ),
                 aggregates AS (
                     SELECT company_id,
@@ -2069,7 +2031,7 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
 
 class RebuildAccountAnalyticDistributionLine(models.Model):
     _name = "rebuild.account.analytic.distribution.line"
-    _description = "USL Imported Analytic Distribution Line"
+    _description = "USL Analytic Distribution Line"
     _auto = False
     _order = "company_id, period_key, analytic_key, account_code"
 
@@ -2094,11 +2056,10 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
         self.ensure_one()
         domain = [
             ("company_id", "=", self.company_id.id),
-            ("rebuild_source_model", "=", "account.analytic.line"),
             *_analytic_line_period_domain(self),
         ]
         if self.analytic_account_id:
-            domain.append(("rebuild_analytic_account_id", "=", self.analytic_account_id.id))
+            domain.append(("account_id", "=", self.analytic_account_id.id))
         if self.account_id:
             domain.append(("general_account_id", "=", self.account_id.id))
         return _analytic_lines_action(
@@ -2114,12 +2075,12 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH analytic_line_groups AS (
                     SELECT analytic.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {ANALYTIC_PERIOD_CASE_SQL} AS period_key,
                            COALESCE(
-                               analytic_account.rebuild_source_id::text,
-                               analytic.rebuild_source_analytic_account_id::text,
+                               analytic_account.id::text,
+                               analytic.account_id::text,
                                analytic_account.id::text,
                                ''
                            ) AS analytic_key,
@@ -2127,7 +2088,7 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
                            COALESCE(analytic_account.code::text, '') AS analytic_code,
                            COALESCE(analytic_account.name->>'fr_FR', analytic_account.name->>'en_US', analytic_account.name::text, analytic.name::text) AS analytic_name,
                            account.id AS account_id,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text) AS account_name,
                            count(analytic.id)::integer AS move_line_count,
                            100.0::double precision AS percentage,
@@ -2136,16 +2097,15 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
                            round(sum(analytic.amount)::numeric, 2) AS allocated_balance
                       FROM account_analytic_line analytic
                       JOIN res_company company ON company.id = analytic.company_id
-                      LEFT JOIN account_analytic_account analytic_account ON analytic_account.id = analytic.rebuild_analytic_account_id
+                      LEFT JOIN account_analytic_account analytic_account ON analytic_account.id = analytic.account_id
                       LEFT JOIN account_account account ON account.id = analytic.general_account_id
-                     WHERE analytic.rebuild_source_model = 'account.analytic.line'
                      GROUP BY analytic.company_id,
-                              company.rebuild_source_id,
+                              company.id,
                               company.currency_id,
                               {ANALYTIC_PERIOD_CASE_SQL},
                               COALESCE(
-                                  analytic_account.rebuild_source_id::text,
-                                  analytic.rebuild_source_analytic_account_id::text,
+                                  analytic_account.id::text,
+                                  analytic.account_id::text,
                                   analytic_account.id::text,
                                   ''
                               ),
@@ -2153,7 +2113,7 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
                               analytic_account.code,
                               COALESCE(analytic_account.name->>'fr_FR', analytic_account.name->>'en_US', analytic_account.name::text, analytic.name::text),
                               account.id,
-                              COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text),
+                              COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)
                 )
                 SELECT row_number() OVER (
@@ -2168,7 +2128,7 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
 
 class RebuildAccountFrenchStatementLine(models.Model):
     _name = "rebuild.account.french.statement.line"
-    _description = "USL Imported French Annual Statement Line"
+    _description = "USL French Annual Statement Line"
     _auto = False
     _order = "company_id, period_key, statement_key, line_sequence, line_code"
 
@@ -2286,10 +2246,10 @@ class RebuildAccountFrenchStatementLine(models.Model):
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH balances AS (
                     SELECT line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            account.account_type,
                            count(line.id) AS move_line_count,
                            round(sum(line.balance)::numeric, 2) AS balance
@@ -2297,14 +2257,12 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       JOIN account_move move ON move.id = line.move_id
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
-                     WHERE line.rebuild_source_model = 'account.move.line'
-                       AND move.rebuild_source_model = 'account.move'
-                       AND move.state = 'posted'
+                 WHERE move.state = 'posted'
                      GROUP BY line.company_id,
-                              company.rebuild_source_id,
+                              company.id,
                               company.currency_id,
                               {PERIOD_CASE_SQL},
-                              COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text),
+                              COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               account.account_type
                 ),
                 line_sources AS (
@@ -2773,7 +2731,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
 
 class RebuildAccountFrenchTaxPackageLine(models.Model):
     _name = "rebuild.account.french.tax.package.line"
-    _description = "USL Imported French Tax Package Mapping Line"
+    _description = "USL French Tax Package Mapping Line"
     _auto = False
     _order = "company_id, period_key, form_code, line_sequence, field_code"
 
@@ -2833,7 +2791,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
             & _prefix_domain("account_code", prefixes),
         ).mapped("account_id")
         if not accounts:
-            raise UserError("No imported accounts currently match this tax-package line's drill-down prefixes.")
+            raise UserError("No accounts currently match this tax-package line's drill-down prefixes.")
         return _journal_items_action(
             self,
             [
@@ -2876,10 +2834,10 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                 ),
                 vat_ca12_clearing AS (
                     SELECT line.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
                            {PERIOD_CASE_SQL} AS period_key,
-                           COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) AS account_code,
+                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            count(line.id)::integer AS move_line_count,
                            round(sum(line.debit)::numeric, 2) AS debit,
                            round(sum(line.credit)::numeric, 2) AS credit,
@@ -2890,43 +2848,48 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       JOIN res_company company ON company.id = line.company_id
                       JOIN account_account account ON account.id = line.account_id
                      WHERE move.state = 'posted'
-                       AND line.rebuild_source_model = 'account.move.line'
                        AND lower(COALESCE(line.name, '')) = 'ca12'
-                       AND COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text) LIKE '445%'
+                       AND COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) LIKE '445%'
                      GROUP BY line.company_id,
-                              company.rebuild_source_id,
+                              company.id,
                               company.currency_id,
                               period_key,
                               account_code
                 ),
                 assets AS (
                     SELECT asset.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           '{BENCHMARK_PERIOD_KEY}'::text AS period_key,
-                           count(asset.id)::integer AS asset_count,
-                           round(sum(asset.original_value)::numeric, 2) AS original_value,
-                           round(sum(asset.already_depreciated_amount_import)::numeric, 2) AS accumulated_depreciation,
-                           round(sum(asset.imported_period_net_value)::numeric, 2) AS net_value
-                      FROM rebuild_account_asset asset
+                           '{FIRST_FISCAL_YEAR_PERIOD_KEY}'::text AS period_key,
+                           count(DISTINCT asset.id)::integer AS asset_count,
+                           round(sum(asset.purchase_value)::numeric, 2) AS original_value,
+                           round(sum(COALESCE(depreciation.amount, 0))::numeric, 2) AS accumulated_depreciation,
+                           round(sum(asset.purchase_value - COALESCE(depreciation.amount, 0))::numeric, 2) AS net_value
+                      FROM account_asset asset
                       JOIN res_company company ON company.id = asset.company_id
-                     WHERE asset.rebuild_source_model = 'account_asset'
-                     GROUP BY asset.company_id,
-                              company.rebuild_source_id,
-                              company.currency_id
+                 LEFT JOIN LATERAL (
+                           SELECT sum(line.amount) AS amount
+                             FROM account_asset_line line
+                        LEFT JOIN account_move move ON move.id = line.move_id
+                            WHERE line.asset_id = asset.id
+                              AND line.type = 'depreciate'
+                              AND line.line_date <= DATE '2025-09-30'
+                              AND (line.init_entry OR move.state = 'posted')
+                           ) depreciation ON TRUE
+                     GROUP BY asset.company_id, company.id, company.currency_id
                 ),
                 schedule AS (
-                    SELECT schedule.company_id,
-                           company.rebuild_source_id AS source_company_id,
+                    SELECT asset.company_id,
+                           company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           '{BENCHMARK_PERIOD_KEY}'::text AS period_key,
+                           '{FIRST_FISCAL_YEAR_PERIOD_KEY}'::text AS period_key,
                            count(schedule.id)::integer AS schedule_line_count,
-                           round(sum(schedule.depreciation_amount)::numeric, 2) AS depreciation_schedule_total
-                      FROM rebuild_account_asset_depreciation_schedule_line schedule
-                      JOIN res_company company ON company.id = schedule.company_id
-                     GROUP BY schedule.company_id,
-                              company.rebuild_source_id,
-                              company.currency_id
+                           round(sum(schedule.amount)::numeric, 2) AS depreciation_schedule_total
+                      FROM account_asset_line schedule
+                      JOIN account_asset asset ON asset.id = schedule.asset_id
+                      JOIN res_company company ON company.id = asset.company_id
+                     WHERE schedule.type = 'depreciate'
+                     GROUP BY asset.company_id, company.id, company.currency_id
                 ),
                 external_values AS (
                     SELECT value.company_id,

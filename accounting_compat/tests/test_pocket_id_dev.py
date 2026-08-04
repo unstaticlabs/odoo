@@ -164,6 +164,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "scripts/accounting-compat dev-import",
             "scripts/accounting-compat dev-validate",
             "scripts/project-restore all",
+            "scripts/tese-restore all",
             "scripts/target-finalize",
         ]
         positions = [script.index(step) for step in ordered_steps]

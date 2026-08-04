@@ -32,14 +32,14 @@ models or tables exists.
 
 The complete reconciliation graph is imported because all former boundary
 endpoints belong to native draft documents in the scoped companies. The
-remaining source-data advisory is 16 source sequence gaps and 104 source
+remaining source-data advisory is 16 source sequence gaps and 106 source
 date-order decreases, preserved exactly without introducing a target-only
 chronology exception.
 
-The only accounting transformation is the documented EUR 942 DGFiP VAT-refund
-reclassification: it adds one balanced source-traced correction entry and
-settles the source bank-line residual. Its amount, date, accounts and
-reconciliation controls pass. For 175 unnamed source drafts, the native Odoo
+The current Online source natively records and reconciles the EUR 942 DGFiP
+VAT refund on account 445670. The distribution preserves that accounting and
+its reconciliation links unchanged; no target-only correction entry or
+bank-line normalization remains. For unnamed source drafts, the native Odoo
 display sentinel `/` represents the source SQL `NULL`; no posted number or
 sequence is normalized.
 

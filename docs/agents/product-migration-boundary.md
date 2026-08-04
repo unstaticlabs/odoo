@@ -23,17 +23,31 @@ distribution repository. The boundary is deployment, not maintainership:
 repeatable and documented, while only finalized product modules and native
 business records cross into the normal runtime.
 
-## Existing transitional exception
+## Accounting compatibility ownership
 
-`rebuild_account_migration` still owns pre-existing accounting compatibility
-models and XML/data identifiers in current reconstruction candidates. That is
-documented migration debt, not the target product architecture. Do not extend
-it with new product behavior or provenance dependencies. Move stable behavior
-to `usl_accounting` and retire the technical ownership through a separately
-rehearsed migration before final delivery.
+`rebuild_account_migration` is a historical technical name for an installed
+USL Accounting product module. It retains stable operational `rebuild.*`
+models and XML/data identifiers because changing their database ownership is
+unrelated to the user-facing name and would create destructive uninstall and
+upgrade risk. It contains no source bindings, importer, replay engine, parity
+models or migration UI.
+
+The one-off Accounting importer is `usl_accounting_restore` under
+`migration/accounting_restore/addons/`. Only migration and test Compose
+profiles can load it. The downstream Projects importer declares it explicitly
+while both temporary importers share source identities. Finalization requires
+a passed import and no active P0/P1 restoration discrepancy, snapshots native
+business facts, uninstalls the module, proves those facts did not change, and
+then validates the normal product registry.
 
 The Projects product module does not depend on that exception. Only the
-temporary Projects importer uses it while reconciling source identities.
+temporary Projects importer depends on the temporary Accounting importer.
+
+Paie TESE follows the same downstream contract. `usl_tese_payroll` is the
+ongoing product application. The temporary `usl_tese_restore` importer runs
+after Accounting and Projects while Accounting source bindings still exist,
+then uninstalls before Accounting finalization. The normal product service
+cannot load either temporary add-on.
 
 ## Required shape
 
@@ -70,9 +84,10 @@ relationships. It is rejected for the Projects perimeter.
 
 ### Temporary Odoo migration add-on
 
-This is selected. It uses the ORM and temporary source bindings during import,
-then validates parity and uninstalls itself. A small independent product
-module retains only the Planned Start behavior required for ongoing work.
+This is selected for both Accounting and Projects. Each importer uses the ORM
+and temporary source bindings, validates parity, and uninstalls itself. The
+normal registry retains only native business records and ongoing product
+features.
 
 ## Agent checklist
 

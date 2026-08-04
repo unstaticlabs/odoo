@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
+CANONICAL_COMPOSE_PROJECT="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT")
 DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
 DEV_MODULE="${ODOO_DEV_MODULE:-rebuild_account_migration}"
@@ -19,7 +20,8 @@ export ODOO_INIT_DB="$DEV_DB"
 export ODOO_DB_FILTER="^${DEV_DB}$"
 
 is_canonical_target() {
-  [[ "$DEV_DB" == "odoo_dev" ]]
+  [[ "$DEV_DB" == "odoo_dev" \
+    && "$COMPOSE_PROJECT" == "$CANONICAL_COMPOSE_PROJECT" ]]
 }
 
 restore_development_runtime() {
@@ -199,6 +201,37 @@ bootstrap_immediate_settlement_qa() {
   printf 'Read-only: qa.viewer / qa-viewer\n'
 }
 
+bootstrap_tese_payroll_qa() {
+  local generation="${1:-01}"
+  local status=0
+  case "$generation" in
+    ""|*[!0-9]*)
+      printf 'TESE QA generation must be numeric: %s\n' "$generation" >&2
+      return 2
+      ;;
+  esac
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_TESE_PAYROLL_QA_BOOTSTRAP=1 \
+    -e USL_TESE_PAYROLL_QA_GENERATION="$generation" \
+    -e ODOO_TESE_PAYROLL_QA_DATABASE="$DEV_DB" \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < \
+    "$ROOT/scripts/odoo/tese_payroll_qa_bootstrap.py" \
+    || status=$?
+  restore_development_runtime
+  if ((status)); then
+    return "$status"
+  fi
+  printf '\nPaie TESE QA generation %s is ready.\n' "$generation"
+  printf 'Open Payroll Records and apply the saved QA TESE filter.\n'
+}
+
 cleanup_test_database() {
   local database="$1"
   case "$database" in
@@ -352,6 +385,9 @@ case "${1:-help}" in
   bootstrap-immediate-settlement-qa)
     bootstrap_immediate_settlement_qa
     ;;
+  bootstrap-tese-payroll-qa)
+    bootstrap_tese_payroll_qa "${2:-01}"
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -397,6 +433,8 @@ Commands:
                 Disable automatic tours for internal dev/QA users
   bootstrap-immediate-settlement-qa
                 Prepare three-action foreign-currency settlement QA cases
+  bootstrap-tese-payroll-qa [generation]
+                Seed synthetic Paie TESE journeys in the selected QA database
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

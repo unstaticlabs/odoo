@@ -10,23 +10,12 @@ class RebuildAccountOverview(models.Model):
     _name = "rebuild.account.overview"
     _description = "USL Accounting Overview"
     _auto = False
-    _order = "source_company_id, company_id"
+    _order = "company_id"
     _rec_name = "name"
 
     name = fields.Char(readonly=True)
     company_id = fields.Many2one("res.company", readonly=True)
-    source_company_id = fields.Integer(readonly=True)
     currency_id = fields.Many2one("res.currency", readonly=True)
-    latest_import_run_id = fields.Many2one("rebuild.account.import.run", readonly=True)
-    latest_import_status = fields.Selection(
-        related="latest_import_run_id.status",
-        readonly=True,
-    )
-    source_snapshot_id = fields.Char(readonly=True)
-    source_dump_sha256 = fields.Char(readonly=True)
-    target_database = fields.Char(readonly=True)
-    started_at = fields.Datetime(readonly=True)
-    finished_at = fields.Datetime(readonly=True)
     posted_move_count = fields.Integer(readonly=True)
     move_line_count = fields.Integer(readonly=True)
     debit = fields.Monetary(currency_field="currency_id", readonly=True)
@@ -166,22 +155,6 @@ class RebuildAccountOverview(models.Model):
         ],
         readonly=True,
     )
-    source_report_count = fields.Integer(readonly=True)
-    mandatory_report_count = fields.Integer(readonly=True)
-    partial_report_equivalent_count = fields.Integer(readonly=True)
-    level_3_report_count = fields.Integer(
-        string="Level 3+ Reports",
-        help="Active source reports with at least semantic-partial parity evidence.",
-        readonly=True,
-    )
-    level_4_report_count = fields.Integer(
-        string="Level 4+ Reports",
-        help="Active source reports with evidence-partial or accepted parity evidence.",
-        readonly=True,
-    )
-    open_discrepancy_count = fields.Integer(readonly=True)
-    open_p0_count = fields.Integer(readonly=True)
-    open_p1_count = fields.Integer(readonly=True)
     review_decision_count = fields.Integer(readonly=True)
     pending_review_decision_count = fields.Integer(readonly=True)
     recorded_review_decision_count = fields.Integer(readonly=True)
@@ -191,7 +164,7 @@ class RebuildAccountOverview(models.Model):
         [
             ("blocked", "Blocked"),
             ("review_required", "Review Required"),
-            ("technical_evidence_available", "Technical Evidence Available"),
+            ("technical_evidence_available", "Review Evidence Available"),
         ],
         readonly=True,
     )
@@ -343,7 +316,6 @@ class RebuildAccountOverview(models.Model):
                 ),
                 ("state", "!=", "cancel"),
                 ("message_main_attachment_id", "=", False),
-                ("rebuild_source_id", "=", False),
             ],
         )
 
@@ -353,7 +325,6 @@ class RebuildAccountOverview(models.Model):
             [
                 ("state", "!=", "refused"),
                 ("message_main_attachment_id", "=", False),
-                ("rebuild_source_id", "=", False),
             ],
         )
 
@@ -588,37 +559,6 @@ class RebuildAccountOverview(models.Model):
             "account.action_account_config",
         )
 
-    def action_open_latest_import_run(self):
-        self.ensure_one()
-        if not self.latest_import_run_id:
-            raise UserError("No accounting import run is linked to this review summary.")
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Latest Accounting Import Run",
-            "res_model": "rebuild.account.import.run",
-            "res_id": self.latest_import_run_id.id,
-            "view_mode": "form",
-            "views": [(False, "form")],
-            "context": {"create": False, "delete": False},
-        }
-
-    def action_open_open_discrepancies(self):
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Open Accounting Discrepancies",
-            "res_model": "rebuild.account.discrepancy",
-            "view_mode": "list,form,pivot",
-            "views": [(False, "list"), (False, "form"), (False, "pivot")],
-            "domain": [
-                "|",
-                ("company_id", "=", False),
-                ("company_id", "=", self.company_id.id),
-                ("status", "in", ["open", "investigating"]),
-            ],
-            "context": {"create": False, "delete": False},
-        }
-
     def action_open_review_decisions(self):
         self.ensure_one()
         return {
@@ -635,7 +575,6 @@ class RebuildAccountOverview(models.Model):
             ],
             "context": {
                 "default_company_id": self.company_id.id,
-                "default_period_key": "USL benchmark 2024-01-10 to 2025-09-30",
                 "delete": False,
             },
         }
@@ -654,35 +593,20 @@ class RebuildAccountOverview(models.Model):
             ],
             "context": {
                 "default_company_id": self.company_id.id,
-                "default_period_key": "USL benchmark 2024-01-10 to 2025-09-30",
                 "delete": False,
             },
         }
 
-    def action_open_source_reports(self):
+    def action_open_posted_journal_items(self):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Source Accounting Report Catalogue",
-            "res_model": "rebuild.account.source.report",
-            "view_mode": "list,form,pivot",
-            "views": [(False, "list"), (False, "form"), (False, "pivot")],
-            "domain": [("active", "=", True)],
-            "context": {"create": False, "delete": False},
-        }
-
-    def action_open_imported_journal_items(self):
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Imported Posted Journal Items",
+            "name": "Posted Journal Items",
             "res_model": "account.move.line",
             "view_mode": "list,form,pivot",
             "views": [(False, "list"), (False, "form"), (False, "pivot")],
             "domain": [
                 ("company_id", "=", self.company_id.id),
-                ("rebuild_source_model", "=", "account.move.line"),
-                ("move_id.rebuild_source_model", "=", "account.move"),
                 ("move_id.state", "=", "posted"),
             ],
             "context": {"create": False, "delete": False},
@@ -705,7 +629,6 @@ class RebuildAccountOverview(models.Model):
                 "default_company_id": self.company_id.id,
                 "default_company_ids": [self.company_id.id],
                 "default_report_type": "trial_balance",
-                "default_data_scope": "native",
                 "default_period_preset": "year_to_date",
                 "default_period_anchor_date": today,
                 "default_date_from": fiscal_from,
@@ -731,14 +654,7 @@ class RebuildAccountOverview(models.Model):
                 SELECT company.id AS id,
                        'Overview' AS name,
                        company.id AS company_id,
-                       company.rebuild_source_id AS source_company_id,
                        company.currency_id,
-                       latest_run.id AS latest_import_run_id,
-                       latest_run.source_snapshot_id,
-                       latest_run.source_dump_sha256,
-                       latest_run.target_database,
-                       latest_run.started_at,
-                       latest_run.finished_at,
                        COALESCE(ledger.posted_move_count, 0) AS posted_move_count,
                        COALESCE(ledger.move_line_count, 0) AS move_line_count,
                        COALESCE(ledger.debit, 0.00) AS debit,
@@ -798,12 +714,10 @@ class RebuildAccountOverview(models.Model):
                            )
                          + COALESCE(latest_closing.unusual_balance_count, 0)
                          + COALESCE(declaration_counts.overdue_declaration_count, 0)
-                         + COALESCE(discrepancies.open_p1_count, 0)
                          + COALESCE(decisions.pending_review_decision_count, 0)
                        )::integer AS hygiene_attention_count,
                        CASE
-                           WHEN COALESCE(discrepancies.open_p0_count, 0) > 0
-                             OR COALESCE(latest_closing.blocking_count, 0) > 0
+                           WHEN COALESCE(latest_closing.blocking_count, 0) > 0
                            THEN 'blocked'
                            WHEN COALESCE(bank_activity.unmatched_bank_transaction_count, 0) > 0
                              OR COALESCE(documents.incomplete_document_count, 0) > 0
@@ -814,47 +728,24 @@ class RebuildAccountOverview(models.Model):
                              OR COALESCE(latest_closing.warning_count, 0) > 0
                              OR COALESCE(latest_closing.unusual_balance_count, 0) > 0
                              OR COALESCE(declaration_counts.overdue_declaration_count, 0) > 0
-                             OR COALESCE(discrepancies.open_p1_count, 0) > 0
                              OR COALESCE(decisions.pending_review_decision_count, 0) > 0
                            THEN 'attention'
                            ELSE 'ready'
                        END AS hygiene_status,
-                       COALESCE(reports.source_report_count, 0) AS source_report_count,
-                       COALESCE(reports.mandatory_report_count, 0) AS mandatory_report_count,
-                       COALESCE(reports.partial_report_equivalent_count, 0) AS partial_report_equivalent_count,
-                       COALESCE(reports.level_3_report_count, 0) AS level_3_report_count,
-                       COALESCE(reports.level_4_report_count, 0) AS level_4_report_count,
-                       COALESCE(discrepancies.open_discrepancy_count, 0) AS open_discrepancy_count,
-                       COALESCE(discrepancies.open_p0_count, 0) AS open_p0_count,
-                       COALESCE(discrepancies.open_p1_count, 0) AS open_p1_count,
                        COALESCE(decisions.review_decision_count, 0) AS review_decision_count,
                        COALESCE(decisions.pending_review_decision_count, 0) AS pending_review_decision_count,
                        COALESCE(decisions.recorded_review_decision_count, 0) AS recorded_review_decision_count,
                        COALESCE(external_values.external_report_value_count, 0) AS external_report_value_count,
                        COALESCE(external_values.pending_external_report_value_count, 0) AS pending_external_report_value_count,
                        CASE
-                           WHEN COALESCE(discrepancies.open_p0_count, 0) > 0
-                             OR abs(COALESCE(ledger.balance, 0.00)) > 0.004
+                           WHEN abs(COALESCE(ledger.balance, 0.00)) > 0.004
                            THEN 'blocked'
-                           WHEN COALESCE(discrepancies.open_p1_count, 0) > 0
-                             OR COALESCE(decisions.pending_review_decision_count, 0) > 0
+                           WHEN COALESCE(decisions.pending_review_decision_count, 0) > 0
                              OR COALESCE(external_values.pending_external_report_value_count, 0) > 0
                            THEN 'review_required'
                            ELSE 'technical_evidence_available'
                        END AS readiness_status
                   FROM res_company company
-                  LEFT JOIN LATERAL (
-                      SELECT run.*
-                        FROM rebuild_account_import_run run
-                       WHERE EXISTS (
-                           SELECT 1
-                             FROM rebuild_account_import_run_res_company_rel run_company
-                            WHERE run_company.rebuild_account_import_run_id = run.id
-                              AND run_company.res_company_id = company.id
-                       )
-                       ORDER BY run.started_at DESC NULLS LAST, run.id DESC
-                       LIMIT 1
-                  ) latest_run ON TRUE
                   LEFT JOIN LATERAL (
                       SELECT count(DISTINCT move.id)::integer AS posted_move_count,
                              count(line.id)::integer AS move_line_count,
@@ -864,8 +755,6 @@ class RebuildAccountOverview(models.Model):
                         FROM account_move_line line
                         JOIN account_move move ON move.id = line.move_id
                        WHERE line.company_id = company.id
-                         AND line.rebuild_source_model = 'account.move.line'
-                         AND move.rebuild_source_model = 'account.move'
                          AND move.state = 'posted'
                   ) ledger ON TRUE
                   LEFT JOIN LATERAL (
@@ -970,7 +859,6 @@ class RebuildAccountOverview(models.Model):
                                        'in_receipt'
                                    )
                                    AND move.message_main_attachment_id IS NULL
-                                   AND move.rebuild_source_id IS NULL
                              )::integer AS missing_vendor_attachment_count,
                              count(*) FILTER (
                                  WHERE move.state = 'draft'
@@ -998,7 +886,6 @@ class RebuildAccountOverview(models.Model):
                              count(*) FILTER (
                                  WHERE expense.state != 'refused'
                                    AND expense.message_main_attachment_id IS NULL
-                                   AND expense.rebuild_source_id IS NULL
                              )::integer AS missing_expense_attachment_count,
                              count(*) FILTER (
                                  WHERE expense.state IN (
@@ -1102,23 +989,6 @@ class RebuildAccountOverview(models.Model):
                              'not_applicable'
                          )
                   ) declaration_counts ON TRUE
-                  LEFT JOIN LATERAL (
-                      SELECT count(*)::integer AS source_report_count,
-                             count(*) FILTER (WHERE report.decision = 'MANDATORY_PARITY')::integer AS mandatory_report_count,
-                             count(*) FILTER (WHERE report.target_status = 'partial_target_equivalent')::integer AS partial_report_equivalent_count,
-                             count(*) FILTER (WHERE report.parity_level IN ('level_3_semantic_partial', 'level_4_evidence_partial', 'level_4_accepted'))::integer AS level_3_report_count,
-                             count(*) FILTER (WHERE report.parity_level IN ('level_4_evidence_partial', 'level_4_accepted'))::integer AS level_4_report_count
-                        FROM rebuild_account_source_report report
-                       WHERE report.active IS TRUE
-                  ) reports ON TRUE
-                  LEFT JOIN LATERAL (
-                      SELECT count(*) FILTER (WHERE discrepancy.status IN ('open', 'investigating'))::integer AS open_discrepancy_count,
-                             count(*) FILTER (WHERE discrepancy.status IN ('open', 'investigating') AND discrepancy.severity = 'P0')::integer AS open_p0_count,
-                             count(*) FILTER (WHERE discrepancy.status IN ('open', 'investigating') AND discrepancy.severity = 'P1')::integer AS open_p1_count
-                        FROM rebuild_account_discrepancy discrepancy
-                       WHERE discrepancy.company_id IS NULL
-                          OR discrepancy.company_id = company.id
-                  ) discrepancies ON TRUE
                   LEFT JOIN LATERAL (
                       SELECT count(*) FILTER (WHERE decision.state != 'superseded')::integer AS review_decision_count,
                              count(*) FILTER (WHERE decision.state = 'draft')::integer AS pending_review_decision_count,

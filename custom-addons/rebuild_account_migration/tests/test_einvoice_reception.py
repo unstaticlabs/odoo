@@ -1136,7 +1136,7 @@ class TestFrenchEinvoiceReception(
         self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
         self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
 
-    def test_daily_menus_hide_migration_and_parity_machinery(self):
+    def test_product_registry_contains_no_migration_or_parity_menus(self):
         self.company.rebuild_einvoice_provider = False
         self.env["res.company"]._rebuild_apply_default_einvoice_provider()
         self.assertEqual(self.company.rebuild_einvoice_provider, "odoo_pdp")
@@ -1168,7 +1168,7 @@ class TestFrenchEinvoiceReception(
                 for token in technical_tokens
             ),
         )
-        self.assertTrue(technical_menus)
+        self.assertFalse(technical_menus)
         self.assertFalse(set(technical_menus.ids) & manager_visible)
         self.assertFalse(set(technical_menus.ids) & reviewer_visible)
         self.assertIn(

@@ -1,6 +1,6 @@
-import re
 from collections import defaultdict
 from datetime import timedelta
+import re
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -16,25 +16,6 @@ class AccountReconcileModel(models.Model):
             "Explain the recurring accounting situation this rule handles and "
             "why the proposed result is appropriate."
         ),
-    )
-    rebuild_source_use_count = fields.Integer(
-        string="Imported historical uses",
-        readonly=True,
-        copy=False,
-        help=(
-            "Usage counter supplied by the source system. Current rebuild "
-            "applications are counted separately from journal items."
-        ),
-    )
-    rebuild_source_created_automatically = fields.Boolean(
-        string="Created automatically in source",
-        readonly=True,
-        copy=False,
-    )
-    rebuild_source_asked_for_autopost = fields.Boolean(
-        string="Source requested automatic posting",
-        readonly=True,
-        copy=False,
     )
     rebuild_is_proposal = fields.Boolean(
         string="Rule suggestion",
@@ -106,7 +87,6 @@ class AccountReconcileModel(models.Model):
     rebuild_origin = fields.Selection(
         selection=[
             ("standard", "Odoo standard"),
-            ("imported", "Imported"),
             ("custom", "Company rule"),
             ("deterministic", "System suggestion"),
             ("ai", "AI suggestion"),
@@ -194,12 +174,6 @@ class AccountReconcileModel(models.Model):
             if not 0 <= rule.rebuild_proposal_confidence <= 100:
                 raise ValidationError(_("Confidence must be between 0 and 100."))
 
-    @staticmethod
-    def _rebuild_source_use_count_from_note(note):
-        match = re.search(r"\buse_count=(\d+)", note or "")
-        return int(match.group(1)) if match else 0
-
-    @api.depends("rebuild_source_use_count", "rebuild_import_note")
     def _compute_rebuild_usage(self):
         usage = {}
         if self.ids:
@@ -220,18 +194,12 @@ class AccountReconcileModel(models.Model):
             }
         for rule in self:
             current_count, last_used = usage.get(rule.id, (0, False))
-            historical_count = (
-                rule.rebuild_source_use_count
-                or self._rebuild_source_use_count_from_note(
-                    rule.rebuild_import_note,
-                )
-            )
-            rule.rebuild_historical_use_count = historical_count
+            rule.rebuild_historical_use_count = current_count
             rule.rebuild_current_use_count = current_count
-            rule.rebuild_total_use_count = historical_count + current_count
+            rule.rebuild_total_use_count = current_count
             rule.rebuild_use_badge = (
-                str(historical_count + current_count)
-                if historical_count + current_count
+                str(current_count)
+                if current_count
                 else False
             )
             rule.rebuild_last_used_on = last_used
@@ -307,7 +275,6 @@ class AccountReconcileModel(models.Model):
         "rebuild_is_proposal",
         "rebuild_proposal_source",
         "rebuild_proposal_confidence",
-        "rebuild_source_id",
         "rebuild_open_match_count",
         "trigger",
     )
@@ -327,8 +294,6 @@ class AccountReconcileModel(models.Model):
 
             if rule.rebuild_is_proposal:
                 origin = rule.rebuild_proposal_source or "deterministic"
-            elif rule.rebuild_source_id:
-                origin = "imported"
             elif (external_ids.get(rule.id) or "").startswith("account."):
                 origin = "standard"
             else:

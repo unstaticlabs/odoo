@@ -16,6 +16,9 @@ if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
 fi
 
 scripts/check-product-migration-boundary
+scripts/accounting-restore product-validate
+scripts/project-restore product-validate
+scripts/tese-restore product-validate
 scripts/pocket-id-dev configure-odoo rebuild_account_migration
 scripts/odoo-dev disable-tours
 scripts/check-product-migration-boundary

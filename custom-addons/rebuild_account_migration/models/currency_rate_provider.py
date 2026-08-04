@@ -279,7 +279,6 @@ class ResCompany(models.Model):
         created_count = 0
         updated_count = 0
         unchanged_count = 0
-        preserved_source_count = 0
         preserved_manual_count = 0
         unavailable_currency_codes = []
         covered_currency_codes = set()
@@ -294,9 +293,6 @@ class ResCompany(models.Model):
                 covered_currency_codes.add(currency.name)
                 technical_rate = float(provider_rate / base_rate)
                 existing = existing_by_key.get((currency.id, observed_date))
-                if existing and existing.rebuild_source_model:
-                    preserved_source_count += 1
-                    continue
                 if existing and existing.rebuild_rate_provider != "ecb":
                     preserved_manual_count += 1
                     continue
@@ -343,10 +339,9 @@ class ResCompany(models.Model):
             updated=updated_count,
             unchanged=unchanged_count,
         )
-        if preserved_source_count or preserved_manual_count:
+        if preserved_manual_count:
             message += " " + _(
-                "%(source)s restored and %(manual)s manual rate(s) preserved.",
-                source=preserved_source_count,
+                "%(manual)s non-ECB rate(s) preserved.",
                 manual=preserved_manual_count,
             )
         if unavailable_currency_codes:
@@ -367,7 +362,6 @@ class ResCompany(models.Model):
             "created_count": created_count,
             "updated_count": updated_count,
             "unchanged_count": unchanged_count,
-            "preserved_source_count": preserved_source_count,
             "preserved_manual_count": preserved_manual_count,
             "covered_currency_codes": sorted(covered_currency_codes),
             "unavailable_currency_codes": unavailable_currency_codes,
@@ -394,8 +388,6 @@ class ResCompany(models.Model):
         protected_rate = Rate.search([
             ("company_id", "=", self.id),
             ("currency_id", "in", currencies.ids),
-            "|",
-            ("rebuild_source_model", "!=", False),
             ("rebuild_rate_provider", "!=", "ecb"),
         ], order="name desc", limit=1)
         if protected_rate:

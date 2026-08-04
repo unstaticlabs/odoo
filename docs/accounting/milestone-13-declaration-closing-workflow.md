@@ -73,7 +73,7 @@ Ledger-derived tax-package lines are copied into the workbench with their existi
 
 An Accounting Manager can approve a prepared declaration for filing without waiting for an external accountant. Filing requires an external reference or evidence attachment. Payment/refund completion cannot be recorded before filing. Electronic submission is not implemented or claimed.
 
-## Confirmed VAT facts and €942 correction
+## Confirmed VAT facts and €942 refund
 
 The CA12 workbench records the confirmed facts once:
 
@@ -83,14 +83,17 @@ The CA12 workbench records the confirmed facts once:
 - later reimbursed credit: €942;
 - remaining VAT credit: €0.
 
-The source ledger held a €3,442 debit on account 445670, a €2,500 credit transfer and bank settlement, and the later €942 DGFiP receipt misclassified to 471000. The correction deliberately preserves that imported bank entry. It posts one balanced, source-traced journal entry dated with the bank receipt:
+The current Online source already records the later €942 DGFiP receipt on
+account 445670 and reconciles it natively with the VAT-credit balance. The
+statement line has zero residual, the relevant 445670 lines share the source
+full reconciliation, and no 471 suspense position or target-only correction is
+required.
 
-- debit 471000: €942;
-- credit 445670: €942.
-
-Native reconciliation clears the imported 471000 credit against the correction debit and reconciles the three 445670 lines (€3,442 debit, €2,500 credit and €942 credit). The result is one correction move, a reconciled DGFiP statement line, zero residual on 471000 for the receipt, and zero residual on 445670. Repeating the action reuses the same traced correction and creates no duplicate.
-
-The exact-target import applies this confirmed transformation after source lock dates and declaration synchronization, before closing controls. CA12 displays the refund facts; 3514 instalment tasks display only opening credit and zero instalments and are marked no-payment-due.
+The exact-target import preserves those source entries and reconciliation links
+unchanged. The exact-ledger proof compares their residual and reconciliation
+state directly, without a normalization or approved transformation. CA12
+displays the refund facts; 3514 instalment tasks display only opening credit and
+zero instalments and are marked no-payment-due.
 
 ## Closing workspaces
 
@@ -161,7 +164,10 @@ docker compose exec -T devcontainer odoo \
   --stop-after-init
 ```
 
-Because the confirmed profile and VAT transformation run inside the exact-target importer, changes to that integration require the documented target reset/full import stages before final rehearsal. They do not require re-restoring or re-extracting an unchanged source snapshot.
+Because the confirmed profile and VAT controls run during the exact-target
+import, changes to that integration require the documented target reset/full
+import stages before final rehearsal. They do not require re-restoring or
+re-extracting an unchanged source snapshot.
 
 ## Residual professional assumptions
 

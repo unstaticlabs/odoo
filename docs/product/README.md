@@ -13,6 +13,7 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Accounting core](accounting-core.md)
 - [Company-paid expense bank matching](expense-bank-matching.md)
 - [Lightweight expense batches](expense-batches.md)
+- [Paie TESE](paie-tese.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
 - [Pocket ID SSO architecture](pocket-id-sso.md)

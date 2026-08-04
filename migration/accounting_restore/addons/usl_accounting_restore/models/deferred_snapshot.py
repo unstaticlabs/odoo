@@ -4,7 +4,7 @@ from odoo import fields, models
 class RebuildAccountDeferredScheduleLine(models.Model):
     _name = "rebuild.account.deferred.schedule.line"
     _description = "USL Source Deferred Expense and Revenue Schedule"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = ["usl.accounting.restore.source.mixin"]
     _order = "company_id, schedule_type, deferred_date, source_original_move_id, source_deferred_move_id"
 
     name = fields.Char(required=True, index=True)

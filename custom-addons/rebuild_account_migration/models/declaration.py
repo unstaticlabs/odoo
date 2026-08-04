@@ -12,8 +12,8 @@ from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 BENCHMARK_START = date(2024, 1, 10)
 BENCHMARK_END = date(2025, 9, 30)
 CURRENT_START = date(2025, 10, 1)
-BENCHMARK_PERIOD_KEY = "USL benchmark 2024-01-10 to 2025-09-30"
-CURRENT_PERIOD_KEY = "USL current from 2025-10-01"
+FIRST_FISCAL_YEAR_PERIOD_KEY = "Fiscal year 2024-01-10 to 2025-09-30"
+CURRENT_PERIOD_KEY = "Fiscal year from 2025-10-01"
 
 
 def _month_end(value):
@@ -82,11 +82,11 @@ class ResCompany(models.Model):
         string="VAT Regime",
     )
     rebuild_first_fiscalyear_start = fields.Date(
-        string="First Reconstructed Fiscal-Year Start",
+        string="Exceptional First Fiscal-Year Start",
         help="Optional first-year exception used before the company's recurring fiscal-year cadence.",
     )
     rebuild_first_fiscalyear_end = fields.Date(
-        string="First Reconstructed Fiscal-Year End",
+        string="Exceptional First Fiscal-Year End",
         help=(
             "Optional end of the exceptional first fiscal year. Reports, "
             "declarations and closing workspaces use this boundary before "
@@ -818,7 +818,7 @@ class RebuildAccountDeclaration(models.Model):
         seen_codes = set()
         tax_form_codes = [code.strip() for code in (self.rule_id.tax_form_codes or "").split(",") if code.strip()]
         if tax_form_codes:
-            period_key = BENCHMARK_PERIOD_KEY if self.fiscalyear_end <= BENCHMARK_END else CURRENT_PERIOD_KEY
+            period_key = FIRST_FISCAL_YEAR_PERIOD_KEY if self.fiscalyear_end <= BENCHMARK_END else CURRENT_PERIOD_KEY
             tax_lines = self.env["rebuild.account.french.tax.package.line"].search([
                 ("company_id", "=", self.company_id.id),
                 ("period_key", "=", period_key),
@@ -882,7 +882,7 @@ class RebuildAccountDeclaration(models.Model):
             self._sync_vat_facts(seen_codes)
 
     def _sync_corporate_tax_payment_fields(self, seen_codes):
-        prior_period = BENCHMARK_PERIOD_KEY if self.fiscalyear_start >= CURRENT_START else False
+        prior_period = FIRST_FISCAL_YEAR_PERIOD_KEY if self.fiscalyear_start >= CURRENT_START else False
         charge = self.env["rebuild.account.french.tax.package.line"]
         if prior_period:
             charge = charge.search([
@@ -932,7 +932,7 @@ class RebuildAccountDeclaration(models.Model):
                 "source_kind": "confirmed_fact",
                 "source_formula": source,
                 "account_prefixes": "445670,445830,512,471" if amount else "445670,445830",
-                "source_reference": "Milestone 13 confirmed VAT facts and reconstructed ledger",
+                "source_reference": "Confirmed VAT facts and posted ledger",
                 "is_unresolved": unresolved,
                 "unresolved_reason": reason,
                 "validation_status": "matched",
@@ -971,164 +971,6 @@ class RebuildAccountDeclaration(models.Model):
             "unresolved_reason": "The €942 DGFiP bank receipt remains on suspense and must be matched to account 445670." if mismatch else False,
             "validation_status": "mismatch" if mismatch else "matched",
         })
-
-    def _trace_vat_refund_correction_children(self, correction, trace_values, trace_id):
-        line_trace = {
-            **trace_values,
-            "rebuild_source_model": "account.move.line.usl_vat_refund_reclassification",
-            "rebuild_import_note": (
-                f"Source-preserving reclassification child of bank statement line {trace_id}: "
-                "confirmed €942 DGFiP VAT refund."
-            ),
-        }
-        for index, line in enumerate(correction.line_ids.sorted("id"), start=1):
-            line.write({**line_trace, "rebuild_source_id": (trace_id * 10) + index})
-        traced_partials = (
-            correction.line_ids.mapped("matched_debit_ids")
-            | correction.line_ids.mapped("matched_credit_ids")
-        )
-        partial_trace = {
-            **trace_values,
-            "rebuild_source_model": "account.partial.reconcile.usl_vat_refund_reclassification",
-            "rebuild_import_note": (
-                f"Native reconciliation child of bank statement line {trace_id}: "
-                "confirmed €942 DGFiP VAT-refund reclassification."
-            ),
-        }
-        for index, partial in enumerate(traced_partials.sorted("id"), start=1):
-            partial.write({**partial_trace, "rebuild_source_id": (trace_id * 100) + index})
-
-    def action_classify_confirmed_vat_refund(self):
-        self.ensure_one()
-        if not self.env.user.has_group("account.group_account_manager"):
-            message = "Only an Accounting Manager can classify the confirmed VAT refund."
-            raise AccessError(message)
-        bank_line = self.env["account.bank.statement.line"].with_company(self.company_id).search([
-            ("company_id", "=", self.company_id.id),
-            ("date", ">=", date(2026, 7, 1)),
-            ("amount", ">", 941.99),
-            ("amount", "<", 942.01),
-            ("payment_ref", "ilike", "DGFiP"),
-        ], limit=1)
-        if not bank_line:
-            message = "The exact €942 DGFiP bank line was not found."
-            raise UserError(message)
-        target_line = self.env["account.move.line"].with_company(self.company_id).search([
-            ("company_id", "=", self.company_id.id),
-            ("account_id.code", "=like", "445670%"),
-            ("move_id.state", "=", "posted"),
-            ("amount_residual", ">", 941.99),
-        ], order="date desc, id desc", limit=1)
-        trace_id = bank_line.rebuild_source_id or bank_line.id
-        correction = self.env["account.move"].search([
-            ("company_id", "=", self.company_id.id),
-            ("rebuild_source_model", "=", "account.move.usl_vat_refund_reclassification"),
-            ("rebuild_source_id", "=", trace_id),
-            ("state", "!=", "cancel"),
-        ], limit=1)
-        trace_values = {
-            "rebuild_source_database": bank_line.rebuild_source_database,
-            "rebuild_source_snapshot": bank_line.rebuild_source_snapshot,
-            "rebuild_import_run_id": bank_line.rebuild_import_run_id.id,
-            "rebuild_import_status": "transformed",
-        }
-        if not target_line and correction:
-            target_line = correction.line_ids.filtered(
-                lambda line: (line.account_id.with_company(self.company_id).code or "").startswith("445670"),
-            )[:1]
-        if not target_line:
-            message = "The open account-445670 VAT-credit source line was not found."
-            raise UserError(message)
-        misclassified_line = bank_line.move_id.line_ids.filtered(
-            lambda line: (line.account_id.with_company(self.company_id).code or "").startswith("471")
-            and line.account_id != bank_line.journal_id.default_account_id,
-        )
-        if len(misclassified_line) != 1 or float_compare(
-            misclassified_line.balance,
-            -942.0,
-            precision_rounding=self.currency_id.rounding,
-        ) != 0:
-            message = "The €942 DGFiP bank entry does not have the expected single account-471 counterpart."
-            raise UserError(message)
-        if not correction:
-            journal = self.env["account.journal"].search([
-                ("company_id", "=", self.company_id.id),
-                ("type", "=", "general"),
-            ], order="sequence, id", limit=1)
-            if not journal:
-                message = "A general journal is required for the VAT-refund reclassification entry."
-                raise UserError(message)
-            move_trace = {
-                **trace_values,
-                "rebuild_source_id": trace_id,
-                "rebuild_source_model": "account.move.usl_vat_refund_reclassification",
-                "rebuild_import_note": (
-                    "Confirmed correction of the imported €942 DGFiP bank receipt: "
-                    "clear bank suspense account 471 and classify the refund against VAT credit account 445670."
-                ),
-            }
-            line_trace = {
-                **trace_values,
-                "rebuild_source_model": "account.move.line.usl_vat_refund_reclassification",
-                "rebuild_import_note": (
-                    "Source-preserving reclassification of the confirmed €942 DGFiP VAT refund."
-                ),
-            }
-            correction = self.env["account.move"].with_company(self.company_id).create({
-                "move_type": "entry",
-                "company_id": self.company_id.id,
-                "journal_id": journal.id,
-                "date": bank_line.date,
-                "ref": "USL €942 DGFiP VAT refund reclassification",
-                **move_trace,
-                "line_ids": [
-                    (0, 0, {
-                        "name": "Clear imported DGFiP refund suspense",
-                        "account_id": misclassified_line.account_id.id,
-                        "partner_id": bank_line.partner_id.id,
-                        "debit": 942.0,
-                        "credit": 0.0,
-                        **line_trace,
-                        "rebuild_source_id": (trace_id * 10) + 1,
-                    }),
-                    (0, 0, {
-                        "name": "Classify confirmed DGFiP VAT refund",
-                        "account_id": target_line.account_id.id,
-                        "partner_id": bank_line.partner_id.id,
-                        "debit": 0.0,
-                        "credit": 942.0,
-                        **line_trace,
-                        "rebuild_source_id": (trace_id * 10) + 2,
-                    }),
-                ],
-            })
-        if correction.state == "draft":
-            correction.action_post()
-        correction_clearing = correction.line_ids.filtered(
-            lambda line: line.account_id == misclassified_line.account_id,
-        )
-        if not misclassified_line.reconciled:
-            (misclassified_line | correction_clearing).reconcile()
-        vat_lines = self.env["account.move.line"].with_company(self.company_id).search([
-            ("company_id", "=", self.company_id.id),
-            ("account_id", "=", target_line.account_id.id),
-            ("move_id.state", "=", "posted"),
-            ("reconciled", "=", False),
-        ])
-        vat_residual = sum(vat_lines.mapped("amount_residual"))
-        if float_compare(vat_residual, 0.0, precision_rounding=self.currency_id.rounding) != 0:
-            message = "The open account-445670 VAT lines do not net to zero after the €942 reclassification."
-            raise UserError(message)
-        vat_lines.reconcile()
-        self._trace_vat_refund_correction_children(correction, trace_values, trace_id)
-        # The exact importer updates the inherited statement-line bridge with source values through SQL.
-        # Recompute the stored native state after restoring the target reconciliation graph.
-        bank_line._compute_is_reconciled()
-        if not bank_line.is_reconciled:
-            message = "The €942 DGFiP bank line remains unreconciled after clearing its account-471 counterpart."
-            raise UserError(message)
-        self.action_refresh_preparation()
-        return True
 
     def action_mark_internal_ready(self):
         self.action_refresh_preparation()

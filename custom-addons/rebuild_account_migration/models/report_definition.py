@@ -818,7 +818,7 @@ class RebuildAccountReportAccountPresentation(models.Model):
     display_label = fields.Char(required=True, translate=True)
     evidence_note = fields.Text(
         help=(
-            "Documents why the report label differs from the imported "
+            "Documents why the report label differs from the configured "
             "account master-data label."
         ),
     )

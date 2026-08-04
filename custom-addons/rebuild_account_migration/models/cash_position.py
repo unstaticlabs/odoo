@@ -400,7 +400,7 @@ class RebuildAccountReviewSummary(models.Model):
     def _cca_projection_config(self):
         """Return explicit configuration, with a conservative USL fallback.
 
-        The fallback keeps clean reconstructions useful before Accounting
+        The fallback keeps newly configured companies useful before Accounting
         Settings are saved: it accepts only one exact 455100 account and one
         employee represented by employee-paid expenses. Ambiguity disables
         the projection instead of guessing.

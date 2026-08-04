@@ -179,6 +179,64 @@ class CustomAddonArchitectureTest(unittest.TestCase):
     def test_obsolete_placeholder_is_absent(self):
         self.assertNotIn("usl_custom_placeholder", _manifests())
 
+    def test_canonical_reconstruction_restores_source_and_finalizes_migration(self):
+        script = (
+            REPOSITORY_ROOT / "scripts" / "target-reconstruct"
+        ).read_text(encoding="utf-8")
+        ordered_steps = [
+            "scripts/accounting-compat source-restore",
+            "scripts/accounting-compat source-controls",
+            "scripts/accounting-compat extract",
+            "scripts/accounting-compat dev-reset",
+            "scripts/accounting-compat dev-import",
+            "scripts/accounting-compat dev-validate",
+            "scripts/project-restore all",
+            "scripts/tese-restore all",
+            "scripts/accounting-restore finalize",
+            "scripts/target-finalize",
+        ]
+
+        positions = [script.index(step) for step in ordered_steps]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_project_restore_declares_temporary_accounting_dependency(self):
+        manifest = ast.literal_eval(
+            (
+                REPOSITORY_ROOT
+                / "migration/project_restore/addons/usl_project_restore/__manifest__.py"
+            ).read_text(encoding="utf-8"),
+        )
+        self.assertIn("usl_accounting_restore", manifest["depends"])
+        self.assertNotIn("rebuild_account_migration", manifest["depends"])
+
+        project_script = (REPOSITORY_ROOT / "scripts/project-restore").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("/mnt/accounting-migration-addons", project_script)
+
+        project_traces = (
+            REPOSITORY_ROOT
+            / "migration/project_restore/addons/usl_project_restore/models/trace_models.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("usl.accounting.restore.source.mixin", project_traces)
+        self.assertNotIn("rebuild.source.trace.mixin", project_traces)
+
+    def test_tese_restore_declares_temporary_accounting_dependency(self):
+        manifest = ast.literal_eval(
+            (
+                REPOSITORY_ROOT
+                / "migration/tese_restore/addons/usl_tese_restore/__manifest__.py"
+            ).read_text(encoding="utf-8"),
+        )
+        self.assertIn("usl_accounting_restore", manifest["depends"])
+        self.assertNotIn("rebuild_account_migration", manifest["depends"])
+
+        tese_script = (REPOSITORY_ROOT / "scripts/tese-restore").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("/mnt/accounting-migration-addons", tese_script)
+        self.assertIn("TESE_RESTORE_DEFER_PRODUCT_VALIDATE", tese_script)
+
 
 if __name__ == "__main__":
     unittest.main()

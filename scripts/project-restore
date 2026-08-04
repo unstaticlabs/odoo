@@ -6,7 +6,7 @@ command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
 target_database="${PROJECT_TARGET_DATABASE:-odoo_dev}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
-migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons"
+migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons"
 
 source_snapshot() {
     local dump_path="$source_dump_dir/dump.sql"
@@ -140,7 +140,9 @@ finalize_projects() {
         --database="$target_database" \
         --shell-interface=python \
         < migration/project_restore/addons/usl_project_restore/scripts/finalize_restore.py
-    validate_product_boundary
+    if [[ "${PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE:-0}" != "1" ]]; then
+        validate_product_boundary
+    fi
 }
 
 validate_product_boundary() {

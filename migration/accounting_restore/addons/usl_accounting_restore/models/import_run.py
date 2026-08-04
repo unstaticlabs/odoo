@@ -103,7 +103,7 @@ class RebuildAccountImportRun(models.Model):
             "company_id": company.id,
             "source_company_id": 1,
             "currency_id": company.currency_id.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "value_kind": "benchmark_acceptance_anchor",
             "amount": 1960.00,
             "source_key": "benchmark_tax_package_2025_09_30:deductible_vat_goods_services",
@@ -724,15 +724,15 @@ class RebuildAccountImportRun(models.Model):
         if "tax report" in normalized or "rapport de taxes" in normalized or "déclaration fiscale" in normalized:
             return f"{module}.action_rebuild_account_tax_report_line"
         if "deferred expense" in normalized or "charges constatées d'avance" in normalized:
-            return f"{module}.action_rebuild_account_deferred_expense_line"
+            return f"{module}.action_rebuild_interactive_deferred_schedule"
         if "deferred revenue" in normalized or "produits constatés d'avance" in normalized:
-            return f"{module}.action_rebuild_account_deferred_revenue_line"
+            return f"{module}.action_rebuild_interactive_deferred_schedule"
         if "depreciation" in normalized or "amortissement" in normalized:
-            return f"{module}.action_rebuild_account_asset_depreciation_schedule_line"
+            return f"{module}.action_rebuild_interactive_depreciation_schedule"
         if "group by: account" in normalized or "regrouper par : compte" in normalized:
-            return f"{module}.action_rebuild_account_asset_group_account"
+            return f"{module}.action_rebuild_account_report_export_fixed_asset_group_account"
         if "asset group" in normalized or "immobilisations" in normalized:
-            return f"{module}.action_rebuild_account_asset"
+            return f"{module}.action_rebuild_interactive_fixed_assets"
         if "balance sheet" in normalized or "bilan comptable" in normalized or normalized.strip() == "bilan":
             if country_code == "FR" or "bilan comptable" in normalized:
                 return f"{module}.action_rebuild_account_french_balance_sheet_line"
@@ -3676,12 +3676,21 @@ class RebuildAccountImportRun(models.Model):
             ], limit=1)
             return "hr.expense", target
         if row["res_model"] == "account.asset":
-            target = self.env["rebuild.account.asset"].with_context(active_test=False).search([
+            target = self.env["account.asset"].with_context(active_test=False).search([
+                ("rebuild_source_model", "=", "account.asset"),
+                ("rebuild_source_id", "=", row["res_id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            if target:
+                return "account.asset", target
+            snapshot = self.env["rebuild.account.asset"].with_context(
+                active_test=False,
+            ).search([
                 ("rebuild_source_model", "=", "account_asset"),
                 ("rebuild_source_id", "=", row["res_id"]),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
             ], limit=1)
-            return "rebuild.account.asset", target
+            return "rebuild.account.asset", snapshot
         return None, self.env["ir.attachment"]
 
     def _import_attachments(self, conn, options, companies, rows=None):
@@ -4559,11 +4568,11 @@ class RebuildAccountImportRun(models.Model):
                     ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
                 ], limit=1)
                 historical_payment = Payment.with_context(
-                    usl_import_no_ledger_payment=True,
+                    usl_historical_payment_maintenance=True,
                 )
                 if payment:
                     payment.with_context(
-                        usl_import_no_ledger_payment=True,
+                        usl_historical_payment_maintenance=True,
                     ).write(vals)
                 else:
                     payment = historical_payment.create(vals)
@@ -9020,15 +9029,6 @@ class RebuildAccountImportRun(models.Model):
                 if company.rebuild_declaration_profile_active:
                     declarations = self.env["rebuild.account.declaration"].sync_for_company(company)
                     if company.rebuild_source_id == 1:
-                        current_ca12 = declarations.filtered(
-                            lambda declaration: declaration.rule_id.code == "FR_3517_S"
-                            and declaration.fiscalyear_start >= date(2025, 10, 1),
-                        ).sorted("fiscalyear_end", reverse=True)[:1]
-                        if options.get(
-                            "classify_confirmed_vat_refund",
-                            True,
-                        ):
-                            current_ca12.action_classify_confirmed_vat_refund()
                         declarations.action_refresh_preparation()
                     self.env["rebuild.account.closing.period"].sync_for_company(company)
 
@@ -9058,12 +9058,12 @@ class RebuildAccountImportRun(models.Model):
 
             vat_deductible_line = self.env["rebuild.account.french.tax.package.line"].search([
                 ("source_company_id", "=", 1),
-                ("period_key", "=", "USL benchmark 2024-01-10 to 2025-09-30"),
+                ("period_key", "=", "Fiscal year 2024-01-10 to 2025-09-30"),
                 ("field_code", "=", "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660"),
             ], limit=1)
             vat_external_value = self.env["rebuild.account.external.report.value"].search([
                 ("company_id", "=", vat_deductible_line.company_id.id if vat_deductible_line else False),
-                ("period_key", "=", "USL benchmark 2024-01-10 to 2025-09-30"),
+                ("period_key", "=", "Fiscal year 2024-01-10 to 2025-09-30"),
                 ("form_code", "=", "3517-S-SD"),
                 ("field_code", "=", "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660"),
                 ("value_kind", "=", "benchmark_acceptance_anchor"),

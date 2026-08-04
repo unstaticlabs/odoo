@@ -18,7 +18,6 @@ from .report_definition import (
 
 ACCOUNT_CODE_SQL = (
     "COALESCE("
-    "account.code_store->>company.rebuild_source_id::text, "
     "account.code_store->>company.id::text, "
     "account.code_store->>'1', "
     "account.code_store::text"
@@ -198,18 +197,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         string="Companies",
         default=lambda self: self.env.company,
     )
-    data_scope = fields.Selection(
-        [
-            ("native", "All Native Accounting"),
-            ("imported", "Imported Historical Replay Only"),
-        ],
-        required=True,
-        default="native",
-        help=(
-            "All Native Accounting is the operational report scope. "
-            "Imported Historical Replay Only is an advanced audit scope."
-        ),
-    )
     period_preset = fields.Selection(
         [
             ("custom", "Custom Dates"),
@@ -225,7 +212,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         string="Period Containing",
         default=fields.Date.context_today,
     )
-    date_from = fields.Date(required=True, default="2024-01-10")
+    date_from = fields.Date(
+        required=True,
+        default=lambda self: date(fields.Date.context_today(self).year, 1, 1),
+    )
     date_to = fields.Date(required=True, default=fields.Date.context_today)
     comparison_mode = fields.Selection(
         [
@@ -400,7 +390,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "report_type": report_type,
                 "company_id": requested_company.id,
                 "company_ids": [Command.set([requested_company.id])],
-                "data_scope": "native",
                 "period_preset": "fiscal_year",
                 "period_anchor_date": today,
                 "date_from": fiscal_from,
@@ -1643,8 +1632,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ("state", "=", "draft"),
             ("line_ids", "!=", False),
         ]
-        if self.data_scope == "imported":
-            domain.append(("rebuild_source_model", "=", "account.move"))
         count = self.env["account.move"].search_count(domain)
         if not count:
             return 0, ""
@@ -1669,7 +1656,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.report_type == "analytic_report":
             return {
                 "type": "ir.actions.act_window",
-                "name": "Imported Analytic Lines",
+                "name": "Analytic Lines",
                 "res_model": "account.analytic.line",
                 "view_mode": "list,form,pivot",
                 "views": [
@@ -1682,7 +1669,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             }
         return {
             "type": "ir.actions.act_window",
-            "name": "Imported Journal Items",
+            "name": "Journal Items",
             "res_model": "account.move.line",
             "view_mode": "list,form,pivot",
             "views": [
@@ -1699,7 +1686,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "multi-company"
             if len(self._selected_companies()) > 1
             else str(
-                self.company_id.rebuild_source_id
+                self.company_id.id
                 or self.company_id.id,
             )
         )
@@ -1963,11 +1950,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         ]
         if self.report_type != "trial_balance":
             domain.append(("move_id.date", ">=", self.date_from))
-        if self.data_scope == "imported":
-            domain.extend([
-                ("rebuild_source_model", "=", "account.move.line"),
-                ("move_id.rebuild_source_model", "=", "account.move"),
-            ])
         if self.target_move == "posted":
             domain.append(("move_id.state", "=", "posted"))
         if self.journal_ids:
@@ -2004,16 +1986,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ("currency_id", "!=", self.company_id.currency_id.id),
             ])
         elif self.report_type == "deferred_schedule":
-            schedules = self.env["rebuild.account.deferred.schedule.line"].search([
+            schedules = self.env["rebuild.account.deferral.line"].search([
                 ("company_id", "=", self.company_id.id),
-                ("deferred_date", ">=", self.date_from),
-                ("deferred_date", "<=", self.date_to),
+                ("date", ">=", self.date_from),
+                ("date", "<=", self.date_to),
             ])
-            source_move_ids = sorted(set(
-                schedules.mapped("source_original_move_id")
-                + schedules.mapped("source_deferred_move_id"),
-            ))
-            domain.append(("move_id.rebuild_source_id", "in", source_move_ids or [0]))
+            move_ids = (schedules.move_id | schedules.deferral_id.original_move_id).ids
+            domain.append(("move_id", "in", move_ids or [0]))
         return domain
 
     def _analytic_line_domain(self, company_ids=None):
@@ -2027,10 +2006,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ("date", ">=", self.date_from),
             ("date", "<=", self.date_to),
         ]
-        if self.data_scope == "imported":
-            domain.append(
-                ("rebuild_source_model", "=", "account.analytic.line"),
-            )
         if self.journal_ids:
             domain.append(("move_line_id.journal_id", "in", self.journal_ids.ids))
         if self.account_ids:
@@ -2068,8 +2043,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 and source_move_id
             ):
                 move = self.env["account.move"].search([
-                    ("rebuild_source_model", "=", "account.move"),
-                    ("rebuild_source_id", "=", source_move_id),
+                    ("id", "=", source_move_id),
                 ], limit=1)
                 if move:
                     return {
@@ -2082,8 +2056,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     }
             source_asset_id = self._row_int(row, "source_asset_id")
             asset = self.env["account.asset"].search([
-                ("rebuild_source_model", "=", "account.asset"),
-                ("rebuild_source_id", "=", source_asset_id),
+                ("id", "=", source_asset_id),
             ], limit=1)
             if asset:
                 return {
@@ -2139,7 +2112,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         source_line_id = self._row_int(row, "source_line_id")
         if source_line_id:
-            domain.append(("rebuild_source_id", "=", source_line_id))
+            domain.append(("id", "=", source_line_id))
             refinements.append("source_line_id")
 
         source_move_ids = self._row_int_values(
@@ -2150,17 +2123,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "source_deferred_move_id",
         )
         if source_move_ids:
-            domain.append(("move_id.rebuild_source_id", "in", source_move_ids))
+            domain.append(("move_id", "in", source_move_ids))
             refinements.append("source_move_id")
 
         source_statement_line_id = self._row_int(row, "source_statement_line_id")
         if source_statement_line_id:
-            domain.append(("move_id.statement_line_id.rebuild_source_id", "=", source_statement_line_id))
+            domain.append(("move_id.statement_line_id", "=", source_statement_line_id))
             refinements.append("source_statement_line_id")
 
         source_partner_id = self._row_int(row, "source_partner_id")
         if source_partner_id:
-            domain.append(("partner_id.rebuild_source_id", "=", source_partner_id))
+            domain.append(("partner_id", "=", source_partner_id))
             refinements.append("source_partner_id")
         elif row.get("partner_name"):
             domain.append(("partner_id.name", "=", row["partner_name"]))
@@ -2178,7 +2151,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         source_tax_tag_id = self._row_int(row, "source_tax_tag_id")
         if source_tax_tag_id:
             tax_tag = self.env["account.account.tag"].search([
-                ("rebuild_source_id", "=", source_tax_tag_id),
+                ("id", "=", source_tax_tag_id),
             ], limit=1)
             domain.append(("tax_tag_ids", "in", tax_tag.ids or [0]))
             refinements.append("tax_tag")
@@ -2225,31 +2198,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
         analytic_key = self._row_int(row, "analytic_key")
         if analytic_key:
-            if self.data_scope == "imported":
-                domain.append(
-                    (
-                        "rebuild_source_analytic_account_id",
-                        "=",
-                        analytic_key,
-                    ),
-                )
-            else:
-                domain.extend([
-                    "|",
-                    ("account_id", "=", analytic_key),
-                    (
-                        "rebuild_source_analytic_account_id",
-                        "=",
-                        analytic_key,
-                    ),
-                ])
+            domain.append(("account_id", "=", analytic_key))
         elif row.get("analytic_name"):
             domain.append(
                 ("account_id.name", "=", row["analytic_name"]),
             )
         source_partner_id = self._row_int(row, "source_partner_id")
         if source_partner_id:
-            domain.append(("partner_id.rebuild_source_id", "=", source_partner_id))
+            domain.append(("partner_id", "=", source_partner_id))
         source_account_ids = self._row_int_values(row, "source_account_id")
         accounts = self._preview_accounts(row, source_account_ids=source_account_ids)
         if accounts:
@@ -2264,7 +2220,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if source_account_ids:
             accounts |= Account.search([
                 ("company_ids", "in", self.company_id.id),
-                ("rebuild_source_id", "in", source_account_ids),
+                ("id", "in", source_account_ids),
             ])
         exact_codes = {
             code
@@ -2311,7 +2267,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _account_code_for_company(self, account):
         code_store = account.code_store
         if isinstance(code_store, dict):
-            source_company_id = str(self.company_id.rebuild_source_id or "")
+            source_company_id = str(self.company_id.id or "")
             return (
                 code_store.get(source_company_id)
                 or code_store.get("1")
@@ -2362,7 +2318,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 " ".join(filter(None, [partner.zip, partner.city])),
                 partner.country_id.name,
             ])),
-            "source_company_id": self.company_id.rebuild_source_id,
+            "source_company_id": self.company_id.id,
             "date_from": fields.Date.to_string(self.date_from),
             "date_to": fields.Date.to_string(self.date_to),
             "currency": self.company_id.currency_id.name,
@@ -2382,7 +2338,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ),
             "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "target_move": self.target_move,
-            "data_scope": self.data_scope,
             "period_preset": self.period_preset,
             "comparison_mode": self.comparison_mode,
             "comparison_date_from": (
@@ -2413,7 +2368,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "journal_filter": [
                 {
                     "id": journal.id,
-                    "source_id": journal.rebuild_source_id,
+                    "source_id": journal.id,
                     "code": journal.code,
                     "name": journal.display_name,
                 }
@@ -2422,7 +2377,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "account_filter": [
                 {
                     "id": account.id,
-                    "source_id": account.rebuild_source_id,
+                    "source_id": account.id,
                     "name": account.display_name,
                 }
                 for account in self.account_ids.sorted("display_name")
@@ -2430,7 +2385,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "partner_filter": [
                 {
                     "id": partner.id,
-                    "source_id": partner.rebuild_source_id,
+                    "source_id": partner.id,
                     "name": partner.display_name,
                 }
                 for partner in self.partner_ids.sorted("display_name")
@@ -4051,7 +4006,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "report_type": self.report_type,
             "company_id": company.id,
             "company_ids": [Command.set([company.id])],
-            "data_scope": self.data_scope,
             "period_preset": "custom",
             "date_from": date_from,
             "date_to": date_to,
@@ -4658,28 +4612,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return "" if self.target_move == "all" else "AND move.state = 'posted'"
 
     def _ledger_scope_sql(self):
-        if self.data_scope == "imported":
-            return (
-                "AND line.rebuild_source_model = 'account.move.line' "
-                "AND move.rebuild_source_model = 'account.move'"
-            )
         return ""
 
     def _bank_scope_sql(self):
-        if self.data_scope == "imported":
-            return (
-                "AND bsl.rebuild_source_model = "
-                "'account.bank.statement.line' "
-                "AND move.rebuild_source_model = 'account.move'"
-            )
         return ""
 
     def _analytic_scope_sql(self):
-        if self.data_scope == "imported":
-            return (
-                "AND analytic.rebuild_source_model = "
-                "'account.analytic.line'"
-            )
         return ""
 
     def _validate_filter_scope(self, for_drilldown=False):
@@ -4891,28 +4829,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         clauses = []
         params = []
         if self.journal_ids:
-            clauses.append("AND schedule.journal_id IN %s")
+            clauses.append("AND deferral.journal_id IN %s")
             params.append(tuple(self.journal_ids.ids))
         if self.partner_ids:
             clauses.append("AND schedule.partner_id IN %s")
             params.append(tuple(self.partner_ids.ids))
         if self.account_ids:
-            account_codes = [
-                account.code_store.get(str(self.company_id.rebuild_source_id))
-                or account.code_store.get("1")
-                or next(iter(account.code_store.values()), "")
-                if isinstance(account.code_store, dict)
-                else str(account.code_store or "")
-                for account in self.account_ids
-            ]
-            code_clauses = []
-            for code in account_codes:
-                if not code:
-                    continue
-                code_clauses.append("(schedule.deferred_account_code LIKE %s OR schedule.counterpart_account_codes LIKE %s)")
-                params.extend([f"%{code}%", f"%{code}%"])
-            if code_clauses:
-                clauses.append("AND (" + " OR ".join(code_clauses) + ")")
+            account_ids = tuple(self.account_ids.ids)
+            clauses.append(
+                "AND (deferral.deferral_account_id IN %s "
+                "OR schedule.recognition_account_id IN %s)"
+            )
+            params.extend([account_ids, account_ids])
         return "\n               ".join(clauses), params
 
     def _closing_package_rows(self):
@@ -5030,7 +4958,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    {ACCOUNT_NAME_SQL} AS account_name,
                    account.id::text AS account_id,
                    account.account_type AS account_type,
-                   account.rebuild_source_id::text AS source_account_id,
+                   account.id::text AS source_account_id,
                    count(line.id) FILTER (
                        WHERE move.date BETWEEN %s AND %s
                    )::text AS move_line_count,
@@ -5078,7 +5006,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
-             GROUP BY account.id, company.rebuild_source_id, {ACCOUNT_CODE_SQL}, {ACCOUNT_NAME_SQL}, account.account_type, account.rebuild_source_id
+             GROUP BY account.id, company.id, {ACCOUNT_CODE_SQL}, {ACCOUNT_NAME_SQL}, account.account_type, account.id
              ORDER BY {ACCOUNT_CODE_SQL}
             """,
             [
@@ -5128,8 +5056,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    journal.code AS journal_code,
                    move.name AS move_name,
                    move.ref AS move_ref,
-                   line.rebuild_source_id::text AS source_line_id,
-                   move.rebuild_source_id::text AS source_move_id,
+                   line.id::text AS source_line_id,
+                   move.id::text AS source_move_id,
                    COALESCE(partner.name::text, '') AS partner_name,
                    COALESCE(line.name::text, '') AS label,
                    round(line.debit::numeric, 2)::text AS debit,
@@ -5150,7 +5078,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
-             ORDER BY {ACCOUNT_CODE_SQL}, move.date, move.name, line.rebuild_source_id
+             ORDER BY {ACCOUNT_CODE_SQL}, move.date, move.name, line.id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
@@ -5211,14 +5139,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self.env.cr.execute(
             f"""
             SELECT COALESCE(partner.name::text, '') AS partner_name,
-                   COALESCE(partner.rebuild_source_id::text, '') AS source_partner_id,
+                   COALESCE(partner.id::text, '') AS source_partner_id,
                    move.date::text AS date,
                    COALESCE(line.date_maturity::text, '') AS due_date,
                    journal.code AS journal_code,
                    move.name AS move_name,
                    move.ref AS move_ref,
-                   line.rebuild_source_id::text AS source_line_id,
-                   move.rebuild_source_id::text AS source_move_id,
+                   line.id::text AS source_line_id,
+                   move.id::text AS source_move_id,
                    {ACCOUNT_CODE_SQL} AS account_code,
                    {ACCOUNT_NAME_SQL} AS account_name,
                    account.account_type AS account_type,
@@ -5230,7 +5158,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    round(
                        sum(line.balance) OVER (
                            PARTITION BY partner.id
-                           ORDER BY move.date, move.name, line.rebuild_source_id
+                           ORDER BY move.date, move.name, line.id
                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
                        )::numeric,
                        2
@@ -5253,7 +5181,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
-             ORDER BY partner.name, move.date, move.name, line.rebuild_source_id
+             ORDER BY partner.name, move.date, move.name, line.id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
@@ -5269,7 +5197,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    {ACCOUNT_NAME_SQL} AS account_name,
                    account.account_type AS account_type,
                    move.name AS move_name,
-                   line.rebuild_source_id::text AS source_line_id,
+                   line.id::text AS source_line_id,
                    COALESCE(partner.name::text, '') AS partner_name,
                    round(line.amount_residual::numeric, 2)::text AS residual,
                    CASE
@@ -5289,7 +5217,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
-             ORDER BY line.date_maturity, partner.name, move.name, line.rebuild_source_id
+             ORDER BY line.date_maturity, partner.name, move.name, line.id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
@@ -5303,7 +5231,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"""
             WITH open_lines AS (
                 SELECT COALESCE(partner.name::text, '') AS partner_name,
-                       COALESCE(partner.rebuild_source_id::text, '') AS source_partner_id,
+                       COALESCE(partner.id::text, '') AS source_partner_id,
                        (%s::date - COALESCE(line.date_maturity, move.date)) AS age_days,
                        ({sign_sql})::numeric AS residual
                   FROM account_move_line line
@@ -5467,9 +5395,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"""
             WITH tax_grid_lines AS (
                 SELECT 'Tax grid tags' AS report_section,
-                       tag.rebuild_source_id AS source_tax_tag_id,
+                       tag.id AS source_tax_tag_id,
                        COALESCE(tag.name->>'fr_FR', tag.name->>'en_US', tag.name::text) AS tax_tag_name,
-                       account.rebuild_source_id AS source_account_id,
+                       account.id AS source_account_id,
                        {ACCOUNT_CODE_SQL} AS account_code,
                        {ACCOUNT_NAME_SQL} AS account_name,
                        count(line.id) AS move_line_count,
@@ -5488,9 +5416,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
-                 GROUP BY tag.rebuild_source_id,
+                 GROUP BY tag.id,
                           COALESCE(tag.name->>'fr_FR', tag.name->>'en_US', tag.name::text),
-                          account.rebuild_source_id,
+                          account.id,
                           {ACCOUNT_CODE_SQL},
                           {ACCOUNT_NAME_SQL}
             ),
@@ -5498,7 +5426,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 SELECT 'VAT accounts' AS report_section,
                        NULL::integer AS source_tax_tag_id,
                        NULL::text AS tax_tag_name,
-                       account.rebuild_source_id AS source_account_id,
+                       account.id AS source_account_id,
                        {ACCOUNT_CODE_SQL} AS account_code,
                        {ACCOUNT_NAME_SQL} AS account_name,
                        count(line.id) AS move_line_count,
@@ -5516,7 +5444,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
-                 GROUP BY account.rebuild_source_id,
+                 GROUP BY account.id,
                           {ACCOUNT_CODE_SQL},
                           {ACCOUNT_NAME_SQL}
             ),
@@ -5562,15 +5490,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _eu_tax_report_rows(self):
         period_keys = []
-        if self.company_id.rebuild_source_id == 8:
-            period_keys.append("USL Media full posted replay")
+        if self.company_id.id == 8:
+            period_keys.append("All posted accounting")
         else:
             if fields.Date.to_date(self.date_from) <= fields.Date.to_date("2025-09-30"):
-                period_keys.append("USL benchmark 2024-01-10 to 2025-09-30")
+                period_keys.append("Fiscal year 2024-01-10 to 2025-09-30")
             if fields.Date.to_date(self.date_to) >= fields.Date.to_date("2025-10-01"):
-                period_keys.append("USL current from 2025-10-01")
+                period_keys.append("Fiscal year from 2025-10-01")
         if not period_keys:
-            period_keys = ["Other imported posted replay"]
+            period_keys = ["Other posted accounting"]
         clauses = [
             "company_id = %s",
             "report_type = %s",
@@ -5621,7 +5549,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             SELECT move.date::text AS date,
                    journal.code AS journal_code,
                    move.name AS move_name,
-                   bsl.rebuild_source_id::text AS source_statement_line_id,
+                   bsl.id::text AS source_statement_line_id,
                    COALESCE(bsl.payment_ref::text, '') AS payment_ref,
                    COALESCE(partner.name::text, bsl.partner_name::text, '') AS partner_name,
                    COALESCE(bsl.transaction_type::text, '') AS transaction_type,
@@ -5655,7 +5583,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                       move.date,
                       journal.code,
                       move.name,
-                      bsl.rebuild_source_id,
+                      bsl.id,
                       bsl.payment_ref,
                       COALESCE(partner.name::text, bsl.partner_name::text, ''),
                       bsl.transaction_type,
@@ -5667,7 +5595,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                       bsl.amount_currency,
                       bsl.amount_residual,
                       bsl.is_reconciled
-             ORDER BY journal.code, move.date, bsl.rebuild_source_id
+             ORDER BY journal.code, move.date, bsl.id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
@@ -6280,8 +6208,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"""
             WITH analytic_lines AS (
                 SELECT COALESCE(
-                           analytic_account.rebuild_source_id::text,
-                           analytic.rebuild_source_analytic_account_id::text,
+                           analytic_account.id::text,
+                           analytic.account_id::text,
                            analytic_account.id::text,
                            ''
                        ) AS analytic_key,
@@ -6296,7 +6224,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   LEFT JOIN account_analytic_account analytic_account
                     ON analytic_account.id = COALESCE(
                         analytic.account_id,
-                        analytic.rebuild_analytic_account_id
+                        analytic.account_id
                     )
                   LEFT JOIN account_account account ON account.id = analytic.general_account_id
                   LEFT JOIN account_move_line line ON line.id = analytic.move_line_id
@@ -6349,7 +6277,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     ON depreciation_move.id = schedule.move_id
                  GROUP BY asset.id
             )
-            SELECT asset.rebuild_source_id::text AS source_asset_id,
+            SELECT asset.id::text AS source_asset_id,
                    asset.name,
                    asset.name AS asset_name,
                    COALESCE(asset.date_start::text, '') AS acquisition_date,
@@ -6362,11 +6290,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                        asset.purchase_value
                        - asset_values.accumulated_depreciation
                    )::numeric, 2)::text AS imported_period_net_value,
-                   round(asset.rebuild_source_book_value::numeric, 2)::text AS source_book_value,
-                   COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS asset_account,
-                   COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
-                   COALESCE(depreciation_account.code_store->>company.rebuild_source_id::text, depreciation_account.code_store->>'1', depreciation_account.code_store::text, '') AS depreciation_account,
-                   COALESCE(expense_account.code_store->>company.rebuild_source_id::text, expense_account.code_store->>'1', expense_account.code_store::text, '') AS depreciation_expense_account
+                   round(asset.value_residual::numeric, 2)::text AS source_book_value,
+                   COALESCE(asset_account.code_store->>company.id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS asset_account,
+                   COALESCE(asset_account.code_store->>company.id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
+                   COALESCE(depreciation_account.code_store->>company.id::text, depreciation_account.code_store->>'1', depreciation_account.code_store::text, '') AS depreciation_account,
+                   COALESCE(expense_account.code_store->>company.id::text, expense_account.code_store->>'1', expense_account.code_store::text, '') AS depreciation_expense_account
               FROM account_asset asset
               JOIN res_company company ON company.id = asset.company_id
               JOIN account_asset_profile profile ON profile.id = asset.profile_id
@@ -6375,10 +6303,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               LEFT JOIN account_account depreciation_account ON depreciation_account.id = profile.account_depreciation_id
               LEFT JOIN account_account expense_account ON expense_account.id = profile.account_expense_depreciation_id
              WHERE asset.company_id = %s
-               AND asset.rebuild_source_model = 'account.asset'
                AND asset.date_start <= %s
                {filter_sql}
-             ORDER BY asset.rebuild_source_id
+             ORDER BY asset.id
             """,
             [
                 self.date_to,
@@ -6413,11 +6340,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     ON depreciation_move.id = schedule.move_id
                  GROUP BY asset.id
             )
-            SELECT asset_account.rebuild_source_id::text AS source_account_id,
-                   COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
+            SELECT asset_account.id::text AS source_account_id,
+                   COALESCE(asset_account.code_store->>company.id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
                    COALESCE(asset_account.name->>'fr_FR', asset_account.name->>'en_US', asset_account.name::text, '') AS account_name,
                    count(asset.id)::text AS asset_count,
-                   string_agg(asset.name, '; ' ORDER BY asset.rebuild_source_id) AS asset_names,
+                   string_agg(asset.name, '; ' ORDER BY asset.id) AS asset_names,
                    round(sum(asset.purchase_value)::numeric, 2)::text AS original_value,
                    round(sum(asset_values.accumulated_depreciation)::numeric, 2)::text AS accumulated_depreciation,
                    round(sum(asset_values.accumulated_depreciation)::numeric, 2)::text AS depreciation_amount,
@@ -6425,19 +6352,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                        asset.purchase_value
                        - asset_values.accumulated_depreciation
                    )::numeric, 2)::text AS imported_period_net_value,
-                   round(sum(asset.rebuild_source_book_value)::numeric, 2)::text AS source_book_value
+                   round(sum(asset.value_residual)::numeric, 2)::text AS source_book_value
               FROM account_asset asset
               JOIN res_company company ON company.id = asset.company_id
               JOIN account_asset_profile profile ON profile.id = asset.profile_id
               JOIN asset_values ON asset_values.id = asset.id
               LEFT JOIN account_account asset_account ON asset_account.id = profile.account_asset_id
              WHERE asset.company_id = %s
-               AND asset.rebuild_source_model = 'account.asset'
                AND asset.date_start <= %s
                {filter_sql}
              GROUP BY asset_account.id,
-                      asset_account.rebuild_source_id,
-                      COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, ''),
+                      asset_account.id,
+                      COALESCE(asset_account.code_store->>company.id::text, asset_account.code_store->>'1', asset_account.code_store::text, ''),
                       COALESCE(asset_account.name->>'fr_FR', asset_account.name->>'en_US', asset_account.name::text, '')
              ORDER BY account_code
             """,
@@ -6454,12 +6380,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         filter_sql, filter_params = self._asset_account_filter_sql()
         self.env.cr.execute(
             f"""
-            SELECT asset.rebuild_source_id::text AS source_asset_id,
+            SELECT asset.id::text AS source_asset_id,
                    asset.name AS asset_name,
                    schedule.line_date::text AS depreciation_date,
-                   schedule.rebuild_source_id::text AS source_move_id,
-                   COALESCE(schedule.rebuild_source_move_name::text, '') AS source_move_name,
-                   COALESCE(schedule.rebuild_source_state::text, '') AS source_move_state,
+                   schedule.id::text AS source_move_id,
+                   COALESCE(imported_move.name::text, '') AS source_move_name,
+                   COALESCE(imported_move.state::text, '') AS source_move_state,
                    CASE
                        WHEN imported_move.state = 'posted' THEN 'Posted'
                        WHEN imported_move.id IS NOT NULL THEN 'Draft entry'
@@ -6478,17 +6404,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    round(schedule.remaining_value::numeric, 2)::text AS net_book_value_after_line,
                    round(schedule.remaining_value::numeric, 2)::text AS imported_period_net_value,
                    COALESCE(imported_move.name::text, '') AS imported_move_name,
-                   COALESCE(imported_move.rebuild_source_id::text, '') AS imported_source_move_id
+                   COALESCE(imported_move.id::text, '') AS imported_source_move_id
               FROM account_asset_line schedule
               JOIN account_asset asset ON asset.id = schedule.asset_id
               JOIN account_asset_profile profile ON profile.id = asset.profile_id
               LEFT JOIN account_move imported_move ON imported_move.id = schedule.move_id
              WHERE asset.company_id = %s
-               AND schedule.rebuild_source_model
-                   = 'account.move.asset_depreciation_schedule'
                AND schedule.line_date BETWEEN %s AND %s
                {filter_sql}
-             ORDER BY asset.rebuild_source_id, schedule.line_date, schedule.rebuild_source_id
+             ORDER BY asset.id, schedule.line_date, schedule.id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
@@ -6498,38 +6422,42 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         filter_sql, filter_params = self._deferred_schedule_filter_sql()
         self.env.cr.execute(
             f"""
-            SELECT schedule.source_original_move_id::text AS source_original_move_id,
-                   schedule.source_deferred_move_id::text AS source_deferred_move_id,
-                   COALESCE(schedule.source_original_name::text, '') AS source_original_name,
-                   COALESCE(schedule.source_deferred_name::text, '') AS source_deferred_name,
-                   schedule.source_original_state,
-                   schedule.source_deferred_state,
-                   schedule.source_original_move_type,
-                   schedule.source_deferred_move_type,
-                   schedule.original_date::text AS original_date,
-                   schedule.deferred_date::text AS deferred_date,
-                   COALESCE(schedule.deferred_start_date::text, '') AS deferred_start_date,
-                   COALESCE(schedule.deferred_end_date::text, '') AS deferred_end_date,
-                   schedule.schedule_type,
-                   schedule.schedule_phase,
-                   schedule.representation_status,
-                   schedule.review_status,
-                   COALESCE(schedule.deferred_account_code::text, '') AS deferred_account_code,
-                   COALESCE(schedule.deferred_account_name::text, '') AS deferred_account_name,
-                   COALESCE(schedule.counterpart_account_codes::text, '') AS counterpart_account_codes,
-                   COALESCE(schedule.counterpart_account_names::text, '') AS counterpart_account_names,
-                   round(schedule.amount::numeric, 2)::text AS amount,
-                   round(schedule.deferred_account_balance::numeric, 2)::text AS deferred_account_balance,
-                   round(schedule.counterpart_balance::numeric, 2)::text AS counterpart_balance,
+            SELECT deferral.original_move_id::text AS source_original_move_id,
+                   COALESCE(schedule.move_id, 0)::text AS source_deferred_move_id,
+                   COALESCE(original_move.name::text, '') AS source_original_name,
+                   COALESCE(deferred_move.name::text, '') AS source_deferred_name,
+                   original_move.state AS source_original_state,
+                   COALESCE(deferred_move.state, 'draft') AS source_deferred_state,
+                   original_move.move_type AS source_original_move_type,
+                   COALESCE(deferred_move.move_type, 'entry') AS source_deferred_move_type,
+                   original_move.date::text AS original_date,
+                   schedule.date::text AS deferred_date,
+                   deferral.start_date::text AS deferred_start_date,
+                   deferral.end_date::text AS deferred_end_date,
+                   deferral.schedule_type,
+                   schedule.phase AS schedule_phase,
+                   CASE WHEN schedule.state = 'posted' THEN 'posted' ELSE 'scheduled' END AS representation_status,
+                   CASE WHEN schedule.state = 'posted' THEN 'represented' ELSE 'review_required' END AS review_status,
+                   COALESCE(deferral_account.code_store->>company.id::text, deferral_account.code_store->>'1', deferral_account.code_store::text, '') AS deferred_account_code,
+                   COALESCE(deferral_account.name->>'fr_FR', deferral_account.name->>'en_US', deferral_account.name::text, '') AS deferred_account_name,
+                   COALESCE(recognition_account.code_store->>company.id::text, recognition_account.code_store->>'1', recognition_account.code_store::text, '') AS counterpart_account_codes,
+                   COALESCE(recognition_account.name->>'fr_FR', recognition_account.name->>'en_US', recognition_account.name::text, '') AS counterpart_account_names,
+                   round(abs(schedule.recognition_balance)::numeric, 2)::text AS amount,
+                   round(schedule.deferral_balance::numeric, 2)::text AS deferred_account_balance,
+                   round(schedule.recognition_balance::numeric, 2)::text AS counterpart_balance,
                    COALESCE(original_move.name::text, '') AS imported_original_move_name,
                    COALESCE(deferred_move.name::text, '') AS imported_deferred_move_name
-              FROM rebuild_account_deferred_schedule_line schedule
-              LEFT JOIN account_move original_move ON original_move.id = schedule.original_move_id
-              LEFT JOIN account_move deferred_move ON deferred_move.id = schedule.deferred_move_id
+              FROM rebuild_account_deferral_line schedule
+              JOIN rebuild_account_deferral deferral ON deferral.id = schedule.deferral_id
+              JOIN res_company company ON company.id = schedule.company_id
+              JOIN account_move original_move ON original_move.id = deferral.original_move_id
+         LEFT JOIN account_move deferred_move ON deferred_move.id = schedule.move_id
+              JOIN account_account deferral_account ON deferral_account.id = deferral.deferral_account_id
+              JOIN account_account recognition_account ON recognition_account.id = schedule.recognition_account_id
              WHERE schedule.company_id = %s
-               AND schedule.deferred_date BETWEEN %s AND %s
+               AND schedule.date BETWEEN %s AND %s
                {filter_sql}
-             ORDER BY schedule.deferred_date, schedule.source_original_move_id, schedule.source_deferred_move_id
+             ORDER BY schedule.date, deferral.original_move_id, schedule.id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
@@ -7048,7 +6976,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row["account_breakdown"] = breakdown
 
     def _french_tax_package_rows(self):
-        period_key = "USL benchmark 2024-01-10 to 2025-09-30"
+        period_key = "Fiscal year 2024-01-10 to 2025-09-30"
         if fields.Date.to_string(self.date_from) != "2024-01-10" or fields.Date.to_string(self.date_to) != "2025-09-30":
             return []
         self.env.cr.execute(

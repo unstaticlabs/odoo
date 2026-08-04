@@ -1193,7 +1193,7 @@ class AccountMove(models.Model):
         statement_line = facts.get("statement_line")
         if not statement_line:
             return blocked(
-                _("Settle is available only for imported bank transactions."),
+                _("Settle is available only for bank transactions."),
             )
         if statement_line.is_reconciled:
             return blocked(
@@ -2152,7 +2152,7 @@ class AccountMove(models.Model):
         ]
         if current_liquidity_snapshot != original_liquidity_snapshot:
             raise UserError(
-                _("Settlement attempted to change the imported bank liquidity amount."),
+                _("Settlement attempted to change the bank liquidity amount."),
             )
         _liquidity, suspense_lines, other_lines = statement_line._seek_for_lines()
         if suspense_lines or not statement_line.is_reconciled:

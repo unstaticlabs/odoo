@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_restore_import_run,Accounting restore import run,model_rebuild_account_import_run,base.group_system,1,1,1,1
+access_restore_discrepancy,Accounting restore discrepancy,model_rebuild_account_discrepancy,base.group_system,1,1,1,1
+access_restore_source_report,Accounting restore source report,model_rebuild_account_source_report,base.group_system,1,1,1,1
+access_restore_source_report_line,Accounting restore source report line,model_rebuild_account_source_report_line,base.group_system,1,1,1,1
+access_restore_source_report_expression,Accounting restore source report expression,model_rebuild_account_source_report_expression,base.group_system,1,1,1,1
+access_restore_source_report_column,Accounting restore source report column,model_rebuild_account_source_report_column,base.group_system,1,1,1,1
+access_restore_asset_snapshot,Accounting restore asset snapshot,model_rebuild_account_asset,base.group_system,1,1,1,1
+access_restore_asset_line_snapshot,Accounting restore asset line snapshot,model_rebuild_account_asset_depreciation_schedule_line,base.group_system,1,1,1,1
+access_restore_deferred_snapshot,Accounting restore deferred snapshot,model_rebuild_account_deferred_schedule_line,base.group_system,1,1,1,1
+access_restore_analytic_override,Accounting restore analytic override,model_rebuild_account_analytic_override,base.group_system,1,1,1,1

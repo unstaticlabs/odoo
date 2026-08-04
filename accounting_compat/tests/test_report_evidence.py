@@ -1,11 +1,41 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 from accounting_compat import cli
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
 
 class SourceReportParityEvidenceTest(unittest.TestCase):
+    def test_exact_ledger_proof_has_no_source_specific_vat_repair(self):
+        harness = (REPOSITORY_ROOT / "accounting_compat" / "cli.py").read_text(
+            encoding="utf-8",
+        )
+        importer = (
+            REPOSITORY_ROOT
+            / "migration"
+            / "accounting_restore"
+            / "addons"
+            / "usl_accounting_restore"
+            / "models"
+            / "import_run.py"
+        ).read_text(encoding="utf-8")
+        declaration = (
+            REPOSITORY_ROOT
+            / "custom-addons"
+            / "rebuild_account_migration"
+            / "models"
+            / "declaration.py"
+        ).read_text(encoding="utf-8")
+
+        for source in (harness, importer, declaration):
+            self.assertNotIn("classify_confirmed_vat_refund", source)
+            self.assertNotIn("usl_vat_refund_reclassification", source)
+        self.assertNotIn("apply_confirmed_bank_transformations", harness)
+        self.assertNotIn('"confirmed_transformations"', harness)
+
     def test_capability_matrix_applies_final_capability_and_report_controls(self):
         matrix = cli.capability_matrix(
             [

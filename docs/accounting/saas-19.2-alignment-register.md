@@ -235,9 +235,9 @@ The closed benchmark slice currently present in this source dump is 2,046
 posted moves, 4,809 accounting lines, and EUR 1,064,045.02 debit and credit.
 Source and target account, journal, tax, report-structure, reconciliation,
 attachment, analytic, asset, deferral and chronology comparisons all have zero
-unexplained differences. The separately approved EUR 942 DGFiP VAT-refund
-reclassification is the only normalized bank-line difference and its
-source-traced correction control passes.
+unexplained differences. The Online source now records the EUR 942 DGFiP
+VAT-refund reconciliation natively, so the target preserves it unchanged and
+the exact-ledger proof no longer normalizes any bank line.
 
 The first failed target control was useful evidence rather than a waived
 failure. It showed that the old harness expected `account.payment.state =

@@ -24,7 +24,7 @@
     <record id="group_rebuild_accountant_reviewer" model="res.groups">
         <field name="name">USL Accountant Review</field>
         <field name="privilege_id" ref="account.res_groups_privilege_accounting"/>
-        <field name="comment">Read-only accounting review access for imported USL accounting evidence, reports and traceability records.</field>
+        <field name="comment">Read-only access to accounting records, reports, controls and supporting evidence.</field>
         <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
@@ -70,13 +70,6 @@
     <record id="rule_rebuild_account_deferral_line_company" model="ir.rule">
         <field name="name">Deferral schedule lines: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_deferral_line"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
-    </record>
-
-    <record id="rule_rebuild_account_analytic_override_company" model="ir.rule">
-        <field name="name">Analytic corrections: allowed companies only</field>
-        <field name="model_id" ref="model_rebuild_account_analytic_override"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class RebuildAccountSourceReport(models.Model):
     _name = "rebuild.account.source.report"
     _description = "USL Source Accounting Report Catalogue"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = ["usl.accounting.restore.source.mixin"]
     _order = "source_report_id"
 
     name = fields.Char(required=True, index=True)
@@ -127,7 +127,7 @@ class RebuildAccountSourceReport(models.Model):
                 "default_gate": gate,
                 "default_conclusion": conclusion,
                 "default_required_authority": "accountant",
-                "default_period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+                "default_period_key": "Fiscal year 2024-01-10 to 2025-09-30",
                 "default_source_report_id": self.id,
                 "default_import_run_id": self.rebuild_import_run_id.id,
                 "default_evidence_key": self.target_evidence_key,

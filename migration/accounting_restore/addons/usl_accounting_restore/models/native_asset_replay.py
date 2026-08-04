@@ -6,7 +6,7 @@ from odoo import Command, fields, models
 
 class AccountAsset(models.Model):
     _name = "account.asset"
-    _inherit = ["account.asset", "rebuild.source.trace.mixin"]
+    _inherit = ["account.asset", "usl.accounting.restore.source.mixin"]
 
     rebuild_source_depreciation_model_id = fields.Integer(index=True, copy=False)
     rebuild_source_state = fields.Char(index=True, copy=False)
@@ -22,7 +22,7 @@ class AccountAsset(models.Model):
 
 class AccountAssetProfile(models.Model):
     _name = "account.asset.profile"
-    _inherit = ["account.asset.profile", "rebuild.source.trace.mixin"]
+    _inherit = ["account.asset.profile", "usl.accounting.restore.source.mixin"]
 
     rebuild_source_depreciation_model_id = fields.Integer(index=True, copy=False)
     rebuild_source_asset_account_id = fields.Integer(index=True, copy=False)
@@ -30,7 +30,7 @@ class AccountAssetProfile(models.Model):
 
 class AccountAssetLine(models.Model):
     _name = "account.asset.line"
-    _inherit = ["account.asset.line", "rebuild.source.trace.mixin"]
+    _inherit = ["account.asset.line", "usl.accounting.restore.source.mixin"]
 
     rebuild_source_asset_id = fields.Integer(index=True, copy=False)
     rebuild_source_state = fields.Char(index=True, copy=False)
@@ -451,6 +451,26 @@ class RebuildAccountImportRun(models.Model):
             "target_account_totals": target_totals,
         }
 
+    def _native_asset_rehome_attachments(self, options, source_asset_id, asset):
+        snapshot = self.env["rebuild.account.asset"].with_context(
+            active_test=False,
+        ).search([
+            ("rebuild_source_model", "=", "account_asset"),
+            ("rebuild_source_id", "=", source_asset_id),
+            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+        ], limit=1)
+        if not snapshot:
+            return 0
+        attachments = self.env["ir.attachment"].sudo().search([
+            ("res_model", "=", "rebuild.account.asset"),
+            ("res_id", "=", snapshot.id),
+        ])
+        attachments.write({
+            "res_model": "account.asset",
+            "res_id": asset.id,
+        })
+        return len(attachments)
+
     def run_native_asset_replay_from_source(self, options):
         """Replay Enterprise depreciation schedules through OCA native assets."""
         self.ensure_one()
@@ -555,6 +575,7 @@ class RebuildAccountImportRun(models.Model):
             created_move_count = 0
             reused_move_count = 0
             linked_move_line_count = 0
+            rehomed_attachment_count = 0
             passed_move_count = 0
             blocked = []
             mismatches = []
@@ -599,6 +620,11 @@ class RebuildAccountImportRun(models.Model):
                     profile,
                 )
                 created_asset_count += int(asset_created)
+                rehomed_attachment_count += self._native_asset_rehome_attachments(
+                    options,
+                    row["id"],
+                    asset,
+                )
                 target_assets[row["id"]] = asset
                 previous_line = self._native_asset_opening_line(
                     options,
@@ -630,7 +656,7 @@ class RebuildAccountImportRun(models.Model):
                         use_exact_imported_moves
                         and asset_line.move_id
                         and asset_line.move_id.rebuild_source_model
-                        == "account.move"
+                        == "account.move",
                     )
                     if use_exact_imported_moves and not asset_line.move_id:
                         exact_move = exact_moves.get(
@@ -779,6 +805,7 @@ class RebuildAccountImportRun(models.Model):
                 "linked_depreciation_move_line_count": (
                     linked_move_line_count
                 ),
+                "rehomed_asset_attachment_count": rehomed_attachment_count,
                 "passed_depreciation_move_count": passed_move_count,
                 "blocked_count": len(blocked),
                 "blocked_examples": blocked[:20],
