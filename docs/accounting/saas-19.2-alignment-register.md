@@ -105,9 +105,9 @@ obsolete Odoo 19 ancestry was not introduced.
 The pre-refresh product tip remains available at
 `archive/19-usl-pre-saas-refresh-20260804`. A byte-level comparison protected
 the USL-owned add-ons, migration tools, deployment helpers and documentation
-from merge-resolution drift. The only intentional fork-level Odoo differences
-remain the documented fiscal-year sequence and resequencing patches in
-`account.move` and `account.resequence.wizard`.
+from merge-resolution drift. The only intentional distribution-level core
+differences remain the documented fiscal-year sequence and resequencing
+patches in `account.move` and `account.resequence.wizard`.
 
 Validation used the disposable Compose project
 `codex-saas-refresh-20260804`, database

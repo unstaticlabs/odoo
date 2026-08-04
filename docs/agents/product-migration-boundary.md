@@ -2,10 +2,10 @@
 
 ## Rule
 
-The delivered Odoo fork and its finalized database contain operational
-features and business data only. Extraction, source bindings, reconstruction
-runs, parity reports and other one-shot migration machinery run around Odoo,
-not as permanent product functionality.
+The delivered USL Odoo Distribution and its finalized database contain
+operational features and business data only. Extraction, source bindings,
+reconstruction runs, parity reports and other one-shot migration machinery run
+around Odoo, not as permanent product functionality.
 
 `custom-addons/` is the production add-ons path. Migration-only Odoo code lives
 under `migration/`, is exposed only to a dedicated Docker service, and is

@@ -1,9 +1,10 @@
-# Unstatic Labs Odoo Community fork
+# Unstatic Labs Odoo Distribution
 
-This repository is Unstatic Labs’ production-oriented Accounting product on
-Odoo Community `saas~19.2`. It extends upstream through isolated modules under
-`custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
-unchanged.
+This repository defines the USL Odoo Distribution: a versioned, deployable
+assembly of Odoo Community `saas~19.2`, pinned OCA dependencies, isolated USL
+modules, runtime configuration, migration tooling, tests and documentation.
+Two documented distribution-level core patches remain where no stable
+extension point exists.
 
 Accounting v1 provides the daily cockpit for journals, invoices, bills,
 expenses, payments, bank transactions and reconciliation, plus assets,
@@ -51,8 +52,8 @@ installation and developer documentation is available from
 
 ## Docker and Dev Container setup
 
-This fork includes two local workflows for Odoo `saas~19.2` Community. The
-branch is pinned to upstream commit
+This distribution includes two local workflows for Odoo `saas~19.2`
+Community. The branch is pinned to upstream commit
 `6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
 disposable product database named `odoo_dev`:
 
@@ -203,7 +204,8 @@ actually runs. Init, test and Dev Container helper services remain at zero.
 Set `ODOO_MAX_CRON_THREADS=0` explicitly while restoring or auditing an
 imported database.
 
-Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
+Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the
+change is an explicitly justified and documented distribution-level patch.
 
 The production custom-module boundaries are:
 

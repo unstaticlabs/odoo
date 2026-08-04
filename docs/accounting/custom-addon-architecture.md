@@ -6,7 +6,7 @@ Baseline: Odoo Community `saas~19.2` at
 
 ## Decision
 
-USL keeps one forked distribution repository. Odoo core, the exact OCA
+USL keeps one Odoo Distribution repository. Odoo core, the exact OCA
 integration pins, the isolated USL add-ons, deployment code, reconstruction
 harness and durable specifications must evolve together for a release to be
 reproducible. Splitting those concerns into separate distribution repositories
@@ -17,7 +17,7 @@ Runtime ownership inside the repository follows this order:
 1. native Odoo Community;
 2. maintained OCA functionality;
 3. isolated USL add-ons;
-4. a fork-level Odoo patch only when no stable extension point exists.
+4. a distribution-level core patch only when no stable extension point exists.
 
 The verified production add-on dependency direction is:
 

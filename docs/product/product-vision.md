@@ -2,7 +2,8 @@
 
 ## Mandate
 
-The USL Odoo Rebuild is the structured operating core of the USL Automated Organization.
+The USL Odoo Distribution is the structured operating core of the USL
+Automated Organization.
 
 It must let a small number of humans and specialized agents operate with reliable shared memory, clear responsibility and auditable execution. Humans provide vision, judgment, creativity, empathy, approval and accountability. Agents progressively perform repeatable operational work within bounded authority.
 

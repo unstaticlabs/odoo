@@ -3,7 +3,7 @@
 This branch starts from upstream Odoo `saas~19.2` at
 `6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Keep it close to upstream Odoo:
 avoid changes to core Odoo code unless the task explicitly requires a
-fork-level patch and the tradeoff is documented.
+distribution-level core patch and the tradeoff is documented.
 
 ## Repository Context
 

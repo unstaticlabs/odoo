@@ -4,10 +4,10 @@ Status date: 31 July 2026
 
 ## Verified product boundary
 
-The fork uses Odoo's native French Approved Platform and electronic-document
-models. The USL layer governs readiness, inactive-until-production safety and
-plain-language evidence; it does not implement a second exchange or invoice
-engine.
+The distribution uses Odoo's native French Approved Platform and
+electronic-document models. The USL layer governs readiness,
+inactive-until-production safety and plain-language evidence; it does not
+implement a second exchange or invoice engine.
 
 The delivered state is:
 

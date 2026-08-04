@@ -1,6 +1,7 @@
 # Product specifications
 
-These documents define the approved, evergreen product requirements for the USL Odoo Rebuild.
+These documents define the approved, evergreen product requirements for the
+USL Odoo Distribution.
 
 They describe the target behaviour and user outcomes. They do not prescribe implementation. When code, project notes or temporary milestone decisions conflict with these specifications, the conflict must be resolved explicitly rather than silently changing product meaning.
 
