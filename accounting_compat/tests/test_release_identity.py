@@ -89,6 +89,9 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("clean_install_product", release)
         self.assertIn("odoo_release_clean_install", release)
         self.assertIn("Pre-production clean installation: PASS", release)
+        self.assertIn("finish-reconstruction", release)
+        self.assertIn("finish_reconstruction", release)
+        self.assertIn("DOCUMENTS_CANONICAL_RESET=1", release)
         self.assertIn("database_identity 0", release)
         self.assertIn("Pre-production release gate: PASS", release)
         for module_name in (
