@@ -39,6 +39,9 @@ Primary entry points:
   repeatable Odoo Online project and task recovery.
 - [Product and migration boundary](docs/agents/product-migration-boundary.md)
   for keeping reconstruction machinery out of the delivered Odoo runtime.
+- [Source-truth migration](docs/operations/source-truth-migration.md) for the
+  blocking whole-dump coverage, filestore-integrity, and deterministic replay
+  contract.
 
 The integration baseline is upstream commit
 `6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
@@ -357,6 +360,7 @@ scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
 scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 scripts/target-finalize               # apply target-only config after migration
 scripts/target-reconstruct            # rebuild canonical data and target config
+scripts/migration-source-truth inventory # audit all populated source perimeters
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes

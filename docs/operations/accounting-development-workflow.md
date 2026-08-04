@@ -9,6 +9,10 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 ## Principles
 
 - Keep the source database restored and running while iterating.
+- Treat Accounting as one stage of the wider source-truth migration. The
+  [whole-source gate](source-truth-migration.md) must pass before describing a
+  reconstructed database as complete; Accounting and Projects parity alone do
+  not certify other Online applications or global collaboration history.
 - Keep OCA add-ons synced with `make oca-addons-sync` before target reset, reporting or reconciliation work.
 - Reuse the extracted snapshot when changing only Odoo views, menus, reports, permissions or documentation.
 - Rebuild the target only when import behavior, schema assumptions, model creation, or data transformations change.

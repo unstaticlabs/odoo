@@ -1,0 +1,201 @@
+{
+  "schema": "usl-source-truth-coverage-v1",
+  "scopes": {
+    "accounting": {
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "accounting compatibility import and parity controls"
+    },
+    "projects": {
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "temporary Projects restore add-on and source/target digest validation"
+    },
+    "native_reference": {
+      "status": "implemented",
+      "disposition": "recomputed",
+      "evidence": "version-controlled Community modules and target configuration"
+    },
+    "identity": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "Accounting and Projects currently import only referenced identities"
+    },
+    "collaboration": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "Accounting and Projects currently import only scoped chatter and activity history"
+    },
+    "attachments": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "Accounting and Projects currently import only scoped attachments"
+    },
+    "documents": {
+      "status": "incomplete",
+      "disposition": "archive",
+      "evidence": "the existing Paperless source runner is intentionally limited to a ten-document pilot"
+    },
+    "knowledge": {
+      "status": "incomplete",
+      "disposition": "translate_or_archive",
+      "evidence": "no Community target and no approved lossless translation are implemented"
+    },
+    "signing": {
+      "status": "incomplete",
+      "disposition": "archive",
+      "evidence": "signed originals and audit evidence are not yet reconstructed"
+    },
+    "hr": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "expenses are covered by Accounting but the remaining HR perimeter is not"
+    },
+    "studio": {
+      "status": "incomplete",
+      "disposition": "translate_or_archive",
+      "evidence": "populated Studio models require explicit business mappings"
+    },
+    "preferences": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "user filters, exports, dashboards and favorites are not globally reconstructed"
+    },
+    "product_master": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "the Accounting stage currently restores only products referenced by expenses"
+    },
+    "sales_marketing": {
+      "status": "incomplete",
+      "disposition": "translated",
+      "evidence": "sales-team and UTM business configuration is not globally reconstructed"
+    },
+    "ai_configuration": {
+      "status": "incomplete",
+      "disposition": "translate_or_archive",
+      "evidence": "source AI agents, prompts, topics and automation need an explicit Community treatment"
+    },
+    "credential_state": {
+      "status": "implemented",
+      "disposition": "deliberately_not_copied",
+      "evidence": "tokens, passkeys, TOTP devices, sessions, certificates and IAP credentials are revoked/re-enrolled; business identities are covered separately"
+    }
+  },
+  "model_rules": [
+    {"match": "account.*", "scope": "accounting"},
+    {"match": "accounting.*", "scope": "accounting"},
+    {"match": "hr.expense*", "scope": "accounting"},
+    {"match": "project.*", "scope": "projects"},
+    {"match": "documents.*", "scope": "documents"},
+    {"match": "knowledge.*", "scope": "knowledge"},
+    {"match": "sign.*", "scope": "signing"},
+    {"match": "hr.*", "scope": "hr"},
+    {"match": "x_*", "scope": "studio"},
+    {"match": "res.company", "scope": "identity"},
+    {"match": "res.partner", "scope": "identity"},
+    {"match": "res.partner.*", "scope": "identity"},
+    {"match": "res.users", "scope": "identity"},
+    {"match": "res.users.*", "scope": "identity"},
+    {"match": "mail.*", "scope": "collaboration"},
+    {"match": "ir.attachment", "scope": "attachments"},
+    {"match": "ir.filters", "scope": "preferences"},
+    {"match": "ir.exports*", "scope": "preferences"},
+    {"match": "spreadsheet.*", "scope": "preferences"},
+    {"match": "digest.*", "scope": "preferences"},
+    {"match": "base_import.mapping", "scope": "preferences"},
+    {"match": "ai.*", "scope": "ai_configuration"},
+    {"match": "base.automation", "scope": "ai_configuration"},
+    {"match": "discuss.*", "scope": "collaboration"},
+    {"match": "product.*", "scope": "product_master"},
+    {"match": "crm.*", "scope": "sales_marketing"},
+    {"match": "utm.*", "scope": "sales_marketing"},
+    {"match": "sale.pdf.*", "scope": "sales_marketing"},
+    {"match": "auth.*", "scope": "credential_state"},
+    {"match": "auth_*.*", "scope": "credential_state"},
+    {"match": "certificate.*", "scope": "credential_state"},
+    {"match": "iap.*", "scope": "credential_state"},
+    {"match": "account_edi_proxy_client.*", "scope": "credential_state"},
+    {"match": "account_followup.*", "scope": "accounting"},
+    {"match": "res.device*", "scope": "credential_state"},
+    {"match": "res.session", "scope": "credential_state"},
+    {"match": "bus.bus", "scope": "native_reference"},
+    {"match": "barcode.*", "scope": "native_reference"},
+    {"match": "clearing.label", "scope": "native_reference"},
+    {"match": "delivery.carrier", "scope": "native_reference"},
+    {"match": "onboarding.*", "scope": "native_reference"},
+    {"match": "payment.*", "scope": "native_reference"},
+    {"match": "portal.entry", "scope": "native_reference"},
+    {"match": "properties.base.definition", "scope": "native_reference"},
+    {"match": "report.*", "scope": "native_reference"},
+    {"match": "res.groups*", "scope": "native_reference"},
+    {"match": "web_tour.*", "scope": "native_reference"},
+    {"match": "resource.*", "scope": "hr"},
+    {"match": "ir.*", "scope": "native_reference"},
+    {"match": "res.country*", "scope": "native_reference"},
+    {"match": "res.lang", "scope": "native_reference"},
+    {"match": "res.currency*", "scope": "native_reference"},
+    {"match": "decimal.precision", "scope": "native_reference"},
+    {"match": "uom.*", "scope": "native_reference"}
+  ],
+  "table_rules": [
+    {"match": "account*", "scope": "accounting"},
+    {"match": "project*", "scope": "projects"},
+    {"match": "task_*", "scope": "projects"},
+    {"match": "documents*", "scope": "documents"},
+    {"match": "document*", "scope": "documents"},
+    {"match": "knowledge*", "scope": "knowledge"},
+    {"match": "sign*", "scope": "signing"},
+    {"match": "hr_*", "scope": "hr"},
+    {"match": "x_*", "scope": "studio"},
+    {"match": "mail_*", "scope": "collaboration"},
+    {"match": "message_*", "scope": "collaboration"},
+    {"match": "res_company*", "scope": "identity"},
+    {"match": "res_partner*", "scope": "identity"},
+    {"match": "res_users*", "scope": "identity"},
+    {"match": "ir_attachment*", "scope": "attachments"},
+    {"match": "ir_filters*", "scope": "preferences"},
+    {"match": "ir_exports*", "scope": "preferences"},
+    {"match": "spreadsheet*", "scope": "preferences"},
+    {"match": "digest*", "scope": "preferences"},
+    {"match": "ai_*", "scope": "ai_configuration"},
+    {"match": "base_automation*", "scope": "ai_configuration"},
+    {"match": "discuss_*", "scope": "collaboration"},
+    {"match": "product_*", "scope": "product_master"},
+    {"match": "crm_*", "scope": "sales_marketing"},
+    {"match": "utm_*", "scope": "sales_marketing"},
+    {"match": "sale_pdf_*", "scope": "sales_marketing"},
+    {"match": "auth_*", "scope": "credential_state"},
+    {"match": "certificate_*", "scope": "credential_state"},
+    {"match": "iap_*", "scope": "credential_state"},
+    {"match": "account_edi_proxy_client*", "scope": "credential_state"},
+    {"match": "res_device*", "scope": "credential_state"},
+    {"match": "res_session*", "scope": "credential_state"},
+    {"match": "bus_bus*", "scope": "native_reference"},
+    {"match": "barcode_*", "scope": "native_reference"},
+    {"match": "clearing_label*", "scope": "native_reference"},
+    {"match": "delivery_carrier*", "scope": "native_reference"},
+    {"match": "onboarding_*", "scope": "native_reference"},
+    {"match": "payment_*", "scope": "native_reference"},
+    {"match": "portal_entry*", "scope": "native_reference"},
+    {"match": "properties_base_definition*", "scope": "native_reference"},
+    {"match": "report_*", "scope": "native_reference"},
+    {"match": "web_tour_*", "scope": "native_reference"},
+    {"match": "resource_*", "scope": "hr"},
+    {"match": "res_groups_users_rel", "scope": "identity"},
+    {"match": "res_groups_*", "scope": "native_reference"},
+    {"match": "asset_move_line_rel", "scope": "accounting"},
+    {"match": "expense_tax", "scope": "accounting"},
+    {"match": "employee_bank_account_rel", "scope": "hr"},
+    {"match": "orm_signaling_*", "scope": "native_reference"},
+    {"match": "module_country", "scope": "native_reference"},
+    {"match": "rule_group_rel", "scope": "native_reference"},
+    {"match": "team_favorite_user_rel", "scope": "sales_marketing"},
+    {"match": "ir_*", "scope": "native_reference"},
+    {"match": "res_country*", "scope": "native_reference"},
+    {"match": "res_lang*", "scope": "native_reference"},
+    {"match": "res_currency*", "scope": "native_reference"},
+    {"match": "decimal_precision*", "scope": "native_reference"},
+    {"match": "uom_*", "scope": "native_reference"}
+  ]
+}

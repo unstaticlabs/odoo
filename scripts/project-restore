@@ -8,6 +8,17 @@ target_database="${PROJECT_TARGET_DATABASE:-odoo_dev}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons"
 
+source_snapshot() {
+    local dump_path="$source_dump_dir/dump.sql"
+    if [[ ! -f "$dump_path" ]]; then
+        echo "Source dump is missing at $dump_path." >&2
+        exit 2
+    fi
+    local dump_sha256
+    dump_sha256="$(shasum -a 256 "$dump_path" | awk '{print $1}')"
+    printf 'source-%s\n' "${dump_sha256:0:12}"
+}
+
 case "$target_database" in
     odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)
         if [[ "${PROJECT_RESTORE_ALLOW_PROTECTED_TARGET:-0}" != "1" ]]; then
@@ -93,7 +104,7 @@ import_projects() {
         -e PROJECT_SOURCE_DB_USER="${PROJECT_SOURCE_DB_USER:-odoo}" \
         -e PROJECT_SOURCE_DB_PASSWORD="${PROJECT_SOURCE_DB_PASSWORD:-odoo}" \
         -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
-        -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-odoo-online-saas-19.2-projects}" \
+        -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-$(source_snapshot)}" \
         -e PROJECT_SOURCE_FILESTORE=/mnt/accounting-source/filestore \
         -e PROJECT_RESTORE_DEFAULT_PASSWORD="${PROJECT_RESTORE_DEFAULT_PASSWORD:-}" \
         project-migration \
@@ -112,7 +123,7 @@ validate_projects() {
         -e PROJECT_SOURCE_DB_USER="${PROJECT_SOURCE_DB_USER:-odoo}" \
         -e PROJECT_SOURCE_DB_PASSWORD="${PROJECT_SOURCE_DB_PASSWORD:-odoo}" \
         -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
-        -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-odoo-online-saas-19.2-projects}" \
+        -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-$(source_snapshot)}" \
         project-migration \
         odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" \
