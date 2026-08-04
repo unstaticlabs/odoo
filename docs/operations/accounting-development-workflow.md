@@ -49,8 +49,13 @@ Online dump → Accounting import/parity → Documents product/security
 → Pocket/Odoo/Paperless identities and target configuration
 ```
 
-Run it with `make target-reconstruct`. Reapply only the final target
-configuration with `make target-finalize`. The source contains no SSO
+Run it from the main checkout with `make target-reconstruct`. A linked
+worktree must name its dedicated Docker project and ports, for example
+`COMPOSE_PROJECT=usl-odoo-preprod-9642 ODOO_HTTP_PORT=18669
+ODOO_GEVENT_PORT=18672 POCKET_ID_HTTP_PORT=11411
+PAPERLESS_HTTP_PORT=18010 make target-reconstruct`. Reapply only the final
+target configuration with the same environment and `make target-finalize`.
+The source contains no SSO
 configuration; Pocket ID is therefore intentionally absent from source parity
 and added only after the imported business state passes its controls. This
 final step also creates governed Paperless users, maps them to existing Odoo

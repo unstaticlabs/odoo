@@ -40,16 +40,15 @@ not start, stop or alter it. Both electronic-invoice live flags are forced to
 
 Export all of the following values before the upstream Accounting
 reconstruction. `ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT` prevents an
-accidental fallback to the canonical Compose project, while
-`ACCOUNTING_COMPAT_VERIFY_COMPOSE_SCOPE` checks existing container project and
-working-directory labels before every Compose operation.
+accidental fallback to the canonical Compose project. The harness always
+checks existing container project and working-directory labels before every
+Compose operation.
 
 ```bash
 export COMPOSE_PROJECT_NAME=usl-odoo-fp-qa
 export ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-fp-qa
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT=usl-odoo-fp-qa
 export ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT=1
-export ACCOUNTING_COMPAT_VERIFY_COMPOSE_SCOPE=1
 export ACCOUNTING_COMPAT_SOURCE_DIR=/Users/valentin/Code/odoo/usl-online-dump
 export USL_ONLINE_DUMP_DIR=/Users/valentin/Code/odoo/usl-online-dump
 export ODOO_HTTP_PORT=19469

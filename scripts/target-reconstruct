@@ -3,6 +3,11 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+
+usl_require_explicit_compose_project "Canonical reconstruction"
+compose_project="$COMPOSE_PROJECT_NAME"
+usl_verify_compose_scope "$compose_project" "$ROOT" "Canonical reconstruction"
 
 if [[ "${ODOO_DEV_DB:-odoo_dev}" != "odoo_dev" ]]; then
   printf 'Canonical reconstruction is reserved for odoo_dev.\n' >&2
@@ -13,7 +18,6 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 export COMPOSE_IGNORE_ORPHANS=1
 
-compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-$compose_project}"
 stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true

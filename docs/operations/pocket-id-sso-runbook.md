@@ -113,6 +113,12 @@ Run the complete lifecycle with:
 make target-reconstruct
 ```
 
+That shorthand owns the default project only in the main checkout. In a linked
+worktree, pass the same explicit `COMPOSE_PROJECT` and isolated Odoo, gevent,
+Pocket ID and Paperless ports to reconstruction and finalization. The local
+`.pocket-id.env` then belongs to that checkout/project pair; helpers reject a
+container whose Compose working-directory label points at another checkout.
+
 It executes Accounting reset/import/parity, Project import/parity and
 migration finalization before applying Pocket ID. To reapply only target
 configuration after a deployment or environment change:

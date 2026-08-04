@@ -2,26 +2,41 @@
 set -euo pipefail
 export COMPOSE_IGNORE_ORPHANS=1
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+
 command_name="${1:-all}"
 canonical_target="${DOCUMENTS_CANONICAL_TARGET:-0}"
 canonical_env_file=""
 if [[ "$canonical_target" == 1 ]]; then
-    git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir)"
-    canonical_env_file="${POCKET_ID_ENV_FILE:-$(dirname "$git_common_dir")/.pocket-id.env}"
+    usl_require_explicit_compose_project "Canonical Documents restoration"
+    requested_compose_project="$COMPOSE_PROJECT_NAME"
+    canonical_env_file="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id.env}"
+    export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$requested_compose_project"
+    export USL_POCKET_ID_DEV_ODOO_PORT="${ODOO_HTTP_PORT:-8069}"
+    export USL_POCKET_ID_DEV_GEVENT_PORT="${ODOO_GEVENT_PORT:-8072}"
+    export USL_POCKET_ID_DEV_POCKET_PORT="${POCKET_ID_HTTP_PORT:-1411}"
+    export USL_POCKET_ID_DEV_PAPERLESS_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:${PAPERLESS_HTTP_PORT:-8010}}"
     POCKET_ID_ENV_FILE="$canonical_env_file" scripts/pocket-id-dev bootstrap >/dev/null
     set -a
     # shellcheck disable=SC1090
     source "$canonical_env_file"
     set +a
+    if [[ "$COMPOSE_PROJECT_NAME" != "$requested_compose_project" ]]; then
+        printf 'Pocket ID environment targets %s, not requested project %s.\n' \
+            "$COMPOSE_PROJECT_NAME" "$requested_compose_project" >&2
+        exit 2
+    fi
 fi
 compose_project="${COMPOSE_PROJECT_NAME:-codex-migration-full}"
 target_database="${DOCUMENTS_TARGET_DATABASE-odoo_dev}"
 source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_2}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 if [[ "$canonical_target" == 1 ]]; then
-    paperless_port="${DOCUMENTS_MIGRATION_PAPERLESS_PORT:-8010}"
-    odoo_port="${DOCUMENTS_MIGRATION_ODOO_PORT:-8069}"
-    odoo_gevent_port="${DOCUMENTS_MIGRATION_ODOO_GEVENT_PORT:-8072}"
+    paperless_port="${DOCUMENTS_MIGRATION_PAPERLESS_PORT:-${PAPERLESS_HTTP_PORT:-8010}}"
+    odoo_port="${DOCUMENTS_MIGRATION_ODOO_PORT:-${ODOO_HTTP_PORT:-8069}}"
+    odoo_gevent_port="${DOCUMENTS_MIGRATION_ODOO_GEVENT_PORT:-${ODOO_GEVENT_PORT:-8072}}"
 else
     paperless_port="${DOCUMENTS_MIGRATION_PAPERLESS_PORT:-28010}"
     odoo_port="${DOCUMENTS_MIGRATION_ODOO_PORT:-28080}"
@@ -30,8 +45,8 @@ fi
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/hr-migration-addons"
 
 if [[ "$canonical_target" == 1 ]]; then
-    if [[ "$compose_project" != "usl-odoo-saas-19-2" || "$target_database" != "odoo_dev" ]]; then
-        echo "Canonical Documents restoration is reserved for usl-odoo-saas-19-2/odoo_dev." >&2
+    if [[ "$target_database" != "odoo_dev" ]]; then
+        echo "Canonical Documents restoration is reserved for odoo_dev." >&2
         exit 2
     fi
 else
@@ -43,18 +58,14 @@ else
             ;;
     esac
 fi
+usl_verify_compose_scope "$compose_project" "$ROOT" "Documents restoration"
 case "$target_database" in
     ""|odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native|*[!A-Za-z0-9_]*)
         echo "Refusing unsafe Documents migration target $target_database." >&2
         exit 2
         ;;
 esac
-if [[ "$canonical_target" == 1 ]]; then
-    if [[ "$paperless_port:$odoo_port:$odoo_gevent_port" != "8010:8069:8072" ]]; then
-        echo "Canonical Documents restoration must use reserved ports 8010/8069/8072." >&2
-        exit 2
-    fi
-else
+if [[ "$canonical_target" != 1 ]]; then
     case "$paperless_port" in
         8010|18010|8069|18080|*[!0-9]*)
             echo "Refusing reserved or invalid migration port $paperless_port." >&2
@@ -67,6 +78,18 @@ else
             exit 2
             ;;
     esac
+fi
+case "$paperless_port:$odoo_port:$odoo_gevent_port" in
+    *[!0-9:]*)
+        echo "Documents restoration ports must be numeric." >&2
+        exit 2
+        ;;
+esac
+if [[ "$paperless_port" == "$odoo_port" \
+    || "$paperless_port" == "$odoo_gevent_port" \
+    || "$odoo_port" == "$odoo_gevent_port" ]]; then
+    echo "Documents restoration ports must be distinct." >&2
+    exit 2
 fi
 if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
     echo "Source dump or filestore is missing under $source_dump_dir." >&2

@@ -41,9 +41,6 @@ COMPOSE_PROJECT = resolve_compose_project(os.environ)
 REQUIRE_ISOLATED_PROJECT = (
     os.environ.get("ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT") == "1"
 )
-VERIFY_COMPOSE_SCOPE = (
-    os.environ.get("ACCOUNTING_COMPAT_VERIFY_COMPOSE_SCOPE") == "1"
-)
 SOURCE_DB = "odoo_online_source_saas_19_2"
 EXACT_VALIDATION_DB = "odoo_saas_19_2_validation_exact"
 NATIVE_VALIDATION_DB = "odoo_saas_19_2_validation_native"
@@ -302,8 +299,7 @@ def compose_args(*args: str) -> list[str]:
     if args[:4] == ["--profile", "init", "run", "--rm"] and "init-db" in args:
         args[1] = "accounting-migration"
         args[args.index("init-db")] = "accounting-migration"
-    if VERIFY_COMPOSE_SCOPE:
-        verify_compose_scope()
+    verify_compose_scope()
     command = ["docker", "compose", "-p", COMPOSE_PROJECT, *args]
     if "accounting-migration" in args:
         insert_at = len(command) - 1 - command[::-1].index(
@@ -317,6 +313,16 @@ def compose_args(*args: str) -> list[str]:
 
 
 def verify_compose_scope() -> None:
+    canonical_project = os.environ.get(
+        "ODOO_CANONICAL_COMPOSE_PROJECT",
+        "usl-odoo-saas-19-2",
+    )
+    if (ROOT / ".git").is_file() and COMPOSE_PROJECT == canonical_project:
+        raise HarnessError(
+            "The Accounting harness refuses the canonical Compose project "
+            "from a linked worktree. Set ACCOUNTING_COMPAT_COMPOSE_PROJECT "
+            "to a dedicated project.",
+        )
     containers = subprocess.run(
         [
             "docker",

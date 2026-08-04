@@ -2,24 +2,33 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GIT_COMMON_DIR="$(
-  git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null \
-    || true
-)"
-if [[ -n "$GIT_COMMON_DIR" ]]; then
-  DEFAULT_ENV_FILE="$(dirname "$GIT_COMMON_DIR")/.pocket-id.env"
-else
-  DEFAULT_ENV_FILE="$ROOT/.pocket-id.env"
-fi
-# Pocket ID is a deliberately shared canonical odoo_dev service. Linked Git
-# worktrees must therefore share its encryption environment as well; otherwise
-# an ordinary helper command can recreate the shared container with a key that
-# cannot decrypt the existing Pocket volume.
+source "$ROOT/scripts/lib/compose-scope.sh"
+
+# Secrets and immutable subjects belong to the Compose project owned by this
+# checkout. Linked worktrees must not silently reuse the main checkout's key.
+DEFAULT_ENV_FILE="$ROOT/.pocket-id.env"
 ENV_FILE="${POCKET_ID_ENV_FILE:-$DEFAULT_ENV_FILE}"
 PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
 COMPOSE_FILES=(-f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml")
 
 bootstrap() {
+  if [[ -f "$ROOT/.git" && ! -f "$ENV_FILE" ]]; then
+    local required_name
+    for required_name in \
+      COMPOSE_PROJECT_NAME ODOO_HTTP_PORT ODOO_GEVENT_PORT \
+      POCKET_ID_HTTP_PORT PAPERLESS_HTTP_PORT; do
+      if [[ -z "${!required_name:-}" ]]; then
+        printf 'Linked-worktree Pocket ID bootstrap requires %s.\n' \
+          "$required_name" >&2
+        return 2
+      fi
+    done
+    export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME"
+    export USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_HTTP_PORT"
+    export USL_POCKET_ID_DEV_GEVENT_PORT="$ODOO_GEVENT_PORT"
+    export USL_POCKET_ID_DEV_POCKET_PORT="$POCKET_ID_HTTP_PORT"
+    export USL_POCKET_ID_DEV_PAPERLESS_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$PAPERLESS_HTTP_PORT}"
+  fi
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
 }
 
@@ -48,6 +57,8 @@ load_environment() {
     --env-file "$ENV_FILE"
     "${COMPOSE_FILES[@]}"
   )
+  usl_verify_compose_scope \
+    "$COMPOSE_PROJECT_NAME" "$ROOT" "Pocket ID helper"
 }
 
 start_idp() {
