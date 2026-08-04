@@ -90,6 +90,13 @@ class TestPocketIDProductProfiles(TransactionCase):
         )
         self.assertEqual(identity_count, 3)
 
+        break_glass = self.env.ref("base.user_admin")
+        self.assertTrue(
+            break_glass.has_group(
+                "usl_platform_billing.group_platform_billing_manager",
+            ),
+        )
+
         valentin = users.search([("login", "=", administrator["login"])])
         self.assertTrue(valentin.usl_pocketid_access)
         self.assertEqual(valentin.partner_id, imported_valentin_partner)
@@ -102,6 +109,7 @@ class TestPocketIDProductProfiles(TransactionCase):
             "account.group_account_manager",
             "hr_expense.group_hr_expense_manager",
             "project.group_project_manager",
+            "usl_platform_billing.group_platform_billing_manager",
         ):
             self.assertTrue(valentin.has_group(group), group)
 
@@ -129,6 +137,11 @@ class TestPocketIDProductProfiles(TransactionCase):
         self.assertTrue(prosper.has_group("account.group_account_readonly"))
         self.assertFalse(prosper.has_group("account.group_account_user"))
         self.assertFalse(prosper.has_group("account.group_account_manager"))
+        self.assertFalse(
+            prosper.has_group(
+                "usl_platform_billing.group_platform_billing_reader",
+            ),
+        )
         account_moves = self.env["account.move"].with_user(prosper)
         self.assertTrue(account_moves.has_access("read"))
         self.assertFalse(account_moves.has_access("write"))

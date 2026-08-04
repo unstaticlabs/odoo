@@ -22,9 +22,11 @@ Runtime ownership inside the repository follows this order:
 The verified production add-on dependency direction is:
 
 ```text
- pinned OCA auth_oidc ---> usl_pocketid -------------------+
- native/OCA Accounting -> usl_accounting -----------------+--> rebuild_account_migration
- native hr_expense -----> usl_expense_batch --------------+
+ pinned OCA auth_oidc ---> usl_pocketid ----+---------------+
+                                            +-> usl_platform_billing_pocketid
+ native/OCA Accounting -> usl_platform_billing ------------+
+ native/OCA Accounting -> usl_accounting ------------------+--> rebuild_account_migration
+ native hr_expense -----> usl_expense_batch ---------------+
   (product compatibility, stable XML-ID ownership and reconstruction)
 
 usl_bootstrap ---> native modules only (disposable test fixture)
@@ -106,6 +108,7 @@ identifiers. It is explicitly rejected for this increment.
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
 | Pocket ID authentication and identity governance | `usl_pocketid` over pinned OCA `auth_oidc` | runtime authentication boundary | issuer/audience/nonce/PKCE/JWKS, identity lifecycle and named-profile tests |
 | Pocket ID accountant-reviewer profile | compatibility extension over `usl_pocketid` | the stable reviewer group XML ID is still owned here; the base SSO module has no reverse Accounting dependency | clean `usl_pocketid` install plus product-profile integration test |
+| Platform Billing Pocket ID profile bridge | `usl_platform_billing_pocketid` | auto-installed integration over two independent product modules | only governed administrator and break-glass profiles receive the app administrator group |
 | Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project and Platform Billing finalization, product-boundary guard and target-finalization order tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |

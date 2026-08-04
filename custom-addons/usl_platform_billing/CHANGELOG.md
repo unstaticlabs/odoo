@@ -1,5 +1,12 @@
 # Changelog
 
+## saas~19.2.1.1.4
+
+- Keep incomplete bank-import drafts out of the settlement selector until
+  their platform currency and original amount are completed.
+- Align the French operator guide with ranked bank suggestions, pooled and
+  delayed settlements, and explicit Platform Billing roles.
+
 ## saas~19.2.1.1.3
 
 - Import bank receipts as incomplete draft payouts, then complete platform,

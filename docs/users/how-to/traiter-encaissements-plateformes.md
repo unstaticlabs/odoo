@@ -2,10 +2,11 @@
 
 ## Préparation
 
-Un responsable Comptabilité configure les partenaires, produits, journaux,
-taux de commission, devise et règles de libellé bancaire de chaque plateforme.
-La comptabilisation automatique est désactivée par défaut. Les justificatifs
-peuvent être joints à chaque encaissement.
+Un administrateur Facturation plateformes configure les partenaires, produits,
+journaux, taux de commission, devise et règles de libellé bancaire de chaque
+plateforme. La comptabilisation automatique est désactivée par défaut. Les
+justificatifs peuvent être joints à chaque encaissement. Le rôle Comptable
+seul ne donne pas accès à cette application.
 
 ## Créer et contrôler une session
 
@@ -13,13 +14,16 @@ peuvent être joints à chaque encaissement.
 2. Créez la session du mois comptable.
 3. Vérifiez la date de facture, l'échéance et la devise bancaire.
 4. Ajoutez les encaissements ou utilisez **Importer les opérations bancaires**
-   pour recalculer les candidats depuis les données bancaires Odoo.
-5. Vérifiez la référence plateforme et le montant net.
+   pour sélectionner les règlements reçus.
+5. Dans l'onglet **Encaissements**, complétez ensuite la plateforme, la
+   référence, la devise et le montant d'origine de chaque ligne importée.
 6. Cliquez sur **Contrôler** et corrigez chaque erreur bloquante.
 
-La détection applique d'abord le motif configuré, puis le partenaire connu,
-puis les mots-clés. Elle exclut les sorties, les opérations déjà rapprochées ou
-liées, les autres sociétés et les correspondances ambiguës.
+La vue **Toutes ouvertes** affiche les opérations entrantes, comptabilisées,
+non rapprochées et disponibles dans la devise bancaire de la session. La
+détection classe les suggestions selon le motif configuré, le partenaire connu,
+puis les mots-clés ; elle ne masque pas les libellés inconnus ou ambigus.
+Utilisez **Suggestions uniquement** pour une liste plus courte.
 
 ## Générer et comptabiliser
 
@@ -34,20 +38,26 @@ comptabilisée ne peut plus être réinitialisée dans cette application.
 
 ## Rapprocher la banque
 
-1. Associez à chaque encaissement l'opération bancaire entrante correcte.
-2. Conservez le montant bancaire réel, puis cliquez sur **Rapprocher la
-   banque**.
-3. Traitez séparément les lignes bloquées ; les lignes valides restent
-   rapprochées.
-4. La session passe à **Payée** uniquement lorsque les pièces requises et les
+1. Ouvrez **Importer les opérations bancaires** depuis une session.
+2. Sélectionnez les encaissements ouverts à régler, y compris ceux d'autres
+   sessions.
+3. Sélectionnez les opérations reçues et ajustez les montants en cas de
+   règlement partiel.
+4. Cliquez sur **Associer les opérations sélectionnées**, puis sur
+   **Rapprocher la banque**.
+5. Laissez sans opération bancaire un règlement retardé : la session reste
+   **Comptabilisée** et la facture client reste une créance ouverte.
+6. Si un virement couvre plusieurs mois, sélectionnez tous les encaissements
+   concernés et répartissez ce virement une seule fois.
+7. La session passe à **Payée** uniquement lorsque les pièces requises et les
    opérations bancaires sont soldées.
 
 En multidevise, le montant bancaire d'origine est conservé. Odoo et le module
 OCA calculent le change et les éventuels écarts.
 
-Le groupe Comptabilité en lecture seule peut consulter l'historique et les
-justificatifs de ses sociétés, sans créer, comptabiliser, rapprocher ni
-supprimer.
+Les rôles Lecteur, Opérateur ou Administrateur Facturation plateformes doivent
+être attribués explicitement. Le Lecteur consulte l'historique de ses sociétés
+sans créer, comptabiliser, rapprocher ni supprimer.
 
 Cette application comptabilise les revenus des plateformes de contenu. Elle
 n'est pas liée à la connexion aux plateformes françaises de facturation

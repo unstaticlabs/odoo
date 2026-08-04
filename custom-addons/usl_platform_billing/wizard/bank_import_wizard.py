@@ -181,7 +181,8 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             order="payout_date, id",
         ).filtered(
             lambda payout: (
-                not payout.platform_currency_id.is_zero(
+                payout.platform_currency_id
+                and not payout.platform_currency_id.is_zero(
                     payout.remaining_platform_amount,
                 )
             ),

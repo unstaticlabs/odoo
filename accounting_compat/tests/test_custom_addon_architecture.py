@@ -63,6 +63,11 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         self.assertIn("usl_accounting", dependencies)
         self.assertIn("usl_expense_batch", dependencies)
         self.assertIn("usl_platform_billing", dependencies)
+        self.assertIn("usl_platform_billing_pocketid", dependencies)
+        self.assertEqual(
+            set(manifests["usl_platform_billing_pocketid"]["depends"]),
+            {"usl_platform_billing", "usl_pocketid"},
+        )
         self.assertNotIn(
             "rebuild_account_migration",
             manifests["usl_platform_billing"].get("depends", ()),

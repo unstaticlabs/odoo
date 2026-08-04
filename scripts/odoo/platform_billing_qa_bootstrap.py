@@ -360,13 +360,21 @@ def bootstrap(env):
 
     company = env.company.sudo()
     base_user = env.ref("base.group_user")
+    manager_group = env.ref(
+        "usl_platform_billing.group_platform_billing_manager",
+    )
+    administrator = env.ref("base.user_admin").sudo()
+    if manager_group not in administrator.group_ids:
+        administrator.write(
+            {"group_ids": [Command.link(manager_group.id)]},
+        )
     _user(
         env,
         login="qa.platform.manager",
         name="QA Platform Billing Manager",
         password="qa-platform-manager",
         groups=base_user
-        | env.ref("usl_platform_billing.group_platform_billing_manager")
+        | manager_group
         | env.ref("analytic.group_analytic_accounting"),
         company=company,
     )

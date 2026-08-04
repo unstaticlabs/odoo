@@ -570,6 +570,12 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(payout.bank_allocation_ids.payout_amount, 0.0)
         self.assertEqual(payout.validation_status, "error")
 
+        link_wizard = self._bank_wizard(session, mode="link")
+        self.assertNotIn(
+            payout,
+            link_wizard.payout_candidate_ids.payout_id,
+        )
+
         payout.write(
             {
                 "platform_id": self.platform.id,
