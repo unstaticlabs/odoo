@@ -253,6 +253,13 @@ def _write_new_env(path: Path) -> None:
         "USL_EREPORTING_LIVE_ENABLED": "0",
         "USL_POCKET_ID_BREAK_GLASS_PASSWORD": secrets.token_urlsafe(36),
     }
+    if os.getenv("USL_POCKET_ID_DEV_STRONG_DATABASE_SECRETS") == "1":
+        database_password = secrets.token_urlsafe(36)
+        values.update({
+            "POSTGRES_PASSWORD": database_password,
+            "ODOO_DB_PASSWORD": database_password,
+            "ODOO_ADMIN_PASSWORD": secrets.token_urlsafe(36),
+        })
     content = (
         "# Generated local Pocket ID target configuration. Do not commit.\n"
         + "\n".join(f"{key}={value}" for key, value in values.items())

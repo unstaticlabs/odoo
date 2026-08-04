@@ -67,6 +67,7 @@ usl-online-dump/
 /artifacts/accounting-compat/private/
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/
+/artifacts/release/
 /artifacts/user-docs/site/
 /output/
 /tmp/

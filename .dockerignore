@@ -21,3 +21,18 @@
 !odoo/**
 !setup/
 !setup/**
+
+# The qualified distribution stage embeds the delivered add-ons, their exact
+# patched OCA sources, and user documentation. Private migration inputs and
+# generated evidence remain excluded by the deny-by-default rule above.
+!custom-addons/
+!custom-addons/**
+!oca-addons/
+!oca-addons/**
+!oca-src/
+!oca-src/**
+oca-src/**/.git
+oca-src/**/.git/**
+!docs/
+!docs/users/
+!docs/users/**
