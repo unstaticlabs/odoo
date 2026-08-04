@@ -31,10 +31,25 @@ validate_product_boundary() {
         < migration/accounting_restore/scripts/validate_product_boundary.py
 }
 
+finalize_product_schema() {
+    docker compose -p "$compose_project" --profile init run --rm \
+        -e ODOO_INIT_DB="$target_database" \
+        init-db \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --database="$target_database" \
+        --shell-interface=python \
+        < migration/accounting_restore/scripts/finalize_schema.py
+}
+
 case "$command_name" in
     finalize)
         run_migration_shell \
             migration/accounting_restore/addons/usl_accounting_restore/scripts/finalize_restore.py
+        finalize_product_schema
+        validate_product_boundary
+        ;;
+    schema-finalize)
+        finalize_product_schema
         validate_product_boundary
         ;;
     product-validate)
@@ -45,10 +60,11 @@ case "$command_name" in
         scripts/accounting-compat dev-validate
         run_migration_shell \
             migration/accounting_restore/addons/usl_accounting_restore/scripts/finalize_restore.py
+        finalize_product_schema
         validate_product_boundary
         ;;
     *)
-        echo "Usage: scripts/accounting-restore [finalize|product-validate|all]"
+        echo "Usage: scripts/accounting-restore [finalize|schema-finalize|product-validate|all]"
         exit 2
         ;;
 esac

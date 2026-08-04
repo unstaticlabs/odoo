@@ -120,10 +120,11 @@ their own stages pass.
 `make target-reconstruct` restores the source package, runs the current
 Distribution gate, creates a clean target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects and Paie
-TESE, rebuilds the Paperless archive, removes every temporary migration module,
-and applies target-only configuration. It is blocked while any shipped scope
-is incomplete. The strict whole-source gate separately prevents this product
-claim from being mistaken for delivery of every Online application.
+TESE, rebuilds the Paperless archive, removes every temporary migration module
+and its allow-listed physical provenance columns, then applies target-only
+configuration. It is blocked while any shipped scope is incomplete. The strict
+whole-source gate separately prevents this product claim from being mistaken
+for delivery of every Online application.
 
 Every stage must be idempotent and must bind its run to `source-<first 12
 characters of dump SHA-256>`. Project restoration previously used a constant

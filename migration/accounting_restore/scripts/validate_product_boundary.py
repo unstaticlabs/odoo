@@ -44,6 +44,10 @@ source_bound_models = {
     "hr.employee",
     "hr.expense",
     "ir.attachment",
+    "res.partner.bank",
+    "res.partner.category",
+    "res.partner.industry",
+    "res.users",
 }
 forbidden_fields = {
     "rebuild_source_database",
@@ -76,6 +80,24 @@ field_metadata = env["ir.model.fields"].sudo().search_count([
 if field_metadata:
     raise RuntimeError(
         f"{field_metadata} migration-only field definitions remain in metadata.",
+    )
+
+product_tables = sorted({env[model_name]._table for model_name in source_bound_models})
+env.cr.execute(
+    """
+    SELECT table_name, column_name
+      FROM information_schema.columns
+     WHERE table_schema = current_schema()
+       AND table_name = ANY(%s)
+       AND column_name = ANY(%s)
+     ORDER BY table_name, column_name
+    """,
+    [product_tables, sorted(forbidden_fields)],
+)
+physical_fields = [tuple(row) for row in env.cr.fetchall()]
+if physical_fields:
+    raise RuntimeError(
+        f"Migration-only columns remain in the product schema: {physical_fields}.",
     )
 
 model_metadata = env["ir.model"].sudo().search_count([
@@ -124,6 +146,7 @@ summary = {
     "migration_model_metadata": model_metadata,
     "migration_fields_loaded": 0,
     "migration_field_metadata": field_metadata,
+    "migration_physical_columns": len(physical_fields),
     "migration_views": technical_views,
     "migration_xmlids": technical_xmlids,
     "moves": env["account.move"].sudo().search_count([]),

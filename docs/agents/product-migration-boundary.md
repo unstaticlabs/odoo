@@ -57,6 +57,8 @@ cannot load either temporary add-on.
   add-ons paths.
 - Temporary migration modules may add source bindings while an import is being
   rehearsed, but finalization must uninstall them.
+- Finalization must also remove the physical source-binding columns left by
+  those temporary modules; registry and metadata checks alone are insufficient.
 - Treat each app import as a downstream reconciliation stage: require earlier
   business perimeters to be present and link them by stable identity instead
   of duplicating their data in a later importer.
@@ -97,7 +99,8 @@ features.
    add-on.
 3. Keep migration mechanics outside the normal add-ons path.
 4. Validate idempotency before finalization.
-5. Finalize and verify that business counts remain stable.
+5. Finalize, remove allow-listed migration columns, and verify that business
+   counts remain stable.
 6. Run `make product-migration-boundary`.
 7. Test the finalized database using the normal Odoo service and production
    add-ons path only.
