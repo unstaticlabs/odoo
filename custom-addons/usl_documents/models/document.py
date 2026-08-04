@@ -1085,6 +1085,13 @@ class UslDocument(models.Model):
                     )
                     values["availability_state"] = "trashed"
                     values["last_error"] = False
+                    values.update(
+                        {
+                            "permission_sync_state": "pending",
+                            "permission_sync_error": False,
+                            "permission_checked_at": False,
+                        },
+                    )
                     trashed_at = self._paperless_datetime(item.get("deleted_at"))
                     values["trashed_at"] = trashed_at
                     if (
@@ -1133,6 +1140,9 @@ class UslDocument(models.Model):
                         "last_error": _(
                             "Document was not returned by a full Paperless reconciliation.",
                         ),
+                        "permission_sync_state": "pending",
+                        "permission_sync_error": False,
+                        "permission_checked_at": False,
                     },
                 )
                 self.sudo().search(
@@ -1149,6 +1159,9 @@ class UslDocument(models.Model):
                             "archive item. Its Odoo tombstone and audit history "
                             "were retained.",
                         ),
+                        "permission_sync_state": "pending",
+                        "permission_sync_error": False,
+                        "permission_checked_at": False,
                     },
                 )
             if touched:
@@ -1157,7 +1170,7 @@ class UslDocument(models.Model):
                         item.availability_state != "trashed"
                         and item.permission_sync_state != "synchronized"
                     ),
-                ).with_user(self.env.ref("base.user_admin")).action_sync_permissions()
+                ).with_user(self.env.ref("base.user_root")).action_sync_permissions()
             if complete:
                 params.set_str("usl_documents.last_sync", checkpoint)
                 params.set_str("usl_documents.sync_cursor_page", "")
@@ -2221,7 +2234,11 @@ class UslDocument(models.Model):
             return {
                 "state": "duplicate",
                 "document_id": existing.id,
-                "message": _("Identical content already exists; the archive item was reused."),
+                "message": _(
+                    "“%(document)s” already contains this exact file; the existing "
+                    "archive document was reused.",
+                )
+                % {"document": existing.name},
             }
         trashed = self.search(
             [
@@ -2272,8 +2289,10 @@ class UslDocument(models.Model):
                     "state": "duplicate",
                     "document_id": mirrored.id,
                     "message": _(
-                        "Identical archive content was found and its existing item was reused.",
-                    ),
+                        "“%(document)s” already contains this exact file; the existing "
+                        "archive document was reused.",
+                    )
+                    % {"document": mirrored.name},
                 }
             operation = self.env["usl.document.operation"].sudo().create({
                 "name": filename,
@@ -2327,7 +2346,10 @@ class UslDocument(models.Model):
             "state": "processing",
             "operation_id": operation.id,
             "task_id": task_id,
-            "message": _("Paperless accepted the file and is processing it."),
+            "message": _(
+                "“%(document)s” was accepted and is being processed.",
+            )
+            % {"document": filename},
         }
 
     def link_to_record(self, res_model, res_id, version_id=None):
@@ -2366,8 +2388,9 @@ class UslDocument(models.Model):
                 "state": "duplicate",
                 "document_id": self.id,
                 "message": _(
-                    "That exact file already belongs to this Paperless document.",
-                ),
+                    "“%(document)s” already contains this exact file.",
+                )
+                % {"document": self.name},
             }
         return self._queue_new_version(
             content,
@@ -2416,13 +2439,17 @@ class UslDocument(models.Model):
             "task_id": task_id,
             "message": (
                 _(
-                    "The selected file is being restored as a new current version. "
+                    "An earlier file from “%(document)s” is being restored as its "
+                    "new current version. "
                     "Earlier versions remain available.",
                 )
+                % {"document": self.name}
                 if restored_from
                 else _(
-                    "Paperless accepted the file as a new version. Earlier versions remain available.",
+                    "“%(document)s” is receiving a new version. Earlier versions "
+                    "remain available.",
                 )
+                % {"document": self.name}
             ),
         }
 
@@ -2492,8 +2519,10 @@ class UslDocument(models.Model):
             "state": "restored",
             "document_id": self.id,
             "message": _(
-                "Document restored. Its Odoo links and archive identity were preserved.",
-            ),
+                "“%(document)s” was restored. Its Odoo links and archive identity "
+                "were preserved.",
+            )
+            % {"document": self.name},
         }
 
     def move_to_trash(self):
@@ -2516,6 +2545,9 @@ class UslDocument(models.Model):
                 "trashed_by_label": self.env.user.display_name,
                 "retention_until": now + timedelta(days=max(0, retention_days)),
                 "last_error": False,
+                "permission_sync_state": "pending",
+                "permission_sync_error": False,
+                "permission_checked_at": False,
             },
         )
         self.message_post(
@@ -2532,8 +2564,9 @@ class UslDocument(models.Model):
             "state": "trashed",
             "document_id": self.id,
             "message": _(
-                "Document moved to Trash. Linked Odoo records were kept.",
-            ),
+                "“%(document)s” was moved to Trash. Linked Odoo records were kept.",
+            )
+            % {"document": self.name},
         }
 
     def approve_permanent_deletion(self, reason):
@@ -2667,6 +2700,19 @@ class UslDocument(models.Model):
             ("sync_state", "=", "synchronized"),
         ]).filtered(lambda mapping: mapping._identity_is_safe())
         for document in self:
+            if document.availability_state not in ("available", "permission_error"):
+                # Paperless bulk permission edits only accept live documents.
+                # Keep unavailable roots fail-closed and force a fresh check as
+                # soon as reconciliation or an explicit restore makes them live.
+                document.sudo().with_context(
+                    skip_permission_invalidation=True,
+                    usl_documents_cache_write=True,
+                ).write({
+                    "permission_sync_state": "pending",
+                    "permission_sync_error": False,
+                    "permission_checked_at": False,
+                })
+                continue
             view_users = []
             change_users = []
             for mapping in mappings:
@@ -2946,7 +2992,7 @@ class UslDocumentLink(models.Model):
             },
         )
         if document.permission_sync_state != "synchronized":
-            document.with_user(self.env.ref("base.user_admin")).action_sync_permissions()
+            document.with_user(self.env.ref("base.user_root")).action_sync_permissions()
         return link
 
     def action_open_record(self):
@@ -3053,12 +3099,14 @@ class UslDocumentOperation(models.Model):
 
     def _workspace_values(self):
         self.ensure_one()
+        document = self.document_id or self.target_document_id
         return {
             "id": self.id,
             "name": self.name,
             "state": self.state,
             "error": self.error_message,
             "document_id": self.document_id.id,
+            "document_name": document.name or self.name,
             "target_document_id": self.target_document_id.id,
             "created_at": self.create_date,
             "retry_count": self.retry_count,
@@ -3197,7 +3245,7 @@ class UslDocumentOperation(models.Model):
                     )
                 if document.permission_sync_state != "synchronized":
                     document.with_user(
-                        self.env.ref("base.user_admin"),
+                        self.env.ref("base.user_root"),
                     ).action_sync_permissions()
                 operation.sudo().write({
                     "state": "archived",
@@ -3223,6 +3271,11 @@ class UslDocumentOperation(models.Model):
                 "name": operation.name,
                 "state": operation.state,
                 "document_id": operation.document_id.id,
+                "document_name": (
+                    operation.document_id.name
+                    or operation.target_document_id.name
+                    or operation.name
+                ),
                 "error": operation.error_message,
             }
             for operation in self
@@ -3295,7 +3348,9 @@ class UslPaperlessUserMapping(models.Model):
     )
 
     def _mapped_user_documents(self):
-        return self.env["usl.document"].with_user(self.user_id).search([])
+        self.ensure_one()
+        visible = self.user_id._documents_visible_for_permission_sync()
+        return self.env["usl.document"].browse(visible[self.user_id.id])
 
     @api.model
     def _pocket_provider(self):
@@ -3478,7 +3533,7 @@ class UslPaperlessUserMapping(models.Model):
         )
         if documents:
             documents.with_user(
-                self.env.ref("base.user_admin"),
+                self.env.ref("base.user_root"),
             ).action_sync_permissions()
         if revoking and documents.filtered(
             lambda document: document.permission_sync_state == "failed",
@@ -3509,7 +3564,7 @@ class UslPaperlessUserMapping(models.Model):
         result = super().unlink()
         if documents:
             documents.with_user(
-                self.env.ref("base.user_admin"),
+                self.env.ref("base.user_root"),
             ).action_sync_permissions()
             if documents.filtered(
                 lambda document: document.permission_sync_state == "failed",

@@ -2458,9 +2458,11 @@ export class DocumentsWorkspaceView extends Component {
             };
             this.state.tags = [...this.state.tags, tag];
             await this.addSelectedTag(tag);
-            this.notification.add(`Tag “${name}” created and added.`, {
-                type: "success",
-            });
+            const documentName = this.state.selected?.name || "this document";
+            this.notification.add(
+                `Tag “${name}” created and added to “${documentName}”.`,
+                { type: "success" }
+            );
         } catch (error) {
             this.notification.add(
                 error.data?.message || error.message || "The tag could not be created.",
@@ -2505,6 +2507,7 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     restoreVersion(version) {
+        const documentName = this.state.selected?.name || "Document";
         this.dialog.add(ConfirmationDialog, {
             title: "Restore this file?",
             body:
@@ -2527,7 +2530,7 @@ export class DocumentsWorkspaceView extends Component {
                     this.notification.add(
                         error.data?.message ||
                             error.message ||
-                            "The version could not be restored.",
+                            `A version of “${documentName}” could not be restored.`,
                         { type: "danger", sticky: true }
                     );
                 }
@@ -2536,6 +2539,7 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     restoreFromTrash() {
+        const documentName = this.state.selected?.name || "Document";
         this.dialog.add(ConfirmationDialog, {
             title: "Restore this document?",
             body: "The same archived document and all of its Odoo links will return.",
@@ -2554,7 +2558,7 @@ export class DocumentsWorkspaceView extends Component {
                     this.notification.add(
                         error.data?.message ||
                             error.message ||
-                            "The document could not be restored.",
+                            `“${documentName}” could not be restored.`,
                         { type: "danger", sticky: true }
                     );
                 }
@@ -2563,6 +2567,7 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     moveToTrash() {
+        const documentName = this.state.selected?.name || "Document";
         const links = this.state.selected?.link_count || 0;
         this.dialog.add(ConfirmationDialog, {
             title: "Move this document to Trash?",
@@ -2587,7 +2592,7 @@ export class DocumentsWorkspaceView extends Component {
                     this.notification.add(
                         error.data?.message ||
                             error.message ||
-                            "The document could not be moved to Trash.",
+                            `“${documentName}” could not be moved to Trash.`,
                         { type: "danger", sticky: true }
                     );
                 }
@@ -2616,7 +2621,7 @@ export class DocumentsWorkspaceView extends Component {
                     );
                     this.state.selected = null;
                     this.notification.add(
-                        "Document permanently deleted. An audit tombstone remains in Odoo.",
+                        `“${selected.name}” was permanently deleted. An audit tombstone remains in Odoo.`,
                         { type: "success", sticky: true }
                     );
                     await this.load();
@@ -2624,7 +2629,7 @@ export class DocumentsWorkspaceView extends Component {
                     this.notification.add(
                         error.data?.message ||
                             error.message ||
-                            "Permanent deletion failed.",
+                            `“${selected.name}” could not be permanently deleted.`,
                         { type: "danger", sticky: true }
                     );
                     throw error;
@@ -2798,13 +2803,14 @@ export class DocumentsWorkspaceView extends Component {
         if (!this.recordContext || !this.state.selected) {
             return;
         }
+        const documentName = this.state.selected.name;
         try {
             await this.orm.call("usl.document", "link_to_record", [
                 [this.state.selected.id],
                 this.recordContext.resModel,
                 this.recordContext.resId,
             ]);
-            this.notification.add("Document linked to this record.", {
+            this.notification.add(`“${documentName}” was linked to this record.`, {
                 type: "success",
             });
             await this.load();
@@ -2813,7 +2819,7 @@ export class DocumentsWorkspaceView extends Component {
             this.notification.add(
                 error.data?.message ||
                     error.message ||
-                    "The document could not be linked.",
+                    `“${documentName}” could not be linked.`,
                 { type: "danger", sticky: true }
             );
         }
@@ -2823,6 +2829,7 @@ export class DocumentsWorkspaceView extends Component {
         if (!this.recordContext || !this.state.selected) {
             return;
         }
+        const documentName = this.state.selected.name;
         try {
             await this.orm.call("usl.document", "unlink_from_record", [
                 [this.state.selected.id],
@@ -2830,7 +2837,7 @@ export class DocumentsWorkspaceView extends Component {
                 this.recordContext.resId,
             ]);
             this.notification.add(
-                "Link removed. The archived document was not deleted.",
+                `The link to “${documentName}” was removed. The archived document was not deleted.`,
                 { type: "success" }
             );
             await this.load();
@@ -2839,7 +2846,7 @@ export class DocumentsWorkspaceView extends Component {
             this.notification.add(
                 error.data?.message ||
                     error.message ||
-                    "The link could not be removed.",
+                    `The link to “${documentName}” could not be removed.`,
                 { type: "danger", sticky: true }
             );
         }
@@ -2896,7 +2903,12 @@ export class DocumentsWorkspaceView extends Component {
                     "Document",
             };
             if (status.state === "archived") {
-                this.notification.add("Document archived successfully.", {
+                const documentName =
+                    status.document_name ||
+                    this.state.selected?.name ||
+                    this.state.operation?.name ||
+                    "Document";
+                this.notification.add(`“${documentName}” was archived successfully.`, {
                     type: "success",
                 });
                 const selected = this.state.selected;
