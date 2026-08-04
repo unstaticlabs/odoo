@@ -135,16 +135,15 @@ interrupted Odoo transaction because reconciliation imports the Paperless
 commit before fixture or operation reuse. Failed operations stay visible until
 the user retries or acknowledges them.
 
-Historical Odoo binaries cross a separate migration boundary. The pilot tool
-under `migration/documents_archive/` accepts only an explicit private
-selection, verifies the approved dump and each filestore object against the
-extracted manifest, then uses the same asynchronous Odoo-to-Paperless write
-path. It records the legacy Odoo source identity in Paperless, applies an
-explicit Odoo company/confidentiality/link decision, and reads the received
-original back to verify its SHA-256. The source filestore is mounted read-only
-and never becomes a product add-ons path or shared writable storage. The pilot
-does not recreate legacy Enterprise `documents.document` records, install a
-migration model, or copy the selected binary into the rebuilt Odoo filestore.
+Historical Odoo binaries cross a separate migration boundary. The canonical
+tool under `migration/documents_archive/` verifies the approved dump and every
+filestore object, then uses the supported asynchronous Odoo-to-Paperless write
+path. Source identities, folder paths, access history and exact tag truth stay
+in sealed external evidence. The live archive receives only user-facing
+classification, original business timestamps, Odoo relationships and access
+policy. The source filestore is mounted read-only and never becomes a product
+add-ons path or shared writable storage; no migration model or provenance field
+is installed in the distribution.
 
 The ingestion operation captures company and confidentiality at submission
 time. Successful asynchronous completion applies that exact policy before

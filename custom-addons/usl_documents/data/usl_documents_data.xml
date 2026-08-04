@@ -47,7 +47,7 @@
         <field name="name">Last 30 days</field>
         <field name="model_id">usl.document</field>
         <field name="action_id" ref="action_documents_workspace"/>
-        <field name="domain">[('paperless_created', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d'))]</field>
+        <field name="domain">[('archive_added_at', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d'))]</field>
         <field name="context">{}</field>
         <field name="sort">[]</field>
     </record>

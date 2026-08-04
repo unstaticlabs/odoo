@@ -11,6 +11,7 @@ import hashlib
 import io
 import json
 import os
+import sys
 import time
 import zipfile
 from collections import defaultdict
@@ -24,6 +25,16 @@ from reportlab.pdfgen import canvas
 from odoo import Command, fields
 from odoo.exceptions import AccessError
 
+sys.path.insert(0, "/mnt/documents-archive-migration")
+from classification import (  # noqa: E402
+    INSTITUTION_PARTNERS,
+    classify_group,
+    folder_contexts,
+    normalized_source_tag,
+)
+from classification import (
+    TAG_COLORS as CLASSIFICATION_TAG_COLORS,
+)
 
 SOURCE_FILESTORE = Path(
     os.getenv("DOCUMENTS_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
@@ -41,7 +52,7 @@ PAPERLESS_PUBLIC_URL = os.getenv(
 PAPERLESS_TOKEN = os.environ["DOCUMENTS_PAPERLESS_TOKEN"]
 PAPERLESS_SERVICE_USER_ID = int(os.environ["DOCUMENTS_PAPERLESS_SERVICE_USER_ID"])
 
-TAG_COLORS = (
+SOURCE_TAG_PALETTE = (
     "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc949",
     "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab", "#2b8cbe", "#31a354",
 )
@@ -59,6 +70,9 @@ QUALIFIED_SOURCE = {
     "account_folder_setting_tags": 37,
     "hr_contract_tags": 1,
     "checksum_groups": 548,
+    "employee_folder_mappings": 2,
+    "project_folder_mappings": 18,
+    "classification_partners": 4,
 }
 QUALIFIED_SEARCHABLE_DERIVATIVES = {
     388: {"mime_type": "application/zip", "kind": "FEC ZIP"},
@@ -116,17 +130,23 @@ def read_source():
                    attachment.name AS filename, attachment.store_fname,
                    attachment.checksum, attachment.file_size,
                    attachment.mimetype, attachment.create_uid,
-                   attachment.create_date AS attachment_create_date
+                   attachment.create_date AS attachment_create_date,
+                   move.journal_id, move.move_type, move.invoice_date,
+                   move.date AS move_date, move.partner_id AS move_partner_id,
+                   journal.name AS journal_name, journal.type AS journal_type
               FROM documents_document document
               JOIN ir_attachment attachment
                 ON attachment.id = document.attachment_id
+              LEFT JOIN account_move move
+                ON document.res_model = 'account.move' AND move.id = document.res_id
+              LEFT JOIN account_journal journal ON journal.id = move.journal_id
              ORDER BY document.id
             """,
         )
         folders = rows(
             cursor,
             """
-            SELECT id, folder_id, parent_path, name
+            SELECT id, folder_id, parent_path, name, company_id
               FROM documents_document
              WHERE type = 'folder'
              ORDER BY id
@@ -211,6 +231,23 @@ def read_source():
             "FROM documents_hr_contracts_tags_table "
             "ORDER BY res_company_id, documents_tag_id",
         )
+        employee_folder_mappings = rows(
+            cursor,
+            "SELECT id, name, hr_employee_folder_id, "
+            "hr_employee_contract_folder_id FROM hr_employee "
+            "WHERE hr_employee_folder_id IS NOT NULL "
+            "OR hr_employee_contract_folder_id IS NOT NULL ORDER BY id",
+        )
+        project_folder_mappings = rows(
+            cursor,
+            "SELECT id, name, documents_folder_id FROM project_project "
+            "WHERE documents_folder_id IS NOT NULL ORDER BY id",
+        )
+        classification_partners = rows(
+            cursor,
+            "SELECT id, name FROM res_partner WHERE name = ANY(%s) ORDER BY name, id",
+            (sorted(set(INSTITUTION_PARTNERS.values())),),
+        )
     source = {
         "documents": documents,
         "folders": folders,
@@ -223,22 +260,26 @@ def read_source():
         "account_folder_settings": account_folder_settings,
         "account_folder_setting_tags": account_folder_setting_tags,
         "hr_contract_tags": hr_contract_tags,
+        "employee_folder_mappings": employee_folder_mappings,
+        "project_folder_mappings": project_folder_mappings,
+        "classification_partners": classification_partners,
     }
-    if SOURCE_DUMP_SHA256 != QUALIFIED_SOURCE["dump_sha256"]:
+    if QUALIFIED_SOURCE["dump_sha256"] != SOURCE_DUMP_SHA256:
         fail(
             "this migration contract has not qualified source dump "
-            f"{SOURCE_DUMP_SHA256}"
+            f"{SOURCE_DUMP_SHA256}",
         )
     for key in (
         "documents", "folders", "tags", "tag_relations", "accesses",
         "unassigned", "document_groups", "url_references",
         "account_folder_settings", "account_folder_setting_tags",
-        "hr_contract_tags",
+        "hr_contract_tags", "employee_folder_mappings",
+        "project_folder_mappings", "classification_partners",
     ):
         if len(source[key]) != QUALIFIED_SOURCE[key]:
             fail(
                 f"qualified source {key} changed: expected "
-                f"{QUALIFIED_SOURCE[key]}, got {len(source[key])}"
+                f"{QUALIFIED_SOURCE[key]}, got {len(source[key])}",
             )
     if source["url_references"][0]["xmlid"] != (
         "documents.documents_attachment_video_documents"
@@ -316,16 +357,6 @@ def source_map(model_name, source_ids):
     return result
 
 
-def folder_paths(source):
-    folders = {row["id"]: row for row in source["folders"]}
-    result = {}
-    for folder_id, row in folders.items():
-        source_ids = [int(part) for part in (row["parent_path"] or "").split("/") if part]
-        names = [text(folders[item]["name"]) for item in source_ids if item in folders]
-        result[folder_id] = " / ".join(name for name in names if name)
-    return result
-
-
 def group_source(source):
     tags_by_document = defaultdict(list)
     for relation in source["tag_relations"]:
@@ -333,12 +364,30 @@ def group_source(source):
     access_by_document = defaultdict(list)
     for access in source["accesses"]:
         access_by_document[access["document_id"]].append(access)
-    paths = folder_paths(source)
+    setting_journals = {
+        setting["id"]: setting["journal_id"]
+        for setting in source["account_folder_settings"]
+        if setting["journal_id"]
+    }
+    rule_tags_by_journal = defaultdict(list)
+    for relation in source["account_folder_setting_tags"]:
+        journal_id = setting_journals.get(relation["setting_id"])
+        if journal_id:
+            rule_tags_by_journal[journal_id].append(relation["tag_id"])
+    source_tags = {row["id"]: text(row["name"]) for row in source["tags"]}
+    paths, folder_companies = folder_contexts(source["folders"])
     grouped = defaultdict(list)
     for document in source["documents"]:
-        document["tag_ids"] = tags_by_document[document["document_id"]]
+        document["tag_ids"] = sorted(
+            set(tags_by_document[document["document_id"]])
+            | set(rule_tags_by_journal[document.get("journal_id")]),
+        )
+        document["source_tag_names"] = [
+            source_tags[tag_id] for tag_id in document["tag_ids"]
+        ]
         document["access_rows"] = access_by_document[document["document_id"]]
         document["folder_path"] = paths.get(document["folder_id"], "")
+        document["folder_company_id"] = folder_companies.get(document["folder_id"])
         document["kind"] = "document"
         grouped[document["checksum"]].append(document)
     for attachment in source["unassigned"]:
@@ -361,8 +410,10 @@ def group_source(source):
                 "create_date": attachment["attachment_create_date"],
                 "write_date": attachment["attachment_create_date"],
                 "tag_ids": [],
+                "source_tag_names": [],
                 "access_rows": [],
                 "folder_path": "",
+                "folder_company_id": None,
                 "kind": "unassigned_evidence",
             },
         )
@@ -387,79 +438,6 @@ def representative(group):
     )[0]
 
 
-def ensure_custom_field(client, name):
-    existing = next(
-        (item for item in client.list_custom_fields() if item.get("name") == name),
-        None,
-    )
-    return existing or client.create_custom_field({"name": name, "data_type": "string"})
-
-
-def bounded_custom_value(value):
-    value = str(value)
-    if len(value) <= 128:
-        return value
-    digest = hashlib.sha256(value.encode()).hexdigest()
-    return f"manifest-sha256:{digest}"
-
-
-def custom_field_values(custom_fields, group):
-    document_items = [item for item in group if item["document_id"]]
-    payloads = {
-        "Legacy Odoo document identities": ",".join(
-            str(item["document_id"]) for item in document_items
-        ),
-        "Legacy Odoo attachment identities": ",".join(
-            str(value) for value in sorted({item["attachment_id"] for item in group})
-        ),
-        "Legacy Odoo binary manifests": f"sha1:{group[0]['checksum']}",
-        "Legacy Odoo folder paths": " | ".join(
-            sorted({item["folder_path"] for item in group if item["folder_path"]})
-        ),
-        "Legacy Odoo tags": ",".join(
-            str(value)
-            for value in sorted(
-                {tag_id for item in document_items for tag_id in item["tag_ids"]}
-            )
-        ),
-        "Legacy Odoo record identities": ",".join(sorted(
-            {
-                f"{item['res_model']}:{item['res_id']}"
-                for item in document_items
-                if item["res_model"] and item["res_id"]
-            },
-        )),
-        "Legacy Odoo access policy": ";".join(
-            f"{item['document_id']}:{item['access_internal']}:"
-            f"link-{item['access_via_link']}:owner-{item['owner_id'] or 0}"
-            for item in document_items
-        ),
-        "Legacy Odoo lifecycle": ";".join(
-            f"{item['document_id']}:{'active' if item['active'] else 'inactive'}:"
-            f"{item['create_date']}:{item['write_date']}"
-            for item in document_items
-        ),
-        "Legacy Odoo source snapshot": SOURCE_SNAPSHOT,
-        "Legacy Odoo operational attachment": ",".join(
-            str(value)
-            for value in sorted(
-                {
-                    item["operational_attachment_id"]
-                    for item in group
-                    if item.get("operational_attachment_id")
-                }
-            )
-        ),
-    }
-    return [
-        {
-            "field": int(custom_fields[name]["id"]),
-            "value": bounded_custom_value(value),
-        }
-        for name, value in payloads.items()
-    ]
-
-
 def source_truth_payload(group):
     payload = []
     for item in group:
@@ -477,6 +455,7 @@ def source_truth_payload(group):
                 "res_model": item["res_model"],
                 "res_id": item["res_id"],
                 "folder_path": item["folder_path"],
+                "folder_company_id": item.get("folder_company_id"),
                 "tag_ids": item["tag_ids"],
                 "access_internal": item["access_internal"],
                 "access_via_link": item["access_via_link"],
@@ -494,6 +473,7 @@ def source_truth_payload(group):
                 "kind": item["kind"],
                 "operational_attachment_id": item.get("operational_attachment_id"),
                 "searchable_source_member": item.get("searchable_source_member", ""),
+                "classification": classify_group([item]),
             },
         )
     return payload
@@ -614,7 +594,7 @@ def ensure_operational_source_attachment(group, content, company, target):
         ):
             fail("a retained operational source differs from the source original")
         imported = existing_records.filtered(
-            lambda attachment: attachment.rebuild_import_status == "imported"
+            lambda attachment: attachment.rebuild_import_status == "imported",
         )
         if len(imported) > 1:
             field_backed = imported.filtered(lambda attachment: attachment.res_field)
@@ -626,7 +606,7 @@ def ensure_operational_source_attachment(group, content, company, target):
                         "Exact authoritative source retained; searchable "
                         "representation archived."
                     )
-                )
+                ),
             )
             if (
                 len(field_backed) != 1
@@ -739,14 +719,20 @@ groups = group_source(source)
 if not SOURCE_LIMIT and len(groups) != QUALIFIED_SOURCE["checksum_groups"]:
     fail(
         "qualified source checksum groups changed: expected "
-        f"{QUALIFIED_SOURCE['checksum_groups']}, got {len(groups)}"
+        f"{QUALIFIED_SOURCE['checksum_groups']}, got {len(groups)}",
     )
 admin = env.ref("base.user_admin")
 documents_model = env["usl.document"]
 manager_group = env.ref("usl_documents.group_documents_manager")
 companies = source_map(
     "res.company",
-    [item["company_id"] for group in groups for item in group if item["company_id"]],
+    [
+        source_id
+        for group in groups
+        for item in group
+        for source_id in (item.get("company_id"), item.get("folder_company_id"))
+        if source_id
+    ],
 )
 users = source_map(
     "res.users",
@@ -754,6 +740,12 @@ users = source_map(
         source_id
         for source_id in (
             [item["owner_id"] for group in groups for item in group if item["owner_id"]]
+            + [
+                item["create_uid"]
+                for group in groups
+                for item in group
+                if item.get("create_uid")
+            ]
             + [row["user_id"] for row in source["document_groups"]]
         )
         if source_id
@@ -761,7 +753,15 @@ users = source_map(
 )
 partners = source_map(
     "res.partner",
-    [item["partner_id"] for group in groups for item in group if item["partner_id"]],
+    [
+        source_id
+        for source_id in (
+            [item["partner_id"] for group in groups for item in group]
+            + [item.get("move_partner_id") for group in groups for item in group]
+            + [row["id"] for row in source["classification_partners"]]
+        )
+        if source_id
+    ],
 )
 moves = source_map(
     "account.move",
@@ -780,6 +780,25 @@ expected_move_ids = {
 }
 if set(moves) != expected_move_ids:
     fail(f"Accounting move mappings are incomplete: {sorted(expected_move_ids - set(moves))}")
+employees = source_map(
+    "hr.employee",
+    [row["id"] for row in source["employee_folder_mappings"]],
+)
+employee_by_folder = {}
+for row in source["employee_folder_mappings"]:
+    employee = employees[row["id"]]
+    for folder_id in (
+        row["hr_employee_folder_id"],
+        row["hr_employee_contract_folder_id"],
+    ):
+        if folder_id:
+            employee_by_folder[folder_id] = employee
+if any(
+    item["folder_id"] in {row["documents_folder_id"] for row in source["project_folder_mappings"]}
+    for group in groups
+    for item in group
+):
+    fail("the source contains direct Project-folder documents without a finalized mapping")
 
 for membership in source["document_groups"]:
     user = users.get(membership["user_id"])
@@ -793,43 +812,135 @@ compatibility = client.compatibility()
 if compatibility["api_version"] != "10":
     fail(f"Paperless API v10 is required, got {compatibility['api_version']}")
 client.ensure_fail_closed_ingestion_policy()
+legacy_custom_fields = [
+    item
+    for item in client.list_custom_fields()
+    if (item.get("name") or "").startswith("Legacy Odoo ")
+]
+for custom_field in legacy_custom_fields:
+    client.delete_custom_field(custom_field["id"])
 documents._sync_metadata_catalogs(client)
 
+classifications = {
+    group[0]["checksum"]: classify_group(group)
+    for group in groups
+}
 tag_model = env["usl.paperless.tag"].with_user(admin)
-source_tags = {}
+source_tag_colors = {}
 for row in source["tags"]:
-    name = text(row["name"])
+    name = normalized_source_tag(text(row["name"]))
+    source_tag_colors.setdefault(
+        name,
+        SOURCE_TAG_PALETTE[int(row["color"] or 0) % len(SOURCE_TAG_PALETTE)],
+    )
+tags_by_name = {}
+for name in sorted(
+    {
+        tag
+        for classification in classifications.values()
+        for tag in classification["tags"]
+    },
+    key=str.casefold,
+):
     tag = tag_model.search([("name", "=ilike", name), ("active", "=", True)], limit=1)
     if not tag:
         tag = tag_model.create(
             {
                 "name": name,
-                "color": TAG_COLORS[int(row["color"] or 0) % len(TAG_COLORS)],
+                "color": CLASSIFICATION_TAG_COLORS.get(
+                    name,
+                    source_tag_colors.get(name, "#4e79a7"),
+                ),
                 "matching_algorithm": "0",
                 "is_insensitive": True,
             },
         )
-    source_tags[row["id"]] = tag
+    tags_by_name[name] = tag
+
+document_type_model = env["usl.paperless.document.type"].with_user(admin)
+document_types = {}
+for name in sorted(
+    {
+        classification["document_type"]
+        for classification in classifications.values()
+        if classification["document_type"]
+    },
+    key=str.casefold,
+):
+    document_type = document_type_model.search(
+        [("name", "=ilike", name), ("active", "=", True)],
+        limit=1,
+    )
+    if not document_type:
+        document_type = document_type_model.create(
+            {
+                "name": name,
+                "matching_algorithm": "0",
+                "is_insensitive": True,
+            },
+        )
+    document_types[name] = document_type
 
 correspondent_model = env["usl.paperless.correspondent"].with_user(admin)
+source_partner_by_name = {
+    row["name"]: row["id"] for row in source["classification_partners"]
+}
+
+
+def group_correspondent_partner_id(group, classification):
+    direct = sorted(
+        (
+            item["document_id"] or 1_000_000_000,
+            item.get("partner_id") or item.get("move_partner_id"),
+        )
+        for item in group
+        if item.get("partner_id") or item.get("move_partner_id")
+    )
+    if direct:
+        return direct[0][1]
+    for name in classification["institution_partner_names"]:
+        if source_partner_by_name.get(name):
+            return source_partner_by_name[name]
+    return None
+
+
+correspondent_partner_by_checksum = {
+    group[0]["checksum"]: group_correspondent_partner_id(
+        group,
+        classifications[group[0]["checksum"]],
+    )
+    for group in groups
+}
 correspondents = {}
-for source_partner_id, partner in partners.items():
+for source_partner_id in sorted(
+    {value for value in correspondent_partner_by_checksum.values() if value},
+):
+    partner = partners[source_partner_id]
     result = correspondent_model.create_from_partner(partner.id)
     correspondents[source_partner_id] = correspondent_model.browse(result["id"])
-
-custom_field_names = (
-    "Legacy Odoo document identities",
-    "Legacy Odoo attachment identities",
-    "Legacy Odoo binary manifests",
-    "Legacy Odoo folder paths",
-    "Legacy Odoo tags",
-    "Legacy Odoo record identities",
-    "Legacy Odoo access policy",
-    "Legacy Odoo lifecycle",
-    "Legacy Odoo source snapshot",
-    "Legacy Odoo operational attachment",
-)
-custom_fields = {name: ensure_custom_field(client, name) for name in custom_field_names}
+archive_correspondents = {}
+for name in sorted(
+    {
+        name
+        for classification in classifications.values()
+        if not classification["institution_partner_names"]
+        for name in classification["archive_correspondent_names"]
+    },
+    key=str.casefold,
+):
+    correspondent = correspondent_model.search(
+        [("name", "=ilike", name), ("active", "=", True)],
+        limit=1,
+    )
+    if not correspondent:
+        correspondent = correspondent_model.create(
+            {
+                "name": name,
+                "matching_algorithm": "0",
+                "is_insensitive": True,
+            },
+        )
+    archive_correspondents[name] = correspondent
 
 all_attachments = env["ir.attachment"].sudo().with_context(
     skip_res_field_check=True,
@@ -864,7 +975,7 @@ def existing_document_for(content_sha256):
     if len(matches) > 1:
         fail(
             f"target contains {len(matches)} archive roots for SHA-256 "
-            f"{content_sha256}"
+            f"{content_sha256}",
         )
     return matches
 
@@ -920,7 +1031,13 @@ for index, group in enumerate(groups, start=1):
     if any(candidate != content for candidate in source_contents[1:]):
         fail(f"source SHA-1 group {item['checksum']} contains different binaries")
     source_sha256 = hashlib.sha256(content).hexdigest()
-    source_company_ids = sorted({entry["company_id"] for entry in group if entry["company_id"]})
+    source_company_ids = sorted(
+        {
+            entry.get("company_id") or entry.get("folder_company_id")
+            for entry in group
+            if entry.get("company_id") or entry.get("folder_company_id")
+        },
+    )
     if len(source_company_ids) > 1:
         fail(f"checksum {item['checksum']} spans several legal companies")
     source_company_id = source_company_ids[0] if source_company_ids else None
@@ -988,10 +1105,12 @@ for index, group in enumerate(groups, start=1):
     submitter = users.get(source_owner_ids[0]) if source_owner_ids else admin
     if not submitter or not submitter.has_group("usl_documents.group_documents_manager"):
         submitter = admin
+    classification = classifications[item["checksum"]]
     confidentiality = (
         "private"
         if any(entry["access_internal"] == "none" for entry in group)
-        else "accounting" if target_moves else "internal"
+        else "hr" if classification["hr_restricted"]
+        else "accounting" if classification["accounting_evidence"] else "internal"
     )
     upload = documents_model.with_user(submitter).upload_from_odoo(
         paperless_filename,
@@ -1039,13 +1158,20 @@ settle_pending(force=True)
 for item in completed:
     group = item["group"]
     source_item = representative(group)
+    classification = classifications[source_item["checksum"]]
     document = item["document"].with_user(admin)
     if document.availability_state == "trashed":
         # Paperless exposes Trash through a separate API. Temporarily restore
         # the same stable root so metadata, bytes, preview and permissions can
         # be revalidated, then return all-inactive source groups to Trash.
         document.restore_from_trash()
-    source_company_ids = sorted({entry["company_id"] for entry in group if entry["company_id"]})
+    source_company_ids = sorted(
+        {
+            entry.get("company_id") or entry.get("folder_company_id")
+            for entry in group
+            if entry.get("company_id") or entry.get("folder_company_id")
+        },
+    )
     source_company_id = source_company_ids[0] if source_company_ids else None
     company = companies.get(source_company_id)
     if any(entry.get("operational_attachment_id") for entry in group):
@@ -1058,49 +1184,31 @@ for item in completed:
     confidentiality = (
         "private"
         if any(entry["access_internal"] == "none" for entry in group)
-        else "accounting" if target_moves else "internal"
+        else "hr" if classification["hr_restricted"]
+        else "accounting" if classification["accounting_evidence"] else "internal"
     )
-    tags = env["usl.paperless.tag"]
-    for entry in group:
-        tags |= env["usl.paperless.tag"].browse(
-            [source_tags[tag_id].id for tag_id in entry["tag_ids"]],
-        )
-    correspondent_source_ids = sorted(
-        (
-            entry["document_id"] or 1_000_000_000,
-            entry["partner_id"],
-        )
-        for entry in group
-        if entry["partner_id"]
+    tags = env["usl.paperless.tag"].browse(
+        [tags_by_name[name].id for name in classification["tags"]],
     )
-    correspondent = (
-        correspondents.get(correspondent_source_ids[0][1])
-        if correspondent_source_ids
-        else None
-    )
+    document_type = document_types.get(classification["document_type"])
+    correspondent_partner_id = correspondent_partner_by_checksum[source_item["checksum"]]
+    correspondent = correspondents.get(correspondent_partner_id)
+    if not correspondent and classification["archive_correspondent_names"]:
+        correspondent = archive_correspondents[
+            classification["archive_correspondent_names"][0]
+        ]
     metadata = {
         "name": (
             f"{text(source_item['name']) or source_item['filename']} — searchable archive copy"
             if any(entry.get("operational_attachment_id") for entry in group)
             else text(source_item["name"]) or source_item["filename"]
         ),
-        "document_date": fields.Date.to_string(source_item["create_date"].date()),
-        "tag_ids": sorted((document.tag_ids | tags).ids),
+        "document_date": fields.Date.to_string(classification["document_date"]),
+        "tag_ids": sorted(tags.ids),
         "correspondent_id": correspondent.id if correspondent else False,
+        "document_type_id": document_type.id if document_type else False,
     }
     document.update_archive_metadata(metadata)
-    remote = client.get_document(document.paperless_id)
-    existing_custom_fields = {
-        int(value["field"]): value
-        for value in (remote.get("custom_fields") or [])
-        if value.get("field")
-    }
-    for value in custom_field_values(custom_fields, group):
-        existing_custom_fields[int(value["field"])] = value
-    client.update_document_metadata(
-        document.paperless_id,
-        {"custom_fields": list(existing_custom_fields.values())},
-    )
     refreshed = client.get_document(document.paperless_id)
     if (
         any(entry.get("operational_attachment_id") for entry in group)
@@ -1108,30 +1216,120 @@ for item in completed:
     ):
         fail(
             f"searchable archive representation has no extracted text for "
-            f"Paperless document {document.paperless_id}"
+            f"Paperless document {document.paperless_id}",
         )
     cache_values = documents._paperless_values(refreshed)
     cache_values.pop("source", None)
     document.sudo().with_context(usl_documents_cache_write=True).write(cache_values)
     document._synchronize_versions(refreshed.get("versions") or [])
+    added_source = min(
+        group,
+        key=lambda entry: (
+            entry["create_date"],
+            entry["document_id"] or 1_000_000_000,
+            entry["attachment_id"],
+        ),
+    )
+    submitted_user = users.get(
+        added_source.get("owner_id") or added_source.get("create_uid"),
+    ) or admin
+    provenance_values = {
+        "submitted_by_id": submitted_user.id,
+        "submitted_at": fields.Datetime.to_string(classification["added_at"]),
+    }
+    document.sudo().with_context(usl_documents_cache_write=True).write(
+        provenance_values,
+    )
+    received_original = document.version_ids.filtered("is_received_original")[:1]
+    if received_original:
+        received_original.sudo().write(provenance_values)
+    target_links = {
+        ("account.move", target.id): target
+        for target in target_moves.values()
+    }
+    partner_source_ids = {
+        source_id
+        for entry in group
+        for source_id in (entry.get("partner_id"), entry.get("move_partner_id"))
+        if source_id
+    }
+    partner_source_ids.update(
+        source_partner_by_name[name]
+        for name in classification["institution_partner_names"]
+        if source_partner_by_name.get(name)
+    )
+    target_links.update(
+        {
+            ("res.partner", partners[source_id].id): partners[source_id]
+            for source_id in partner_source_ids
+        },
+    )
+    target_links.update(
+        {
+            ("hr.employee", employee_by_folder[entry["folder_id"]].id):
+                employee_by_folder[entry["folder_id"]]
+            for entry in group
+            if entry["folder_id"] in employee_by_folder
+        },
+    )
+    if not company and target_links:
+        linked_companies = env["res.company"]
+        for (model_name, _target_id), target in target_links.items():
+            linked_company = (
+                target
+                if model_name == "res.company"
+                else getattr(target, "company_id", False) or env.company
+            )
+            linked_companies |= linked_company
+        if len(linked_companies) != 1:
+            fail(
+                f"business context has conflicting companies for source checksum "
+                f"{source_item['checksum']}: {linked_companies.ids}",
+            )
+        company = linked_companies
     document.sudo().with_context(usl_documents_policy_write=True).write(
         {
             "company_id": company.id if company else False,
             "confidentiality": confidentiality,
-            "accounting_evidence": bool(target_moves),
-            "review_state": "classified" if company else "needs_attention",
+            "accounting_evidence": classification["accounting_evidence"],
+            "review_state": (
+                "classified"
+                if company and not classification["needs_attention"]
+                else "needs_attention"
+            ),
         },
     )
-    for target in target_moves.values():
-        document.link_to_record("account.move", target.id)
+    for (model_name, _target_id), target in sorted(target_links.items()):
+        document.link_to_record(model_name, target.id)
+        link = document.sudo().link_ids.filtered(
+            lambda candidate: (
+                candidate.res_model == model_name
+                and candidate.res_id == target.id
+            ),
+        )[:1]
+        link.sudo().write(
+            {
+                "linked_by_id": submitted_user.id,
+                "linked_at": fields.Datetime.to_string(classification["added_at"]),
+            },
+        )
     actual_target_ids = set(
         document.sudo().link_ids.filtered(
-            lambda link: link.active and link.res_model == "account.move"
-        ).mapped("res_id")
+            lambda link: link.active and link.res_model == "account.move",
+        ).mapped("res_id"),
     )
     if actual_target_ids != set(target_moves):
         fail(
-            f"accounting links differ for source checksum {source_item['checksum']}"
+            f"accounting links differ for source checksum {source_item['checksum']}",
+        )
+    actual_link_keys = {
+        (link.res_model, link.res_id)
+        for link in document.sudo().link_ids.filtered("active")
+    }
+    if not set(target_links).issubset(actual_link_keys):
+        fail(
+            f"business links differ for source checksum {source_item['checksum']}: "
+            f"missing {sorted(set(target_links) - actual_link_keys)}",
         )
     view_users = []
     change_users = []
@@ -1144,21 +1342,30 @@ for item in completed:
         if mapping.user_id.has_group("usl_documents.group_documents_manager"):
             change_users.append(mapping.paperless_user_id)
     permission_groups[
-        (tuple(sorted(set(view_users))), tuple(sorted(set(change_users))))
+        tuple(sorted(set(view_users))), tuple(sorted(set(change_users))),
     ].append(document)
     if document.company_id.id != (company.id if company else False):
         fail(f"company policy differs for Paperless document {document.paperless_id}")
     if document.confidentiality != confidentiality:
         fail(
             f"confidentiality policy differs for Paperless document "
-            f"{document.paperless_id}"
+            f"{document.paperless_id}",
         )
-    if set(tags.ids) - set(document.tag_ids.ids):
-        fail(f"source tags differ for Paperless document {document.paperless_id}")
+    if set(tags.ids) != set(document.tag_ids.ids):
+        fail(f"translated tags differ for Paperless document {document.paperless_id}")
     if document.correspondent_id.id != (correspondent.id if correspondent else False):
         fail(f"correspondent differs for Paperless document {document.paperless_id}")
+    if document.document_type_id.id != (document_type.id if document_type else False):
+        fail(f"document type differs for Paperless document {document.paperless_id}")
+    if document.accounting_evidence != classification["accounting_evidence"]:
+        fail(f"accounting classification differs for Paperless document {document.paperless_id}")
+    expected_submitted_at = fields.Datetime.to_datetime(
+        fields.Datetime.to_string(classification["added_at"]),
+    )
+    if document.submitted_at != expected_submitted_at:
+        fail(f"source added date differs for Paperless document {document.paperless_id}")
     if not document.version_ids.filtered(
-        lambda version: version.checksum == item["paperless_original_sha256"]
+        lambda version: version.checksum == item["paperless_original_sha256"],
     ):
         fail(f"source file version is missing for Paperless document {document.paperless_id}")
     original, _headers = client.download(document.paperless_id, original=True)
@@ -1186,6 +1393,13 @@ for item in completed:
         fail(f"Paperless preview is not a PDF for source checksum {source_item['checksum']}")
     item["preview_content_type"] = preview_content_type.split(";", 1)[0]
     item["preview_sha256"] = hashlib.sha256(preview).hexdigest()
+    item["derived_classification"] = classification
+    item["restored_links"] = [
+        {"model": model_name, "target_id": target_id}
+        for model_name, target_id in sorted(target_links)
+    ]
+    item["restored_company_id"] = company.id if company else None
+    item["source_added_at"] = classification["added_at"]
     quarantine = env["ir.attachment"].sudo().search(
         [
             ("rebuild_source_model", "=", "ir.attachment"),
@@ -1235,7 +1449,7 @@ for (view_users, change_users), grouped_documents in permission_groups.items():
     if result != "OK":
         fail(
             "Paperless 3.0.4 returned an incompatible bulk-permission response: "
-            f"{result!r}"
+            f"{result!r}",
         )
     print(
         "DOCUMENTS_PERMISSION_WRITE="
@@ -1291,7 +1505,7 @@ for (view_users, change_users), grouped_documents in permission_groups.items():
         ):
             fail(
                 f"actual Paperless permissions differ for document "
-                f"{document.paperless_id}"
+                f"{document.paperless_id}",
             )
         document.sudo().with_context(
             skip_permission_invalidation=True,
@@ -1322,6 +1536,110 @@ for document in trash_after_permission_sync:
         document.move_to_trash()
 env.cr.commit()
 
+# The original implementation copied reconstruction evidence into Paperless
+# custom fields and created every source catalog tag, including configuration
+# tags that had never classified a document.  Finalization keeps the complete
+# source truth in the sealed manifest and leaves only useful live metadata.
+tag_model.synchronize_catalog(client=client)
+all_migrated_documents = documents.sudo().search([])
+assigned_tag_ids = set(all_migrated_documents.tag_ids.ids)
+source_tag_candidate_names = {
+    name
+    for row in source["tags"]
+    for name in (
+        text(row["name"]),
+        normalized_source_tag(text(row["name"])),
+    )
+    if name
+}
+unused_source_tags = tag_model.search(
+    [
+        ("active", "=", True),
+        ("name", "in", sorted(source_tag_candidate_names)),
+        ("id", "not in", sorted(assigned_tag_ids)),
+    ],
+)
+pruned_empty_tags = sorted(unused_source_tags.mapped("name"), key=str.casefold)
+if unused_source_tags:
+    unused_source_tags.unlink()
+
+correspondent_model.synchronize_catalog(client=client)
+assigned_correspondent_ids = set(
+    all_migrated_documents.correspondent_id.ids,
+)
+unused_source_correspondents = correspondent_model.search(
+    [
+        ("active", "=", True),
+        ("partner_id", "in", [partner.id for partner in partners.values()]),
+        ("id", "not in", sorted(assigned_correspondent_ids)),
+    ],
+)
+pruned_empty_correspondents = sorted(
+    unused_source_correspondents.mapped("name"),
+    key=str.casefold,
+)
+if unused_source_correspondents:
+    unused_source_correspondents.unlink()
+
+document_type_model.synchronize_catalog(client=client)
+assigned_document_type_ids = set(
+    all_migrated_documents.document_type_id.ids,
+)
+unused_migration_types = document_type_model.search(
+    [
+        ("active", "=", True),
+        ("name", "in", sorted(set(document_types) | {"KBis"})),
+        ("id", "not in", sorted(assigned_document_type_ids)),
+    ],
+)
+pruned_empty_document_types = sorted(
+    unused_migration_types.mapped("name"),
+    key=str.casefold,
+)
+if unused_migration_types:
+    unused_migration_types.unlink()
+
+documents._sync_metadata_catalogs(client)
+legacy_custom_fields_after = [
+    definition
+    for definition in client.list_custom_fields()
+    if (definition.get("name") or "").startswith("Legacy Odoo ")
+]
+if legacy_custom_fields_after:
+    fail("legacy reconstruction fields remain in the live Paperless catalog")
+active_tag_names = set(tag_model.search([("active", "=", True)]).mapped("name"))
+excluded_empty_source_tags = sorted(
+    source_tag_candidate_names - active_tag_names,
+    key=str.casefold,
+)
+active_correspondent_names = set(
+    correspondent_model.search([("active", "=", True)]).mapped("name"),
+)
+excluded_empty_source_correspondents = sorted(
+    {
+        partner.display_name
+        for partner in partners.values()
+        if partner.display_name not in active_correspondent_names
+    },
+    key=str.casefold,
+)
+active_document_type_names = set(
+    document_type_model.search([("active", "=", True)]).mapped("name"),
+)
+excluded_empty_source_document_types = sorted(
+    (set(document_types) | {"KBis"}) - active_document_type_names,
+    key=str.casefold,
+)
+if tag_model.search_count(
+    [
+        ("active", "=", True),
+        ("name", "in", sorted(source_tag_candidate_names)),
+        ("id", "not in", sorted(assigned_tag_ids)),
+    ],
+):
+    fail("empty source-only tags remain in the live Paperless catalog")
+env.cr.commit()
+
 for item in failed:
     item.pop("content", None)
     item.pop("source_content", None)
@@ -1334,6 +1652,60 @@ for item in completed:
     ]
     item["source_attachment_ids"] = [entry["attachment_id"] for entry in item["group"]]
     item.pop("group", None)
+
+expected_relationships = {
+    (
+        item["odoo_document_id"],
+        link["model"],
+        link["target_id"],
+    )
+    for item in completed
+    for link in item["restored_links"]
+}
+migrated_document_ids = [item["odoo_document_id"] for item in completed]
+actual_relationships = {
+    (link.document_id.id, link.res_model, link.res_id)
+    for link in env["usl.document.link"].sudo().search(
+        [("document_id", "in", migrated_document_ids), ("active", "=", True)],
+    )
+}
+if actual_relationships != expected_relationships:
+    fail(
+        "the finalized business relationship set is not deterministic; "
+        f"missing={sorted(expected_relationships - actual_relationships)}, "
+        f"unexpected={sorted(actual_relationships - expected_relationships)}",
+    )
+relationships_by_model = {
+    model_name: sum(
+        relationship[1] == model_name for relationship in expected_relationships
+    )
+    for model_name in sorted({item[1] for item in expected_relationships})
+}
+classification_tag_counts = {
+    name: sum(name in item["derived_classification"]["tags"] for item in completed)
+    for name in sorted(
+        {
+            tag
+            for item in completed
+            for tag in item["derived_classification"]["tags"]
+        },
+        key=str.casefold,
+    )
+}
+classification_type_counts = {
+    name: sum(
+        item["derived_classification"]["document_type"] == name
+        for item in completed
+    )
+    for name in sorted(
+        {
+            item["derived_classification"]["document_type"]
+            for item in completed
+            if item["derived_classification"]["document_type"]
+        },
+        key=str.casefold,
+    )
+}
 
 after_attachment_count = all_attachments.search_count([])
 expected_source_documents = sum(
@@ -1354,7 +1726,7 @@ restored_source_attachments = {
 if restored_source_attachments != expected_source_attachments and not failed:
     fail(
         "restored source attachment identities differ from the selected source "
-        "perimeter"
+        "perimeter",
     )
 expected_after_attachment_count = (
     baseline_attachment_count
@@ -1366,7 +1738,7 @@ if not failed and after_attachment_count != expected_after_attachment_count:
     fail(
         "successful archive migration changed the Odoo binary perimeter outside "
         "verified quarantine cleanup; "
-        f"expected={expected_after_attachment_count}, after={after_attachment_count}"
+        f"expected={expected_after_attachment_count}, after={after_attachment_count}",
     )
 result = {
     "schema": "usl-documents-source-restore-result-v1",
@@ -1390,6 +1762,9 @@ result = {
         "account_folder_setting_tags"
     ],
     "source_superseded_hr_contract_tags": source["hr_contract_tags"],
+    "source_employee_folder_mappings": source["employee_folder_mappings"],
+    "source_project_folder_mappings": source["project_folder_mappings"],
+    "source_classification_partners": source["classification_partners"],
     "source_access_relationship_count": len(source["accesses"]),
     "checksum_groups": len(groups),
     "archived_groups": len(completed),
@@ -1399,10 +1774,19 @@ result = {
     "quarantined_attachment_count": sum(len(item.get("fallback_ids", [])) for item in failed),
     "cleaned_quarantine_attachment_count": len(cleaned_quarantine_ids),
     "cleaned_operational_duplicate_attachment_count": len(
-        cleaned_operational_duplicate_ids
+        cleaned_operational_duplicate_ids,
     ),
     "retained_operational_attachment_ids": retained_operational_attachment_ids,
     "created_operational_attachment_count": len(created_operational_attachment_ids),
+    "legacy_custom_fields_after": [],
+    "excluded_empty_source_tags": excluded_empty_source_tags,
+    "excluded_empty_source_correspondents": excluded_empty_source_correspondents,
+    "excluded_empty_source_document_types": excluded_empty_source_document_types,
+    "restored_relationship_count": len(expected_relationships),
+    "restored_relationships_by_model": relationships_by_model,
+    "classification_tag_counts": classification_tag_counts,
+    "classification_type_counts": classification_type_counts,
+    "source_added_dates_preserved": len(completed),
     "failed": failed,
     "documents": completed,
 }

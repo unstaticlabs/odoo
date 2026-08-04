@@ -6,7 +6,7 @@ cd "$ROOT"
 
 usage() {
   printf '%s\n' \
-    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|build|up|update|bootstrap|source-pilot|status|logs|stop|test|test-accounting|test-pocket|test-js> [args]" \
+    "Usage: scripts/documents-stack <qa|preprod> <config|preflight|build|up|update|bootstrap|status|logs|stop|test|test-accounting|test-pocket|test-js> [args]" \
     "" \
     "QA is fixed to project codex-paperless-docs, database odoo_usl_documents_test," \
     "Odoo 127.0.0.1:18080, and Paperless 127.0.0.1:18010." >&2
@@ -423,69 +423,6 @@ print(
     printf '\nDocuments QA users all use password admin:\n'
     printf '  Odoo: admin, documents-user, documents-accountant, documents-hr, documents-restricted\n'
     printf '  Paperless: archive-admin, documents-user, documents-accountant, documents-hr, documents-restricted\n'
-    ;;
-  source-pilot)
-    [[ "$ENVIRONMENT" = "qa" ]] || {
-      printf 'Source PDF pilot ingestion is available only in isolated local QA.\n' >&2
-      exit 2
-    }
-    source_dir="${USL_ONLINE_DUMP_DIR:-}"
-    selection_file="${1:-$ROOT/accounting_compat/private/documents-source-pilot.json}"
-    manifest_file="${USL_DOCUMENTS_SOURCE_MANIFEST:-}"
-    [[ -n "$source_dir" && -f "$source_dir/dump.sql" && -d "$source_dir/filestore" ]] || {
-      printf 'Set USL_ONLINE_DUMP_DIR to the read-only Odoo Online dump directory.\n' >&2
-      exit 2
-    }
-    [[ -f "$selection_file" ]] || {
-      printf 'Private source selection not found: %s\n' "$selection_file" >&2
-      exit 2
-    }
-    if [[ -z "$manifest_file" ]]; then
-      shopt -s nullglob
-      source_manifests=(
-        "$ROOT"/accounting_compat/private/snapshots/source-*/evidence/attachments_manifest.csv
-      )
-      shopt -u nullglob
-      [[ "${#source_manifests[@]}" -eq 1 ]] || {
-        printf 'Set USL_DOCUMENTS_SOURCE_MANIFEST to one extracted attachment manifest.\n' >&2
-        exit 2
-      }
-      manifest_file="${source_manifests[0]}"
-    fi
-    [[ -f "$manifest_file" ]] || {
-      printf 'Source attachment manifest not found: %s\n' "$manifest_file" >&2
-      exit 2
-    }
-    source_dir="$(cd "$source_dir" && pwd -P)"
-    selection_file="$(cd "$(dirname "$selection_file")" && pwd -P)/$(basename "$selection_file")"
-    manifest_file="$(cd "$(dirname "$manifest_file")" && pwd -P)/$(basename "$manifest_file")"
-    validate_config
-    provision_qa_sso
-    "${COMPOSE[@]}" up -d --wait --pull never \
-      db paperless-preflight paperless-db paperless-broker \
-      paperless-gotenberg paperless-tika paperless-webserver
-    ensure_paperless_access
-    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
-    restore_pilot_odoo() {
-      "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo \
-        >/dev/null 2>&1 || true
-    }
-    trap restore_pilot_odoo EXIT INT TERM
-    pilot_status=0
-    "${COMPOSE[@]}" --profile init run --rm -T --no-deps \
-      --volume "$source_dir:/mnt/usl-source:ro" \
-      --volume "$manifest_file:/mnt/usl-source-manifest.csv:ro" \
-      --volume "$selection_file:/mnt/usl-source-selection.json:ro" \
-      -e ODOO_INIT_DB="$DATABASE" \
-      init-db odoo shell \
-      --config=/etc/odoo/odoo.conf \
-      --database="$DATABASE" \
-      < "$ROOT/migration/documents_archive/scripts/source_pdf_pilot.py" \
-      || pilot_status=$?
-    "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
-    trap - EXIT INT TERM
-    runtime_status
-    ((pilot_status == 0)) || exit "$pilot_status"
     ;;
   status)
     validate_config

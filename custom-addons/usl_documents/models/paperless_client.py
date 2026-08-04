@@ -235,6 +235,12 @@ class PaperlessClient:
     def create_custom_field(self, values):
         return self._request("POST", "/api/custom_fields/", body=values)[0]
 
+    def delete_custom_field(self, custom_field_id):
+        """Delete a custom-field definition through Paperless's public API."""
+        return self._request(
+            "DELETE", f"/api/custom_fields/{int(custom_field_id)}/",
+        )[0]
+
     def create_metadata(self, kind, values):
         endpoint = self._metadata_endpoint(kind)
         return self._request("POST", f"/api/{endpoint}/", body=values)[0]

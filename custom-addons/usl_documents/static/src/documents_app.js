@@ -824,7 +824,7 @@ export class DocumentsWorkspaceView extends Component {
                 }[document.review_state] || "No review status"),
             document_date: (document, interval) =>
                 this.groupDateLabel(document.date, interval),
-            paperless_created: (document, interval) =>
+            archive_added_at: (document, interval) =>
                 this.groupDateLabel(document.ingested_at, interval),
         };
         const grouped = new Map();
@@ -1219,7 +1219,7 @@ export class DocumentsWorkspaceView extends Component {
             if (term.name === "document_date" && !term.asc) {
                 return "recent";
             }
-            if (term.name === "paperless_created" && !term.asc) {
+            if (term.name === "archive_added_at" && !term.asc) {
                 return "ingested";
             }
             if (term.name === "name" && term.asc) {

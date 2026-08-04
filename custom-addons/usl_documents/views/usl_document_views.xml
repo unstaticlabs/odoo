@@ -22,7 +22,7 @@
                 <field name="review_state" string="Review status" invisible="1"/>
                 <field name="availability_state" string="Availability" invisible="1"/>
                 <field name="has_linked_record" invisible="1"/>
-                <field name="paperless_created" string="Added to archive" invisible="1"/>
+                <field name="archive_added_at" string="Added" invisible="1"/>
                 <field name="mapped_contact_id" invisible="1"/>
                 <field name="linked_employee_id" invisible="1"/>
                 <field name="custom_field_text" invisible="1"/>
@@ -47,8 +47,8 @@
                 <separator/>
                 <filter name="document_date_filter" string="Document date"
                         date="document_date"/>
-                <filter name="archive_date_filter" string="Added to archive"
-                        date="paperless_created"/>
+                <filter name="archive_date_filter" string="Added"
+                        date="archive_added_at"/>
                 <group>
                     <filter name="group_company" string="Company"
                             context="{'group_by': 'company_id'}"/>
@@ -64,8 +64,8 @@
                             context="{'group_by': 'review_state'}"/>
                     <filter name="group_document_month" string="Document month"
                             context="{'group_by': 'document_date:month'}"/>
-                    <filter name="group_archive_month" string="Archive month"
-                            context="{'group_by': 'paperless_created:month'}"/>
+                    <filter name="group_archive_month" string="Added month"
+                            context="{'group_by': 'archive_added_at:month'}"/>
                 </group>
             </search>
         </field>
@@ -213,7 +213,7 @@
                                 <field name="document_type_id"/>
                                 <field name="tag_ids" widget="many2many_tags"/>
                                 <field name="current_version_label"/>
-                                <field name="paperless_created"/>
+                                <field name="archive_added_at"/>
                                 <field name="paperless_modified"/>
                             </group>
                         </page>

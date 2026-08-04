@@ -739,12 +739,12 @@ class UslDocumentQuickFilter(models.Model):
         ("confidentiality", "Privacy"),
         ("review_state", "Review status"),
         ("document_date:month", "Document month"),
-        ("paperless_created:month", "Archive month"),
+        ("archive_added_at:month", "Added month"),
     ]
     _SORT_BY_SELECTION = [
         ("name", "Document"),
         ("document_date", "Document date"),
-        ("paperless_created", "Archive date"),
+        ("archive_added_at", "Added date"),
         ("correspondent_id", "Correspondent"),
         ("document_type_id", "Document type"),
         ("company_id", "Company"),
@@ -1471,7 +1471,7 @@ class UslDocumentSmartView(models.Model):
             domain = [("review_state", "=", "needs_attention")]
         elif self.system_rule == "recent":
             cutoff = fields.Datetime.now() - timedelta(days=max(1, self.days or 30))
-            domain = [("paperless_created", ">=", cutoff)]
+            domain = [("archive_added_at", ">=", cutoff)]
         elif self.system_rule == "accounting":
             domain = [("accounting_evidence", "=", True)]
         elif self.system_rule == "hr":

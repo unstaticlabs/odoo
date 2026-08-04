@@ -417,6 +417,7 @@ services:
       - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
       - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
       - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
+      - ./migration/documents_archive:/mnt/documents-archive-migration:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro

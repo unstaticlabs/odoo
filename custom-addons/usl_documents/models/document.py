@@ -30,7 +30,7 @@ class UslDocument(models.Model):
     _name = "usl.document"
     _description = "Archived Document"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _order = "document_date desc, paperless_created desc, id desc"
+    _order = "document_date desc, archive_added_at desc, id desc"
 
     name = fields.Char(required=True, readonly=True, tracking=True)
     all_text = fields.Char(
@@ -59,6 +59,17 @@ class UslDocument(models.Model):
     )
     paperless_created = fields.Datetime(readonly=True)
     paperless_modified = fields.Datetime(readonly=True)
+    archive_added_at = fields.Datetime(
+        string="Added",
+        compute="_compute_archive_added_at",
+        store=True,
+        index=True,
+        help=(
+            "When the enterprise first received the document. Odoo submissions "
+            "use their attributed submission time; Paperless-native documents use "
+            "the archive ingestion time."
+        ),
+    )
     document_date = fields.Date(index=True, readonly=True, tracking=True)
     company_id = fields.Many2one(
         "res.company", index=True, tracking=True, ondelete="restrict",
@@ -217,6 +228,13 @@ class UslDocument(models.Model):
     link_count = fields.Integer(compute="_compute_link_count")
     paperless_url = fields.Char(compute="_compute_paperless_url")
     last_error = fields.Text(readonly=True)
+
+    @api.depends("submitted_at", "paperless_created")
+    def _compute_archive_added_at(self):
+        for document in self:
+            document.archive_added_at = (
+                document.submitted_at or document.paperless_created
+            )
 
     _paperless_id_unique = models.Constraint(
         "UNIQUE(paperless_id)", "A Paperless document may only be mirrored once.",
@@ -942,6 +960,7 @@ class UslDocument(models.Model):
                 "extra_data": item.get("extra_data"),
             }
             for item in client.list_custom_fields()
+            if not (item.get("name") or "").startswith("Legacy Odoo ")
         ]
         self.env["ir.config_parameter"].sudo().set_str(
             "usl_documents.paperless_custom_fields",
@@ -1345,7 +1364,7 @@ class UslDocument(models.Model):
         allowed = {
             "name",
             "document_date",
-            "paperless_created",
+            "archive_added_at",
             "correspondent_id",
             "document_type_id",
             "company_id",
@@ -1370,10 +1389,10 @@ class UslDocument(models.Model):
         if not normalized:
             return {
                 "recent": "document_date desc, id desc",
-                "ingested": "paperless_created desc, id desc",
+                "ingested": "archive_added_at desc, id desc",
                 "date": "document_date desc, id desc",
                 "title": "name asc, id asc",
-            }.get(legacy_sort, "paperless_created desc, id desc")
+            }.get(legacy_sort, "archive_added_at desc, id desc")
         clauses = [
             f"{field_name} {'asc' if ascending else 'desc'}"
             for field_name, ascending in normalized
@@ -1403,7 +1422,7 @@ class UslDocument(models.Model):
             "name": item.name,
             "paperless_id": item.paperless_id,
             "date": item.document_date,
-            "ingested_at": item.paperless_created,
+            "ingested_at": item.archive_added_at,
             "company": item.company_id.display_name,
             "company_id": item.company_id.id,
             "confidentiality": item.confidentiality,
@@ -1565,15 +1584,15 @@ class UslDocument(models.Model):
         for value, operator, field_name in (
             (date_from, ">=", "document_date"),
             (date_to, "<=", "document_date"),
-            (added_from, ">=", "paperless_created"),
-            (added_to, "<", "paperless_created"),
+            (added_from, ">=", "archive_added_at"),
+            (added_to, "<", "archive_added_at"),
         ):
             if value:
                 try:
                     parsed = fields.Date.to_date(value)
                 except (TypeError, ValueError) as error:
                     raise ValidationError(_("Invalid date filter.")) from error
-                if value == added_to and field_name == "paperless_created":
+                if value == added_to and field_name == "archive_added_at":
                     parsed += timedelta(days=1)
                 domain.append((field_name, operator, parsed))
         if source:
@@ -1852,15 +1871,18 @@ class UslDocument(models.Model):
                     "[]",
                 ),
             )
+            if not (item.get("name") or "").startswith("Legacy Odoo ")
         }
         custom_field_values = []
         for item in json.loads(document.custom_fields_json or "[]"):
             field_id = int(item.get("field") or 0)
-            definition = custom_field_catalog.get(field_id, {})
+            definition = custom_field_catalog.get(field_id)
+            if not definition:
+                continue
             custom_field_values.append(
                 {
                     "id": field_id,
-                    "name": definition.get("name") or _("Additional detail"),
+                    "name": definition.get("name"),
                     "data_type": definition.get("data_type") or "string",
                     "value": item.get("value"),
                 },

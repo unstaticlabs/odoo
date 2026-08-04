@@ -2,7 +2,7 @@ import base64
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -107,6 +107,51 @@ class TestDocuments(TransactionCase):
         first.unlink()
         self.assertTrue(document.exists())
         self.assertEqual(document.link_ids, second)
+
+    def test_added_date_prefers_attributed_submission_history(self):
+        document = self._document(
+            100,
+            paperless_created="2026-08-04 12:00:00",
+            submitted_at="2025-12-06 13:05:28",
+        )
+        self.assertEqual(
+            document.archive_added_at,
+            fields.Datetime.to_datetime("2025-12-06 13:05:28"),
+        )
+        document.sudo().with_context(usl_documents_cache_write=True).write(
+            {"submitted_at": False},
+        )
+        self.assertEqual(
+            document.archive_added_at,
+            fields.Datetime.to_datetime("2026-08-04 12:00:00"),
+        )
+
+    def test_document_detail_never_exposes_legacy_migration_fields(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            "usl_documents.paperless_custom_fields",
+            """[
+                {"id": 7, "name": "Purchase order", "data_type": "string"},
+                {"id": 8, "name": "Legacy Odoo folder paths", "data_type": "string"}
+            ]""",
+        )
+        document = self._document(
+            1001,
+            custom_fields_json="""[
+                {"field": 7, "value": "PO-2026-42"},
+                {"field": 8, "value": "Finance / Purchases"},
+                {"field": 999, "value": "orphaned migration value"}
+            ]""",
+        )
+
+        self.assertEqual(
+            document.document_detail(document.id)["custom_fields"],
+            [{
+                "id": 7,
+                "name": "Purchase order",
+                "data_type": "string",
+                "value": "PO-2026-42",
+            }],
+        )
 
     def test_business_relationship_pins_the_current_file_version(self):
         document = self._document(401)
@@ -2816,18 +2861,21 @@ class TestPaperlessClientContract(TransactionCase):
                     },
                     {},
                 ),
+                ({}, {}),
             ],
         ) as request:
             self.assertEqual(client.list_custom_fields()[0]["id"], 7)
             created = client.create_custom_field(
                 {"name": "Gross amount", "data_type": "monetary"},
             )
+            client.delete_custom_field(7)
         self.assertEqual(created["id"], 8)
         self.assertEqual(
             [call.args[:2] for call in request.call_args_list],
             [
                 ("GET", "/api/custom_fields/"),
                 ("POST", "/api/custom_fields/"),
+                ("DELETE", "/api/custom_fields/7/"),
             ],
         )
 

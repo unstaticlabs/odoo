@@ -11,17 +11,19 @@ read-only; private source values and run evidence are ignored by Git.
 - every exact original, grouped into one Paperless root per byte-identical
   checksum;
 - every legacy link to a migrated accounting record;
-- legal company, owner, correspondent, tags, folder path, lifecycle, explicit
-  access history, and inactive/Trash state;
+- legal company, owner, useful classification, source received date, lifecycle,
+  explicit access history, and inactive/Trash state;
 - unassigned enterprise files as visible `Needs attention` archive items;
 - legacy public-link state as audit evidence, while deliberately revoking the
   old bearer tokens so the rebuilt Odoo authorization boundary cannot be
   bypassed.
 
 The 77 legacy folders and their accounting/HR folder-tag settings are retained
-in sealed evidence and translated into Paperless tags, folder-path metadata,
-record links, company policy, and the rebuilt app's business-context rules;
-they are not recreated as a second manual folder tree. The source's sole URL
+in sealed evidence and translated into real Paperless tags, document types,
+correspondents, record links, company policy, and the rebuilt app's
+business-context rules. Folder paths and source identifiers are not copied to
+the live product as custom fields, and the folder tree is not recreated as a
+second filing system. The source's sole URL
 document is the untouched upstream `documents` tutorial XML record, so it is
 classified as recomputed distribution reference data rather than user content.
 
@@ -33,15 +35,30 @@ Odoo's attachment count does not increase, except for three qualified source
 formats rejected by Paperless 3.0.4: one generated FEC ZIP, one accounting XML,
 and one calendar evidence file. Each exact authoritative source remains an
 operational Odoo attachment while Paperless holds a checksum-linked,
-deterministic, searchable PDF representation. All ordinary archive binaries
-belong only to Paperless.
+deterministic, searchable PDF representation. The Documents migration never
+creates a second Odoo copy of an ordinary archive binary. An attachment already
+restored as native business history (for example, a vendor-bill chatter
+attachment) remains intact under its owning migration policy; Paperless keeps
+the independently verified authoritative archive original.
 
-Paperless string custom fields are limited to 128 characters. Odoo and
-Paperless therefore keep compact source identities and lookup hashes. The full
-source relationship, access, lifecycle, multilingual label, filename, and
-checksum evidence is sealed outside the product database under:
+The full source relationship, access, lifecycle, multilingual label, filename,
+folder lineage, and checksum evidence is sealed outside the product database
+under:
 
 `accounting_compat/private/snapshots/source-<dump>/evidence/`
+
+The source `documents.document.create_date` is preserved as the document's
+received/added timestamp in Odoo. Paperless's supported API exposes its own
+archive-ingestion `added` timestamp as read-only, so that separate operational
+timestamp remains the time at which Paperless received the reconstructed
+archive item. The user-facing Odoo **Added** date consistently uses the
+preserved source timestamp and falls back to Paperless's timestamp only for
+documents first received directly by Paperless.
+
+Only tags that classify at least one migrated document remain in the live
+catalog. Empty legacy rules are recorded in evidence and pruned. Folder and
+accounting context may derive useful tags, document types, correspondents and
+links, but the translator never invents an uncertain business relationship.
 
 No legacy sharing token is written there in clear text; only its SHA-256 is
 recorded.
@@ -91,15 +108,23 @@ proved:
 - 567 binary Documents identities plus 9 unassigned evidence files;
 - 548 exact-checksum archive roots, 0 failed groups, and no archive-binary
   increase in Odoo;
-- 539 available roots, 9 roots retained in Trash, and 363 active Odoo
-  business-record relationships;
-- 49 source tags, 77 folder identities, 625 access-history rows, and every
+- 539 available roots, 9 roots retained in Trash, and 736 active Odoo
+  business-record relationships: 363 accounting entries, 359 Contacts, and 14
+  employees;
+- 548 preserved source-added timestamps and unchanged Odoo attachment counts
+  (`1544` before and after);
+- 29 useful live tags with no empty tag, 17 used document types, and 51
+  correspondents. The two correspondents whose Paperless live count is zero
+  belong to retained Trash roots and are deliberately preserved;
+- 41 unused source tag/rule names and the obsolete empty `KBis` type excluded
+  from the final live catalog, with zero `Legacy Odoo` custom fields remaining;
+- 49 source tag definitions, 77 folder identities, 625 access-history rows, and every
   duplicate source identity retained in private evidence;
 - successful original checksum, preview, version, metadata, company,
   relationship, and full object-permission read-back for every root;
 - a second full validation run with the same archive/root/link counts and the
   same sealed evidence SHA-256:
-  `554c3cecb791b80ce5e8bd59dbd969162ca08b83f931094cce3eecd7da453e2c`.
+  `07b41266218444060609c797c9665d4e63400603a88e8dc8edefc700fa156aa3`.
 
 Paperless's own `document_sanity_checker` completed without an integrity
 error. It reported only five informational no-OCR items; those originals and
@@ -132,5 +157,5 @@ archived; the format must be resolved and the stage rerun before the Documents
 scope can pass. The three dump- and identity-qualified exceptions are described
 above; arbitrary unsupported files remain rejected.
 
-The older `source_pdf_pilot.py` remains only as historical qualification code.
-It is not the canonical full migration path.
+The canonical full migration is the only supported source-document path.
+Qualification experiments are not shipped as alternate runners.

@@ -30,7 +30,6 @@ scripts/documents-stack qa build
 scripts/documents-stack qa up
 scripts/documents-stack qa update
 scripts/documents-stack qa bootstrap
-scripts/documents-stack qa source-pilot /private/path/selection.json
 scripts/documents-stack qa status
 scripts/documents-stack qa logs
 scripts/documents-stack qa stop
@@ -46,33 +45,10 @@ other development, restore, or migration databases that happen to share the
 PostgreSQL container. The `dbfilter` alone protects HTTP database selection but
 is not the runtime isolation boundary for scheduled jobs.
 
-### Optional private source-PDF pilot
-
-Use the source pilot only after the ordinary QA update succeeds and only with
-an approved private selection. It is capped at ten PDFs and cannot target
-pre-production:
-
-```bash
-make documents-qa-build
-make documents-qa-update
-USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-  make documents-qa-source-pilot \
-  SELECTION=/absolute/path/to/private-selection.json
-```
-
-The helper refuses the canonical development project, `odoo_dev`, and reserved
-ports. It mounts the dump, filestore, manifest, and selection read-only;
-validates the dump SHA-256 and every selected file's manifest identity; uses
-the normal asynchronous Paperless API path; verifies the received original,
-preview, permissions, and Odoo relationship; and asserts that the Odoo
-attachment count did not change. Re-running the same selection reuses the
-Paperless checksum instead of creating another root. See
-`migration/documents_archive/README.md` for the private selection contract.
-
-Never commit the selection, source dump, source filenames exported as evidence,
-or archive binaries. A successful pilot qualifies the mechanism and selected
-files; it does not authorize a bulk migration or prove the rest of the
-filestore has been classified correctly.
+The Odoo Online archive is never loaded through this product QA helper. Use the
+dump-bound `make documents-restore` workflow from the source-truth migration
+runbook. It validates the complete selected perimeter, writes sealed evidence
+outside the product database, and must pass an unchanged second run.
 
 `update` updates `usl_documents`, its required `usl_pocketid` identity
 foundation, and the optional `usl_documents_accounting` bridge when installed,

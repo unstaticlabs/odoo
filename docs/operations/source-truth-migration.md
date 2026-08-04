@@ -145,9 +145,22 @@ the complete source Documents perimeter into a separately managed Paperless
 
 - one root is created per exact binary checksum, while every duplicate source
   identity remains in the sealed migration manifest;
-- source tags, correspondent Contacts, folder paths, access policy, lifecycle,
-  company, accounting links, inactive state, and originals are preserved or
-  explicitly translated;
+- source tags, folder meaning, accounting journal rules, correspondent
+  Contacts, access policy, lifecycle, company, inactive state, and originals
+  are preserved or explicitly translated into user-facing tags, document
+  types, correspondents and business links;
+- the original Documents creation timestamp is the rebuilt app's **Added**
+  date. Paperless's own read-only `added` value separately records when the
+  archive engine received the reconstructed item;
+- accounting moves, source/move Contacts, recognized archive institutions and
+  employee folders become explicit Odoo links when the target record is
+  deterministically mapped. The source contains no document directly in its
+  configured project folders; a future qualified dump with one is rejected
+  until that mapping has been implemented;
+- unused source tag definitions and superseded accounting rules remain in the
+  sealed manifest but are pruned from the live Paperless catalog. Source
+  identifiers, folder paths and migration provenance never become product
+  custom fields or menus;
 - legacy public bearer links are revoked by policy and only their hashes remain
   in private evidence;
 - Paperless originals are downloaded and SHA-256 verified; received PDFs and
@@ -167,11 +180,18 @@ Paperless port `28010`; it refuses the development/QA projects and reserved
 ports. A second run must reuse every checksum root and relationship. Complete
 run evidence is dump-SHA-bound and stored outside the delivered database.
 
-The qualified full import and full validation each reconciled 567 source
+The qualified full import and validation baseline reconciled 567 source
 Documents identities and 9 unassigned evidence files into 548 checksum roots,
-with 0 failures, 9 roots in Trash, and 363 active business links. Both produced
-the sealed evidence SHA-256
-`554c3cecb791b80ce5e8bd59dbd969162ca08b83f931094cce3eecd7da453e2c`.
+with 0 failures and 9 roots in Trash. It restored 736 exact business
+relationships (363 accounting entries, 359 Contacts, and 14 employees),
+preserved all 548 source-added timestamps, and left Odoo's attachment count
+unchanged at 1544. The current run manifest reports exact
+relationship totals by model, derived classification totals, every excluded
+empty catalog value, preservation of every source-added timestamp, and removal
+of all earlier `Legacy Odoo` custom fields. A second full run must produce the
+same archive/root/link/catalog counts and byte-identical sealed evidence. The
+qualified import and validation both produced SHA-256
+`07b41266218444060609c797c9665d4e63400603a88e8dc8edefc700fa156aa3`.
 Paperless's archive sanity checker reported no integrity error. Browser
 acceptance rendered both pages of an actual restored PDF, followed its restored
 vendor-bill link, and verified that the native Odoo search facet and selected

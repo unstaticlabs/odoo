@@ -1,9 +1,8 @@
 # Try the Documents application
 
-This is a task-first guide for the isolated local QA stack. The normal demo uses
-synthetic files. An optional private pilot can add a few verified PDFs from the
-preserved Odoo dump; keep those documents on this local machine and do not use
-them for screenshots or sharing.
+This is a task-first guide for the isolated local QA stack. It uses synthetic
+files; the complete Odoo Online archive is handled only by the isolated,
+deterministic migration workflow documented in the operations guide.
 
 ## Start QA and sign in
 
@@ -30,38 +29,6 @@ QA passwords are all `admin`:
 | Accountant | `documents-accountant` | `documents-accountant` |
 | HR reviewer | `documents-hr` | `documents-hr` |
 | Other-company restricted user | `documents-restricted` | `documents-restricted` |
-
-### Optional: load the approved real-PDF pilot
-
-Ask the archive owner for the private selection file, then run:
-
-```bash
-make documents-qa-build
-make documents-qa-update
-USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-  make documents-qa-source-pilot \
-  SELECTION=/absolute/path/to/private-selection.json
-```
-
-The command should finish with `DOCUMENTS_SOURCE_PILOT_RESULT`. It does not copy
-the PDF into Odoo. It verifies the source checksum, archives the received
-original in Paperless, links it to the selected Odoo record, and checks preview
-and permissions before returning.
-
-In Odoo, open **Documents** and search for one selected title. Check that:
-
-- the first page is visible, not an empty grey rectangle;
-- next/previous page controls work for a multi-page PDF;
-- **Download original** returns the received source file;
-- **Searchable PDF** remains a secondary action;
-- **Additional details** identifies the legacy Odoo source;
-- the selected company, tags, type, confidentiality, and linked record are
-  correct;
-- an accountant sees only approved accounting evidence, while an ordinary or
-  restricted-company user cannot infer a protected title or file.
-
-Re-run the same command once. The same Paperless root and Odoo relationship
-must be reused; the Documents count must not increase.
 
 Start as `admin/admin`, open **Documents**, and use the seeded synthetic
 archive. Do not run `down --volumes`, `scripts/odoo-dev reset`, or a bare
