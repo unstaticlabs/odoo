@@ -197,19 +197,27 @@ registry.category("web_tour.tours").add("usl_platform_billing_manager_journey", 
             content: "Native posted accounting documents remain available",
             trigger: ".o_list_view .o_data_row td[name='name']",
         },
+        {
+            content: "Miscellaneous entries clearly require no payment",
+            trigger:
+                ".o_list_view td[name='platform_billing_payment_state']:contains('No Payment Required')",
+        },
     ],
 });
 
 registry.category("web_tour.tours").add("usl_platform_billing_manager_config_journey", {
     steps: () => [
         {
-            content: "The manager can open a platform configuration",
-            trigger:
-                ".o_list_view .o_data_row td[name='name']:contains('Browser CreatorHub')",
+            content: "The Platform Billing Administrator can create a platform",
+            trigger: ".o_list_button_add",
             run: "click",
         },
         {
-            content: "Open native analytic configuration",
+            content: "A new platform form opens",
+            trigger: ".o_form_view .o_field_widget[name='name'] input",
+        },
+        {
+            content: "Open the optional native analytic configuration",
             trigger: ".o_form_view .nav-link:contains('Analytic')",
             run: "click",
         },
@@ -217,6 +225,11 @@ registry.category("web_tour.tours").add("usl_platform_billing_manager_config_jou
             content: "The native analytic distribution widget loads",
             trigger:
                 ".o_form_view .o_field_widget[name='analytic_distribution']",
+        },
+        {
+            content: "An unset distribution has a clear action",
+            trigger:
+                ".o_form_view .analytic_distribution_placeholder:contains('Add analytic distribution')",
         },
         {
             content: "Open bank matching configuration",

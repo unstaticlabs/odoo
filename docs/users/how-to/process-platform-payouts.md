@@ -96,6 +96,8 @@ or loss because it is a genuinely delayed settlement.
 - **Administrator:** also configure platforms and delete eligible drafts.
 
 All three roles are company-scoped and must be assigned explicitly.
+Administrators also receive the native analytic permission required to set the
+optional default distribution on generated revenue and commission lines.
 
 This workflow accounts for creator/content-platform payouts. It is unrelated
 to French electronic-invoice platform connectivity.

@@ -3,6 +3,7 @@
 import json
 import os
 
+from odoo.exceptions import AccessError
 from odoo.tools import float_is_zero
 
 expected_counts = {
@@ -253,6 +254,10 @@ platform_account_mappings = [
     }
     for platform in (historical_platforms | demo_platform)
 ]
+analytic_plans = env["account.analytic.plan"].sudo().search([])
+analytic_accounts = env["account.analytic.account"].sudo().with_context(
+    active_test=False,
+).search([])
 bank_journal_mappings = [
     {
         "journal": journal.display_name,
@@ -266,6 +271,10 @@ bank_journal_mappings = [
     )
 ]
 admin = env.ref("base.user_admin")
+analytic_group = env.ref("analytic.group_analytic_accounting")
+named_manager = env["res.users"].sudo().with_context(active_test=False).search(
+    [("login", "=", "valentin")],
+)
 live_flags = {
     "USL_EINVOICE_LIVE_ENABLED": os.getenv("USL_EINVOICE_LIVE_ENABLED", "0"),
     "USL_EREPORTING_LIVE_ENABLED": os.getenv(
@@ -288,6 +297,19 @@ if reverse_role_implications:
     )
 if groups["manager"] not in admin.group_ids:
     errors.append("the local administrator lacks the app administrator role")
+if len(named_manager) != 1 or not named_manager.active or named_manager.share:
+    errors.append("the named valentin QA user is missing or is not an active internal user")
+elif groups["manager"] not in named_manager.group_ids:
+    errors.append("the named valentin QA user lacks the app administrator role")
+elif analytic_group not in named_manager.all_group_ids:
+    errors.append("the named valentin QA user lacks implied analytic access")
+else:
+    try:
+        env["usl.platform.billing.platform"].with_user(named_manager).check_access(
+            "create",
+        )
+    except AccessError as error:
+        errors.append(f"the named valentin QA user cannot create platforms: {error}")
 if incomplete_moves:
     errors.append(f"{len(incomplete_moves)} move links are incomplete")
 if unbalanced_moves:
@@ -363,6 +385,16 @@ summary = {
         "overallocated_bank_lines": overallocated_bank_lines,
         "overallocated_payouts": overallocated_payouts,
     },
+    "analytic_configuration": {
+        "plans": len(analytic_plans),
+        "plans_with_accounts": len(
+            analytic_plans.filtered(lambda plan: plan.all_account_count),
+        ),
+        "accounts": len(analytic_accounts),
+        "platforms_with_distribution": env[
+            "usl.platform.billing.platform"
+        ].sudo().search_count([("analytic_distribution", "!=", False)]),
+    },
     "duplicate_reconciliations": duplicate_reconciliations,
     "historical_counts": historical_counts,
     "historical_bank_journal_counts": historical_bank_journal_counts,
@@ -371,6 +403,20 @@ summary = {
     "live_flags": live_flags,
     "module_state": module.state,
     "module_version": module.installed_version,
+    "named_manager": {
+        "login": named_manager.login if len(named_manager) == 1 else False,
+        "active": named_manager.active if len(named_manager) == 1 else False,
+        "app_administrator": (
+            groups["manager"] in named_manager.group_ids
+            if len(named_manager) == 1
+            else False
+        ),
+        "analytic_access": (
+            analytic_group in named_manager.all_group_ids
+            if len(named_manager) == 1
+            else False
+        ),
+    },
     "obsolete_bank_constraints": obsolete_bank_constraints,
     "unexpected_accesses": len(unexpected_accesses),
     "unbalanced_posted_moves": len(unbalanced_moves),

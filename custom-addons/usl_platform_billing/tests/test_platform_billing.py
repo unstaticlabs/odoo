@@ -455,6 +455,14 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         compensation = session.compensation_move_ids
         self.assertEqual(compensation.state, "posted")
         self.assertEqual(sum(compensation.line_ids.mapped("balance")), 0.0)
+        self.assertEqual(
+            compensation.platform_billing_payment_state,
+            "not_applicable",
+        )
+        self.assertEqual(
+            session.customer_invoice_ids.platform_billing_payment_state,
+            session.customer_invoice_ids.payment_state,
+        )
         self.assertEqual(session.vendor_bill_ids.payment_state, "paid")
         self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
 
@@ -466,6 +474,10 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertTrue(bank_line.is_reconciled)
         self.assertEqual(bank_line.amount, original_bank_amount)
         self.assertEqual(session.customer_invoice_ids.payment_state, "paid")
+        self.assertEqual(
+            session.customer_invoice_ids.platform_billing_payment_state,
+            "paid",
+        )
         self.assertEqual(session.state, "paid")
         self.assertEqual(payout.bank_match_status, "reconciled")
 
@@ -642,6 +654,15 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
     def test_platform_roles_are_opt_in_and_server_side_enforced(self):
         session = self._session()
         payout = self._payout(session)
+        analytic_group = self.env.ref("analytic.group_analytic_accounting")
+
+        self.assertIn(
+            analytic_group,
+            self.env.ref(
+                "usl_platform_billing.group_platform_billing_manager",
+            ).implied_ids,
+        )
+        self.assertIn(analytic_group, self.manager.all_group_ids)
 
         session.with_user(self.operator).action_check()
         self.assertEqual(session.state, "ready")
@@ -667,7 +688,15 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             session.with_user(self.accountant).action_generate_documents()
         with self.assertRaises(AccessError):
             self.platform.with_user(self.operator).write({"commission_rate": 21})
+        with self.assertRaises(AccessError):
+            self.platform.with_user(self.operator).copy(
+                {"name": "Forbidden platform copy"},
+            )
         self.platform.with_user(self.manager).write({"commission_rate": 21})
+        manager_platform = self.platform.with_user(self.manager).copy(
+            {"name": "Manager platform copy"},
+        )
+        self.assertTrue(manager_platform)
         with self.assertRaises(AccessError):
             session.with_user(self.operator).write({"state": "paid"})
         with self.assertRaises(AccessError):

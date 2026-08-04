@@ -45,7 +45,9 @@ the normal delayed-settlement exchange gain or loss.
 
 Access is explicit. A user needs the Platform Billing Reader, Operator or
 Administrator role. The standard Odoo Accountant role alone does not expose
-this application.
+this application. Administrators can set an optional native analytic
+distribution on each platform; it is copied to generated revenue and
+commission lines.
 
 See:
 

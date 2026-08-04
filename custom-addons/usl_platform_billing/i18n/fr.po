@@ -137,6 +137,11 @@ msgstr ""
 "société."
 
 #. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Add analytic distribution"
+msgstr "Ajouter une répartition analytique"
+
+#. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
 msgid "A same-currency payout must equal its allocated bank amount."
@@ -1607,6 +1612,11 @@ msgid "No open receivable remains on the linked invoices."
 msgstr "Aucune créance ouverte ne subsiste sur les factures liées."
 
 #. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__account_move__platform_billing_payment_state__not_applicable
+msgid "No Payment Required"
+msgstr "Aucun paiement requis"
+
+#. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid ""
@@ -1697,6 +1707,11 @@ msgstr "ONLYFANS,FENIX"
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__currency_valuation_method__reference
 msgid "Odoo Reference Rate"
 msgstr "Taux de référence Odoo"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Optional default analytic distribution for generated invoice and commission lines."
+msgstr "Répartition analytique par défaut facultative pour les lignes de facture et de commission générées."
 
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_platform__vendor_bill_grouping_mode__per_payout
@@ -1851,6 +1866,17 @@ msgstr "Partenaire"
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
 msgid "Partners"
 msgstr "Partenaires"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_list_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Payment Status"
+msgstr "Statut de paiement"
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_payment_state
+msgid "Platform Payment Status"
+msgstr "Statut de paiement de la plateforme"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__payout_id

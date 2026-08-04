@@ -57,8 +57,7 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             password="platform_billing_browser_manager",
             groups=(
                 "usl_platform_billing.group_platform_billing_manager,"
-                "account.group_validate_bank_account,"
-                "analytic.group_analytic_accounting"
+                "account.group_validate_bank_account"
             ),
             company_id=cls.company.id,
             lang="en_US",
@@ -195,6 +194,10 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
             login=self.manager.login,
         )
         self.assertIn("analytic_precision", self.platform._fields)
+        self.assertIn(
+            self.env.ref("analytic.group_analytic_accounting"),
+            self.manager.all_group_ids,
+        )
 
     def test_operator_imports_a_bank_transaction_as_a_new_payout(self):
         session = self.env["usl.platform.billing.session"].create(

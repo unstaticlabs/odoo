@@ -1,4 +1,10 @@
-from odoo import fields, models
+from odoo import api, fields, models
+
+from odoo.addons.account.models.account_move import PAYMENT_STATE_SELECTION
+
+PLATFORM_PAYMENT_STATE_SELECTION = PAYMENT_STATE_SELECTION + [
+    ("not_applicable", "No Payment Required"),
+]
 
 
 class AccountMove(models.Model):
@@ -31,3 +37,17 @@ class AccountMove(models.Model):
         copy=False,
         groups="usl_platform_billing.group_platform_billing_reader",
     )
+    platform_billing_payment_state = fields.Selection(
+        selection=PLATFORM_PAYMENT_STATE_SELECTION,
+        string="Platform Payment Status",
+        compute="_compute_platform_billing_payment_state",
+        readonly=True,
+        groups="usl_platform_billing.group_platform_billing_reader",
+    )
+
+    @api.depends("move_type", "payment_state")
+    def _compute_platform_billing_payment_state(self):
+        for move in self:
+            move.platform_billing_payment_state = (
+                "not_applicable" if move.move_type == "entry" else move.payment_state
+            )

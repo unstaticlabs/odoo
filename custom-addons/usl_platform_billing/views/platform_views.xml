@@ -104,10 +104,15 @@
                                 </group>
                             </group>
                         </page>
-                        <page name="analytic" string="Analytic">
+                        <page name="analytic" string="Analytic"
+                              groups="analytic.group_analytic_accounting">
+                            <div class="text-muted mb-3">
+                                Optional default analytic distribution for generated invoice
+                                and commission lines.
+                            </div>
                             <field name="analytic_distribution"
                                    widget="analytic_distribution"
-                                   groups="analytic.group_analytic_accounting"/>
+                                   placeholder="Add analytic distribution"/>
                         </page>
                         <page name="automation" string="Automation">
                             <group>

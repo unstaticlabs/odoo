@@ -1,5 +1,15 @@
 # Changelog
 
+## saas~19.2.1.2.1
+
+- Show a green **No Payment Required** status for generated miscellaneous
+  entries instead of Odoo's invoice-oriented **Not Paid** status.
+- Give Platform Billing Administrators the native analytic-accounting access
+  required by the platform distribution widget and hide the tab from roles
+  that cannot use it.
+- Grant the named `valentin` user the application Administrator role in the
+  isolated QA bootstrap without changing generic Accountant access.
+
 ## saas~19.2.1.2.0
 
 - Value bank-created foreign-currency payouts at their effective bank rate

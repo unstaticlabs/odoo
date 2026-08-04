@@ -15,6 +15,7 @@ MISSING_BANK_JOURNAL = "The QA company needs a valid bank journal."
 NO_FREE_BATCH = "No free pooled QA demo batch remains."
 NO_FREE_IMPORT_BATCH = "No free bank-import QA demo batch remains."
 DEMO_PREFIX = "QA DEMO"
+NAMED_MANAGER_LOGIN = "valentin"
 
 
 def _is_enabled(name):
@@ -43,6 +44,19 @@ def _user(env, *, login, name, password, groups, company):
             .create(values)
         )
     return user
+
+
+def _grant_named_manager(env, manager_group):
+    users = env["res.users"].sudo().with_context(active_test=False).search(
+        [("login", "=", NAMED_MANAGER_LOGIN)],
+    )
+    if len(users) != 1 or not users.active or users.share:
+        raise RuntimeError(
+            f"Expected one active internal QA user with login {NAMED_MANAGER_LOGIN!r}.",
+        )
+    if manager_group not in users.group_ids:
+        users.write({"group_ids": [Command.link(manager_group.id)]})
+    return users
 
 
 def _session(env, platform, *, name, period, reference, amount=80.0):
@@ -426,14 +440,13 @@ def bootstrap(env):
         administrator.write(
             {"group_ids": [Command.link(manager_group.id)]},
         )
+    _grant_named_manager(env, manager_group)
     _user(
         env,
         login="qa.platform.manager",
         name="QA Platform Billing Manager",
         password="qa-platform-manager",
-        groups=base_user
-        | manager_group
-        | env.ref("analytic.group_analytic_accounting"),
+        groups=base_user | manager_group,
         company=company,
     )
     _user(

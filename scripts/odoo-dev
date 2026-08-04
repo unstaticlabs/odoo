@@ -251,6 +251,7 @@ bootstrap_platform_billing_qa() {
     return "$status"
   fi
   printf '\nPlatform Billing QA demo is ready.\n'
+  printf 'Named manager: valentin / existing Pocket ID sign-in\n'
   printf 'Manager: qa.platform.manager / qa-platform-manager\n'
   printf 'Operator: qa.platform.operator / qa-platform-operator\n'
   printf 'Reviewer: qa.platform.reviewer / qa-platform-reviewer\n'

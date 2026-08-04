@@ -125,6 +125,11 @@ msgid "A platform payout reference must be unique within the company."
 msgstr ""
 
 #. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Add analytic distribution"
+msgstr ""
+
+#. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
 msgid "A same-currency payout must equal its allocated bank amount."
@@ -1524,6 +1529,11 @@ msgid "No open receivable remains on the linked invoices."
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__account_move__platform_billing_payment_state__not_applicable
+msgid "No Payment Required"
+msgstr ""
+
+#. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid ""
@@ -1610,6 +1620,11 @@ msgstr ""
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__currency_valuation_method__reference
 msgid "Odoo Reference Rate"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
+msgid "Optional default analytic distribution for generated invoice and commission lines."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1750,6 +1765,17 @@ msgstr ""
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_form
 msgid "Partners"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_list_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Payment Status"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_account_move__platform_billing_payment_state
+msgid "Platform Payment Status"
 msgstr ""
 
 #. module: usl_platform_billing
