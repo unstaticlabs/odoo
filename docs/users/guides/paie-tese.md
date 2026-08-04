@@ -78,6 +78,11 @@ Le PDF est obligatoire. Après comptabilisation, le bulletin, son instantané
 comptable et le justificatif ne peuvent plus être modifiés. Une correction
 nécessite une extourne comptable explicite et une nouvelle fiche de paie.
 
+Le bouton **Documents** ouvre les justificatifs archivés associés à cette
+paie. **Ajouter un document** permet de déposer une nouvelle pièce dans
+l’archive selon vos droits. L’écriture et la paie conservent aussi leur pièce
+opérationnelle native : l’archive ne remplace pas la preuve de comptabilisation.
+
 ## Rapprocher le salaire et TESE
 
 La fiche passe à **À rapprocher** tant qu’une dette reste ouverte :

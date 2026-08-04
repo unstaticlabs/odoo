@@ -13,6 +13,11 @@ financial reports, PDF/XLSX exports and FEC. A scoped read-only accountant can
 inspect the same accounting and evidence without posting, reconciling,
 configuring or locking records.
 
+Documents provides a native Odoo workspace backed by Paperless-ngx for
+search, OCR, previews, metadata, versions and originals. Odoo remains the
+authority for companies, business links and access; every file operation is
+authorized through Odoo.
+
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
 inactive**: its self-check leaves no synthetic accounting records, and no
@@ -26,6 +31,7 @@ Primary entry points:
 - **Accounting > Reporting > Analyse analytique** for exploratory pivot analysis;
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
   and E-Invoicing;
+- **Documents** for the searchable Paperless-backed business archive;
 - `/usl/user-docs` for role- and task-based user guidance;
 - `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` for the
   production reception switch and rollback checklist;
@@ -42,8 +48,8 @@ Primary entry points:
 - [Product and migration boundary](docs/agents/product-migration-boundary.md)
   for keeping reconstruction machinery out of the delivered Odoo runtime.
 - [Source-truth migration](docs/operations/source-truth-migration.md) for the
-  blocking whole-dump coverage, filestore-integrity, and deterministic replay
-  contract.
+  current-product gate, whole-source coverage ledger, filestore integrity and
+  deterministic replay contract.
 
 The integration baseline is upstream commit
 `6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
@@ -223,6 +229,10 @@ The production custom-module boundaries are:
 - `usl_project`: the ongoing Projects product extensions;
 - `usl_tese_payroll`: external-provider payroll evidence, Accounting and HR
   workflow without legal payroll calculation;
+- `usl_documents`: the Odoo Documents workspace, Paperless synchronization
+  and record-level authorization;
+- `usl_documents_accounting`: Accounting-specific document links and evidence;
+- `usl_locale`: shared day-first date presentation;
 - `usl_pocketid`: Pocket ID authentication and identity governance;
 - `rebuild_account_migration`: the historical compatibility owner for stable
   operational product models and XML IDs. Despite its technical name, it
@@ -234,8 +244,8 @@ See
 [`docs/accounting/custom-addon-architecture.md`](docs/accounting/custom-addon-architecture.md)
 for dependency direction, ownership policy and future extraction rules.
 
-One-off Accounting, Projects and Paie TESE restoration lives under
-`migration/`.
+One-off Accounting, identity, Product, HR, Projects, Paie TESE and Documents
+restoration lives under `migration/`.
 The normal Odoo service cannot load that path. `make target-reconstruct` loads
 the temporary importer through a dedicated service, validates the restored
 facts, uninstalls it, and refuses the target unless the normal product registry
@@ -374,6 +384,7 @@ scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
 scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
 scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
+make documents-restore                # isolated Documents migration rehearsal
 scripts/target-finalize               # apply target-only config after migration
 scripts/target-reconstruct            # rebuild canonical data and target config
 scripts/migration-source-truth inventory # audit all populated source perimeters
@@ -400,8 +411,9 @@ at `^odoo_dev$`, provision stable local identities, and reapply the governed
 Odoo policy when configuration or modules are updated.
 
 Source parity and target configuration remain separate stages. The Online dump
-has no Pocket ID state, so `scripts/target-reconstruct` first validates the
-Accounting import, then restores Projects and Paie TESE, finalizes every
+has no Pocket ID state, so `scripts/target-reconstruct` validates Accounting,
+installs Documents security before restoring identities, restores Product,
+HR, Projects and Paie TESE, rebuilds the Paperless archive, finalizes every
 temporary migration module out of the product, and finally applies Pocket ID.
 Migration tooling is a maintained repository deliverable under `migration/`
 and `scripts/`; it is not installed or exposed in the normal Odoo UI.
@@ -413,8 +425,9 @@ ignored mode-0600 `.pocket-id.env`. Follow the
 the client secret, break-glass password or raw subjects in Git. Production
 uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
 The Documents wrapper also registers a separate Paperless OIDC client and
-stores its QA-only credentials in ignored mode-0600
-`.documents-qa-sso.env`; it never reuses Odoo's client secret.
+never reuses Odoo's client secret. Canonical local credentials stay in the
+ignored mode-0600 `.pocket-id.env`; the isolated Documents QA wrapper uses
+its own ignored mode-0600 `.documents-qa-sso.env`.
 
 ### Optional bootstrap fixture
 
@@ -435,12 +448,13 @@ accounting parity evidence.
 
 Installed application domains: Contacts, Discuss, Accounting/Invoicing,
 French accounting localization, Expenses, Projects and Tasks, Employees,
-Paie TESE, Sales, Settings and application management.
+Paie TESE, Documents, Sales, Settings and application management.
 
 Deliberate product boundaries: Community does not provide the Enterprise
-application launcher or unrelated Enterprise applications such as Documents,
-Sign, Knowledge, To-do, AI features or Odoo Enterprise Payroll. Paie TESE is
-the focused external-provider payroll and accounting workflow. Live bank synchronization
+application launcher or unrelated Enterprise applications such as Sign,
+Knowledge, To-do, AI features or Odoo Enterprise Payroll. Documents is the
+Paperless-backed Community replacement; Paie TESE is the focused
+external-provider payroll and accounting workflow. Live bank synchronization
 and production electronic-invoicing connectivity remain inactive. Provider
 identity verification and acceptance of the platform terms occur during the
 deliberate production activation; passing the offline and demo tests does not

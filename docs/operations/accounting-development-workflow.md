@@ -10,9 +10,10 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 
 - Keep the source database restored and running while iterating.
 - Treat Accounting as one stage of the wider source-truth migration. The
-  [whole-source gate](source-truth-migration.md) must pass before describing a
-  reconstructed database as complete; Accounting and Projects parity alone do
-  not certify other Online applications or global collaboration history.
+  [current-distribution gate](source-truth-migration.md) must pass before
+  accepting `odoo_dev`; the stricter whole-source gate continues to expose
+  future application scopes. Accounting and Projects parity alone do not
+  certify the complete Distribution.
 - Keep OCA add-ons synced with `make oca-addons-sync` before target reset, reporting or reconciliation work.
 - Reuse the extracted snapshot when changing only Odoo views, menus, reports, permissions or documentation.
 - Rebuild the target only when import behavior, schema assumptions, model creation, or data transformations change.
@@ -41,7 +42,8 @@ code and UI work, update it in place.
 The complete canonical lifecycle is:
 
 ```text
-Online dump → temporary Accounting import/parity → temporary Projects import/parity
+Online dump → Accounting import/parity → Documents product/security
+→ identity/Product/HR → Projects → Paie TESE → Paperless archive
 → uninstall migration modules → product-boundary checks → target configuration
 ```
 
@@ -54,7 +56,7 @@ isolated read-only source service, refreshes source controls and extraction,
 then resets `odoo_dev`; it does not depend on a previously running source
 container.
 The orchestrator keeps the web process stopped between reset, import,
-validation and Project restoration so browser traffic and scheduled jobs
+validation and every restoration stage so browser traffic and scheduled jobs
 cannot observe or mutate an intermediate target.
 
 The Accounting importer is the temporary `usl_accounting_restore` add-on under

@@ -23,7 +23,8 @@ The application is deliberately an external-payroll accounting workflow:
   into an immutable snapshot. Later profile or employee changes do not rewrite
   history.
 - Posting requires the provider PDF and creates or links one balanced journal
-  entry. The PDF and payroll link remain visible from the entry.
+  entry. The PDF and payroll link remain visible from the entry and from the
+  authorized Documents archive.
 - **Settled** is derived from actual payment residuals. A recognized URSSAF
   carry-over remains on `431000` without reopening the payroll. The status is
   never trusted from a checkbox or a migrated Studio value.
@@ -190,5 +191,10 @@ run or migration menu. The temporary `usl_tese_restore` module lives under
 profile, and is uninstalled after exact parity and idempotency checks. Native
 employees, versions, chatter, attachments, profiles, payroll records and
 accounting links remain after finalization.
+
+`usl_tese_payroll` depends on the delivered Documents foundation so a payroll
+can open or upload its supporting archive evidence. Paperless owns the archive
+original and OCR; the native payroll/move attachment remains the operational
+posting evidence and Odoo remains authoritative for access and accounting.
 
 See [TESE restoration from Odoo Online](../operations/tese-restoration.md).

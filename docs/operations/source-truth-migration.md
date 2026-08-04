@@ -51,13 +51,19 @@ ACCOUNTING_COMPAT_COMPOSE_PROJECT=codex-migration-audit \
 make migration-source-inventory
 ```
 
-Run the blocking completeness gate:
+Run the strict whole-source completeness gate:
 
 ```bash
 USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
 ACCOUNTING_COMPAT_COMPOSE_PROJECT=codex-migration-audit \
 make migration-source-gate
 ```
+
+Canonical reconstruction uses `scripts/migration-source-truth product-gate`.
+That gate is equally strict for every scope shipped by the current
+Distribution, while still reporting populated future application scopes as
+deferred. The strict `gate` remains the acceptance test for any future claim
+that every source application has been delivered.
 
 Restore the source first with the same isolated project when necessary:
 
@@ -111,12 +117,13 @@ their own stages pass.
 
 ## Deterministic reconstruction
 
-`make target-reconstruct` restores the source package, runs the whole-source
-gate, creates a clean target, replays Accounting, restores Projects, validates
-both, removes the temporary Projects migration module, and applies target-only
-configuration. It is intentionally blocked while any populated business scope
-is incomplete. This prevents Accounting-and-Projects parity from being
-mistaken for complete company migration.
+`make target-reconstruct` restores the source package, runs the current
+Distribution gate, creates a clean target, replays Accounting, installs the
+Documents security model, restores identity, Product, HR, Projects and Paie
+TESE, rebuilds the Paperless archive, removes every temporary migration module,
+and applies target-only configuration. It is blocked while any shipped scope
+is incomplete. The strict whole-source gate separately prevents this product
+claim from being mistaken for delivery of every Online application.
 
 Every stage must be idempotent and must bind its run to `source-<first 12
 characters of dump SHA-256>`. Project restoration previously used a constant
@@ -130,12 +137,13 @@ the audit found 214 populated persistent models and 90 populated relation or
 unmapped tables. It verified 2,312 referenced filestore objects across 1,774
 files without an integrity error.
 
-Accounting, global identity, Product Master, HR, Projects, and the Paperless
-Documents archive have implemented translation stages.
-The gate remains blocked—correctly—on collaboration history, unscoped
-attachments, Knowledge, Sign, user preferences,
-sales/marketing configuration, Studio data, and source AI
-configuration. These are engineering migration gaps, not approved exclusions.
+Accounting, global identity, Product Master, HR, Projects, Paie TESE and the
+Paperless Documents archive have implemented translation stages. The current
+Distribution gate passes. The strict whole-source gate remains blocked—
+correctly—on collaboration history, unscoped attachments, Knowledge, Sign,
+user preferences, sales/marketing configuration, Studio data and source AI
+configuration. These are explicit future product scopes, not silently copied
+or represented as current product parity.
 
 ### Documents archive stage
 
@@ -177,23 +185,31 @@ Documents accounting extension is revalidated. It is not a filestore copy:
 - unsupported files are retained byte-for-byte in a visible failed migration
   quarantine and keep the stage blocked.
 
-The runner defaults to the isolated `codex-migration-full` project and
-Paperless port `28010`; it refuses the development/QA projects and reserved
-ports. A second run must reuse every checksum root and relationship. Complete
-run evidence is dump-SHA-bound and stored outside the delivered database.
+The standalone runner defaults to the isolated `codex-migration-full` project
+and Paperless port `28010`; it refuses development/QA projects and reserved
+ports. Canonical `odoo_dev` is accepted only through the guarded
+`target-reconstruct` orchestration, which resets its disposable Paperless
+archive before replay. A second non-resetting rehearsal must reuse every
+checksum root and relationship. Complete run evidence is dump-SHA-bound and
+stored outside the delivered database.
 
 The qualified full import and validation baseline reconciled 567 source
 Documents identities and 9 unassigned evidence files into 548 checksum roots,
-with 0 failures and 9 roots in Trash. It restored 736 exact business
-relationships (363 accounting entries, 359 Contacts, and 14 employees),
-preserved all 548 source-added timestamps, and left Odoo's attachment count
-unchanged at 1544. The current run manifest reports exact
+with 0 failures and 9 roots in Trash. It restored 745 exact business
+relationships (363 accounting entries, 359 Contacts, 14 employees, and 9
+Paie TESE records), preserved all 548 source-added timestamps, and retained one
+unsupported authoritative original in Odoo alongside its searchable Paperless
+representation. The current run manifest reports exact
 relationship totals by model, derived classification totals, every excluded
 empty catalog value, preservation of every source-added timestamp, and removal
 of all earlier `Legacy Odoo` custom fields. A second full run must produce the
-same archive/root/link/catalog counts and byte-identical sealed evidence. The
-qualified import and validation both produced SHA-256
-`07b41266218444060609c797c9665d4e63400603a88e8dc8edefc700fa156aa3`.
+same archive/root/link/catalog counts without creating another attachment or
+business relationship. For dump SHA-256
+`e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`, the
+clean import evidence SHA-256 is
+`aed7c866416f609fc9d8b0a3d4de547e74eca045ee036e21270fd6ccdac7ca67`; the
+non-resetting reuse proof is
+`24ff482cfaa855d1ed44748571c59b4884fb674bfadc325a37786e664082de38`.
 Paperless's archive sanity checker reported no integrity error. Browser
 acceptance rendered both pages of an actual restored PDF, followed its restored
 vendor-bill link, and verified that the native Odoo search facet and selected
@@ -226,9 +242,10 @@ high-resolution images, users, company memberships,
 supported access groups, contact categories, industries, and bank accounts. It
 maps the Online administrator to the Pocket-managed `valentin` target identity;
 built-in runtime users remain native. Passwords, TOTP seeds, API keys, sessions,
-and OAuth state are never selected. Group identities that belong to still-open
-Documents, Sales, or Sign scopes remain explicitly deferred in the identity
-evidence rather than being silently dropped.
+and OAuth state are never selected. Enterprise Documents manager/system
+memberships map to the delivered Documents manager role because its security
+model is installed before identity restoration. Sales and Sign group
+identities remain explicitly deferred rather than being silently dropped.
 
 Credentials and runtime state are the exception: passkeys, TOTP devices,
 sessions, device logs, certificates, IAP credentials, tokens, and transient

@@ -109,6 +109,8 @@ identifiers. It is explicitly rejected for this increment.
 | Electronic-invoice readiness and offline reception evidence | compatibility module for this stage | stable reception-model ownership, left unchanged | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
 | Expense claims/batches | `usl_expense_batch` | retained independent feature | clean module and browser tests |
 | External-provider payroll and TESE settlement | `usl_tese_payroll` | focused product module over native HR/Accounting and OCA matching | clean module, security, accounting and settlement tests |
+| Documents archive and access policy | `usl_documents` | Paperless-backed product module over native companies, contacts and access groups | backend/frontend suites, API/read-back and migration parity |
+| Accounting document evidence | `usl_documents_accounting` | focused bridge from Documents to Accounting records | record-link, authorization and accounting-view tests |
 | Overview and cash projections | compatibility module for this stage | operational cross-feature behavior, left unchanged | native ledger, controls and report tests |
 | Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
 | Source trace, importer, native replay, parity evidence and reconstruction models | temporary `migration/accounting_restore` add-on | migration-only and uninstalled at finalization | canonical harness, idempotency and final-registry boundary gates |
@@ -140,8 +142,8 @@ menus.
   `usl_accounting`; no ownership transfer is required.
 - Source parity and target environment policy are separate. Odoo Online has no
   Pocket ID state; canonical `odoo_dev` receives SSO only after imported
-  Accounting, Projects and Paie TESE data pass their controls and temporary
-  migration modules are removed.
+  Accounting, identity, Product, HR, Projects, Paie TESE and Documents data
+  pass their controls and temporary migration modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or
@@ -200,7 +202,10 @@ This refactor does not modify either patch.
   into runtime methods.
 - Extend expense-claim grouping in `usl_expense_batch`.
 - Extend external-provider payroll workflow in `usl_tese_payroll`; TESE remains
-  the legal calculation authority.
+  the legal calculation authority. Its Documents dependency exposes official
+  evidence without making Paperless authoritative for payroll accounting.
+- Extend archive behavior and general record links in `usl_documents`; put
+  Accounting-only archive links in `usl_documents_accounting`.
 - Put source extraction, source tracing, reconstruction and parity-only code
   under `migration/`; load it only in the dedicated migration service and
   uninstall it before product acceptance.

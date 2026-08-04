@@ -210,6 +210,10 @@ value with owner-confirmed data:
     "create_if_missing": true
   },
   {
+    "login": "roger@xaic.cat",
+    "profile": "historical"
+  },
+  {
     "login": "prosper",
     "name": "Prosper",
     "email": "<owner-confirmed-prosper-email>",
@@ -221,18 +225,9 @@ value with owner-confirmed data:
 ]
 ```
 
-If a target contains the inactive source-style `roger@xaic.cat` user, add:
-
-```json
-{
-  "login": "roger@xaic.cat",
-  "email": "roger@xaic.cat",
-  "profile": "historical"
-}
-```
-
-Do not create a historical identity only to make the list resemble the source.
-Local QA starts from the current canonical reconstruction, including its
+The canonical policy classifies the inactive source-style `roger@xaic.cat`
+identity as historical. It does not create or reactivate that identity. Local
+QA starts from the current canonical reconstruction, including its
 existing users and imported contacts. Controlled creation therefore reuses an
 exact existing login or email/partner instead of duplicating it; missing users
 still require complete owner-approved identity details. The configuration

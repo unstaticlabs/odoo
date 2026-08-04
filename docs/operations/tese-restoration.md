@@ -28,10 +28,13 @@ The canonical `make target-reconstruct` command runs the stages in this order:
 1. restore and validate the source database through the Accounting harness;
 2. complete and validate the source-faithful Accounting import, leaving its
    temporary source bindings installed;
-3. restore Projects and their Accounting/analytic links;
-4. install and run the TESE restoration;
-5. validate and repeat the TESE import;
-6. finalize every temporary importer, then validate through the normal
+3. install the delivered Documents models and security, then restore identity,
+   Product Master and HR facts;
+4. restore Projects and their Accounting/analytic links;
+5. install, run, validate and repeat the TESE restoration;
+6. rebuild the Paperless archive and link its payroll evidence to the restored
+   TESE records;
+7. finalize every temporary importer, then validate through the normal
    product add-ons path.
 
 TESE is downstream of Accounting because profiles must reuse the eleven
@@ -64,6 +67,8 @@ The 14 employee-folder PDFs include five earlier payroll documents and the
 nine PDFs linked to the migrated payroll records. The nine accounting-linked
 attachments stay native to their posted moves and are referenced by the
 payroll records; the earlier documents become native employee attachments.
+Paperless also archives and links the official payroll evidence to its TESE
+record, while the native operational attachment remains the posting evidence.
 Employee images are restored from the source `image_1920`, letting Odoo
 regenerate its standard image sizes.
 
