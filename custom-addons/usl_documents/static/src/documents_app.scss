@@ -248,6 +248,16 @@
             object-fit: cover;
         }
 
+        .o_usl_document_thumb_placeholder {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            color: #657184;
+            font-size: 2.25rem;
+        }
+
         .badge {
             position: absolute;
             top: 0.5rem;
@@ -269,6 +279,15 @@
         object-fit: cover;
         border-radius: 0.25rem;
         background: #eef0f2;
+    }
+
+    .o_usl_document_list_thumb_placeholder {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        color: #657184;
+        font-size: 1.15rem;
     }
 
     .o_usl_inline_metadata {
