@@ -2314,6 +2314,11 @@ def attachment_reconstruction_audit(args: argparse.Namespace) -> dict[str, Any]:
             """,
             set_readonly_role=False,
         )
+    target_rows = [
+        row
+        for row in target_rows
+        if int(row.get("rebuild_source_id") or 0) in relevant_ids
+    ]
     target_ids = {
         int(row["rebuild_source_id"])
         for row in target_rows
@@ -2383,15 +2388,9 @@ def attachment_reconstruction_audit(args: argparse.Namespace) -> dict[str, Any]:
         "\n".join([
             "import hashlib",
             "import json",
-            "env.cr.execute(\"\"\"",
-            "    SELECT id",
-            "      FROM ir_attachment",
-            "     WHERE rebuild_source_model = 'ir.attachment'",
-            "     ORDER BY id",
-            "\"\"\")",
-            "attachments = env['ir.attachment'].sudo().browse([",
-            "    row[0] for row in env.cr.fetchall()",
-            "])",
+            "attachments = env['ir.attachment'].sudo().browse(",
+            f"    {[int(row['id']) for row in target_rows]!r}",
+            ")",
             "missing = []",
             "mismatches = []",
             "for attachment in attachments:",
