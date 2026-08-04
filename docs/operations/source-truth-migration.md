@@ -96,10 +96,11 @@ the audit found 214 populated persistent models and 90 populated relation or
 unmapped tables. It verified 2,312 referenced filestore objects across 1,774
 files without an integrity error.
 
-Accounting, global identity, and Projects have implemented translation stages.
+Accounting, global identity, Product Master, and Projects have implemented
+translation stages.
 The gate remains blocked—correctly—on collaboration history, unscoped
 attachments, Documents, Knowledge, Sign, remaining HR, user preferences,
-product master data, sales/marketing configuration, Studio data, and source AI
+sales/marketing configuration, Studio data, and source AI
 configuration. These are engineering migration gaps, not approved exclusions.
 
 The identity stage restores all source contacts, users, company memberships,

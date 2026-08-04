@@ -62,9 +62,9 @@
       "evidence": "user filters, exports, dashboards and favorites are not globally reconstructed"
     },
     "product_master": {
-      "status": "incomplete",
+      "status": "implemented",
       "disposition": "translated",
-      "evidence": "the Accounting stage currently restores only products referenced by expenses"
+      "evidence": "temporary product restore imports the complete service catalog, variants, categories, attributes, prices, taxes and pricelists with multilingual digest parity"
     },
     "sales_marketing": {
       "status": "incomplete",

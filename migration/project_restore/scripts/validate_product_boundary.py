@@ -4,7 +4,17 @@ import json
 
 
 migration_modules = env["ir.module.module"].sudo().search(
-    [("name", "in", ["usl_identity_restore", "usl_project_restore"])],
+    [
+        (
+            "name",
+            "in",
+            [
+                "usl_identity_restore",
+                "usl_product_restore",
+                "usl_project_restore",
+            ],
+        ),
+    ],
 )
 active_migration_modules = migration_modules.filtered(
     lambda module: module.state not in {"uninstalled", "uninstallable"},
@@ -17,6 +27,7 @@ if active_migration_modules:
 
 forbidden_models = {
     "usl.identity.restore.run",
+    "usl.product.restore.run",
     "usl.project.restore.run",
     "usl.project.restore.issue",
 }
@@ -45,6 +56,10 @@ business_models = {
     "res.partner.category",
     "res.partner.industry",
     "res.users",
+    "product.attribute",
+    "product.category",
+    "product.pricelist",
+    "product.template",
 }
 forbidden_fields = {
     "rebuild_source_database",
@@ -80,7 +95,17 @@ if remaining_field_metadata:
     )
 
 technical_xmlids = env["ir.model.data"].sudo().search_count(
-    [("module", "in", ["usl_identity_restore", "usl_project_restore"])],
+    [
+        (
+            "module",
+            "in",
+            [
+                "usl_identity_restore",
+                "usl_product_restore",
+                "usl_project_restore",
+            ],
+        ),
+    ],
 )
 if technical_xmlids:
     raise RuntimeError(

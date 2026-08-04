@@ -405,7 +405,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -415,6 +415,7 @@ services:
       - ./custom-addons:/mnt/custom-addons:ro
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
       - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
+      - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro

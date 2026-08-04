@@ -31,6 +31,8 @@ scripts/accounting-compat dev-validate
 stop_product
 scripts/identity-restore all
 stop_product
+scripts/product-restore all
+stop_product
 scripts/project-restore all
 scripts/target-finalize
 
