@@ -34,10 +34,17 @@ The stages can be repeated independently with the same source path:
 
 ```bash
 scripts/preprod-release build /absolute/path/to/usl-online-dump
+scripts/preprod-release clean-install /absolute/path/to/usl-online-dump
 scripts/preprod-release reconstruct /absolute/path/to/usl-online-dump
 scripts/preprod-release start /absolute/path/to/usl-online-dump
 scripts/preprod-release gate /absolute/path/to/usl-online-dump
 ```
+
+`clean-install` installs every delivered product module into a disposable empty
+database using the immutable image, applies and verifies the release identity,
+runs the full database product/migration boundary, and then removes both the
+database and its filestore. This qualification is deliberately separate from
+the migrated `odoo_dev` reconstruction.
 
 Do not set `USL_RELEASE_ALLOW_DIRTY=1` for qualification. That switch exists
 only to test release tooling while it is being developed.
