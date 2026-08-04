@@ -147,7 +147,10 @@ install_module() {
         -d "$target_database" -Atc \
         "SELECT count(*) FROM ir_module_module WHERE name IN ('usl_documents','usl_documents_accounting') AND state='installed'" \
         | tail -n 1)" = 2 ]]; then
-        operation="--update=usl_documents,usl_documents_accounting"
+        # Revalidate the accounting parent before its Documents extension.
+        # Existing reconstructed databases can still contain an older stored
+        # parent view even though the checked-out Python model is current.
+        operation="--update=rebuild_account_migration,usl_documents,usl_documents_accounting"
     fi
     "${compose[@]}" --profile project-migration run --rm \
         -e ODOO_INIT_DB="$target_database" project-migration \

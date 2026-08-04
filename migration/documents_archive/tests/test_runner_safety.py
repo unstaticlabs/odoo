@@ -50,6 +50,14 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
                 self.assertEqual(completed.returncode, 2)
                 self.assertIn("Refusing reserved", completed.stderr)
 
+    def test_upgrade_revalidates_accounting_parent_before_documents_view(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "--update=rebuild_account_migration,usl_documents,usl_documents_accounting",
+            script,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

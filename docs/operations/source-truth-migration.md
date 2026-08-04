@@ -141,7 +141,9 @@ configuration. These are engineering migration gaps, not approved exclusions.
 
 `make documents-restore` installs the delivered Documents modules and replays
 the complete source Documents perimeter into a separately managed Paperless
-3.0.4 archive. It is not a filestore copy:
+3.0.4 archive. On an existing reconstructed target, it first upgrades the
+accounting parent module so stored business views are current before the
+Documents accounting extension is revalidated. It is not a filestore copy:
 
 - one root is created per exact binary checksum, while every duplicate source
   identity remains in the sealed migration manifest;
