@@ -265,7 +265,6 @@
                             </group>
                             <group string="Automated Validation"><field name="validation_summary" nolabel="1"/></group>
                             <group string="Unresolved Information"><field name="unresolved_information" nolabel="1"/></group>
-                            <button name="action_classify_confirmed_vat_refund" type="object" string="Post and Reconcile Confirmed €942 VAT Refund" class="oe_highlight" groups="account.group_account_manager" invisible="category != 'vat'"/>
                         </page>
                         <page string="Review and Filing">
                             <group>

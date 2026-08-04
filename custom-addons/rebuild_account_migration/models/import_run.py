@@ -9020,15 +9020,6 @@ class RebuildAccountImportRun(models.Model):
                 if company.rebuild_declaration_profile_active:
                     declarations = self.env["rebuild.account.declaration"].sync_for_company(company)
                     if company.rebuild_source_id == 1:
-                        current_ca12 = declarations.filtered(
-                            lambda declaration: declaration.rule_id.code == "FR_3517_S"
-                            and declaration.fiscalyear_start >= date(2025, 10, 1),
-                        ).sorted("fiscalyear_end", reverse=True)[:1]
-                        if options.get(
-                            "classify_confirmed_vat_refund",
-                            True,
-                        ):
-                            current_ca12.action_classify_confirmed_vat_refund()
                         declarations.action_refresh_preparation()
                     self.env["rebuild.account.closing.period"].sync_for_company(company)
 
