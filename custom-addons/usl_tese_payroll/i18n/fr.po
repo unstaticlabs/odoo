@@ -3147,6 +3147,65 @@ msgid ""
 msgstr ""
 "l'pièce comptable n'est pas soldée (débit %(debit).2f / crédit %(credit).2f)"
 
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "Clear Rounding"
+msgstr "Apurer l’arrondi"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Clear URSSAF Rounding — %(payroll)s"
+msgstr "Apurer l’arrondi URSSAF — %(payroll)s"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
+msgid "URSSAF rounding is not another bank transaction."
+msgstr "L’arrondi URSSAF n’est pas une nouvelle opération bancaire."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "No URSSAF rounding item remains open. Next: refresh the payroll payment status."
+msgstr "Aucun arrondi URSSAF ne reste ouvert. Étape suivante : actualisez l’état des paiements de la paie."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Next: use Clear Rounding to match the visible 431000 item in General Reconciliation."
+msgstr "Étape suivante : utilisez Apurer l’arrondi pour lettrer l’élément 431000 visible dans le lettrage général."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid "Bank Matching — %(payroll)s"
+msgstr "Rapprochement bancaire — %(payroll)s"
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"The salary and URSSAF debit are matched. %(amount).2f remains open on 431000 "
+"for the URSSAF rounding difference. Next: use Clear Rounding to match that "
+"item in General Reconciliation."
+msgstr ""
+"Le salaire et le prélèvement URSSAF sont rapprochés. %(amount).2f reste "
+"ouvert sur 431000 pour l’écart d’arrondi URSSAF. Étape suivante : utilisez "
+"Apurer l’arrondi pour lettrer cet élément dans le lettrage général."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"Salary and URSSAF debit matched. Rounding to clear: %(amount).2f on 431000. "
+"This is not another bank transaction. Next: use Clear Rounding and select an "
+"opposite 431000 item in General Reconciliation."
+msgstr ""
+"Salaire et prélèvement URSSAF rapprochés. Arrondi à apurer : %(amount).2f "
+"sur 431000. Ce n’est pas une nouvelle opération bancaire. Étape suivante : "
+"utilisez Apurer l’arrondi et sélectionnez un élément 431000 de sens opposé "
+"dans le lettrage général."
+
 #~ msgid ""
 #~ "A TESE bank difference cannot be bridged automatically. Use Bank Matching "
 #~ "and document the rounding or partial amount."

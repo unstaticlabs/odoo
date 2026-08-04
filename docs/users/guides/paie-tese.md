@@ -36,8 +36,8 @@ l’ancien profil ou renseignez sa date de fin avant de créer le suivant.
 6. Cliquez sur **Créer l’écriture brouillon**, puis **Comptabiliser**.
 
 Les dates usuelles sont proposées automatiquement : salaire le premier jour
-après le mois de paie et prélèvement URSSAF le 15 du mois suivant. Une date
-saisie manuellement est conservée.
+après le mois de paie et prélèvement URSSAF le 15 du deuxième mois suivant.
+Une date saisie manuellement est conservée.
 
 Le montant **Prélèvement bancaire attendu / rapproché** n'est pas un nouveau
 calcul de cotisations. Avant comptabilisation, ne le changez que si TESE
@@ -96,6 +96,11 @@ le vrai montant bancaire est utilisé, les dettes déclarées sont soldées et
 l’écart exact reste ouvert sur `431000` avec le statut
 **Arrondi à apurer**. Il n’est jamais envoyé automatiquement sur `658` ou
 `758`, et la paie n’est pas présentée comme payée.
+
+Cet arrondi n’est pas une nouvelle opération bancaire. Cliquez sur
+**Apurer l’arrondi** pour ouvrir l’élément `431000` dans le lettrage général,
+puis sélectionnez un élément `431000` de sens opposé ou une écriture d’apurement
+revue par le responsable comptable.
 
 S’il y a plusieurs candidats, un écart supérieur à 5 €, un paiement partiel
 ou une structure inhabituelle, ouvrez **Rapprochement bancaire** et

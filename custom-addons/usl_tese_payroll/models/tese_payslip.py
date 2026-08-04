@@ -563,7 +563,7 @@ class UslTesePayslip(models.Model):
             values.setdefault("payment_date", payment_date)
             values.setdefault(
                 "tese_payment_date",
-                pay_period + relativedelta(months=1, day=15),
+                pay_period + relativedelta(months=2, day=15),
             )
             values.setdefault("payslip_date", period_end)
             values.setdefault(
@@ -680,7 +680,7 @@ class UslTesePayslip(models.Model):
             )
             payslip.payment_date = period_end + relativedelta(days=1)
             payslip.tese_payment_date = (
-                payslip.pay_period + relativedelta(months=1, day=15)
+                payslip.pay_period + relativedelta(months=2, day=15)
             )
             payslip.payslip_date = period_end
             if payslip.employee_id:
@@ -866,7 +866,7 @@ class UslTesePayslip(models.Model):
             values.setdefault("payment_date", payment_date)
             values.setdefault(
                 "tese_payment_date",
-                pay_period + relativedelta(months=1, day=15),
+                pay_period + relativedelta(months=2, day=15),
             )
             if not values.get("tese_reference") and values.get("employee_id"):
                 employee = self.env["hr.employee"].browse(
@@ -1161,7 +1161,7 @@ class UslTesePayslip(models.Model):
         payment_date = self.payment_date or period_end + relativedelta(days=1)
         tese_payment_date = (
             self.tese_payment_date
-            or period_start + relativedelta(months=1, day=15)
+            or period_start + relativedelta(months=2, day=15)
         )
         hr_monthly_hours = version.hours_per_week * 52.0 / 12.0
         component_commands = [Command.clear()]
@@ -1629,8 +1629,8 @@ class UslTesePayslip(models.Model):
         ):
             values["bank_reconcile_message"] = _(
                 "The salary and URSSAF debit are matched. %(amount).2f remains "
-                "open on 431000 for the URSSAF rounding difference. Next: clear "
-                "that remainder in Bank Matching.",
+                "open on 431000 for the URSSAF rounding difference. Next: use "
+                "Clear Rounding to match that item in General Reconciliation.",
                 amount=self.rounding_open_amount,
             )
         else:
@@ -1834,7 +1834,10 @@ class UslTesePayslip(models.Model):
         if self.state == "paid":
             next_step = _("The payroll is fully paid; no further action is required.")
         elif not self.currency_id.is_zero(self.rounding_open_amount):
-            next_step = _("Next: clear the visible 431000 remainder in Bank Matching.")
+            next_step = _(
+                "Next: use Clear Rounding to match the visible 431000 item in "
+                "General Reconciliation.",
+            )
         else:
             next_step = _("Next: match the remaining open payment.")
         return self._notify(
@@ -1873,8 +1876,9 @@ class UslTesePayslip(models.Model):
             state = "to_reconcile"
             message = _(
                 "Salary and URSSAF debit matched. Rounding to clear: "
-                "%(amount).2f on 431000. Next: clear this remainder in Bank "
-                "Matching.",
+                "%(amount).2f on 431000. This is not another bank transaction. "
+                "Next: use Clear Rounding and select an opposite 431000 item "
+                "in General Reconciliation.",
                 amount=self.rounding_open_amount,
             )
         else:
@@ -2054,15 +2058,59 @@ class UslTesePayslip(models.Model):
     def action_open_bank_matching(self):
         self.ensure_one()
         best = self.tese_payment_best_line_id or self.salary_payment_best_line_id
-        if best.statement_line_id:
-            return best.statement_line_id.action_rebuild_open_bank_matching()
         journal = best.journal_id if best else False
-        if journal and hasattr(journal, "action_rebuild_open_bank_matching"):
-            return journal.action_rebuild_open_bank_matching()
-        raise UserError(_(
-            "Refresh candidates first, then open the relevant bank journal's "
-            "Bank Matching workspace.",
-        ))
+        statement_line = best.statement_line_id
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "account_reconcile_oca.action_bank_statement_line_reconcile",
+        )
+        if statement_line:
+            domain = [("id", "=", statement_line.id)]
+        elif journal:
+            domain = [("journal_id", "=", journal.id)]
+        else:
+            domain = [("company_id", "=", self.company_id.id)]
+        context = {
+            "allowed_company_ids": [self.company_id.id],
+            "create": False,
+            "search_default_not_reconciled": True,
+            "view_ref": (
+                "account_reconcile_oca."
+                "bank_statement_line_form_reconcile_view"
+            ),
+        }
+        if journal:
+            context.update({
+                "active_id": journal.id,
+                "active_ids": journal.ids,
+                "active_model": journal._name,
+                "default_journal_id": journal.id,
+            })
+        action.update({
+            "name": _("Bank Matching — %(payroll)s", payroll=self.name),
+            "domain": domain,
+            "context": context,
+        })
+        return action
+
+    def action_open_rounding_reconciliation(self):
+        self.ensure_one()
+        rounding_lines = self._tracked_liability_lines("tese").filtered(
+            lambda line: (
+                line.account_id.code == "431000"
+                and not self.currency_id.is_zero(line.amount_residual)
+            ),
+        )
+        if not rounding_lines:
+            raise UserError(_(
+                "No URSSAF rounding item remains open. Next: refresh the payroll "
+                "payment status.",
+            ))
+        action = rounding_lines.action_reconcile_manually()
+        action["name"] = _(
+            "Clear URSSAF Rounding — %(payroll)s",
+            payroll=self.name,
+        )
+        return action
 
     def action_open_pdf(self):
         self.ensure_one()

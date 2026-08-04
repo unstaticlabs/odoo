@@ -1,6 +1,8 @@
 import base64
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
@@ -221,7 +223,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(payslip.period_start, date(2028, 2, 1))
         self.assertEqual(payslip.period_end, date(2028, 2, 29))
         self.assertEqual(payslip.payment_date, date(2028, 3, 1))
-        self.assertEqual(payslip.tese_payment_date, date(2028, 3, 15))
+        self.assertEqual(payslip.tese_payment_date, date(2028, 4, 15))
         self.assertEqual(payslip.hr_version_id, self.employee.version_id)
         self.assertEqual(len(payslip.component_line_ids), 11)
         self.assertEqual(payslip.total_debit, 3850.0)
@@ -410,12 +412,17 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             "net_paid",
             "tese_detailed_total",
             "tese_bank_amount",
+            "tese_payment_date",
         ])
         self.assertEqual(defaults["profile_id"], self.profile.id)
         self.assertEqual(defaults["gross_salary"], 3000.0)
         self.assertEqual(defaults["net_paid"], 2300.0)
         self.assertEqual(defaults["tese_detailed_total"], 1550.0)
         self.assertEqual(defaults["tese_bank_amount"], 1550.0)
+        self.assertEqual(
+            defaults["tese_payment_date"],
+            defaults["pay_period"] + relativedelta(months=2, day=15),
+        )
 
     def test_tese_hr_difference_is_visible_while_configuring(self):
         self.profile.with_user(self.config_user).write({
@@ -490,6 +497,12 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(len(rounding_lines), 1)
         self.assertEqual(abs(rounding_lines.amount_residual), 0.55)
+        action = payslip.action_open_rounding_reconciliation()
+        self.assertEqual(action["res_model"], "account.account.reconcile")
+        self.assertEqual(
+            action["context"]["default_account_move_lines"],
+            rounding_lines.ids,
+        )
 
     def test_negative_urssaf_rounding_remains_open_on_431(self):
         payslip = self._posted_payslip()
@@ -642,6 +655,35 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(payslip.hr_version_id.wage, 2800.0)
         self.assertEqual(payslip.profile_id.hr_version_id, payslip.hr_version_id)
+
+    def test_same_month_profile_revision_closes_archived_profile(self):
+        payslip = self._new_payslip(month=1, reference="SAME-MONTH-REVISION")
+        wizard = self.env[
+            "usl.tese.settings.revision.wizard"
+        ].with_user(self.config_user).with_context(
+            default_payslip_id=payslip.id,
+            default_profile_id=self.profile.id,
+            default_employee_id=self.employee.id,
+            default_effective_period=payslip.pay_period,
+        ).create({})
+
+        wizard.action_apply()
+
+        self.assertFalse(self.profile.active)
+        self.assertEqual(self.profile.valid_from, date(2026, 1, 1))
+        self.assertEqual(self.profile.valid_to, date(2026, 1, 1))
+
+    def test_bank_matching_opens_without_refreshed_candidates(self):
+        payslip = self._posted_payslip()
+
+        action = payslip.action_open_bank_matching()
+
+        self.assertEqual(action["res_model"], "account.bank.statement.line")
+        self.assertEqual(
+            action["domain"],
+            [("company_id", "=", self.company.id)],
+        )
+        self.assertTrue(action["context"]["search_default_not_reconciled"])
 
     def test_combined_revision_refreshes_existing_draft_entry(self):
         payslip = self._new_payslip()

@@ -267,16 +267,14 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
             "active": False,
             "review_status": "archived",
         }
-        if (
-            not old_profile.valid_from
-            or old_profile.valid_from < effective_date
-        ) and (
-            not old_profile.valid_to
-            or old_profile.valid_to >= effective_date
-        ):
-            archive_values["valid_to"] = (
-                effective_date - relativedelta(days=1)
-            )
+        archive_end = effective_date - relativedelta(days=1)
+        if old_profile.valid_from and archive_end < old_profile.valid_from:
+            # Two revisions can be created for the same payroll month while a
+            # draft is being corrected. Keep the archived version as a dated
+            # one-day historical record instead of leaving it open-ended.
+            archive_end = old_profile.valid_from
+        if not old_profile.valid_to or old_profile.valid_to > archive_end:
+            archive_values["valid_to"] = archive_end
         old_profile.write(archive_values)
 
         period_label = format_date(

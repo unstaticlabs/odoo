@@ -48,7 +48,7 @@ make tese-qa-bootstrap TESE_QA_GENERATION=02
 | `01 Monthly creation` | Active profile, no payroll | Click **New**, select this employee, confirm the proposed completed month, review the TESE/HR hours warning, and revise settings. |
 | `02 Missing PDF` | Draft entry ready to post | Confirm that posting is blocked until the official provider PDF is attached and that Diagnostics links to the record. |
 | `03 Exact matching` | Posted payroll with one salary and one URSSAF candidate | Refresh, inspect both candidates, then match salary and URSSAF to reach **Paid**. |
-| `04 URSSAF rounding` | Posted payroll with exact salary and a `€0.55` URSSAF difference | Match both payments, confirm the visible `431000` remainder, then open Bank Matching. |
+| `04 URSSAF rounding` | Posted payroll with exact salary and a `€0.55` URSSAF difference | Match both payments, confirm the visible `431000` remainder, then use Clear Rounding to open General Reconciliation. |
 | `05 Ambiguous bank` | Posted payroll with two salary and two URSSAF candidates | Confirm that automatic matching is unavailable and Bank Matching is the next step. |
 | `06 Paid overview` | Fully reconciled payroll | Review the final payment badge, zero residuals and accounting links. |
 

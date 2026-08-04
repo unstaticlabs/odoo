@@ -125,7 +125,6 @@
                     <button name="action_refresh_candidates"
                             string="Refresh Payments"
                             type="object"
-                            class="oe_highlight"
                             help="Search current bank transactions again and refresh open balances. This does not reconcile anything by itself."
                             invisible="state not in ('to_reconcile', 'paid') or not can_workflow"/>
                     <button name="action_reconcile_salary"
@@ -141,7 +140,14 @@
                     <button name="action_open_bank_matching"
                             string="Open Bank Matching"
                             type="object"
-                            invisible="state != 'to_reconcile'"/>
+                            help="Open unmatched bank transactions for this company. Use this for missing or ambiguous salary and URSSAF payments."
+                            invisible="state != 'to_reconcile' or rounding_open_amount"/>
+                    <button name="action_open_rounding_reconciliation"
+                            string="Clear Rounding"
+                            type="object"
+                            class="oe_highlight"
+                            help="Open the remaining 431000 item in General Reconciliation. Match it with an opposite 431000 item or a reviewed clearing entry; this does not create a write-off."
+                            invisible="state != 'to_reconcile' or not rounding_open_amount"/>
                     <button name="action_finalize"
                             string="Refresh Status"
                             type="object"
@@ -290,6 +296,19 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="alert alert-warning py-2"
+                         role="status"
+                         invisible="payment_status != 'rounding_open'">
+                        <strong>URSSAF rounding is not another bank transaction.</strong>
+                        <field name="rounding_open_amount"
+                               widget="monetary"
+                               nolabel="1"
+                               class="fw-bold"/>
+                        remains open on 431000. Use <strong>Clear Rounding</strong>
+                        above to match it with an opposite 431000 item or a reviewed
+                        clearing entry in General Reconciliation.
                     </div>
 
                     <div class="alert alert-warning"

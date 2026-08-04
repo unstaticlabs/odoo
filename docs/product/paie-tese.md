@@ -30,7 +30,8 @@ The application is deliberately an external-payroll accounting workflow:
 - Automatic settlement is allowed only for one unique and safe bank
   candidate. Salary must be exact. A unique URSSAF candidate may differ by at
   most EUR 5; the real bank amount is used and the exact remainder stays open
-  on `431000`. Ambiguous, partial, larger or foreign-currency cases remain in
+  on `431000`. That ledger remainder is cleared through General Reconciliation;
+  ambiguous, partial, larger or foreign-currency bank transactions remain in
   the OCA Bank Matching workspace for an accountant.
 
 ## Alternatives considered
@@ -105,8 +106,9 @@ Preparation enforces:
 the native month picker. New records propose the oldest missing completed
 month, then the month after the latest payroll without going beyond the
 current month. The posting date is the payroll period end. Salary is normally
-due on the following day. The initial TESE collection suggestion is one month
-later on the fifteenth. Explicit user dates remain unchanged.
+due on the following day. The initial TESE collection suggestion is the
+fifteenth of the second month after the payroll month. Explicit user dates
+remain unchanged.
 
 ## Workflow and immutability
 
