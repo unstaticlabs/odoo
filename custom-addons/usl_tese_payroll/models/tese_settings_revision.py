@@ -122,7 +122,8 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
         if not profile or not employee:
             raise UserError(_(
                 "Choose an employee and current TESE settings before creating "
-                "a revision.",
+                "a revision. Next: open the payroll or profile that you want "
+                "to revise and start again.",
             ))
         effective_period = self._month_start(
             values.get("effective_period")
@@ -281,15 +282,18 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
         self.effective_period = self._month_start(self.effective_period)
         if not self.update_tese and not self.update_contract:
             raise ValidationError(_(
-                "Select TESE figures, employment terms, or both.",
+                "Select TESE figures, employment terms, or both. Next: tick at "
+                "least one change type above.",
             ))
         if self.payslip_id and self.payslip_id.pay_period != self.effective_period:
             raise ValidationError(_(
-                "The revision month must match the payroll month.",
+                "The revision month must match the payroll month. Next: use the "
+                "payroll month shown on this record.",
             ))
         if len(self.component_line_ids) != len(TESE_COMPONENT_BY_CODE):
             raise ValidationError(_(
-                "The TESE accounting detail must contain exactly eleven lines.",
+                "The TESE accounting detail must contain exactly eleven lines. "
+                "Next: cancel and reopen the wizard from a complete profile.",
             ))
         version = (
             self._create_contract_version()
@@ -298,12 +302,13 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
         )
         if not version:
             raise ValidationError(_(
-                "No contract version covers the selected payroll month.",
+                "No contract version covers the selected payroll month. Next: "
+                "enable Employment terms changed to create one.",
             ))
         new_profile = self._create_profile_revision(version)
         if self.payslip_id:
             self.payslip_id._apply_revised_settings(new_profile, version)
-            return {
+            next_action = {
                 "type": "ir.actions.act_window",
                 "name": _("TESE Payroll"),
                 "res_model": "usl.tese.payslip",
@@ -312,14 +317,36 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
                 "views": [(False, "form")],
                 "target": "current",
             }
+            message = _(
+                "New recurring settings applied. The previous version was "
+                "archived, not deleted. Next: review this payroll and its draft "
+                "journal entry before posting.",
+            )
+        else:
+            next_action = {
+                "type": "ir.actions.act_window",
+                "name": _("TESE Payroll Settings"),
+                "res_model": "usl.tese.profile",
+                "res_id": new_profile.id,
+                "view_mode": "form",
+                "views": [(False, "form")],
+                "target": "current",
+            }
+            message = _(
+                "New recurring settings created. The previous version was "
+                "archived, not deleted. Next: review the new version before "
+                "using it for payroll.",
+            )
         return {
-            "type": "ir.actions.act_window",
-            "name": _("TESE Payroll Settings"),
-            "res_model": "usl.tese.profile",
-            "res_id": new_profile.id,
-            "view_mode": "form",
-            "views": [(False, "form")],
-            "target": "current",
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("TESE Payroll Settings"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+                "next": next_action,
+            },
         }
 
 

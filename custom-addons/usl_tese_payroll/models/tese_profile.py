@@ -182,6 +182,11 @@ class UslTeseProfile(models.Model):
                     provider=profile.default_hours,
                     hr=profile.hr_hours_reference,
                 ))
+            if warnings:
+                warnings.append(_(
+                    "Next: confirm the TESE declaration is intentional, or "
+                    "revise the TESE and HR versions before the next payroll.",
+                ))
             profile.hr_mismatch_warning = "\n".join(warnings)
 
     @api.constrains("employee_id", "hr_version_id")
@@ -335,7 +340,28 @@ class UslTeseProfile(models.Model):
                 "French defaults loaded. Enter the provider amounts and review "
                 "the HR references before use.",
             )
-        return True
+        profile = self[-1]
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("TESE Payroll Settings"),
+                "message": _(
+                    "French payroll accounts loaded. Next: enter the TESE "
+                    "amounts and review the employee contract references.",
+                ),
+                "type": "success",
+                "sticky": False,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "res_model": self._name,
+                    "res_id": profile.id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                    "target": "current",
+                },
+            },
+        }
 
     def _validate_components(self):
         self.ensure_one()

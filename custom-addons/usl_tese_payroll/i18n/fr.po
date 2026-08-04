@@ -3221,3 +3221,127 @@ msgstr ""
 
 #~ msgid "Withholding"
 #~ msgstr "Retenue"
+
+#. module: usl_tese_payroll
+msgid "Payrolls"
+msgstr "Paies"
+
+#. module: usl_tese_payroll
+msgid "Revise Settings"
+msgstr "Réviser les paramètres"
+
+#. module: usl_tese_payroll
+msgid "From"
+msgstr "Du"
+
+#. module: usl_tese_payroll
+msgid "Until"
+msgstr "Au"
+
+#. module: usl_tese_payroll
+msgid "HR Contract Version"
+msgstr "Version du contrat RH"
+
+#. module: usl_tese_payroll
+msgid "HR Monthly Wage"
+msgstr "Salaire mensuel RH"
+
+#. module: usl_tese_payroll
+msgid "HR Monthly Hours"
+msgstr "Heures mensuelles RH"
+
+#. module: usl_tese_payroll
+msgid "TESE Defaults"
+msgstr "Valeurs TESE par défaut"
+
+#. module: usl_tese_payroll
+msgid "Current Version"
+msgstr "Version actuelle"
+
+#. module: usl_tese_payroll
+msgid "New Version"
+msgstr "Nouvelle version"
+
+#. module: usl_tese_payroll
+msgid "Salary and Contributions"
+msgstr "Salaire et cotisations"
+
+#. module: usl_tese_payroll
+msgid "Tax and Net Paid"
+msgstr "Impôt et net payé"
+
+#. module: usl_tese_payroll
+msgid "Contract Dates"
+msgstr "Dates du contrat"
+
+#. module: usl_tese_payroll
+msgid "Payroll Setup"
+msgstr "Paramètres de la paie"
+
+#. module: usl_tese_payroll
+msgid "TESE Evidence and Dates"
+msgstr "Justificatif et dates TESE"
+
+#. module: usl_tese_payroll
+msgid "Revise Recurring Settings"
+msgstr "Réviser les paramètres récurrents"
+
+#. module: usl_tese_payroll
+msgid "Refresh Status"
+msgstr "Actualiser le statut"
+
+#. module: usl_tese_payroll
+msgid "Expected / Matched Bank Debit"
+msgstr "Prélèvement bancaire attendu / rapproché"
+
+#. module: usl_tese_payroll
+msgid "Provider Notes"
+msgstr "Notes du prestataire"
+
+#. module: usl_tese_payroll
+msgid "Provider Record"
+msgstr "Justificatif du prestataire"
+
+#. module: usl_tese_payroll
+msgid "Employee Contributions"
+msgstr "Cotisations salariales"
+
+#. module: usl_tese_payroll
+msgid "Employer Contributions"
+msgstr "Cotisations patronales"
+
+#. module: usl_tese_payroll
+msgid "Withholding Base"
+msgstr "Base du prélèvement à la source"
+
+#. module: usl_tese_payroll
+msgid "Withholding Rate"
+msgstr "Taux du prélèvement à la source"
+
+#. module: usl_tese_payroll
+msgid "Withholding Amount"
+msgstr "Montant du prélèvement à la source"
+
+#. module: usl_tese_payroll
+msgid "Monthly Hours"
+msgstr "Heures mensuelles"
+
+#. module: usl_tese_payroll
+msgid "Record only what changed. Odoo creates a dated version and keeps the previous version in history."
+msgstr "Indiquez uniquement ce qui a changé. Odoo crée une version datée et conserve la version précédente dans l'historique."
+
+#. module: usl_tese_payroll
+msgid "The previous TESE version will be archived, not deleted. If this wizard was opened from a payroll, that payroll will be refreshed with the new versions."
+msgstr "La version TESE précédente sera archivée, jamais supprimée. Si cet assistant a été ouvert depuis une paie, cette paie sera actualisée avec les nouvelles versions."
+
+#. module: usl_tese_payroll
+msgid "Change amounts only when the TESE declaration changed. Accounts and component roles stay fixed."
+msgstr "Modifiez les montants uniquement si la déclaration TESE a changé. Les comptes et les rôles comptables restent fixes."
+
+#. module: usl_tese_payroll
+msgid "Only change <strong>Expected / Matched Bank Debit</strong> when TESE announces a collection amount different from the declared total. It guides bank matching; the declared liabilities stay unchanged, and a safe difference stays open on 431000."
+msgstr "Ne modifiez le <strong>Prélèvement bancaire attendu / rapproché</strong> que si TESE annonce un prélèvement différent du total déclaré. Il guide le rapprochement bancaire ; les dettes déclarées restent inchangées et un écart sûr reste ouvert sur le compte 431000."
+
+#. module: usl_tese_payroll
+msgid "The official PDF remains linked as evidence. Next: no document action is required."
+msgstr "Le PDF officiel reste lié comme justificatif. Étape suivante : aucune action documentaire n'est requise."

@@ -18,6 +18,9 @@
                 <field name="valid_to"/>
                 <field name="gross_salary" sum="Gross"/>
                 <field name="net_paid" sum="Net Paid"/>
+                <field name="payslip_count"
+                       string="Payrolls"
+                       optional="show"/>
                 <field name="last_used_date" optional="show"/>
                 <field name="review_status"
                        widget="badge"
@@ -78,13 +81,15 @@
             <form string="TESE Payroll Settings" duplicate="false">
                 <header>
                     <button name="action_open_settings_revision"
-                            string="Create Next Version"
+                            string="Revise Settings"
                             type="object"
                             class="oe_highlight"
+                            help="Create a dated copy of these TESE settings. The previous version is archived, not deleted."
                             invisible="not can_configure"/>
                     <button name="action_load_french_defaults"
                             string="Load French Accounts"
                             type="object"
+                            help="Load the fixed eleven French payroll accounts into this unused profile. Existing accounts are never created or renumbered."
                             invisible="not can_configure or payslip_count"/>
                     <field name="review_status" widget="statusbar"/>
                 </header>
@@ -119,8 +124,8 @@
                         </h2>
                     </div>
 
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-md-4">
+                    <div class="row g-2 mb-4">
+                        <div class="col-12 col-lg-4">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted">Gross</div>
                                 <div class="fs-4 fw-bold">
@@ -131,7 +136,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-lg-4">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted">Net Paid</div>
                                 <div class="fs-3 fw-bold">
@@ -142,47 +147,51 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-lg-4">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted">Applicable Period</div>
-                                <div class="d-flex gap-2 align-items-center mt-2">
-                                    <field name="valid_from"
-                                           nolabel="1"
-                                           readonly="not can_configure or payslip_count"/>
-                                    <span>to</span>
-                                    <field name="valid_to"
-                                           nolabel="1"
-                                           widget="date_dynamic_min"
-                                           options="{'min_date_field': 'valid_from'}"
-                                           placeholder="Ongoing"
-                                           readonly="not can_configure"/>
+                                <div class="mt-2">
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        <span class="text-muted">From</span>
+                                        <field name="valid_from"
+                                               nolabel="1"
+                                               readonly="not can_configure or payslip_count"/>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
+                                        <span class="text-muted">Until</span>
+                                        <field name="valid_to"
+                                               nolabel="1"
+                                               widget="date_dynamic_min"
+                                               options="{'min_date_field': 'valid_from'}"
+                                               placeholder="Ongoing"
+                                               readonly="not can_configure"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <group>
-                        <group string="Employee and Contract">
+                        <group string="Employee Record">
                             <field name="company_id"
                                    groups="base.group_multi_company"
                                    readonly="not can_configure or payslip_count"/>
                             <field name="hr_version_id"
-                                   string="Contract Version"
+                                   string="HR Contract Version"
                                    readonly="not can_configure or payslip_count"/>
                             <field name="hr_wage_reference"
-                                   string="Contract Wage"/>
+                                   string="HR Monthly Wage"/>
                             <field name="hr_hours_reference"
-                                   string="Contract Monthly Hours"/>
+                                   string="HR Monthly Hours"/>
                         </group>
-                        <group string="Provider">
+                        <group string="TESE Defaults">
                             <field name="default_hours"
                                    string="Declared Monthly Hours"
                                    readonly="not can_configure or payslip_count"/>
                             <field name="collector_partner_id"
                                    readonly="not can_configure or payslip_count"/>
-                            <field name="last_used_date"/>
-                            <field name="active"
-                                   readonly="not can_configure"/>
+                            <field name="last_used_date" readonly="1"/>
+                            <field name="active" invisible="1"/>
                         </group>
                     </group>
 
@@ -199,8 +208,10 @@
                                     <field name="gross_salary"
                                            readonly="not can_configure or payslip_count"/>
                                     <field name="employee_contribution_total"
+                                           string="Employee Contributions"
                                            readonly="not can_configure or payslip_count"/>
                                     <field name="employer_contribution_total"
+                                           string="Employer Contributions"
                                            readonly="not can_configure or payslip_count"/>
                                     <field name="net_social"
                                            readonly="not can_configure or payslip_count"/>
@@ -209,10 +220,13 @@
                                 </group>
                                 <group string="Withholding and Net">
                                     <field name="income_tax_base"
+                                           string="Withholding Base"
                                            readonly="not can_configure or payslip_count"/>
                                     <field name="income_tax_rate"
+                                           string="Withholding Rate"
                                            readonly="not can_configure or payslip_count"/>
                                     <field name="income_tax_amount"
+                                           string="Withholding Amount"
                                            readonly="not can_configure or payslip_count"/>
                                     <field name="net_paid"
                                            readonly="not can_configure or payslip_count"
@@ -224,13 +238,13 @@
                             <field name="component_line_ids"
                                    readonly="not can_configure or payslip_count">
                                 <list editable="bottom">
-                                    <field name="sequence" widget="handle"/>
+                                    <field name="sequence" column_invisible="True"/>
                                     <field name="currency_id" column_invisible="True"/>
                                     <field name="company_id" column_invisible="True"/>
-                                    <field name="code"/>
+                                    <field name="code" optional="hide"/>
                                     <field name="name"/>
-                                    <field name="side"/>
-                                    <field name="role"/>
+                                    <field name="side" optional="hide"/>
+                                    <field name="role" optional="hide"/>
                                     <field name="account_id"/>
                                     <field name="amount" sum="Total"/>
                                 </list>
@@ -238,6 +252,11 @@
                         </page>
                         <page name="review" string="History and Checks">
                             <group>
+                                <field name="active" readonly="1"/>
+                                <field name="valid_from" readonly="1"/>
+                                <field name="valid_to" readonly="1"/>
+                                <field name="last_used_date" readonly="1"/>
+                                <field name="payslip_count" readonly="1"/>
                                 <field name="review_message"
                                        readonly="not can_configure"/>
                                 <field name="employee_partner_id"/>
@@ -255,7 +274,8 @@
         <field name="res_model">usl.tese.profile</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_tese_profile_search"/>
-        <field name="context">{'search_default_active_profiles': 1}</field>
+        <field name="domain">['|', ('active', '=', True), ('active', '=', False)]</field>
+        <field name="context">{'active_test': False, 'search_default_active_profiles': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create recurring TESE settings</p>
             <p>Keep one dated version for every change declared to TESE.</p>

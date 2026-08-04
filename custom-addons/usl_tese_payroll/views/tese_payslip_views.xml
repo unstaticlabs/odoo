@@ -108,49 +108,59 @@
                             string="Prepare Payroll"
                             type="object"
                             class="oe_highlight"
+                            help="Freeze the selected TESE and HR settings into this payroll. Next, review the figures and create the draft journal entry."
                             invisible="state != 'draft' or not can_workflow"/>
                     <button name="action_create_draft_entry"
                             string="Create Draft Entry"
                             type="object"
                             class="oe_highlight"
+                            help="Create a balanced draft journal entry from the frozen payroll figures. You can still revise settings before posting."
                             invisible="state != 'prepared' or not can_workflow"/>
                     <button name="action_post"
                             string="Post Entry"
                             type="object"
                             class="oe_highlight"
+                            help="Post the payroll journal entry. The payroll figures and official PDF then become immutable."
                             invisible="state != 'to_post' or not can_workflow"/>
                     <button name="action_refresh_candidates"
                             string="Refresh Payments"
                             type="object"
                             class="oe_highlight"
+                            help="Search current bank transactions again and refresh open balances. This does not reconcile anything by itself."
                             invisible="state not in ('to_reconcile', 'paid') or not can_workflow"/>
                     <button name="action_reconcile_salary"
                             string="Match Salary"
                             type="object"
+                            help="Reconcile the one safe salary transaction with the open salary liability."
                             invisible="state != 'to_reconcile' or salary_payment_reconciled or salary_payment_candidate_count != 1 or not can_workflow"/>
                     <button name="action_reconcile_tese"
                             string="Match URSSAF Debit"
                             type="object"
+                            help="Reconcile the one safe URSSAF transaction. A difference up to €5 remains open on 431000 for explicit clearing."
                             invisible="state != 'to_reconcile' or tese_payment_reconciled or tese_payment_candidate_count != 1 or not can_workflow"/>
                     <button name="action_open_bank_matching"
                             string="Open Bank Matching"
                             type="object"
                             invisible="state != 'to_reconcile'"/>
                     <button name="action_finalize"
-                            string="Check Status"
+                            string="Refresh Status"
                             type="object"
+                            help="Recalculate the payment state from accounting residuals. This does not reconcile or write off any balance."
                             invisible="state not in ('to_reconcile', 'paid') or not can_workflow"/>
                     <button name="action_create_draft_entry"
                             string="Refresh Draft Entry"
                             type="object"
+                            help="Regenerate the linked draft journal entry from the current payroll figures. A posted entry is never changed."
                             invisible="state != 'to_post' or not can_workflow"/>
                     <button name="action_cancel"
                             string="Cancel"
                             type="object"
+                            help="Cancel this unposted payroll and its draft entry. Posted accounting cannot be cancelled here."
                             invisible="state not in ('draft', 'prepared', 'to_post') or not can_workflow"/>
                     <button name="action_reset_to_prepared"
                             string="Reset"
                             type="object"
+                            help="Return this cancelled payroll to Prepared so its draft entry can be reviewed again."
                             invisible="state != 'cancelled' or not can_workflow"/>
                     <field name="state"
                            widget="statusbar"
@@ -227,8 +237,8 @@
                         </h2>
                     </div>
 
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-md-3">
+                    <div class="row g-2 mb-4">
+                        <div class="col-12 col-sm-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted">Net Paid</div>
                                 <div class="fs-3 fw-bold">
@@ -239,18 +249,18 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-sm-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted">URSSAF Debit</div>
                                 <div class="fs-3 fw-bold">
                                     <field name="tese_bank_amount"
                                            widget="monetary"
                                            nolabel="1"
-                                           readonly="state not in ('draft', 'prepared')"/>
+                                           readonly="1"/>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-sm-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted">Gross</div>
                                 <div class="fs-4">
@@ -261,7 +271,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-sm-6 col-xl-3">
                             <div class="border rounded p-3 h-100">
                                 <div class="text-muted mb-2">Payments</div>
                                 <field name="payment_status"
@@ -288,32 +298,30 @@
                         <field name="setup_message" nolabel="1"/>
                     </div>
 
-                    <group>
-                        <group string="Applied Settings">
+                    <group invisible="state not in ('draft', 'prepared', 'to_post')">
+                        <group string="Payroll Setup">
                             <field name="company_id"
                                    groups="base.group_multi_company"
                                    readonly="state != 'draft'"/>
                             <field name="pay_period"
                                    options="{'min_precision': 'months', 'max_precision': 'months'}"
                                    invisible="state != 'draft'"/>
-                            <field name="period_label"
-                                   string="Payroll Month"
-                                   readonly="1"
-                                   invisible="state == 'draft'"/>
                             <field name="profile_id"
                                    string="TESE Settings"
                                    context="{'active_test': False}"
                                    domain="[('company_id', '=', company_id), ('employee_id', '=', employee_id)]"
                                    readonly="state != 'draft'"/>
                             <field name="hr_version_id"
-                                   string="Contract Version"/>
+                                   string="HR Contract Version"
+                                   readonly="1"/>
                             <button name="action_open_settings_revision"
-                                    string="Update Settings or Contract"
+                                    string="Revise Recurring Settings"
                                     type="object"
                                     class="btn-link p-0"
+                                    help="Create a dated TESE settings version and, if needed, a native HR contract version. The previous versions remain in history."
                                     invisible="state not in ('draft', 'prepared', 'to_post') or not can_configure"/>
                         </group>
-                        <group string="Source and Dates">
+                        <group string="TESE Evidence and Dates">
                             <field name="tese_reference"
                                    readonly="state != 'draft'"/>
                             <field name="attachment_id"
@@ -339,6 +347,7 @@
                                     <field name="hours" readonly="1"/>
                                     <field name="gross_salary" readonly="1"/>
                                     <field name="employee_contribution_total"
+                                           string="Employee Contributions"
                                            readonly="1"/>
                                     <field name="net_social" readonly="1"/>
                                     <field name="net_before_tax" readonly="1"/>
@@ -347,10 +356,17 @@
                                            class="fw-bold"/>
                                 </group>
                                 <group string="Withholding and URSSAF">
-                                    <field name="income_tax_base" readonly="1"/>
-                                    <field name="income_tax_rate" readonly="1"/>
-                                    <field name="income_tax_amount" readonly="1"/>
+                                    <field name="income_tax_base"
+                                           string="Withholding Base"
+                                           readonly="1"/>
+                                    <field name="income_tax_rate"
+                                           string="Withholding Rate"
+                                           readonly="1"/>
+                                    <field name="income_tax_amount"
+                                           string="Withholding Amount"
+                                           readonly="1"/>
                                     <field name="employer_contribution_total"
+                                           string="Employer Contributions"
                                            readonly="1"/>
                                     <field name="tese_contribution_total"
                                            string="URSSAF Contributions"/>
@@ -360,16 +376,25 @@
                                            string="Declared URSSAF Total"
                                            class="fw-bold"/>
                                     <field name="tese_bank_amount"
-                                           string="Actual URSSAF Debit"
+                                           string="Expected / Matched Bank Debit"
                                            readonly="state not in ('draft', 'prepared')"/>
                                     <field name="tese_bank_difference"
                                            string="Rounding Difference"/>
                                 </group>
                             </group>
-                            <group string="Provider Evidence">
-                                <field name="payslip_date"/>
+                            <div class="alert alert-info py-2"
+                                 role="alert"
+                                 invisible="state not in ('draft', 'prepared')">
+                                Only change <strong>Expected / Matched Bank Debit</strong>
+                                when TESE announces a collection amount different
+                                from the declared total. It guides bank matching;
+                                the declared liabilities stay unchanged, and a safe
+                                difference stays open on 431000.
+                            </div>
+                            <group string="Provider Notes">
                                 <field name="document_message" nolabel="1"/>
                                 <field name="document_note"
+                                       readonly="state in ('to_reconcile', 'paid', 'cancelled')"
                                        placeholder="Only add a note when the TESE document needs explanation."/>
                             </group>
                         </page>
@@ -380,8 +405,9 @@
                                  invisible="not bank_reconcile_message">
                                 <field name="bank_reconcile_message" nolabel="1"/>
                             </div>
-                            <group>
-                                <group string="Salary">
+                            <div class="row g-3">
+                                <div class="col-12 col-xl-6">
+                                  <group string="Salary">
                                     <field name="net_paid"
                                            string="Expected"
                                            readonly="1"/>
@@ -391,17 +417,23 @@
                                     <field name="salary_open_amount"
                                            string="Still Open"/>
                                     <field name="salary_payment_candidate_date"
-                                           string="Bank Date"/>
+                                           string="Bank Date"
+                                           invisible="salary_payment_candidate_count == 0"/>
                                     <field name="salary_payment_candidate_amount"
-                                           string="Bank Amount"/>
+                                           string="Bank Amount"
+                                           invisible="salary_payment_candidate_count == 0"/>
                                     <field name="salary_payment_candidate_difference"
-                                           string="Difference"/>
+                                           string="Difference"
+                                           invisible="salary_payment_candidate_count == 0"/>
                                     <field name="salary_payment_candidate_label"
-                                           string="Bank Label"/>
+                                           string="Bank Label"
+                                           invisible="salary_payment_candidate_count == 0"/>
                                     <field name="salary_payment_match_message"
                                            nolabel="1"/>
-                                </group>
-                                <group string="URSSAF">
+                                  </group>
+                                </div>
+                                <div class="col-12 col-xl-6">
+                                  <group string="URSSAF">
                                     <field name="tese_detailed_total"
                                            string="Declared"
                                            readonly="1"/>
@@ -414,24 +446,25 @@
                                     <field name="tese_open_amount"
                                            string="Still Open"/>
                                     <field name="rounding_open_amount"
-                                           string="Rounding to Clear"/>
+                                           string="Rounding to Clear"
+                                           invisible="not rounding_open_amount"/>
                                     <field name="tese_payment_candidate_date"
-                                           string="Bank Date"/>
+                                           string="Bank Date"
+                                           invisible="tese_payment_candidate_count == 0"/>
                                     <field name="tese_payment_candidate_amount"
-                                           string="Bank Amount"/>
+                                           string="Bank Amount"
+                                           invisible="tese_payment_candidate_count == 0"/>
                                     <field name="tese_payment_candidate_difference"
-                                           string="Difference"/>
+                                           string="Difference"
+                                           invisible="tese_payment_candidate_count == 0"/>
                                     <field name="tese_payment_candidate_label"
-                                           string="Bank Label"/>
+                                           string="Bank Label"
+                                           invisible="tese_payment_candidate_count == 0"/>
                                     <field name="tese_payment_match_message"
                                            nolabel="1"/>
-                                </group>
-                            </group>
-                            <group string="Status">
-                                <field name="payment_check_message" nolabel="1"/>
-                                <field name="salary_settlement_move_id"/>
-                                <field name="tese_settlement_move_id"/>
-                            </group>
+                                  </group>
+                                </div>
+                            </div>
                         </page>
 
                         <page name="accounting" string="Accounting">
@@ -447,6 +480,8 @@
                                     <field name="collector_partner_id"/>
                                     <field name="employee_partner_id"/>
                                     <field name="preparation_ok"/>
+                                    <field name="salary_settlement_move_id"/>
+                                    <field name="tese_settlement_move_id"/>
                                 </group>
                             </group>
                             <field name="component_line_ids">
@@ -464,6 +499,18 @@
                         </page>
 
                         <page name="details" string="Details">
+                            <group string="Provider Record">
+                                <field name="tese_reference" readonly="1"/>
+                                <field name="attachment_id"
+                                       string="Official TESE PDF"
+                                       readonly="1"/>
+                                <field name="document_status" widget="badge"/>
+                                <field name="payslip_date" readonly="1"/>
+                                <field name="payment_date" readonly="1"/>
+                                <field name="tese_payment_date"
+                                       string="URSSAF Debit Date"
+                                       readonly="1"/>
+                            </group>
                             <group>
                                 <group string="Applied TESE Settings">
                                     <field name="profile_snapshot_label"/>

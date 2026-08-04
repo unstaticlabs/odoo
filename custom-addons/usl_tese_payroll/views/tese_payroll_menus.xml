@@ -35,7 +35,8 @@
     <menuitem id="menu_tese_payroll_diagnostics"
               name="Diagnostics"
               parent="menu_tese_payroll_configuration"
-              action="action_tese_diagnostics"
+              action="action_run_tese_diagnostics"
+              groups="account.group_account_user"
               sequence="20"/>
 
     <menuitem id="menu_tese_payroll_accounts"
@@ -45,10 +46,13 @@
               groups="account.group_account_manager"
               sequence="30"/>
 
+    <!-- Keep the legacy XML ID for clean upgrades while removing the duplicate menu. -->
     <menuitem id="menu_tese_payroll_run_diagnostics"
               name="Run Diagnostics"
               parent="menu_tese_payroll_configuration"
               action="action_run_tese_diagnostics"
               groups="account.group_account_user"
+              active="False"
               sequence="40"/>
+
 </odoo>

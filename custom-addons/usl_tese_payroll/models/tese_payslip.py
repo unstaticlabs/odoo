@@ -211,9 +211,15 @@ class UslTesePayslip(models.Model):
     tese_income_tax_total = fields.Monetary(readonly=True, copy=False)
     tese_detailed_total = fields.Monetary(readonly=True, copy=False)
     tese_bank_amount = fields.Monetary(
-        string="TESE Bank Amount",
+        string="Expected / Matched Bank Debit",
         tracking=True,
         copy=False,
+        help=(
+            "Before posting, enter the collection amount announced by TESE only "
+            "when it differs from the declared liabilities. After matching, this "
+            "field records the real bank debit. A safe difference is kept open on "
+            "431000; it is never written off automatically."
+        ),
     )
     tese_bank_difference = fields.Monetary(readonly=True, copy=False)
     salary_open_amount = fields.Monetary(
@@ -590,7 +596,8 @@ class UslTesePayslip(models.Model):
         for payslip in self:
             if not payslip.employee_id or not payslip.pay_period:
                 payslip.setup_message = _(
-                    "Choose an employee and payroll month.",
+                    "Choose an employee and payroll month. Next: confirm the "
+                    "recurring TESE settings proposed by Odoo.",
                 )
                 continue
             profiles = payslip._applicable_profiles(
@@ -600,12 +607,15 @@ class UslTesePayslip(models.Model):
             )
             if payslip.profile_id and payslip.profile_id not in profiles:
                 payslip.setup_message = _(
-                    "The selected TESE settings do not cover this month.",
+                    "The selected TESE settings do not cover this month. Next: "
+                    "choose a version that covers the month or revise the "
+                    "recurring settings.",
                 )
             elif len(profiles) != 1:
                 payslip.setup_message = _(
                     "%(count)s TESE settings profiles cover this month; exactly "
-                    "one is required.",
+                    "one is required. Next: correct their validity dates in "
+                    "Payroll Profiles.",
                     count=len(profiles),
                 )
             else:
@@ -616,7 +626,8 @@ class UslTesePayslip(models.Model):
                 if len(versions) != 1:
                     payslip.setup_message = _(
                         "%(count)s contract versions cover this month; exactly "
-                        "one is required.",
+                        "one is required. Next: correct the employee contract "
+                        "version dates.",
                         count=len(versions),
                     )
                 else:
@@ -673,15 +684,21 @@ class UslTesePayslip(models.Model):
                     f"{payslip.employee_id.name}"
                 )
 
-    @api.depends("attachment_id", "attachment_id.mimetype")
+    @api.depends("attachment_id", "attachment_id.mimetype", "state")
     def _compute_document_status(self):
         for payslip in self:
             if not payslip.attachment_id:
                 payslip.document_status = "missing"
-                payslip.document_message = _("Attach the provider payroll PDF.")
+                payslip.document_message = _(
+                    "No provider PDF is attached. Next: attach the official TESE "
+                    "PDF before posting.",
+                )
             elif payslip.attachment_id.mimetype != "application/pdf":
                 payslip.document_status = "warning"
-                payslip.document_message = _("The linked attachment is not a PDF.")
+                payslip.document_message = _(
+                    "The linked attachment is not a PDF. Next: replace it with "
+                    "the official TESE PDF.",
+                )
             elif (
                 payslip.id
                 and (
@@ -690,13 +707,31 @@ class UslTesePayslip(models.Model):
                 )
             ):
                 payslip.document_status = "linked"
-                payslip.document_message = _(
-                    "The PDF is linked but is not yet the payroll record's "
-                    "native attachment.",
+                payslip.document_message = (
+                    _(
+                        "The PDF is linked but is not yet the payroll record's "
+                        "native attachment. Next: keep it as evidence and "
+                        "continue the payroll review.",
+                    )
+                    if payslip.state in {"draft", "prepared", "to_post"}
+                    else _(
+                        "The official PDF remains linked as evidence. Next: no "
+                        "document action is required.",
+                    )
                 )
             else:
                 payslip.document_status = "ok"
-                payslip.document_message = _("Provider payroll PDF ready.")
+                payslip.document_message = (
+                    _(
+                        "Provider payroll PDF ready. Next: review the figures and "
+                        "continue the payroll workflow.",
+                    )
+                    if payslip.state in {"draft", "prepared", "to_post"}
+                    else _(
+                        "Provider payroll PDF ready. Next: no document action is "
+                        "required.",
+                    )
+                )
 
     def _tracked_liability_lines(self, kind):
         self.ensure_one()
@@ -1310,10 +1345,16 @@ class UslTesePayslip(models.Model):
             # accounting extensions blocking their own access checks here.
             move = self.move_id.sudo()
             move.write(move_values)
-            message = _("The draft payroll journal entry was refreshed.")
+            message = _(
+                "The draft payroll journal entry was refreshed. Next: review "
+                "the entry and official PDF, then post it.",
+            )
         else:
             move = self.env["account.move"].create(move_values)
-            message = _("The draft payroll journal entry was created.")
+            message = _(
+                "The draft payroll journal entry was created. Next: review the "
+                "entry and official PDF, then post it.",
+            )
         self.with_context(
             _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
         ).write({
@@ -1530,7 +1571,10 @@ class UslTesePayslip(models.Model):
         exact = [candidate for candidate in ranked if candidate["exact"]]
         safe = [candidate for candidate in ranked if candidate["safe"]]
         if not ranked:
-            message = _("No candidate found.")
+            message = _(
+                "No candidate found. Next: check the expected date and amount, "
+                "or open Bank Matching.",
+            )
         elif len(safe) > 1:
             message = _(
                 "%(count)s plausible candidates found. Review them in Bank Matching.",
@@ -1549,12 +1593,14 @@ class UslTesePayslip(models.Model):
         ):
             message = _(
                 "One URSSAF debit is ready. The %(difference).2f difference "
-                "will remain visible on 431000.",
+                "will remain visible on 431000. Next: click Match URSSAF Debit "
+                "only after checking the bank transaction.",
                 difference=safe[0]["settlement_difference"],
             )
         else:
             message = _(
-                "One unique exact safe candidate is available for reconciliation.",
+                "One unique exact safe candidate is available. Next: check it, "
+                "then use the matching button above.",
             )
         values[f"{prefix}_match_message"] = message
         return values
@@ -1581,7 +1627,8 @@ class UslTesePayslip(models.Model):
         ):
             values["bank_reconcile_message"] = _(
                 "The salary and URSSAF debit are matched. %(amount).2f remains "
-                "open on 431000 for the URSSAF rounding difference.",
+                "open on 431000 for the URSSAF rounding difference. Next: clear "
+                "that remainder in Bank Matching.",
                 amount=self.rounding_open_amount,
             )
         else:
@@ -1781,9 +1828,19 @@ class UslTesePayslip(models.Model):
                 field_name: settlement_move.id,
             })
         self.action_refresh_candidates()
-        self.action_finalize()
+        self.action_finalize(notify=False)
+        if self.state == "paid":
+            next_step = _("The payroll is fully paid; no further action is required.")
+        elif not self.currency_id.is_zero(self.rounding_open_amount):
+            next_step = _("Next: clear the visible 431000 remainder in Bank Matching.")
+        else:
+            next_step = _("Next: match the remaining open payment.")
         return self._notify(
-            _("The %(kind)s payment was reconciled.", kind=kind.upper()),
+            _(
+                "The %(kind)s payment was reconciled. %(next_step)s",
+                kind=kind.upper(),
+                next_step=next_step,
+            ),
         )
 
     def action_reconcile_salary(self):
@@ -1792,7 +1849,7 @@ class UslTesePayslip(models.Model):
     def action_reconcile_tese(self):
         return self._reconcile_candidate("tese")
 
-    def action_finalize(self):
+    def action_finalize(self, notify=True):
         self.ensure_one()
         self._check_workflow_access()
         if not self.move_id or self.move_id.state != "posted":
@@ -1801,7 +1858,8 @@ class UslTesePayslip(models.Model):
         if salary_ok and tese_ok:
             state = "paid"
             message = _(
-                "Payroll finalized: salary and TESE liabilities are fully settled.",
+                "Payroll finalized: salary and TESE liabilities are fully "
+                "settled. Next: no further payment action is required.",
             )
         elif (
             salary_ok
@@ -1813,14 +1871,16 @@ class UslTesePayslip(models.Model):
             state = "to_reconcile"
             message = _(
                 "Salary and URSSAF debit matched. Rounding to clear: "
-                "%(amount).2f on 431000.",
+                "%(amount).2f on 431000. Next: clear this remainder in Bank "
+                "Matching.",
                 amount=self.rounding_open_amount,
             )
         else:
             state = "to_reconcile"
             message = _(
                 "Payroll remains open: salary residual %(salary).2f; TESE "
-                "residual %(tese).2f.",
+                "residual %(tese).2f. Next: match a unique safe candidate or "
+                "open Bank Matching.",
                 salary=salary_open,
                 tese=tese_open,
             )
@@ -1834,6 +1894,11 @@ class UslTesePayslip(models.Model):
             "tese_payment_reconciled": tese_ok,
             "bank_reconcile_message": message,
         })
+        if notify:
+            return self._notify(
+                message,
+                level="success" if salary_ok and tese_ok else "warning",
+            )
         return salary_ok and tese_ok
 
     def action_cancel(self):
@@ -1851,7 +1916,13 @@ class UslTesePayslip(models.Model):
         self.with_context(
             _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
         ).write({"state": "cancelled"})
-        return True
+        return self._notify(
+            _(
+                "Payroll cancelled. Next: use Reset if you want to prepare it "
+                "again.",
+            ),
+            level="warning",
+        )
 
     def action_reset_to_prepared(self):
         self.ensure_one()
@@ -1867,7 +1938,12 @@ class UslTesePayslip(models.Model):
         ).write({
             "state": "prepared",
         })
-        return True
+        return self._notify(
+            _(
+                "Payroll reset to Prepared. Next: review or refresh the draft "
+                "journal entry.",
+            ),
+        )
 
     def action_open_settings_revision(self):
         self.ensure_one()

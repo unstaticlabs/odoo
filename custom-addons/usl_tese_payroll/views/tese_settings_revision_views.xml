@@ -11,77 +11,71 @@
                     <field name="payslip_id" invisible="1"/>
                     <div class="oe_title">
                         <h1>Update recurring payroll settings</h1>
-                    <p class="text-muted mb-0">
-                        Copy the current settings, record only what changed,
-                        and start the new version in the selected month.
-                    </p>
+                        <p class="text-muted mb-0">
+                            Record only what changed. Odoo creates a dated
+                            version and keeps the previous version in history.
+                        </p>
                     </div>
                     <group>
-                        <group>
+                        <group string="Current Version">
                             <field name="employee_id"/>
                             <field name="profile_id"/>
                             <field name="source_version_id"/>
                         </group>
-                        <group>
+                        <group string="New Version">
                             <field name="effective_period"
                                    options="{'min_precision': 'months', 'max_precision': 'months'}"/>
                             <field name="update_tese"/>
                             <field name="update_contract"/>
                         </group>
                     </group>
+                    <div class="alert alert-info py-2"
+                         role="alert">
+                        The previous TESE version will be archived, not deleted.
+                        If this wizard was opened from a payroll, that payroll
+                        will be refreshed with the new versions.
+                    </div>
                     <notebook>
-                        <page name="tese" string="TESE Figures">
+                        <page name="tese"
+                              string="TESE Figures"
+                              invisible="not update_tese">
                             <group>
-                                <group string="Pay">
+                                <group string="Salary and Contributions">
                                     <field name="default_hours"
+                                           string="Monthly Hours"
                                            readonly="not update_tese"/>
                                     <field name="gross_salary"
                                            readonly="not update_tese"/>
                                     <field name="employee_contribution_total"
+                                           string="Employee Contributions"
                                            readonly="not update_tese"/>
                                     <field name="employer_contribution_total"
+                                           string="Employer Contributions"
                                            readonly="not update_tese"/>
                                     <field name="net_social"
                                            readonly="not update_tese"/>
                                 </group>
-                                <group string="Net Paid">
+                                <group string="Tax and Net Paid">
                                     <field name="net_before_tax"
                                            readonly="not update_tese"/>
                                     <field name="income_tax_base"
+                                           string="Withholding Base"
                                            readonly="not update_tese"/>
                                     <field name="income_tax_rate"
+                                           string="Withholding Rate"
                                            readonly="not update_tese"/>
                                     <field name="income_tax_amount"
+                                           string="Withholding Amount"
                                            readonly="not update_tese"/>
                                     <field name="net_paid"
                                            readonly="not update_tese"
                                            class="fw-bold"/>
                                 </group>
                             </group>
-                            <separator string="Accounting detail"/>
-                            <field name="component_line_ids"
-                                   readonly="not update_tese">
-                                <list editable="bottom"
-                                      create="false"
-                                      delete="false">
-                                    <field name="sequence"
-                                           column_invisible="True"
-                                           force_save="1"/>
-                                    <field name="currency_id" column_invisible="True"/>
-                                    <field name="code" force_save="1"/>
-                                    <field name="name" force_save="1"/>
-                                    <field name="account_id" force_save="1"/>
-                                    <field name="amount" sum="Total"/>
-                                </list>
-                            </field>
                         </page>
-                        <page name="contract" string="Employment Terms">
-                            <div class="alert alert-info"
-                                 role="alert"
-                                 invisible="update_contract">
-                                Turn on <strong>Employment terms changed</strong>
-                                above to create a native contract version.
-                            </div>
+                        <page name="contract"
+                              string="Employment Terms"
+                              invisible="not update_contract">
                             <group>
                                 <group string="Pay and Time">
                                     <field name="wage"
@@ -91,7 +85,7 @@
                                     <field name="hours_per_week"
                                            readonly="not update_contract"/>
                                 </group>
-                                <group string="Contract">
+                                <group string="Contract Dates">
                                     <field name="contract_type_id"
                                            readonly="not update_contract"/>
                                     <field name="contract_date_start"
@@ -103,13 +97,39 @@
                                 </group>
                             </group>
                         </page>
+                        <page name="accounting"
+                              string="Accounting Detail"
+                              invisible="not update_tese">
+                            <div class="text-muted mb-2">
+                                Change amounts only when the TESE declaration
+                                changed. Accounts and component roles stay fixed.
+                            </div>
+                            <field name="component_line_ids"
+                                   readonly="not update_tese">
+                                <list editable="bottom"
+                                      create="false"
+                                      delete="false">
+                                    <field name="sequence"
+                                           column_invisible="True"
+                                           force_save="1"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="code"
+                                           optional="hide"
+                                           force_save="1"/>
+                                    <field name="name" force_save="1"/>
+                                    <field name="account_id" force_save="1"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
                 <footer>
                     <button name="action_apply"
                             string="Create and Apply"
                             type="object"
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            help="Create the dated TESE version, optionally create an HR contract version, and refresh the payroll before posting."/>
                     <button string="Cancel"
                             special="cancel"
                             class="btn-secondary"/>

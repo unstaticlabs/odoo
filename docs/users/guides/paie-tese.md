@@ -39,6 +39,12 @@ Les dates usuelles sont proposées automatiquement : salaire le premier jour
 après le mois de paie et prélèvement URSSAF le 15 du mois suivant. Une date
 saisie manuellement est conservée.
 
+Le montant **Prélèvement bancaire attendu / rapproché** n'est pas un nouveau
+calcul de cotisations. Avant comptabilisation, ne le changez que si TESE
+annonce un prélèvement bancaire différent du total déclaré. Il sert à chercher
+le paiement. Le détail des dettes reste inchangé et l'écart sûr reste visible
+sur `431000` jusqu'à son apurement.
+
 Le premier onglet reproduit la lecture utile du bulletin sans créer un second
 bulletin légal. L’onglet **Paiements** montre ce qui est attendu, ce qui a été
 trouvé en banque, l’écart et le solde encore ouvert. L’onglet
@@ -54,6 +60,10 @@ si la déclaration TESE ou le contrat a changé.
 - Odoo archive et clôture l’ancien profil TESE, crée le nouveau profil et, si
   nécessaire, une nouvelle version native du contrat.
 - La paie est immédiatement repréparée avec ces versions.
+
+L'ancien profil n'est jamais supprimé. La liste affiche la version actuelle
+par défaut ; retirez le filtre **En cours** ou choisissez **Archivés** pour
+retrouver toutes les versions précédentes.
 
 Une écriture comptable encore brouillon est régénérée. Une écriture
 comptabilisée reste immuable. Cette opération exige les droits Administrateur
@@ -97,9 +107,9 @@ défaut.
 
 ## Contrôler les anomalies
 
-Dans l’application **Paie TESE**, ouvrez **Configuration**, cliquez sur
-**Exécuter les diagnostics**, puis ouvrez **Diagnostics**. Les anomalies
-bloquantes signalent notamment :
+Dans l’application **Paie TESE**, ouvrez **Configuration → Diagnostics**.
+Cette seule action relance les contrôles et ouvre immédiatement la liste
+actualisée. Les anomalies bloquantes signalent notamment :
 
 - un PDF absent ou d’un mauvais type ;
 - un journal, un collecteur ou un compte manquant ;
@@ -121,9 +131,9 @@ Odoo : une modification faite ici est donc la même modification que dans
 ## Retrouver les anciens profils
 
 Ouvrez **Profils de paie** dans le menu principal de l’application. La vue
-affiche les profils en cours. Utilisez les filtres **Tous** ou **Archivés**
-pour retrouver les anciennes versions, leurs dates de validité, leur contrat
-lié et leur historique d’utilisation.
+affiche les profils en cours. Retirez le filtre **En cours**, ou utilisez
+**Tous** ou **Archivés**, pour retrouver les anciennes versions, leurs dates
+de validité, leur contrat lié et leur historique d’utilisation.
 
 ## Droits
 

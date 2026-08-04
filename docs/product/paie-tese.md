@@ -157,8 +157,10 @@ Diagnostics retain issue history instead of deleting a warning when it
 disappears. Each issue has a stable key, severity, category, affected object,
 message, suggested correction, last-seen time and resolution time.
 
-The application keeps diagnostics and their run action under
-**Configuration**. **Configuration → Settings** opens a dedicated TESE form
+**Configuration → Diagnostics** runs the checks and opens the refreshed issue
+list in one action. The separate legacy run menu is inactive. Removing the
+default Active filter also reveals resolved history. **Configuration →
+Settings** opens a dedicated TESE form
 for the current company; it does not reuse the generic Company form or expose
 unrelated settings such as electronic invoicing.
 

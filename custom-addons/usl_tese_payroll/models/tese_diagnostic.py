@@ -269,8 +269,16 @@ class UslTeseDiagnosticIssue(models.Model):
             "name": _("TESE Diagnostics"),
             "res_model": self._name,
             "view_mode": "list,form",
-            "domain": [("company_id", "=", company.id)],
-            "context": {"search_default_active_issues": 1},
+            "domain": [
+                ("company_id", "=", company.id),
+                "|",
+                ("active", "=", True),
+                ("active", "=", False),
+            ],
+            "context": {
+                "active_test": False,
+                "search_default_active_issues": 1,
+            },
         }
 
     def action_open_object(self):

@@ -536,7 +536,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             wizard_form.update_contract = True
             wizard_form.wage = 3100.0
             wizard = wizard_form.save()
-        wizard.action_apply()
+        result = wizard.action_apply()
 
         self.assertEqual(payslip.state, "prepared")
         self.assertNotEqual(payslip.profile_id, self.profile)
@@ -550,6 +550,12 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             payslip.hr_version_id,
         )
         self.assertEqual(len(payslip.profile_id.component_line_ids), 11)
+        self.assertEqual(result["tag"], "display_notification")
+        self.assertIn("archived, not deleted", result["params"]["message"])
+        self.assertEqual(
+            result["params"]["next"]["res_id"],
+            payslip.id,
+        )
 
     def test_combined_revision_creates_first_contract_when_missing(self):
         employee = self.env["hr.employee"].sudo().create({
@@ -665,12 +671,42 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             "menu_tese_payroll_settings",
             "menu_tese_payroll_diagnostics",
             "menu_tese_payroll_accounts",
-            "menu_tese_payroll_run_diagnostics",
         ):
             self.assertEqual(
                 self.env.ref(f"usl_tese_payroll.{menu_xmlid}").parent_id,
                 configuration_menu,
             )
+        diagnostics_menu = self.env.ref(
+            "usl_tese_payroll.menu_tese_payroll_diagnostics",
+        )
+        self.assertEqual(
+            diagnostics_menu.action,
+            self.env.ref("usl_tese_payroll.action_run_tese_diagnostics"),
+        )
+        self.assertFalse(
+            self.env.ref(
+                "usl_tese_payroll.menu_tese_payroll_run_diagnostics",
+            ).active,
+        )
+
+        profiles_action = self.env.ref(
+            "usl_tese_payroll.action_tese_profiles",
+        )
+        profiles_context = safe_eval(profiles_action.context or "{}")
+        self.assertFalse(profiles_context["active_test"])
+        self.assertEqual(profiles_context["search_default_active_profiles"], 1)
+        profiles_domain = safe_eval(profiles_action.domain or "[]")
+        archived_profile = self.profile.with_user(self.config_user).copy(default={
+            "name": "Archived profile visible from history",
+            "active": False,
+            "review_status": "archived",
+        })
+        self.assertIn(
+            archived_profile,
+            self.env["usl.tese.profile"].with_user(
+                self.config_user,
+            ).search(profiles_domain),
+        )
 
         accounts_menu = self.env.ref(
             "usl_tese_payroll.menu_tese_payroll_accounts",
@@ -733,6 +769,8 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         ).with_user(self.workflow_user)
         result = action.run()
         self.assertEqual(result["res_model"], "usl.tese.diagnostic.issue")
+        self.assertFalse(result["context"]["active_test"])
+        self.assertIn(("active", "=", False), result["domain"])
         issue = self.env["usl.tese.diagnostic.issue"].sudo().search([
             ("stable_key", "=", f"payslip:{payslip.id}:pdf"),
         ])
