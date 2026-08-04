@@ -11,7 +11,7 @@ identity_path="$ROOT/artifacts/release/identity.json"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/preprod-release <build|clean-install|reconstruct|finish-reconstruction|start|gate|identity|all> SOURCE_DIR
+Usage: scripts/preprod-release <build|clean-install|reconstruct|finish-reconstruction|finalize-reconstruction|start|gate|identity|all> SOURCE_DIR
 
 Commands:
   build        Sync pinned OCA code and build the self-contained commit image
@@ -20,6 +20,8 @@ Commands:
   reconstruct  Recreate odoo_dev from SOURCE_DIR and write database identity
   finish-reconstruction
                Resume at Documents and finalization after prior stages passed
+  finalize-reconstruction
+               Resume target finalization after Documents and accounting passed
   start        Start the qualified image without checkout bind mounts
   gate         Verify source, database, image, runtime mounts and service preflight
   identity     Print and refresh the exact non-secret release identity
@@ -255,6 +257,15 @@ finish_reconstruction() {
   printf 'Canonical reconstruction finalization complete: odoo_dev\n'
 }
 
+finalize_reconstruction() {
+  require_qualified_identity
+  export ODOO_MAX_CRON_THREADS=0
+  release_compose stop odoo >/dev/null 2>&1 || true
+  scripts/target-finalize
+  database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
+  printf 'Canonical target finalization complete: odoo_dev\n'
+}
+
 start_distribution() {
   require_qualified_identity
   scripts/pocket-id-dev provision >/dev/null
@@ -315,6 +326,10 @@ case "$command_name" in
   finish-reconstruction)
     prepare_environment
     finish_reconstruction
+    ;;
+  finalize-reconstruction)
+    prepare_environment
+    finalize_reconstruction
     ;;
   start)
     prepare_environment

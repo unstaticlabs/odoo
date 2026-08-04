@@ -91,6 +91,8 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("Pre-production clean installation: PASS", release)
         self.assertIn("finish-reconstruction", release)
         self.assertIn("finish_reconstruction", release)
+        self.assertIn("finalize-reconstruction", release)
+        self.assertIn("finalize_reconstruction", release)
         self.assertIn("DOCUMENTS_CANONICAL_RESET=1", release)
         self.assertIn("database_identity 0", release)
         self.assertIn("Pre-production release gate: PASS", release)
