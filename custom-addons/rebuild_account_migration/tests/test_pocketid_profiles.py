@@ -100,6 +100,7 @@ class TestPocketIDProductProfiles(TransactionCase):
         for group in (
             "base.group_system",
             "account.group_account_manager",
+            "hr.group_hr_manager",
             "hr_expense.group_hr_expense_manager",
             "project.group_project_manager",
         ):

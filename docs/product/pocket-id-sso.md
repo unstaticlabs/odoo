@@ -108,7 +108,7 @@ Odoo's native group graph.
 
 | Profile | Odoo groups | Company rule | Local password |
 | --- | --- | --- | --- |
-| `administrator` | Settings administrator, Accounting administrator, Expenses administrator, Project administrator | Explicit list or `all` | Randomized and denied while SSO-managed |
+| `administrator` | Settings, Accounting, HR, Expenses and Project administrator | Explicit list or `all` | Randomized and denied while SSO-managed |
 | `collaborator` | Internal user and Project user | Explicit list | Randomized and denied while SSO-managed |
 | `accountant_reviewer` | Internal user and existing `USL Accountant Review` role | Explicit list, normally Unstatic Labs only | Randomized and denied while SSO-managed |
 | `break_glass` | Settings administrator only | Explicit list or `all` | Required local secret; never SSO-linked |
