@@ -11,13 +11,15 @@ identity_path="$ROOT/artifacts/release/identity.json"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/preprod-release <build|clean-install|reconstruct|start|gate|identity|all> SOURCE_DIR
+Usage: scripts/preprod-release <build|clean-install|reconstruct|finish-reconstruction|start|gate|identity|all> SOURCE_DIR
 
 Commands:
   build        Sync pinned OCA code and build the self-contained commit image
   clean-install
                Install the complete product in a disposable empty database
   reconstruct  Recreate odoo_dev from SOURCE_DIR and write database identity
+  finish-reconstruction
+               Resume at Documents and finalization after prior stages passed
   start        Start the qualified image without checkout bind mounts
   gate         Verify source, database, image, runtime mounts and service preflight
   identity     Print and refresh the exact non-secret release identity
@@ -55,6 +57,11 @@ prepare_environment() {
   POCKET_ID_ENV_FILE="$POCKET_ID_ENV_FILE" scripts/pocket-id-dev bootstrap >/dev/null
 
   local requested_project="$COMPOSE_PROJECT_NAME"
+  local requested_odoo_http_port="$ODOO_HTTP_PORT"
+  local requested_odoo_gevent_port="$ODOO_GEVENT_PORT"
+  local requested_pocket_id_http_port="$POCKET_ID_HTTP_PORT"
+  local requested_paperless_http_port="$PAPERLESS_HTTP_PORT"
+  local requested_paperless_public_url="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$PAPERLESS_HTTP_PORT}"
   set -a
   # shellcheck disable=SC1090
   source "$POCKET_ID_ENV_FILE"
@@ -64,6 +71,14 @@ prepare_environment() {
       "$COMPOSE_PROJECT_NAME" "$requested_project" >&2
     return 2
   fi
+  # The generated identity file owns secrets and stable subjects. Ports belong
+  # to this release invocation and must not be replaced by historical defaults
+  # when that file is sourced.
+  export ODOO_HTTP_PORT="$requested_odoo_http_port"
+  export ODOO_GEVENT_PORT="$requested_odoo_gevent_port"
+  export POCKET_ID_HTTP_PORT="$requested_pocket_id_http_port"
+  export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"
+  export PAPERLESS_PUBLIC_URL="$requested_paperless_public_url"
   local secret_name
   for secret_name in POSTGRES_PASSWORD ODOO_DB_PASSWORD ODOO_ADMIN_PASSWORD; do
     if [[ -z "${!secret_name:-}" ]]; then
@@ -224,6 +239,22 @@ reconstruct_target() {
   database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
 }
 
+finish_reconstruction() {
+  require_qualified_identity
+  export ODOO_MAX_CRON_THREADS=0
+  release_compose stop odoo >/dev/null 2>&1 || true
+  DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_CANONICAL_RESET=1 \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev \
+    COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
+    scripts/documents-restore all
+  release_compose stop odoo >/dev/null 2>&1 || true
+  scripts/accounting-restore finalize
+  scripts/target-finalize
+  database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
+  printf 'Canonical reconstruction finalization complete: odoo_dev\n'
+}
+
 start_distribution() {
   require_qualified_identity
   scripts/pocket-id-dev provision >/dev/null
@@ -280,6 +311,10 @@ case "$command_name" in
   reconstruct)
     prepare_environment
     reconstruct_target
+    ;;
+  finish-reconstruction)
+    prepare_environment
+    finish_reconstruction
     ;;
   start)
     prepare_environment

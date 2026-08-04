@@ -29,6 +29,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertEqual(values["POCKET_ID_PROSPER_ODOO_EMAIL"], "")
         self.assertEqual(values["ODOO_HTTP_PORT"], "8069")
         self.assertEqual(values["ODOO_GEVENT_PORT"], "8072")
+        self.assertEqual(values["PAPERLESS_HTTP_PORT"], "8010")
         self.assertEqual(
             values["POCKET_ID_PAPERLESS_CLIENT_ID"],
             "usl-paperless-preproduction",
@@ -38,6 +39,28 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "http://paperless.localhost:8010",
         )
         self.assertEqual(mode, 0o600)
+
+    def test_generated_environment_honors_isolated_paperless_port(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / ".pocket-id.env"
+            with patch.dict(
+                os.environ,
+                {
+                    "USL_POCKET_ID_DEV_PAPERLESS_PORT": "21946",
+                    "USL_POCKET_ID_DEV_PAPERLESS_URL": (
+                        "http://paperless.localhost:21946"
+                    ),
+                },
+                clear=True,
+            ):
+                POCKET_ID_DEV._write_new_env(path)
+            values = POCKET_ID_DEV._read_env(path)
+
+        self.assertEqual(values["PAPERLESS_HTTP_PORT"], "21946")
+        self.assertEqual(
+            values["PAPERLESS_PUBLIC_URL"],
+            "http://paperless.localhost:21946",
+        )
 
     def test_existing_environment_is_upgraded_with_separate_paperless_client(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -219,6 +242,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "Linked-worktree Pocket ID bootstrap requires",
             script,
         )
+        self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
 
     def test_login_link_resolves_any_exact_pocket_username(self):
         api = Mock()
