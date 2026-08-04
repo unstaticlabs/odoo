@@ -140,6 +140,12 @@ behavior. The date uses Odoo's calendar picker and the product-wide
 correspondent, but that explicit action creates or reuses only the Paperless
 correspondent and mapping.
 
+The detail header keeps two lightweight document links in a consistent place:
+**Open Preview** uses Odoo's authorized preview route, while **Open in
+Paperless** uses the current user's verified individual archive identity. Both
+open in a new tab and are absent when the corresponding access is unsafe or
+unavailable; the Paperless action is not duplicated in the footer menu.
+
 Company is editable inline by Documents administrators because it is Odoo-owned
 business policy, not immutable archive metadata. Choices are limited to
 companies currently selected in Odoo. Ordinary users see the value read-only,

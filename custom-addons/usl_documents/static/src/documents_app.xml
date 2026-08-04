@@ -580,36 +580,60 @@
             <aside t-if="state.selected"
                    class="o_usl_documents_detail border-start bg-white d-flex flex-column"
                    aria-label="Document details">
-                <header class="d-flex justify-content-between align-items-start p-3 border-bottom">
-                    <div class="min-w-0 flex-grow-1 me-3">
-                        <label t-if="state.selected.can_edit"
-                               for="usl_document_title" class="visually-hidden">
-                            Document title
-                        </label>
-                        <input t-if="state.selected.can_edit"
-                               id="usl_document_title"
-                               class="o_input o_usl_detail_title_input"
-                               type="text"
-                               t-att-value="state.selected.name"
-                               t-att-disabled="state.savingFields.name"
-                               t-on-blur="saveTitle"
-                               t-on-keydown="onTitleKeydown"/>
-                        <h3 t-else=""
-                            class="o_usl_detail_title text-break mb-1"
-                            t-esc="state.selected.name"/>
-                        <small class="text-muted">
-                            <t t-esc="state.selected.document_type || 'Unclassified'"/>
-                            <t t-if="state.selected.date">
-                                · <t t-esc="selectedDocumentDateDisplay"/>
-                            </t>
-                        </small>
-                        <span t-if="state.savingFields.name"
-                              class="small text-muted ms-2" role="status">
-                            <i class="fa fa-spinner fa-spin me-1"/>Saving…
-                        </span>
+                <header class="p-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="min-w-0 flex-grow-1 me-3">
+                            <label t-if="state.selected.can_edit"
+                                   for="usl_document_title" class="visually-hidden">
+                                Document title
+                            </label>
+                            <input t-if="state.selected.can_edit"
+                                   id="usl_document_title"
+                                   class="o_input o_usl_detail_title_input"
+                                   type="text"
+                                   t-att-value="state.selected.name"
+                                   t-att-disabled="state.savingFields.name"
+                                   t-on-blur="saveTitle"
+                                   t-on-keydown="onTitleKeydown"/>
+                            <h3 t-else=""
+                                class="o_usl_detail_title text-break mb-1"
+                                t-esc="state.selected.name"/>
+                            <small class="text-muted">
+                                <t t-esc="state.selected.document_type || 'Unclassified'"/>
+                                <t t-if="state.selected.date">
+                                    · <t t-esc="selectedDocumentDateDisplay"/>
+                                </t>
+                            </small>
+                            <span t-if="state.savingFields.name"
+                                  class="small text-muted ms-2" role="status">
+                                <i class="fa fa-spinner fa-spin me-1"/>Saving…
+                            </span>
+                        </div>
+                        <button class="btn-close flex-shrink-0" type="button"
+                                t-on-click="closeDetail" aria-label="Close"/>
                     </div>
-                    <button class="btn-close" type="button" t-on-click="closeDetail"
-                            aria-label="Close"/>
+                    <nav t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; (state.selected.archive_available !== false || state.selected.paperless_url)"
+                         class="o_usl_detail_header_actions d-flex flex-wrap gap-2 mt-2"
+                         aria-label="Document links">
+                        <a t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
+                           t-att-href="state.selected.preview_url"
+                           target="_blank" rel="noopener noreferrer"
+                           class="btn btn-sm btn-light border"
+                           data-testid="document-open-preview"
+                           aria-label="Open document preview in a new tab"
+                           title="Open the authorized document preview in a new tab.">
+                            <i class="fa fa-eye me-1" aria-hidden="true"/>Open Preview
+                        </a>
+                        <a t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.paperless_url"
+                           t-att-href="state.selected.paperless_url"
+                           target="_blank" rel="noopener noreferrer"
+                           class="btn btn-sm btn-light border"
+                           data-testid="document-open-paperless"
+                           aria-label="Open document in Paperless in a new tab"
+                           title="Open advanced document tools in Paperless.">
+                            <i class="fa fa-external-link me-1" aria-hidden="true"/>Open in Paperless
+                        </a>
+                    </nav>
                 </header>
                 <div class="flex-grow-1 overflow-auto">
                     <div t-if="state.selected.review_state !== 'reviewed'"
@@ -962,13 +986,6 @@
                                            t-on-change="onVersionFileChange"
                                            t-att-disabled="state.uploading"/>
                                 </label>
-                                <a t-if="state.selected.paperless_url"
-                                   t-att-href="state.selected.paperless_url"
-                                   target="_blank" rel="noopener noreferrer"
-                                   class="dropdown-item"
-                                   title="Open advanced document tools in Paperless.">
-                                    <i class="fa fa-external-link me-2"/>Open in Paperless
-                                </a>
                                 <button t-if="state.selected.can_trash"
                                         type="button"
                                         class="dropdown-item text-danger"

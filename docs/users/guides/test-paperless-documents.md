@@ -103,6 +103,11 @@ Try Back and Forward:
 - Forward reopens the same document.
 - Reload keeps the selected document and selected version.
 
+At the top of the document panel, use **Open Preview** to open the authorized
+file preview in a separate tab. **Open in Paperless** opens the same document
+with the user's own archive identity for advanced work. The links should not
+appear when the user cannot safely access that destination.
+
 ## 2. Add tags without leaving the document
 
 1. Open **External mailroom intake — needs review**.

@@ -253,6 +253,7 @@ test("document details stay useful and actionable during an archive outage", asy
         /Odoo links and business records are unaffected/
     );
     expect(".o_usl_document_preview").toHaveCount(0);
+    expect("[data-testid='document-open-preview']").toHaveCount(0);
     expect(".o_usl_documents_detail .alert-warning.mb-0 button").toHaveText(
         /Try again/
     );
@@ -516,6 +517,46 @@ test("detail prioritizes title, native day-first date, versions, and links", asy
     expect(".o_usl_documents_detail").toHaveText(/Accounting/);
     expect(".o_usl_document_preview").toHaveAttribute("data-version", "9");
     expect("a[href*='original=0']").toHaveCount(2);
+    expect(".o_usl_detail_header_actions").toHaveAttribute(
+        "aria-label",
+        "Document links"
+    );
+    expect("[data-testid='document-open-preview']").toHaveText(/Open Preview/);
+    expect("[data-testid='document-open-preview']").toHaveAttribute(
+        "href",
+        "/usl_documents/7/preview?version=9"
+    );
+    expect("[data-testid='document-open-preview']").toHaveAttribute(
+        "aria-label",
+        "Open document preview in a new tab"
+    );
+    expect("[data-testid='document-open-preview']").toHaveAttribute(
+        "target",
+        "_blank"
+    );
+    expect("[data-testid='document-open-preview']").toHaveAttribute(
+        "rel",
+        "noopener noreferrer"
+    );
+    expect("[data-testid='document-open-paperless']").toHaveText(
+        /Open in Paperless/
+    );
+    expect("[data-testid='document-open-paperless']").toHaveAttribute(
+        "href",
+        "https://documents.example.test/documents/42/details"
+    );
+    expect("[data-testid='document-open-paperless']").toHaveAttribute(
+        "aria-label",
+        "Open document in Paperless in a new tab"
+    );
+    expect("[data-testid='document-open-paperless']").toHaveAttribute(
+        "target",
+        "_blank"
+    );
+    expect("[data-testid='document-open-paperless']").toHaveAttribute(
+        "rel",
+        "noopener noreferrer"
+    );
     expect(".o_usl_documents_detail footer a.btn-primary").toHaveText(
         /Download original/
     );
@@ -524,7 +565,7 @@ test("detail prioritizes title, native day-first date, versions, and links", asy
     expect(".o_usl_documents_detail footer").toHaveText(
         /Remove link from this record/
     );
-    expect("a[target='_blank']").toHaveText(/Open in Paperless/);
+    expect(".o_usl_documents_detail footer").not.toHaveText(/Open in Paperless/);
     expect(
         new URL(browser.location.href).searchParams.get("usl_document")
     ).toBe("7");
@@ -1551,6 +1592,8 @@ test("permission failures are actionable while healthy state stays quiet", async
         /access needs attention/i
     );
     expect(".o_usl_document_preview").toHaveCount(0);
+    expect("[data-testid='document-open-preview']").toHaveCount(0);
+    expect("[data-testid='document-open-paperless']").toHaveCount(0);
     expect(".o_usl_documents_detail").not.toHaveText(/Download original/i);
     expect(".o_usl_document_card img").toHaveCount(0);
     expect(".o_usl_document_thumb_placeholder").toHaveCount(1);
