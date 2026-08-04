@@ -335,6 +335,44 @@ test("workspace search state survives record navigation", async () => {
     browser.sessionStorage.removeItem(storageKey("global"));
 });
 
+test("native search facets survive a linked-record round trip", async () => {
+    browser.sessionStorage.setItem(
+        storageKey("global"),
+        JSON.stringify({
+            workspace: "all",
+            nativeSearch: {
+                key: 42,
+                facets: [
+                    {
+                        type: "field",
+                        title: "Search everywhere",
+                        values: ["embedded cobalt phrase"],
+                        separator: "or",
+                        domain: '[("all_text", "ilike", "embedded cobalt phrase")]',
+                    },
+                ],
+                domain: '[("all_text", "ilike", "embedded cobalt phrase")]',
+                groupBys: [],
+            },
+        })
+    );
+    let searchDomain = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        searchDomain = kwargs.search_domain;
+        return emptyWorkspace;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    expect(searchDomain).toEqual([
+        ["all_text", "ilike", "embedded cobalt phrase"],
+    ]);
+    expect(".o_searchview_facet").toHaveText(/Search everywhere/);
+    expect(".o_searchview_facet").toHaveText(/embedded cobalt phrase/);
+});
+
 test("a record smart button starts from an uncluttered linked-record view", async () => {
     browser.sessionStorage.setItem(
         storageKey("global"),

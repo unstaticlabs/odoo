@@ -522,6 +522,10 @@ export class DocumentsWorkspaceView extends Component {
         if (this.recordContext) {
             if (!hasRecordState && !urlState.filters) {
                 restored.query = "";
+                // A record smart button has its own dynamic Odoo filter. Do
+                // not inherit the global workspace search merely because the
+                // global snapshot is the storage fallback.
+                restored.nativeSearch = null;
                 for (const [key, value] of Object.entries(FILTER_DEFAULTS)) {
                     restored[key] = Array.isArray(value) ? [] : value;
                 }
@@ -545,6 +549,16 @@ export class DocumentsWorkspaceView extends Component {
         if (params.initial_workspace) {
             restored.workspace = params.initial_workspace;
             restored.page = 1;
+        }
+        if (
+            restored.nativeSearch &&
+            !this.searchModel.generateQueryString()
+        ) {
+            // Odoo may normalize the native domain/groupBy URL parameters
+            // while switching to a linked business record. Restore the exact
+            // SearchModel snapshot kept by this workspace so Back returns to
+            // the same visible facets and effective domain.
+            this.searchModel.applySearch(restored.nativeSearch);
         }
         this.initialDocumentId =
             urlState.documentId || Number(restored.selectedDocumentId) || null;
@@ -1255,6 +1269,7 @@ export class DocumentsWorkspaceView extends Component {
             selectedDocumentId: this.state.selected?.id || null,
             selectedVersionId:
                 this.state.selected?.selected_version_id || null,
+            nativeSearch: this.nativeSearchSnapshot(),
         });
         browser.sessionStorage.setItem(this.storageKey, serialized);
         browser.sessionStorage.setItem(this.globalStorageKey, serialized);
@@ -1271,7 +1286,22 @@ export class DocumentsWorkspaceView extends Component {
             ...Object.fromEntries(
                 Object.keys(FILTER_DEFAULTS).map((key) => [key, this.state[key]])
             ),
+            nativeSearch: this.nativeSearchSnapshot(),
         };
+    }
+
+    nativeSearchSnapshot() {
+        // Search facets are reactive objects. Persist only their JSON data so
+        // the snapshot is safe in both the URL and sessionStorage.
+        const search = this.searchModel.getCurrentSearch();
+        return JSON.parse(
+            JSON.stringify({
+                key: search.key,
+                facets: search.facets,
+                domain: search.domain,
+                groupBys: search.groupBys,
+            })
+        );
     }
 
     writeNavigationState(mode = "replace", documentId = null, versionId = null) {
