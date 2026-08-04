@@ -56,6 +56,14 @@ default_addons_path = (
 if default_addons_path not in compose:
     errors.append("The expected production add-ons path guard is missing.")
 normal_odoo_service = compose.split("  odoo:", 1)[1].split("\n  init-db:", 1)[0]
+accounting_migration_service = compose.split(
+    "  accounting-migration:",
+    1,
+)[1].split("\n  project-migration:", 1)[0]
+project_migration_service = compose.split(
+    "  project-migration:",
+    1,
+)[1].split("\n  test:", 1)[0]
 for migration_path in (
     "/mnt/project-migration-addons",
     "/mnt/accounting-migration-addons",
@@ -69,11 +77,12 @@ if "/mnt/project-migration-addons" not in compose:
 if (
     "--addons-path="
     + default_addons_path
-    + ",/mnt/project-migration-addons"
-    not in compose
+    + ",/mnt/accounting-migration-addons,/mnt/project-migration-addons"
+    not in project_migration_service
 ):
     errors.append(
-        "The migration add-ons path is not confined to the migration service.",
+        "The downstream Project migration service does not explicitly expose "
+        "both temporary migration add-ons paths.",
     )
 if "/mnt/accounting-migration-addons" not in compose:
     errors.append("The dedicated Accounting migration add-ons mount is missing.")
@@ -81,7 +90,7 @@ if (
     "--addons-path="
     + default_addons_path
     + ",/mnt/accounting-migration-addons"
-    not in compose
+    not in accounting_migration_service
 ):
     errors.append(
         "The Accounting migration path is not confined to its one-shot service.",

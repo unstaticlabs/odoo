@@ -45,6 +45,10 @@ Run it with `make target-reconstruct`. Reapply only the final target
 configuration with `make target-finalize`. The source contains no SSO
 configuration; Pocket ID is therefore intentionally absent from source parity
 and added only after the imported business state passes its controls.
+The canonical command validates and restores the current local dump into the
+isolated read-only source service, refreshes source controls and extraction,
+then resets `odoo_dev`; it does not depend on a previously running source
+container.
 The orchestrator keeps the web process stopped between reset, import,
 validation and Project restoration so browser traffic and scheduled jobs
 cannot observe or mutate an intermediate target.

@@ -33,14 +33,15 @@ upgrade risk. It contains no source bindings, importer, replay engine, parity
 models or migration UI.
 
 The one-off Accounting importer is `usl_accounting_restore` under
-`migration/accounting_restore/addons/`. Only the dedicated
-`accounting-migration` Compose profile can load it. Finalization requires a
-passed import and no active P0/P1 restoration discrepancy, snapshots native
+`migration/accounting_restore/addons/`. Only migration and test Compose
+profiles can load it. The downstream Projects importer declares it explicitly
+while both temporary importers share source identities. Finalization requires
+a passed import and no active P0/P1 restoration discrepancy, snapshots native
 business facts, uninstalls the module, proves those facts did not change, and
 then validates the normal product registry.
 
 The Projects product module does not depend on that exception. Only the
-temporary Projects importer uses it while reconciling source identities.
+temporary Projects importer depends on the temporary Accounting importer.
 
 ## Required shape
 

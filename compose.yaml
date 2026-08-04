@@ -199,7 +199,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -208,6 +208,7 @@ services:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons:ro
       - ./migration/project_restore/addons:/mnt/project-migration-addons:ro
+      - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro

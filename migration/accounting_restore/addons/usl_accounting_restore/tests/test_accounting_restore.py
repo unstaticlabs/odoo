@@ -9652,6 +9652,70 @@ class TestRebuildAccountMigration(TransactionCase):
             )
         self.assertIn(b"604991", readable_xml)
 
+    def test_native_asset_replay_rehomes_source_evidence(self):
+        asset_account = self._account(
+            "T218398",
+            "Unit asset evidence",
+            "asset_fixed",
+        )
+        profile = self.env["account.asset.profile"].create({
+            "name": "T218398 — source evidence",
+            "account_asset_id": asset_account.id,
+            "account_depreciation_id": self._account(
+                "T281898",
+                "Unit asset evidence depreciation",
+                "asset_fixed",
+            ).id,
+            "account_expense_depreciation_id": self._account(
+                "T681198",
+                "Unit asset evidence expense",
+                "expense_depreciation",
+            ).id,
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+            "method": "linear",
+            "method_time": "number",
+            "method_number": 12,
+            "method_period": "month",
+        })
+        snapshot = self.env["rebuild.account.asset"].create({
+            "name": "Temporary source asset evidence",
+            "company_id": self.company.id,
+            "currency_id": self.company.currency_id.id,
+            "rebuild_source_model": "account_asset",
+            "rebuild_source_id": 991998,
+            "rebuild_source_snapshot": "unit-native-asset-evidence",
+        })
+        asset = self.env["account.asset"].create({
+            "name": "Native asset evidence",
+            "purchase_value": 1200.0,
+            "profile_id": profile.id,
+            "date_start": "2025-01-01",
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.asset",
+            "rebuild_source_id": 991998,
+            "rebuild_source_snapshot": "unit-native-asset-evidence",
+        })
+        attachment = self.env["ir.attachment"].create({
+            "name": "asset-source-evidence.pdf",
+            "raw": b"source asset evidence",
+            "mimetype": "application/pdf",
+            "res_model": "rebuild.account.asset",
+            "res_id": snapshot.id,
+        })
+
+        rehomed = self.env[
+            "rebuild.account.import.run"
+        ]._native_asset_rehome_attachments(
+            {"source_snapshot_id": "unit-native-asset-evidence"},
+            991998,
+            asset,
+        )
+
+        self.assertEqual(rehomed, 1)
+        self.assertEqual(attachment.res_model, "account.asset")
+        self.assertEqual(attachment.res_id, asset.id)
+
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(
             "T218399",

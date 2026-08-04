@@ -20,6 +20,9 @@ stop_product() {
 
 stop_product
 scripts/sync-oca-addons
+scripts/accounting-compat source-restore
+scripts/accounting-compat source-controls
+scripts/accounting-compat extract
 scripts/accounting-compat dev-reset
 stop_product
 scripts/accounting-compat dev-import

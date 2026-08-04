@@ -3676,12 +3676,21 @@ class RebuildAccountImportRun(models.Model):
             ], limit=1)
             return "hr.expense", target
         if row["res_model"] == "account.asset":
-            target = self.env["rebuild.account.asset"].with_context(active_test=False).search([
+            target = self.env["account.asset"].with_context(active_test=False).search([
+                ("rebuild_source_model", "=", "account.asset"),
+                ("rebuild_source_id", "=", row["res_id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            if target:
+                return "account.asset", target
+            snapshot = self.env["rebuild.account.asset"].with_context(
+                active_test=False,
+            ).search([
                 ("rebuild_source_model", "=", "account_asset"),
                 ("rebuild_source_id", "=", row["res_id"]),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
             ], limit=1)
-            return "rebuild.account.asset", target
+            return "rebuild.account.asset", snapshot
         return None, self.env["ir.attachment"]
 
     def _import_attachments(self, conn, options, companies, rows=None):
