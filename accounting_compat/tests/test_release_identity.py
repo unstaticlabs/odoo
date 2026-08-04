@@ -63,6 +63,14 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertNotIn("get_param", identity_script)
         self.assertNotIn("set_param", identity_script)
 
+    def test_database_boundary_parameterizes_sql_wildcards(self):
+        boundary_script = (
+            ROOT / "scripts" / "odoo" / "product_database_boundary.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(boundary_script.count('LIKE %s'), 2)
+        self.assertEqual(boundary_script.count('(\"rebuild_source_%\",)'), 2)
+
     def test_full_boundary_and_release_gate_include_database_state(self):
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
         release = (ROOT / "scripts" / "preprod-release").read_text(
