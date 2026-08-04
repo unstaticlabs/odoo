@@ -6,6 +6,15 @@ Target: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
 Target branch: `saas-19.2-usl-feat-accounting`
 Rollback branch: `archive/19-usl-feat-accounting-61f479c`
 
+Current development branch: `19-usl`
+
+Current refreshed baseline: `6b54f539d80af8958990fa66f65d5bf8f420d3f4`
+
+The target shown above remains the frozen input for the original SaaS
+alignment. The current development baseline was refreshed separately as
+recorded below; this preserves the original provenance instead of rewriting
+historical evidence.
+
 ## Frozen inputs
 
 The target was fetched and resolved before branch creation. No floating pull is
@@ -68,6 +77,64 @@ core file is replayed.
 
 Option 2 is selected. It preserves the functional source and rollback branch
 without importing obsolete upstream 19.0 history.
+
+## Upstream refresh — 4 August 2026
+
+The refreshed remote resolved as follows:
+
+```text
+$ git rev-parse refs/remotes/upstream/saas-19.2
+6b54f539d80af8958990fa66f65d5bf8f420d3f4
+
+$ git log -1 --format='%H%n%cI%n%s' refs/remotes/upstream/saas-19.2
+6b54f539d80af8958990fa66f65d5bf8f420d3f4
+2026-08-03T20:45:52+00:00
+[FIX] mail: prevent False matching in Out of Office recipient check
+
+$ git rev-list --count \
+    8a44ecc8da96e341ac472fec27352d138ed2edd7..refs/remotes/upstream/saas-19.2
+183
+```
+
+`odoo/release.py` still reports `saas~19.2`, with Python 3.12 and PostgreSQL
+16 as the minimum runtime generation. The refresh was integrated by rebuilding
+the SaaS product history on the new upstream tip, then replaying only the USL
+work created after the former SaaS adoption boundary. A raw merge with the
+obsolete Odoo 19 ancestry was not introduced.
+
+The pre-refresh product tip remains available at
+`archive/19-usl-pre-saas-refresh-20260804`. A byte-level comparison protected
+the USL-owned add-ons, migration tools, deployment helpers and documentation
+from merge-resolution drift. The only intentional fork-level Odoo differences
+remain the documented fiscal-year sequence and resequencing patches in
+`account.move` and `account.resequence.wizard`.
+
+Validation used the disposable Compose project
+`codex-saas-refresh-20260804`, database
+`odoo_saas_refresh_accounting`, and host ports `18669`/`18672`; the normal
+development ports and databases were not touched. With both electronic-
+invoice live guards disabled, the refreshed image passed:
+
+- a clean `rebuild_account_migration` install and its complete selected suite
+  (158 post-tests, no failures or errors), including desktop/mobile frontend
+  tests and the electronic-invoice manager/reviewer tours;
+- the `usl_accounting` suite (57 post-tests; 65 test methods reported by the
+  module, no failures or errors), including the Immediate Settlement tour;
+- `usl_expense_batch` (12 post-tests; 14 module test methods), `usl_pocketid`
+  (26 post-tests; 32 module test methods), and `usl_project` (2 post-tests;
+  4 module test methods), all without failures or errors;
+- the complete pinned `account_reconcile_oca` tag, including Chromium
+  automation (47 post-tests; 53 module test methods), without failures or
+  errors;
+- two consecutive combined module upgrades, the migration-boundary guard,
+  29 accounting compatibility unit tests, documentation rendering, Python/XML
+  parsing, shell syntax and diff checks;
+- an isolated runtime health check on the refreshed image at port `18669`.
+
+One characterization fixture required adaptation: expense bank-matching tests
+now attach native receipt evidence before advancing an expense. This reflects
+the product's existing receipt requirement and does not relax runtime
+validation.
 
 ### Accounting runtime
 

@@ -40,7 +40,7 @@ Primary entry points:
   for keeping reconstruction machinery out of the delivered Odoo runtime.
 
 The integration baseline is upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
 validation evidence are private local artifacts and must never be committed.
 
 ## Upstream Odoo
@@ -53,7 +53,7 @@ installation and developer documentation is available from
 
 This fork includes two local workflows for Odoo `saas~19.2` Community. The
 branch is pinned to upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`. Local development uses one
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
