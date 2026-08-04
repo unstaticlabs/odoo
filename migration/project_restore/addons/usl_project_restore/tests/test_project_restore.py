@@ -604,3 +604,146 @@ class TestProjectRestore(TransactionCase):
             .search([("id", "=", company_project.id)])
         )
         self.assertFalse(visible)
+
+    def test_user_login_disambiguates_shared_partner_email(self):
+        shared_email = "shared.project.identity@example.com"
+        system_user = self.env.ref("base.user_root")
+        company_partner = self.env.company.partner_id
+        company_partner.email = shared_email
+        source_company_partner_id = 9101
+        source_system_partner_id = 9102
+        run = self.env["usl.project.restore.run"].create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "target_database": self.env.cr.dbname,
+            },
+        )
+
+        _companies, partners, _users = (
+            run._restore_partners_companies_users(
+                {
+                    "companies": [
+                        {
+                            "id": self.source_company_id,
+                            "name": self.env.company.name,
+                        },
+                    ],
+                    "partners": [
+                        {
+                            "id": source_company_partner_id,
+                            "name": company_partner.name,
+                            "email": shared_email,
+                            "active": True,
+                            "is_company": True,
+                            "company_id": None,
+                        },
+                        {
+                            "id": source_system_partner_id,
+                            "name": system_user.partner_id.name,
+                            "email": shared_email,
+                            "active": False,
+                            "is_company": False,
+                            "company_id": self.source_company_id,
+                        },
+                    ],
+                    "users": [
+                        {
+                            "id": self.source_user_id,
+                            "login": system_user.login,
+                            "active": False,
+                            "share": False,
+                            "partner_id": source_system_partner_id,
+                            "company_ids": [self.source_company_id],
+                            "project_group_xmlids": [],
+                        },
+                    ],
+                },
+                "test_snapshot",
+            )
+        )
+
+        self.assertEqual(
+            partners[source_company_partner_id],
+            company_partner,
+        )
+        self.assertEqual(
+            partners[source_system_partner_id],
+            system_user.partner_id,
+        )
+        self.assertNotEqual(
+            partners[source_company_partner_id],
+            partners[source_system_partner_id],
+        )
+
+    def test_partner_name_disambiguates_shared_email_without_user(self):
+        shared_email = "shared.project.author@example.com"
+        company_partner = self.env.company.partner_id
+        system_partner = self.env.ref("base.partner_root")
+        company_partner.email = shared_email
+        source_company_partner_id = 9201
+        source_system_partner_id = 9202
+        run = self.env["usl.project.restore.run"].create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+                "target_database": self.env.cr.dbname,
+            },
+        )
+        company_partner.write(
+            run._trace_values(
+                "res.partner",
+                source_company_partner_id,
+                "accounting_snapshot",
+            ),
+        )
+
+        _companies, partners, _users = (
+            run._restore_partners_companies_users(
+                {
+                    "companies": [
+                        {
+                            "id": self.source_company_id,
+                            "name": self.env.company.name,
+                        },
+                    ],
+                    "partners": [
+                        {
+                            "id": source_company_partner_id,
+                            "name": company_partner.name,
+                            "email": shared_email,
+                            "active": True,
+                            "is_company": True,
+                            "company_id": None,
+                        },
+                        {
+                            "id": source_system_partner_id,
+                            "name": system_partner.name,
+                            "email": shared_email,
+                            "active": False,
+                            "is_company": False,
+                            "company_id": self.source_company_id,
+                        },
+                    ],
+                    "users": [],
+                },
+                "test_snapshot",
+            )
+        )
+
+        self.assertEqual(
+            partners[source_company_partner_id],
+            company_partner,
+        )
+        self.assertEqual(
+            partners[source_system_partner_id],
+            system_partner,
+        )
+        self.assertEqual(
+            company_partner.rebuild_source_id,
+            source_company_partner_id,
+        )
+        self.assertEqual(
+            system_partner.rebuild_source_id,
+            source_system_partner_id,
+        )

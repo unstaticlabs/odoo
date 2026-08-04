@@ -182,3 +182,8 @@ entries. No new journal or historical settlement is created.
 
 Deployment updates `usl_accounting` followed by
 `rebuild_account_migration`.
+
+The complete runtime feature is owned by `usl_accounting`: models, audit
+records, policy settings, views, security, payment-widget assets and focused
+tests. `rebuild_account_migration` depends on that foundation but does not own
+or duplicate the settlement behavior.

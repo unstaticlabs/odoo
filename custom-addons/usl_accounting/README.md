@@ -19,9 +19,11 @@ It extends native Odoo and pinned OCA models. It does not own reconstruction
 models, source traces, report definitions, Controls, declarations, e-invoice
 activation or normal Accounting menus.
 
-Existing database XML IDs, views, actions and security records remain in
-`rebuild_account_migration` during the staged compatibility period. Do not add
-a reverse dependency on that module.
+Existing database XML IDs owned by `rebuild_account_migration` remain there
+during the staged compatibility period. New foundation behavior—including the
+foreign-currency settlement views, audit security and payment-widget
+assets—belongs directly to this module. Do not add a reverse dependency on the
+compatibility module.
 
 ## Company-paid expense matching
 

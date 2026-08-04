@@ -63,9 +63,13 @@ Relationships are applied after record creation so parents, subtasks, blockers,
 message parents, attachments and recipients can be resolved safely.
 
 Existing target companies, partners, and users are matched conservatively by
-stable business identity before a record is created. Existing traced project
-records are updated from the selected source snapshot; unrelated target
-projects are not touched.
+stable business identity before a record is created. Users are matched by
+login first; partners then require an unambiguous name-and-email, name, or
+email match. A partner already carrying another Accounting source identity is
+never reassigned merely because an email is shared. The importer reports an
+identity conflict instead of overwriting that provenance. Existing traced
+project records are updated from the selected source snapshot; unrelated
+target projects are not touched.
 
 Projects is a downstream migration stage. Run it only after the target's
 companies, users, partners, analytic accounts and imported business records
@@ -84,9 +88,11 @@ operator. Each such activity and the run issue log disclose the fallback.
 Readonly native task HTML revision history is reconciled after ORM creation so
 historical description revisions remain available. Project email-alias local
 parts and contact policies are retained while the target environment keeps its
-own mail domain. The source `odoo@unstaticlabs.com` ownership identity resolves
-to Valentin's existing target user through the shared partner identity; Roger
-retains his existing target account.
+own mail domain. Source users resolve to their existing target accounts by
+login. Shared addresses such as `odoo@unstaticlabs.com` are disambiguated by
+user ownership and partner name, so the company and OdooBot partners remain
+distinct and existing Accounting provenance remains unchanged. Roger retains
+his existing target account.
 
 Technical results are printed by the migration harness and retained as private
 external evidence. They are not exposed through a product menu or kept as
@@ -115,34 +121,35 @@ Keep the source dump outside the repository. The default path is
 `USL_ONLINE_DUMP_DIR`.
 
 The source PostgreSQL connection is read-only. The script also forces both
-electronic-invoice live guards to zero. It refuses the preserved source,
-canonical development, and accounting proof databases as targets.
+electronic-invoice live guards to zero. It defaults to the single disposable
+developer/QA product database, `odoo_dev`, after the Accounting reconstruction
+has completed. It refuses the preserved source and on-demand accounting proof
+databases as targets. The harness stops the normal product service before
+loading migration code and restores it afterward, preventing user writes or a
+stale product registry from racing the reconstruction.
 
 ```bash
-PROJECT_TARGET_DATABASE=odoo_projects_candidate_01 \
-  scripts/project-restore all
+scripts/project-restore all
 ```
 
 The operations can be separated:
 
 ```bash
-PROJECT_TARGET_DATABASE=odoo_projects_candidate_01 \
-  scripts/project-restore install
+scripts/project-restore install
 
-PROJECT_TARGET_DATABASE=odoo_projects_candidate_01 \
-  scripts/project-restore import
+scripts/project-restore import
 
-PROJECT_TARGET_DATABASE=odoo_projects_candidate_01 \
-  scripts/project-restore validate
+scripts/project-restore validate
 
-PROJECT_TARGET_DATABASE=odoo_projects_candidate_01 \
-  scripts/project-restore finalize
+scripts/project-restore finalize
 
-PROJECT_TARGET_DATABASE=odoo_projects_candidate_01 \
-  scripts/project-restore product-validate
+scripts/project-restore product-validate
 ```
 
-`finalize` is terminal for that rehearsal: it requires a passed validation,
+Set `PROJECT_TARGET_DATABASE` only for a deliberately named, disposable,
+on-demand proof. Do not retain that proof as another development environment.
+
+`finalize` is terminal for that reconstruction: it requires a passed validation,
 uninstalls the temporary migration module, checks that business counts did not
 change and validates the database through the normal product add-ons path. Run
 repeated-import checks before finalization.
@@ -151,9 +158,10 @@ If validation reports missing connected business records, repair or complete
 the upstream migration stage and repeat the Projects import. Do not weaken the
 parity gate or import a second copy of another app's records from this stage.
 
-Only set `PROJECT_RESTORE_ALLOW_PROTECTED_TARGET=1` as part of an explicitly
-approved promotion. `PROJECT_RESTORE_DEFAULT_PASSWORD` is optional and is used
-only for a newly created referenced user.
+Only set `PROJECT_RESTORE_ALLOW_PROTECTED_TARGET=1` for an explicitly approved
+on-demand proof database; never use it for the preserved source.
+`PROJECT_RESTORE_DEFAULT_PASSWORD` is optional and is used only for a newly
+created referenced user.
 
 ## Acceptance gates
 
@@ -190,6 +198,7 @@ Before product review:
    docker compose --profile project-migration run --rm \
      -e ODOO_INIT_DB=odoo_project_restore_unit \
      project-migration odoo --config=/etc/odoo/odoo.conf \
+     --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/project-migration-addons \
      --database=odoo_project_restore_unit \
      --init=usl_project_restore --without-demo=true \
      --test-enable --test-tags=/usl_project_restore --stop-after-init

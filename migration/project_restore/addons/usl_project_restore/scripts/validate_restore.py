@@ -1,4 +1,4 @@
-# ruff: file-ignore[undefined-name, unsorted-imports, print]
+# ruff: noqa: F821, I001, T201
 
 import hashlib
 import json

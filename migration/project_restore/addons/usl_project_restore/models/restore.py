@@ -295,21 +295,95 @@ class UslProjectRestoreRun(models.Model):
             "res.partner",
             [row["id"] for row in payload["partners"]],
         )
-        for row in payload["partners"]:
-            if row["id"] in partners:
-                continue
-            domain = (
-                [("email", "=ilike", row["email"])]
-                if row.get("email")
-                else [("name", "=", row["name"])]
-            )
-            partner = (
-                self.env["res.partner"]
+        user_partner_by_source_id = {}
+        for row in payload["users"]:
+            target_user = (
+                self.env["res.users"]
                 .with_context(active_test=False)
                 .sudo()
-                .search(domain, limit=1)
+                .search([("login", "=", row["login"])], limit=1)
             )
+            if target_user:
+                user_partner_by_source_id[row["partner_id"]] = (
+                    target_user.partner_id
+                )
+        partner_rows_by_id = {
+            row["id"]: row for row in payload["partners"]
+        }
+        for source_id, partner in list(partners.items()):
+            row = partner_rows_by_id[source_id]
+            user_partner = user_partner_by_source_id.get(source_id)
+            user_identity_conflicts = (
+                user_partner and partner != user_partner
+            )
+            partner_name_conflicts = (
+                row.get("name")
+                and partner.name
+                and partner.name != row["name"]
+            )
+            if user_identity_conflicts or partner_name_conflicts:
+                partners.pop(source_id)
+        for row in payload["partners"]:
+            user_partner = user_partner_by_source_id.get(row["id"])
+            if row["id"] in partners and (
+                not user_partner or partners[row["id"]] == user_partner
+            ):
+                continue
+            partner = user_partner
+            if not partner:
+                claimed_partner_ids = [
+                    partner.id for partner in partners.values()
+                ]
+                identity_domains = []
+                if row.get("name") and row.get("email"):
+                    identity_domains.append(
+                        [
+                            ("name", "=", row["name"]),
+                            ("email", "=ilike", row["email"]),
+                        ],
+                    )
+                if row.get("name"):
+                    identity_domains.append([("name", "=", row["name"])])
+                if row.get("email"):
+                    identity_domains.append(
+                        [("email", "=ilike", row["email"])],
+                    )
+                for domain in identity_domains:
+                    if claimed_partner_ids:
+                        domain.append(("id", "not in", claimed_partner_ids))
+                    domain.extend(
+                        [
+                            "|",
+                            ("rebuild_source_id", "=", False),
+                            "&",
+                            ("rebuild_source_model", "=", "res.partner"),
+                            ("rebuild_source_id", "=", row["id"]),
+                        ],
+                    )
+                    candidates = (
+                        self.env["res.partner"]
+                        .with_context(active_test=False)
+                        .sudo()
+                        .search(domain, limit=2)
+                    )
+                    if len(candidates) == 1:
+                        partner = candidates
+                        break
             status = "reused"
+            if (
+                partner
+                and partner.rebuild_source_model == "res.partner"
+                and partner.rebuild_source_id
+                and partner.rebuild_source_id != row["id"]
+            ):
+                self._issue(
+                    "error",
+                    "res.partner",
+                    row["id"],
+                    "The matched partner already belongs to another source "
+                    "identity; the existing accounting identity was preserved.",
+                )
+                continue
             if not partner:
                 status = "imported"
                 partner = self.env["res.partner"].sudo().create(
