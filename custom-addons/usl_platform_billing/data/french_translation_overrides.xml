@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="selection__account_move__platform_billing_payment_state__in_payment"
+            model="ir.model.fields.selection" context="{'lang': 'fr_FR'}">
+        <field name="name">En cours de paiement</field>
+    </record>
+    <record id="selection__account_move__platform_billing_payment_state__invoicing_legacy"
+            model="ir.model.fields.selection" context="{'lang': 'fr_FR'}">
+        <field name="name">Hérité de l’application Facturation</field>
+    </record>
+    <record id="selection__account_move__platform_billing_payment_state__not_paid"
+            model="ir.model.fields.selection" context="{'lang': 'fr_FR'}">
+        <field name="name">Non payé</field>
+    </record>
+</odoo>

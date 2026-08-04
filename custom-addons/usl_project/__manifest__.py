@@ -1,7 +1,7 @@
 {
     "name": "USL Project",
     "summary": "Focused project workflow compatibility for Community Odoo",
-    "version": "saas~19.2.1.0.0",
+    "version": "saas~19.2.1.0.1",
     "category": "Services/Project",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

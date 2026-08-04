@@ -23,6 +23,8 @@ distribution-level core patch and the tradeoff is documented.
   - `docs/operations/`
   - `docs/accounting/`
   - `docs/agents/`
+- Follow `docs/agents/french-localization.md` for French product terminology
+  and translation ownership.
 - Use the existing Docker, Dev Container, and helper workflow documented in `README.md`.
 
 ## Decision Rules

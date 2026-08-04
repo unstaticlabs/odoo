@@ -22,7 +22,7 @@ TESE_QA_GENERATION ?= 01
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
-.PHONY: user-docs-deps user-docs-serve user-docs-build
+.PHONY: user-docs-deps user-docs-serve user-docs-build french-translations
 
 dev:
 	$(ODOO_DEV) start
@@ -382,3 +382,7 @@ user-docs-serve: user-docs-deps
 
 user-docs-build: user-docs-deps
 	$(USER_DOCS_PYTHON) -m mkdocs build --config-file mkdocs.yml
+
+french-translations:
+	docker compose -p $(COMPOSE_PROJECT) exec -T odoo \
+		python3 - /mnt/custom-addons < scripts/check_fr_translations.py
