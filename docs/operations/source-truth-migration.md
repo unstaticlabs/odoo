@@ -127,6 +127,11 @@ incomplete. The strict
 whole-source gate separately prevents this product claim from being mistaken
 for delivery of every Online application.
 
+The main checkout owns the default Compose project. A linked worktree must
+pass a dedicated `COMPOSE_PROJECT` and non-conflicting published ports. Every
+reconstruction helper verifies existing containers' Compose project and
+working-directory labels before stopping or changing them.
+
 Every stage must be idempotent and must bind its run to `source-<first 12
 characters of dump SHA-256>`. Project restoration previously used a constant
 snapshot label; it now derives that identity from `dump.sql` for both import

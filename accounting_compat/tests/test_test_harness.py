@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import subprocess
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -189,6 +190,51 @@ class OdooTestHarnessTest(unittest.TestCase):
             3,
         )
         self.assertIn("verify_platform_billing_qa_scope", bootstrap_helper)
+
+    def test_worktree_helpers_guard_shared_compose_ownership(self):
+        guard = (
+            REPOSITORY_ROOT / "scripts" / "lib" / "compose-scope.sh"
+        ).read_text(encoding="utf-8")
+        self.assertIn("com.docker.compose.project.working_dir", guard)
+        self.assertIn('[[ -f "$repository_root/.git"', guard)
+
+        for relative_path in (
+            "scripts/accounting-restore",
+            "scripts/identity-restore",
+            "scripts/product-restore",
+            "scripts/hr-restore",
+            "scripts/project-restore",
+            "scripts/tese-restore",
+            "scripts/platform-billing-restore",
+            "scripts/documents-restore",
+            "scripts/documents-stack",
+            "scripts/odoo-dev",
+            "scripts/pocket-id-dev",
+            "scripts/target-finalize",
+            "scripts/target-reconstruct",
+        ):
+            helper = (REPOSITORY_ROOT / relative_path).read_text(
+                encoding="utf-8",
+            )
+            self.assertIn("compose-scope.sh", helper, relative_path)
+            self.assertIn("usl_verify_compose_scope", helper, relative_path)
+
+    def test_full_reconstruction_requires_an_explicit_project(self):
+        result = subprocess.run(
+            [str(REPOSITORY_ROOT / "scripts" / "target-reconstruct")],
+            cwd=REPOSITORY_ROOT,
+            env={
+                key: value
+                for key, value in os.environ.items()
+                if key != "COMPOSE_PROJECT_NAME"
+            },
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("requires an explicit COMPOSE_PROJECT_NAME", result.stderr)
 
     def test_dev_lifecycle_disables_automatic_tours(self):
         helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(

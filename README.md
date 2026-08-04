@@ -402,6 +402,23 @@ make target-finalize    # reapply identities, permissions and target config
 make target-reconstruct # recreate odoo_dev from the dump, then finalize it
 ```
 
+The main checkout owns the default `usl-odoo-saas-19-2` Compose project.
+Linked worktrees must use a dedicated project and non-conflicting ports; every
+host helper verifies the Compose working-directory label before it mutates a
+container. For example:
+
+```bash
+COMPOSE_PROJECT=usl-odoo-preprod-9642 \
+ODOO_HTTP_PORT=18669 ODOO_GEVENT_PORT=18672 \
+POCKET_ID_HTTP_PORT=11411 PAPERLESS_HTTP_PORT=18010 \
+USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
+make target-reconstruct
+```
+
+Pocket ID secrets and immutable test subjects are checkout-local by default.
+Set `POCKET_ID_ENV_FILE` only when deliberately reusing the same file for the
+same explicit Compose project.
+
 These helpers serve canonical `odoo_dev` by default. It is the disposable,
 production-shaped product target: reconstructed Online business data plus
 target-only configuration such as Pocket ID. `make dev`, `make deploy` and

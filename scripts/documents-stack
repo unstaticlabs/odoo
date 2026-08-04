@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
 
 usage() {
   printf '%s\n' \
@@ -54,6 +55,7 @@ case "$DATABASE" in
     exit 2
     ;;
 esac
+usl_verify_compose_scope "$PROJECT" "$ROOT" "Documents stack"
 
 ENV_FILES=(--env-file "$ENV_FILE")
 if [[ -n "$SSO_ENV_FILE" ]]; then
