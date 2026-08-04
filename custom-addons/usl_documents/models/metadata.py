@@ -519,7 +519,7 @@ class UslPaperlessCorrespondent(models.Model):
             )
             correspondent.partner_mapping_hidden = bool(
                 protected_correspondent.partner_id
-                and protected_correspondent.partner_id.id not in visible_ids
+                and protected_correspondent.partner_id.id not in visible_ids,
             )
 
     def _inverse_partner_visible(self):
@@ -529,7 +529,7 @@ class UslPaperlessCorrespondent(models.Model):
                     _(
                         "This correspondent is already mapped to a Contact outside "
                         "your accessible companies. Ask a Documents administrator "
-                        "to review the mapping."
+                        "to review the mapping.",
                     ),
                 )
             correspondent.partner_id = correspondent.partner_visible_id
@@ -578,7 +578,7 @@ class UslPaperlessCorrespondent(models.Model):
                 _(
                     "This correspondent is already mapped to a Contact outside "
                     "your accessible companies. Ask a Documents administrator "
-                    "to review the mapping."
+                    "to review the mapping.",
                 ),
             )
         if "partner_visible_id" in values:
@@ -1715,7 +1715,7 @@ class UslDocumentSmartView(models.Model):
                 and view.scope == "shared"
                 and view.archive_native
                 and client.owner_user_id
-                and owner_id == client.owner_user_id
+                and owner_id == client.owner_user_id,
             )
             if owner_id and not migratable_service_view:
                 if view and view.scope == "shared" and view.archive_native:
@@ -1726,7 +1726,7 @@ class UslDocumentSmartView(models.Model):
                             "paperless_sync_state": "failed",
                             "paperless_sync_error": _(
                                 "The mapped Paperless Saved View is private. "
-                                "Make it shared in Paperless or remap this view."
+                                "Make it shared in Paperless or remap this view.",
                             ),
                             "paperless_synced_at": fields.Datetime.now(),
                         },

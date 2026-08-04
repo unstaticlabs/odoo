@@ -69,9 +69,8 @@ class PaperlessClient:
         try:
             return json.loads(payload.decode())
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise PaperlessCompatibilityError(
-                "Paperless returned an invalid API response.",
-            ) from error
+            message = "Paperless returned an invalid API response."
+            raise PaperlessCompatibilityError(message) from error
 
     @staticmethod
     def _multipart_filename(filename):
@@ -609,7 +608,7 @@ class PaperlessClient:
                     raise PaperlessCompatibilityError(
                         _(
                             "Paperless accepted the replacement without returning "
-                            "a task ID."
+                            "a task ID.",
                         ),
                     )
                 return str(payload)

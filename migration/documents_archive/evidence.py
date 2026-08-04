@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+# ruff: noqa: T201
 """Extract and seal private Documents restore evidence from an Odoo shell log."""
 
 import argparse
 import hashlib
 import json
 from pathlib import Path
-
 
 PREFIX = "DOCUMENTS_SOURCE_RESTORE_RESULT="
 
@@ -25,7 +25,8 @@ def main():
         raise SystemExit(f"expected one restore result, found {len(results)}")
     result = json.loads(results[0])
     if result.get("schema") != "usl-documents-source-restore-result-v1":
-        raise SystemExit("unexpected Documents restore evidence schema")
+        message = "unexpected Documents restore evidence schema"
+        raise SystemExit(message)
     payload = (json.dumps(result, indent=2, sort_keys=True) + "\n").encode()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_suffix(args.output.suffix + ".tmp")

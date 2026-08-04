@@ -1530,7 +1530,7 @@ class UslDocument(models.Model):
         truncated = False
         for term in broad_terms:
             ids, term_truncated = self._all_text_search_ids(term)
-            resolved_ids[("all_text", term)] = ids
+            resolved_ids["all_text", term] = ids
             truncated = truncated or term_truncated
             for paperless_document_id in ids:
                 if paperless_document_id not in relevance_paperless_ids:
@@ -1652,8 +1652,8 @@ class UslDocument(models.Model):
                 ("link_ids", "!=" if linked_state == "linked" else "=", False),
             )
         if not (
-            selected_view
-            and selected_view.system_rule == "trash"
+            (selected_view
+            and selected_view.system_rule == "trash")
             or (linked_model and linked_id)
             or mapped_partner
         ):
@@ -2343,7 +2343,7 @@ class UslDocument(models.Model):
             raise UserError(
                 _(
                     "Identical content is already in Trash. Restore that document "
-                    "before linking or uploading it again."
+                    "before linking or uploading it again.",
                 ),
             )
         remote_candidates = self._paperless().search(
