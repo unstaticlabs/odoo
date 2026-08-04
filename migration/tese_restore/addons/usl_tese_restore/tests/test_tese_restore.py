@@ -101,6 +101,13 @@ class TestTeseRestore(TransactionCase):
             ],
         })
         cls.move.action_post()
+        cls.draft_move = cls.move.copy({
+            "date": date(2026, 2, 28),
+            "ref": "Imported draft payroll",
+            "rebuild_source_database": "source",
+            "rebuild_source_model": "account.move.native_engine_replay",
+            "rebuild_source_id": 9001,
+        })
 
     def _payload(self):
         account_values = {}
@@ -158,8 +165,11 @@ class TestTeseRestore(TransactionCase):
             "x_payslip_date": date(2026, 1, 31),
             "x_tese_payment_date": date(2026, 2, 15),
             "x_tese_reference": "TESE-IMPORTED-01",
+            "x_state": "to_reconcile",
+            "x_document_status": "linked",
             "x_hours": 151.67,
             "source_attachment_id": 700,
+            "source_move_state": "posted",
             "x_gross_salary": 3000.0,
             "x_employee_contrib_total": 600.0,
             "x_employer_contrib_total": 850.0,
@@ -282,7 +292,11 @@ class TestTeseRestore(TransactionCase):
             "target_database": self.env.cr.dbname,
         })
         statistics = run.action_restore(self._payload())
-        self.assertEqual(run.status, "passed")
+        self.assertEqual(
+            run.status,
+            "passed",
+            run.issue_ids.mapped("description"),
+        )
         self.assertFalse(run.issue_ids.filtered(
             lambda issue: issue.severity == "error",
         ))
@@ -316,6 +330,7 @@ class TestTeseRestore(TransactionCase):
         self.assertEqual(first["followers"], 1)
         self.assertEqual(first["paid"], 0)
         self.assertEqual(first["to_reconcile"], 1)
+        self.assertEqual(first["to_post"], 0)
         self.assertEqual(
             counts,
             {
@@ -348,3 +363,47 @@ class TestTeseRestore(TransactionCase):
             len(profiles.filtered(lambda profile: not profile.active)),
             1,
         )
+
+    def test_restore_preserves_draft_payroll_without_provider_pdf(self):
+        payload = self._payload()
+        draft = {
+            **payload["payslips"][0],
+            "id": 21,
+            "x_name": "Imported February draft payroll",
+            "x_state": "to_post",
+            "x_document_status": "missing",
+            "x_period_start": date(2026, 2, 1),
+            "x_period_end": date(2026, 2, 28),
+            "x_payment_date": date(2026, 3, 1),
+            "x_payslip_date": date(2026, 2, 28),
+            "x_tese_payment_date": date(2026, 4, 15),
+            "x_tese_reference": False,
+            "source_attachment_id": False,
+            "source_move_state": "draft",
+            "x_move_id": 9001,
+            "x_move_ref": "Imported draft payroll",
+        }
+        payload["payslips"].append(draft)
+
+        run = self.env["usl.tese.restore.run"].sudo().create({
+            "source_database": "source",
+            "source_snapshot": "fixture-with-draft",
+            "target_database": self.env.cr.dbname,
+        })
+        statistics = run.action_restore(payload)
+
+        self.assertEqual(run.status, "passed")
+        self.assertFalse(run.issue_ids.filtered(
+            lambda issue: issue.severity == "error",
+        ))
+        self.assertEqual(statistics["payslips"], 2)
+        self.assertEqual(statistics["payroll_pdfs"], 1)
+        self.assertEqual(statistics["to_reconcile"], 1)
+        self.assertEqual(statistics["to_post"], 1)
+        restored = self.env["usl.tese.payslip"].sudo().search([
+            ("tese_reference", "=", "legacy-tese-21"),
+        ])
+        self.assertEqual(restored.move_id, self.draft_move)
+        self.assertEqual(restored.state, "to_post")
+        self.assertFalse(restored.attachment_id)
+        self.assertEqual(self.draft_move.tese_payslip_id, restored)

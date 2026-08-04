@@ -295,10 +295,13 @@ class UslTeseRestoreRun(models.Model):
             """)
             payslips = self._fetch(cursor, """
                 SELECT payslip.*,
-                       document.attachment_id AS source_attachment_id
+                       document.attachment_id AS source_attachment_id,
+                       payroll_move.state AS source_move_state
                   FROM x_tese_payslip payslip
              LEFT JOIN documents_document document
                     ON document.id = payslip.x_document_id
+             LEFT JOIN account_move payroll_move
+                    ON payroll_move.id = payslip.x_move_id
                  ORDER BY payslip.x_pay_year, payslip.x_pay_month, payslip.id
             """)
             partners = self._fetch(cursor, """
@@ -861,7 +864,7 @@ class UslTeseRestoreRun(models.Model):
         move.sudo().write({
             "tese_payslip_id": payslip.id,
             "tese_move_role": "payroll",
-            "tese_attachment_id": attachment.id,
+            "tese_attachment_id": attachment.id if attachment else False,
         })
         if not company.tese_payroll_journal_id:
             company.sudo().write({
@@ -871,9 +874,22 @@ class UslTeseRestoreRun(models.Model):
             company.sudo().write({
                 "tese_collector_partner_id": collector.id,
             })
-        # Payment residuals may have changed since a previous rehearsal.
-        # Re-derive the operational state even when source data is unchanged.
-        payslip.action_finalize()
+        if move.state == "posted":
+            # Payment residuals may have changed since a previous rehearsal.
+            # Re-derive the operational state even when source data is unchanged.
+            payslip.action_finalize()
+        else:
+            message = (
+                "The draft payroll entry and source payroll record were "
+                "restored. Attach the official provider PDF before posting."
+            )
+            payslip.with_context(
+                _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
+            ).write({
+                "state": "to_post",
+                "preparation_message": message,
+                "bank_reconcile_message": message,
+            })
 
     def _restore_payslips(
         self,
@@ -909,13 +925,18 @@ class UslTeseRestoreRun(models.Model):
                     row.get("source_attachment_id"),
                 )
             if not attachment:
-                self._issue(
-                    "error",
-                    SOURCE_PAYSLIP_MODEL,
-                    row["id"],
-                    "The provider payroll PDF could not be mapped.",
+                source_is_pre_posting = (
+                    row.get("source_move_state") == "draft"
+                    and row.get("x_document_status") == "missing"
                 )
-                continue
+                if not source_is_pre_posting:
+                    self._issue(
+                        "error",
+                        SOURCE_PAYSLIP_MODEL,
+                        row["id"],
+                        "The provider payroll PDF could not be mapped.",
+                    )
+                    continue
             collector = self._target_partner(
                 row.get("x_tese_collector_partner_id"),
                 partners,
@@ -948,7 +969,7 @@ class UslTeseRestoreRun(models.Model):
                     or f"legacy-tese-{row['id']}"
                 ),
                 "hours": row.get("x_hours") or 0,
-                "attachment_id": attachment.id,
+                "attachment_id": attachment.id if attachment else False,
                 "document_note": row.get("x_document_note"),
                 "gross_salary": row.get("x_gross_salary") or 0,
                 "employee_contribution_total": (
@@ -1334,6 +1355,9 @@ class UslTeseRestoreRun(models.Model):
                 payslip_records.filtered(
                     lambda item: item.state == "to_reconcile",
                 ),
+            ),
+            "to_post": len(
+                payslip_records.filtered(lambda item: item.state == "to_post"),
             ),
         }
 

@@ -28,10 +28,11 @@ The canonical `make target-reconstruct` command runs the stages in this order:
 1. restore and validate the source database through the Accounting harness;
 2. complete and validate the source-faithful Accounting import, leaving its
    temporary source bindings installed;
-3. install and run the TESE restoration;
-4. validate and repeat the TESE import;
-5. finalize TESE, then Accounting, and validate through the normal product
-   add-ons path.
+3. restore Projects and their Accounting/analytic links;
+4. install and run the TESE restoration;
+5. validate and repeat the TESE import;
+6. finalize every temporary importer, then validate through the normal
+   product add-ons path.
 
 TESE is downstream of Accounting because profiles must reuse the eleven
 source-mapped accounts and every payroll record must link its already-posted
@@ -41,21 +42,23 @@ entry.
 
 ## Exact source perimeter
 
-The provided snapshot contains:
+The validator derives its expected perimeter from the restored, read-only
+source on every run. It does not carry a hardcoded business count from an
+older dump. The snapshot verified on 4 August 2026 contains:
 
 | Perimeter | Expected |
 | --- | ---: |
 | Employees | 2 |
 | Employee versions | 3 |
 | TESE profiles | 4 |
-| Monthly payroll records | 9 |
-| Linked posted payroll entries | 9 |
+| Monthly payroll records | 10 |
+| Linked payroll entries | 10: 9 posted, 1 draft |
 | Employee-folder PDFs | 14 |
 | PDFs used by payroll | 9 |
 | HR chatter messages | 30 |
 | Tracking values | 57 |
 | Followers | 3 |
-| Residual-derived Settled / To reconcile | 5 / 4 |
+| Settled / To reconcile / To post | 5 / 4 / 1 |
 
 The 14 employee-folder PDFs include five earlier payroll documents and the
 nine PDFs linked to the migrated payroll records. The nine accounting-linked
@@ -63,6 +66,12 @@ attachments stay native to their posted moves and are referenced by the
 payroll records; the earlier documents become native employee attachments.
 Employee images are restored from the source `image_1920`, letting Odoo
 regenerate its standard image sizes.
+
+The tenth record is the source July 2026 payroll still in preparation. Its
+entry is draft and its official provider PDF is absent in Online, so the
+target preserves it as **To post** and clearly requires the PDF before
+posting. This is source truth, not a skipped record or a fabricated document.
+Missing evidence on a posted or otherwise completed payroll remains blocking.
 
 The source contains one employee-less `hr.version`. It is preserved as the
 native contract-template-shaped employee version that it is, rather than
@@ -124,19 +133,23 @@ the selected Compose project.
 
 Validation must prove all of the following:
 
-1. the exact perimeter table matches;
-2. all nine payroll entries are unique, linked and still posted;
-3. every payroll has one provider PDF and eleven snapshot components;
+1. source-derived counts and field-level mappings match the current snapshot;
+2. every payroll entry is unique, linked and preserves its source draft or
+   posted state;
+3. every posted payroll retains its provider PDF, every source draft retains
+   its actual evidence state, and every payroll has eleven snapshot
+   components;
 4. debit and credit remain equal in company currency;
-5. five records are paid and four remain open based on current residuals;
+5. workflow states match source/native facts: settled and open posted records
+   come from residuals, while source drafts remain **To post**;
 6. both employees point to their exact current version, all three HR versions
    exist (including the employee-less template), and every profile/payroll
    points to its exact employee and HR version;
-7. all four profiles are found with `active_test=False`, with exactly one
-   active and three archived, exact validity, figures and eleven components;
-8. all 30 messages, 57 tracking values and three followers map to native HR
+7. every profile is found with `active_test=False` and retains its source
+   active state, validity, figures and eleven components;
+8. all source messages, tracking values and followers map to native HR
    records;
-9. all 14 employee-folder PDFs have their source bytes/checksums;
+9. every source employee/payroll PDF has its source bytes and checksum;
 10. a second import changes no counts and creates no duplicate;
 11. product and migration add-on tests pass;
 12. `make product-migration-boundary` passes;
@@ -146,6 +159,8 @@ Validation must prove all of the following:
 Retain the command summaries as private reconstruction evidence. Do not
 commit the dump, filestore, extracted personal data or private logs.
 
-Do not finalize a partial or failed run. Correct the missing upstream identity
-or source file and rerun. Never weaken an exact account, move, document or
-residual gate merely to make the count pass.
+Do not finalize a partial or failed run. Correct an unexplained missing
+identity, move or source file and rerun. A genuinely unfinished source payroll
+may remain draft without a PDF only when both its source move and document
+state prove that condition. Never weaken an exact account, move, document or
+residual gate merely to make a count pass.

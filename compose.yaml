@@ -295,6 +295,7 @@ services:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons
       - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
+      - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro

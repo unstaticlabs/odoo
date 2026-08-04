@@ -53,19 +53,29 @@ product_counts = {
     "to_reconcile": len(
         payrolls.filtered(lambda item: item.state == "to_reconcile"),
     ),
+    "to_post": len(payrolls.filtered(lambda item: item.state == "to_post")),
 }
-expected_counts = {
-    "profiles": 4,
-    "payslips": 9,
-    "payroll_moves": 9,
-    "payroll_pdfs": 9,
-    "paid": 5,
-    "to_reconcile": 4,
-}
-if product_counts != expected_counts:
-    fail(
-        f"Final Paie TESE business counts differ: {product_counts}.",
-    )
+if product_counts["payroll_moves"] != product_counts["payslips"]:
+    fail("Every finalized Paie TESE record must retain its accounting entry.")
+if any(len(payroll.component_line_ids) != 11 for payroll in payrolls):
+    fail("Every finalized Paie TESE record must retain 11 accounting components.")
+if any(
+    not payroll.currency_id.is_zero(payroll.balance_difference)
+    for payroll in payrolls
+):
+    fail("Every finalized Paie TESE record must remain balanced.")
+posted = payrolls.filtered(lambda payroll: payroll.move_id.state == "posted")
+draft = payrolls.filtered(lambda payroll: payroll.move_id.state == "draft")
+if len(posted) + len(draft) != len(payrolls):
+    fail("A finalized Paie TESE entry has an unsupported accounting state.")
+if any(not payroll.attachment_id for payroll in posted):
+    fail("Every posted Paie TESE record must retain its provider PDF.")
+if any(payroll.state not in {"paid", "to_reconcile"} for payroll in posted):
+    fail("A posted Paie TESE record has an invalid workflow state.")
+if any(payroll.state != "to_post" for payroll in draft):
+    fail("A draft Paie TESE entry must remain ready for review and posting.")
+if any(not payroll.profile_id for payroll in payrolls):
+    fail("Every finalized Paie TESE record must retain its payroll profile.")
 
 summary = {
     "migration_module_state": module.state if module else "absent",

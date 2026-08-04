@@ -6,21 +6,6 @@ from odoo.tools import html2plaintext
 
 from odoo.addons.usl_tese_payroll.models.constants import TESE_COMPONENTS
 
-EXPECTED = {
-    "employees": 2,
-    "versions": 3,
-    "profiles": 4,
-    "payslips": 9,
-    "payroll_moves": 9,
-    "payroll_pdfs": 9,
-    "employee_pdfs": 14,
-    "messages": 30,
-    "tracking_values": 57,
-    "followers": 3,
-    "paid": 5,
-    "to_reconcile": 4,
-}
-
 
 def fail(message):
     raise RuntimeError(message)
@@ -67,6 +52,26 @@ if blocking:
     fail(
         f"The latest TESE restoration has {len(blocking)} blocking issue(s).",
     )
+payload = run._load_source_payload()
+EXPECTED = {
+    "employees": len(payload["employees"]),
+    "versions": len(payload["versions"]),
+    "profiles": len(payload["profiles"]),
+    "payslips": len(payload["payslips"]),
+    "payroll_moves": sum(bool(row.get("x_move_id")) for row in payload["payslips"]),
+    "payroll_pdfs": sum(
+        bool(row.get("source_attachment_id")) for row in payload["payslips"]
+    ),
+    "employee_pdfs": len(payload["employee_documents"]),
+    "messages": len(payload["messages"]),
+    "tracking_values": len(payload["tracking"]),
+    "followers": len(payload["followers"]),
+    "paid": sum(row.get("x_state") == "paid" for row in payload["payslips"]),
+    "to_reconcile": sum(
+        row.get("x_state") == "to_reconcile" for row in payload["payslips"]
+    ),
+    "to_post": sum(row.get("x_state") == "to_post" for row in payload["payslips"]),
+}
 statistics = run.statistics_json or {}
 differences = {
     key: {"expected": expected, "actual": statistics.get(key)}
@@ -86,10 +91,19 @@ if len(payslips) != EXPECTED["payslips"]:
     fail("The mapped TESE payroll record count is incorrect.")
 if len(payslips.mapped("move_id")) != len(payslips):
     fail("Every TESE payroll record must have one accounting entry.")
-if any(move.state != "posted" for move in payslips.mapped("move_id")):
-    fail("Every restored TESE accounting entry must remain posted.")
-if len(payslips.mapped("attachment_id")) != len(payslips):
-    fail("Every restored TESE payroll record must link one PDF.")
+source_payslips = {row["id"]: row for row in payload["payslips"]}
+for mapping in env["usl.tese.restore.mapping"].sudo().search([
+    ("source_model", "=", "x_tese_payslip"),
+    ("target_model", "=", "usl.tese.payslip"),
+]):
+    payslip = env["usl.tese.payslip"].sudo().browse(mapping.target_id).exists()
+    source = source_payslips.get(mapping.source_id)
+    if not payslip or not source:
+        fail("A restored TESE payroll mapping is incomplete.")
+    if payslip.move_id.state != source.get("source_move_state"):
+        fail("A restored TESE accounting entry changed its source state.")
+    if bool(payslip.attachment_id) != bool(source.get("source_attachment_id")):
+        fail("A restored TESE payroll PDF link differs from the source.")
 if any(len(payslip.component_line_ids) != 11 for payslip in payslips):
     fail("Every restored TESE snapshot must contain 11 components.")
 if any(not payslip.currency_id.is_zero(payslip.balance_difference) for payslip in payslips):
@@ -121,7 +135,6 @@ if checksum_mismatches:
         f"{checksum_mismatches.ids}.",
     )
 
-payload = run._load_source_payload()
 profile_mappings = env["usl.tese.restore.mapping"].sudo().search([
     ("source_model", "=", "x_tese_payroll_profile"),
     ("target_model", "=", "usl.tese.profile"),
@@ -129,10 +142,15 @@ profile_mappings = env["usl.tese.restore.mapping"].sudo().search([
 all_profiles = env["usl.tese.profile"].sudo().with_context(
     active_test=False,
 ).browse(profile_mappings.mapped("target_id")).exists()
-if len(all_profiles.filtered("active")) != 1:
-    fail("Exactly one restored TESE profile must remain active.")
-if len(all_profiles.filtered(lambda profile: not profile.active)) != 3:
-    fail("Exactly three restored TESE profiles must remain archived.")
+expected_active_profiles = sum(
+    bool(row.get("x_active")) for row in payload["profiles"]
+)
+if len(all_profiles.filtered("active")) != expected_active_profiles:
+    fail("The active TESE profile count differs from the source.")
+if len(all_profiles.filtered(lambda profile: not profile.active)) != (
+    EXPECTED["profiles"] - expected_active_profiles
+):
+    fail("The archived TESE profile count differs from the source.")
 
 for row in payload["employees"]:
     employee = mapped("hr.employee", row["id"], "hr.employee")
@@ -317,7 +335,6 @@ payslip_fields = (
     ("x_payment_date", "payment_date"),
     ("x_payslip_date", "payslip_date"),
     ("x_tese_payment_date", "tese_payment_date"),
-    ("x_tese_reference", "tese_reference"),
     ("x_move_ref", "move_ref"),
 )
 payslip_numbers = (
@@ -353,6 +370,13 @@ for row in payload["payslips"]:
         "x_tese_payslip",
         row["id"],
         "pay_period",
+    )
+    parity(
+        payslip.tese_reference
+        == (row.get("x_tese_reference") or f"legacy-tese-{row['id']}"),
+        "x_tese_payslip",
+        row["id"],
+        "tese_reference",
     )
     for source_field, target_field in payslip_fields:
         parity(
@@ -497,10 +521,16 @@ for row in payload["tracking"]:
 
 if parity_errors:
     fail(f"TESE field-level source/target parity failed: {parity_errors}.")
-if len(payslips.filtered(lambda item: item.state == "paid")) != 5:
+if len(payslips.filtered(lambda item: item.state == "paid")) != EXPECTED["paid"]:
     fail("Residual-derived paid status parity failed.")
-if len(payslips.filtered(lambda item: item.state == "to_reconcile")) != 4:
+if len(payslips.filtered(lambda item: item.state == "to_reconcile")) != EXPECTED[
+    "to_reconcile"
+]:
     fail("Residual-derived open status parity failed.")
+if len(payslips.filtered(lambda item: item.state == "to_post")) != EXPECTED[
+    "to_post"
+]:
+    fail("Draft payroll workflow-state parity failed.")
 
 print(json.dumps({
     "run_id": run.id,
