@@ -6,7 +6,7 @@ from odoo import Command, _, fields, models
 class RebuildAccountAnalyticOverride(models.Model):
     _name = "rebuild.account.analytic.override"
     _description = "Native Analytic Post-Posting Correction"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = ["usl.accounting.restore.source.mixin"]
     _order = "source_move_id, source_move_line_id"
 
     name = fields.Char(required=True, index=True)

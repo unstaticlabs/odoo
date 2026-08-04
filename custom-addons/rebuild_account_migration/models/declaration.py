@@ -12,8 +12,8 @@ from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 BENCHMARK_START = date(2024, 1, 10)
 BENCHMARK_END = date(2025, 9, 30)
 CURRENT_START = date(2025, 10, 1)
-BENCHMARK_PERIOD_KEY = "USL benchmark 2024-01-10 to 2025-09-30"
-CURRENT_PERIOD_KEY = "USL current from 2025-10-01"
+FIRST_FISCAL_YEAR_PERIOD_KEY = "Fiscal year 2024-01-10 to 2025-09-30"
+CURRENT_PERIOD_KEY = "Fiscal year from 2025-10-01"
 
 
 def _month_end(value):
@@ -82,11 +82,11 @@ class ResCompany(models.Model):
         string="VAT Regime",
     )
     rebuild_first_fiscalyear_start = fields.Date(
-        string="First Reconstructed Fiscal-Year Start",
+        string="Exceptional First Fiscal-Year Start",
         help="Optional first-year exception used before the company's recurring fiscal-year cadence.",
     )
     rebuild_first_fiscalyear_end = fields.Date(
-        string="First Reconstructed Fiscal-Year End",
+        string="Exceptional First Fiscal-Year End",
         help=(
             "Optional end of the exceptional first fiscal year. Reports, "
             "declarations and closing workspaces use this boundary before "
@@ -818,7 +818,7 @@ class RebuildAccountDeclaration(models.Model):
         seen_codes = set()
         tax_form_codes = [code.strip() for code in (self.rule_id.tax_form_codes or "").split(",") if code.strip()]
         if tax_form_codes:
-            period_key = BENCHMARK_PERIOD_KEY if self.fiscalyear_end <= BENCHMARK_END else CURRENT_PERIOD_KEY
+            period_key = FIRST_FISCAL_YEAR_PERIOD_KEY if self.fiscalyear_end <= BENCHMARK_END else CURRENT_PERIOD_KEY
             tax_lines = self.env["rebuild.account.french.tax.package.line"].search([
                 ("company_id", "=", self.company_id.id),
                 ("period_key", "=", period_key),
@@ -882,7 +882,7 @@ class RebuildAccountDeclaration(models.Model):
             self._sync_vat_facts(seen_codes)
 
     def _sync_corporate_tax_payment_fields(self, seen_codes):
-        prior_period = BENCHMARK_PERIOD_KEY if self.fiscalyear_start >= CURRENT_START else False
+        prior_period = FIRST_FISCAL_YEAR_PERIOD_KEY if self.fiscalyear_start >= CURRENT_START else False
         charge = self.env["rebuild.account.french.tax.package.line"]
         if prior_period:
             charge = charge.search([
@@ -932,7 +932,7 @@ class RebuildAccountDeclaration(models.Model):
                 "source_kind": "confirmed_fact",
                 "source_formula": source,
                 "account_prefixes": "445670,445830,512,471" if amount else "445670,445830",
-                "source_reference": "Milestone 13 confirmed VAT facts and reconstructed ledger",
+                "source_reference": "Confirmed VAT facts and posted ledger",
                 "is_unresolved": unresolved,
                 "unresolved_reason": reason,
                 "validation_status": "matched",

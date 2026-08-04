@@ -9,11 +9,12 @@ distribution-level core patch and the tradeoff is documented.
 
 - Prefer isolated custom add-ons under `custom-addons/` for project-specific behavior.
 - Put shared extensions of existing native/OCA Accounting models in
-  `usl_accounting`. Existing installed `rebuild.*` models and stable XML/data
-  ownership may remain in `rebuild_account_migration` only as transitional
-  accounting debt until a rehearsed ownership migration exists; do not add new
-  product behavior or source-trace dependencies there, and do not treat that
-  exception as acceptable final-product architecture. `usl_bootstrap` is
+  `usl_accounting`. Existing installed operational `rebuild.*` models and
+  stable XML/data ownership may remain in `rebuild_account_migration` until a
+  rehearsed ownership migration exists. Its historical technical name does not
+  authorize importers, source bindings, parity objects or migration UI in the
+  delivered registry. Do not add new source-trace dependencies there.
+  `usl_bootstrap` is
   test-only and must not enter a product dependency graph.
 - Inspect existing Odoo code, relevant add-ons, and current documentation before editing.
 - Research standard Odoo behavior and maintained OCA functionality before implementing custom behavior.

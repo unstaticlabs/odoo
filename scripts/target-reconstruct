@@ -26,7 +26,8 @@ scripts/accounting-compat dev-import
 stop_product
 scripts/accounting-compat dev-validate
 stop_product
-scripts/project-restore all
+PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
+scripts/accounting-restore finalize
 scripts/target-finalize
 
 printf '\nCanonical reconstruction complete: source parity plus target configuration.\n'

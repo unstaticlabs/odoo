@@ -15,8 +15,10 @@ class SourceReportParityEvidenceTest(unittest.TestCase):
         )
         importer = (
             REPOSITORY_ROOT
-            / "custom-addons"
-            / "rebuild_account_migration"
+            / "migration"
+            / "accounting_restore"
+            / "addons"
+            / "usl_accounting_restore"
             / "models"
             / "import_run.py"
         ).read_text(encoding="utf-8")

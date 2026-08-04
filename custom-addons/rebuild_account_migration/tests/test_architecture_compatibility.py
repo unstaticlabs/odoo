@@ -3,12 +3,11 @@ from odoo.tests import TransactionCase, tagged
 
 @tagged("post_install", "-at_install", "rebuild_account_migration_unit")
 class TestAccountingArchitectureCompatibility(TransactionCase):
-    """Protect database ownership while the historical add-on is decomposed."""
+    """Protect stable product ownership and the migration boundary."""
 
     _STABLE_XML_IDS = (
         "group_rebuild_accountant_reviewer",
         "action_rebuild_accounting_home",
-        "action_rebuild_account_overview",
         "action_rebuild_account_hygiene",
         "action_rebuild_account_closing_period",
         "action_rebuild_account_declaration",
@@ -20,7 +19,6 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
     )
 
     _STABLE_MODEL_TABLES = {
-        "rebuild.account.import.run": "rebuild_account_import_run",
         "rebuild.account.overview": "rebuild_account_overview",
         "rebuild.account.hygiene.issue": "rebuild_account_hygiene_issue",
         "rebuild.account.hygiene.dismissal": "rebuild_account_hygiene_dismissal",
@@ -48,6 +46,16 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
         for model_name, table_name in self._STABLE_MODEL_TABLES.items():
             self.assertIn(model_name, self.env.registry)
             self.assertEqual(self.env[model_name]._table, table_name)
+
+    def test_one_shot_restore_models_are_not_in_product_registry(self):
+        for model_name in (
+            "rebuild.account.import.run",
+            "rebuild.account.discrepancy",
+            "rebuild.account.source.report",
+            "rebuild.account.deferred.schedule.line",
+            "rebuild.account.analytic.override",
+        ):
+            self.assertNotIn(model_name, self.env.registry)
 
     def test_governed_definitions_do_not_duplicate_business_keys(self):
         for model_name in (

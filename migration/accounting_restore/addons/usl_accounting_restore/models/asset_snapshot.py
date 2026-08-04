@@ -4,7 +4,7 @@ from odoo.exceptions import UserError
 
 class RebuildAccountAsset(models.Model):
     _name = "rebuild.account.asset"
-    _inherit = "rebuild.source.trace.mixin"
+    _inherit = "usl.accounting.restore.source.mixin"
     _description = "USL Rebuild Asset Register"
     _order = "acquisition_date, id"
 
@@ -55,7 +55,7 @@ class RebuildAccountAsset(models.Model):
 
 class RebuildAccountAssetDepreciationScheduleLine(models.Model):
     _name = "rebuild.account.asset.depreciation.schedule.line"
-    _inherit = "rebuild.source.trace.mixin"
+    _inherit = "usl.accounting.restore.source.mixin"
     _description = "USL Rebuild Asset Depreciation Schedule Line"
     _order = "asset_id, depreciation_date, source_move_id"
 

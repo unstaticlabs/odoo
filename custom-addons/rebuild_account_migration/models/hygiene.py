@@ -242,7 +242,6 @@ class RebuildAccountHygieneIssue(models.Model):
         missing_vendor_evidence = documents.filtered(
             lambda item: not item.message_main_attachment_id
             and item.move_type in {"in_invoice", "in_refund", "in_receipt"}
-            and not item.rebuild_source_id
         )
         if missing_vendor_evidence:
             move = missing_vendor_evidence.sorted("id")[0]
@@ -265,7 +264,7 @@ class RebuildAccountHygieneIssue(models.Model):
                 "The accounting entries can be correct but remain difficult to review or substantiate.",
                 "Open the affected documents and attach each supplier invoice, receipt or a note explaining why evidence is unavailable.",
                 "Deductibility, VAT support and the audit trail may be challenged without source evidence.",
-                f"{supplier_document_label.capitalize()} without imported source evidence {'is' if len(missing_vendor_evidence) == 1 else 'are'} included. Imported source documents are excluded because historical attachments were deliberately outside dump parity.",
+                f"{supplier_document_label.capitalize()} without supporting evidence {'is' if len(missing_vendor_evidence) == 1 else 'are'} included.",
                 move,
                 amount=total,
                 owner_role="finance_operator",
@@ -313,7 +312,6 @@ class RebuildAccountHygieneIssue(models.Model):
         ])
         missing_expense_evidence = expenses.filtered(
             lambda item: not item.message_main_attachment_id
-            and not item.rebuild_source_id
         )
         if missing_expense_evidence:
             expense = missing_expense_evidence.sorted("id")[0]
@@ -336,7 +334,7 @@ class RebuildAccountHygieneIssue(models.Model):
                 "Receipts are needed to review business purpose, tax and reimbursable amounts.",
                 "Open the affected expenses and attach each receipt, or document why evidence cannot be obtained.",
                 "Expenses and deductible VAT may be unsupported.",
-                f"{expense_label.capitalize()} without imported source evidence {'is' if len(missing_expense_evidence) == 1 else 'are'} included. Imported expenses are excluded because historical attachments were deliberately outside dump parity.",
+                f"{expense_label.capitalize()} without supporting evidence {'is' if len(missing_expense_evidence) == 1 else 'are'} included.",
                 expense,
                 amount=total,
                 owner_role="finance_operator",

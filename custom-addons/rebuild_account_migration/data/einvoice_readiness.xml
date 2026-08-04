@@ -2,7 +2,7 @@
 <odoo>
     <!--
         Live electronic-invoicing exchange is an explicit production action.
-        Module installation, database reconstruction and upgrades must never
+        Module installation, database initialization and upgrades must never
         register, fetch, send or report data.
     -->
     <function model="res.company"

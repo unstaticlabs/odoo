@@ -37,8 +37,8 @@ code and UI work, update it in place.
 The complete canonical lifecycle is:
 
 ```text
-Online dump → Accounting import/parity → Projects import/parity
-→ migration finalization/product-boundary check → target configuration
+Online dump → temporary Accounting import/parity → temporary Projects import/parity
+→ uninstall migration modules → product-boundary checks → target configuration
 ```
 
 Run it with `make target-reconstruct`. Reapply only the final target
@@ -48,6 +48,14 @@ and added only after the imported business state passes its controls.
 The orchestrator keeps the web process stopped between reset, import,
 validation and Project restoration so browser traffic and scheduled jobs
 cannot observe or mutate an intermediate target.
+
+The Accounting importer is the temporary `usl_accounting_restore` add-on under
+`migration/accounting_restore/`. It is mounted only by the
+`accounting-migration` Compose profile. `scripts/accounting-restore finalize`
+requires a passed import and no active P0/P1 restoration discrepancy, compares
+business facts before and after uninstall, and validates the database again
+through the normal product-only add-ons path. A finalized `odoo_dev` must not
+contain its models, source fields, metadata, XML IDs or views.
 
 ## Fast iteration matrix
 

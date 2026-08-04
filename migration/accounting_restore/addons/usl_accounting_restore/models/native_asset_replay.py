@@ -6,7 +6,7 @@ from odoo import Command, fields, models
 
 class AccountAsset(models.Model):
     _name = "account.asset"
-    _inherit = ["account.asset", "rebuild.source.trace.mixin"]
+    _inherit = ["account.asset", "usl.accounting.restore.source.mixin"]
 
     rebuild_source_depreciation_model_id = fields.Integer(index=True, copy=False)
     rebuild_source_state = fields.Char(index=True, copy=False)
@@ -22,7 +22,7 @@ class AccountAsset(models.Model):
 
 class AccountAssetProfile(models.Model):
     _name = "account.asset.profile"
-    _inherit = ["account.asset.profile", "rebuild.source.trace.mixin"]
+    _inherit = ["account.asset.profile", "usl.accounting.restore.source.mixin"]
 
     rebuild_source_depreciation_model_id = fields.Integer(index=True, copy=False)
     rebuild_source_asset_account_id = fields.Integer(index=True, copy=False)
@@ -30,7 +30,7 @@ class AccountAssetProfile(models.Model):
 
 class AccountAssetLine(models.Model):
     _name = "account.asset.line"
-    _inherit = ["account.asset.line", "rebuild.source.trace.mixin"]
+    _inherit = ["account.asset.line", "usl.accounting.restore.source.mixin"]
 
     rebuild_source_asset_id = fields.Integer(index=True, copy=False)
     rebuild_source_state = fields.Char(index=True, copy=False)

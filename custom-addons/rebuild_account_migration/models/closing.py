@@ -585,7 +585,6 @@ class RebuildAccountClosingPeriod(models.Model):
             *base,
             ("state", "=", "posted"),
             ("message_main_attachment_id", "=", False),
-            ("rebuild_source_id", "=", False),
         ])
         status = "block" if drafts else "warning" if missing_evidence else "pass"
         return self._control_values(
@@ -593,8 +592,7 @@ class RebuildAccountClosingPeriod(models.Model):
             drafts + missing_evidence, 0.0,
             (
                 f"{drafts} draft business document(s); {missing_evidence} "
-                "new posted document(s) without a main attachment. Imported "
-                "history is excluded because attachments were outside dump parity."
+                "posted document(s) without a main attachment."
             ),
             "Resolve draft documents and attach or explicitly document missing source evidence.",
         )
@@ -737,17 +735,21 @@ class RebuildAccountClosingPeriod(models.Model):
         )
 
     def _control_assets_deferrals(self):
-        asset_gaps = self.env["rebuild.account.asset.depreciation.schedule.line"].search_count([
-            ("company_id", "=", self.company_id.id),
-            ("depreciation_date", ">=", self.date_from),
-            ("depreciation_date", "<=", self.date_to),
-            ("representation_status", "!=", "imported_posted_entry"),
+        asset_lines = self.env["account.asset.line"].search([
+            ("asset_id.company_id", "=", self.company_id.id),
+            ("line_date", ">=", self.date_from),
+            ("line_date", "<=", self.date_to),
+            ("type", "=", "depreciate"),
         ])
-        deferral_gaps = self.env["rebuild.account.deferred.schedule.line"].search_count([
+        asset_gaps = len(asset_lines.filtered(
+            lambda line: not line.init_entry
+            and (not line.move_id or line.move_id.state != "posted"),
+        ))
+        deferral_gaps = self.env["rebuild.account.deferral.line"].search_count([
             ("company_id", "=", self.company_id.id),
-            ("deferred_date", ">=", self.date_from),
-            ("deferred_date", "<=", self.date_to),
-            ("review_status", "=", "review_required"),
+            ("date", ">=", self.date_from),
+            ("date", "<=", self.date_to),
+            ("state", "=", "scheduled"),
         ])
         count = asset_gaps + deferral_gaps
         return self._control_values(
@@ -790,13 +792,6 @@ class RebuildAccountClosingPeriod(models.Model):
         )
 
     def _control_issues(self):
-        discrepancies = self.env["rebuild.account.discrepancy"].search([
-            ("company_id", "=", self.company_id.id),
-            ("status", "in", ["open", "investigating"]),
-        ])
-        high = discrepancies.filtered(
-            lambda issue: issue.severity in {"P0", "P1"},
-        )
         hygiene_issues = self.env["rebuild.account.hygiene.issue"].search([
             ("company_id", "=", self.company_id.id),
             ("status", "=", "open"),
@@ -807,11 +802,11 @@ class RebuildAccountClosingPeriod(models.Model):
         blocking_hygiene = hygiene_issues.filtered(
             lambda issue: issue.severity == "1_blocking",
         )
-        blocking_count = len(high) + len(blocking_hygiene)
+        blocking_count = len(blocking_hygiene)
         actionable_hygiene = hygiene_issues.filtered(
             lambda issue: issue.severity != "4_information",
         )
-        issue_count = len(discrepancies) + len(actionable_hygiene)
+        issue_count = len(actionable_hygiene)
         return self._control_values(
             "issues", "issues", "Accounting Hygiene issues",
             "block" if blocking_count else "warning" if issue_count else "pass",
@@ -819,8 +814,7 @@ class RebuildAccountClosingPeriod(models.Model):
             (
                 f"{len(actionable_hygiene)} actionable and "
                 f"{len(hygiene_issues - actionable_hygiene)} informational "
-                "Hygiene result(s), plus "
-                f"{len(discrepancies)} migration discrepancy record(s); "
+                "Hygiene result(s); "
                 f"{blocking_count} blocking."
             ),
             "Open Accounting Hygiene, resolve the underlying records, and refresh the controls.",
@@ -1772,10 +1766,9 @@ class RebuildAccountClosingControl(models.Model):
                 ("issue_date", "<=", closing.date_to),
             ])
         if self.code == "reports":
-            return self._action("Report Review", "rebuild.account.source.report", [
-                ("active", "=", True),
-                ("parity_level", "!=", "level_4_accepted"),
-            ])
+            return self.env.ref(
+                "rebuild_account_migration.action_rebuild_account_report_export_wizard"
+            ).read()[0]
         return self._action("Closing Journal Items", "account.move.line", [
             ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from), ("date", "<=", closing.date_to),
         ], "list,form,pivot")

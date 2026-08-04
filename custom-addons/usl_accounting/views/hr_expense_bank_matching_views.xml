@@ -14,7 +14,7 @@
 
                 <separator
                     string="Company payment match"
-                    groups="account.group_account_readonly"/>
+                    groups="account.group_account_readonly,account.group_account_manager"/>
                 <div
                     class="d-flex flex-wrap align-items-center gap-2 mb-2"
                     groups="account.group_account_manager"
@@ -33,13 +33,13 @@
                 <div
                     class="alert alert-info py-2"
                     role="status"
-                    groups="account.group_account_readonly"
+                    groups="account.group_account_readonly,account.group_account_manager"
                     invisible="usl_bank_match_eligible or usl_bank_match_accepted_count">
                     <field name="usl_bank_match_guidance" nolabel="1" readonly="1"/>
                 </div>
                 <div
                     class="text-muted mb-2"
-                    groups="account.group_account_readonly"
+                    groups="account.group_account_readonly,account.group_account_manager"
                     invisible="not usl_bank_match_eligible or usl_bank_match_available_count">
                     No current suggestion. Select <strong>Find bank transactions</strong> to check the latest bank data.
                 </div>
@@ -47,7 +47,7 @@
                     name="usl_bank_match_candidate_ids"
                     nolabel="1"
                     readonly="1"
-                    groups="account.group_account_readonly"
+                    groups="account.group_account_readonly,account.group_account_manager"
                     domain="[('state', '=', 'available')]"
                     invisible="not usl_bank_match_available_count">
                     <list
@@ -88,7 +88,7 @@
                     name="usl_bank_match_candidate_ids"
                     string="Accepted company payment"
                     readonly="1"
-                    groups="account.group_account_readonly"
+                    groups="account.group_account_readonly,account.group_account_manager"
                     domain="[('state', '=', 'accepted')]"
                     invisible="not usl_bank_match_accepted_count">
                     <list create="0" edit="0" delete="0">

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class RebuildAccountSourceReportLine(models.Model):
     _name = "rebuild.account.source.report.line"
     _description = "USL Source Accounting Report Line"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = ["usl.accounting.restore.source.mixin"]
     _order = "source_report_id, sequence, source_line_id"
 
     name = fields.Char(required=True, index=True)
@@ -55,7 +55,7 @@ class RebuildAccountSourceReportLine(models.Model):
 class RebuildAccountSourceReportExpression(models.Model):
     _name = "rebuild.account.source.report.expression"
     _description = "USL Source Accounting Report Expression"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = ["usl.accounting.restore.source.mixin"]
     _order = "source_report_id, source_report_line_id, source_expression_id"
 
     name = fields.Char(required=True, index=True)
@@ -94,7 +94,7 @@ class RebuildAccountSourceReportExpression(models.Model):
 class RebuildAccountSourceReportColumn(models.Model):
     _name = "rebuild.account.source.report.column"
     _description = "USL Source Accounting Report Column"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = ["usl.accounting.restore.source.mixin"]
     _order = "source_report_id, sequence, source_column_id"
 
     name = fields.Char(required=True, index=True)

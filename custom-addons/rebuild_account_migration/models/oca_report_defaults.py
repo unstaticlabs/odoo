@@ -1,24 +1,22 @@
-from odoo import api, models
+from odoo import api, fields, models
 
 
-USL_BENCHMARK_START = "2024-01-10"
-USL_BENCHMARK_END = "2025-09-30"
-
-
-def _apply_benchmark_period_defaults(wizard, values, closing_field="date_to", move_field="target_move"):
-    context = wizard.env.context
-    if "default_date_from" not in context:
-        values["date_from"] = USL_BENCHMARK_START
-    else:
-        values.setdefault("date_from", context["default_date_from"])
-    if f"default_{closing_field}" not in context:
-        values[closing_field] = USL_BENCHMARK_END
-    else:
-        values.setdefault(closing_field, context[f"default_{closing_field}"])
-    if f"default_{move_field}" not in context:
-        values[move_field] = "posted"
-    else:
-        values.setdefault(move_field, context[f"default_{move_field}"])
+def _apply_current_period_defaults(
+    wizard,
+    fields_list,
+    values,
+    closing_field="date_to",
+    move_field="target_move",
+):
+    """Complete OCA wizards with the governed current fiscal period."""
+    today = fields.Date.context_today(wizard)
+    fiscal_dates = wizard.env.company.compute_fiscalyear_dates(today)
+    if "date_from" in fields_list:
+        values.setdefault("date_from", fiscal_dates["date_from"])
+    if closing_field in fields_list:
+        values.setdefault(closing_field, today)
+    if move_field in fields_list:
+        values.setdefault(move_field, "posted")
     return values
 
 
@@ -27,8 +25,11 @@ class TrialBalanceReportWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        return _apply_benchmark_period_defaults(self, values)
+        return _apply_current_period_defaults(
+            self,
+            fields_list,
+            super().default_get(fields_list),
+        )
 
     @api.onchange("date_range_id")
     def onchange_date_range_id(self):
@@ -37,22 +38,17 @@ class TrialBalanceReportWizard(models.TransientModel):
             self.date_to = self.date_range_id.date_end
 
 
-class GeneralLedgerReportWizard(models.TransientModel):
-    _inherit = "general.ledger.report.wizard"
-
-    @api.model
-    def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        return _apply_benchmark_period_defaults(self, values)
-
-
 class JournalLedgerReportWizard(models.TransientModel):
     _inherit = "journal.ledger.report.wizard"
 
     @api.model
     def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        return _apply_benchmark_period_defaults(self, values, move_field="move_target")
+        return _apply_current_period_defaults(
+            self,
+            fields_list,
+            super().default_get(fields_list),
+            move_field="move_target",
+        )
 
     @api.onchange("date_range_id")
     def onchange_date_range_id(self):
@@ -66,8 +62,11 @@ class VATReportWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        return _apply_benchmark_period_defaults(self, values)
+        return _apply_current_period_defaults(
+            self,
+            fields_list,
+            super().default_get(fields_list),
+        )
 
     @api.onchange("date_range_id")
     def onchange_date_range_id(self):
@@ -81,10 +80,16 @@ class OpenItemsReportWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        values = _apply_benchmark_period_defaults(self, values, closing_field="date_at")
-        values.setdefault("receivable_accounts_only", True)
-        values.setdefault("payable_accounts_only", True)
+        values = _apply_current_period_defaults(
+            self,
+            fields_list,
+            super().default_get(fields_list),
+            closing_field="date_at",
+        )
+        if "receivable_accounts_only" in fields_list:
+            values.setdefault("receivable_accounts_only", True)
+        if "payable_accounts_only" in fields_list:
+            values.setdefault("payable_accounts_only", True)
         return values
 
     @api.onchange("receivable_accounts_only", "payable_accounts_only")
@@ -103,10 +108,16 @@ class AgedPartnerBalanceReportWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        values = _apply_benchmark_period_defaults(self, values, closing_field="date_at")
-        values.setdefault("receivable_accounts_only", True)
-        values.setdefault("payable_accounts_only", True)
+        values = _apply_current_period_defaults(
+            self,
+            fields_list,
+            super().default_get(fields_list),
+            closing_field="date_at",
+        )
+        if "receivable_accounts_only" in fields_list:
+            values.setdefault("receivable_accounts_only", True)
+        if "payable_accounts_only" in fields_list:
+            values.setdefault("payable_accounts_only", True)
         return values
 
     @api.onchange("receivable_accounts_only", "payable_accounts_only")

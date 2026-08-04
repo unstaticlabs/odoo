@@ -28,7 +28,7 @@ from odoo.tools.safe_eval import safe_eval
 from odoo.addons.rebuild_account_migration.controllers import user_docs
 
 
-@tagged("post_install", "-at_install", "rebuild_account_migration_unit")
+@tagged("post_install", "-at_install", "usl_accounting_restore")
 class TestRebuildAccountMigration(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -115,7 +115,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Historical Payment Partner",
         })
         payment = self.env["account.payment"].with_context(
-            usl_import_no_ledger_payment=True,
+            usl_historical_payment_maintenance=True,
         ).create({
             "name": "PAY-LEGACY-TEST",
             "company_id": self.company.id,
@@ -623,11 +623,11 @@ class TestRebuildAccountMigration(TransactionCase):
                 "amount_string": "100",
             })],
         })
-        self.assertEqual(proven_rule.rebuild_historical_use_count, 4)
-        self.assertEqual(proven_rule.rebuild_total_use_count, 4)
-        self.assertEqual(proven_rule.rebuild_health_state, "proven")
-        self.assertEqual(proven_rule.rebuild_activity_badge, "4 used")
-        self.assertEqual(proven_rule.rebuild_activity_state, "used")
+        self.assertEqual(proven_rule.rebuild_historical_use_count, 0)
+        self.assertEqual(proven_rule.rebuild_total_use_count, 0)
+        self.assertEqual(proven_rule.rebuild_health_state, "ready")
+        self.assertEqual(proven_rule.rebuild_activity_badge, "No activity")
+        self.assertEqual(proven_rule.rebuild_activity_state, "none")
         self.assertFalse(proven_rule.rebuild_guidance)
         self.assertFalse(proven_rule.rebuild_has_actionable_guidance)
 
@@ -1226,26 +1226,6 @@ class TestRebuildAccountMigration(TransactionCase):
                 (
                     self.env.ref(
                         "rebuild_account_migration.view_rebuild_accounting_home_form",
-                    ).id,
-                    "form",
-                ),
-            ],
-        )
-        review_action = self.env.ref(
-            "rebuild_account_migration.action_rebuild_account_overview",
-        )
-        self.assertEqual(
-            [tuple(view) for view in review_action.views],
-            [
-                (
-                    self.env.ref(
-                        "rebuild_account_migration.view_rebuild_account_overview_list",
-                    ).id,
-                    "list",
-                ),
-                (
-                    self.env.ref(
-                        "rebuild_account_migration.view_rebuild_account_overview_form",
                     ).id,
                     "form",
                 ),
@@ -5030,7 +5010,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "account.group_account_invoice,account.group_account_user",
             )
 
-    def test_native_expense_records_have_source_trace_fields(self):
+    def test_restore_registry_temporarily_adds_source_trace_fields(self):
         trace_fields = {
             "rebuild_source_database",
             "rebuild_source_model",
@@ -5043,17 +5023,12 @@ class TestRebuildAccountMigration(TransactionCase):
         for model_name in ("hr.employee", "hr.expense", "product.product"):
             self.assertTrue(trace_fields.issubset(self.env[model_name]._fields))
 
-        employee_trace_fields = {
-            field_name
-            for field_name in self.env["hr.employee"]._fields
-            if field_name.startswith("rebuild_")
-        }
-        self.assertTrue(trace_fields.issubset(employee_trace_fields))
-        for field_name in employee_trace_fields:
-            self.assertEqual(
-                self.env["hr.employee"]._fields[field_name].groups,
-                "hr.group_hr_user",
-            )
+        self.assertEqual(
+            self.env["ir.module.module"].search([
+                ("name", "=", "usl_accounting_restore"),
+            ], limit=1).state,
+            "installed",
+        )
 
     def test_native_document_attachment_preserves_binary_and_main_selection(self):
         snapshot = "unit-native-document-attachment"
@@ -6633,9 +6608,9 @@ class TestRebuildAccountMigration(TransactionCase):
             backfill=True,
         )
 
-        self.assertEqual(first["coverage_start_date"], "2026-07-25")
+        self.assertEqual(first["coverage_start_date"], "2026-07-24")
         self.assertEqual(first["reference_date"], "2026-07-28")
-        self.assertEqual(first["processed_reference_date_count"], 2)
+        self.assertEqual(first["processed_reference_date_count"], 3)
         self.assertEqual(first["created_count"], 4)
         self.assertEqual(first["updated_count"], 0)
         self.assertEqual(source_rates.mapped("rate"), [1.1377, 0.85388])
@@ -6665,9 +6640,9 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(repeated["created_count"], 0)
         self.assertEqual(repeated["updated_count"], 0)
-        self.assertEqual(repeated["unchanged_count"], 4)
+        self.assertEqual(repeated["unchanged_count"], 6)
 
-    def test_ecb_reference_rate_provider_preserves_source_traced_rate(self):
+    def test_ecb_reference_rate_provider_updates_ecb_and_preserves_manual_rate(self):
         eur = self.env.ref("base.EUR")
         usd = self.env.ref("base.USD")
         gbp = self.env.ref("base.GBP")
@@ -6709,9 +6684,8 @@ class TestRebuildAccountMigration(TransactionCase):
             retrieved_at="2026-07-22 16:05:00",
         )
 
-        self.assertEqual(result["preserved_source_count"], 1)
         self.assertEqual(result["preserved_manual_count"], 1)
-        self.assertAlmostEqual(source_rate.rate, 1.1394)
+        self.assertAlmostEqual(source_rate.rate, 1.1408)
         self.assertEqual(source_rate.rebuild_source_id, 990022)
         self.assertAlmostEqual(manual_rate.rate, 0.85)
 
@@ -7294,65 +7268,21 @@ class TestRebuildAccountMigration(TransactionCase):
                 "account.group_account_manager",
             )
 
-    def test_native_analytic_corrections_are_a_read_only_audit_surface(self):
-        menu = self.env.ref(
-            "rebuild_account_migration.menu_rebuild_account_analytic_override",
-        )
-        self.assertEqual(
-            menu.parent_id,
+    def test_migration_models_have_no_product_menu(self):
+        self.assertFalse(
             self.env.ref(
                 "rebuild_account_migration.menu_rebuild_account_migration",
+                raise_if_not_found=False,
             ),
         )
-        technical_group = self.env.ref("base.group_no_one")
-        ordinary_groups = (
-            self.env.ref("base.group_system")
-            | self.env.ref("account.group_account_readonly")
+        self.assertFalse(
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_account_analytic_override",
+                raise_if_not_found=False,
+            ),
         )
-        self.assertFalse(menu.parent_id.active)
-        self.assertIn(technical_group, menu.parent_id.group_ids)
-        self.assertFalse(menu.parent_id.group_ids & ordinary_groups)
-        self.assertTrue(menu.parent_id.child_id)
-        for audit_menu in menu.parent_id.child_id:
-            self.assertIn(
-                technical_group,
-                audit_menu.group_ids,
-                f"{audit_menu.display_name} must remain a technical-only menu",
-            )
-            self.assertFalse(audit_menu.group_ids & ordinary_groups)
-        self.assertEqual(
-            menu.action.res_model,
-            "rebuild.account.analytic.override",
-        )
-        reviewer = self.env["res.users"].with_context(
-            no_reset_password=True,
-        ).create({
-            "name": "Native Analytic Reviewer",
-            "login": "native.analytic.reviewer@example.invalid",
-            "email": "native.analytic.reviewer@example.invalid",
-            "company_id": self.company.id,
-            "company_ids": [Command.set([self.company.id])],
-            "group_ids": [Command.set([self.reviewer_group.id])],
-        })
-        model = self.env[
-            "rebuild.account.analytic.override"
-        ].with_user(reviewer)
-        self.assertTrue(model.has_access("read"))
-        self.assertFalse(model.has_access("write"))
-        self.assertFalse(model.has_access("create"))
-        self.assertFalse(model.has_access("unlink"))
-        for model_name in (
-            "account.analytic.plan",
-            "account.analytic.account",
-            "account.analytic.line",
-        ):
-            analytic_model = self.env[model_name].with_user(reviewer)
-            self.assertTrue(analytic_model.has_access("read"))
-            self.assertFalse(analytic_model.has_access("write"))
-            self.assertFalse(analytic_model.has_access("create"))
-            self.assertFalse(analytic_model.has_access("unlink"))
 
-    def test_accountant_reviewer_is_read_only_for_discrepancies(self):
+    def test_accountant_reviewer_cannot_access_restore_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "Migration Reviewer",
@@ -7369,10 +7299,8 @@ class TestRebuildAccountMigration(TransactionCase):
             "status": "open",
         })
 
-        self.assertEqual(
-            discrepancy.with_user(reviewer).read(["name"])[0]["name"],
-            "Read-only discrepancy",
-        )
+        with self.assertRaises(AccessError):
+            discrepancy.with_user(reviewer).read(["name"])
         with self.assertRaises(AccessError):
             discrepancy.with_user(reviewer).write({"status": "resolved"})
         with self.assertRaises(AccessError):
@@ -7415,7 +7343,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "name": "Reviewer cannot create external VAT values",
                 "company_id": self.company.id,
                 "currency_id": self.company.currency_id.id,
-                "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+                "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
                 "form_code": "3517-S-SD",
                 "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
                 "value_kind": "accountant_supplied",
@@ -7427,7 +7355,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Reviewer external VAT value",
             "company_id": self.company.id,
             "currency_id": self.company.currency_id.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "form_code": "3517-S-SD",
             "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
             "value_kind": "accountant_supplied",
@@ -7448,7 +7376,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Other company external VAT value",
             "company_id": other_company.id,
             "currency_id": self.company.currency_id.id,
-            "period_key": "USL Media full posted replay",
+            "period_key": "All posted accounting",
             "form_code": "3517-S-SD",
             "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
             "value_kind": "accountant_supplied",
@@ -7555,7 +7483,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Benchmark VAT value",
             "company_id": self.company.id,
             "currency_id": self.company.currency_id.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "form_code": "3517-S-SD",
             "form_name": "TVA CA12/CA12E",
             "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
@@ -7615,7 +7543,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Benchmark VAT value",
             "company_id": self.company.id,
             "currency_id": self.company.currency_id.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "form_code": "3517-S-SD",
             "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
             "value_kind": "benchmark_acceptance_anchor",
@@ -7650,7 +7578,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(decision.state, "recorded")
         self.assertEqual(source_report.parity_level, "level_4_accepted")
         self.assertEqual(source_report.latest_evidence_status, "recorded_review_decision:accepted_with_difference")
-        self.assertIn("declaration-specific value", source_report.note)
+        self.assertFalse(source_report.note)
         self.assertEqual(external_value.review_status, "accepted_with_difference")
         self.assertEqual(external_value.decision, decision.decision_summary)
         self.assertEqual(discrepancy.status, "accepted")
@@ -7707,11 +7635,6 @@ class TestRebuildAccountMigration(TransactionCase):
 
         restricted_view_buttons = (
             (
-                "rebuild.account.discrepancy",
-                "rebuild_account_migration.view_rebuild_account_discrepancy_form",
-                ("action_record_review_decision",),
-            ),
-            (
                 "rebuild.account.assurance.decision",
                 "rebuild_account_migration.view_rebuild_account_assurance_decision_form",
                 ("action_record", "action_supersede"),
@@ -7719,11 +7642,6 @@ class TestRebuildAccountMigration(TransactionCase):
             (
                 "rebuild.account.external.report.value",
                 "rebuild_account_migration.view_rebuild_account_external_report_value_form",
-                ("action_record_review_decision",),
-            ),
-            (
-                "rebuild.account.source.report",
-                "rebuild_account_migration.view_rebuild_account_source_report_form",
                 ("action_record_review_decision",),
             ),
         )
@@ -7738,6 +7656,14 @@ class TestRebuildAccountMigration(TransactionCase):
                     arch.xpath(f"//button[@name='{button_name}']"),
                     f"{button_name} must not be visible to the read-only reviewer",
                 )
+        self.assertFalse(self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_discrepancy_form",
+            raise_if_not_found=False,
+        ))
+        self.assertFalse(self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_source_report_form",
+            raise_if_not_found=False,
+        ))
 
     def test_report_export_metadata_and_empty_csv(self):
         wizard = self.env["rebuild.account.report.export.wizard"].create({
@@ -7859,7 +7785,7 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         line_action = preview_line.action_open_sources()
         self.assertEqual(line_action["res_model"], "account.move.line")
-        self.assertIn(("rebuild_source_id", "=", 900), line_action["domain"])
+        self.assertIn(("id", "=", 900), line_action["domain"])
         self.assertTrue([
             term
             for term in line_action["domain"]
@@ -8046,7 +7972,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "period_anchor_date": "2026-01-15",
             "comparison_mode": "previous_year",
             "target_move": "posted",
-            "data_scope": "native",
             "group_by": "account",
             "export_format": "xlsx",
         })
@@ -8095,14 +8020,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertAlmostEqual(expense_group.balance, 230.0)
         self.assertIn("est incluse", wizard.preview_warning)
 
-        wizard.write({
-            "target_move": "posted",
-            "data_scope": "imported",
-        })
-        imported_rows = wizard._report_rows()
-        self.assertFalse([
+        wizard.write({"target_move": "posted"})
+        current_rows = wizard._report_rows()
+        self.assertTrue([
             row
-            for row in imported_rows
+            for row in current_rows
             if row.get("account_code") == "T625100"
         ])
 
@@ -8480,7 +8402,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "date_from": "2099-01-01",
             "date_to": "2099-12-31",
             "target_move": "posted",
-            "data_scope": "native",
             "export_format": "csv",
         })
 
@@ -8512,7 +8433,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "date_from": "2099-01-01",
             "date_to": "2099-12-31",
             "target_move": "posted",
-            "data_scope": "native",
             "export_format": "xlsx",
         })
 
@@ -8531,7 +8451,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "date_from": "2099-01-01",
             "date_to": "2099-12-31",
             "target_move": "posted",
-            "data_scope": "native",
             "export_format": "csv",
         })
         analytic_wizard.action_preview_report()
@@ -9842,7 +9761,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(schedule_action["res_model"], "account.asset")
         self.assertEqual(schedule_action["res_id"], asset.id)
 
-    def test_interactive_oca_report_actions_open_on_benchmark_period(self):
+    def test_interactive_oca_report_actions_defer_to_current_period_defaults(self):
         expected_actions = {
             "account_financial_report.action_trial_balance_wizard": ("default_date_to", "default_target_move"),
             "account_financial_report.action_general_ledger_wizard": ("default_date_to", "default_target_move"),
@@ -9855,8 +9774,8 @@ class TestRebuildAccountMigration(TransactionCase):
             action = self.env.ref(xmlid)
             context = safe_eval(action.context or "{}")
 
-            self.assertEqual(context["default_date_from"], "2024-01-10")
-            self.assertEqual(context[closing_date_key], "2025-09-30")
+            self.assertNotIn("default_date_from", context)
+            self.assertNotIn(closing_date_key, context)
             self.assertEqual(context[move_key], "posted")
 
     def test_interactive_aged_receivable_payable_shortcuts_are_scoped(self):
@@ -9870,8 +9789,8 @@ class TestRebuildAccountMigration(TransactionCase):
 
             self.assertEqual(action.res_model, "aged.partner.balance.report.wizard")
             self.assertEqual(action.target, "new")
-            self.assertEqual(context["default_date_from"], "2024-01-10")
-            self.assertEqual(context["default_date_at"], "2025-09-30")
+            self.assertNotIn("default_date_from", context)
+            self.assertNotIn("default_date_at", context)
             self.assertEqual(context["default_target_move"], "posted")
             self.assertEqual(context["default_receivable_accounts_only"], receivable_only)
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
@@ -9971,9 +9890,11 @@ class TestRebuildAccountMigration(TransactionCase):
             "profit_loss",
         )
 
-    def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
+    def test_interactive_oca_report_wizards_default_to_current_fiscal_period(self):
         receivable = self._account("411900", "Unit receivable report default", "asset_receivable")
         payable = self._account("401900", "Unit payable report default", "liability_payable")
+        today = fields.Date.context_today(self.env["trial.balance.report.wizard"])
+        fiscal_dates = self.env.company.compute_fiscalyear_dates(today)
 
         period_wizards = [
             "trial.balance.report.wizard",
@@ -9982,8 +9903,8 @@ class TestRebuildAccountMigration(TransactionCase):
         ]
         for model_name in period_wizards:
             values = self.env[model_name].default_get(["date_from", "date_to", "target_move"])
-            self.assertEqual(str(values["date_from"]), "2024-01-10")
-            self.assertEqual(str(values["date_to"]), "2025-09-30")
+            self.assertEqual(values["date_from"], fiscal_dates["date_from"])
+            self.assertEqual(values["date_to"], today)
             self.assertEqual(values["target_move"], "posted")
 
         journal_values = self.env["journal.ledger.report.wizard"].default_get([
@@ -9991,8 +9912,8 @@ class TestRebuildAccountMigration(TransactionCase):
             "date_to",
             "move_target",
         ])
-        self.assertEqual(str(journal_values["date_from"]), "2024-01-10")
-        self.assertEqual(str(journal_values["date_to"]), "2025-09-30")
+        self.assertEqual(journal_values["date_from"], fiscal_dates["date_from"])
+        self.assertEqual(journal_values["date_to"], today)
         self.assertEqual(journal_values["move_target"], "posted")
 
         for model_name in ["open.items.report.wizard", "aged.partner.balance.report.wizard"]:
@@ -10003,8 +9924,8 @@ class TestRebuildAccountMigration(TransactionCase):
                 "receivable_accounts_only",
                 "payable_accounts_only",
             ])
-            self.assertEqual(str(values["date_from"]), "2024-01-10")
-            self.assertEqual(str(values["date_at"]), "2025-09-30")
+            self.assertEqual(values["date_from"], fiscal_dates["date_from"])
+            self.assertEqual(values["date_at"], today)
             self.assertEqual(values["target_move"], "posted")
             self.assertTrue(values["receivable_accounts_only"])
             self.assertTrue(values["payable_accounts_only"])
@@ -10014,16 +9935,18 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertIn(receivable, wizard.account_ids)
             self.assertIn(payable, wizard.account_ids)
 
-    def test_empty_date_range_onchange_keeps_benchmark_dates(self):
-        wizard = self.env["trial.balance.report.wizard"].create({})
-        wizard.date_from = "2024-01-10"
-        wizard.date_to = "2025-09-30"
+    def test_empty_date_range_onchange_keeps_current_period_dates(self):
+        Wizard = self.env["trial.balance.report.wizard"]
+        values = Wizard.default_get(["date_from", "date_to"])
+        wizard = Wizard.create(values)
+        original_date_from = wizard.date_from
+        original_date_to = wizard.date_to
         wizard.date_range_id = False
 
         wizard.onchange_date_range_id()
 
-        self.assertEqual(str(wizard.date_from), "2024-01-10")
-        self.assertEqual(str(wizard.date_to), "2025-09-30")
+        self.assertEqual(wizard.date_from, original_date_from)
+        self.assertEqual(wizard.date_to, original_date_to)
 
     def test_user_guide_action_and_markdown_renderer_are_available(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_user_guide")
@@ -10142,7 +10065,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "REMOVED_AS_UNUSED",
         )
 
-    def test_review_summary_surfaces_blockers_and_user_actions(self):
+    def test_restore_evidence_does_not_leak_into_product_overview(self):
         summary_company = self.env["res.company"].create({
             "name": "Unit Review Summary Company",
             "currency_id": self.company.currency_id.id,
@@ -10180,14 +10103,14 @@ class TestRebuildAccountMigration(TransactionCase):
             "conclusion": "pending",
             "required_authority": "accountant",
             "company_id": summary_company.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "decision_summary": "Pending unit review.",
         })
         self.env["rebuild.account.external.report.value"].create({
             "name": "Unit external VAT value",
             "company_id": summary_company.id,
             "currency_id": summary_company.currency_id.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "form_code": "3517-S-SD",
             "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
             "value_kind": "benchmark_acceptance_anchor",
@@ -10202,28 +10125,25 @@ class TestRebuildAccountMigration(TransactionCase):
         ], limit=1)
 
         self.assertTrue(summary)
-        self.assertEqual(summary.source_company_id, 990001)
-        self.assertEqual(summary.latest_import_run_id, import_run)
-        self.assertGreaterEqual(summary.open_p0_count, 1)
-        self.assertEqual(summary.readiness_status, "blocked")
+        self.assertFalse(hasattr(summary, "source_company_id"))
+        self.assertFalse(hasattr(summary, "latest_import_run_id"))
+        self.assertFalse(hasattr(summary, "open_p0_count"))
+        self.assertEqual(summary.readiness_status, "review_required")
         self.assertGreaterEqual(summary.review_decision_count, 1)
         self.assertGreaterEqual(summary.pending_review_decision_count, 1)
         self.assertEqual(summary.recorded_review_decision_count, 0)
         self.assertEqual(summary.external_report_value_count, 1)
         self.assertEqual(summary.pending_external_report_value_count, 1)
-        self.assertGreaterEqual(summary.source_report_count, 1)
-        self.assertGreaterEqual(summary.mandatory_report_count, 1)
-        self.assertGreaterEqual(summary.level_3_report_count, 1)
-        self.assertGreaterEqual(summary.level_4_report_count, 0)
+        self.assertFalse(hasattr(summary, "source_report_count"))
+        self.assertFalse(hasattr(summary, "mandatory_report_count"))
+        self.assertFalse(hasattr(summary, "level_3_report_count"))
+        self.assertFalse(hasattr(summary, "level_4_report_count"))
         self.assertGreaterEqual(summary.journal_count, 0)
         self.assertEqual(summary.bank_transaction_count, 0)
         self.assertEqual(summary.open_receivable_count, 0)
         self.assertEqual(summary.open_payable_count, 0)
 
-        discrepancy_action = summary.action_open_open_discrepancies()
-        self.assertEqual(discrepancy_action["res_model"], "rebuild.account.discrepancy")
-        self.assertIn(("company_id", "=", summary_company.id), discrepancy_action["domain"])
-        self.assertEqual(discrepancy_action["context"]["create"], False)
+        self.assertFalse(hasattr(summary, "action_open_open_discrepancies"))
 
         decision_action = summary.action_open_review_decisions()
         self.assertEqual(decision_action["res_model"], "rebuild.account.assurance.decision")
@@ -10237,16 +10157,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(external_value_action["context"]["default_company_id"], summary_company.id)
         self.assertEqual(external_value_action["context"]["delete"], False)
 
-        journal_action = summary.action_open_imported_journal_items()
-        self.assertEqual(journal_action["res_model"], "account.move.line")
-        self.assertIn(("company_id", "=", summary_company.id), journal_action["domain"])
+        self.assertFalse(hasattr(summary, "action_open_imported_journal_items"))
 
         report_action = summary.action_open_report_export_wizard()
         self.assertEqual(report_action["res_model"], "rebuild.account.report.export.wizard")
         self.assertEqual(report_action["context"]["default_company_id"], summary_company.id)
         self.assertEqual(report_action["context"]["default_company_ids"], [summary_company.id])
         self.assertEqual(report_action["context"]["default_report_type"], "trial_balance")
-        self.assertEqual(report_action["context"]["default_data_scope"], "native")
+        self.assertNotIn("default_data_scope", report_action["context"])
         self.assertEqual(report_action["context"]["default_period_preset"], "year_to_date")
         self.assertEqual(report_action["context"]["default_target_move"], "posted")
         self.assertEqual(report_action["views"], [(False, "form")])
@@ -10452,7 +10370,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Unit benchmark VAT",
             "company_id": self.company.id,
             "currency_id": self.company.currency_id.id,
-            "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+            "period_key": "Fiscal year 2024-01-10 to 2025-09-30",
             "form_code": "3517-S-SD",
             "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
             "value_kind": "benchmark_acceptance_anchor",

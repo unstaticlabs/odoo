@@ -129,7 +129,9 @@ finalize_projects() {
         --database="$target_database" \
         --shell-interface=python \
         < migration/project_restore/addons/usl_project_restore/scripts/finalize_restore.py
-    validate_product_boundary
+    if [[ "${PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE:-0}" != "1" ]]; then
+        validate_product_boundary
+    fi
 }
 
 validate_product_boundary() {

@@ -388,28 +388,28 @@ class HrExpense(models.Model):
         "usl.expense.bank.match.candidate",
         "expense_id",
         string="Company Payment Matches",
-        groups="account.group_account_readonly",
+        groups="account.group_account_readonly,account.group_account_manager",
         copy=False,
     )
     usl_bank_match_available_count = fields.Integer(
         compute="_compute_usl_bank_match_status",
-        groups="account.group_account_readonly",
+        groups="account.group_account_readonly,account.group_account_manager",
     )
     usl_bank_match_accepted_count = fields.Integer(
         compute="_compute_usl_bank_match_status",
-        groups="account.group_account_readonly",
+        groups="account.group_account_readonly,account.group_account_manager",
     )
     usl_bank_match_last_refreshed_at = fields.Datetime(
         compute="_compute_usl_bank_match_status",
-        groups="account.group_account_readonly",
+        groups="account.group_account_readonly,account.group_account_manager",
     )
     usl_bank_match_eligible = fields.Boolean(
         compute="_compute_usl_bank_match_eligible",
-        groups="account.group_account_readonly",
+        groups="account.group_account_readonly,account.group_account_manager",
     )
     usl_bank_match_guidance = fields.Char(
         compute="_compute_usl_bank_match_eligible",
-        groups="account.group_account_readonly",
+        groups="account.group_account_readonly,account.group_account_manager",
     )
 
     @api.depends(
@@ -475,7 +475,6 @@ class HrExpense(models.Model):
     def _usl_bank_match_check_manager(self):
         if not (
             self.env.su
-            or self.env.context.get("usl_expense_bank_match_migration")
             or self.env.user.has_group("account.group_account_manager")
         ):
             raise AccessError(_(

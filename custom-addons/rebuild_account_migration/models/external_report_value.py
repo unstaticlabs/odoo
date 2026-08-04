@@ -1,5 +1,4 @@
 from odoo import fields, models
-from odoo.exceptions import UserError
 
 
 class RebuildAccountExternalReportValue(models.Model):
@@ -52,8 +51,6 @@ class RebuildAccountExternalReportValue(models.Model):
         default="pending_review",
         index=True,
     )
-    import_run_id = fields.Many2one("rebuild.account.import.run", index=True, ondelete="set null")
-    discrepancy_id = fields.Many2one("rebuild.account.discrepancy", index=True, ondelete="set null")
     evidence = fields.Text()
     decision = fields.Text()
     reviewer_name = fields.Char()
@@ -74,19 +71,6 @@ class RebuildAccountExternalReportValue(models.Model):
             "context": {"create": False, "delete": False},
         }
 
-    def action_open_discrepancy(self):
-        self.ensure_one()
-        if not self.discrepancy_id:
-            raise UserError("This external value is not linked to a discrepancy.")
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Accounting Discrepancy",
-            "res_model": "rebuild.account.discrepancy",
-            "res_id": self.discrepancy_id.id,
-            "view_mode": "form",
-            "context": {"create": False, "delete": False},
-        }
-
     def action_record_review_decision(self):
         self.ensure_one()
         return {
@@ -103,10 +87,7 @@ class RebuildAccountExternalReportValue(models.Model):
                 "default_company_id": self.company_id.id,
                 "default_period_key": self.period_key,
                 "default_external_value_id": self.id,
-                "default_discrepancy_id": self.discrepancy_id.id,
-                "default_import_run_id": self.import_run_id.id,
                 "default_evidence_key": self.source_key,
-                "default_source_value": f"{self.amount:.2f}",
                 "default_evidence_summary": self.evidence,
                 "default_remaining_risk": (
                     "External declaration value is not accepted until accountant review records its treatment."

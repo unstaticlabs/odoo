@@ -25,9 +25,12 @@ The verified production add-on dependency direction is:
  pinned OCA auth_oidc ---> usl_pocketid -------------------+
  native/OCA Accounting -> usl_accounting -----------------+--> rebuild_account_migration
  native hr_expense -----> usl_expense_batch --------------+
-  (product compatibility, stable XML-ID ownership and reconstruction)
+  (product compatibility and stable operational XML-ID ownership)
 
 usl_bootstrap ---> native modules only (disposable test fixture)
+
+migration/accounting_restore/usl_accounting_restore
+  ---> rebuild_account_migration (temporary import-time dependency only)
 ```
 
 `rebuild_account_migration` remains the installed compatibility module during
@@ -92,15 +95,15 @@ identifiers. It is explicitly rejected for this increment.
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
 | Foreign-currency settlement definitions, views and payment-widget assets | `usl_accounting` | runtime foundation over native/OCA | exact/native-FX, payment-rate, reversal, ACL and browser tests |
 | Company-paid expense bank matching | `usl_accounting` | runtime foundation over native expenses and OCA reconciliation | ranked-candidate, ACL, native lifecycle, rollback and reconciliation tests |
-| Reconciliation-model intelligence | compatibility module for this stage | source-trace dependency, left unchanged | rule behavior and replay tests |
+| Reconciliation-model intelligence | compatibility module for this stage | runtime behavior derived from native journal lines | rule behavior and OCA tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |
 | Interactive reports, definitions, PDF/XLSX and OCA report defaults | compatibility module for this stage | stable report/wizard-model ownership, left unchanged | report screen/export parity and report presentation tests |
 | Electronic-invoice readiness and offline reception evidence | compatibility module for this stage | stable reception-model ownership, left unchanged | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
 | Expense claims/batches | `usl_expense_batch` | retained independent feature | clean module and browser tests |
-| Overview and cash projections | compatibility module for this stage | uncertain cross-feature boundary, left unchanged | depends on controls, reports and reconstructed evidence |
+| Overview and cash projections | compatibility module for this stage | operational cross-feature behavior, left unchanged | native ledger, controls and report tests |
 | Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
-| Source trace, importer, native replay, parity evidence and reconstruction models | `rebuild_account_migration` | migration-only | canonical harness and idempotent reconstruction gates |
+| Source trace, importer, native replay, parity evidence and reconstruction models | temporary `migration/accounting_restore` add-on | migration-only and uninstalled at finalization | canonical harness, idempotency and final-registry boundary gates |
 | Existing security, views, actions, menus and seeded definitions | `rebuild_account_migration` | compatibility ownership | XML-ID continuity characterization test |
 | Configurable-definition mixin | compatibility module for this stage | generated model XML-ID ownership, left unchanged | XML-ID continuity characterization test |
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
@@ -135,9 +138,9 @@ menus.
 - A repeated compatibility-module upgrade must not duplicate definitions or
   business records.
 - Removing the compatibility module is not supported while it owns production
-  XML IDs and reconstruction fields.
-- Migration-only models, permissions and menus remain restricted to technical
-  administrators and absent from ordinary Accounting navigation.
+  XML IDs and operational product models.
+- Migration-only models, permissions, fields and menus are absent from the
+  delivered product registry, not merely hidden from ordinary navigation.
 
 ## OCA integration boundary
 
@@ -185,7 +188,8 @@ This refactor does not modify either patch.
   into runtime methods.
 - Extend expense-claim grouping in `usl_expense_batch`.
 - Put source extraction, source tracing, reconstruction and parity-only code
-  in `rebuild_account_migration`; never expose it in ordinary UI.
+  under `migration/`; load it only in the dedicated migration service and
+  uninstall it before product acceptance.
 - Do not add a new module unless the boundary improves dependency isolation,
   installability, ownership clarity or independent validation.
 
@@ -201,5 +205,7 @@ Every architecture change must pass:
 6. the focused tests owned by each changed feature module;
 7. manager/reviewer navigation checks only when menus, views, assets or ACLs
    changed;
-8. canonical reconstruction only when importer, source fields or ownership
+8. finalization proving migration models, fields, metadata and XML IDs are
+   absent without changing business facts;
+9. canonical reconstruction only when importer, source fields or ownership
    changed materially.

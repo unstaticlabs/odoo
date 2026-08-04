@@ -1033,22 +1033,22 @@
         <field name="active" eval="False"/>
     </record>
     <record id="account_financial_report.action_trial_balance_wizard" model="ir.actions.act_window">
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_target_move': 'posted'}</field>
+        <field name="context">{'default_target_move': 'posted'}</field>
     </record>
     <record id="account_financial_report.action_general_ledger_wizard" model="ir.actions.act_window">
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_target_move': 'posted'}</field>
+        <field name="context">{'default_target_move': 'posted'}</field>
     </record>
     <record id="account_financial_report.action_journal_ledger_wizard" model="ir.actions.act_window">
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_move_target': 'posted'}</field>
+        <field name="context">{'default_move_target': 'posted'}</field>
     </record>
     <record id="account_financial_report.action_vat_report_wizard" model="ir.actions.act_window">
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_target_move': 'posted'}</field>
+        <field name="context">{'default_target_move': 'posted'}</field>
     </record>
     <record id="account_financial_report.action_open_items_wizard" model="ir.actions.act_window">
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted'}</field>
+        <field name="context">{'default_target_move': 'posted'}</field>
     </record>
     <record id="account_financial_report.action_aged_partner_balance_wizard" model="ir.actions.act_window">
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted'}</field>
+        <field name="context">{'default_target_move': 'posted'}</field>
     </record>
     <record id="action_rebuild_oca_aged_receivable_wizard" model="ir.actions.act_window">
         <field name="name">Aged Receivable</field>
@@ -1056,7 +1056,7 @@
         <field name="view_mode">form</field>
         <field name="view_id" ref="account_financial_report.aged_partner_balance_wizard"/>
         <field name="target">new</field>
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted', 'default_receivable_accounts_only': True, 'default_payable_accounts_only': False}</field>
+        <field name="context">{'default_target_move': 'posted', 'default_receivable_accounts_only': True, 'default_payable_accounts_only': False}</field>
     </record>
     <record id="action_rebuild_oca_aged_payable_wizard" model="ir.actions.act_window">
         <field name="name">Aged Payable</field>
@@ -1064,7 +1064,7 @@
         <field name="view_mode">form</field>
         <field name="view_id" ref="account_financial_report.aged_partner_balance_wizard"/>
         <field name="target">new</field>
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted', 'default_receivable_accounts_only': False, 'default_payable_accounts_only': True}</field>
+        <field name="context">{'default_target_move': 'posted', 'default_receivable_accounts_only': False, 'default_payable_accounts_only': True}</field>
     </record>
     <menuitem
         id="menu_rebuild_oca_aged_receivable"
@@ -1644,42 +1644,6 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_overview_list" model="ir.ui.view">
-        <field name="name">rebuild.account.overview.list</field>
-        <field name="model">rebuild.account.overview</field>
-        <field name="arch" type="xml">
-            <list string="Accounting Assurance Overview" create="0" edit="0" delete="0">
-                <field name="company_id"/>
-                <field name="source_company_id"/>
-                <field name="readiness_status"/>
-                <field name="latest_import_status"/>
-                <field name="posted_move_count"/>
-                <field name="move_line_count"/>
-                <field name="currency_id" column_invisible="1"/>
-                <field name="debit" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Debit"/>
-                <field name="credit" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Credit"/>
-                <field name="balance" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Balance"/>
-                <field name="open_p0_count"/>
-                <field name="open_p1_count"/>
-                <field name="open_discrepancy_count"/>
-                <field name="pending_review_decision_count"/>
-                <field name="recorded_review_decision_count"/>
-                <field name="external_report_value_count"/>
-                <field name="pending_external_report_value_count"/>
-                <field name="source_report_count"/>
-                <field name="mandatory_report_count"/>
-                <field name="partial_report_equivalent_count"/>
-                <field name="level_3_report_count"/>
-                <field name="level_4_report_count"/>
-                <button name="action_open_open_discrepancies" type="object" string="Discrepancies" icon="fa-exclamation-triangle"/>
-                <button name="action_open_review_decisions" type="object" string="Decisions" icon="fa-check-square-o"/>
-                <button name="action_open_external_report_values" type="object" string="External Values" icon="fa-pencil-square-o"/>
-                <button name="action_open_imported_journal_items" type="object" string="Journal Items" icon="fa-list"/>
-                <button name="action_open_report_export_wizard" type="object" string="Reports" icon="fa-download"/>
-                <button name="action_open_user_guide" type="object" string="User Guide" icon="fa-question-circle"/>
-            </list>
-        </field>
-    </record>
 
     <record id="view_rebuild_accounting_home_form" model="ir.ui.view">
         <field name="name">rebuild.account.overview.form.accounting.home</field>
@@ -2207,88 +2171,8 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_overview_form" model="ir.ui.view">
-        <field name="name">rebuild.account.overview.form</field>
-        <field name="model">rebuild.account.overview</field>
-        <field name="arch" type="xml">
-            <form string="Accounting Assurance Overview" create="0" edit="0" delete="0">
-                <header>
-                    <button name="action_open_latest_import_run" type="object" string="Latest Import Run"/>
-                    <button name="action_open_open_discrepancies" type="object" string="Open Discrepancies"/>
-                    <button name="action_open_review_decisions" type="object" string="Review Decisions"/>
-                    <button name="action_open_external_report_values" type="object" string="External Values"/>
-                    <button name="action_open_source_reports" type="object" string="Source Reports"/>
-                    <button name="action_open_imported_journal_items" type="object" string="Journal Items"/>
-                    <button name="action_open_report_export_wizard" type="object" string="Generate Reports" class="btn-primary"/>
-                    <button name="action_open_user_guide" type="object" string="User Guide"/>
-                </header>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="company_id"/>
-                            <field name="source_company_id"/>
-                            <field name="readiness_status"/>
-                            <field name="latest_import_status"/>
-                        </group>
-                        <group>
-                            <field name="source_snapshot_id"/>
-                            <field name="source_dump_sha256"/>
-                            <field name="target_database"/>
-                            <field name="started_at"/>
-                            <field name="finished_at"/>
-                        </group>
-                    </group>
-                    <group string="Ledger Controls">
-                        <field name="currency_id" invisible="1"/>
-                        <field name="posted_move_count"/>
-                        <field name="move_line_count"/>
-                        <field name="debit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                        <field name="credit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                        <field name="balance" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                    </group>
-                    <group string="Assurance State">
-                        <field name="open_p0_count"/>
-                        <field name="open_p1_count"/>
-                        <field name="open_discrepancy_count"/>
-                        <field name="review_decision_count"/>
-                        <field name="pending_review_decision_count"/>
-                        <field name="recorded_review_decision_count"/>
-                        <field name="external_report_value_count"/>
-                        <field name="pending_external_report_value_count"/>
-                    </group>
-                    <group string="Report Coverage">
-                        <field name="source_report_count"/>
-                        <field name="mandatory_report_count"/>
-                        <field name="partial_report_equivalent_count"/>
-                        <field name="level_3_report_count"/>
-                        <field name="level_4_report_count"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_overview_search" model="ir.ui.view">
-        <field name="name">rebuild.account.overview.search</field>
-        <field name="model">rebuild.account.overview</field>
-        <field name="arch" type="xml">
-            <search string="Accounting Assurance Overview">
-                <field name="company_id"/>
-                <field name="source_company_id"/>
-                <filter name="blocked" string="Blocked" domain="[('readiness_status','=','blocked')]"/>
-                <filter name="review_required" string="Review Required" domain="[('readiness_status','=','review_required')]"/>
-                <filter name="group_status" string="Readiness" context="{'group_by': 'readiness_status'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_overview" model="ir.actions.act_window">
-        <field name="name">Accounting Assurance Overview</field>
-        <field name="res_model">rebuild.account.overview</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_overview_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_rebuild_account_overview_form')})]"/>
-        <field name="context">{'search_default_group_status': 1}</field>
-    </record>
 
     <record id="view_rebuild_account_hygiene_list" model="ir.ui.view">
         <field name="name">rebuild.account.overview.list.accounting.hygiene</field>
@@ -2353,7 +2237,7 @@
                         class="alert alert-danger"
                         role="alert"
                         invisible="hygiene_status != 'blocked'">
-                        A blocking closing control or P0 accounting issue requires review.
+                        A blocking Hygiene or closing issue requires review.
                     </div>
                     <div
                         class="alert alert-warning"
@@ -2401,7 +2285,6 @@
                                 decoration-danger="readiness_status == 'blocked'"
                                 decoration-warning="readiness_status == 'review_required'"
                                 decoration-info="readiness_status == 'technical_evidence_available'"/>
-                            <field name="latest_import_status" widget="badge"/>
                         </group>
                     </group>
                     <group string="Documents and Expenses">
@@ -2456,11 +2339,8 @@
                             <button name="action_open_accountant_actions" type="object" string="Prepared for Accountant Reviewer" class="btn-link"/>
                         </group>
                         <group>
-                            <field name="open_p0_count"/>
-                            <field name="open_p1_count"/>
                             <field name="pending_review_decision_count"/>
                             <button name="action_open_review_decisions" type="object" string="Review Decisions" class="btn-link"/>
-                            <button name="action_open_latest_import_run" type="object" string="Latest Import Evidence" class="btn-link"/>
                         </group>
                     </group>
                 </sheet>
@@ -2681,182 +2561,11 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_import_run_list" model="ir.ui.view">
-        <field name="name">rebuild.account.import.run.list</field>
-        <field name="model">rebuild.account.import.run</field>
-        <field name="arch" type="xml">
-            <list string="Accounting Import Runs">
-                <field name="started_at"/>
-                <field name="name"/>
-                <field name="mode"/>
-                <field name="status"/>
-                <field name="source_snapshot_id"/>
-                <field name="target_database"/>
-                <field name="imported_move_count"/>
-                <field name="imported_move_line_count"/>
-                <field name="imported_currency_rate_count"/>
-                <field name="imported_non_posted_move_count"/>
-                <field name="imported_context_line_count"/>
-                <field name="imported_payment_count"/>
-                <field name="imported_no_entry_payment_count"/>
-                <field name="imported_bank_statement_line_count"/>
-                <field name="imported_analytic_line_count"/>
-                <field name="imported_attachment_count"/>
-                <field name="discrepancy_count"/>
-                <field name="imported_source_report_count"/>
-                <field name="imported_deferred_schedule_line_count"/>
-                <field name="external_report_value_count"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_import_run_form" model="ir.ui.view">
-        <field name="name">rebuild.account.import.run.form</field>
-        <field name="model">rebuild.account.import.run</field>
-        <field name="arch" type="xml">
-            <form string="Accounting Import Run">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="mode"/>
-                            <field name="status"/>
-                            <field name="started_at"/>
-                            <field name="finished_at"/>
-                        </group>
-                        <group>
-                            <field name="source_database"/>
-                            <field name="source_dump_sha256"/>
-                            <field name="source_snapshot_id"/>
-                            <field name="source_version"/>
-                            <field name="target_database"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page string="Counts">
-                            <group>
-                                <field name="company_ids" widget="many2many_tags"/>
-                                <field name="imported_company_count"/>
-                                <field name="imported_currency_rate_count"/>
-                                <field name="imported_account_count"/>
-                                <field name="imported_journal_count"/>
-                                <field name="imported_partner_count"/>
-                                <field name="imported_move_count"/>
-                                <field name="imported_move_line_count"/>
-                                <field name="imported_non_posted_move_count"/>
-                                <field name="imported_context_line_count"/>
-                                <field name="imported_payment_count"/>
-                                <field name="imported_no_entry_payment_count"/>
-                                <field name="imported_bank_statement_line_count"/>
-                                <field name="imported_analytic_line_count"/>
-                                <field name="imported_attachment_count"/>
-                                <field name="imported_reconciliation_count"/>
-                                <field name="imported_source_report_count"/>
-                                <field name="imported_deferred_schedule_line_count"/>
-                                <field name="external_report_value_count"/>
-                                <field name="warning_count"/>
-                                <field name="discrepancy_count"/>
-                            </group>
-                        </page>
-                        <page string="Statistics">
-                            <field name="statistics_json"/>
-                        </page>
-                        <page string="Discrepancies">
-                            <field name="discrepancy_ids"/>
-                        </page>
-                        <page string="Notes">
-                            <field name="notes"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_import_run" model="ir.actions.act_window">
-        <field name="name">Accounting Import Runs</field>
-        <field name="res_model">rebuild.account.import.run</field>
-        <field name="view_mode">list,form</field>
-    </record>
 
-    <record id="view_rebuild_account_discrepancy_list" model="ir.ui.view">
-        <field name="name">rebuild.account.discrepancy.list</field>
-        <field name="model">rebuild.account.discrepancy</field>
-        <field name="arch" type="xml">
-            <list string="Accounting Discrepancies">
-                <field name="severity"/>
-                <field name="classification"/>
-                <field name="status"/>
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="period_key"/>
-                <field name="source_model"/>
-                <field name="source_id"/>
-                <field name="target_model"/>
-                <field name="target_id"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_discrepancy_form" model="ir.ui.view">
-        <field name="name">rebuild.account.discrepancy.form</field>
-        <field name="model">rebuild.account.discrepancy</field>
-        <field name="arch" type="xml">
-            <form string="Accounting Discrepancy">
-                <sheet>
-                    <header>
-                        <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager"/>
-                    </header>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="severity"/>
-                            <field name="classification"/>
-                            <field name="status"/>
-                            <field name="company_id"/>
-                            <field name="period_key"/>
-                        </group>
-                        <group>
-                            <field name="import_run_id"/>
-                            <field name="source_model"/>
-                            <field name="source_id"/>
-                            <field name="target_model"/>
-                            <field name="target_id"/>
-                            <field name="owner"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page string="Values">
-                            <group>
-                                <field name="source_value"/>
-                                <field name="target_value"/>
-                                <field name="difference"/>
-                            </group>
-                        </page>
-                        <page string="Impact">
-                            <field name="accounting_impact"/>
-                            <field name="legal_or_tax_impact"/>
-                        </page>
-                        <page string="Evidence">
-                            <field name="evidence"/>
-                            <field name="likely_cause"/>
-                            <field name="recommendation"/>
-                        </page>
-                        <page string="Decision">
-                            <field name="decision"/>
-                            <field name="approver"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_discrepancy" model="ir.actions.act_window">
-        <field name="name">Accounting Discrepancies</field>
-        <field name="res_model">rebuild.account.discrepancy</field>
-        <field name="view_mode">list,form</field>
-    </record>
 
     <record id="view_rebuild_account_assurance_decision_list" model="ir.ui.view">
         <field name="name">rebuild.account.assurance.decision.list</field>
@@ -2870,8 +2579,6 @@
                 <field name="name"/>
                 <field name="company_id"/>
                 <field name="period_key"/>
-                <field name="source_report_id"/>
-                <field name="discrepancy_id"/>
                 <field name="external_value_id"/>
                 <field name="declaration_id"/>
                 <field name="closing_period_id"/>
@@ -2891,8 +2598,6 @@
                         <button name="action_record" type="object" string="Mark Recorded" groups="account.group_account_manager" invisible="state != 'draft'"/>
                         <button name="action_supersede" type="object" string="Supersede" groups="account.group_account_manager" invisible="state == 'superseded'"/>
                         <button name="action_open_external_value" type="object" string="External Value" invisible="not external_value_id"/>
-                        <button name="action_open_discrepancy" type="object" string="Discrepancy" invisible="not discrepancy_id"/>
-                        <button name="action_open_source_report" type="object" string="Source Report" invisible="not source_report_id"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,recorded,superseded"/>
                     </header>
                     <group>
@@ -2905,12 +2610,9 @@
                             <field name="period_key"/>
                         </group>
                         <group>
-                            <field name="source_report_id"/>
-                            <field name="discrepancy_id"/>
                             <field name="external_value_id"/>
                             <field name="declaration_id"/>
                             <field name="closing_period_id"/>
-                            <field name="import_run_id"/>
                             <field name="evidence_key"/>
                             <field name="reviewer_name"/>
                             <field name="reviewer_user_id"/>
@@ -2925,9 +2627,6 @@
                         </page>
                         <page string="Values">
                             <group>
-                                <field name="source_value"/>
-                                <field name="target_value"/>
-                                <field name="difference"/>
                             </group>
                         </page>
                         <page string="Evidence">
@@ -2947,8 +2646,6 @@
                 <field name="name"/>
                 <field name="company_id"/>
                 <field name="period_key"/>
-                <field name="source_report_id"/>
-                <field name="discrepancy_id"/>
                 <field name="external_value_id"/>
                 <field name="declaration_id"/>
                 <field name="closing_period_id"/>
@@ -2972,7 +2669,7 @@
         <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Record accountant, stakeholder or operator review decisions for accounting parity evidence.
+                Record accountant, stakeholder or operator decisions with their supporting evidence.
             </p>
         </field>
     </record>
@@ -2993,7 +2690,6 @@
                 <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Amount"/>
                 <field name="source_key"/>
                 <field name="source_document"/>
-                <field name="discrepancy_id"/>
                 <button name="action_open_tax_package_lines" type="object" string="Tax Lines" icon="fa-list"/>
                 <button name="action_record_review_decision" type="object" string="Review" icon="fa-check-square-o" groups="account.group_account_manager"/>
             </list>
@@ -3007,7 +2703,6 @@
             <form string="External Report Value" delete="0">
                 <header>
                     <button name="action_open_tax_package_lines" type="object" string="Tax Package Lines"/>
-                    <button name="action_open_discrepancy" type="object" string="Discrepancy" invisible="not discrepancy_id"/>
                     <button name="action_record_review_decision" type="object" string="Record Review Decision" class="btn-primary" groups="account.group_account_manager"/>
                 </header>
                 <sheet>
@@ -3038,8 +2733,6 @@
                         <field name="source_document"/>
                         <field name="source_reference"/>
                         <field name="source_url"/>
-                        <field name="import_run_id"/>
-                        <field name="discrepancy_id"/>
                     </group>
                     <notebook>
                         <page string="Evidence">
@@ -3087,7 +2780,7 @@
         <field name="context">{'search_default_pending': 1, 'search_default_group_form': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Record external declaration values, carryovers and accountant-supplied report values without altering the imported ledger.
+                Record external declaration values, carryovers and accountant-supplied report values without altering posted entries.
             </p>
         </field>
     </record>
@@ -3124,766 +2817,40 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_asset_list" model="ir.ui.view">
-        <field name="name">rebuild.account.asset.list</field>
-        <field name="model">rebuild.account.asset</field>
-        <field name="arch" type="xml">
-            <list string="Fixed Assets">
-                <field name="acquisition_date"/>
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="asset_account_id"/>
-                <field name="original_value"/>
-                <field name="already_depreciated_amount_import"/>
-                <field name="imported_period_net_value"/>
-                <field name="book_value"/>
-                <field name="state"/>
-                <field name="source_depreciation_move_count"/>
-                <field name="imported_depreciation_move_count"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_asset_form" model="ir.ui.view">
-        <field name="name">rebuild.account.asset.form</field>
-        <field name="model">rebuild.account.asset</field>
-        <field name="arch" type="xml">
-            <form string="Fixed Asset">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="company_id"/>
-                            <field name="currency_id"/>
-                            <field name="state"/>
-                            <field name="asset_group_name"/>
-                            <field name="active"/>
-                        </group>
-                        <group>
-                            <field name="acquisition_date"/>
-                            <field name="prorata_date"/>
-                            <field name="prorata_computation_type"/>
-                            <field name="disposal_date"/>
-                            <field name="asset_paused_days"/>
-                        </group>
-                    </group>
-                    <group string="Amounts">
-                        <field name="original_value"/>
-                        <field name="already_depreciated_amount_import"/>
-                        <field name="imported_period_net_value"/>
-                        <field name="book_value"/>
-                        <field name="salvage_value"/>
-                        <field name="non_deductible_tax_value"/>
-                        <field name="net_gain_on_sale"/>
-                    </group>
-                    <group string="Accounting">
-                        <field name="asset_account_id"/>
-                        <field name="depreciation_account_id"/>
-                        <field name="depreciation_expense_account_id"/>
-                        <field name="journal_id"/>
-                    </group>
-                    <notebook>
-                        <page string="Imported Depreciation Entries">
-                            <group>
-                                <field name="source_depreciation_move_count"/>
-                                <field name="imported_depreciation_move_count"/>
-                            </group>
-                            <field name="depreciation_move_ids"/>
-                        </page>
-                        <page string="Source Depreciation Schedule">
-                            <field name="depreciation_schedule_line_ids" readonly="1"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                        <page string="Notes">
-                            <field name="notes"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_asset" model="ir.actions.act_window">
-        <field name="name">Fixed Asset Register</field>
-        <field name="res_model">rebuild.account.asset</field>
-        <field name="view_mode">list,form</field>
-    </record>
 
-    <record id="action_rebuild_account_asset_group_account" model="ir.actions.act_window">
-        <field name="name">Fixed Asset Register by Account</field>
-        <field name="res_model">rebuild.account.asset</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'group_by': 'asset_account_id'}</field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_list" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.list</field>
-        <field name="model">rebuild.account.source.report</field>
-        <field name="arch" type="xml">
-            <list string="Source Accounting Report Catalogue" create="0" edit="0" delete="0">
-                <field name="source_report_id"/>
-                <field name="name"/>
-                <field name="localized_name"/>
-                <field name="active"/>
-                <field name="country_code"/>
-                <field name="decision"/>
-                <field name="target_status"/>
-                <field name="parity_level"/>
-                <field name="target_evidence_key"/>
-                <field name="line_count" sum="Lines"/>
-                <field name="imported_line_count" sum="Imported Lines"/>
-                <field name="column_count" sum="Columns"/>
-                <field name="imported_column_count" sum="Imported Columns"/>
-                <field name="expression_count" sum="Expressions"/>
-                <field name="imported_expression_count" sum="Imported Expressions"/>
-                <field name="external_value_count" sum="External Values"/>
-                <field name="source_custom_handler_model"/>
-                <button name="action_open_target_equivalent" type="object" string="Target Report" icon="fa-external-link" invisible="not target_action_xmlid"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_form" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.form</field>
-        <field name="model">rebuild.account.source.report</field>
-        <field name="arch" type="xml">
-            <form string="Source Accounting Report Catalogue" create="0" edit="0" delete="0">
-                <sheet>
-                    <header>
-                        <button name="action_open_target_equivalent" type="object" string="Open Target Equivalent" invisible="not target_action_xmlid"/>
-                        <button name="action_open_source_lines" type="object" string="Source Lines"/>
-                        <button name="action_open_source_expressions" type="object" string="Source Expressions"/>
-                        <button name="action_open_source_columns" type="object" string="Source Columns"/>
-                        <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager"/>
-                    </header>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="source_name"/>
-                            <field name="localized_name"/>
-                            <field name="source_report_id"/>
-                            <field name="active"/>
-                            <field name="sequence"/>
-                        </group>
-                        <group>
-                            <field name="decision"/>
-                            <field name="target_status"/>
-                            <field name="parity_level"/>
-                            <field name="target_action_xmlid"/>
-                            <field name="target_evidence_key"/>
-                            <field name="country_code"/>
-                            <field name="chart_template"/>
-                            <field name="source_custom_handler_model"/>
-                        </group>
-                    </group>
-                    <group string="Source Structure">
-                        <field name="source_root_report_id"/>
-                        <field name="root_report_name"/>
-                        <field name="line_count"/>
-                        <field name="imported_line_count"/>
-                        <field name="column_count"/>
-                        <field name="imported_column_count"/>
-                        <field name="expression_count"/>
-                        <field name="imported_expression_count"/>
-                        <field name="external_value_count"/>
-                    </group>
-                    <group string="Source Report Options">
-                        <field name="availability_condition"/>
-                        <field name="integer_rounding"/>
-                        <field name="default_opening_date_filter"/>
-                        <field name="currency_translation"/>
-                        <field name="filter_multi_company"/>
-                        <field name="filter_hide_0_lines"/>
-                        <field name="filter_hierarchy"/>
-                        <field name="filter_account_type"/>
-                    </group>
-                    <notebook>
-                        <page string="Filters">
-                            <group>
-                                <field name="filter_date_range"/>
-                                <field name="filter_show_draft"/>
-                                <field name="filter_unreconciled"/>
-                                <field name="filter_unfold_all"/>
-                                <field name="filter_period_comparison"/>
-                                <field name="filter_growth_comparison"/>
-                                <field name="filter_journals"/>
-                                <field name="filter_partner"/>
-                                <field name="filter_aml_ir_filters"/>
-                                <field name="filter_budgets"/>
-                                <field name="filter_analytic_groupby"/>
-                                <field name="filter_cash_basis"/>
-                                <field name="use_sections"/>
-                                <field name="only_tax_exigible"/>
-                                <field name="use_fiscal_periods"/>
-                                <field name="allow_foreign_vat"/>
-                            </group>
-                        </page>
-                        <page string="Source Semantics">
-                            <field name="line_code_sample"/>
-                            <field name="expression_engine_summary"/>
-                        </page>
-                        <page string="Parity Decision">
-                            <field name="decision_basis"/>
-                            <field name="target_strategy"/>
-                            <field name="acceptance_evidence_required"/>
-                            <field name="latest_evidence_status"/>
-                            <field name="parity_gap"/>
-                            <field name="latest_evidence_json"/>
-                            <field name="note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="source_country_id"/>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_search" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.search</field>
-        <field name="model">rebuild.account.source.report</field>
-        <field name="arch" type="xml">
-            <search string="Source Accounting Report Catalogue">
-                <field name="name"/>
-                <field name="source_name"/>
-                <field name="localized_name"/>
-                <field name="source_report_id"/>
-                <field name="country_code"/>
-                <field name="source_custom_handler_model"/>
-                <filter name="active" string="Active" domain="[('active','=',True)]"/>
-                <filter name="mandatory" string="Mandatory Parity" domain="[('decision','=','MANDATORY_PARITY')]"/>
-                <filter name="operational" string="Operational Parity" domain="[('decision','=','OPERATIONAL_PARITY')]"/>
-                <filter name="missing_target" string="Missing Target Equivalent" domain="[('target_status','=','missing_target_equivalent')]"/>
-                <filter name="partial_equivalent" string="Partial Target Equivalent" domain="[('target_status','=','partial_target_equivalent')]"/>
-                <filter name="below_level_4" string="Below Level 4" domain="[('parity_level','not in',('level_4_evidence_partial','level_4_accepted'))]"/>
-                <filter name="external_values" string="Uses External Values" domain="[('external_value_count','>',0)]"/>
-                <filter name="group_decision" string="Decision" context="{'group_by': 'decision'}"/>
-                <filter name="group_target_status" string="Target Status" context="{'group_by': 'target_status'}"/>
-                <filter name="group_parity_level" string="Parity Level" context="{'group_by': 'parity_level'}"/>
-                <filter name="group_evidence_key" string="Evidence Key" context="{'group_by': 'target_evidence_key'}"/>
-                <filter name="group_country" string="Country" context="{'group_by': 'country_code'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_source_report" model="ir.actions.act_window">
-        <field name="name">Source Accounting Report Catalogue</field>
-        <field name="res_model">rebuild.account.source.report</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_active': 1, 'search_default_group_decision': 1}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Source account.report records are imported here as parity evidence and report-decision records.
-            </p>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_line_list" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.line.list</field>
-        <field name="model">rebuild.account.source.report.line</field>
-        <field name="arch" type="xml">
-            <list string="Source Report Lines" create="0" edit="0" delete="0">
-                <field name="source_report_id"/>
-                <field name="source_line_id"/>
-                <field name="sequence"/>
-                <field name="hierarchy_level"/>
-                <field name="code"/>
-                <field name="name"/>
-                <field name="localized_name"/>
-                <field name="groupby"/>
-                <field name="user_groupby"/>
-                <field name="expression_count" sum="Expressions"/>
-                <field name="hide_if_zero"/>
-                <field name="foldable"/>
-                <field name="report_id"/>
-                <button name="action_open_expressions" type="object" string="Expressions" icon="fa-code"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_line_form" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.line.form</field>
-        <field name="model">rebuild.account.source.report.line</field>
-        <field name="arch" type="xml">
-            <form string="Source Report Line" create="0" edit="0" delete="0">
-                <header>
-                    <button name="action_open_source_report" type="object" string="Source Report"/>
-                    <button name="action_open_expressions" type="object" string="Expressions"/>
-                </header>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="localized_name"/>
-                            <field name="code"/>
-                            <field name="source_line_id"/>
-                            <field name="source_parent_line_id"/>
-                            <field name="parent_line_id"/>
-                        </group>
-                        <group>
-                            <field name="report_id"/>
-                            <field name="source_report_id"/>
-                            <field name="sequence"/>
-                            <field name="hierarchy_level"/>
-                            <field name="expression_count"/>
-                            <field name="source_action_id"/>
-                        </group>
-                    </group>
-                    <group string="Grouping and Display">
-                        <field name="groupby"/>
-                        <field name="user_groupby"/>
-                        <field name="horizontal_split_side"/>
-                        <field name="foldable"/>
-                        <field name="print_on_new_page"/>
-                        <field name="hide_if_zero"/>
-                    </group>
-                    <group string="Source Trace">
-                        <field name="rebuild_source_database"/>
-                        <field name="rebuild_source_model"/>
-                        <field name="rebuild_source_id"/>
-                        <field name="rebuild_source_snapshot"/>
-                        <field name="rebuild_import_run_id"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_line_search" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.line.search</field>
-        <field name="model">rebuild.account.source.report.line</field>
-        <field name="arch" type="xml">
-            <search string="Source Report Lines">
-                <field name="name"/>
-                <field name="localized_name"/>
-                <field name="code"/>
-                <field name="source_line_id"/>
-                <field name="source_report_id"/>
-                <field name="report_id"/>
-                <filter name="with_expressions" string="With Expressions" domain="[('expression_count','>',0)]"/>
-                <filter name="group_report" string="Report" context="{'group_by': 'report_id'}"/>
-                <filter name="group_hierarchy" string="Hierarchy" context="{'group_by': 'hierarchy_level'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_source_report_line" model="ir.actions.act_window">
-        <field name="name">Source Report Lines</field>
-        <field name="res_model">rebuild.account.source.report.line</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_group_report': 1}</field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_expression_list" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.expression.list</field>
-        <field name="model">rebuild.account.source.report.expression</field>
-        <field name="arch" type="xml">
-            <list string="Source Report Expressions" create="0" edit="0" delete="0">
-                <field name="source_report_id"/>
-                <field name="source_report_line_id"/>
-                <field name="line_code"/>
-                <field name="line_name"/>
-                <field name="label"/>
-                <field name="engine"/>
-                <field name="date_scope"/>
-                <field name="figure_type"/>
-                <field name="formula"/>
-                <field name="subformula"/>
-                <field name="report_id"/>
-                <button name="action_open_source_line" type="object" string="Line" icon="fa-level-up"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_expression_form" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.expression.form</field>
-        <field name="model">rebuild.account.source.report.expression</field>
-        <field name="arch" type="xml">
-            <form string="Source Report Expression" create="0" edit="0" delete="0">
-                <header>
-                    <button name="action_open_source_line" type="object" string="Source Line"/>
-                </header>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="source_expression_id"/>
-                            <field name="label"/>
-                            <field name="engine"/>
-                            <field name="date_scope"/>
-                            <field name="figure_type"/>
-                        </group>
-                        <group>
-                            <field name="report_id"/>
-                            <field name="line_id"/>
-                            <field name="line_code"/>
-                            <field name="line_name"/>
-                            <field name="source_report_id"/>
-                            <field name="source_report_line_id"/>
-                        </group>
-                    </group>
-                    <group string="Formula">
-                        <field name="formula"/>
-                        <field name="subformula"/>
-                        <field name="carryover_target"/>
-                    </group>
-                    <group string="Display and Audit">
-                        <field name="green_on_positive"/>
-                        <field name="blank_if_zero"/>
-                        <field name="auditable"/>
-                    </group>
-                    <group string="Source Trace">
-                        <field name="rebuild_source_database"/>
-                        <field name="rebuild_source_model"/>
-                        <field name="rebuild_source_id"/>
-                        <field name="rebuild_source_snapshot"/>
-                        <field name="rebuild_import_run_id"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_expression_search" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.expression.search</field>
-        <field name="model">rebuild.account.source.report.expression</field>
-        <field name="arch" type="xml">
-            <search string="Source Report Expressions">
-                <field name="name"/>
-                <field name="line_code"/>
-                <field name="label"/>
-                <field name="engine"/>
-                <field name="formula"/>
-                <field name="source_expression_id"/>
-                <field name="report_id"/>
-                <filter name="auditable" string="Auditable" domain="[('auditable','=',True)]"/>
-                <filter name="external_engine" string="External Value Engine" domain="[('engine','ilike','external')]"/>
-                <filter name="group_report" string="Report" context="{'group_by': 'report_id'}"/>
-                <filter name="group_engine" string="Engine" context="{'group_by': 'engine'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_source_report_expression" model="ir.actions.act_window">
-        <field name="name">Source Report Expressions</field>
-        <field name="res_model">rebuild.account.source.report.expression</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_group_engine': 1}</field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_column_list" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.column.list</field>
-        <field name="model">rebuild.account.source.report.column</field>
-        <field name="arch" type="xml">
-            <list string="Source Report Columns" create="0" edit="0" delete="0">
-                <field name="source_report_id"/>
-                <field name="source_column_id"/>
-                <field name="sequence"/>
-                <field name="name"/>
-                <field name="expression_label"/>
-                <field name="figure_type"/>
-                <field name="sortable"/>
-                <field name="blank_if_zero"/>
-                <field name="report_id"/>
-                <button name="action_open_source_report" type="object" string="Report" icon="fa-external-link"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_source_report_column_search" model="ir.ui.view">
-        <field name="name">rebuild.account.source.report.column.search</field>
-        <field name="model">rebuild.account.source.report.column</field>
-        <field name="arch" type="xml">
-            <search string="Source Report Columns">
-                <field name="name"/>
-                <field name="expression_label"/>
-                <field name="figure_type"/>
-                <field name="source_column_id"/>
-                <field name="source_report_id"/>
-                <field name="report_id"/>
-                <filter name="group_report" string="Report" context="{'group_by': 'report_id'}"/>
-                <filter name="group_figure_type" string="Figure Type" context="{'group_by': 'figure_type'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_source_report_column" model="ir.actions.act_window">
-        <field name="name">Source Report Columns</field>
-        <field name="res_model">rebuild.account.source.report.column</field>
-        <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_group_report': 1}</field>
-    </record>
 
-    <record id="view_rebuild_account_deferred_schedule_line_list" model="ir.ui.view">
-        <field name="name">rebuild.account.deferred.schedule.line.list</field>
-        <field name="model">rebuild.account.deferred.schedule.line</field>
-        <field name="arch" type="xml">
-            <list string="Imported Deferred Expense and Revenue Schedule" create="0" edit="0" delete="0">
-                <field name="deferred_date"/>
-                <field name="company_id"/>
-                <field name="schedule_type"/>
-                <field name="schedule_phase"/>
-                <field name="representation_status"/>
-                <field name="source_original_name"/>
-                <field name="source_deferred_name"/>
-                <field name="deferred_account_code"/>
-                <field name="counterpart_account_codes"/>
-                <field name="amount" sum="Amount"/>
-                <field name="deferred_account_balance" sum="Deferred Account Balance"/>
-                <field name="counterpart_balance" sum="Counterpart Balance"/>
-                <field name="original_move_id"/>
-                <field name="deferred_move_id"/>
-                <button name="action_open_original_move" type="object" string="Original" icon="fa-external-link" invisible="not original_move_id"/>
-                <button name="action_open_deferred_move" type="object" string="Deferred Entry" icon="fa-list"/>
-                <button name="action_open_journal_items" type="object" string="Journal Items" icon="fa-list"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_deferred_schedule_line_form" model="ir.ui.view">
-        <field name="name">rebuild.account.deferred.schedule.line.form</field>
-        <field name="model">rebuild.account.deferred.schedule.line</field>
-        <field name="arch" type="xml">
-            <form string="Imported Deferred Schedule Line" create="0" edit="0" delete="0">
-                <sheet>
-                    <header>
-                        <button name="action_open_original_move" type="object" string="Open Original Entry" invisible="not original_move_id"/>
-                        <button name="action_open_deferred_move" type="object" string="Open Deferred Entry or Review"/>
-                        <button name="action_open_journal_items" type="object" string="Open Journal Items"/>
-                    </header>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="company_id"/>
-                            <field name="currency_id"/>
-                            <field name="schedule_type"/>
-                            <field name="schedule_phase"/>
-                            <field name="representation_status"/>
-                            <field name="review_status"/>
-                        </group>
-                        <group>
-                            <field name="original_date"/>
-                            <field name="deferred_date"/>
-                            <field name="deferred_start_date"/>
-                            <field name="deferred_end_date"/>
-                            <field name="journal_id"/>
-                            <field name="partner_id"/>
-                        </group>
-                    </group>
-                    <group string="Source Entries">
-                        <field name="source_original_move_id"/>
-                        <field name="source_original_name"/>
-                        <field name="source_original_state"/>
-                        <field name="source_original_move_type"/>
-                        <field name="original_move_id"/>
-                        <field name="original_move_imported"/>
-                        <field name="source_deferred_move_id"/>
-                        <field name="source_deferred_name"/>
-                        <field name="source_deferred_state"/>
-                        <field name="source_deferred_move_type"/>
-                        <field name="deferred_move_id"/>
-                        <field name="deferred_move_imported"/>
-                    </group>
-                    <group string="Amounts and Accounts">
-                        <field name="deferred_account_code"/>
-                        <field name="deferred_account_name"/>
-                        <field name="counterpart_account_codes"/>
-                        <field name="counterpart_account_names"/>
-                        <field name="source_line_count"/>
-                        <field name="source_original_deferred_line_count"/>
-                        <field name="amount"/>
-                        <field name="deferred_account_balance"/>
-                        <field name="counterpart_balance"/>
-                    </group>
-                    <notebook>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="source_company_id"/>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                        <page string="Notes">
-                            <field name="note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_deferred_schedule_line_search" model="ir.ui.view">
-        <field name="name">rebuild.account.deferred.schedule.line.search</field>
-        <field name="model">rebuild.account.deferred.schedule.line</field>
-        <field name="arch" type="xml">
-            <search string="Imported Deferred Expense and Revenue Schedule">
-                <field name="company_id"/>
-                <field name="schedule_type"/>
-                <field name="schedule_phase"/>
-                <field name="representation_status"/>
-                <field name="source_original_name"/>
-                <field name="source_deferred_name"/>
-                <field name="deferred_account_code"/>
-                <filter name="deferred_expense" string="Deferred Expenses" domain="[('schedule_type','=','expense')]"/>
-                <filter name="deferred_revenue" string="Deferred Revenue" domain="[('schedule_type','=','revenue')]"/>
-                <filter name="posted_entries" string="Imported Posted Entries" domain="[('representation_status','=','imported_posted_entry')]"/>
-                <filter name="draft_forecast" string="Source Draft Forecast" domain="[('representation_status','=','source_draft_forecast')]"/>
-                <filter name="review_required" string="Review Required" domain="[('review_status','=','review_required')]"/>
-                <filter name="group_type" string="Type" context="{'group_by': 'schedule_type'}"/>
-                <filter name="group_phase" string="Phase" context="{'group_by': 'schedule_phase'}"/>
-                <filter name="group_status" string="Representation Status" context="{'group_by': 'representation_status'}"/>
-                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_deferred_schedule_line" model="ir.actions.act_window">
-        <field name="name">Imported Deferred Expense and Revenue Schedule</field>
-        <field name="res_model">rebuild.account.deferred.schedule.line</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_group_type': 1, 'search_default_group_status': 1}</field>
-    </record>
 
-    <record id="action_rebuild_account_deferred_expense_line" model="ir.actions.act_window">
-        <field name="name">Imported Deferred Expense Report</field>
-        <field name="res_model">rebuild.account.deferred.schedule.line</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="domain">[('schedule_type','=','expense')]</field>
-        <field name="context">{'search_default_group_phase': 1, 'search_default_group_status': 1}</field>
-    </record>
 
-    <record id="action_rebuild_account_deferred_revenue_line" model="ir.actions.act_window">
-        <field name="name">Imported Deferred Revenue Report</field>
-        <field name="res_model">rebuild.account.deferred.schedule.line</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="domain">[('schedule_type','=','revenue')]</field>
-        <field name="context">{'search_default_group_phase': 1, 'search_default_group_status': 1}</field>
-    </record>
 
-    <record id="view_rebuild_account_asset_depreciation_schedule_line_list" model="ir.ui.view">
-        <field name="name">rebuild.account.asset.depreciation.schedule.line.list</field>
-        <field name="model">rebuild.account.asset.depreciation.schedule.line</field>
-        <field name="arch" type="xml">
-            <list string="Imported Depreciation Schedule" create="0" edit="0" delete="0">
-                <field name="depreciation_date"/>
-                <field name="company_id"/>
-                <field name="asset_id"/>
-                <field name="source_move_state"/>
-                <field name="representation_status"/>
-                <field name="source_move_name"/>
-                <field name="expense_amount" sum="Expense"/>
-                <field name="depreciation_amount" sum="Depreciation"/>
-                <field name="accumulated_depreciation_amount"/>
-                <field name="net_book_value_after_line"/>
-                <field name="imported_move_id"/>
-                <button name="action_open_imported_move" type="object" string="Entry" icon="fa-external-link" invisible="not imported_move_id"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_asset_depreciation_schedule_line_form" model="ir.ui.view">
-        <field name="name">rebuild.account.asset.depreciation.schedule.line.form</field>
-        <field name="model">rebuild.account.asset.depreciation.schedule.line</field>
-        <field name="arch" type="xml">
-            <form string="Imported Depreciation Schedule Line" create="0" edit="0" delete="0">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="asset_id"/>
-                            <field name="company_id"/>
-                            <field name="currency_id"/>
-                            <field name="depreciation_date"/>
-                            <field name="representation_status"/>
-                        </group>
-                        <group>
-                            <field name="source_move_id"/>
-                            <field name="source_move_name"/>
-                            <field name="source_move_state"/>
-                            <field name="move_ref"/>
-                            <field name="imported_move_id"/>
-                        </group>
-                    </group>
-                    <group string="Amounts">
-                        <field name="expense_amount"/>
-                        <field name="depreciation_amount"/>
-                        <field name="accumulated_depreciation_amount"/>
-                        <field name="net_book_value_after_line"/>
-                        <field name="source_line_count"/>
-                    </group>
-                    <notebook>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_asset_depreciation_schedule_line_search" model="ir.ui.view">
-        <field name="name">rebuild.account.asset.depreciation.schedule.line.search</field>
-        <field name="model">rebuild.account.asset.depreciation.schedule.line</field>
-        <field name="arch" type="xml">
-            <search string="Imported Depreciation Schedule">
-                <field name="asset_id"/>
-                <field name="company_id"/>
-                <field name="depreciation_date"/>
-                <field name="source_move_state"/>
-                <field name="representation_status"/>
-                <filter name="imported_posted_entry" string="Imported Posted Entries" domain="[('representation_status','=','imported_posted_entry')]"/>
-                <filter name="draft_forecast" string="Source Draft Forecast" domain="[('representation_status','=','source_draft_forecast')]"/>
-                <filter name="group_asset" string="Asset" context="{'group_by': 'asset_id'}"/>
-                <filter name="group_status" string="Representation Status" context="{'group_by': 'representation_status'}"/>
-                <filter name="group_state" string="Source State" context="{'group_by': 'source_move_state'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_asset_depreciation_schedule_line" model="ir.actions.act_window">
-        <field name="name">Imported Depreciation Schedule</field>
-        <field name="res_model">rebuild.account.asset.depreciation.schedule.line</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_group_asset': 1}</field>
-    </record>
 
     <record id="view_rebuild_account_trial_balance_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.trial.balance.line.list</field>
         <field name="model">rebuild.account.trial.balance.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Trial Balance" create="0" edit="0" delete="0">
+            <list string="Trial Balance" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="account_code"/>
@@ -3903,14 +2870,14 @@
         <field name="name">rebuild.account.trial.balance.line.search</field>
         <field name="model">rebuild.account.trial.balance.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Trial Balance">
+            <search string="Trial Balance">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="account_id"/>
                 <field name="account_code"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
                 <filter name="group_account_type" string="Account Type" context="{'group_by': 'account_type'}"/>
@@ -3919,17 +2886,17 @@
     </record>
 
     <record id="action_rebuild_account_trial_balance_line" model="ir.actions.act_window">
-        <field name="name">Imported Trial Balance</field>
+        <field name="name">Trial Balance</field>
         <field name="res_model">rebuild.account.trial.balance.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_general_ledger_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.general.ledger.line.list</field>
         <field name="model">rebuild.account.general.ledger.line</field>
         <field name="arch" type="xml">
-            <list string="Imported General Ledger" create="0" edit="0" delete="0">
+            <list string="General Ledger" create="0" edit="0" delete="0">
                 <field name="date"/>
                 <field name="company_id"/>
                 <field name="period_key"/>
@@ -3955,7 +2922,7 @@
         <field name="name">rebuild.account.general.ledger.line.search</field>
         <field name="model">rebuild.account.general.ledger.line</field>
         <field name="arch" type="xml">
-            <search string="Imported General Ledger">
+            <search string="General Ledger">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="journal_id"/>
@@ -3963,9 +2930,9 @@
                 <field name="partner_id"/>
                 <field name="move_name"/>
                 <field name="source_move_type"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
                 <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
@@ -3976,17 +2943,17 @@
     </record>
 
     <record id="action_rebuild_account_general_ledger_line" model="ir.actions.act_window">
-        <field name="name">Imported General Ledger</field>
+        <field name="name">General Ledger</field>
         <field name="res_model">rebuild.account.general.ledger.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_journal_report_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.journal.report.line.list</field>
         <field name="model">rebuild.account.journal.report.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Journal Report" create="0" edit="0" delete="0">
+            <list string="Journal Report" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="journal_code"/>
@@ -4006,13 +2973,13 @@
         <field name="name">rebuild.account.journal.report.line.search</field>
         <field name="model">rebuild.account.journal.report.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Journal Report">
+            <search string="Journal Report">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="journal_id"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
                 <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
@@ -4021,17 +2988,17 @@
     </record>
 
     <record id="action_rebuild_account_journal_report_line" model="ir.actions.act_window">
-        <field name="name">Imported Journal Report</field>
+        <field name="name">Journal Report</field>
         <field name="res_model">rebuild.account.journal.report.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_partner_ledger_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.partner.ledger.line.list</field>
         <field name="model">rebuild.account.partner.ledger.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Partner Ledger" create="0" edit="0" delete="0">
+            <list string="Partner Ledger" create="0" edit="0" delete="0">
                 <field name="date"/>
                 <field name="date_maturity"/>
                 <field name="company_id"/>
@@ -4061,16 +3028,16 @@
         <field name="name">rebuild.account.partner.ledger.line.search</field>
         <field name="model">rebuild.account.partner.ledger.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Partner Ledger">
+            <search string="Partner Ledger">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="partner_id"/>
                 <field name="account_id"/>
                 <field name="journal_id"/>
                 <field name="move_name"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="receivable" string="Receivable" domain="[('account_type','=','asset_receivable')]"/>
                 <filter name="payable" string="Payable" domain="[('account_type','=','liability_payable')]"/>
                 <filter name="open" string="Open" domain="[('reconciled','=',False)]"/>
@@ -4082,17 +3049,17 @@
     </record>
 
     <record id="action_rebuild_account_partner_ledger_line" model="ir.actions.act_window">
-        <field name="name">Imported Partner Ledger</field>
+        <field name="name">Partner Ledger</field>
         <field name="res_model">rebuild.account.partner.ledger.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_open_item_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.open.item.line.list</field>
         <field name="model">rebuild.account.open.item.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Open Items" create="0" edit="0" delete="0">
+            <list string="Open Items" create="0" edit="0" delete="0">
                 <field name="date"/>
                 <field name="date_maturity"/>
                 <field name="company_id"/>
@@ -4118,15 +3085,15 @@
         <field name="name">rebuild.account.open.item.line.search</field>
         <field name="model">rebuild.account.open.item.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Open Items">
+            <search string="Open Items">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="partner_id"/>
                 <field name="account_id"/>
                 <field name="journal_id"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="receivable" string="Receivable" domain="[('account_type','=','asset_receivable')]"/>
                 <filter name="payable" string="Payable" domain="[('account_type','=','liability_payable')]"/>
                 <filter name="group_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
@@ -4137,17 +3104,17 @@
     </record>
 
     <record id="action_rebuild_account_open_item_line" model="ir.actions.act_window">
-        <field name="name">Imported Open Items</field>
+        <field name="name">Open Items</field>
         <field name="res_model">rebuild.account.open.item.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_aged_partner_balance_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.aged.partner.balance.line.list</field>
         <field name="model">rebuild.account.aged.partner.balance.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Aged Partner Balance" create="0" edit="0" delete="0">
+            <list string="Aged Partner Balance" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="as_of_date"/>
@@ -4169,11 +3136,11 @@
         <field name="name">rebuild.account.aged.partner.balance.line.search</field>
         <field name="model">rebuild.account.aged.partner.balance.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Aged Partner Balance">
+            <search string="Aged Partner Balance">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="partner_id"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
                 <filter name="receivable" string="Receivable" domain="[('account_type','=','asset_receivable')]"/>
                 <filter name="payable" string="Payable" domain="[('account_type','=','liability_payable')]"/>
                 <filter name="group_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
@@ -4183,26 +3150,26 @@
     </record>
 
     <record id="action_rebuild_account_aged_receivable_line" model="ir.actions.act_window">
-        <field name="name">Imported Aged Receivable</field>
+        <field name="name">Aged Receivable</field>
         <field name="res_model">rebuild.account.aged.partner.balance.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('account_type','=','asset_receivable')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="action_rebuild_account_aged_payable_line" model="ir.actions.act_window">
-        <field name="name">Imported Aged Payable</field>
+        <field name="name">Aged Payable</field>
         <field name="res_model">rebuild.account.aged.partner.balance.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('account_type','=','liability_payable')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_financial_statement_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.financial.statement.line.list</field>
         <field name="model">rebuild.account.financial.statement.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Financial Statement" create="0" edit="0" delete="0">
+            <list string="Financial Statement" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="statement_name"/>
@@ -4225,14 +3192,14 @@
         <field name="name">rebuild.account.financial.statement.line.search</field>
         <field name="model">rebuild.account.financial.statement.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Financial Statement">
+            <search string="Financial Statement">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="statement_key"/>
                 <field name="section_name"/>
                 <field name="account_id"/>
                 <field name="account_code"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
                 <filter name="balance_sheet" string="Balance Sheet" domain="[('statement_key','=','balance_sheet')]"/>
                 <filter name="profit_and_loss" string="Profit and Loss" domain="[('statement_key','=','profit_and_loss')]"/>
                 <filter name="group_section" string="Section" context="{'group_by': 'section_name'}"/>
@@ -4243,26 +3210,26 @@
     </record>
 
     <record id="action_rebuild_account_balance_sheet_line" model="ir.actions.act_window">
-        <field name="name">Imported Balance Sheet</field>
+        <field name="name">Balance Sheet</field>
         <field name="res_model">rebuild.account.financial.statement.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('statement_key','=','balance_sheet')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_section': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_section': 1}</field>
     </record>
 
     <record id="action_rebuild_account_profit_loss_line" model="ir.actions.act_window">
-        <field name="name">Imported Profit and Loss</field>
+        <field name="name">Profit and Loss</field>
         <field name="res_model">rebuild.account.financial.statement.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('statement_key','=','profit_and_loss')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_section': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_section': 1}</field>
     </record>
 
     <record id="view_rebuild_account_tax_report_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.tax.report.line.list</field>
         <field name="model">rebuild.account.tax.report.line</field>
         <field name="arch" type="xml">
-            <list string="Imported VAT and Tax Report" create="0" edit="0" delete="0">
+            <list string="VAT and Tax Report" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_section"/>
@@ -4284,16 +3251,16 @@
         <field name="name">rebuild.account.tax.report.line.search</field>
         <field name="model">rebuild.account.tax.report.line</field>
         <field name="arch" type="xml">
-            <search string="Imported VAT and Tax Report">
+            <search string="VAT and Tax Report">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_section"/>
                 <field name="tax_tag_id"/>
                 <field name="account_id"/>
                 <field name="account_code"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="tax_grid_tags" string="Tax Grid Tags" domain="[('report_section','=','Tax grid tags')]"/>
                 <filter name="vat_accounts" string="VAT Accounts" domain="[('report_section','=','VAT accounts')]"/>
                 <filter name="group_section" string="Section" context="{'group_by': 'report_section'}"/>
@@ -4305,31 +3272,31 @@
     </record>
 
     <record id="action_rebuild_account_tax_report_line" model="ir.actions.act_window">
-        <field name="name">Imported VAT and Tax Report</field>
+        <field name="name">VAT and Tax Report</field>
         <field name="res_model">rebuild.account.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_section': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_section': 1}</field>
     </record>
 
     <record id="action_rebuild_account_tax_report_group_account_tax_line" model="ir.actions.act_window">
-        <field name="name">Imported Tax Report by Account then Tax</field>
+        <field name="name">Tax Report by Account then Tax</field>
         <field name="res_model">rebuild.account.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_account': 1, 'search_default_group_tax_tag': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_account': 1, 'search_default_group_tax_tag': 1}</field>
     </record>
 
     <record id="action_rebuild_account_tax_report_group_tax_account_line" model="ir.actions.act_window">
-        <field name="name">Imported Tax Report by Tax then Account</field>
+        <field name="name">Tax Report by Tax then Account</field>
         <field name="res_model">rebuild.account.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_tax_tag': 1, 'search_default_group_account': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_tax_tag': 1, 'search_default_group_account': 1}</field>
     </record>
 
     <record id="view_rebuild_account_eu_tax_report_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.eu.tax.report.line.list</field>
         <field name="model">rebuild.account.eu.tax.report.line</field>
         <field name="arch" type="xml">
-            <list string="Imported EC/OSS Tax Review" create="0" edit="0" delete="0">
+            <list string="EC/OSS Tax Review" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_type"/>
@@ -4357,7 +3324,7 @@
         <field name="name">rebuild.account.eu.tax.report.line.search</field>
         <field name="model">rebuild.account.eu.tax.report.line</field>
         <field name="arch" type="xml">
-            <search string="Imported EC/OSS Tax Review">
+            <search string="EC/OSS Tax Review">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_type"/>
@@ -4368,8 +3335,8 @@
                 <field name="tax_tag_id"/>
                 <field name="journal_id"/>
                 <field name="account_id"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
                 <filter name="ec_sales" string="EC Sales" domain="[('report_type','=','ec_sales_list')]"/>
                 <filter name="oss_sales" string="OSS Sales" domain="[('report_type','=','oss_sales')]"/>
                 <filter name="oss_imports" string="OSS Imports" domain="[('report_type','=','oss_imports')]"/>
@@ -4385,41 +3352,41 @@
     </record>
 
     <record id="action_rebuild_account_eu_tax_report_line" model="ir.actions.act_window">
-        <field name="name">Imported EC/OSS Tax Review</field>
+        <field name="name">EC/OSS Tax Review</field>
         <field name="res_model">rebuild.account.eu.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_report': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_report': 1}</field>
     </record>
 
     <record id="action_rebuild_account_ec_sales_report_line" model="ir.actions.act_window">
-        <field name="name">Imported EC Sales List</field>
+        <field name="name">EC Sales List</field>
         <field name="res_model">rebuild.account.eu.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('report_type','=','ec_sales_list')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_country': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_country': 1}</field>
     </record>
 
     <record id="action_rebuild_account_oss_sales_report_line" model="ir.actions.act_window">
-        <field name="name">Imported OSS Sales</field>
+        <field name="name">OSS Sales</field>
         <field name="res_model">rebuild.account.eu.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('report_type','=','oss_sales')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_country': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_country': 1}</field>
     </record>
 
     <record id="action_rebuild_account_oss_imports_report_line" model="ir.actions.act_window">
-        <field name="name">Imported OSS Imports</field>
+        <field name="name">OSS Imports</field>
         <field name="res_model">rebuild.account.eu.tax.report.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('report_type','=','oss_imports')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_country': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_country': 1}</field>
     </record>
 
     <record id="view_rebuild_account_bank_reconciliation_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.bank.reconciliation.line.list</field>
         <field name="model">rebuild.account.bank.reconciliation.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Bank Reconciliation" create="0" edit="0" delete="0">
+            <list string="Bank Reconciliation" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="date"/>
@@ -4442,15 +3409,15 @@
         <field name="name">rebuild.account.bank.reconciliation.line.search</field>
         <field name="model">rebuild.account.bank.reconciliation.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Bank Reconciliation">
+            <search string="Bank Reconciliation">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="journal_id"/>
                 <field name="payment_ref"/>
                 <field name="partner_id"/>
                 <field name="reconciliation_status"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
                 <filter name="reconciled" string="Reconciled" domain="[('is_reconciled','=',True)]"/>
                 <filter name="open_residual" string="Open Residual" domain="[('reconciliation_status','=','Open residual')]"/>
                 <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
@@ -4461,17 +3428,17 @@
     </record>
 
     <record id="action_rebuild_account_bank_reconciliation_line" model="ir.actions.act_window">
-        <field name="name">Imported Bank Reconciliation</field>
+        <field name="name">Bank Reconciliation</field>
         <field name="res_model">rebuild.account.bank.reconciliation.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_status': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_status': 1}</field>
     </record>
 
     <record id="view_rebuild_account_currency_report_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.currency.report.line.list</field>
         <field name="model">rebuild.account.currency.report.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Currency Gain, Loss and Exposure" create="0" edit="0" delete="0">
+            <list string="Currency Gain, Loss and Exposure" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_section"/>
@@ -4495,14 +3462,14 @@
         <field name="name">rebuild.account.currency.report.line.search</field>
         <field name="model">rebuild.account.currency.report.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Currency Gain, Loss and Exposure">
+            <search string="Currency Gain, Loss and Exposure">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_section"/>
                 <field name="currency_id"/>
                 <field name="account_id"/>
                 <field name="partner_id"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
                 <filter name="foreign_currency_ledger" string="Foreign Currency Ledger" domain="[('report_section','=','Foreign currency ledger')]"/>
                 <filter name="realized_exchange" string="Realized Exchange" domain="[('report_section','=','Realized exchange gains and losses')]"/>
                 <filter name="unrealized_open_items" string="Unrealized Open Items" domain="[('report_section','=','Unrealized foreign-currency open items')]"/>
@@ -4515,17 +3482,17 @@
     </record>
 
     <record id="action_rebuild_account_currency_report_line" model="ir.actions.act_window">
-        <field name="name">Imported Currency Gain, Loss and Exposure</field>
+        <field name="name">Currency Gain, Loss and Exposure</field>
         <field name="res_model">rebuild.account.currency.report.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_section': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_section': 1}</field>
     </record>
 
     <record id="view_rebuild_account_management_summary_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.management.summary.line.list</field>
         <field name="model">rebuild.account.management.summary.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Cash Flow and Executive Summary" create="0" edit="0" delete="0">
+            <list string="Cash Flow and Executive Summary" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_name"/>
@@ -4546,16 +3513,16 @@
         <field name="name">rebuild.account.management.summary.line.search</field>
         <field name="model">rebuild.account.management.summary.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Cash Flow and Executive Summary">
+            <search string="Cash Flow and Executive Summary">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="report_key"/>
                 <field name="line_code"/>
                 <field name="line_name"/>
                 <field name="metric_type"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="cash_flow" string="Cash Flow" domain="[('report_key','=','cash_flow')]"/>
                 <filter name="executive_summary" string="Executive Summary" domain="[('report_key','=','executive_summary')]"/>
                 <filter name="currency_metrics" string="Currency Metrics" domain="[('metric_type','=','currency')]"/>
@@ -4568,26 +3535,26 @@
     </record>
 
     <record id="action_rebuild_account_management_summary_line" model="ir.actions.act_window">
-        <field name="name">Imported Cash Flow and Executive Summary</field>
+        <field name="name">Cash Flow and Executive Summary</field>
         <field name="res_model">rebuild.account.management.summary.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_report': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_report': 1}</field>
     </record>
 
     <record id="action_rebuild_account_cash_flow_line" model="ir.actions.act_window">
-        <field name="name">Imported Cash Flow Statement</field>
+        <field name="name">Cash Flow Statement</field>
         <field name="res_model">rebuild.account.management.summary.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('report_key','=','cash_flow')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="action_rebuild_account_executive_summary_line" model="ir.actions.act_window">
-        <field name="name">Imported Executive Summary</field>
+        <field name="name">Executive Summary</field>
         <field name="res_model">rebuild.account.management.summary.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('report_key','=','executive_summary')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_revenue_spending_month_list" model="ir.ui.view">
@@ -4684,7 +3651,7 @@
         <field name="name">rebuild.account.analytic.distribution.line.list</field>
         <field name="model">rebuild.account.analytic.distribution.line</field>
         <field name="arch" type="xml">
-            <list string="Imported Analytic Distribution" create="0" edit="0" delete="0">
+            <list string="Analytic Distribution" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="analytic_key"/>
@@ -4706,13 +3673,13 @@
         <field name="name">rebuild.account.analytic.distribution.line.search</field>
         <field name="model">rebuild.account.analytic.distribution.line</field>
         <field name="arch" type="xml">
-            <search string="Imported Analytic Distribution">
+            <search string="Analytic Distribution">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="analytic_key"/>
                 <field name="analytic_account_id"/>
                 <field name="account_id"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
                 <filter name="group_analytic" string="Analytic" context="{'group_by': 'analytic_account_id'}"/>
                 <filter name="group_account" string="Account" context="{'group_by': 'account_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
@@ -4721,17 +3688,17 @@
     </record>
 
     <record id="action_rebuild_account_analytic_distribution_line" model="ir.actions.act_window">
-        <field name="name">Imported Analytic Distribution</field>
+        <field name="name">Analytic Distribution</field>
         <field name="res_model">rebuild.account.analytic.distribution.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_analytic': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_analytic': 1}</field>
     </record>
 
     <record id="view_rebuild_account_french_statement_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.french.statement.line.list</field>
         <field name="model">rebuild.account.french.statement.line</field>
         <field name="arch" type="xml">
-            <list string="Imported French Annual Statements" create="0" edit="0" delete="0">
+            <list string="French Annual Statements" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="statement_name"/>
@@ -4753,15 +3720,15 @@
         <field name="name">rebuild.account.french.statement.line.search</field>
         <field name="model">rebuild.account.french.statement.line</field>
         <field name="arch" type="xml">
-            <search string="Imported French Annual Statements">
+            <search string="French Annual Statements">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="statement_key"/>
                 <field name="line_code"/>
                 <field name="line_name"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','USL current from 2025-10-01')]"/>
-                <filter name="usl_media" string="USL Media" domain="[('period_key','=','USL Media full posted replay')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
+                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="bilan_actif" string="Bilan Actif" domain="[('statement_key','=','bilan_actif')]"/>
                 <filter name="bilan_passif" string="Bilan Passif" domain="[('statement_key','=','bilan_passif')]"/>
                 <filter name="compte_resultat" string="Compte de résultat" domain="[('statement_key','=','compte_resultat')]"/>
@@ -4773,41 +3740,41 @@
     </record>
 
     <record id="action_rebuild_account_french_statement_line" model="ir.actions.act_window">
-        <field name="name">Imported French Annual Statements</field>
+        <field name="name">French Annual Statements</field>
         <field name="res_model">rebuild.account.french.statement.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_statement': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_statement': 1}</field>
     </record>
 
     <record id="action_rebuild_account_french_balance_sheet_line" model="ir.actions.act_window">
-        <field name="name">Imported French Balance Sheet</field>
+        <field name="name">French Balance Sheet</field>
         <field name="res_model">rebuild.account.french.statement.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('statement_key','in',('bilan_actif','bilan_passif'))]</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_statement': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_statement': 1}</field>
     </record>
 
     <record id="action_rebuild_account_french_profit_loss_line" model="ir.actions.act_window">
-        <field name="name">Imported French Profit and Loss</field>
+        <field name="name">French Profit and Loss</field>
         <field name="res_model">rebuild.account.french.statement.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('statement_key','=','compte_resultat')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="action_rebuild_account_sig_caf_line" model="ir.actions.act_window">
-        <field name="name">Imported SIG and CAF</field>
+        <field name="name">SIG and CAF</field>
         <field name="res_model">rebuild.account.french.statement.line</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('statement_key','=','sig_caf')]</field>
-        <field name="context">{'search_default_usl_benchmark': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1}</field>
     </record>
 
     <record id="view_rebuild_account_french_tax_package_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.french.tax.package.line.list</field>
         <field name="model">rebuild.account.french.tax.package.line</field>
         <field name="arch" type="xml">
-            <list string="Imported French Tax Package Mapping" create="0" edit="0" delete="0">
+            <list string="French Tax Package Mapping" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="form_code"/>
@@ -4833,7 +3800,7 @@
         <field name="name">rebuild.account.french.tax.package.line.search</field>
         <field name="model">rebuild.account.french.tax.package.line</field>
         <field name="arch" type="xml">
-            <search string="Imported French Tax Package Mapping">
+            <search string="French Tax Package Mapping">
                 <field name="company_id"/>
                 <field name="period_key"/>
                 <field name="form_code"/>
@@ -4841,7 +3808,7 @@
                 <field name="field_label"/>
                 <field name="source_kind"/>
                 <field name="review_status"/>
-                <filter name="usl_benchmark" string="USL Benchmark" domain="[('period_key','=','USL benchmark 2024-01-10 to 2025-09-30')]"/>
+                <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
                 <filter name="form_2065" string="2065" domain="[('form_code','=','2065-SD')]"/>
                 <filter name="form_2033" string="2033" domain="[('form_code','like','2033-%')]"/>
                 <filter name="form_ca12" string="CA12" domain="[('form_code','=','3517-S-SD')]"/>
@@ -4854,10 +3821,10 @@
     </record>
 
     <record id="action_rebuild_account_french_tax_package_line" model="ir.actions.act_window">
-        <field name="name">Imported French Tax Package Mapping</field>
+        <field name="name">French Tax Package Mapping</field>
         <field name="res_model">rebuild.account.french.tax.package.line</field>
         <field name="view_mode">list,pivot</field>
-        <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_form': 1}</field>
+        <field name="context">{'search_default_first_fiscal_year': 1, 'search_default_group_form': 1}</field>
     </record>
 
     <record id="view_l10n_fr_fec_export_rebuild_role_safety" model="ir.ui.view">
@@ -4908,7 +3875,6 @@
                             <field name="company_id"/>
                             <field name="closing_period_id" invisible="report_type != 'closing_package'"/>
                             <field name="company_ids" widget="many2many_tags"/>
-                            <field name="data_scope"/>
                             <field name="target_move"/>
                         </group>
                         <group string="Period">
@@ -5015,7 +3981,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30'}</field>
+        <field name="context">{}</field>
     </record>
 
     <record id="action_rebuild_account_user_guide" model="ir.actions.act_url">
@@ -5029,7 +3995,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'trial_balance', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'trial_balance', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_general_ledger" model="ir.actions.act_window">
@@ -5037,7 +4003,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'general_ledger', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'general_ledger', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_journal_report" model="ir.actions.act_window">
@@ -5045,7 +4011,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'journal_report', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'journal_report', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_partner_ledger" model="ir.actions.act_window">
@@ -5053,7 +4019,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'partner_ledger', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'partner_ledger', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_customer_statement" model="ir.actions.act_window">
@@ -5061,7 +4027,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'customer_statement', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'customer_statement', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_open_items" model="ir.actions.act_window">
@@ -5069,7 +4035,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'open_items', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'open_items', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_aged_receivable" model="ir.actions.act_window">
@@ -5077,7 +4043,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'aged_receivable', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'aged_receivable', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_aged_payable" model="ir.actions.act_window">
@@ -5085,7 +4051,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'aged_payable', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'aged_payable', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_balance_sheet" model="ir.actions.act_window">
@@ -5093,7 +4059,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'balance_sheet', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'balance_sheet', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_profit_loss" model="ir.actions.act_window">
@@ -5101,7 +4067,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'profit_loss', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'profit_loss', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_tax_report" model="ir.actions.act_window">
@@ -5109,7 +4075,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'tax_report', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'tax_report', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_tax_group_account_tax" model="ir.actions.act_window">
@@ -5117,7 +4083,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'tax_report_group_account_tax', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'tax_report_group_account_tax', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_tax_group_tax_account" model="ir.actions.act_window">
@@ -5125,7 +4091,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'tax_report_group_tax_account', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'tax_report_group_tax_account', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_french_tax_package" model="ir.actions.act_window">
@@ -5133,7 +4099,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'french_tax_package', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'french_tax_package', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_fec" model="ir.actions.act_window">
@@ -5150,7 +4116,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'french_annual', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'french_annual', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_french_balance_sheet_2024" model="ir.actions.act_window">
@@ -5158,7 +4124,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'french_balance_sheet_2024', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'french_balance_sheet_2024', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_french_profit_loss_2024" model="ir.actions.act_window">
@@ -5166,7 +4132,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'french_profit_loss_2024', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'french_profit_loss_2024', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_sig_caf_2024" model="ir.actions.act_window">
@@ -5174,7 +4140,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'sig_caf_2024', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'sig_caf_2024', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_bank_reconciliation" model="ir.actions.act_window">
@@ -5182,7 +4148,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'bank_reconciliation', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'bank_reconciliation', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_currency_report" model="ir.actions.act_window">
@@ -5190,7 +4156,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'currency_report', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'currency_report', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_cash_flow" model="ir.actions.act_window">
@@ -5198,7 +4164,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'cash_flow', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'cash_flow', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_executive_summary" model="ir.actions.act_window">
@@ -5206,7 +4172,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'executive_summary', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'executive_summary', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_analytic_report" model="ir.actions.act_window">
@@ -5222,7 +4188,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'fixed_assets', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'fixed_assets', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_fixed_asset_group_account" model="ir.actions.act_window">
@@ -5230,7 +4196,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'fixed_asset_group_account', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'fixed_asset_group_account', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_depreciation_schedule" model="ir.actions.act_window">
@@ -5238,7 +4204,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'depreciation_schedule', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
+        <field name="context">{'default_report_type': 'depreciation_schedule', 'default_export_format': 'pdf'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_deferred_schedule" model="ir.actions.act_window">
@@ -5246,7 +4212,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'deferred_schedule', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'deferred_schedule', 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_ec_sales_list" model="ir.actions.act_window">
@@ -5444,21 +4410,6 @@
                                         </group>
                                         <field name="analytic_distribution" widget="analytic_distribution" readonly="state == 'posted'"/>
                                         <notebook>
-                                            <page string="Source Trace">
-                                                <group>
-                                                    <field name="source_move_name"/>
-                                                    <field name="source_move_ref"/>
-                                                    <field name="source_move_state"/>
-                                                    <field name="source_recognition_line_id"/>
-                                                    <field name="source_deferral_line_id"/>
-                                                    <field name="rebuild_source_database"/>
-                                                    <field name="rebuild_source_model"/>
-                                                    <field name="rebuild_source_id"/>
-                                                    <field name="rebuild_source_snapshot"/>
-                                                    <field name="rebuild_import_run_id"/>
-                                                    <field name="rebuild_import_status"/>
-                                                </group>
-                                            </page>
                                         </notebook>
                                     </sheet>
                                 </form>
@@ -5466,18 +4417,6 @@
                         </page>
                         <page string="Notes">
                             <field name="note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="source_original_move_id"/>
-                                <field name="source_original_move_name"/>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -5492,98 +4431,9 @@
         <field name="context">{'search_default_running': 1}</field>
     </record>
 
-    <record id="view_rebuild_account_analytic_override_list" model="ir.ui.view">
-        <field name="name">rebuild.account.analytic.override.list</field>
-        <field name="model">rebuild.account.analytic.override</field>
-        <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0" decoration-success="status in ['applied', 'represented']" decoration-danger="status == 'mismatch'">
-                <field name="name"/>
-                <field name="expense_id"/>
-                <field name="target_move_line_id"/>
-                <field name="source_business_distribution"/>
-                <field name="source_final_distribution"/>
-                <field name="target_after_distribution"/>
-                <field name="status" widget="badge"/>
-                <field name="company_id" groups="base.group_multi_company"/>
-                <button name="action_open_expense" type="object" string="Expense" icon="fa-external-link"/>
-                <button name="action_open_journal_item" type="object" string="Journal Item" icon="fa-external-link"/>
-            </list>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_analytic_override_form" model="ir.ui.view">
-        <field name="name">rebuild.account.analytic.override.form</field>
-        <field name="model">rebuild.account.analytic.override</field>
-        <field name="arch" type="xml">
-            <form string="Native Analytic Correction" create="0" edit="0" delete="0">
-                <header>
-                    <button name="action_open_expense" type="object" string="Open Expense"/>
-                    <button name="action_open_journal_item" type="object" string="Open Journal Item"/>
-                    <field name="status" widget="statusbar" statusbar_visible="applied,represented,mismatch"/>
-                </header>
-                <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name"/>
-                        </h1>
-                    </div>
-                    <group>
-                        <group>
-                            <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="expense_id"/>
-                            <field name="target_move_line_id"/>
-                        </group>
-                        <group>
-                            <field name="source_expense_id"/>
-                            <field name="source_move_id"/>
-                            <field name="source_move_line_id"/>
-                        </group>
-                    </group>
-                    <group string="Analytic Distributions">
-                        <field name="source_business_distribution"/>
-                        <field name="source_final_distribution"/>
-                        <field name="target_before_distribution"/>
-                        <field name="target_after_distribution"/>
-                    </group>
-                    <field name="note"/>
-                    <notebook>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
-    <record id="view_rebuild_account_analytic_override_search" model="ir.ui.view">
-        <field name="name">rebuild.account.analytic.override.search</field>
-        <field name="model">rebuild.account.analytic.override</field>
-        <field name="arch" type="xml">
-            <search string="Native Analytic Corrections">
-                <field name="name"/>
-                <field name="expense_id"/>
-                <field name="source_move_id"/>
-                <field name="source_move_line_id"/>
-                <field name="company_id"/>
-                <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
-                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
-            </search>
-        </field>
-    </record>
 
-    <record id="action_rebuild_account_analytic_override" model="ir.actions.act_window">
-        <field name="name">Native Analytic Corrections</field>
-        <field name="res_model">rebuild.account.analytic.override</field>
-        <field name="view_mode">list,form</field>
-    </record>
 
     <menuitem
         id="menu_rebuild_account_deferral"
@@ -5593,13 +4443,6 @@
         sequence="10"
         groups="account.group_account_readonly"/>
 
-    <menuitem
-        id="menu_rebuild_account_migration"
-        name="Advanced Audit"
-        parent="account.account_audit_menu"
-        sequence="90"
-        active="False"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_issues_priority"
         name="Accounting Hygiene"
@@ -5614,209 +4457,6 @@
         action="action_rebuild_account_reconcile_bank_transactions"
         sequence="10"
         groups="account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_overview"
-        name="Accounting Assurance Overview"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_overview"
-        sequence="5"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_user_guide"
-        name="User Guide"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_user_guide"
-        sequence="6"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_import_run"
-        name="Import Runs"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_import_run"
-        sequence="10"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_discrepancy"
-        name="Discrepancies"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_discrepancy"
-        sequence="20"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_assurance_decision"
-        name="Review Decisions"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_assurance_decision"
-        sequence="22"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_external_report_value"
-        name="External Report Values"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_external_report_value"
-        sequence="23"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_source_report"
-        name="Source Report Catalogue"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_source_report"
-        sequence="25"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_source_report_line"
-        name="Source Report Lines"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_source_report_line"
-        sequence="26"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_source_report_expression"
-        name="Source Report Expressions"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_source_report_expression"
-        sequence="27"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_deferred_schedule_line"
-        name="Imported Deferred Schedule"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_deferred_schedule_line"
-        sequence="28"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_analytic_override"
-        name="Native Analytic Corrections"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_analytic_override"
-        sequence="29"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_asset"
-        name="Fixed Asset Register"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_asset"
-        sequence="30"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_asset_depreciation_schedule_line"
-        name="Imported Depreciation Schedule"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_asset_depreciation_schedule_line"
-        sequence="35"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_trial_balance_line"
-        name="Imported Trial Balance"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_trial_balance_line"
-        sequence="40"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_general_ledger_line"
-        name="Imported General Ledger"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_general_ledger_line"
-        sequence="50"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_journal_report_line"
-        name="Imported Journal Report"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_journal_report_line"
-        sequence="60"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_partner_ledger_line"
-        name="Imported Partner Ledger"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_partner_ledger_line"
-        sequence="70"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_open_item_line"
-        name="Imported Open Items"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_open_item_line"
-        sequence="80"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_balance_sheet_line"
-        name="Imported Balance Sheet"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_balance_sheet_line"
-        sequence="90"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_profit_loss_line"
-        name="Imported Profit and Loss"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_profit_loss_line"
-        sequence="100"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_tax_report_line"
-        name="Imported VAT and Tax Report"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_tax_report_line"
-        sequence="110"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_eu_tax_report_line"
-        name="Imported EC/OSS Tax Review"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_eu_tax_report_line"
-        sequence="111"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_bank_reconciliation_line"
-        name="Imported Bank Reconciliation"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_bank_reconciliation_line"
-        sequence="115"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_currency_report_line"
-        name="Imported Currency Gain/Loss"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_currency_report_line"
-        sequence="114"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_management_summary_line"
-        name="Imported Cash Flow and Executive Summary"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_management_summary_line"
-        sequence="115"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_analytic_distribution_line"
-        name="Imported Analytic Distribution"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_analytic_distribution_line"
-        sequence="116"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_french_statement_line"
-        name="Imported French Annual Statements"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_french_statement_line"
-        sequence="120"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_french_tax_package_line"
-        name="Imported French Tax Package Mapping"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_french_tax_package_line"
-        sequence="125"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_report_export_wizard_evidence"
-        name="Imported Report Export"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_report_export_wizard"
-        sequence="130"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
 
     <record id="action_rebuild_interactive_trial_balance" model="ir.actions.client">
         <field name="name">Balance générale</field>
@@ -6192,140 +4832,126 @@
 
     <menuitem
         id="menu_rebuild_account_aged_receivable_line"
-        name="Imported Aged Receivable"
+        name="Aged Receivable"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_account_aged_receivable_line"
         sequence="35"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_aged_payable_line"
-        name="Imported Aged Payable"
+        name="Aged Payable"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_account_aged_payable_line"
         sequence="36"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_partner_ledger_reporting"
-        name="Imported Partner Ledger"
+        name="Partner Ledger"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_account_partner_ledger_line"
         sequence="37"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_open_items_reporting"
-        name="Imported Open Items"
+        name="Open Items"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_account_open_item_line"
         sequence="38"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_trial_balance_reporting"
-        name="Imported Trial Balance"
+        name="Trial Balance"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_trial_balance_line"
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
-        id="menu_rebuild_account_source_report_reporting"
-        name="Source Report Catalogue"
-        parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_source_report"
-        sequence="15"
-        groups="account.group_account_readonly"/>
-    <menuitem
         id="menu_rebuild_account_general_ledger_reporting"
-        name="Imported General Ledger"
+        name="General Ledger"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_general_ledger_line"
         sequence="20"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_journal_report_reporting"
-        name="Imported Journal Report"
+        name="Journal Report"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_journal_report_line"
         sequence="30"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_balance_sheet_reporting"
-        name="Imported Balance Sheet"
+        name="Balance Sheet"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_balance_sheet_line"
         sequence="40"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_profit_loss_reporting"
-        name="Imported Profit and Loss"
+        name="Profit and Loss"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_profit_loss_line"
         sequence="50"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_balance_sheet_reporting"
-        name="Imported French Balance Sheet"
+        name="French Balance Sheet"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_french_balance_sheet_line"
         sequence="60"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_profit_loss_reporting"
-        name="Imported French Profit and Loss"
+        name="French Profit and Loss"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_french_profit_loss_line"
         sequence="70"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_sig_caf_reporting"
-        name="Imported SIG and CAF"
+        name="SIG and CAF"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_sig_caf_line"
         sequence="80"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_tax_package_reporting"
-        name="Imported French Tax Package Mapping"
+        name="French Tax Package Mapping"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_french_tax_package_line"
         sequence="85"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_deferred_expense_reporting"
-        name="Imported Deferred Expense Report"
+        name="Deferrals"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_deferred_expense_line"
+        action="action_rebuild_interactive_deferred_schedule"
         sequence="85"
         groups="account.group_account_readonly"/>
     <menuitem
-        id="menu_rebuild_account_deferred_revenue_reporting"
-        name="Imported Deferred Revenue Report"
-        parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_deferred_revenue_line"
-        sequence="86"
-        groups="account.group_account_readonly"/>
-    <menuitem
         id="menu_rebuild_account_bank_reconciliation_reporting"
-        name="Imported Bank Reconciliation"
+        name="Bank Reconciliation"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_bank_reconciliation_line"
         sequence="86"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_currency_reporting"
-        name="Imported Currency Gain/Loss"
+        name="Currency Gain/Loss"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_currency_report_line"
         sequence="88"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_cash_flow_reporting"
-        name="Imported Cash Flow Statement"
+        name="Cash Flow Statement"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_cash_flow_line"
         sequence="89"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_executive_summary_reporting"
-        name="Imported Executive Summary"
+        name="Executive Summary"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_executive_summary_line"
         sequence="90"
@@ -6339,49 +4965,49 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_analytic_reporting"
-        name="Imported Analytic Distribution"
+        name="Analytic Distribution"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_analytic_distribution_line"
         sequence="92"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_export_wizard_reporting"
-        name="Imported Report Export"
+        name="Report Export"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_report_export_wizard"
         sequence="92"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_tax_report_reporting"
-        name="Imported VAT and Tax Report"
+        name="VAT and Tax Report"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_account_tax_report_line"
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_ec_sales_reporting"
-        name="Imported EC Sales List"
+        name="EC Sales List"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_account_ec_sales_report_line"
         sequence="20"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_oss_sales_reporting"
-        name="Imported OSS Sales"
+        name="OSS Sales"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_account_oss_sales_report_line"
         sequence="30"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_oss_imports_reporting"
-        name="Imported OSS Imports"
+        name="OSS Imports"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_account_oss_imports_report_line"
         sequence="40"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_tax_package_tax_reporting"
-        name="Imported French Tax Package Mapping"
+        name="French Tax Package Mapping"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_account_french_tax_package_line"
         sequence="50"
@@ -6409,9 +5035,6 @@
     <record id="menu_rebuild_account_trial_balance_reporting" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
-    <record id="menu_rebuild_account_source_report_reporting" model="ir.ui.menu">
-        <field name="active" eval="False"/>
-    </record>
     <record id="menu_rebuild_account_general_ledger_reporting" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
@@ -6437,9 +5060,6 @@
         <field name="active" eval="False"/>
     </record>
     <record id="menu_rebuild_account_deferred_expense_reporting" model="ir.ui.menu">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="menu_rebuild_account_deferred_revenue_reporting" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
     <record id="menu_rebuild_account_bank_reconciliation_reporting" model="ir.ui.menu">

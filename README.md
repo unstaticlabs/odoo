@@ -35,6 +35,8 @@ Primary entry points:
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
   for reconstruction and parity evidence.
+- [Accounting restoration boundary](migration/accounting_restore/README.md)
+  for the one-off importer lifecycle and finalization contract.
 - [Projects restoration runbook](docs/operations/project-restoration.md) for
   repeatable Odoo Online project and task recovery.
 - [Product and migration boundary](docs/agents/product-migration-boundary.md)
@@ -213,14 +215,20 @@ The production custom-module boundaries are:
   Accounting models;
 - `usl_expense_batch`: the independent Expenses claim-batch feature;
 - `rebuild_account_migration`: the historical compatibility owner for stable
-  product models, XML IDs and reconstruction entry points. Its technical name
-  is not exposed in normal Accounting navigation;
+  operational product models and XML IDs. Despite its technical name, it
+  contains no importer, source bindings, parity objects or migration UI;
 - `usl_bootstrap`: a synthetic disposable test fixture, never a product
   dependency.
 
 See
 [`docs/accounting/custom-addon-architecture.md`](docs/accounting/custom-addon-architecture.md)
 for dependency direction, ownership policy and future extraction rules.
+
+One-off Accounting restoration lives under `migration/accounting_restore/`.
+The normal Odoo service cannot load that path. `make target-reconstruct` loads
+the temporary importer through a dedicated service, validates the restored
+facts, uninstalls it, and refuses the target unless the normal product registry
+is free of migration models, fields, views and XML IDs.
 
 Useful commands inside the Dev Container:
 

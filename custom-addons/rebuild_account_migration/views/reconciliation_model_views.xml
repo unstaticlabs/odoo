@@ -352,11 +352,11 @@
                                 </div>
                                 <div class="o_usl_rule_metrics">
                                     <div>
-                                        <span>Imported uses</span>
+                                        <span>Total uses</span>
                                         <field name="rebuild_historical_use_count" nolabel="1" readonly="1"/>
                                     </div>
                                     <div>
-                                        <span>Current uses</span>
+                                        <span>Uses in this database</span>
                                         <field name="rebuild_current_use_count" nolabel="1" readonly="1"/>
                                     </div>
                                     <div>

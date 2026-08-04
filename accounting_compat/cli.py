@@ -39,13 +39,9 @@ DEFAULT_SOURCE_DIR = "usl-online-dump"
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
 SOURCE_DB_SERVICE = "accounting-source-db"
 TARGET_DB_SERVICE = "db"
-TARGET_ODOO_ADDONS_PATH = ",".join(
-    [
-        "/opt/odoo/addons",
-        "/opt/odoo/odoo/addons",
-        "/mnt/custom-addons",
-        "/mnt/oca-addons",
-    ],
+TARGET_ODOO_ADDONS_PATH = (
+    "/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,"
+    "/mnt/oca-addons,/mnt/accounting-migration-addons"
 )
 OCA_TARGET_MODULES = [
     "date_range",
@@ -68,6 +64,7 @@ TARGET_INIT_MODULES = [
     "l10n_fr_account",
     *OCA_TARGET_MODULES,
     "rebuild_account_migration",
+    "usl_accounting_restore",
 ]
 USL_BENCHMARK_START = "2024-01-10"
 USL_BENCHMARK_END = "2025-09-30"
@@ -286,10 +283,19 @@ def run_stdout(args: list[str], *, env: dict[str, str] | None = None) -> str:
 
 
 def compose_args(*args: str) -> list[str]:
+    args = list(args)
+    if args[:4] == ["--profile", "init", "run", "--rm"] and "init-db" in args:
+        args[1] = "accounting-migration"
+        args[args.index("init-db")] = "accounting-migration"
     command = ["docker", "compose", "-p", COMPOSE_PROJECT, *args]
-    if args[:4] == ("--profile", "init", "run", "--rm") and "init-db" in args:
-        insert_at = command.index("init-db")
-        command[insert_at:insert_at] = ["-e", f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}"]
+    if "accounting-migration" in args:
+        insert_at = len(command) - 1 - command[::-1].index(
+            "accounting-migration",
+        )
+        command[insert_at:insert_at] = [
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+        ]
     return command
 
 

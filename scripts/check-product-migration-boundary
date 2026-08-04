@@ -7,7 +7,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PRODUCT_ADDONS = ROOT / "custom-addons"
-MIGRATION_ADDONS = ROOT / "migration" / "project_restore" / "addons"
+PROJECT_MIGRATION_ADDONS = ROOT / "migration" / "project_restore" / "addons"
+ACCOUNTING_MIGRATION_ADDONS = (
+    ROOT / "migration" / "accounting_restore" / "addons"
+)
 
 
 def manifest(path):
@@ -15,14 +18,22 @@ def manifest(path):
 
 
 errors = []
-if not (MIGRATION_ADDONS / "usl_project_restore" / "__manifest__.py").is_file():
+if not (
+    PROJECT_MIGRATION_ADDONS / "usl_project_restore" / "__manifest__.py"
+).is_file():
     errors.append("The project restoration add-on is not migration-isolated.")
+if not (
+    ACCOUNTING_MIGRATION_ADDONS
+    / "usl_accounting_restore"
+    / "__manifest__.py"
+).is_file():
+    errors.append("The Accounting restoration add-on is not migration-isolated.")
 
 for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
     addon_name = addon_manifest.parent.name
     values = manifest(addon_manifest)
     dependencies = set(values.get("depends", []))
-    if addon_name == "usl_project_restore" or "restore" in addon_name:
+    if addon_name in {"usl_project_restore", "usl_accounting_restore"}:
         errors.append(
             f"Migration-only add-on {addon_name} is on the product add-ons path.",
         )
@@ -30,15 +41,29 @@ for addon_manifest in PRODUCT_ADDONS.glob("*/__manifest__.py"):
         errors.append(
             f"Product add-on {addon_name} depends on usl_project_restore.",
         )
+    if "usl_accounting_restore" in dependencies:
+        errors.append(
+            f"Product add-on {addon_name} depends on usl_accounting_restore.",
+        )
 
 compose = (ROOT / "compose.yaml").read_text()
 restore_harness = (ROOT / "scripts/project-restore").read_text()
+accounting_restore_harness = (ROOT / "scripts/accounting-restore").read_text()
 default_addons_path = (
     "/opt/odoo/addons,/opt/odoo/odoo/addons,"
     "/mnt/custom-addons,/mnt/oca-addons"
 )
 if default_addons_path not in compose:
     errors.append("The expected production add-ons path guard is missing.")
+normal_odoo_service = compose.split("  odoo:", 1)[1].split("\n  init-db:", 1)[0]
+for migration_path in (
+    "/mnt/project-migration-addons",
+    "/mnt/accounting-migration-addons",
+):
+    if migration_path in normal_odoo_service:
+        errors.append(
+            f"The normal Odoo service exposes migration path {migration_path}.",
+        )
 if "/mnt/project-migration-addons" not in compose:
     errors.append("The dedicated migration add-ons mount is missing.")
 if (
@@ -50,9 +75,25 @@ if (
     errors.append(
         "The migration add-ons path is not confined to the migration service.",
     )
+if "/mnt/accounting-migration-addons" not in compose:
+    errors.append("The dedicated Accounting migration add-ons mount is missing.")
+if (
+    "--addons-path="
+    + default_addons_path
+    + ",/mnt/accounting-migration-addons"
+    not in compose
+):
+    errors.append(
+        "The Accounting migration path is not confined to its one-shot service.",
+    )
 if '--addons-path="$migration_addons_path"' not in restore_harness:
     errors.append(
         "The project restoration harness does not explicitly pass the "
+        "migration-only add-ons path.",
+    )
+if '--addons-path="$migration_addons_path"' not in accounting_restore_harness:
+    errors.append(
+        "The Accounting restoration harness does not explicitly pass the "
         "migration-only add-ons path.",
     )
 
@@ -75,6 +116,32 @@ for path in runtime_project.rglob("*"):
         if forbidden in text:
             errors.append(
                 f"Product file {path.relative_to(ROOT)} contains {forbidden!r}.",
+            )
+
+runtime_accounting = PRODUCT_ADDONS / "rebuild_account_migration"
+for path in runtime_accounting.rglob("*"):
+    if (
+        not path.is_file()
+        or "__pycache__" in path.parts
+        or "tests" in path.parts
+        or path.suffix not in {".py", ".xml", ".csv", ".js"}
+    ):
+        continue
+    text = path.read_text(errors="ignore")
+    for forbidden in (
+        "rebuild_source_",
+        "rebuild.account.import.run",
+        "rebuild.account.discrepancy",
+        "rebuild.account.source.report",
+        "rebuild.account.deferred.schedule.line",
+        "rebuild.account.analytic.override",
+        "action_open_latest_import_run",
+        "menu_rebuild_account_migration",
+    ):
+        if forbidden in text:
+            errors.append(
+                f"Product file {path.relative_to(ROOT)} contains "
+                f"migration-only reference {forbidden!r}.",
             )
 
 if errors:
