@@ -1,6 +1,6 @@
 # Accounting attachment reconstruction
 
-Last verified: 26 July 2026
+Last verified: 4 August 2026
 
 ## Product contract
 
@@ -40,24 +40,24 @@ company and attachment security.
 
 ## Current verified inventory
 
-The source dump `ee6d9789224a…` contains:
+The source dump `e1d95464d1ff…` contains:
 
-- 2,327 binary attachment metadata rows;
-- 1,757 unique referenced blobs;
-- 1,762 physical files;
-- 704 material Accounting attachments:
-  - 663 directly attached to Accounting records;
+- 2,312 binary attachment metadata rows;
+- 1,754 unique referenced blobs;
+- 1,774 physical files;
+- 710 material Accounting attachments:
+  - 669 directly attached to Accounting records;
   - 41 attached only through Accounting chatter;
-- 347 groups where several metadata rows intentionally reference the same
+- 338 groups where several metadata rows intentionally reference the same
   content-addressed blob;
-- 5 physical files with no `ir.attachment` metadata.
+- 20 physical files with no `ir.attachment` metadata.
 
-All 1,757 referenced source blobs are readable and match their recorded SHA-1
-and size. The five unreferenced physical files cannot be linked to a record,
+All 1,754 referenced source blobs are readable and match their recorded SHA-1
+and size. The 20 unreferenced physical files cannot be linked to a record,
 company or access rule and are classified as non-blocking source-package
 orphans. They are not copied into the target.
 
-On `odoo_dev`, all 704 material source attachment identities are present once,
+On `odoo_dev`, all 710 material source attachment identities are present once,
 with no source/target checksum or size difference and no missing chatter link.
 The target binary read verifies every imported file through Odoo storage, not
 only database metadata.

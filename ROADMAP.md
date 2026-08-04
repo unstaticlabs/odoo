@@ -16,6 +16,8 @@ Status date: 4 August 2026
 Accounting v1 is engineering-complete for internal daily use. The release
 preserves the current Odoo Online `saas~19.2` accounting state while keeping
 USL behavior isolated in custom add-ons and maintained OCA dependencies.
+The same distribution now includes restored Projects, governed Pocket ID SSO
+and the focused Paie TESE workflow.
 
 ### Shipped
 
@@ -37,11 +39,19 @@ USL behavior isolated in custom add-ons and maintained OCA dependencies.
   French FEC generation.
 - Scoped read-only accountant access to records, evidence, reports and
   permitted exports without accounting mutation.
+- Native Projects with restored tasks, dependencies, chatter, evidence and
+  analytic links, plus the maintained `usl_project` extensions.
+- Paie TESE records the provider PDF, dated HR/profile context, balanced
+  payroll entry and native bank reconciliation without becoming a second
+  legal payroll calculator.
+- Pocket ID SSO with immutable identity links and one independent local
+  break-glass administrator; Odoo remains authoritative for roles, companies
+  and record rules.
 - French electronic-invoice reception for UBL, CII and Factur-X invoices and
   credit notes, including native draft bills, original evidence,
   duplicate/retry controls, role-aware browser journeys and controlled
   readiness. It is ready but deliberately inactive.
-- Complete reconstruction of 704 Accounting attachments with source metadata,
+- Complete reconstruction of 710 Accounting attachments with source metadata,
   native record/chatter links and access inheritance.
 - Reproducible development, reconstruction, parity and evidence workflows.
 
