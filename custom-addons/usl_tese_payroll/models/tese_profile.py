@@ -223,10 +223,10 @@ class UslTeseProfile(models.Model):
                         profile.default_hours
                         and profile.hr_hours_reference
                         and abs(
-                            profile.default_hours - profile.hr_hours_reference
+                            profile.default_hours - profile.hr_hours_reference,
                         ) > 0.01
                     )
-                )
+                ),
             )
 
     @api.depends("active", "review_status", "has_hr_mismatch")

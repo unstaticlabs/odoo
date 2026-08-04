@@ -6,7 +6,6 @@ from odoo.tools import format_date
 
 from .constants import TESE_COMPONENT_BY_CODE
 
-
 PROFILE_NUMBER_FIELDS = (
     "default_hours",
     "gross_salary",

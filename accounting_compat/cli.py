@@ -339,6 +339,10 @@ def source_package(source_dir: str) -> SourcePackage:
     return SourcePackage(root, root / "dump.sql", root / "filestore")
 
 
+def configure_source_mount(source_dir: str) -> None:
+    os.environ["USL_ONLINE_DUMP_DIR"] = str(source_package(source_dir).path)
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -409,10 +413,22 @@ def git_value(*args: str) -> str | None:
         return None
 
 
+def display_path(path: Path) -> str:
+    return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+
+
 def git_tracking_status(paths: Iterable[Path]) -> list[dict[str, Any]]:
     records = []
     for path in paths:
-        rel = str(path.relative_to(ROOT)) if path.is_absolute() else str(path)
+        rel = display_path(path)
+        if path.is_absolute() and not path.is_relative_to(ROOT):
+            records.append({
+                "path": rel,
+                "tracked": False,
+                "ignored": False,
+                "ignore_rule": None,
+            })
+            continue
         tracked = bool(git_value("ls-files", "--", rel))
         ignored = False
         ignore_rule = None
@@ -704,9 +720,9 @@ def source_validation_manifest(source_dir: str) -> dict[str, Any]:
     manifest = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "source_dir": str(package.path.relative_to(ROOT)) if package.path.is_relative_to(ROOT) else str(package.path),
+        "source_dir": display_path(package.path),
         "dump": {
-            "path": str(package.dump_path.relative_to(ROOT)) if package.dump_path.exists() else str(package.dump_path),
+            "path": display_path(package.dump_path),
             "exists": package.dump_path.exists(),
             "format": dump_format,
             "size_bytes": dump_size,
@@ -2061,7 +2077,9 @@ def source_snapshot_date() -> str | None:
 
 
 def source_snapshot_id() -> str:
-    package = source_package(DEFAULT_SOURCE_DIR)
+    package = source_package(
+        os.environ.get("USL_ONLINE_DUMP_DIR", DEFAULT_SOURCE_DIR),
+    )
     return f"source-{sha256_file(package.dump_path)[:12]}"
 
 
@@ -14733,13 +14751,17 @@ def build_parser() -> argparse.ArgumentParser:
         "readiness",
         "evidence",
     ])
-    parser.add_argument("--source-dir", default=DEFAULT_SOURCE_DIR)
+    parser.add_argument(
+        "--source-dir",
+        default=os.environ.get("USL_ONLINE_DUMP_DIR", DEFAULT_SOURCE_DIR),
+    )
     parser.add_argument("--allow-errors", action="store_true")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    configure_source_mount(args.source_dir)
     try:
         if args.stage == "source-validate":
             print_summary(args.stage, validate_source(args))

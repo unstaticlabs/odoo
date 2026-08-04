@@ -1,7 +1,7 @@
 import base64
 from datetime import date
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 from odoo.tools.safe_eval import safe_eval
@@ -695,6 +695,34 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         created.with_user(self.readonly_user).check_access("read")
         with self.assertRaises(AccessError):
             created.with_user(self.hr_only_user).check_access("read")
+
+        other_company = self.env["res.company"].sudo().create({
+            "name": "Other TESE company",
+            "currency_id": self.company.currency_id.id,
+        })
+        other_issue = self.env["usl.tese.diagnostic.issue"].sudo().create({
+            "name": "Other company issue",
+            "stable_key": "test:other-company",
+            "severity": "warning",
+            "category": "configuration",
+            "message": "This issue belongs to another company.",
+            "first_seen_at": fields.Datetime.now(),
+            "last_seen_at": fields.Datetime.now(),
+            "company_id": other_company.id,
+        })
+        self.assertFalse(
+            self.env["usl.tese.diagnostic.issue"].with_user(
+                self.config_user,
+            ).search([("id", "=", other_issue.id)]),
+        )
+        with self.assertRaises(ValidationError):
+            Payslip.sudo().create({
+                "company_id": other_company.id,
+                "employee_id": self.employee.id,
+                "profile_id": self.profile.id,
+                "pay_period": date(2026, 9, 1),
+                "tese_reference": "TESE-CROSS-COMPANY",
+            })
 
     def test_navigation_opens_all_payroll_and_dedicated_configuration(self):
         payroll_action = self.env.ref(

@@ -1563,17 +1563,14 @@ class UslTesePayslip(models.Model):
             f"{prefix}_candidate_date": best["line"].date if best else False,
             f"{prefix}_candidate_amount": best["amount"] if best else 0,
             f"{prefix}_candidate_difference": (
-                (
-                    best["settlement_difference"]
-                    if best and kind == "tese"
-                    else best["difference"] if best else 0
-                )
+                best["settlement_difference"]
+                if best and kind == "tese"
+                else best["difference"] if best else 0
             ),
             f"{prefix}_candidate_label": (
                 self._candidate_label(best["line"]) if best else False
             ),
         }
-        exact = [candidate for candidate in ranked if candidate["exact"]]
         safe = [candidate for candidate in ranked if candidate["safe"]]
         if not ranked:
             message = _(
