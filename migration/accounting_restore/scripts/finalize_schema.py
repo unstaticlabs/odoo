@@ -12,30 +12,6 @@ MIGRATION_MODULES = {
     "usl_project_restore",
     "usl_tese_restore",
 }
-PRODUCT_MODELS = {
-    "account.account",
-    "account.account.tag",
-    "account.analytic.account",
-    "account.analytic.line",
-    "account.analytic.plan",
-    "account.bank.statement.line",
-    "account.journal",
-    "account.move",
-    "account.move.line",
-    "account.payment",
-    "account.reconcile.model",
-    "account.tax",
-    "hr.employee",
-    "hr.expense",
-    "ir.attachment",
-    "res.company",
-    "res.currency.rate",
-    "res.partner",
-    "res.partner.bank",
-    "res.partner.category",
-    "res.partner.industry",
-    "res.users",
-}
 MIGRATION_COLUMNS = {
     "rebuild_import_note",
     "rebuild_import_run_id",
@@ -66,43 +42,47 @@ if active_modules:
 
 loaded = sorted(
     (model_name, field_name)
-    for model_name in PRODUCT_MODELS
+    for model_name in env.registry.models
     for field_name in MIGRATION_COLUMNS
     if field_name in env[model_name]._fields
 )
 if loaded:
     raise RuntimeError(f"Migration fields remain loaded and cannot be dropped: {loaded}.")
 
-metadata = env["ir.model.fields"].sudo().search_count(
-    [("model", "in", sorted(PRODUCT_MODELS)), ("name", "in", sorted(MIGRATION_COLUMNS))],
+metadata = env["ir.model.fields"].sudo().search(
+    [("name", "in", sorted(MIGRATION_COLUMNS))],
 )
-if metadata:
-    raise RuntimeError(
-        f"{metadata} migration field definitions remain in product metadata.",
-    )
+removed_metadata = sorted(f"{field.model}.{field.name}" for field in metadata)
+metadata.with_context(force_delete=True).unlink()
 
 removed = []
-for model_name in sorted(PRODUCT_MODELS):
-    table_name = env[model_name]._table
+env.cr.execute(
+    """
+    SELECT table_name, column_name
+      FROM information_schema.columns
+     WHERE table_schema = current_schema()
+       AND column_name = ANY(%s)
+     ORDER BY table_name, column_name
+    """,
+    [sorted(MIGRATION_COLUMNS)],
+)
+for table_name, column_name in env.cr.fetchall():
     env.cr.execute(
-        """
-        SELECT column_name
-          FROM information_schema.columns
-         WHERE table_schema = current_schema()
-           AND table_name = %s
-           AND column_name = ANY(%s)
-         ORDER BY column_name
-        """,
-        [table_name, sorted(MIGRATION_COLUMNS)],
+        sql.SQL("ALTER TABLE {} DROP COLUMN {}").format(
+            sql.Identifier(table_name),
+            sql.Identifier(column_name),
+        ),
     )
-    for (column_name,) in env.cr.fetchall():
-        env.cr.execute(
-            sql.SQL("ALTER TABLE {} DROP COLUMN {}").format(
-                sql.Identifier(table_name),
-                sql.Identifier(column_name),
-            ),
-        )
-        removed.append(f"{table_name}.{column_name}")
+    removed.append(f"{table_name}.{column_name}")
 
 env.cr.commit()
-print(json.dumps({"removed_migration_columns": removed}, indent=2, sort_keys=True))
+print(
+    json.dumps(
+        {
+            "removed_migration_columns": removed,
+            "removed_migration_field_metadata": removed_metadata,
+        },
+        indent=2,
+        sort_keys=True,
+    ),
+)
