@@ -1171,7 +1171,8 @@ test("Trash shows attribution and keeps linked documents recoverable", async () 
         availabilityState = "trashed";
         return {
             document_id: document.id,
-            message: "Document moved to Trash. Its Odoo links were kept.",
+            message:
+                "“Signed supplier agreement” was moved to Trash. Its Odoo links were kept.",
         };
     });
 
@@ -1189,6 +1190,9 @@ test("Trash shows attribution and keeps linked documents recoverable", async () 
     await animationFrame();
 
     expect(moveCalled).toBe(true);
+    expect(".o_notification").toHaveText(
+        /Signed supplier agreement.*moved to Trash/
+    );
     expect(".o_usl_documents_detail").toHaveText(/In Trash/);
     expect(".o_usl_documents_detail").toHaveText(/Administrator/);
     expect(".o_usl_documents_detail").toHaveText(/2026-07-30 12:30:00/);
@@ -1274,6 +1278,9 @@ test("authorized permanent deletion requires a reason and keeps an audit flow", 
         ],
         ["delete", [[55]]],
     ]);
+    expect(".o_notification").toHaveText(
+        /Expired temporary scan.*permanently deleted/
+    );
     expect(".o_usl_documents_detail").toHaveCount(0);
 });
 

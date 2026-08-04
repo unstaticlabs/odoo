@@ -178,6 +178,7 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(result["state"], "duplicate")
         self.assertEqual(result["document_id"], existing.id)
+        self.assertIn(existing.name, result["message"])
         self.assertEqual(existing.link_count, 1)
         self.assertEqual(
             self.env["usl.document"].search_count([("checksum", "=", checksum)]), 1,
@@ -1337,6 +1338,7 @@ class TestDocuments(TransactionCase):
             )
         self.assertEqual(result["trashed"], 1)
         self.assertEqual(document.availability_state, "trashed")
+        self.assertEqual(document.permission_sync_state, "pending")
         self.assertEqual(
             self.env["usl.document"].workspace_data(workspace="all")["count"],
             0,
@@ -1369,6 +1371,7 @@ class TestDocuments(TransactionCase):
         ):
             restored = document.restore_from_trash()
         self.assertEqual(restored["state"], "restored")
+        self.assertIn("Signed contract", restored["message"])
         self.assertEqual(document.availability_state, "available")
         self.assertEqual(document.paperless_id, 333)
         self.assertEqual(document.link_count, 1)
@@ -1438,6 +1441,7 @@ class TestDocuments(TransactionCase):
                 full=True,
             )
         self.assertEqual(document.availability_state, "trashed")
+        self.assertEqual(document.permission_sync_state, "pending")
         self.assertFalse(document.trashed_by_id)
         self.assertEqual(
             document.trashed_by_label,
@@ -1769,6 +1773,10 @@ class TestDocuments(TransactionCase):
         ):
             status = operation.with_user(self.user).poll()
         self.assertEqual(status[operation.id]["state"], "archived")
+        self.assertEqual(
+            status[operation.id]["document_name"],
+            "Confirmed archive",
+        )
         self.assertTrue(operation.document_id)
         self.assertEqual(operation.document_id.link_count, 1)
         self.assertEqual(operation.document_id.checksum, "c" * 64)
@@ -1892,6 +1900,7 @@ class TestDocuments(TransactionCase):
             result = document.with_user(self.user).restore_version("90")
         self.assertEqual(result["state"], "processing")
         self.assertEqual(result["task_id"], "restore-task")
+        self.assertIn(document.name, result["message"])
         self.assertEqual(len(document.version_ids), 2)
         download.assert_called_once_with(316, version_id="90", original=True)
         self.assertEqual(update.call_args.args[:4], (316, b"received file", "received.pdf", "application/pdf"))
@@ -2140,6 +2149,15 @@ class TestDocuments(TransactionCase):
 
     def test_company_access_loss_revokes_paperless_object_permission(self):
         document = self._document(410)
+        self.env.ref("base.user_admin").write(
+            {
+                "group_ids": [
+                    Command.unlink(
+                        self.env.ref("usl_documents.group_documents_manager").id,
+                    ),
+                ],
+            },
+        )
         mapping = self._verified_mapping(
             {
                 "user_id": self.user.id,
@@ -2164,6 +2182,36 @@ class TestDocuments(TransactionCase):
             document.paperless_id,
             view_users=[],
             change_users=[],
+        )
+
+    def test_synchronized_identity_without_documents_role_has_empty_access(self):
+        user_without_access = mail_new_test_user(
+            self.env,
+            login="documents-no-role",
+            name="Documents identity without role",
+            company_id=self.company_a.id,
+            company_ids=[Command.set(self.company_a.ids)],
+            groups="base.group_user",
+        )
+        mapping = self._verified_mapping(
+            {
+                "user_id": user_without_access.id,
+                "paperless_user_id": 41,
+                "paperless_username": "documents-no-role",
+                "sync_state": "synchronized",
+            },
+        )
+        self.assertEqual(
+            user_without_access._documents_visible_for_permission_sync(),
+            {user_without_access.id: set()},
+        )
+        self.assertFalse(mapping._mapped_user_documents())
+        user_without_access.write(
+            {
+                "group_ids": [
+                    Command.link(self.env.ref("base.group_user").id),
+                ],
+            },
         )
 
     def test_manager_role_loss_revokes_paperless_change_permission(self):
@@ -2274,6 +2322,7 @@ class TestDocuments(TransactionCase):
         ):
             document.with_user(self.manager).action_sync_permissions()
         self.assertEqual(document.availability_state, "permanently_deleted")
+        self.assertEqual(document.permission_sync_state, "pending")
         self.assertNotIn(
             document.id,
             [
@@ -2283,6 +2332,22 @@ class TestDocuments(TransactionCase):
                 )["documents"]
             ],
         )
+
+    def test_trashed_document_defers_permission_sync_until_restore(self):
+        document = self._document(
+            1411,
+            name="Archived contract in Trash",
+            availability_state="trashed",
+        )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+        ) as permission_call:
+            document.with_user(self.manager).action_sync_permissions()
+        permission_call.assert_not_called()
+        self.assertEqual(document.permission_sync_state, "pending")
+        self.assertFalse(document.permission_sync_error)
+        self.assertFalse(document.permission_checked_at)
 
     def test_move_to_trash_records_actor_preserves_links_and_blocks_deletion(self):
         document = self._document(1412)
@@ -2295,7 +2360,9 @@ class TestDocuments(TransactionCase):
             result = document.with_user(self.user).move_to_trash()
         trash.assert_called_once_with(1412)
         self.assertEqual(result["state"], "trashed")
+        self.assertIn(document.name, result["message"])
         self.assertEqual(document.availability_state, "trashed")
+        self.assertEqual(document.permission_sync_state, "pending")
         self.assertEqual(document.trashed_by_id, self.user)
         self.assertEqual(document.link_count, 1)
         detail = document.with_user(self.manager).document_detail(document.id)

@@ -1,20 +1,26 @@
 from odoo import _, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 class ResUsers(models.Model):
     _inherit = "res.users"
 
     def _documents_visible_for_permission_sync(self):
-        return {
-            user.id: set(
-                self.env["usl.document"]
-                .with_user(user)
-                .search([])
-                .ids,
-            )
-            for user in self
-        }
+        visible = {}
+        for user in self:
+            try:
+                visible[user.id] = set(
+                    self.env["usl.document"]
+                    .with_user(user)
+                    .search([])
+                    .ids,
+                )
+            except AccessError:
+                # Losing the Documents role means the user can no longer read
+                # the model at all. Treat that as an empty visible set so the
+                # existing Paperless grants are revoked fail-closed.
+                visible[user.id] = set()
+        return visible
 
     def write(self, values):
         if (
@@ -72,7 +78,10 @@ class ResUsers(models.Model):
         if not changed_ids:
             return result
         documents = self.env["usl.document"].browse(changed_ids).exists()
-        documents.with_user(self.env.ref("base.user_admin")).action_sync_permissions()
+        # Permission propagation is an internal fail-closed operation. It must
+        # not depend on the functional Documents role currently assigned to
+        # the Administrator account while Pocket profiles are being applied.
+        documents.with_user(self.env.ref("base.user_root")).action_sync_permissions()
         removed_ids = set().union(
             *(before[user.id] - after[user.id] for user in tracked),
         )
