@@ -14,10 +14,14 @@ Local QA is fixed to:
   `db_name = odoo_usl_documents_test`, and web filter
   `^odoo_usl_documents_test$`;
 - Odoo `http://127.0.0.1:18080` and gevent port `18072`;
-- Paperless `http://127.0.0.1:8010`;
+- Paperless `http://127.0.0.1:18010`;
 - Pocket ID `http://pocket-id-documents.localhost:18110`;
 - electronic invoice and e-reporting live flags `0`;
 - preserved named volumes for both applications.
+
+Ports `8069`, `8072`, `8010`, and `1411` belong to the canonical `19-usl`
+development stack. The Documents wrapper refuses a QA configuration that
+reuses them, so a feature worktree cannot silently replace the main runtime.
 
 Use:
 

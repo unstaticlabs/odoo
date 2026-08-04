@@ -40,6 +40,8 @@ REQUIRED_KEYS = {
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
 }
+QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:18010"
+LEGACY_QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:8010"
 
 
 def read_env(path: Path) -> dict[str, str]:
@@ -68,6 +70,8 @@ def ensure_env(path: Path) -> None:
     if path.exists():
         values = read_env(path)
         extra_users = json.loads(values["POCKET_ID_EXTRA_USERS_JSON"])
+        lines = path.read_text(encoding="utf-8").splitlines()
+        changed = False
         if not any(
             item.get("username") == "documents-sso-user"
             for item in extra_users
@@ -80,10 +84,21 @@ def ensure_env(path: Path) -> None:
                     "display_name": "Documents Pocket QA User",
                 },
             )
-            lines = path.read_text(encoding="utf-8").splitlines()
+            changed = True
+        public_base_url = values["PAPERLESS_PUBLIC_BASE_URL"]
+        if public_base_url == LEGACY_QA_PAPERLESS_PUBLIC_BASE_URL:
+            changed = True
+        elif public_base_url != QA_PAPERLESS_PUBLIC_BASE_URL:
+            raise RuntimeError(
+                "QA Paperless public base URL must use isolated port 18010"
+            )
+        if changed:
             path.write_text(
                 "\n".join(
-                    (
+                    "PAPERLESS_PUBLIC_BASE_URL="
+                    + QA_PAPERLESS_PUBLIC_BASE_URL
+                    if line.startswith("PAPERLESS_PUBLIC_BASE_URL=")
+                    else (
                         "POCKET_ID_EXTRA_USERS_JSON="
                         + json.dumps(extra_users, separators=(",", ":"))
                     )
@@ -120,7 +135,7 @@ def ensure_env(path: Path) -> None:
         "ODOO_PUBLIC_BASE_URL": "http://odoo-documents.localhost:18080",
         "PAPERLESS_DISABLE_REGULAR_LOGIN": "false",
         "PAPERLESS_OIDC_ENABLED": "1",
-        "PAPERLESS_PUBLIC_BASE_URL": "http://127.0.0.1:8010",
+        "PAPERLESS_PUBLIC_BASE_URL": QA_PAPERLESS_PUBLIC_BASE_URL,
         "PAPERLESS_REDIRECT_LOGIN_TO_SSO": "false",
         "POCKET_ID_APP_URL": "http://pocket-id-documents.localhost:18110",
         "POCKET_ID_CLIENT_ID": "usl-odoo-documents-qa",

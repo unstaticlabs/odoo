@@ -91,7 +91,14 @@ run_shell() {
 run_shell "$ROOT/scripts/odoo/documents_compose_acceptance.py"
 
 if [[ "$ENVIRONMENT" = "qa" ]]; then
-  paperless_api="http://127.0.0.1:8010/api"
+  paperless_public_url="$(
+    sed -n 's/^PAPERLESS_PUBLIC_URL=//p' "$ENV_FILE" | tail -n 1
+  )"
+  [[ -n "$paperless_public_url" ]] || {
+    printf 'Documents QA Paperless public URL is missing.\n' >&2
+    exit 1
+  }
+  paperless_api="${paperless_public_url%/}/api"
   shared_view_names=("Contracts & legal" "Banking" "Tax & reporting")
   for username in \
     archive-admin \

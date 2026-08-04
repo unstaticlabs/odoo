@@ -16,7 +16,7 @@ make documents-qa-status
 Open:
 
 - Odoo: `http://127.0.0.1:18080`
-- Paperless: `http://127.0.0.1:8010`
+- Paperless: `http://127.0.0.1:18010`
 - Pocket ID: `http://pocket-id-documents.localhost:18110`
 
 QA passwords are all `admin`:
