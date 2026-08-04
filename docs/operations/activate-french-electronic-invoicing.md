@@ -30,6 +30,11 @@ Before the change window:
 If any item is uncertain, stop. The correct state is **Not yet verified** or
 **Configuration incomplete**, not Ready.
 
+Module installation and upgrades preserve the configured provider and company
+identity, but deliberately suspend every exchange job. Treat an application
+upgrade like a fresh activation window: recheck the items above before
+resuming reception.
+
 ## Deliberate activation
 
 1. Deploy with `USL_EINVOICE_LIVE_ENABLED=1` and

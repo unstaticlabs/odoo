@@ -7821,6 +7821,59 @@ class TestRebuildAccountMigration(TransactionCase):
             {equity_account.id, retained_account.id},
         )
 
+    def test_comparison_only_rows_have_no_current_period_amounts(self):
+        wizard = self.env[
+            "rebuild.account.report.export.wizard"
+        ].create({
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "report_type": "profit_loss",
+            "comparison_mode": "previous_year",
+            "group_by": "section",
+        })
+
+        rows = wizard._attach_comparison_values([], [{
+            "group_key": "statement:production_sold_goods",
+            "label": "Production vendue — biens",
+            "amount": "7083.00",
+            "balance": "7083.00",
+            "gross_amount": "8000.00",
+            "depreciation_amount": "917.00",
+            "net_amount": "7083.00",
+        }])
+
+        self.assertEqual(len(rows), 1)
+        comparison_only_row = rows[0]
+        self.assertEqual(comparison_only_row["period_value"], "0.00")
+        self.assertEqual(comparison_only_row["amount"], "0.00")
+        self.assertEqual(comparison_only_row["balance"], "0.00")
+        self.assertEqual(comparison_only_row["gross_amount"], "0.00")
+        self.assertEqual(
+            comparison_only_row["depreciation_amount"],
+            "0.00",
+        )
+        self.assertEqual(comparison_only_row["net_amount"], "0.00")
+        self.assertEqual(
+            comparison_only_row["comparison_value"],
+            "7083.00",
+        )
+        self.assertEqual(comparison_only_row["difference"], "-7083.00")
+        self.assertEqual(
+            wizard._preview_line_values(1, comparison_only_row)["balance"],
+            Decimal("0.00"),
+        )
+        export_columns = dict(
+            wizard._report_export_columns(rows),
+        )
+        self.assertIn("amount", export_columns)
+        self.assertEqual(
+            wizard._report_export_row_value(
+                comparison_only_row,
+                "amount",
+            ),
+            "0.00",
+        )
+
     def test_dynamic_report_workbench_period_comparison_and_native_scope(self):
         expense_account = self._account(
             "T625100",
@@ -9508,6 +9561,7 @@ class TestRebuildAccountMigration(TransactionCase):
             line
             for line in unfolded["lines"]
             if line["account_code"] == "604991"
+            and not line["is_group"]
         )
         pcg_groups = [
             line
@@ -9524,7 +9578,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertAlmostEqual(account_line["balance"], 123.45)
 
         account_preview = wizard.preview_line_ids.filtered(
-            lambda line: line.account_code == "604991",
+            lambda line: (
+                line.account_code == "604991"
+                and not line.is_group
+            ),
         )
         source_action = Report.report_client_open_sources(
             wizard.id,

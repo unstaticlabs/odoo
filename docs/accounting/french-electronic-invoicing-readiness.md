@@ -110,9 +110,10 @@ With the reception guard off, live provider calls, French directory lookup,
 Peppol lookup, registration, deregistration and authentication refresh are
 blocked. The Odoo PA Demo mode remains available because Odoo simulates it
 locally and explicitly performs no French-network communication. Installation
-and every module upgrade select Demo mode, disable e-reporting and disable
-reception, auto-registration, regulatory-document, lifecycle and e-reporting
-jobs.
+and every module upgrade preserve governed company identifiers, provider mode
+and e-reporting configuration, while suspending reception, auto-registration,
+regulatory-document, lifecycle and e-reporting jobs. A production operator must
+repeat the activation checks before resuming reception after an upgrade.
 
 Production reception requires all of the following:
 

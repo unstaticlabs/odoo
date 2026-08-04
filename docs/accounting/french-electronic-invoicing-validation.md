@@ -68,6 +68,39 @@ guards at their default `0`. Provider success, authentication failure and
 temporary failure were mocked; no live registration, lookup, retrieval,
 delivery or e-reporting request was made.
 
+## Target-branch integration evidence
+
+The feature was integrated into `saas-19.2-usl-feat-accounting` on 29 July
+2026. Integration validation used the normal `usl-odoo-saas-19-2` Compose
+project and did not restore or alter the preserved source database.
+
+| Check | Isolated target | Result |
+|---|---|---|
+| Complete clean module installation and backend regression suite | Disposable database `odoo_merge_einvoice_clean_final_20260729`, removed by the test helper | 79 modules installed; 129 tests; 0 failures, 0 errors |
+| Browser acceptance on the integrated assets | Disposable database `odoo_merge_einvoice_browser_20260729`, removed after the run | Accounting Manager 9/9 steps and read-only accountant 6/6 steps; 0 failures, 0 errors |
+| Existing candidate upgrade | `odoo_saas_19_2_candidate_01`, using `scripts/odoo-dev deploy rebuild_account_migration` | Module upgraded to `saas~19.2.1.7.49`; all required standard e-document modules installed; application restarted healthy |
+| Consolidated frontend regressions | Chromium test image on `odoo_saas_19_2_candidate_01` | 22 tests / 95 assertions across the Accounting add-on; 0 failures, 0 errors |
+| Inactive-until-production boundary after upgrade | Read-only database inspection plus effective Compose configuration | All Peppol retrieval, registration, status and webhook jobs inactive; both live guards resolved to `0` |
+| User documentation | MkDocs 1.6.1 / Material 9.6.20 clean build to a disposable directory | Build passed without warnings |
+
+The integration review also corrected two merge-sensitive risks before those
+checks:
+
+- module updates now preserve an existing company identifier, provider choice
+  and e-reporting preference instead of silently replacing business
+  configuration;
+- the QA bootstrap always restarts the normal Odoo service after a failed
+  bootstrap attempt.
+
+Two failed integration attempts were diagnostic rather than accepted
+fallbacks. The first clean runs exposed stale assertions retained during the
+test-file conflict resolution; the expectations were updated to the current
+guard and lifecycle contract. The first browser attempts used an image built
+before the current Markdown dependency and then inherited the development
+database filter; the current test image was rebuilt and the disposable
+database filter made explicit. The final clean and browser runs above are the
+passing evidence.
+
 Resolved validation iterations are retained here for honesty:
 
 - the first isolated install could not resolve OCA dependencies because the

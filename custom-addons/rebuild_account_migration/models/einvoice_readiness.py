@@ -407,12 +407,12 @@ class ResCompany(models.Model):
 
     @api.model
     def _rebuild_apply_default_einvoice_provider(self):
-        """Apply safe reception defaults without contacting any external service."""
+        """Seed missing reception defaults without rewriting governed settings."""
         companies = self.sudo().search([
             ("account_fiscal_country_id.code", "=", "FR"),
         ])
         for company in companies:
-            values = {"l10n_fr_pdp_send_to_ppf": False}
+            values = {}
             if not company.rebuild_einvoice_provider:
                 values["rebuild_einvoice_provider"] = "odoo_pdp"
             if not company.peppol_purchase_journal_id:
@@ -431,22 +431,15 @@ class ResCompany(models.Model):
             )
             if (
                 suggested_identifier
-                and (
-                    company.peppol_eas != "0225"
-                    or not company.peppol_endpoint
-                )
+                and not company.peppol_eas
+                and not company.peppol_endpoint
             ):
                 values.update({
                     "peppol_eas": "0225",
                     "peppol_endpoint": suggested_identifier,
                 })
-            company.write(values)
-
-        if not self._rebuild_einvoice_runtime_guard_enabled():
-            self.env["ir.config_parameter"].sudo().set_str(
-                "account_peppol.edi.mode",
-                "demo",
-            )
+            if values:
+                company.write(values)
 
     @api.onchange("account_fiscal_country_id")
     def _onchange_rebuild_einvoice_provider(self):
@@ -1102,7 +1095,7 @@ class AccountEdiProxyClientUser(models.Model):
             )
         try:
             result = super()._call_peppol_proxy(endpoint, params=params)
-        except Exception as error:  # ruff: ignore[blind-except]
+        except Exception as error:  # noqa: BLE001
             error_text = str(error)
             status = (
                 "authentication"
@@ -1258,7 +1251,7 @@ class AccountEdiProxyClientUser(models.Model):
                 uuid,
                 journal=journal,
             )
-        except Exception as error:  # ruff: ignore[blind-except]
+        except Exception as error:  # noqa: BLE001
             evidence.write({
                 "status": "technical_error",
                 "failure_kind": "technical",

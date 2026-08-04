@@ -379,6 +379,10 @@ class TestFrenchEinvoiceReception(
         )
 
     def test_safe_defaults_and_native_demo_provider_are_network_free(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "demo",
+        )
         self.company.write({
             "rebuild_einvoice_provider": False,
             "peppol_purchase_journal_id": False,
@@ -405,13 +409,20 @@ class TestFrenchEinvoiceReception(
             self.company.account_peppol_phone_number,
             "+33142000000",
         )
-        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertTrue(self.company.l10n_fr_pdp_send_to_ppf)
         self.assertEqual(
             self.env["ir.config_parameter"].sudo().get_str(
                 "account_peppol.edi.mode",
             ),
             "demo",
         )
+        self.company.write({
+            "peppol_eas": "0002",
+            "peppol_endpoint": "CUSTOM-IDENTIFIER",
+        })
+        self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+        self.assertEqual(self.company.peppol_eas, "0002")
+        self.assertEqual(self.company.peppol_endpoint, "CUSTOM-IDENTIFIER")
 
         wizard = self.env["pdp.registration"].with_user(
             self.manager,
