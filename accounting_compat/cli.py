@@ -37,6 +37,15 @@ def resolve_compose_project(environment: dict[str, str]) -> str:
     )
 
 
+def configure_source_mount(
+    source_dir: str,
+    environment: dict[str, str],
+) -> str:
+    resolved = str(Path(source_dir).expanduser().resolve())
+    environment["USL_ONLINE_DUMP_DIR"] = resolved
+    return resolved
+
+
 COMPOSE_PROJECT = resolve_compose_project(os.environ)
 REQUIRE_ISOLATED_PROJECT = (
     os.environ.get("ACCOUNTING_COMPAT_REQUIRE_ISOLATED_PROJECT") == "1"
@@ -14982,6 +14991,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    configure_source_mount(args.source_dir, os.environ)
     try:
         require_isolated_compose_project()
         if args.stage == "source-validate":

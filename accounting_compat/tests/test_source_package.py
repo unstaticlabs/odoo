@@ -5,12 +5,22 @@ import unittest
 from pathlib import Path
 
 from accounting_compat.cli import (
+    configure_source_mount,
     resolve_compose_project,
     source_validation_manifest,
 )
 
 
 class SourcePackageTest(unittest.TestCase):
+    def test_source_argument_also_configures_the_read_only_compose_mount(self):
+        with tempfile.TemporaryDirectory() as directory:
+            environment = {"USL_ONLINE_DUMP_DIR": "/stale/default"}
+
+            resolved = configure_source_mount(directory, environment)
+
+        self.assertEqual(resolved, str(Path(directory).resolve()))
+        self.assertEqual(environment["USL_ONLINE_DUMP_DIR"], resolved)
+
     def test_compose_project_prefers_explicit_isolation_variables(self):
         self.assertEqual(
             resolve_compose_project(
