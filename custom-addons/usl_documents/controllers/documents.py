@@ -1,6 +1,7 @@
 import html
 
 from odoo import http
+from odoo.exceptions import AccessError
 from odoo.http import request
 from odoo.http.stream import content_disposition
 
@@ -48,8 +49,24 @@ class DocumentsController(http.Controller):
         return page.encode(), "text/html; charset=utf-8"
 
     def _document(self, document_id):
-        document = request.env["usl.document"].browse(int(document_id)).exists()
-        if not document or not document._check_archive_binary_access():
+        document = (
+            request.env["usl.document"]
+            .sudo()
+            .browse(int(document_id))
+            .exists()
+            .with_env(request.env)
+        )
+        if not document:
+            return None
+        # Do not let a guessed identifier distinguish an inaccessible archive
+        # record from one that does not exist.  Permission-synchronization
+        # failures remain explicit for users who may legitimately read the
+        # document, because those require administrator action.
+        try:
+            document.check_access("read")
+        except AccessError:
+            return None
+        if not document._check_archive_binary_access():
             return None
         return document
 

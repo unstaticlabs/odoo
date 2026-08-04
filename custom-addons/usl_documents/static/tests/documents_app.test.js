@@ -7,9 +7,10 @@ import {
     mockService,
     mountWithCleanup,
     onRpc,
+    patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
-import { DocumentsWorkspace } from "../src/documents_app";
+import { DocumentPreview, DocumentsWorkspace } from "../src/documents_app";
 import { browser } from "@web/core/browser/browser";
 import { user } from "@web/core/user";
 
@@ -150,6 +151,39 @@ function action(params = {}) {
         },
     };
 }
+
+test("PDF preview renders after its conditional canvas is mounted", async () => {
+    patchWithCleanup(DocumentPreview.prototype, {
+        async load() {
+            this.pdf = { destroy() {} };
+            Object.assign(this.state, {
+                loading: false,
+                kind: "pdf",
+                page: 1,
+                pageCount: 2,
+            });
+        },
+        async renderPdfPage() {
+            const canvas = this.canvas.el;
+            if (!canvas || !this.pdf || this.state.kind !== "pdf") {
+                return;
+            }
+            canvas.width = 640;
+            canvas.height = 905;
+            this.renderedPdfKey = "test-render";
+            expect.step("rendered with mounted canvas");
+        },
+    });
+
+    await mountWithCleanup(DocumentPreview, {
+        props: { url: "/usl_documents/7/preview", versionId: "9" },
+    });
+    await animationFrame();
+
+    expect.verifySteps(["rendered with mounted canvas"]);
+    expect(".o_usl_pdf_preview canvas").toHaveAttribute("width", "640");
+    expect(".o_usl_pdf_preview canvas").toHaveAttribute("height", "905");
+});
 
 test("empty archive state is explicit and supports zero-filing upload", async () => {
     onRpc("usl.document", "workspace_data", () => emptyWorkspace);

@@ -13,6 +13,7 @@ from ..models.paperless_client import (
     PaperlessClient,
     PaperlessCompatibilityError,
     PaperlessError,
+    PaperlessNotFound,
     PaperlessUnavailable,
 )
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -303,8 +304,15 @@ class TestDocuments(TransactionCase):
                 "new.pdf",
                 base64.b64encode(content).decode(),
                 "application/pdf",
+                confidentiality="accounting",
             )
         self.assertEqual(result["state"], "processing")
+        self.assertEqual(
+            self.env["usl.document.operation"].browse(
+                result["operation_id"],
+            ).confidentiality,
+            "accounting",
+        )
         upload.assert_called_once()
 
     def test_company_and_accountant_permissions_do_not_leak_metadata(self):
@@ -484,6 +492,68 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.link_count, 1)
         self.assertEqual(document.review_state, "classified")
         self.assertEqual(document.company_id, self.company_a)
+
+    def test_full_sync_confirms_recent_odoo_upload_before_marking_it_missing(self):
+        document = self._document(
+            178,
+            name="Just archived filing",
+            checksum="a" * 64,
+            source="odoo_attachment",
+        )
+        direct_payload = {
+            "id": 178,
+            "title": "Just archived filing",
+            "checksum": "a" * 64,
+            "modified": "2026-08-04T07:00:00Z",
+            "tags": [],
+            "versions": [{"id": 1, "checksum": "a" * 64}],
+        }
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(
+                PaperlessClient,
+                "list_documents",
+                return_value={"next": None, "results": []},
+            ),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
+            patch.object(
+                PaperlessClient,
+                "get_document",
+                return_value=direct_payload,
+            ) as get_document,
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            self.env["usl.document"].with_user(self.manager).sync_from_paperless(
+                full=True,
+            )
+
+        get_document.assert_called_once_with(178)
+        self.assertEqual(document.availability_state, "available")
+        self.assertFalse(document.last_error)
+
+    def test_full_sync_marks_odoo_upload_missing_after_direct_404(self):
+        document = self._document(177, source="odoo_upload")
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(
+                PaperlessClient,
+                "list_documents",
+                return_value={"next": None, "results": []},
+            ),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
+            patch.object(
+                PaperlessClient,
+                "get_document",
+                side_effect=PaperlessNotFound("Gone"),
+            ),
+        ):
+            self.env["usl.document"].with_user(self.manager).sync_from_paperless(
+                full=True,
+            )
+
+        self.assertEqual(document.availability_state, "missing")
 
     def test_sync_hydrates_integer_paperless_metadata_identifiers(self):
         payload = {
@@ -1745,6 +1815,7 @@ class TestDocuments(TransactionCase):
             "checksum": "c" * 64,
             "mime_type": "application/pdf",
             "company_id": self.company_a.id,
+            "confidentiality": "accounting",
             "paperless_task_id": "task-1",
             "res_model": "res.partner",
             "res_id": self.partner_a.id,
@@ -1779,6 +1850,7 @@ class TestDocuments(TransactionCase):
             "Confirmed archive",
         )
         self.assertTrue(operation.document_id)
+        self.assertEqual(operation.document_id.confidentiality, "accounting")
         self.assertEqual(operation.document_id.link_count, 1)
         self.assertEqual(operation.document_id.checksum, "c" * 64)
 
@@ -2363,6 +2435,7 @@ class TestDocuments(TransactionCase):
             availability_state="trashed",
             permission_sync_state="pending",
         )
+        inaccessible = self._document(1420, company_id=self.company_b.id)
 
         self.assertTrue(
             synchronized.with_user(self.user)._check_archive_binary_access(),
@@ -2398,6 +2471,7 @@ class TestDocuments(TransactionCase):
             for document in (pending, failed):
                 with self.assertRaises(AccessError):
                     controller._document(document.id)
+            self.assertIsNone(controller._document(inaccessible.id))
             self.assertIsNone(controller._document(trashed.id))
             self.assertIsNone(controller._document(999999999))
 

@@ -1,0 +1,22 @@
+{
+  "schema": "usl-documents-source-pilot-v1",
+  "source_dump_sha256": "replace-with-approved-dump-sha256",
+  "documents": [
+    {
+      "attachment_id": 123,
+      "source_model": "documents.document",
+      "source_record_id": 45,
+      "target_xmlid": "base.main_company",
+      "title": "Example company record",
+      "document_date": "2026-01-31",
+      "document_type": "Company record",
+      "correspondent": "Example institution",
+      "tags": [
+        {"name": "Contracts & legal", "color": "#8c6bb1"}
+      ],
+      "confidentiality": "internal",
+      "accounting_evidence": false,
+      "review_state": "reviewed"
+    }
+  ]
+}

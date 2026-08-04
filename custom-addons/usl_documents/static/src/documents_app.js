@@ -3,6 +3,7 @@
 import {
     Component,
     onMounted,
+    onPatched,
     onWillDestroy,
     onWillStart,
     onWillUnmount,
@@ -78,6 +79,10 @@ export class DocumentPreview extends Component {
         this.loadToken = 0;
         this.imageUrl = null;
         this.pdf = null;
+        this.pdfRenderTask = null;
+        this.renderedPdfKey = null;
+        this.previewWidth = 0;
+        this.resizeObserver = null;
         this.state = useState({
             loading: true,
             kind: "",
@@ -85,8 +90,13 @@ export class DocumentPreview extends Component {
             error: "",
             page: 1,
             pageCount: 0,
+            rendering: false,
         });
         onMounted(() => this.load(this.props));
+        // The PDF canvas is conditional. The PDF can finish loading before Owl
+        // has patched that canvas into the DOM, so render only after the patch
+        // that makes the ref available. This also keeps page changes reliable.
+        onPatched(() => this.renderPdfPage());
         onWillUpdateProps((nextProps) => {
             if (nextProps.url !== this.props.url) {
                 this.load(nextProps);
@@ -101,6 +111,12 @@ export class DocumentPreview extends Component {
             URL.revokeObjectURL(this.imageUrl);
             this.imageUrl = null;
         }
+        this.pdfRenderTask?.cancel();
+        this.pdfRenderTask = null;
+        this.renderedPdfKey = null;
+        this.previewWidth = 0;
+        this.resizeObserver?.disconnect();
+        this.resizeObserver = null;
         this.pdf?.destroy();
         this.pdf = null;
     }
@@ -115,6 +131,7 @@ export class DocumentPreview extends Component {
             error: "",
             page: 1,
             pageCount: 0,
+            rendering: false,
         });
         try {
             const response = await browser.fetch(props.url, {
@@ -139,7 +156,6 @@ export class DocumentPreview extends Component {
                 this.pdf = pdf;
                 this.state.kind = "pdf";
                 this.state.pageCount = pdf.numPages;
-                browser.requestAnimationFrame(() => this.renderPdfPage());
             } else if (contentType.startsWith("image/")) {
                 const imageUrl = URL.createObjectURL(await response.blob());
                 if (token !== this.loadToken) {
@@ -176,40 +192,88 @@ export class DocumentPreview extends Component {
 
     async renderPdfPage() {
         const canvas = this.canvas.el;
-        if (!canvas || !this.pdf) {
+        if (!canvas || !this.pdf || this.state.kind !== "pdf") {
             return;
         }
         const token = this.loadToken;
-        const page = await this.pdf.getPage(this.state.page);
-        if (token !== this.loadToken) {
-            return;
-        }
-        const baseViewport = page.getViewport({ scale: 1 });
         const availableWidth = Math.max(
             240,
-            canvas.parentElement?.clientWidth || 680
+            Math.floor(canvas.parentElement?.clientWidth || 680)
         );
-        const scale = Math.min(2, availableWidth / baseViewport.width);
-        const viewport = page.getViewport({ scale });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.render({
-            canvasContext: canvas.getContext("2d"),
-            viewport,
-        }).promise;
-    }
-
-    async previousPage() {
-        if (this.state.page > 1) {
-            this.state.page -= 1;
-            await this.renderPdfPage();
+        const renderKey = `${token}:${this.state.page}:${availableWidth}`;
+        if (this.renderedPdfKey === renderKey) {
+            return;
+        }
+        this.renderedPdfKey = renderKey;
+        this.state.rendering = true;
+        let renderTask = null;
+        try {
+            const page = await this.pdf.getPage(this.state.page);
+            if (token !== this.loadToken) {
+                return;
+            }
+            const baseViewport = page.getViewport({ scale: 1 });
+            const scale = Math.min(2, availableWidth / baseViewport.width);
+            const viewport = page.getViewport({ scale });
+            canvas.width = Math.ceil(viewport.width);
+            canvas.height = Math.ceil(viewport.height);
+            renderTask = page.render({
+                canvasContext: canvas.getContext("2d"),
+                viewport,
+            });
+            this.pdfRenderTask = renderTask;
+            await renderTask.promise;
+            if (token !== this.loadToken) {
+                return;
+            }
+            this.observePreviewWidth(canvas);
+        } catch (error) {
+            if (error?.name !== "RenderingCancelledException" && token === this.loadToken) {
+                this.state.kind = "";
+                this.state.error =
+                    error?.message || "The PDF preview could not be displayed.";
+            }
+        } finally {
+            if (renderTask && this.pdfRenderTask === renderTask) {
+                this.pdfRenderTask = null;
+            }
+            if (token === this.loadToken) {
+                this.state.rendering = false;
+            }
         }
     }
 
-    async nextPage() {
+    observePreviewWidth(canvas) {
+        const container = canvas.parentElement;
+        if (!container || !globalThis.ResizeObserver || this.resizeObserver) {
+            return;
+        }
+        this.previewWidth = Math.floor(container.clientWidth);
+        this.resizeObserver = new ResizeObserver((entries) => {
+            const width = Math.floor(entries[0]?.contentRect?.width || 0);
+            if (!width || width === this.previewWidth) {
+                return;
+            }
+            this.previewWidth = width;
+            this.renderedPdfKey = null;
+            browser.requestAnimationFrame(() => this.renderPdfPage());
+        });
+        this.resizeObserver.observe(container);
+    }
+
+    previousPage() {
+        if (this.state.page > 1) {
+            this.pdfRenderTask?.cancel();
+            this.renderedPdfKey = null;
+            this.state.page -= 1;
+        }
+    }
+
+    nextPage() {
         if (this.state.page < this.state.pageCount) {
+            this.pdfRenderTask?.cancel();
+            this.renderedPdfKey = null;
             this.state.page += 1;
-            await this.renderPdfPage();
         }
     }
 }

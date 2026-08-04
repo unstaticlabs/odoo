@@ -12,6 +12,7 @@ from odoo.fields import Domain
 from .paperless_client import (
     PaperlessClient,
     PaperlessError,
+    PaperlessNotFound,
 )
 
 _logger = logging.getLogger(__name__)
@@ -1151,12 +1152,51 @@ class UslDocument(models.Model):
                     touched |= document
 
             if full and complete:
-                self.sudo().search(
+                omitted_available = self.sudo().search(
                     [
                         ("paperless_id", "not in", list(seen | trashed_ids)),
                         ("availability_state", "=", "available"),
                     ],
-                ).with_context(usl_documents_cache_write=True).write(
+                )
+                confirmed_missing = omitted_available
+                # Paperless's list/search index is eventually consistent just
+                # after consumption. An Odoo-origin document has already been
+                # confirmed by its asynchronous task and direct document API;
+                # do not downgrade it to missing (and thereby defeat local
+                # checksum reuse) solely because one full-list response lags.
+                # A direct supported-API lookup distinguishes that race from a
+                # genuinely removed archive object.
+                for document in omitted_available.filtered(
+                    lambda item: item.source != "paperless",
+                ):
+                    try:
+                        item = client.get_document(document.paperless_id)
+                    except PaperlessNotFound:
+                        continue
+                    confirmed_missing -= document
+                    seen.add(document.paperless_id)
+                    if metadata_catalog is None and (
+                        isinstance(item.get("correspondent"), int)
+                        or isinstance(item.get("document_type"), int)
+                        or any(
+                            isinstance(tag, int)
+                            for tag in (item.get("tags") or [])
+                        )
+                    ):
+                        metadata_catalog = client.metadata_catalog()
+                    values = self._paperless_values(
+                        item,
+                        metadata_catalog=metadata_catalog,
+                    )
+                    values.pop("source", None)
+                    document.with_context(
+                        usl_documents_cache_write=True,
+                    ).write(values)
+                    document._synchronize_versions(item.get("versions") or [])
+                    touched |= document
+                confirmed_missing.with_context(
+                    usl_documents_cache_write=True,
+                ).write(
                     {
                         "availability_state": "missing",
                         "last_error": _(
@@ -2328,6 +2368,7 @@ class UslDocument(models.Model):
                 "checksum": checksum,
                 "mime_type": content_type,
                 "company_id": company.id,
+                "confidentiality": confidentiality,
                 "res_model": res_model,
                 "res_id": int(res_id) if res_id else 0,
                 "source": source,
@@ -2351,6 +2392,7 @@ class UslDocument(models.Model):
             "checksum": checksum,
             "mime_type": content_type,
             "company_id": company.id,
+            "confidentiality": confidentiality,
             "res_model": res_model,
             "res_id": int(res_id) if res_id else 0,
             "source": source,
@@ -2439,6 +2481,7 @@ class UslDocument(models.Model):
                 "checksum": checksum,
                 "mime_type": content_type,
                 "company_id": self.company_id.id,
+                "confidentiality": self.confidentiality,
                 "source": self.source
                 if self.source in dict(
                     self.env["usl.document.operation"]._fields["source"].selection,
@@ -3081,6 +3124,13 @@ class UslDocumentOperation(models.Model):
     checksum = fields.Char(required=True, index=True, readonly=True)
     mime_type = fields.Char(readonly=True)
     company_id = fields.Many2one("res.company", required=True, readonly=True)
+    confidentiality = fields.Selection(
+        CONFIDENTIALITIES,
+        required=True,
+        default="internal",
+        readonly=True,
+        help="Odoo access policy captured when the ingestion request was created.",
+    )
     user_id = fields.Many2one(
         "res.users", required=True, readonly=True, default=lambda self: self.env.user,
     )
@@ -3249,7 +3299,7 @@ class UslDocumentOperation(models.Model):
                     values.update(
                         {
                             "company_id": operation.company_id.id,
-                            "confidentiality": "internal",
+                            "confidentiality": operation.confidentiality,
                             "review_state": "classified",
                             "submitted_by_id": operation.user_id.id,
                             "submitted_at": operation.create_date,
