@@ -412,8 +412,14 @@
                                      t-on-click="() => this.select(document)"
                                      t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
                                 <div class="o_usl_document_thumb">
-                                    <img t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
+                                    <img t-if="document.availability_state === 'available' &amp;&amp; !document.access_error"
+                                         t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
                                          alt="Document thumbnail"/>
+                                    <div t-else=""
+                                         class="o_usl_document_thumb_placeholder"
+                                         aria-hidden="true">
+                                        <i class="fa fa-file-text-o"/>
+                                    </div>
                                     <span t-if="document.review_state === 'needs_attention'"
                                           class="badge text-bg-warning">Needs review</span>
                                     <span t-if="document.availability_state === 'trashed'"
@@ -508,8 +514,14 @@
                                         t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
                                         <td>
                                             <div class="d-flex align-items-center gap-2 min-w-0">
-                                                <img t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
+                                                <img t-if="document.availability_state === 'available' &amp;&amp; !document.access_error"
+                                                     t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
                                                      class="o_usl_document_list_thumb" alt=""/>
+                                                <span t-else=""
+                                                      class="o_usl_document_list_thumb o_usl_document_list_thumb_placeholder"
+                                                      aria-hidden="true">
+                                                    <i class="fa fa-file-text-o"/>
+                                                </span>
                                                 <div class="min-w-0">
                                                     <strong class="d-block text-truncate"
                                                             t-esc="document.name"/>
@@ -615,7 +627,7 @@
                     <div t-if="state.selected.access_error"
                          class="alert alert-danger m-3 mb-0">
                         <strong>Document access needs attention.</strong>
-                        <div>The file is blocked until an administrator verifies archive access.</div>
+                        <div>The file is blocked until an administrator synchronizes its archive permissions.</div>
                     </div>
                     <DocumentPreview t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
                                      url="state.selected.preview_url"
@@ -802,7 +814,7 @@
                                     Added by <t t-esc="currentVersion.submitted_by"/>
                                 </small>
                             </button>
-                            <div t-if="state.selected.availability_state === 'available'"
+                            <div t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
                                  class="mt-2 d-flex flex-wrap gap-2">
                                 <a t-att-href="currentVersion.original_url"
                                    class="btn btn-sm btn-outline-primary">Download</a>
@@ -842,7 +854,7 @@
                                             Added by <t t-esc="version.submitted_by"/>
                                         </small>
                                     </button>
-                                    <div t-if="state.selected.availability_state === 'available'"
+                                    <div t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
                                          class="mt-2 d-flex flex-wrap gap-2">
                                         <a t-att-href="version.original_url"
                                            class="btn btn-sm btn-outline-primary">Download</a>
@@ -890,7 +902,7 @@
 
                 <footer class="p-3 border-top">
                     <div class="d-flex gap-2">
-                        <a t-if="state.selected.availability_state === 'available'"
+                        <a t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
                            t-att-href="'/usl_documents/' + state.selected.id + '/download?original=1'"
                            class="btn btn-primary flex-grow-1"
                            title="Download the file that was received or uploaded.">
@@ -903,12 +915,13 @@
                                 More <i class="fa fa-caret-down ms-1"/>
                             </summary>
                             <div class="o_usl_action_menu_items shadow border rounded bg-white">
-                                <a t-att-href="'/usl_documents/' + state.selected.id + '/download?original=0'"
+                                <a t-if="!state.selected.access_error"
+                                   t-att-href="'/usl_documents/' + state.selected.id + '/download?original=0'"
                                    class="dropdown-item"
                                    title="Download Paperless's processed copy. The original is unchanged.">
                                     <i class="fa fa-file-pdf-o me-2"/>Download searchable PDF
                                 </a>
-                                <label t-if="state.selected.can_edit"
+                                <label t-if="state.selected.can_edit &amp;&amp; !state.selected.access_error"
                                        class="dropdown-item mb-0"
                                        title="Adds a new current file. Earlier versions remain available.">
                                     <i class="fa fa-files-o me-2"/>Upload new version

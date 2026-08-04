@@ -1370,4 +1370,7 @@ test("permission failures are actionable while healthy state stays quiet", async
         /access needs attention/i
     );
     expect(".o_usl_document_preview").toHaveCount(0);
+    expect(".o_usl_documents_detail").not.toHaveText(/Download original/i);
+    expect(".o_usl_document_card img").toHaveCount(0);
+    expect(".o_usl_document_thumb_placeholder").toHaveCount(1);
 });

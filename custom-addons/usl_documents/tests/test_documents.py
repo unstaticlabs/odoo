@@ -1,4 +1,5 @@
 import base64
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from odoo import Command
@@ -2348,6 +2349,57 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.permission_sync_state, "pending")
         self.assertFalse(document.permission_sync_error)
         self.assertFalse(document.permission_checked_at)
+
+    def test_archive_binary_access_requires_synchronized_live_permissions(self):
+        synchronized = self._document(1416)
+        pending = self._document(1417, permission_sync_state="pending")
+        failed = self._document(
+            1418,
+            availability_state="permission_error",
+            permission_sync_state="failed",
+        )
+        trashed = self._document(
+            1419,
+            availability_state="trashed",
+            permission_sync_state="pending",
+        )
+
+        self.assertTrue(
+            synchronized.with_user(self.user)._check_archive_binary_access(),
+        )
+        for document in (pending, failed):
+            with self.assertRaisesRegex(
+                AccessError,
+                "blocked until an administrator synchronizes",
+            ):
+                document.with_user(self.user)._check_archive_binary_access()
+        self.assertFalse(
+            trashed.with_user(self.user)._check_archive_binary_access(),
+        )
+
+        user_model = self.env["usl.document"].with_user(self.user)
+        by_id = {
+            document.id: user_model._workspace_document_values(
+                document.with_user(self.user),
+            )
+            for document in (pending, failed, trashed)
+        }
+        self.assertTrue(by_id[pending.id]["access_error"])
+        self.assertTrue(by_id[failed.id]["access_error"])
+        self.assertFalse(by_id[trashed.id]["access_error"])
+
+        controller = DocumentsController()
+        with patch.object(
+            documents_controller_module,
+            "request",
+            SimpleNamespace(env=self.env(user=self.user)),
+        ):
+            self.assertEqual(controller._document(synchronized.id), synchronized)
+            for document in (pending, failed):
+                with self.assertRaises(AccessError):
+                    controller._document(document.id)
+            self.assertIsNone(controller._document(trashed.id))
+            self.assertIsNone(controller._document(999999999))
 
     def test_move_to_trash_records_actor_preserves_links_and_blocks_deletion(self):
         document = self._document(1412)

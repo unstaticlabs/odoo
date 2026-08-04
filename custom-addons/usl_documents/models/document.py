@@ -606,6 +606,28 @@ class UslDocument(models.Model):
     def _paperless(self):
         return PaperlessClient(self.env)
 
+    def _check_archive_binary_access(self):
+        """Authorize access to any file-derived Paperless response.
+
+        Odoo record rules decide whether the user may know about the document.
+        A live document's binary remains fail-closed until its equivalent
+        Paperless object permissions have been confirmed. Non-live documents
+        deliberately remain indistinguishable from missing files at the HTTP
+        boundary.
+        """
+        self.ensure_one()
+        self.check_access("read")
+        if self.availability_state not in ("available", "permission_error"):
+            return False
+        if self.permission_sync_state != "synchronized":
+            raise AccessError(
+                _(
+                    "The file is blocked until an administrator synchronizes "
+                    "its archive permissions.",
+                ),
+            )
+        return self.availability_state == "available"
+
     def write(self, values):
         policy_fields = {
             "company_id",
@@ -1348,8 +1370,14 @@ class UslDocument(models.Model):
             "review_state": item.review_state,
             "availability_state": item.availability_state,
             "access_error": (
-                item.permission_sync_error
-                if item.permission_sync_state == "failed"
+                _(
+                    "The file is blocked until an administrator synchronizes "
+                    "its archive permissions.",
+                )
+                if (
+                    item.availability_state in ("available", "permission_error")
+                    and item.permission_sync_state != "synchronized"
+                )
                 else False
             ),
             "correspondent": correspondent["name"] or item.correspondent_name,

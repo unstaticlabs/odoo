@@ -49,8 +49,7 @@ class DocumentsController(http.Controller):
 
     def _document(self, document_id):
         document = request.env["usl.document"].browse(int(document_id)).exists()
-        document.check_access("read")
-        if not document or document.availability_state != "available":
+        if not document or not document._check_archive_binary_access():
             return None
         return document
 
