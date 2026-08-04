@@ -68,7 +68,7 @@ database_identity = {
     **identity,
     "database": {
         "name": env.cr.dbname,  # noqa: F821
-        "uuid": params.get_param("database.uuid"),
+        "uuid": params.get_str("database.uuid"),
         "installed_module_versions": installed_versions,
     },
 }
@@ -78,20 +78,20 @@ database_identity["database_identity_sha256"] = canonical_sha256(
 serialized = json.dumps(database_identity, sort_keys=True, separators=(",", ":"))
 
 if os.environ.get("USL_RELEASE_IDENTITY_APPLY") == "1":
-    params.set_param("usl.release.identity", serialized)
-    params.set_param(
+    params.set_str("usl.release.identity", serialized)
+    params.set_str(
         "usl.release.identity_sha256",
         database_identity["database_identity_sha256"],
     )
-    params.set_param("usl.release.commit", identity["release_commit"])
-    params.set_param(
+    params.set_str("usl.release.commit", identity["release_commit"])
+    params.set_str(
         "usl.release.source_dump_sha256",
         identity["source"]["dump_sha256"],
     )
-    params.set_param("usl.release.image", image.get("reference", ""))
+    params.set_str("usl.release.image", image.get("reference", ""))
     env.cr.commit()  # noqa: F821
 else:
-    stored = params.get_param("usl.release.identity")
+    stored = params.get_str("usl.release.identity")
     if stored != serialized:
         raise RuntimeError(
             "The database release identity does not match its runtime artifact.",
