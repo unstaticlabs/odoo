@@ -99,7 +99,7 @@ COPY --link --chown=1000:1000 docker/odoo.conf.template /etc/odoo/odoo.conf.temp
 COPY --link --chown=1000:1000 --chmod=755 docker/entrypoint.sh /usr/local/bin/odoo-entrypoint
 
 EXPOSE 8069 8072
-VOLUME ["/var/lib/odoo", "/mnt/custom-addons"]
+VOLUME ["/var/lib/odoo"]
 ENTRYPOINT ["odoo-entrypoint"]
 CMD ["odoo", "--config=/etc/odoo/odoo.conf"]
 

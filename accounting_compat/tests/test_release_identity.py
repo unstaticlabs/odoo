@@ -39,6 +39,11 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("custom-addons /opt/usl/custom-addons", distribution)
         self.assertIn("oca-src /opt/usl/oca-src", distribution)
         self.assertIn("docs/users /opt/usl/user-docs", distribution)
+        self.assertIn('VOLUME ["/var/lib/odoo"]', dockerfile)
+        self.assertNotIn(
+            'VOLUME ["/var/lib/odoo", "/mnt/custom-addons"]',
+            dockerfile,
+        )
         self.assertIn("!custom-addons/**", dockerignore)
         self.assertIn("!oca-src/**", dockerignore)
         self.assertIn("build: !reset null", preprod)
