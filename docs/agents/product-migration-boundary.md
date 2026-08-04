@@ -108,6 +108,9 @@ features.
 4. Validate idempotency before finalization.
 5. Finalize, remove allow-listed migration columns, and verify that business
    counts remain stable.
-6. Run `make product-migration-boundary`.
+6. Run `make product-migration-source-boundary` while iterating without a
+   database, then run `make product-migration-boundary` against the finalized
+   target. The full target checks registry models/fields/XML IDs, module
+   dependencies, installed product versions and physical schema residue.
 7. Test the finalized database using the normal Odoo service and production
    add-ons path only.

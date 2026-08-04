@@ -36,4 +36,5 @@ docs/*
 !oca-addons/**
 !oca-src/
 !oca-src/**
-oca-src/*/.git/
+oca-src/**/.git
+oca-src/**/.git/**

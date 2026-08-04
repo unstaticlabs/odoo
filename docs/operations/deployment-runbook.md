@@ -4,6 +4,9 @@
 
 Deploy an approved Odoo release without losing data, weakening controls or leaving the service in an ambiguous state.
 
+For the exact USL distribution build, reconstruction, identity and local
+qualification command, follow [Pre-production release](preproduction-release.md).
+
 ## Before deployment
 
 Confirm:

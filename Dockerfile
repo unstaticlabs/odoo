@@ -143,6 +143,23 @@ COPY --link --chown=1000:1000 docs/users ./docs/users
 ENV ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons \
     USL_USER_DOCS_PATH=/opt/odoo/docs/users
 
+# Qualified deployment artifact. Unlike the development image, this stage is
+# self-contained: the exact USL/OCA add-ons and user documentation travel with
+# the image and cannot drift with a host checkout after qualification.
+FROM product AS distribution
+
+ARG USL_RELEASE_COMMIT=unverified
+ARG USL_OCA_BUNDLE_SHA256=unverified
+
+LABEL org.opencontainers.image.title="USL Odoo Distribution" \
+      org.opencontainers.image.revision="${USL_RELEASE_COMMIT}" \
+      com.unstaticlabs.odoo.oca-bundle-sha256="${USL_OCA_BUNDLE_SHA256}" \
+      com.unstaticlabs.odoo.runtime="distribution"
+
+ENV USL_RELEASE_COMMIT="${USL_RELEASE_COMMIT}" \
+    USL_OCA_BUNDLE_SHA256="${USL_OCA_BUNDLE_SHA256}"
+
+
 # Browser-capable test image, built only when the test profile is requested.
 FROM base AS test
 

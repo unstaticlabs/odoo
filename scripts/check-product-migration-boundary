@@ -11,6 +11,9 @@ MIGRATION_ADDONS = {
         ROOT / "migration" / "accounting_restore" / "addons"
     ),
     "usl_project_restore": ROOT / "migration" / "project_restore" / "addons",
+    "usl_identity_restore": ROOT / "migration" / "identity_restore" / "addons",
+    "usl_product_restore": ROOT / "migration" / "product_restore" / "addons",
+    "usl_hr_restore": ROOT / "migration" / "hr_restore" / "addons",
     "usl_tese_restore": ROOT / "migration" / "tese_restore" / "addons",
     "usl_platform_billing_restore": (
         ROOT / "migration" / "platform_billing_restore" / "addons"
@@ -21,6 +24,9 @@ MIGRATION_PATHS = {
     "project-migration": (
         "/mnt/accounting-migration-addons",
         "/mnt/project-migration-addons",
+        "/mnt/identity-migration-addons",
+        "/mnt/product-migration-addons",
+        "/mnt/hr-migration-addons",
     ),
     "tese-migration": (
         "/mnt/accounting-migration-addons",
@@ -108,6 +114,9 @@ for service_name, expected_paths in MIGRATION_PATHS.items():
 restore_harnesses = {
     "Accounting": ROOT / "scripts" / "accounting-restore",
     "Projects": ROOT / "scripts" / "project-restore",
+    "Identity": ROOT / "scripts" / "identity-restore",
+    "Product": ROOT / "scripts" / "product-restore",
+    "HR": ROOT / "scripts" / "hr-restore",
     "TESE": ROOT / "scripts" / "tese-restore",
     "Platform Billing": ROOT / "scripts" / "platform-billing-restore",
 }
@@ -216,4 +225,4 @@ for path in runtime_platform.rglob("*"):
 if errors:
     raise SystemExit("\n".join(f"- {error}" for error in errors))
 
-print("Product/migration boundary: PASS")
+print("Product/migration source boundary: PASS")

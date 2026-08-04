@@ -6,6 +6,11 @@ USL must be able to restore a coherent Odoo service containing the database, doc
 
 A backup is not trusted until restoration has been tested.
 
+The qualified commit/image/database/source identity and disposable
+reconstruction procedure are defined in
+[Pre-production release](preproduction-release.md). Treat Odoo PostgreSQL and
+filestore plus Paperless PostgreSQL, media and data as one recovery point.
+
 ## Backup scope
 
 Backups must cover together:
