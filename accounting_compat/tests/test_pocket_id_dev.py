@@ -272,6 +272,32 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertNotIn("view_user", initializer)
         self.assertNotIn("change_document", initializer)
 
+    def test_documents_qa_uses_ports_isolated_from_canonical_development(self):
+        qa_env = (ROOT / "deploy" / "documents" / "qa.env").read_text(
+            encoding="utf-8",
+        )
+        sso_env = (ROOT / "scripts" / "documents_sso_env.py").read_text(
+            encoding="utf-8",
+        )
+        stack = (ROOT / "scripts" / "documents-stack").read_text(
+            encoding="utf-8",
+        )
+        runtime_config = (
+            ROOT / "scripts" / "odoo" / "documents_runtime_config.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("ODOO_HTTP_PORT=18080", qa_env)
+        self.assertIn("ODOO_GEVENT_PORT=18072", qa_env)
+        self.assertIn("PAPERLESS_HTTP_PORT=18010", qa_env)
+        self.assertIn("PAPERLESS_PUBLIC_URL=http://127.0.0.1:18010", qa_env)
+        self.assertIn(
+            'QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:18010"',
+            sso_env,
+        )
+        self.assertIn('qa_paperless_port" = "18010"', stack)
+        self.assertEqual(stack.count("sync_odoo_runtime_config"), 3)
+        self.assertIn("usl_documents.paperless_public_url", runtime_config)
+
     def test_documents_recovery_restores_the_source_callback_environment(self):
         recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
             encoding="utf-8",

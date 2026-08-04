@@ -9,7 +9,7 @@ usage() {
     "Usage: scripts/documents-stack <qa|preprod> <config|preflight|build|up|update|bootstrap|status|logs|stop|test|test-accounting|test-pocket|test-js> [args]" \
     "" \
     "QA is fixed to project codex-paperless-docs, database odoo_usl_documents_test," \
-    "Odoo 127.0.0.1:18080, and Paperless 127.0.0.1:8010." >&2
+    "Odoo 127.0.0.1:18080, and Paperless 127.0.0.1:18010." >&2
   exit 2
 }
 
@@ -87,7 +87,7 @@ UPDATE_MODULES="usl_locale,usl_pocketid,usl_documents,usl_documents_accounting"
 }
 
 validate_config() {
-  local config trash_delay
+  local config trash_delay qa_odoo_port qa_gevent_port qa_paperless_port
   config="$("${COMPOSE[@]}" config)"
   if [[ "$ENVIRONMENT" = "preprod" ]] && grep -Fq "CHANGE_ME" "$ENV_FILE"; then
     printf 'Pre-production env still contains CHANGE_ME placeholders.\n' >&2
@@ -140,6 +140,25 @@ validate_config() {
     printf 'QA Paperless Trash safety delay must remain exactly 36500 days.\n' >&2
     return 1
   fi
+  if [[ "$ENVIRONMENT" = "qa" ]]; then
+    qa_odoo_port="$(sed -n 's/^ODOO_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1)"
+    qa_gevent_port="$(sed -n 's/^ODOO_GEVENT_PORT=//p' "$ENV_FILE" | tail -n 1)"
+    qa_paperless_port="$(
+      sed -n 's/^PAPERLESS_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
+    )"
+    [[ "$qa_odoo_port" = "18080" \
+      && "$qa_gevent_port" = "18072" \
+      && "$qa_paperless_port" = "18010" ]] || {
+      printf '%s\n' \
+        'Documents QA must use its isolated ports: Odoo 18080/18072 and Paperless 18010.' >&2
+      return 1
+    }
+    grep -Fqx 'PAPERLESS_PUBLIC_BASE_URL=http://127.0.0.1:18010' \
+      "$SSO_ENV_FILE" || {
+      printf 'Documents QA Paperless SSO callback must use isolated port 18010.\n' >&2
+      return 1
+    }
+  fi
   if [[ "$ENVIRONMENT" = "preprod" ]] \
     && ! grep -Fq "USL_DEPLOYMENT_ENV: preproduction" <<<"$config"; then
     printf 'Pre-production target must set USL_DEPLOYMENT_ENV=preproduction.\n' >&2
@@ -181,6 +200,23 @@ ensure_paperless_access() {
   "${COMPOSE[@]}" run --rm --no-deps paperless-access-init
 }
 
+sync_odoo_runtime_config() {
+  local paperless_public_url
+  paperless_public_url="$(
+    sed -n 's/^PAPERLESS_PUBLIC_URL=//p' "$ENV_FILE" | tail -n 1
+  )"
+  [[ -n "$paperless_public_url" ]] || {
+    printf 'Paperless public URL is missing from the Documents environment.\n' >&2
+    return 1
+  }
+  "${COMPOSE[@]}" exec -T \
+    -e PAPERLESS_RUNTIME_PUBLIC_URL="$paperless_public_url" \
+    odoo odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DATABASE" \
+    < "$ROOT/scripts/odoo/documents_runtime_config.py"
+}
+
 case "$COMMAND" in
   config)
     validate_config
@@ -204,6 +240,7 @@ case "$COMMAND" in
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
     ensure_paperless_access
     runtime_status
+    sync_odoo_runtime_config
     ;;
   update)
     validate_config
@@ -224,6 +261,7 @@ case "$COMMAND" in
     ensure_paperless_access
     "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
     runtime_status
+    sync_odoo_runtime_config
     ;;
   bootstrap)
     [[ "$ENVIRONMENT" = "qa" ]] || {

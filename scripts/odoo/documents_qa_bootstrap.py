@@ -177,7 +177,7 @@ params.set_str(
 )
 params.set_str(
     "usl_documents.paperless_public_url",
-    os.environ.get("PAPERLESS_QA_PUBLIC_URL", "http://127.0.0.1:8010"),
+    os.environ.get("PAPERLESS_QA_PUBLIC_URL", "http://127.0.0.1:18010"),
 )
 params.set_str("usl_documents.paperless_token", token)
 params.set_int("usl_documents.paperless_timeout", 20)
