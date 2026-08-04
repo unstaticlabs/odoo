@@ -307,6 +307,10 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 {"customer_invoice_id": unrelated_invoice.id},
             )
         with self.assertRaises(AccessError):
+            payout.with_user(self.operator).write(
+                {"currency_valuation_method": "bank"},
+            )
+        with self.assertRaises(AccessError):
             self.env["usl.platform.billing.payout"].with_user(
                 self.operator,
             ).create(
@@ -918,6 +922,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             platform=platform,
             reference="FX-001",
         )
+        self.assertEqual(payout.currency_valuation_method, "reference")
         self._generate_and_post(session)
         bank_line = self._bank_line(40.0, label="FX payout FX-001")
         self._allocation(
@@ -934,3 +939,91 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(bank_line.amount_currency, 80.0)
         self.assertTrue(bank_line.is_reconciled)
         self.assertEqual(session.state, "paid")
+
+    def test_bank_created_foreign_payout_forces_document_rate_without_fx(self):
+        usd = self.env["res.currency"].create(
+            {
+                "name": "BFX",
+                "symbol": "$B",
+                "rounding": 0.01,
+            },
+        )
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.company.id,
+                "name": fields.Date.from_string("2026-07-01"),
+                "rate": 2.0,
+            },
+        )
+        platform = self.platform.copy(
+            {
+                "name": "Bank-rate CreatorHub",
+                "currency_id": usd.id,
+                "bank_label_pattern": "Bank-rate payout {ref}",
+            },
+        )
+        session = self._session(name="Bank rate — July 2026")
+        bank_line = self._bank_line(
+            700.0,
+            label="Bank-rate payout USD-1000",
+        )
+        wizard = self._bank_wizard(session, mode="create")
+        candidate = wizard.candidate_ids.filtered(
+            lambda line: line.bank_statement_line_id == bank_line,
+        )
+        self.assertEqual(len(candidate), 1)
+        candidate.selected = True
+        wizard.action_create_payouts()
+
+        payout = session.payout_ids
+        self.assertEqual(len(payout), 1)
+        payout.write({"net_platform_amount": 1000.0})
+
+        self.assertEqual(payout.platform_id, platform)
+        self.assertEqual(payout.currency_valuation_method, "bank")
+        self.assertEqual(payout.bank_rate_company_amount, 700.0)
+        self.assertAlmostEqual(payout.effective_bank_rate, 0.7)
+        self.assertEqual(payout.bank_allocation_ids.payout_amount, 1000.0)
+
+        previous_exchange_moves = set(
+            self.env["account.partial.reconcile"].search([]).exchange_move_id.ids,
+        )
+        session.action_check()
+        session.action_generate_documents()
+        invoice = payout.customer_invoice_id
+        bill = payout.vendor_bill_id
+
+        self.assertEqual(invoice.amount_total, 1250.0)
+        self.assertEqual(bill.amount_total, 250.0)
+        self.assertAlmostEqual(invoice.invoice_currency_rate, 1.0 / 0.7)
+        self.assertAlmostEqual(bill.invoice_currency_rate, 1.0 / 0.7)
+        self.assertEqual(abs(invoice.amount_total_signed), 875.0)
+        self.assertEqual(abs(bill.amount_total_signed), 175.0)
+
+        session.with_context(
+            skip_platform_coverage_warning=True,
+        ).action_post_documents()
+        compensation = payout.compensation_move_id
+        self.assertEqual(compensation.currency_id, usd)
+        self.assertEqual(compensation.amount_total, 250.0)
+        self.assertEqual(compensation.amount_total_signed, 175.0)
+        self.assertEqual(
+            sum(compensation.line_ids.filtered("debit").mapped("debit")),
+            175.0,
+        )
+        self.assertEqual(invoice.amount_residual, 1000.0)
+        self.assertEqual(abs(invoice.amount_residual_signed), 700.0)
+
+        session.action_reconcile_bank()
+
+        self.assertEqual(bank_line.amount, 700.0)
+        self.assertEqual(bank_line.foreign_currency_id, usd)
+        self.assertEqual(bank_line.amount_currency, 1000.0)
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(invoice.payment_state, "paid")
+        self.assertEqual(session.state, "paid")
+        current_exchange_moves = set(
+            self.env["account.partial.reconcile"].search([]).exchange_move_id.ids,
+        )
+        self.assertEqual(current_exchange_moves, previous_exchange_moves)

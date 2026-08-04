@@ -1,5 +1,17 @@
 # Changelog
 
+## saas~19.2.1.2.0
+
+- Value bank-created foreign-currency payouts at their effective bank rate
+  before posting invoices, commission bills and compensation entries.
+- Keep bank-first settlements free of immediate exchange gains or losses while
+  preserving Odoo reference rates for payouts recorded before payment arrives.
+- Show the valuation method, company-currency bank basis and effective rate on
+  payout records, with backend and Chromium coverage for USD 1,000 received as
+  EUR 700.
+- Keep foreign-currency compensation entries labelled in their platform
+  currency while retaining the exact company-currency accounting value.
+
 ## saas~19.2.1.1.4
 
 - Keep incomplete bank-import drafts out of the settlement selector until

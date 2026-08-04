@@ -295,6 +295,74 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_create_journe
     ],
 });
 
+registry.category("web_tour.tours").add("usl_platform_billing_bank_rate_journey", {
+    steps: () => [
+        {
+            content: "Open the bank-created foreign payout flow",
+            trigger: "button[name='action_open_bank_import']",
+            run: "click",
+        },
+        {
+            content: "Select the EUR 700 bank transaction",
+            trigger:
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Browser FX payout BROWSER-FX-1000')) button[name='action_select']",
+            run: "click",
+        },
+        {
+            content: "Create the payout from the selected bank transaction",
+            trigger: ".modal button[name='action_create_payouts']",
+            run: "click",
+        },
+        {
+            content: "Open the platform net amount",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row td[name='net_platform_amount']",
+            run: "click",
+        },
+        {
+            content: "Enter the USD 1000 platform net",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row .o_field_widget[name='net_platform_amount'] input",
+            run: "edit 1000",
+        },
+        {
+            content: "Validate the bank-created payout",
+            trigger: "button[name='action_check']",
+            run: "click",
+        },
+        {
+            content: "The saved transaction-derived rate is visible",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row td[name='effective_bank_rate_label']:contains('0.700000')",
+        },
+        {
+            content: "Generate documents at the effective bank rate",
+            trigger: "button[name='action_generate_documents']",
+            run: "click",
+        },
+        {
+            content: "Post the rate-valued documents",
+            trigger: "button[name='action_post_documents']",
+            run: "click",
+        },
+        {
+            content: "Confirm the deliberate monthly coverage exception",
+            trigger: ".modal button[name='action_confirm']",
+            run: "click",
+        },
+        {
+            content: "Reconcile the exact USD debt with the EUR receipt",
+            trigger: "button[name='action_reconcile_bank']",
+            run: "click",
+        },
+        {
+            content: "The zero-FX bank-created session is paid",
+            trigger:
+                ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current",
+        },
+    ],
+});
+
 registry.category("web_tour.tours").add("usl_platform_billing_pooled_link_journey", {
     steps: () => [
         {

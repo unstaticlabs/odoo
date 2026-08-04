@@ -78,9 +78,16 @@ for example, EUR and USD invoices, the app records the reviewed allocations
 but does not guess how to split customers or exchange rates. Finish that mixed
 case in Odoo's standard Accounting reconciliation screen.
 
-For a foreign-currency platform, the bank amount remains unchanged in the bank
-currency. Odoo/OCA uses the platform amount as foreign currency and creates any
-exchange difference.
+For a foreign-currency payout created from a company-currency receipt, the app
+shows **Effective Bank Rate**. A USD 1,000 payout imported from an EUR 700 bank
+transaction values the generated documents at `1 USD = 0.70 EUR`; the bank
+amount stays EUR 700 and the immediate reconciliation has no exchange gain or
+loss. This rate applies only to those documents and does not change Odoo's
+global rates.
+
+If you register the payout before receiving the bank transaction, the app uses
+Odoo's reference rate. The later payment can then create a normal exchange gain
+or loss because it is a genuinely delayed settlement.
 
 ## Roles
 

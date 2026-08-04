@@ -189,6 +189,48 @@ open_import_lines = env["account.bank.statement.line"].sudo().search(
         [("bank_statement_line_id", "=", line.id)],
     ),
 )
+open_bank_rate_sessions = env["usl.platform.billing.session"].sudo().search(
+    [
+        ("name", "ilike", "QA DEMO — Effective rate USD 1000 from EUR 700%"),
+        ("state", "in", ("draft", "ready")),
+    ],
+).filtered(lambda session: not session.payout_ids)
+open_bank_rate_lines = env["account.bank.statement.line"].sudo().search(
+    [
+        ("payment_ref", "ilike", "QA DEMO FX QA-BANK-RATE-USD-1000%"),
+        ("amount", "=", 700.0),
+        ("is_reconciled", "=", False),
+    ],
+).filtered(
+    lambda line: not env["usl.platform.billing.bank.allocation"].sudo().search_count(
+        [("bank_statement_line_id", "=", line.id)],
+    ),
+)
+bank_rate_match = {}
+if open_bank_rate_sessions and open_bank_rate_lines:
+    bank_rate_session = open_bank_rate_sessions.sorted("id")[-1]
+    bank_rate_line = open_bank_rate_lines.sorted("id")[-1]
+    bank_rate_wizard = env[
+        "usl.platform.billing.bank.import.wizard"
+    ].sudo().create(
+        {
+            "session_id": bank_rate_session.id,
+            "mode": "create",
+            "candidate_scope": "all",
+        },
+    )
+    bank_rate_wizard._populate_candidates()
+    bank_rate_candidates = bank_rate_wizard.candidate_ids.filtered(
+        lambda candidate: candidate.bank_statement_line_id == bank_rate_line,
+    )
+    if len(bank_rate_candidates) == 1:
+        bank_rate_candidate = bank_rate_candidates
+        bank_rate_match = {
+            "platform": bank_rate_candidate.platform_id.name,
+            "confidence": bank_rate_candidate.confidence,
+            "recommended": bank_rate_candidate.recommended,
+            "reference": bank_rate_candidate.extracted_reference,
+        }
 demo_account_mapping = {
     "revenue": demo_platform.revenue_account_id.code or "",
     "commission": demo_platform.commission_account_id.code or "",
@@ -266,7 +308,18 @@ if not demo_platform:
     errors.append("the QA demo platform is missing")
 if not open_import_sessions or not open_import_lines:
     errors.append("no clean bank-import QA demo remains")
-elif not demo_account_mapping["revenue"].startswith("706"):
+if not open_bank_rate_sessions or not open_bank_rate_lines:
+    errors.append("no clean effective-bank-rate QA demo remains")
+elif bank_rate_match != {
+    "platform": "QA DEMO Platform USD",
+    "confidence": "high",
+    "recommended": True,
+    "reference": bank_rate_line.payment_ref.split(" — ", 1)[0].removeprefix(
+        "QA DEMO FX ",
+    ),
+}:
+    errors.append(f"effective-bank-rate demo matching is not unique: {bank_rate_match}")
+if demo_platform and not demo_account_mapping["revenue"].startswith("706"):
     errors.append(f"QA revenue account is not service revenue: {demo_account_mapping}")
 if demo_platform and not demo_account_mapping["commission"].startswith("6222"):
     errors.append(f"QA commission account is not sales commission: {demo_account_mapping}")
@@ -297,6 +350,11 @@ summary = {
     "open_import_demo": {
         "sessions": len(open_import_sessions),
         "bank_transactions": len(open_import_lines),
+    },
+    "open_bank_rate_demo": {
+        "sessions": len(open_bank_rate_sessions),
+        "bank_transactions": len(open_bank_rate_lines),
+        "match": bank_rate_match,
     },
     "bank_journal_mappings": bank_journal_mappings,
     "platform_account_mappings": platform_account_mappings,

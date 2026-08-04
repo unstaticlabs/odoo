@@ -146,6 +146,10 @@
                                     <field name="commission_rate_snapshot" optional="hide"/>
                                     <field name="gross_platform_amount" readonly="1"/>
                                     <field name="commission_platform_amount" readonly="1"/>
+                                    <field name="currency_valuation_method" readonly="1"
+                                           optional="show"/>
+                                    <field name="effective_bank_rate_label" readonly="1"
+                                           optional="show"/>
                                     <field name="bank_currency_id" column_invisible="True"/>
                                     <field name="bank_received_amount" sum="Bank total"/>
                                     <field name="bank_statement_line_ids"

@@ -52,8 +52,16 @@ comptabilisée ne peut plus être réinitialisée dans cette application.
 7. La session passe à **Payée** uniquement lorsque les pièces requises et les
    opérations bancaires sont soldées.
 
-En multidevise, le montant bancaire d'origine est conservé. Odoo et le module
-OCA calculent le change et les éventuels écarts.
+Lorsqu'un encaissement dans la devise de la société crée un règlement dans une
+devise étrangère, l'application affiche **Taux bancaire effectif**. Par exemple,
+un règlement de 1 000 USD créé depuis un encaissement de 700 EUR valorise les
+pièces à `1 USD = 0,70 EUR`. Les 700 EUR bancaires sont conservés et le
+rapprochement immédiat ne génère aucun écart de change. Ce taux ne modifie pas
+les taux généraux d'Odoo.
+
+Si le règlement est enregistré avant la réception bancaire, les pièces gardent
+le taux de référence Odoo. Le paiement reçu plus tard peut alors générer un gain
+ou une perte de change normale, car il s'agit d'un règlement différé.
 
 Les rôles Lecteur, Opérateur ou Administrateur Facturation plateformes doivent
 être attribués explicitement. Le Lecteur consulte l'historique de ses sociétés

@@ -199,7 +199,13 @@ def _demo_platform(env, company):
                 "supplier_taxes_id": [Command.clear()],
             },
         )
-        platform.write({"bank_journal_id": bank_journal.id})
+        platform.write(
+            {
+                "bank_journal_id": bank_journal.id,
+                "bank_label_pattern": f"{DEMO_PREFIX} EUR {{ref}}",
+                "bank_label_keywords": "QA DEMO EUR,POOLED,PARTIAL",
+            },
+        )
         return platform
     revenue_template = source.revenue_product_id.product_tmpl_id.copy(
         {
@@ -245,8 +251,8 @@ def _demo_platform(env, company):
             "purchase_journal_id": source.purchase_journal_id.id,
             "compensation_journal_id": general_journal.id,
             "bank_journal_id": bank_journal.id,
-            "bank_label_pattern": f"{DEMO_PREFIX} {{ref}}",
-            "bank_label_keywords": "QA DEMO,POOLED,PARTIAL",
+            "bank_label_pattern": f"{DEMO_PREFIX} EUR {{ref}}",
+            "bank_label_keywords": "QA DEMO EUR,POOLED,PARTIAL",
             "auto_create_compensation": bool(general_journal),
         },
     )
@@ -336,6 +342,58 @@ def _open_import_demo(env, platform):
             ),
             date=fields.Date.to_string(fields.Date.add(invoice_date, days=20)),
             amount=80.0,
+        )
+        if (
+            session.state in {"draft", "ready"}
+            and not session.payout_ids
+            and not bank_line.is_reconciled
+            and not Allocation.search_count(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            )
+        ):
+            return session, bank_line
+    raise RuntimeError(NO_FREE_IMPORT_BATCH)
+
+
+def _open_bank_rate_demo(env, platform):
+    Session = env["usl.platform.billing.session"].sudo()
+    Allocation = env["usl.platform.billing.bank.allocation"].sudo()
+    for batch in range(1, 10):
+        suffix = "" if batch == 1 else f" — batch {batch}"
+        reference_suffix = "" if batch == 1 else f"-{batch}"
+        period = fields.Date.add(
+            fields.Date.from_string("2027-01-01"),
+            months=batch - 1,
+        )
+        invoice_date = fields.Date.end_of(period, "month")
+        name = f"{DEMO_PREFIX} — Effective rate USD 1000 from EUR 700{suffix}"
+        session = Session.search(
+            [
+                ("company_id", "=", platform.company_id.id),
+                ("name", "=", name),
+            ],
+            limit=1,
+        )
+        if not session:
+            session = Session.create(
+                {
+                    "name": name,
+                    "company_id": platform.company_id.id,
+                    "period_month": period,
+                    "invoice_date": invoice_date,
+                    "due_date": invoice_date,
+                    "bank_currency_id": platform.company_id.currency_id.id,
+                },
+            )
+        bank_line = _statement_line(
+            env,
+            platform.bank_journal_id,
+            label=(
+                f"{DEMO_PREFIX} FX QA-BANK-RATE-USD-1000{reference_suffix} — "
+                f"EUR 700 — SELECT ME{suffix}"
+            ),
+            date=fields.Date.to_string(fields.Date.add(invoice_date, days=20)),
+            amount=700.0,
         )
         if (
             session.state in {"draft", "ready"}
@@ -474,6 +532,15 @@ def bootstrap(env):
                 "name": f"{DEMO_PREFIX} Platform USD",
                 "currency_id": usd.id,
                 "bank_label_pattern": f"{DEMO_PREFIX} FX {{ref}}",
+                "bank_label_keywords": "QA DEMO FX",
+            },
+        )
+    else:
+        fx_platform.write(
+            {
+                "currency_id": usd.id,
+                "bank_label_pattern": f"{DEMO_PREFIX} FX {{ref}}",
+                "bank_label_keywords": "QA DEMO FX",
             },
         )
     fx_session = _session(
@@ -512,6 +579,7 @@ def bootstrap(env):
         fx_session.action_reconcile_bank()
 
     import_session, import_line = _open_import_demo(env, platform)
+    bank_rate_session, bank_rate_line = _open_bank_rate_demo(env, fx_platform)
 
     env.cr.commit()
     print(
@@ -524,6 +592,8 @@ def bootstrap(env):
             "fx_session": fx_session.display_name,
             "import_session": import_session.display_name,
             "import_bank_transaction": import_line.display_name,
+            "bank_rate_session": bank_rate_session.display_name,
+            "bank_rate_bank_transaction": bank_rate_line.display_name,
         },
     )
 

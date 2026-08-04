@@ -36,12 +36,36 @@ settles, and the session remains Posted until the full debt is reconciled.
 Platform amounts use the configured platform currency. Bank receipts use the
 session bank currency. The product never totals unrelated platform currencies.
 
-When platform and bank currencies differ, the selected open bank statement
-line keeps its actual bank-currency `amount`. Before reconciliation, the
-application sets only the statement line's normal partner,
-`foreign_currency_id` and `amount_currency` synchronization fields. It then
-submits the receivable line through `account_reconcile_oca`. Odoo creates any
-exchange difference. The application never:
+When an incoming company-currency bank transaction creates a foreign-currency
+payout, that transaction is the valuation source. The application divides the
+actual bank amount by the platform net to derive company currency per platform
+currency. It applies the inverse in Odoo's `invoice_currency_rate` convention
+while the generated invoice and commission bill are still drafts. The
+compensation entry uses the same rate.
+
+For USD 1,000 received as EUR 700 at 20% commission:
+
+- platform net: USD 1,000 / EUR 700;
+- effective rate: `1 USD = 0.70 EUR`;
+- gross invoice: USD 1,250 / EUR 875;
+- commission bill and compensation: USD 250 / EUR 175;
+- open receivable after compensation: USD 1,000 / EUR 700.
+
+The actual EUR 700 liquidity remains unchanged and reconciliation creates no
+exchange move. The effective rate is local to the generated documents; it does
+not update global currency rates. Bank-rate payouts are separated from
+reference-rate payouts, and different effective rates use separate documents.
+
+A payout recorded without a bank transaction uses Odoo's reference rate. If
+payment arrives later, Odoo may create the normal delayed-settlement exchange
+gain or loss. A bank transaction in a non-company-currency journal also keeps
+the reference-rate policy because it does not directly provide the company
+currency valuation required by this treatment.
+
+Before reconciliation, the application sets only the statement line's normal
+partner, `foreign_currency_id` and `amount_currency` synchronization fields. It
+then submits the receivable line through `account_reconcile_oca`. The
+application never:
 
 - drafts a posted bank move;
 - writes `debit`, `credit` or `balance` on a posted move line;

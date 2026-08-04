@@ -243,7 +243,92 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
         self.assertEqual(payout.bank_statement_line_id, bank_line)
         self.assertEqual(payout.bank_allocation_ids.payout_amount, 80.0)
         self.assertEqual(payout.bank_match_status, "selected")
+        self.assertEqual(payout.currency_valuation_method, "bank")
+        self.assertAlmostEqual(payout.effective_bank_rate, 1.0)
         self.assertEqual(session.state, "ready")
+
+    def test_operator_uses_bank_rate_for_foreign_payout_without_fx(self):
+        usd = self.env["res.currency"].create(
+            {
+                "name": "BQF",
+                "symbol": "$Q",
+                "rounding": 0.01,
+            },
+        )
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.company.id,
+                "name": fields.Date.from_string("2026-09-01"),
+                "rate": 2.0,
+            },
+        )
+        platform = self.platform.copy(
+            {
+                "name": "Browser FX CreatorHub",
+                "currency_id": usd.id,
+                "bank_label_pattern": "Browser FX payout {ref}",
+            },
+        )
+        session = self.env["usl.platform.billing.session"].create(
+            {
+                "name": "Browser effective bank rate",
+                "company_id": self.company.id,
+                "period_month": fields.Date.from_string("2026-09-01"),
+                "invoice_date": fields.Date.from_string("2026-09-30"),
+                "due_date": fields.Date.from_string("2026-09-30"),
+                "bank_currency_id": self.currency.id,
+            },
+        )
+        statement = self.env["account.bank.statement"].create(
+            {
+                "name": "Browser effective bank rate",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "date": fields.Date.from_string("2026-09-20"),
+            },
+        )
+        bank_line = self.env["account.bank.statement.line"].create(
+            {
+                "name": "Browser FX payout BROWSER-FX-1000",
+                "payment_ref": "Browser FX payout BROWSER-FX-1000",
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "statement_id": statement.id,
+                "amount": 700.0,
+                "date": fields.Date.from_string("2026-09-20"),
+            },
+        )
+        previous_exchange_moves = set(
+            self.env["account.partial.reconcile"].search([]).exchange_move_id.ids,
+        )
+        action = self.env.ref(
+            "usl_platform_billing.action_platform_billing_sessions",
+        )
+
+        self.start_tour(
+            f"/odoo/action-{action.id}/{session.id}",
+            "usl_platform_billing_bank_rate_journey",
+            login=self.operator.login,
+        )
+
+        payout = session.payout_ids
+        self.assertEqual(len(payout), 1)
+        self.assertEqual(payout.platform_id, platform)
+        self.assertEqual(payout.net_platform_amount, 1000.0)
+        self.assertEqual(payout.currency_valuation_method, "bank")
+        self.assertAlmostEqual(payout.effective_bank_rate, 0.7)
+        self.assertEqual(abs(payout.customer_invoice_id.amount_total_signed), 875.0)
+        self.assertEqual(abs(payout.vendor_bill_id.amount_total_signed), 175.0)
+        self.assertEqual(payout.compensation_move_id.currency_id, usd)
+        self.assertEqual(payout.compensation_move_id.amount_total, 250.0)
+        self.assertEqual(payout.compensation_move_id.amount_total_signed, 175.0)
+        self.assertEqual(bank_line.amount, 700.0)
+        self.assertEqual(bank_line.amount_currency, 1000.0)
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(session.state, "paid")
+        current_exchange_moves = set(
+            self.env["account.partial.reconcile"].search([]).exchange_move_id.ids,
+        )
+        self.assertEqual(current_exchange_moves, previous_exchange_moves)
 
     def test_operator_links_one_pooled_receipt_to_two_sessions(self):
         first = self.env["usl.platform.billing.session"].create(

@@ -555,6 +555,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                     platform, reference, payout = self._prepare_payout_creation(
                         candidate,
                     )
+                    created_from_bank = not payout
                     if not payout:
                         values = {
                             "session_id": self.session_id.id,
@@ -588,6 +589,13 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                                 "date_difference": candidate.date_difference,
                                 "detection_reason": candidate.detection_reason,
                             },
+                        )
+                    if (
+                        created_from_bank
+                        and bank_line.currency_id == self.company_id.currency_id
+                    ):
+                        payout._workflow_write(
+                            {"currency_valuation_method": "bank"},
                         )
                     imported |= payout
             except (IntegrityError, UserError, ValidationError) as error:

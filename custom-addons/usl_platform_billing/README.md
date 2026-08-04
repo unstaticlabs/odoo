@@ -17,6 +17,8 @@ The temporary Odoo Online importer lives only under
    such as `Août 2026`; enter payouts or import received bank transactions.
    Imported rows are drafts: complete their platform, original reference,
    currency and original payout amount on the session's Payouts tab.
+   When a company-currency bank transaction creates a foreign-currency payout,
+   the app derives and displays the effective bank rate.
 3. Check the session, generate drafts and review native taxes, accounts,
    payment terms, fiscal positions and analytic distributions.
 4. Confirm any warning about an active platform missing from the month, then
@@ -33,6 +35,13 @@ hide valid manual choices. **Suggested only** is an optional shorter view.
 Auto-posting is off by default. Posted entries cannot be reset or deleted from
 the application. Mixed platform currencies are summarized separately, while
 the session bank total remains in one declared bank currency.
+
+Bank-created foreign payouts use the actual company-currency receipt to value
+their draft invoice, commission bill and compensation. For example, USD 1,000
+received as EUR 700 applies `1 USD = 0.70 EUR` to the generated documents and
+reconciles without an immediate exchange difference. Payouts recorded before a
+receipt exists keep Odoo's reference rate; a later payment can therefore create
+the normal delayed-settlement exchange gain or loss.
 
 Access is explicit. A user needs the Platform Billing Reader, Operator or
 Administrator role. The standard Odoo Accountant role alone does not expose

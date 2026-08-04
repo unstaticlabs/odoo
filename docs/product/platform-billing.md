@@ -51,6 +51,15 @@ Three approaches were assessed:
    documents and pinned OCA reconciliation. It owns only the platform-specific
    orchestration and audit trail.
 
+Foreign-currency bank-created payouts considered three valuation mechanisms:
+keeping Odoo's reference rate and accepting an immediate FX entry, adding a
+separate adjustment move, or applying the transaction-derived rate to draft
+documents. The selected draft-document rate follows the distribution's **Use
+payment rate** policy without resetting posted entries or creating adjustment
+lines. It is used only when the creating bank transaction is already in company
+currency. Payouts recorded before receipt keep Odoo's reference rate and normal
+delayed-settlement FX.
+
 ## Controls
 
 - Commission is strictly between 0% and 100%.
@@ -69,6 +78,9 @@ Three approaches were assessed:
 - Bank import is deliberately selection-only. Imported receipts become draft
   payout rows, where the operator reviews platform, original reference,
   currency and original payout amount before running Check.
+- A company-currency bank receipt that creates a foreign payout values its
+  draft invoice, commission bill and compensation at the effective bank rate.
+  The bank amount and global currency-rate table remain unchanged.
 - Posting warns when the monthly session has no payout for an active platform.
   An operator may confirm the documented exception.
 - Auto-posting is configurable and disabled by default.

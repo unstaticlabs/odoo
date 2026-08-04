@@ -1,11 +1,13 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import float_compare
 
 PAYOUT_WORKFLOW_DEFAULTS = {
     "state": "draft",
     "customer_invoice_id": False,
     "vendor_bill_id": False,
     "compensation_move_id": False,
+    "currency_valuation_method": "reference",
 }
 
 
@@ -29,6 +31,11 @@ class UslPlatformBillingPayout(models.Model):
         related="session_id.company_id",
         store=True,
         index=True,
+    )
+    company_currency_id = fields.Many2one(
+        "res.currency",
+        related="company_id.currency_id",
+        store=True,
     )
     platform_id = fields.Many2one(
         "usl.platform.billing.platform",
@@ -66,6 +73,40 @@ class UslPlatformBillingPayout(models.Model):
         currency_field="platform_currency_id",
         compute="_compute_platform_amounts",
         store=True,
+    )
+    currency_valuation_method = fields.Selection(
+        [
+            ("reference", "Odoo Reference Rate"),
+            ("bank", "Effective Bank Rate"),
+        ],
+        required=True,
+        default="reference",
+        copy=False,
+        tracking=True,
+        help=(
+            "Bank-created payouts value their generated documents from the actual "
+            "company-currency bank amount. Other payouts use Odoo's reference rate."
+        ),
+    )
+    bank_rate_company_amount = fields.Monetary(
+        string="Bank-Rate Company Amount",
+        currency_field="company_currency_id",
+        compute="_compute_effective_bank_rate",
+        store=True,
+        copy=False,
+        help="Company-currency value supplied by the bank transaction.",
+    )
+    effective_bank_rate = fields.Float(
+        string="Effective Bank Rate",
+        digits=(16, 10),
+        compute="_compute_effective_bank_rate",
+        store=True,
+        copy=False,
+        help="Company-currency units for one unit of platform currency.",
+    )
+    effective_bank_rate_label = fields.Char(
+        string="Effective Rate",
+        compute="_compute_effective_bank_rate_label",
     )
     bank_currency_id = fields.Many2one(
         "res.currency",
@@ -231,6 +272,101 @@ class UslPlatformBillingPayout(models.Model):
             )
 
     @api.depends(
+        "currency_valuation_method",
+        "platform_currency_id",
+        "company_currency_id",
+        "bank_currency_id",
+        "bank_allocation_ids.bank_amount",
+        "bank_allocation_ids.payout_amount",
+    )
+    def _compute_effective_bank_rate(self):
+        for payout in self:
+            payout.bank_rate_company_amount = 0.0
+            payout.effective_bank_rate = 0.0
+            if (
+                payout.currency_valuation_method != "bank"
+                or not payout.platform_currency_id
+                or not payout.company_currency_id
+                or payout.bank_currency_id != payout.company_currency_id
+            ):
+                continue
+            payout_amount = payout.platform_currency_id.round(
+                sum(payout.bank_allocation_ids.mapped("payout_amount")),
+            )
+            bank_amount = payout.company_currency_id.round(
+                sum(payout.bank_allocation_ids.mapped("bank_amount")),
+            )
+            if payout_amount <= 0.0 or bank_amount <= 0.0:
+                continue
+            payout.bank_rate_company_amount = bank_amount
+            payout.effective_bank_rate = bank_amount / payout_amount
+
+    @api.depends(
+        "effective_bank_rate",
+        "platform_currency_id.name",
+        "company_currency_id.name",
+    )
+    def _compute_effective_bank_rate_label(self):
+        for payout in self:
+            payout.effective_bank_rate_label = (
+                _(
+                    "1 %(platform)s = %(rate).6f %(company)s",
+                    platform=payout.platform_currency_id.name,
+                    rate=payout.effective_bank_rate,
+                    company=payout.company_currency_id.name,
+                )
+                if payout.effective_bank_rate
+                and payout.platform_currency_id
+                and payout.company_currency_id
+                else False
+            )
+
+    def _bank_rate_validation_errors(self):
+        self.ensure_one()
+        if self.currency_valuation_method != "bank":
+            return []
+        errors = []
+        if self.bank_currency_id != self.company_currency_id:
+            errors.append(
+                _(
+                    "Effective bank-rate valuation requires a bank transaction "
+                    "in the company currency.",
+                ),
+            )
+        if not self.bank_allocation_ids:
+            errors.append(
+                _("Effective bank-rate valuation requires a bank transaction."),
+            )
+        elif self.platform_currency_id:
+            allocated = sum(self.bank_allocation_ids.mapped("payout_amount"))
+            if float_compare(
+                allocated,
+                self.net_platform_amount,
+                precision_rounding=self.platform_currency_id.rounding,
+            ):
+                errors.append(
+                    _(
+                        "The bank-created payout must be fully allocated before "
+                        "its effective rate can be applied.",
+                    ),
+                )
+        if not self.effective_bank_rate:
+            errors.append(_("The effective bank rate could not be derived."))
+        elif (
+            self.platform_currency_id == self.company_currency_id
+            and self.company_currency_id.compare_amounts(
+                self.bank_rate_company_amount,
+                self.net_platform_amount,
+            )
+        ):
+            errors.append(
+                _(
+                    "A same-currency payout must equal its allocated bank amount.",
+                ),
+            )
+        return list(dict.fromkeys(errors))
+
+    @api.depends(
         "net_platform_amount",
         "bank_allocation_ids",
         "bank_allocation_ids.bank_statement_line_id",
@@ -326,8 +462,13 @@ class UslPlatformBillingPayout(models.Model):
         "platform_reference",
         "session_id.company_id",
         "bank_allocation_ids",
+        "bank_allocation_ids.bank_amount",
         "bank_allocation_ids.state",
         "bank_allocation_ids.payout_amount",
+        "currency_valuation_method",
+        "bank_currency_id",
+        "company_currency_id",
+        "effective_bank_rate",
     )
     def _compute_validation(self):
         for payout in self:
@@ -352,6 +493,7 @@ class UslPlatformBillingPayout(models.Model):
                 errors.append(_("The commission snapshot must be between 0% and 100%."))
             if payout.net_platform_amount <= 0:
                 errors.append(_("The platform net amount must be positive."))
+            errors.extend(payout._bank_rate_validation_errors())
             if payout.bank_allocation_ids.filtered(
                 lambda allocation: allocation.payout_amount <= 0,
             ):

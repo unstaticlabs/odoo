@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 00:24+0000\n"
-"PO-Revision-Date: 2026-08-04 00:24+0000\n"
+"POT-Creation-Date: 2026-08-04 15:25+0000\n"
+"PO-Revision-Date: 2026-08-04 15:25+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -92,6 +92,12 @@ msgid "%s remains to be linked to a bank transaction."
 msgstr ""
 
 #. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "1 %(platform)s = %(rate).6f %(company)s"
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_bank_allocation_payout_bank_line_unique
 msgid "A bank transaction can be allocated to a payout only once."
 msgstr ""
@@ -116,6 +122,12 @@ msgstr ""
 #. module: usl_platform_billing
 #: model:ir.model.constraint,message:usl_platform_billing.constraint_usl_platform_billing_payout_platform_reference_unique
 msgid "A platform payout reference must be unique within the company."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "A same-currency payout must equal its allocated bank amount."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -531,6 +543,31 @@ msgid "Bank unmatched"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__bank_rate_company_amount
+msgid "Bank-Rate Company Amount"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__currency_valuation_method
+msgid ""
+"Bank-created payouts value their generated documents from the actual "
+"company-currency bank amount. Other payouts use Odoo's reference rate."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Bank-rate and reference-rate payouts require separate documents."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"Bank-rate payouts with different effective rates require separate documents."
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:ir.ui.menu,name:usl_platform_billing.menu_platform_billing_sessions
 msgid "Billing Sessions"
 msgstr ""
@@ -652,6 +689,16 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_search
 msgid "Company"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__effective_bank_rate
+msgid "Company-currency units for one unit of platform currency."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__bank_rate_company_amount
+msgid "Company-currency value supplied by the bank transaction."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -817,6 +864,7 @@ msgid "Created on"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__company_currency_id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__company_currency_id
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_platform_search
 msgid "Currency"
@@ -831,6 +879,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__currency_summary
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
 msgid "Currency Summary"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__currency_valuation_method
+msgid "Currency Valuation Method"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -937,6 +990,31 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
 msgid "Each configured journal must have the required accounting type."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__effective_bank_rate
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__currency_valuation_method__bank
+msgid "Effective Bank Rate"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__effective_bank_rate_label
+msgid "Effective Rate"
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid ""
+"Effective bank-rate valuation requires a bank transaction in the company "
+"currency."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "Effective bank-rate valuation requires a bank transaction."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1530,6 +1608,11 @@ msgid "ONLYFANS,FENIX"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__currency_valuation_method__reference
+msgid "Odoo Reference Rate"
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_platform__vendor_bill_grouping_mode__per_payout
 msgid "One bill per payout"
 msgstr ""
@@ -1897,6 +1980,14 @@ msgid "Purchase Journal"
 msgstr ""
 
 #. module: usl_platform_billing
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__rating_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__rating_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__rating_ids
+#: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__rating_ids
+msgid "Ratings"
+msgstr ""
+
+#. module: usl_platform_billing
 #: model:res.groups,name:usl_platform_billing.group_platform_billing_reader
 msgid "Read-only"
 msgstr ""
@@ -2046,14 +2137,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
 msgid "Select the platform currency."
-msgstr ""
-
-#. module: usl_platform_billing
-#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
-msgid ""
-"Select the received payments to add as draft payouts. Complete\n"
-"                        platform, reference, currency and original payout amount in the\n"
-"                        session after importing."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -2270,6 +2353,14 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid ""
+"The bank-created payout must be fully allocated before its effective rate "
+"can be applied."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "The billing period must be the first day of a month."
 msgstr ""
@@ -2284,6 +2375,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
 msgid "The commission snapshot must be between 0% and 100%."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/payout.py:0
+msgid "The effective bank rate could not be derived."
 msgstr ""
 
 #. module: usl_platform_billing

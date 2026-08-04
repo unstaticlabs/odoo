@@ -553,7 +553,44 @@ class UslPlatformBillingSession(models.Model):
             values["analytic_distribution"] = payout.platform_id.analytic_distribution
         return values
 
-    def _move_values(self, platform, move_type, payouts, line_commands):
+    def _document_valuation_groups(self, payouts):
+        groups = defaultdict(lambda: self.env["usl.platform.billing.payout"])
+        for payout in payouts.sorted(key=lambda item: item.id):
+            if payout.currency_valuation_method == "bank":
+                key = ("bank", f"{payout.effective_bank_rate:.10f}")
+            else:
+                key = ("reference", "")
+            groups[key] |= payout
+        return list(groups.values())
+
+    def _bank_invoice_currency_rate(self, payouts):
+        bank_payouts = payouts.filtered(
+            lambda payout: payout.currency_valuation_method == "bank",
+        )
+        if not bank_payouts:
+            return False
+        if len(bank_payouts) != len(payouts):
+            raise UserError(
+                _("Bank-rate and reference-rate payouts require separate documents."),
+            )
+        rates = {f"{payout.effective_bank_rate:.10f}" for payout in bank_payouts}
+        if len(rates) != 1 or not bank_payouts[0].effective_bank_rate:
+            raise UserError(
+                _("Bank-rate payouts with different effective rates require separate documents."),
+            )
+        if bank_payouts.platform_currency_id == self.company_id.currency_id:
+            return 1.0
+        return 1.0 / bank_payouts[0].effective_bank_rate
+
+    def _move_values(
+        self,
+        platform,
+        move_type,
+        payouts,
+        line_commands,
+        *,
+        invoice_currency_rate=False,
+    ):
         partner = (
             platform.customer_partner
             if move_type == "out_invoice"
@@ -578,6 +615,8 @@ class UslPlatformBillingSession(models.Model):
             "platform_billing_payout_ids": [Command.set(payouts.ids)],
             "invoice_line_ids": line_commands,
         }
+        if invoice_currency_rate:
+            values["invoice_currency_rate"] = invoice_currency_rate
         if self.due_date:
             values.update(
                 {
@@ -609,56 +648,74 @@ class UslPlatformBillingSession(models.Model):
                     )
 
     def _generate_platform_documents(self, platform, payouts):
-        invoice_lines = [
-            Command.create(
-                self._invoice_line_values(
-                    payout,
-                    platform.revenue_product_id,
-                    payout.gross_platform_amount,
-                    _("Gross platform revenue — %s", payout.platform_reference),
-                ),
-            )
-            for payout in payouts
-        ]
-        invoice = self.env["account.move"].create(
-            self._move_values(platform, "out_invoice", payouts, invoice_lines),
-        )
-        if platform.vendor_bill_grouping_mode == "monthly":
-            bill_groups = [payouts]
-        else:
-            bill_groups = list(payouts)
-        bills = self.env["account.move"]
-        for bill_payouts in bill_groups:
-            bill_lines = [
+        generated_moves = self.env["account.move"]
+        for invoice_payouts in self._document_valuation_groups(payouts):
+            invoice_rate = self._bank_invoice_currency_rate(invoice_payouts)
+            invoice_lines = [
                 Command.create(
                     self._invoice_line_values(
                         payout,
-                        platform.commission_product_id,
-                        payout.commission_platform_amount,
-                        _("Platform commission — %s", payout.platform_reference),
+                        platform.revenue_product_id,
+                        payout.gross_platform_amount,
+                        _("Gross platform revenue — %s", payout.platform_reference),
                     ),
                 )
-                for payout in bill_payouts
+                for payout in invoice_payouts
             ]
-            bills |= self.env["account.move"].create(
-                self._move_values(platform, "in_invoice", bill_payouts, bill_lines),
+            invoice = self.env["account.move"].create(
+                self._move_values(
+                    platform,
+                    "out_invoice",
+                    invoice_payouts,
+                    invoice_lines,
+                    invoice_currency_rate=invoice_rate,
+                ),
             )
-        for payout in payouts:
-            payout._workflow_write(
-                {
-                    "customer_invoice_id": invoice.id,
-                    "vendor_bill_id": bills.filtered(
-                        lambda bill, payout=payout: payout
-                        in bill.platform_billing_payout_ids,
-                    )[:1].id,
-                    "state": "generated",
-                },
-            )
-        self._copy_supporting_documents(payouts, invoice | bills)
+            if platform.vendor_bill_grouping_mode == "monthly":
+                bill_groups = [invoice_payouts]
+            else:
+                bill_groups = list(invoice_payouts)
+            bills = self.env["account.move"]
+            for bill_payouts in bill_groups:
+                bill_lines = [
+                    Command.create(
+                        self._invoice_line_values(
+                            payout,
+                            platform.commission_product_id,
+                            payout.commission_platform_amount,
+                            _("Platform commission — %s", payout.platform_reference),
+                        ),
+                    )
+                    for payout in bill_payouts
+                ]
+                bills |= self.env["account.move"].create(
+                    self._move_values(
+                        platform,
+                        "in_invoice",
+                        bill_payouts,
+                        bill_lines,
+                        invoice_currency_rate=(
+                            self._bank_invoice_currency_rate(bill_payouts)
+                        ),
+                    ),
+                )
+            for payout in invoice_payouts:
+                payout._workflow_write(
+                    {
+                        "customer_invoice_id": invoice.id,
+                        "vendor_bill_id": bills.filtered(
+                            lambda bill, payout=payout: payout
+                            in bill.platform_billing_payout_ids,
+                        )[:1].id,
+                        "state": "generated",
+                    },
+                )
+            self._copy_supporting_documents(invoice_payouts, invoice | bills)
+            generated_moves |= invoice | bills
         # Incomplete monthly coverage always requires the explicit posting
         # confirmation, even when this platform normally auto-posts.
         if platform.auto_post_invoices and not self.missing_active_platform_ids:
-            (invoice | bills).action_post()
+            generated_moves.action_post()
 
     def action_generate_documents(self):
         self._check_operator()
@@ -700,12 +757,27 @@ class UslPlatformBillingSession(models.Model):
         if platform.currency_id.is_zero(amount_currency):
             return self.env["account.move"]
         company_currency = self.company_id.currency_id
-        balance = platform.currency_id._convert(
-            amount_currency,
-            company_currency,
-            self.company_id,
-            self.invoice_date,
+        bank_payouts = payouts.filtered(
+            lambda payout: payout.currency_valuation_method == "bank",
         )
+        reference_payouts = payouts - bank_payouts
+        balance = sum(
+            company_currency.round(
+                payout.commission_platform_amount * payout.effective_bank_rate,
+            )
+            for payout in bank_payouts
+        )
+        reference_amount = sum(
+            reference_payouts.mapped("commission_platform_amount"),
+        )
+        if reference_amount:
+            balance += platform.currency_id._convert(
+                reference_amount,
+                company_currency,
+                self.company_id,
+                self.invoice_date,
+            )
+        balance = company_currency.round(balance)
         supplier = platform.supplier_partner.with_company(self.company_id)
         customer = platform.customer_partner.with_company(self.company_id)
         payable = supplier.property_account_payable_id
@@ -719,6 +791,7 @@ class UslPlatformBillingSession(models.Model):
             {
                 "move_type": "entry",
                 "company_id": self.company_id.id,
+                "currency_id": platform.currency_id.id,
                 "journal_id": platform.compensation_journal_id.id,
                 "date": self.invoice_date,
                 "ref": _("Platform commission compensation — %s", platform.name),
