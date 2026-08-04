@@ -22,6 +22,10 @@ The input is the preserved Odoo Online package:
 Never start target Odoo against the source database. Never edit source rows to
 make an importer pass.
 
+The Accounting harness resolves `--source-dir` once and exports that absolute
+path to every Compose child. Host validation and the read-only container mount
+therefore cannot silently select different source packages.
+
 ## Whole-source coverage ledger
 
 `migration/source_truth/coverage.json` is the executable migration perimeter.

@@ -339,6 +339,19 @@ def source_package(source_dir: str) -> SourcePackage:
     return SourcePackage(root, root / "dump.sql", root / "filestore")
 
 
+def configure_source_mount(source_dir: str) -> SourcePackage:
+    """Use one canonical source path for host checks and Compose mounts.
+
+    Previously ``--source-dir`` changed host-side validation while Compose kept
+    mounting the unrelated default path.  A run could therefore validate one
+    dump and import another (or an empty directory).  Resolve once and export
+    the exact path inherited by every Docker Compose child.
+    """
+    package = source_package(source_dir)
+    os.environ["USL_ONLINE_DUMP_DIR"] = str(package.path)
+    return package
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -14913,13 +14926,17 @@ def build_parser() -> argparse.ArgumentParser:
         "readiness",
         "evidence",
     ])
-    parser.add_argument("--source-dir", default=DEFAULT_SOURCE_DIR)
+    parser.add_argument(
+        "--source-dir",
+        default=os.environ.get("USL_ONLINE_DUMP_DIR", DEFAULT_SOURCE_DIR),
+    )
     parser.add_argument("--allow-errors", action="store_true")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    configure_source_mount(args.source_dir)
     try:
         if args.stage == "source-validate":
             print_summary(args.stage, validate_source(args))
