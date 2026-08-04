@@ -6,45 +6,51 @@
         <field name="arch" type="xml">
             <form string="Import Bank Transactions">
                 <sheet>
-                    <div class="alert alert-info" role="alert">
-                        <strong>All eligible</strong> shows every open incoming bank
-                        transaction. Pattern, partner, keyword, date, currency and
-                        amount checks only rank recommendations; they never prevent
-                        manual selection.
-                    </div>
                     <group>
                         <group>
                             <field name="session_id"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
                             <field name="bank_currency_id"/>
                         </group>
                         <group>
                             <field name="mode" widget="radio"/>
-                            <field name="candidate_scope" widget="radio"/>
+                            <field name="candidate_scope" string="Show"/>
                         </group>
                     </group>
-                    <div class="alert alert-secondary" role="status">
-                        <field name="eligibility_summary" nolabel="1" readonly="1"/>
-                        <field name="selection_summary" nolabel="1" readonly="1"/>
+                    <div class="alert alert-info py-2" role="status"
+                         invisible="mode != 'create'">
+                        Select the received payments to add as draft payouts. Complete
+                        platform, reference, currency and original payout amount in the
+                        session after importing.
+                    </div>
+                    <div class="alert alert-info py-2" role="status"
+                         invisible="mode != 'link'">
+                        Select the open payouts first, then select the payment that
+                        settles them.
                     </div>
 
-                    <group string="Registered open payouts"
-                           invisible="mode != 'link'">
-                        <field name="payout_candidate_count"/>
-                        <field name="selected_payout_count"/>
-                    </group>
+                    <separator string="Open payouts" invisible="mode != 'link'"/>
                     <field name="payout_candidate_ids"
                            invisible="mode != 'link'">
                         <list editable="bottom" create="false" delete="false"
                               default_order="payout_date, id"
-                              decoration-success="selected">
+                              decoration-warning="validation_status == 'error'">
                             <button name="action_select" string="Select"
                                     type="object" icon="fa-plus"
                                     invisible="selected"/>
                             <button name="action_unselect" string="Remove"
                                     type="object" icon="fa-minus"
                                     invisible="not selected"/>
-                            <field name="selected" widget="boolean_toggle" readonly="1"/>
+                            <field name="selected" column_invisible="True"/>
+                            <field name="validation_status" string="Validation" widget="badge"
+                                   decoration-success="validation_status == 'ok'"
+                                   decoration-warning="validation_status == 'warning'"
+                                   decoration-danger="validation_status == 'error'"/>
+                            <field name="bank_match_status" string="Bank" widget="badge"
+                                   decoration-muted="bank_match_status == 'unmatched'"
+                                   decoration-info="bank_match_status == 'selected'"
+                                   decoration-warning="bank_match_status == 'partial'"
+                                   decoration-success="bank_match_status == 'reconciled'"
+                                   decoration-danger="bank_match_status == 'blocked'"/>
                             <field name="session_id"/>
                             <field name="platform_id"/>
                             <field name="payout_date"/>
@@ -55,14 +61,10 @@
                         </list>
                     </field>
 
-                    <group string="Eligible open incoming bank transactions">
-                        <field name="candidate_count"/>
-                        <field name="selected_count"/>
-                    </group>
+                    <separator string="Open incoming bank transactions"/>
                     <field name="candidate_ids">
                         <list editable="bottom" create="false" delete="false"
                               default_order="recommended desc, score desc, bank_date desc"
-                              decoration-success="recommended"
                               decoration-warning="confidence == 'ambiguous'">
                             <button name="action_select" string="Select"
                                     type="object" icon="fa-plus"
@@ -70,34 +72,25 @@
                             <button name="action_unselect" string="Remove"
                                     type="object" icon="fa-minus"
                                     invisible="not selected"/>
-                            <field name="selected" widget="boolean_toggle" readonly="1"/>
-                            <field name="recommended" widget="boolean_toggle" readonly="1"/>
-                            <field name="bank_date"/>
-                            <field name="bank_journal_id"/>
+                            <field name="selected" column_invisible="True"/>
+                            <field name="recommended" column_invisible="True"/>
+                            <field name="confidence" column_invisible="True"/>
+                            <field name="recommendation_marker" decoration-success="recommended"
+                                   width="32px"/>
+                            <field name="bank_label" string="Bank Label" decoration-bf="1"
+                                   width="360px"/>
                             <field name="bank_currency_id" column_invisible="True"/>
                             <field name="bank_amount"/>
-                            <field name="remaining_bank_amount"/>
-                            <field name="allocated_bank_amount"/>
-                            <field name="bank_partner_id" optional="show"/>
-                            <field name="bank_label"/>
-                            <field name="platform_id"
-                                   readonly="parent.mode != 'create'"/>
-                            <field name="platform_currency_id" column_invisible="True"/>
-                            <field name="extracted_reference"
-                                   readonly="parent.mode != 'create'"
-                                   column_invisible="parent.mode != 'create'"/>
-                            <field name="import_platform_amount"
-                                   column_invisible="parent.mode != 'create'"/>
+                            <field name="allocated_bank_amount" string="Amount to Link"
+                                   column_invisible="parent.mode != 'link'"/>
+                            <field name="bank_date"/>
+                            <field name="bank_journal_id" optional="show"/>
+                            <field name="bank_partner_id" optional="hide"/>
+                            <field name="platform_id" readonly="1" optional="hide"/>
                             <field name="bank_foreign_currency_id"
                                    column_invisible="True"/>
                             <field name="bank_foreign_amount" optional="hide"/>
-                            <field name="confidence" widget="badge"/>
-                            <field name="match_rule" widget="badge"/>
-                            <field name="score"/>
-                            <field name="detection_reason"/>
-                            <field name="currency_reason" optional="show"/>
-                            <field name="amount_difference" optional="show"/>
-                            <field name="date_difference" optional="show"/>
+                            <field name="detection_reason" optional="hide"/>
                         </list>
                     </field>
                 </sheet>

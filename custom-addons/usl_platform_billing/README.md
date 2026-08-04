@@ -14,7 +14,9 @@ The temporary Odoo Online importer lives only under
 1. Configure the platform's partners, products, journals, currency,
    commission rate and bank-recognition rules.
 2. Create a monthly session. Its name follows the historical French format,
-   such as `Août 2026`; enter or import the payouts.
+   such as `Août 2026`; enter payouts or import received bank transactions.
+   Imported rows are drafts: complete their platform, original reference,
+   currency and original payout amount on the session's Payouts tab.
 3. Check the session, generate drafts and review native taxes, accounts,
    payment terms, fiscal positions and analytic distributions.
 4. Confirm any warning about an active platform missing from the month, then
@@ -24,9 +26,9 @@ The temporary Odoo Online importer lives only under
    allocated across several payouts and sessions, and several partial receipts
    can settle one payout.
 
-The bank wizard shows **All eligible** open incoming transactions by default.
-Configured patterns, partners, keywords, dates and amounts rank recommendations
-but do not hide valid manual choices. **Recommended only** is optional.
+The bank wizard shows **All open** incoming transactions by default. Configured
+patterns, partners, keywords, dates and amounts rank suggestions but do not
+hide valid manual choices. **Suggested only** is an optional shorter view.
 
 Auto-posting is off by default. Posted entries cannot be reset or deleted from
 the application. Mixed platform currencies are summarized separately, while
@@ -66,4 +68,5 @@ scripts/odoo-dev bootstrap-platform-billing-qa
 The command prints the four local-only logins. Search Billing Sessions for
 `QA DEMO`: the retained records cover delayed customer debt, a EUR 160 pooled
 receipt for two EUR 80 payouts, a EUR 30 partial receipt, a USD payout received
-as EUR 72, and creation from an unlinked bank transaction.
+as EUR 72, and creation from an unlinked bank transaction. Rerun the bootstrap
+after consuming a demo; it prepares the next clean pooled or import batch.

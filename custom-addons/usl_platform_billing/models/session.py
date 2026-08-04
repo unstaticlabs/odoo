@@ -211,8 +211,8 @@ class UslPlatformBillingSession(models.Model):
             )
             for payout in session.payout_ids:
                 key = (
-                    payout.platform_id.name,
-                    payout.platform_currency_id.name,
+                    payout.platform_id.name or _("To complete"),
+                    payout.platform_currency_id.name or "—",
                 )
                 grouped[key]["gross"] += payout.gross_platform_amount
                 grouped[key]["commission"] += payout.commission_platform_amount
@@ -310,7 +310,10 @@ class UslPlatformBillingSession(models.Model):
     def _check_payout_companies(self):
         for session in self:
             if session.payout_ids.filtered(
-                lambda payout: payout.platform_id.company_id != session.company_id,
+                lambda payout: (
+                    payout.platform_id
+                    and payout.platform_id.company_id != session.company_id
+                ),
             ):
                 raise ValidationError(_("All payouts must belong to the session company."))
 
@@ -479,10 +482,13 @@ class UslPlatformBillingSession(models.Model):
         invalid = self.payout_ids.filtered(
             lambda payout: payout.validation_status == "error",
         )
-        if invalid:
-            errors.extend(
-                _("%(payout)s: %(message)s", payout=payout.display_name, message=payout.validation_message)
-                for payout in invalid
+        for payout in invalid:
+            errors.append(
+                _(
+                    "%(payout)s: %(message)s",
+                    payout=payout.display_name,
+                    message=payout.validation_message,
+                ),
             )
         for platform in self.payout_ids.platform_id:
             missing = []
@@ -498,13 +504,6 @@ class UslPlatformBillingSession(models.Model):
                     missing.append(platform._fields[field_name].string)
             if platform.auto_create_compensation and not platform.compensation_journal_id:
                 missing.append(_("Compensation Journal"))
-            if platform.auto_create_compensation:
-                customer = platform.customer_partner.with_company(self.company_id)
-                supplier = platform.supplier_partner.with_company(self.company_id)
-                if not customer.property_account_receivable_id:
-                    missing.append(_("Customer Receivable Account"))
-                if not supplier.property_account_payable_id:
-                    missing.append(_("Supplier Payable Account"))
             if missing:
                 errors.append(
                     _(
@@ -513,6 +512,14 @@ class UslPlatformBillingSession(models.Model):
                         fields=", ".join(missing),
                     ),
                 )
+            errors.extend(
+                _(
+                    "%(platform)s: %(message)s",
+                    platform=platform.display_name,
+                    message=message,
+                )
+                for message in platform._account_configuration_errors()
+            )
         return errors
 
     def action_check(self):

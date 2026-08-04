@@ -62,20 +62,30 @@
                     <notebook>
                         <page name="accounting" string="Accounting">
                             <div class="alert alert-info" role="alert">
-                                Taxes, fiscal positions, accounts and payment terms come from
-                                native Odoo product and partner configuration.
+                                Accounts come from the selected products and partners. Fiscal
+                                positions may remap them on the final invoice or bill.
                             </div>
                             <group>
                                 <group string="Gross Revenue">
                                     <field name="revenue_product_id"/>
+                                    <field name="revenue_account_id" readonly="1"/>
                                     <field name="sale_journal_id"/>
                                 </group>
                                 <group string="Commission">
                                     <field name="commission_product_id"/>
+                                    <field name="commission_account_id" readonly="1"/>
                                     <field name="purchase_journal_id"/>
                                     <field name="auto_create_compensation"/>
                                     <field name="compensation_journal_id"
                                            required="auto_create_compensation"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Customer">
+                                    <field name="customer_receivable_account_id" readonly="1"/>
+                                </group>
+                                <group string="Vendor">
+                                    <field name="supplier_payable_account_id" readonly="1"/>
                                 </group>
                             </group>
                         </page>
@@ -83,6 +93,7 @@
                             <group>
                                 <group>
                                     <field name="bank_journal_id"/>
+                                    <field name="bank_account_id" readonly="1"/>
                                     <field name="bank_label_pattern" placeholder="OF inv {ref}"/>
                                     <field name="bank_label_keywords" placeholder="ONLYFANS,FENIX"/>
                                 </group>

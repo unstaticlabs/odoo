@@ -29,8 +29,16 @@
                 <field name="currency_id"/>
                 <field name="amount_total"/>
                 <field name="amount_residual"/>
-                <field name="state" widget="badge"/>
-                <field name="payment_state" widget="badge"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'posted'"
+                       decoration-danger="state == 'cancel'"/>
+                <field name="payment_state" widget="badge"
+                       decoration-muted="payment_state in ('not_paid', 'reversed')"
+                       decoration-info="payment_state == 'in_payment'"
+                       decoration-warning="payment_state == 'partial'"
+                       decoration-success="payment_state == 'paid'"
+                       decoration-danger="payment_state == 'blocked'"/>
                 <field name="platform_billing_platform_id"/>
                 <field name="platform_billing_payout_ids" widget="many2many_tags"/>
             </list>

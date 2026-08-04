@@ -34,14 +34,14 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
     )
     candidate_scope = fields.Selection(
         [
-            ("all", "All eligible"),
-            ("recommended", "Recommended only"),
+            ("all", "All open"),
+            ("recommended", "Suggested only"),
         ],
         required=True,
         default="all",
         help=(
-            "All eligible keeps every open incoming transaction available for "
-            "manual selection. Recommended only applies the matching score."
+            "All open keeps every eligible incoming transaction available. "
+            "Suggested only applies the configured recognition rules."
         ),
     )
     payout_candidate_ids = fields.One2many(
@@ -54,68 +54,6 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         "wizard_id",
         string="Bank Transactions",
     )
-    candidate_count = fields.Integer(compute="_compute_counts")
-    selected_count = fields.Integer(compute="_compute_counts")
-    payout_candidate_count = fields.Integer(compute="_compute_counts")
-    selected_payout_count = fields.Integer(compute="_compute_counts")
-    eligibility_summary = fields.Text(readonly=True)
-    selection_summary = fields.Text(compute="_compute_selection_summary")
-
-    @api.depends(
-        "candidate_ids",
-        "candidate_ids.selected",
-        "payout_candidate_ids",
-        "payout_candidate_ids.selected",
-    )
-    def _compute_counts(self):
-        for wizard in self:
-            wizard.candidate_count = len(wizard.candidate_ids)
-            wizard.selected_count = len(
-                wizard.candidate_ids.filtered("selected"),
-            )
-            wizard.payout_candidate_count = len(wizard.payout_candidate_ids)
-            wizard.selected_payout_count = len(
-                wizard.payout_candidate_ids.filtered("selected"),
-            )
-
-    @api.depends(
-        "mode",
-        "payout_candidate_ids.selected",
-        "payout_candidate_ids.allocated_payout_amount",
-        "payout_candidate_ids.payout_currency_id",
-        "candidate_ids.selected",
-        "candidate_ids.allocated_bank_amount",
-    )
-    def _compute_selection_summary(self):
-        for wizard in self:
-            bank_total = sum(
-                wizard.candidate_ids.filtered("selected").mapped(
-                    "allocated_bank_amount",
-                ),
-            )
-            payout_totals = Counter()
-            for line in wizard.payout_candidate_ids.filtered("selected"):
-                payout_totals[line.payout_currency_id.name] += (
-                    line.allocated_payout_amount
-                )
-            payout_text = ", ".join(
-                f"{amount:.2f} {currency}"
-                for currency, amount in sorted(payout_totals.items())
-            )
-            wizard.selection_summary = (
-                _(
-                    "Selected bank amount: %(bank).2f %(currency)s. "
-                    "Selected payout amount: %(payout)s.",
-                    bank=bank_total,
-                    currency=wizard.bank_currency_id.name,
-                    payout=payout_text or _("none"),
-                )
-                if wizard.mode == "link"
-                else _(
-                    "%(count)s bank transaction(s) selected for payout creation.",
-                    count=wizard.selected_count,
-                )
-            )
 
     @api.onchange("mode")
     def _onchange_mode(self):
@@ -268,6 +206,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         )
         domain = [
             ("company_id", "=", self.company_id.id),
+            ("currency_id", "=", self.bank_currency_id.id),
             ("amount", ">", 0),
             ("is_reconciled", "=", False),
             ("move_id.state", "=", "posted"),
@@ -429,23 +368,6 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             "currency_reason": currency_reason,
         }
 
-    def _import_platform_amount(self, bank_line, remaining_bank_amount, platform):
-        if not platform:
-            return 0.0
-        if platform.currency_id == bank_line.currency_id:
-            return remaining_bank_amount
-        if (
-            bank_line.foreign_currency_id == platform.currency_id
-            and bank_line.amount_currency
-            and bank_line.amount
-        ):
-            return platform.currency_id.round(
-                bank_line.amount_currency
-                * remaining_bank_amount
-                / bank_line.amount,
-            )
-        return 0.0
-
     def _populate_candidates(self):
         self.ensure_one()
         selected_bank_ids = set(
@@ -488,11 +410,6 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                     "detection_reason": reason,
                     "allocated_bank_amount": remaining,
                     "remaining_bank_amount": remaining,
-                    "import_platform_amount": self._import_platform_amount(
-                        bank_line,
-                        remaining,
-                        platform,
-                    ),
                     **match_values,
                 },
             )
@@ -506,17 +423,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         self.candidate_ids = [Command.clear()] + [
             Command.create(values) for values in values_list
         ]
-        excluded_text = ", ".join(
-            _("%(reason)s: %(count)s", reason=reason.replace("_", " "), count=count)
-            for reason, count in excluded.items()
-            if count
-        )
-        self.eligibility_summary = _(
-            "%(count)s open incoming bank transaction(s) are eligible. "
-            "Recognition rules affect ranking, not visibility. Excluded: %(excluded)s.",
-            count=len(bank_lines),
-            excluded=excluded_text or _("none"),
-        )
+        del excluded
 
     def _revalidate_candidate(self, candidate):
         bank_line = candidate.bank_statement_line_id
@@ -604,29 +511,17 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         self._revalidate_candidate(candidate)
         bank_line = candidate.bank_statement_line_id
         platform = candidate.platform_id
-        if not platform:
-            raise UserError(
-                _(
-                    "Choose the platform for this bank transaction. "
-                    "Automatic recognition was not unambiguous.",
-                ),
-            )
-        if candidate.import_platform_amount <= 0:
-            raise UserError(
-                _(
-                    "Enter the positive payout amount in %s.",
-                    platform.currency_id.name,
-                ),
-            )
         reference = candidate.extracted_reference or f"BANK-{bank_line.id}"
-        payout = self.env["usl.platform.billing.payout"].search(
-            [
-                ("company_id", "=", self.company_id.id),
-                ("platform_id", "=", platform.id),
-                ("platform_reference", "=", reference),
-            ],
-            limit=1,
-        )
+        payout = self.env["usl.platform.billing.payout"]
+        if platform:
+            payout = payout.search(
+                [
+                    ("company_id", "=", self.company_id.id),
+                    ("platform_id", "=", platform.id),
+                    ("platform_reference", "=", reference),
+                ],
+                limit=1,
+            )
         if payout and payout.session_id != self.session_id:
             raise UserError(
                 _(
@@ -643,6 +538,10 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         self.session_id._check_operator()
         if self.mode != "create":
             raise UserError(_("Switch to payout creation mode first."))
+        if self.session_id.state not in {"draft", "ready"}:
+            raise UserError(
+                _("New payouts can only be imported into a draft session."),
+            )
         selected = self.candidate_ids.filtered("selected")
         if not selected:
             raise UserError(_("Select at least one bank transaction."))
@@ -656,17 +555,15 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                         candidate,
                     )
                     if not payout:
-                        payout = self.env["usl.platform.billing.payout"].create(
-                            {
-                                "session_id": self.session_id.id,
-                                "platform_id": platform.id,
-                                "platform_reference": reference,
-                                "payout_date": bank_line.date,
-                                "net_platform_amount": (
-                                    candidate.import_platform_amount
-                                ),
-                            },
-                        )
+                        values = {
+                            "session_id": self.session_id.id,
+                            "platform_reference": reference,
+                            "payout_date": bank_line.date,
+                            "net_platform_amount": 0.0,
+                        }
+                        if platform:
+                            values["platform_id"] = platform.id
+                        payout = self.env["usl.platform.billing.payout"].create(values)
                     allocation = self.env[
                         "usl.platform.billing.bank.allocation"
                     ].search(
@@ -684,7 +581,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                                 "payout_id": payout.id,
                                 "bank_statement_line_id": bank_line.id,
                                 "bank_amount": candidate.allocated_bank_amount,
-                                "payout_amount": candidate.import_platform_amount,
+                                "payout_amount": 0.0,
                                 "score": candidate.score,
                                 "amount_difference": candidate.amount_difference,
                                 "date_difference": candidate.date_difference,
@@ -981,6 +878,14 @@ class UslPlatformBillingBankImportWizardPayoutLine(models.TransientModel):
         related="payout_id.platform_reference",
         readonly=True,
     )
+    validation_status = fields.Selection(
+        related="payout_id.validation_status",
+        readonly=True,
+    )
+    bank_match_status = fields.Selection(
+        related="payout_id.bank_match_status",
+        readonly=True,
+    )
     payout_currency_id = fields.Many2one(
         related="payout_id.platform_currency_id",
         readonly=True,
@@ -1069,8 +974,7 @@ class UslPlatformBillingBankImportWizardLine(models.TransientModel):
         readonly=True,
     )
     bank_label = fields.Char(
-        related="bank_statement_line_id.payment_ref",
-        readonly=True,
+        compute="_compute_bank_label",
     )
     platform_id = fields.Many2one(
         "usl.platform.billing.platform",
@@ -1081,9 +985,10 @@ class UslPlatformBillingBankImportWizardLine(models.TransientModel):
         readonly=True,
     )
     extracted_reference = fields.Char()
-    import_platform_amount = fields.Monetary(
-        string="Payout Amount",
-        currency_field="platform_currency_id",
+    recommendation_marker = fields.Char(
+        string="Match",
+        compute="_compute_recommendation_marker",
+        help="A green dot marks a transaction suggested by the configured recognition rules.",
     )
     confidence = fields.Selection(
         [
@@ -1115,16 +1020,18 @@ class UslPlatformBillingBankImportWizardLine(models.TransientModel):
     )
     date_difference = fields.Integer(readonly=True)
 
-    @api.onchange("platform_id")
-    def _onchange_platform_id(self):
+    @api.depends("bank_statement_line_id.payment_ref", "bank_statement_line_id.name")
+    def _compute_bank_label(self):
         for candidate in self:
-            candidate.import_platform_amount = (
-                candidate.wizard_id._import_platform_amount(
-                    candidate.bank_statement_line_id,
-                    candidate.remaining_bank_amount,
-                    candidate.platform_id,
-                )
+            candidate.bank_label = (
+                candidate.bank_statement_line_id.payment_ref
+                or candidate.bank_statement_line_id.name
             )
+
+    @api.depends("recommended")
+    def _compute_recommendation_marker(self):
+        for candidate in self:
+            candidate.recommendation_marker = "●" if candidate.recommended else False
 
     def action_select(self):
         self.ensure_one()

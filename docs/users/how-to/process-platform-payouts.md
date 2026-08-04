@@ -13,23 +13,25 @@ receives a Platform Billing role.
 1. Open **Platform Billing → Billing Sessions**.
 2. Create a session for the accounting month.
 3. Confirm the invoice date, optional due-date override and bank currency.
-4. Add payouts manually, or choose **Import bank transactions** to regenerate
-   candidates from native bank data.
-5. Check every platform reference and net platform amount.
+4. Add payouts manually, or choose **Import bank transactions** and select the
+   receipts that belong to content platforms.
+5. Back on **Payouts**, complete each imported row: platform, original payout
+   reference, currency and original payout amount.
 6. Choose **Check**. Correct any blocking message before continuing.
 
-The wizard opens on **All eligible**. This means every open incoming
-transaction from an allowed bank journal is visible, even when its date,
-amount or label is unusual. Matching is only a recommendation:
+The wizard opens on **All open**. This means every open incoming transaction
+in the session's bank currency from an allowed bank journal is visible, even
+when its date, amount or label is unusual. Matching is only a recommendation:
 
 - configured label pattern first;
 - known platform partner second;
 - configured keywords third.
 
-Use **Recommended only** when you want a shorter suggested list. Outgoing,
-reconciled, unposted, fully allocated, wrong-company and disallowed-journal
-transactions are excluded, and the summary explains the excluded counts.
-Ambiguous or unknown rows remain manually selectable in **All eligible**.
+Use **Suggested only** when you want a shorter list. Outgoing,
+reconciled, unposted, fully allocated, wrong-currency, wrong-company and
+disallowed-journal transactions are excluded. Ambiguous or unknown rows remain selectable in
+**All open**. The green dot is only a suggestion; the bank label, amount and
+date are the operator's primary evidence.
 
 ## Generate and post
 

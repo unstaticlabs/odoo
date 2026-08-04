@@ -1,5 +1,20 @@
 # Changelog
 
+## saas~19.2.1.1.3
+
+- Import bank receipts as incomplete draft payouts, then complete platform,
+  reference, currency and original payout amount on the session.
+- Simplify the bank-import screen around label, amount, date and selection;
+  keep matching details optional and show suggestions with a small marker.
+- Put validation first and consistently color payout, bank and accounting
+  document status badges.
+- Show the effective product, partner and bank accounts on platform
+  configuration and validate their accounting types before generation.
+- Use the restored service-revenue and sales-commission accounts, plus the
+  bank journal proven by restored payout history, in local QA data.
+- Hide bank transactions whose actual currency differs from the session bank
+  currency, and keep the local import demo repeatable after a completed run.
+
 ## saas~19.2.1.1.2
 
 - Show every eligible open incoming bank transaction by default; matching

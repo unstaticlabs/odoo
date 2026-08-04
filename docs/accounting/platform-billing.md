@@ -13,7 +13,13 @@ For a payout with net `80` and commission rate `20%`:
 - the bank transaction settles that `80`, immediately or later.
 
 Products, partner fiscal positions and standard Odoo computation determine
-accounts and taxes. Analytic distribution is copied to invoice/bill lines.
+accounts and taxes. The platform form shows the current effective defaults so
+they can be reviewed before generation. For the USL French chart, content
+services use `706000` and platform sales commissions use `622200`; partner
+receivable/payable accounts remain native Odoo configuration. The local QA
+fixture reuses the journal proven by restored payout allocations (`Banque
+Shine`, account `512001`) rather than choosing an arbitrary liquidity account.
+Analytic distribution is copied to invoice/bill lines.
 When the session has no explicit due date, partner payment terms determine
 document maturities. A session due date is an intentional override.
 

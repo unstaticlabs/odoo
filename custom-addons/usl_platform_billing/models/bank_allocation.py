@@ -154,8 +154,21 @@ class UslPlatformBillingBankAllocation(models.Model):
                 raise ValidationError(
                     _("The bank transaction must use the session bank currency."),
                 )
-            if allocation.bank_amount <= 0 or allocation.payout_amount <= 0:
-                raise ValidationError(_("Allocated amounts must be positive."))
+            if allocation.bank_amount <= 0 or allocation.payout_amount < 0:
+                raise ValidationError(
+                    _("The bank amount must be positive and the payout amount cannot be negative."),
+                )
+            if allocation.payout_amount == 0 and (
+                payout.state != "draft"
+                or (
+                    payout.platform_id
+                    and payout.platform_currency_id
+                    and payout.net_platform_amount > 0
+                )
+            ):
+                raise ValidationError(
+                    _("Complete the imported payout amount before continuing."),
+                )
             line_allocations = self.search(
                 [("bank_statement_line_id", "=", bank_line.id)],
             )
@@ -173,7 +186,7 @@ class UslPlatformBillingBankAllocation(models.Model):
             payout_allocations = self.search(
                 [("payout_id", "=", payout.id)],
             )
-            if (
+            if payout.platform_currency_id and (
                 float_compare(
                     sum(payout_allocations.mapped("payout_amount")),
                     payout.net_platform_amount,

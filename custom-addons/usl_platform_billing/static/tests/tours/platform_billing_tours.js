@@ -239,25 +239,58 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_create_journe
             run: "click",
         },
         {
-            content: "All eligible transactions are visible by default",
-            trigger:
-                ".modal .o_field_widget[name='candidate_scope']:contains('All eligible')",
+            content: "All open transactions are visible by default",
+            trigger: ".modal .o_field_widget[name='candidate_scope']",
         },
         {
             content: "The matching transaction is available",
             trigger:
-                ".modal .o_data_row:has(td[name='bank_label']:contains('BROWSER-CREATE-001')) button[name='action_select']",
+                ".modal .o_data_row:has(td[name='bank_label']:contains('Unrecognised browser platform receipt')) button[name='action_select']",
             run: "click",
         },
         {
-            content: "Create the payout through the real app action",
+            content: "Import the bank transaction as a draft payout",
             trigger: ".modal button[name='action_create_payouts']",
             run: "click",
         },
         {
-            content: "The payout and its bank transaction are linked",
+            content: "Open the payout platform field",
             trigger:
-                ".o_form_view div[name='payout_ids'] .o_data_row td[name='platform_reference']:contains('BROWSER-CREATE-001')",
+                ".o_form_view div[name='payout_ids'] .o_data_row td[name='platform_id']",
+            run: "click",
+        },
+        {
+            content: "Configure the platform on the payout row",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row .o_field_widget[name='platform_id'] input",
+            run: "edit Browser CreatorHub",
+        },
+        {
+            content: "Confirm the platform",
+            trigger: ".dropdown-item:contains('Browser CreatorHub')",
+            run: "click",
+        },
+        {
+            content: "Enter the original platform reference",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row .o_field_widget[name='platform_reference'] input",
+            run: "edit BROWSER-CREATE-001",
+        },
+        {
+            content: "Enter the original platform payout amount",
+            trigger:
+                ".o_form_view div[name='payout_ids'] .o_data_row .o_field_widget[name='net_platform_amount'] input",
+            run: "edit 80",
+        },
+        {
+            content: "Validate the completed payout",
+            trigger: "button[name='action_check']",
+            run: "click",
+        },
+        {
+            content: "The imported and completed session is ready",
+            trigger:
+                ".o_form_view .o_statusbar_status button[data-value='ready'].o_arrow_button_current",
         },
     ],
 });

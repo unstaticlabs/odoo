@@ -59,6 +59,7 @@ class UslPlatformBillingPlatform(models.Model):
         "product.product",
         required=True,
         check_company=True,
+        domain="[('sale_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
         ondelete="restrict",
         tracking=True,
     )
@@ -66,6 +67,7 @@ class UslPlatformBillingPlatform(models.Model):
         "product.product",
         required=True,
         check_company=True,
+        domain="[('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
         ondelete="restrict",
         tracking=True,
     )
@@ -143,11 +145,121 @@ class UslPlatformBillingPlatform(models.Model):
         default=True,
         tracking=True,
     )
+    revenue_account_id = fields.Many2one(
+        "account.account",
+        string="Revenue Account",
+        compute="_compute_effective_accounts",
+        help="Effective default account from the revenue product. A fiscal position may remap it on the invoice.",
+    )
+    commission_account_id = fields.Many2one(
+        "account.account",
+        string="Commission Account",
+        compute="_compute_effective_accounts",
+        help="Effective default account from the commission product. A fiscal position may remap it on the bill.",
+    )
+    customer_receivable_account_id = fields.Many2one(
+        "account.account",
+        string="Customer Receivable Account",
+        compute="_compute_effective_accounts",
+    )
+    supplier_payable_account_id = fields.Many2one(
+        "account.account",
+        string="Supplier Payable Account",
+        compute="_compute_effective_accounts",
+    )
+    bank_account_id = fields.Many2one(
+        "account.account",
+        string="Bank Account",
+        compute="_compute_effective_accounts",
+    )
 
     _name_company_unique = models.Constraint(
         "UNIQUE(company_id, name)",
         "A platform name must be unique within a company.",
     )
+
+    @api.depends(
+        "company_id",
+        "revenue_product_id",
+        "commission_product_id",
+        "partner_id",
+        "customer_partner_id",
+        "supplier_partner_id",
+        "bank_journal_id",
+    )
+    def _compute_effective_accounts(self):
+        for platform in self:
+            company = platform.company_id or self.env.company
+            revenue_product = platform.revenue_product_id.with_company(company)
+            commission_product = platform.commission_product_id.with_company(company)
+            customer = platform.customer_partner.with_company(company)
+            supplier = platform.supplier_partner.with_company(company)
+            platform.revenue_account_id = (
+                revenue_product.product_tmpl_id.get_product_accounts().get("income")
+                if revenue_product
+                else False
+            )
+            platform.commission_account_id = (
+                commission_product.product_tmpl_id.get_product_accounts().get("expense")
+                if commission_product
+                else False
+            )
+            platform.customer_receivable_account_id = (
+                customer.property_account_receivable_id if customer else False
+            )
+            platform.supplier_payable_account_id = (
+                supplier.property_account_payable_id if supplier else False
+            )
+            platform.bank_account_id = platform.bank_journal_id.default_account_id
+
+    def _account_configuration_errors(self):
+        self.ensure_one()
+        errors = []
+        checks = (
+            (
+                self.revenue_account_id,
+                {"income", "income_other"},
+                _("Revenue product account"),
+            ),
+            (
+                self.commission_account_id,
+                {
+                    "expense",
+                    "expense_other",
+                    "expense_depreciation",
+                    "expense_direct_cost",
+                },
+                _("Commission product account"),
+            ),
+            (
+                self.customer_receivable_account_id,
+                {"asset_receivable"},
+                _("Customer receivable account"),
+            ),
+            (
+                self.supplier_payable_account_id,
+                {"liability_payable"},
+                _("Supplier payable account"),
+            ),
+        )
+        for account, allowed_types, label in checks:
+            if not account:
+                errors.append(_("%(label)s is missing.", label=label))
+            elif account.account_type not in allowed_types:
+                errors.append(
+                    _(
+                        "%(label)s (%(account)s) has an incompatible account type.",
+                        label=label,
+                        account=account.display_name,
+                    ),
+                )
+        if self.bank_journal_id and (
+            not self.bank_account_id
+            or self.bank_account_id.account_type
+            not in {"asset_cash", "liability_credit_card"}
+        ):
+            errors.append(_("The bank journal needs a valid liquidity account."))
+        return errors
 
     @api.constrains("commission_rate")
     def _check_commission_rate(self):

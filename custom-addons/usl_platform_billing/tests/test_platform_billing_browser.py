@@ -216,8 +216,8 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
         )
         bank_line = self.env["account.bank.statement.line"].create(
             {
-                "name": "Browser payout BROWSER-CREATE-001",
-                "payment_ref": "Browser payout BROWSER-CREATE-001",
+                "name": "Unrecognised browser platform receipt",
+                "payment_ref": "Unrecognised browser platform receipt",
                 "journal_id": self.company_data["default_journal_bank"].id,
                 "statement_id": statement.id,
                 "amount": 80.0,
@@ -237,8 +237,13 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
         payout = session.payout_ids
         self.assertEqual(len(payout), 1)
         self.assertEqual(payout.platform_reference, "BROWSER-CREATE-001")
+        self.assertEqual(payout.platform_id, self.platform)
+        self.assertEqual(payout.platform_currency_id, self.platform.currency_id)
+        self.assertEqual(payout.net_platform_amount, 80.0)
         self.assertEqual(payout.bank_statement_line_id, bank_line)
+        self.assertEqual(payout.bank_allocation_ids.payout_amount, 80.0)
         self.assertEqual(payout.bank_match_status, "selected")
+        self.assertEqual(session.state, "ready")
 
     def test_operator_links_one_pooled_receipt_to_two_sessions(self):
         first = self.env["usl.platform.billing.session"].create(

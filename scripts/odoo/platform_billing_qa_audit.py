@@ -66,6 +66,16 @@ historical_moves = env["account.move"].sudo().search(
     [("platform_billing_session_id", "in", historical_sessions.ids)],
 )
 historical_allocations = historical_payouts.bank_allocation_ids
+historical_bank_journal_counts = {
+    journal.display_name: len(
+        historical_allocations.filtered(
+            lambda allocation, journal=journal: (
+                allocation.bank_statement_line_id.journal_id == journal
+            ),
+        ),
+    )
+    for journal in historical_allocations.bank_statement_line_id.journal_id
+}
 historical_counts = {
     "platforms": len(historical_platforms),
     "sessions": len(historical_sessions),
@@ -158,6 +168,61 @@ module = env["ir.module.module"].sudo().search(
     [("name", "=", "usl_platform_billing")],
     limit=1,
 )
+demo_platform = env["usl.platform.billing.platform"].sudo().search(
+    [("name", "=", "QA DEMO Platform EUR")],
+    limit=1,
+)
+open_import_sessions = env["usl.platform.billing.session"].sudo().search(
+    [
+        ("name", "ilike", "QA DEMO — Import a new payout%"),
+        ("state", "in", ("draft", "ready")),
+    ],
+).filtered(lambda session: not session.payout_ids)
+open_import_lines = env["account.bank.statement.line"].sudo().search(
+    [
+        ("payment_ref", "ilike", "QA DEMO QA-IMPORT-80%"),
+        ("amount", ">", 0),
+        ("is_reconciled", "=", False),
+    ],
+).filtered(
+    lambda line: not env["usl.platform.billing.bank.allocation"].sudo().search_count(
+        [("bank_statement_line_id", "=", line.id)],
+    ),
+)
+demo_account_mapping = {
+    "revenue": demo_platform.revenue_account_id.code or "",
+    "commission": demo_platform.commission_account_id.code or "",
+    "receivable": demo_platform.customer_receivable_account_id.code or "",
+    "payable": demo_platform.supplier_payable_account_id.code or "",
+    "bank": demo_platform.bank_account_id.code or "",
+}
+platform_account_mappings = [
+    {
+        "platform": platform.name,
+        "revenue": platform.revenue_account_id.display_name,
+        "commission": platform.commission_account_id.display_name,
+        "receivable": platform.customer_receivable_account_id.display_name,
+        "payable": platform.supplier_payable_account_id.display_name,
+        "sale_journal": platform.sale_journal_id.display_name,
+        "purchase_journal": platform.purchase_journal_id.display_name,
+        "bank_journal": platform.bank_journal_id.display_name,
+        "bank_account": platform.bank_account_id.display_name,
+        "bank_account_type": platform.bank_account_id.account_type,
+    }
+    for platform in (historical_platforms | demo_platform)
+]
+bank_journal_mappings = [
+    {
+        "journal": journal.display_name,
+        "code": journal.code,
+        "account": journal.default_account_id.display_name,
+        "account_type": journal.default_account_id.account_type,
+        "active": journal.active,
+    }
+    for journal in env["account.journal"].sudo().with_context(active_test=False).search(
+        [("company_id", "=", demo_platform.company_id.id), ("type", "=", "bank")],
+    )
+]
 admin = env.ref("base.user_admin")
 live_flags = {
     "USL_EINVOICE_LIVE_ENABLED": os.getenv("USL_EINVOICE_LIVE_ENABLED", "0"),
@@ -197,12 +262,44 @@ if duplicate_reconciliations:
     errors.append(f"{duplicate_reconciliations} duplicate reconciliations exist")
 if module.state != "installed":
     errors.append(f"product module state is {module.state}")
+if not demo_platform:
+    errors.append("the QA demo platform is missing")
+if not open_import_sessions or not open_import_lines:
+    errors.append("no clean bank-import QA demo remains")
+elif not demo_account_mapping["revenue"].startswith("706"):
+    errors.append(f"QA revenue account is not service revenue: {demo_account_mapping}")
+if demo_platform and not demo_account_mapping["commission"].startswith("6222"):
+    errors.append(f"QA commission account is not sales commission: {demo_account_mapping}")
+if demo_platform and not demo_account_mapping["bank"].startswith("512"):
+    errors.append(f"QA bank account is not a current bank account: {demo_account_mapping}")
+if (
+    demo_platform
+    and historical_bank_journal_counts
+    and demo_platform.bank_journal_id.display_name
+    not in historical_bank_journal_counts
+):
+    errors.append(
+        "QA bank journal does not match the restored payout history: "
+        + demo_platform.bank_journal_id.display_name,
+    )
+if demo_platform and demo_platform._account_configuration_errors():
+    errors.append(
+        "QA platform account configuration is invalid: "
+        + "; ".join(demo_platform._account_configuration_errors()),
+    )
 if set(live_flags.values()) != {"0"}:
     errors.append(f"live electronic-invoice flags are unsafe: {live_flags}")
 
 summary = {
     "access_groups": sorted(accesses.group_id.mapped("display_name")),
     "admin_role": groups["manager"].display_name,
+    "demo_account_mapping": demo_account_mapping,
+    "open_import_demo": {
+        "sessions": len(open_import_sessions),
+        "bank_transactions": len(open_import_lines),
+    },
+    "bank_journal_mappings": bank_journal_mappings,
+    "platform_account_mappings": platform_account_mappings,
     "allocation_invariants": {
         "duplicate_pairs": duplicate_allocation_pairs,
         "overallocated_bank_lines": overallocated_bank_lines,
@@ -210,6 +307,7 @@ summary = {
     },
     "duplicate_reconciliations": duplicate_reconciliations,
     "historical_counts": historical_counts,
+    "historical_bank_journal_counts": historical_bank_journal_counts,
     "total_counts": total_counts,
     "incomplete_move_links": len(incomplete_moves),
     "live_flags": live_flags,

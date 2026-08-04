@@ -55,15 +55,20 @@ Three approaches were assessed:
 
 - Commission is strictly between 0% and 100%.
 - Non-empty platform references are unique per company/platform.
-- A payout may have several positive bank allocations, and a bank transaction
-  may serve several payouts. Allocations cannot exceed either the payout or
-  the incoming transaction.
+- A payout may have several bank allocations, and a bank transaction may serve
+  several payouts. A newly imported draft temporarily keeps a zero platform
+  amount until the operator enters the original payout amount; completed
+  allocations are positive and cannot exceed the payout or transaction.
 - Platform, session, payout, journals and linked records must share a company.
-- **All eligible** shows every positive, posted, unreconciled transaction from
-  an allowed company bank journal, including distant dates, unusual amounts,
-  unknown labels and unallocated remainders. Recognition does not hide these
-  rows. It ranks configured label patterns first, known partners second and
-  keywords third. **Recommended only** is an optional narrower view.
+- **All open** shows every positive, posted, unreconciled transaction in the
+  session bank currency from an allowed company bank journal, including
+  distant dates, unusual amounts, unknown labels and unallocated remainders.
+  Recognition does not hide these rows. It ranks configured label patterns
+  first, known partners second and keywords third. **Suggested only** is an
+  optional narrower view.
+- Bank import is deliberately selection-only. Imported receipts become draft
+  payout rows, where the operator reviews platform, original reference,
+  currency and original payout amount before running Check.
 - Posting warns when the monthly session has no payout for an active platform.
   An operator may confirm the documented exception.
 - Auto-posting is configurable and disabled by default.

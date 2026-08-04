@@ -2,6 +2,7 @@
 """Prepare deterministic Platform Billing records in the isolated QA database."""
 
 import os
+from collections import Counter
 
 from odoo import Command, fields
 
@@ -9,8 +10,10 @@ TRUTHY_VALUES = {"1", "true", "yes", "on"}
 MISSING_OPT_IN = "Set USL_PLATFORM_BILLING_QA_BOOTSTRAP=1 explicitly."
 LIVE_GUARD_ENABLED = "QA bootstrap refuses to run with a live guard enabled."
 MISSING_PLATFORM = "Create one valid Platform Billing configuration first."
-MISSING_ACCOUNTS = "The QA company needs active income and expense accounts."
+MISSING_ACCOUNTS = "The source platform needs valid revenue and commission accounts."
+MISSING_BANK_JOURNAL = "The QA company needs a valid bank journal."
 NO_FREE_BATCH = "No free pooled QA demo batch remains."
+NO_FREE_IMPORT_BATCH = "No free bank-import QA demo batch remains."
 DEMO_PREFIX = "QA DEMO"
 
 
@@ -112,6 +115,40 @@ def _statement_line(env, journal, *, label, date, amount):
     )
 
 
+def _demo_bank_journal(env, company):
+    allocations = env["usl.platform.billing.bank.allocation"].sudo().search(
+        [
+            ("payout_id.company_id", "=", company.id),
+            ("payout_id.platform_id.name", "not ilike", f"{DEMO_PREFIX}%"),
+        ],
+    )
+    journals = allocations.bank_statement_line_id.journal_id.filtered(
+        lambda journal: (
+            journal.active
+            and journal.type == "bank"
+            and (not journal.currency_id or journal.currency_id == company.currency_id)
+            and journal.default_account_id.account_type == "asset_cash"
+        ),
+    )
+    if journals:
+        counts = Counter(
+            allocation.bank_statement_line_id.journal_id.id
+            for allocation in allocations
+            if allocation.bank_statement_line_id.journal_id in journals
+        )
+        return env["account.journal"].sudo().browse(counts.most_common(1)[0][0])
+    candidates = env["account.journal"].sudo().search(
+        [("company_id", "=", company.id), ("type", "=", "bank")],
+    ).filtered(
+        lambda journal: (
+            (not journal.currency_id or journal.currency_id == company.currency_id)
+            and journal.default_account_id.account_type == "asset_cash"
+            and (journal.default_account_id.code or "").startswith(("512", "508"))
+        ),
+    )
+    return candidates[:1]
+
+
 def _demo_platform(env, company):
     Platform = env["usl.platform.billing.platform"].sudo()
     platform = Platform.search(
@@ -121,50 +158,67 @@ def _demo_platform(env, company):
         ],
         limit=1,
     )
-    if platform:
-        return platform
     source = Platform.with_context(active_test=False).search(
-        [("company_id", "=", company.id)],
+        [
+            ("company_id", "=", company.id),
+            ("name", "not ilike", f"{DEMO_PREFIX}%"),
+        ],
         limit=1,
     )
     if not source:
         raise RuntimeError(MISSING_PLATFORM)
-    income_account = env["account.account"].sudo().search(
-        [
-            ("company_ids", "in", company.id),
-            ("account_type", "in", ("income", "income_other")),
-            ("active", "=", True),
-        ],
-        limit=1,
-    )
-    expense_account = env["account.account"].sudo().search(
-        [
-            ("company_ids", "in", company.id),
-            ("account_type", "=", "expense"),
-            ("active", "=", True),
-        ],
-        limit=1,
-    )
-    if not income_account or not expense_account:
+    income_account = source.revenue_product_id.product_tmpl_id.with_company(
+        company,
+    ).get_product_accounts()["income"]
+    expense_account = source.commission_product_id.product_tmpl_id.with_company(
+        company,
+    ).get_product_accounts()["expense"]
+    if (
+        not income_account
+        or income_account.account_type not in {"income", "income_other"}
+        or not expense_account
+        or expense_account.account_type
+        not in {"expense", "expense_other", "expense_direct_cost"}
+    ):
         raise RuntimeError(MISSING_ACCOUNTS)
-    revenue_product = source.revenue_product_id.copy(
+    bank_journal = source.bank_journal_id or _demo_bank_journal(env, company)
+    if not bank_journal:
+        raise RuntimeError(MISSING_BANK_JOURNAL)
+    if platform:
+        platform.revenue_product_id.with_company(company).write(
+            {
+                "property_account_income_id": income_account.id,
+                "taxes_id": [Command.clear()],
+                "supplier_taxes_id": [Command.clear()],
+            },
+        )
+        platform.commission_product_id.with_company(company).write(
+            {
+                "property_account_expense_id": expense_account.id,
+                "taxes_id": [Command.clear()],
+                "supplier_taxes_id": [Command.clear()],
+            },
+        )
+        platform.write({"bank_journal_id": bank_journal.id})
+        return platform
+    revenue_template = source.revenue_product_id.product_tmpl_id.copy(
         {
             "name": f"{DEMO_PREFIX} Revenue",
             "taxes_id": [Command.clear()],
             "supplier_taxes_id": [Command.clear()],
             "property_account_income_id": income_account.id,
-            "property_account_expense_id": expense_account.id,
         },
     )
-    commission_product = source.commission_product_id.copy(
+    commission_template = source.commission_product_id.product_tmpl_id.copy(
         {
             "name": f"{DEMO_PREFIX} Commission",
             "taxes_id": [Command.clear()],
             "supplier_taxes_id": [Command.clear()],
-            "property_account_income_id": income_account.id,
             "property_account_expense_id": expense_account.id,
         },
     )
+    revenue_product = revenue_template.product_variant_id
+    commission_product = commission_template.product_variant_id
     partner = env["res.partner"].sudo().create(
         {
             "name": f"{DEMO_PREFIX} Content Platform",
@@ -176,10 +230,6 @@ def _demo_platform(env, company):
         "account.journal"
     ].sudo().search(
         [("company_id", "=", company.id), ("type", "=", "general")],
-        limit=1,
-    )
-    bank_journal = source.bank_journal_id or env["account.journal"].sudo().search(
-        [("company_id", "=", company.id), ("type", "=", "bank")],
         limit=1,
     )
     return Platform.create(
@@ -245,6 +295,58 @@ def _open_pooled_demo(env, platform):
         ):
             return first, second, bank_line
     raise RuntimeError(NO_FREE_BATCH)
+
+
+def _open_import_demo(env, platform):
+    Session = env["usl.platform.billing.session"].sudo()
+    Allocation = env["usl.platform.billing.bank.allocation"].sudo()
+    for batch in range(1, 10):
+        suffix = "" if batch == 1 else f" — batch {batch}"
+        reference_suffix = "" if batch == 1 else f"-{batch}"
+        period = fields.Date.add(
+            fields.Date.from_string("2026-12-01"),
+            months=batch - 1,
+        )
+        invoice_date = fields.Date.end_of(period, "month")
+        name = f"{DEMO_PREFIX} — Import a new payout{suffix}"
+        session = Session.search(
+            [
+                ("company_id", "=", platform.company_id.id),
+                ("name", "=", name),
+            ],
+            limit=1,
+        )
+        if not session:
+            session = Session.create(
+                {
+                    "name": name,
+                    "company_id": platform.company_id.id,
+                    "period_month": period,
+                    "invoice_date": invoice_date,
+                    "due_date": invoice_date,
+                    "bank_currency_id": platform.company_id.currency_id.id,
+                },
+            )
+        bank_line = _statement_line(
+            env,
+            platform.bank_journal_id,
+            label=(
+                f"{DEMO_PREFIX} QA-IMPORT-80{reference_suffix} — "
+                f"New payout EUR 80 — SELECT ME{suffix}"
+            ),
+            date=fields.Date.to_string(fields.Date.add(invoice_date, days=20)),
+            amount=80.0,
+        )
+        if (
+            session.state in {"draft", "ready"}
+            and not session.payout_ids
+            and not bank_line.is_reconciled
+            and not Allocation.search_count(
+                [("bank_statement_line_id", "=", bank_line.id)],
+            )
+        ):
+            return session, bank_line
+    raise RuntimeError(NO_FREE_IMPORT_BATCH)
 
 
 def bootstrap(env):
@@ -401,31 +503,7 @@ def bootstrap(env):
         )
         fx_session.action_reconcile_bank()
 
-    import_session = env["usl.platform.billing.session"].sudo().search(
-        [
-            ("company_id", "=", company.id),
-            ("name", "=", f"{DEMO_PREFIX} — Import a new payout"),
-        ],
-        limit=1,
-    )
-    if not import_session:
-        import_session = env["usl.platform.billing.session"].sudo().create(
-            {
-                "name": f"{DEMO_PREFIX} — Import a new payout",
-                "company_id": company.id,
-                "period_month": fields.Date.from_string("2026-12-01"),
-                "invoice_date": fields.Date.from_string("2026-12-31"),
-                "due_date": fields.Date.from_string("2026-12-31"),
-                "bank_currency_id": company.currency_id.id,
-            },
-        )
-    _statement_line(
-        env,
-        bank_journal,
-        label=f"{DEMO_PREFIX} QA-IMPORT-80 — New payout EUR 80 — SELECT ME",
-        date="2026-12-20",
-        amount=80.0,
-    )
+    import_session, import_line = _open_import_demo(env, platform)
 
     env.cr.commit()
     print(
@@ -437,6 +515,7 @@ def bootstrap(env):
             "partial_session": partial.display_name,
             "fx_session": fx_session.display_name,
             "import_session": import_session.display_name,
+            "import_bank_transaction": import_line.display_name,
         },
     )
 

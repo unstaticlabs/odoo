@@ -130,8 +130,9 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         *,
         label="CH payout CH-2026-07-001",
         bank_date="2026-07-20",
+        journal=None,
     ):
-        journal = self.company_data["default_journal_bank"]
+        journal = journal or self.company_data["default_journal_bank"]
         statement = self.env["account.bank.statement"].create(
             {
                 "name": "CreatorHub July payouts",
@@ -360,6 +361,42 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         ):
             self._payout(session, reference=payout.platform_reference)
 
+    def test_effective_accounts_are_visible_and_checked_before_generation(self):
+        self.assertEqual(
+            self.platform.revenue_account_id,
+            self.product_a.product_tmpl_id.with_company(
+                self.company,
+            ).get_product_accounts()["income"],
+        )
+        self.assertEqual(
+            self.platform.commission_account_id,
+            self.product_b.product_tmpl_id.with_company(
+                self.company,
+            ).get_product_accounts()["expense"],
+        )
+        self.assertEqual(
+            self.platform.customer_receivable_account_id.account_type,
+            "asset_receivable",
+        )
+        self.assertEqual(
+            self.platform.supplier_payable_account_id.account_type,
+            "liability_payable",
+        )
+        self.assertEqual(self.platform.bank_account_id.account_type, "asset_cash")
+        wrong_revenue_product = self._create_product(
+            name="Wrong revenue account",
+            property_account_income_id=self.company_data[
+                "default_account_expense"
+            ],
+            taxes_id=False,
+        )
+        self.platform.revenue_product_id = wrong_revenue_product
+        session = self._session(name="Invalid account mapping — July 2026")
+        self._payout(session)
+
+        with self.assertRaisesRegex(UserError, "Revenue product account"):
+            session.action_check()
+
     def test_monthly_generation_posting_compensation_and_bank_reconciliation(self):
         session = self._session()
         payout = self._payout(session)
@@ -381,6 +418,18 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(len(session.vendor_bill_ids), 1)
         self.assertEqual(session.customer_invoice_ids.amount_untaxed, 100.0)
         self.assertEqual(session.vendor_bill_ids.amount_untaxed, 20.0)
+        self.assertEqual(
+            session.customer_invoice_ids.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product",
+            ).account_id,
+            self.platform.revenue_account_id,
+        )
+        self.assertEqual(
+            session.vendor_bill_ids.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product",
+            ).account_id,
+            self.platform.commission_account_id,
+        )
         self.assertEqual(
             session.customer_invoice_ids.platform_billing_payout_ids,
             payout,
@@ -506,23 +555,38 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(len(candidate), 1)
         self.assertFalse(candidate.recommended)
         self.assertEqual(candidate.match_rule, "none")
-        self.assertIn("Recognition rules affect ranking", wizard.eligibility_summary)
-
-        candidate.write(
-            {
-                "selected": True,
-                "platform_id": self.platform.id,
-                "import_platform_amount": 321.45,
-            },
-        )
+        candidate.selected = True
         wizard.action_create_payouts()
 
         payout = session.payout_ids
         self.assertEqual(len(payout), 1)
         self.assertEqual(payout.platform_reference, f"BANK-{unmatched.id}")
+        self.assertFalse(payout.platform_id)
+        self.assertFalse(payout.platform_currency_id)
+        self.assertEqual(payout.net_platform_amount, 0.0)
         self.assertEqual(payout.bank_statement_line_id, unmatched)
         self.assertEqual(payout.bank_received_amount, 321.45)
         self.assertEqual(payout.bank_match_status, "selected")
+        self.assertEqual(payout.bank_allocation_ids.payout_amount, 0.0)
+        self.assertEqual(payout.validation_status, "error")
+
+        payout.write(
+            {
+                "platform_id": self.platform.id,
+                "platform_reference": "ORIGINAL-PAYOUT-REFERENCE",
+                "net_platform_amount": 321.45,
+            },
+        )
+
+        self.assertEqual(payout.platform_currency_id, self.platform.currency_id)
+        self.assertEqual(
+            payout.commission_rate_snapshot,
+            self.platform.commission_rate,
+        )
+        self.assertEqual(payout.bank_allocation_ids.payout_amount, 321.45)
+        self.assertEqual(payout.validation_status, "ok")
+        session.action_check()
+        self.assertEqual(session.state, "ready")
 
     def test_recommended_scope_is_a_ranking_filter_not_an_eligibility_rule(self):
         session = self._session(name="Candidate scopes — July 2026")
@@ -539,6 +603,31 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         wizard._populate_candidates()
 
         self.assertNotIn(unmatched, wizard.candidate_ids.bank_statement_line_id)
+
+    def test_bank_candidates_use_the_session_bank_currency(self):
+        foreign_currency = self.env["res.currency"].create(
+            {
+                "name": "BCX",
+                "symbol": "BCX",
+                "rounding": 0.01,
+            },
+        )
+        foreign_journal = self.company_data["default_journal_bank"].copy(
+            {
+                "name": "Foreign currency bank",
+                "code": "BCX",
+                "currency_id": foreign_currency.id,
+            },
+        )
+        foreign_line = self._bank_line(
+            80.0,
+            label="Foreign bank receipt",
+            journal=foreign_journal,
+        )
+        session = self._session(name="EUR bank candidates — July 2026")
+        wizard = self._bank_wizard(session, mode="create")
+
+        self.assertNotIn(foreign_line, wizard.candidate_ids.bank_statement_line_id)
 
     def test_platform_roles_are_opt_in_and_server_side_enforced(self):
         session = self._session()

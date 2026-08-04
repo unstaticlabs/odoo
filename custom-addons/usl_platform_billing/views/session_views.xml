@@ -19,7 +19,9 @@
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state in ('ready', 'generated')"
-                       decoration-success="state == 'paid'"/>
+                       decoration-primary="state == 'posted'"
+                       decoration-success="state == 'paid'"
+                       decoration-danger="state == 'cancelled'"/>
             </list>
         </field>
     </record>
@@ -126,19 +128,28 @@
                                 <list editable="bottom"
                                       decoration-danger="validation_status == 'error'"
                                       decoration-warning="validation_status == 'warning'">
+                                    <field name="validation_status" string="Validation" widget="badge"
+                                           decoration-success="validation_status == 'ok'"
+                                           decoration-warning="validation_status == 'warning'"
+                                           decoration-danger="validation_status == 'error'"/>
+                                    <field name="bank_match_status" string="Bank" widget="badge"
+                                           decoration-muted="bank_match_status == 'unmatched'"
+                                           decoration-info="bank_match_status == 'selected'"
+                                           decoration-warning="bank_match_status == 'partial'"
+                                           decoration-success="bank_match_status == 'reconciled'"
+                                           decoration-danger="bank_match_status == 'blocked'"/>
                                     <field name="platform_id"/>
                                     <field name="payout_date"/>
                                     <field name="platform_reference"/>
-                                    <field name="platform_currency_id" column_invisible="True"/>
-                                    <field name="net_platform_amount"/>
+                                    <field name="platform_currency_id"/>
+                                    <field name="net_platform_amount" string="Original Payout"/>
+                                    <field name="commission_rate_snapshot" optional="hide"/>
                                     <field name="gross_platform_amount" readonly="1"/>
                                     <field name="commission_platform_amount" readonly="1"/>
                                     <field name="bank_currency_id" column_invisible="True"/>
                                     <field name="bank_received_amount" sum="Bank total"/>
                                     <field name="bank_statement_line_ids"
                                            widget="many2many_tags" optional="show"/>
-                                    <field name="bank_match_status" widget="badge"/>
-                                    <field name="validation_status" widget="badge"/>
                                     <field name="validation_message" optional="hide"/>
                                 </list>
                             </field>
@@ -156,8 +167,16 @@
                                     <field name="currency_id"/>
                                     <field name="amount_total"/>
                                     <field name="amount_residual"/>
-                                    <field name="state" widget="badge"/>
-                                    <field name="payment_state" widget="badge"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-success="state == 'posted'"
+                                           decoration-danger="state == 'cancel'"/>
+                                    <field name="payment_state" widget="badge"
+                                           decoration-muted="payment_state in ('not_paid', 'reversed')"
+                                           decoration-info="payment_state == 'in_payment'"
+                                           decoration-warning="payment_state == 'partial'"
+                                           decoration-success="payment_state == 'paid'"
+                                           decoration-danger="payment_state == 'blocked'"/>
                                     <field name="platform_billing_platform_id"/>
                                 </list>
                             </field>

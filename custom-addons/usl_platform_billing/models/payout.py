@@ -32,7 +32,6 @@ class UslPlatformBillingPayout(models.Model):
     )
     platform_id = fields.Many2one(
         "usl.platform.billing.platform",
-        required=True,
         index=True,
         check_company=True,
         ondelete="restrict",
@@ -43,7 +42,6 @@ class UslPlatformBillingPayout(models.Model):
     platform_reference = fields.Char(required=True, index=True, tracking=True)
     platform_currency_id = fields.Many2one(
         "res.currency",
-        required=True,
         ondelete="restrict",
         tracking=True,
     )
@@ -55,7 +53,6 @@ class UslPlatformBillingPayout(models.Model):
     )
     commission_rate_snapshot = fields.Float(
         string="Commission % Snapshot",
-        required=True,
         tracking=True,
     )
     gross_platform_amount = fields.Monetary(
@@ -355,7 +352,15 @@ class UslPlatformBillingPayout(models.Model):
                 errors.append(_("The commission snapshot must be between 0% and 100%."))
             if payout.net_platform_amount <= 0:
                 errors.append(_("The platform net amount must be positive."))
-            if not payout.bank_allocation_ids:
+            if payout.bank_allocation_ids.filtered(
+                lambda allocation: allocation.payout_amount <= 0,
+            ):
+                errors.append(
+                    _(
+                        "Complete the original payout amount for the imported bank transaction.",
+                    ),
+                )
+            elif not payout.bank_allocation_ids:
                 warnings.append(_("No bank transaction has been selected yet."))
             elif payout.remaining_platform_amount:
                 warnings.append(
@@ -379,18 +384,34 @@ class UslPlatformBillingPayout(models.Model):
     )
     def _check_business_values(self):
         for payout in self:
-            if payout.platform_id.company_id != payout.company_id:
+            if payout.platform_id and payout.platform_id.company_id != payout.company_id:
                 raise ValidationError(_("The platform and session companies must match."))
-            if payout.platform_currency_id != payout.platform_id.currency_id:
+            if (
+                payout.platform_id
+                and payout.platform_currency_id
+                and payout.platform_currency_id != payout.platform_id.currency_id
+            ):
                 raise ValidationError(
                     _("The payout must use the configured platform currency."),
                 )
-            if not 0.0 < payout.commission_rate_snapshot < 100.0:
+            if payout.net_platform_amount < 0:
+                raise ValidationError(_("The platform net amount cannot be negative."))
+            if payout.commission_rate_snapshot and not (
+                0.0 < payout.commission_rate_snapshot < 100.0
+            ):
                 raise ValidationError(
                     _("The commission snapshot must be between 0% and 100%."),
                 )
-            if payout.net_platform_amount <= 0:
-                raise ValidationError(_("The platform net amount must be positive."))
+            complete = bool(
+                payout.platform_id
+                and payout.platform_currency_id
+                and 0.0 < payout.commission_rate_snapshot < 100.0
+                and payout.net_platform_amount > 0,
+            )
+            if payout.state != "draft" and not complete:
+                raise ValidationError(
+                    _("Complete the payout accounting details before continuing."),
+                )
 
     @api.onchange("platform_id")
     def _onchange_platform_id(self):
@@ -425,7 +446,36 @@ class UslPlatformBillingPayout(models.Model):
                 values.setdefault("platform_currency_id", platform.currency_id.id)
                 values.setdefault("commission_rate_snapshot", platform.commission_rate)
             normalized_values.append(values)
-        return super().create(normalized_values)
+        payouts = super().create(normalized_values)
+        payouts._sync_pending_bank_allocations()
+        return payouts
+
+    def _write_accounting_defaults(self, values):
+        if "platform_id" not in values or not values["platform_id"]:
+            return values
+        platform = self.env["usl.platform.billing.platform"].browse(
+            values["platform_id"],
+        )
+        values = dict(values)
+        values.setdefault("platform_currency_id", platform.currency_id.id)
+        values.setdefault("commission_rate_snapshot", platform.commission_rate)
+        return values
+
+    def _sync_pending_bank_allocations(self):
+        for payout in self.filtered(
+            lambda item: (
+                item.state == "draft"
+                and item.platform_currency_id
+                and item.net_platform_amount > 0
+            ),
+        ):
+            pending = payout.bank_allocation_ids.filtered(
+                lambda allocation: allocation.payout_amount <= 0,
+            )
+            if len(pending) == 1:
+                pending._action_write(
+                    {"payout_amount": payout.net_platform_amount},
+                )
 
     def _strip_unchanged_workflow_values(self, values):
         values = dict(values)
@@ -459,7 +509,12 @@ class UslPlatformBillingPayout(models.Model):
             lambda payout: payout.state not in {"draft"},
         ):
             raise UserError(_("Generated payouts cannot change their accounting basis."))
-        return super().write(vals)
+        if len(self) == 1:
+            vals = self._write_accounting_defaults(vals)
+        result = super().write(vals)
+        if protected & set(vals):
+            self._sync_pending_bank_allocations()
+        return result
 
     def _workflow_write(self, values):
         return super().write(values)
