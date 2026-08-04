@@ -1862,6 +1862,19 @@ class UslDocument(models.Model):
             if can_manage
             else accessible_links
         )
+        review_blocker = False
+        if document.availability_state != "available":
+            review_blocker = _(
+                "Restore or repair the archived document before completing the review.",
+            )
+        elif document.permission_sync_state != "synchronized":
+            review_blocker = _(
+                "Resolve archive access before completing the review.",
+            )
+        elif not document.company_id:
+            review_blocker = _(
+                "Choose the legal company before completing the review.",
+            )
         values = self._workspace_document_values(document)
         custom_field_catalog = {
             int(item["id"]): item
@@ -1925,6 +1938,13 @@ class UslDocument(models.Model):
                     can_write and document.availability_state == "available"
                 ),
                 "can_manage": can_manage,
+                "can_mark_reviewed": bool(
+                    can_manage
+                    and can_write
+                    and document.review_state != "reviewed"
+                    and not review_blocker,
+                ),
+                "review_blocker": review_blocker,
                 "permanent_delete_blocker": (
                     _(
                         "Remove the %(count)s active Odoo link(s) before permanent deletion.",
@@ -2895,8 +2915,26 @@ class UslDocument(models.Model):
         }
 
     def action_mark_reviewed(self):
+        self.ensure_one()
+        self.check_access("write")
         self._require_manager()
+        if self.availability_state != "available":
+            raise UserError(
+                _(
+                    "Restore or repair the archived document before completing "
+                    "the review.",
+                ),
+            )
+        if self.permission_sync_state != "synchronized":
+            raise UserError(
+                _("Resolve archive access before completing the review."),
+            )
+        if not self.company_id:
+            raise ValidationError(
+                _("Choose the legal company before completing the review."),
+            )
         self.write({"review_state": "reviewed"})
+        return self.document_detail(self.id)
 
 
 class UslDocumentVersion(models.Model):

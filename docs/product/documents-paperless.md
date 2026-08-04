@@ -148,6 +148,13 @@ company. Every accepted change immediately recalculates Paperless object
 permissions; a synchronization failure becomes a blocking document state
 instead of silently claiming that access is safe.
 
+Human review is completed in the ordinary document side panel. A concise
+banner explains what should be checked and gives Documents managers a direct
+**Mark reviewed** action. Completion requires an available archive document,
+synchronized object permissions, and an assigned legal company; unresolved
+conditions remain visible and cannot be dismissed as reviewed. Technical
+records retain diagnostics but are not part of the normal review journey.
+
 Compact mode follows Odoo list conventions. Every labelled column—Document,
 Date, Correspondent, Type, Company, Tags, and Status—can be sorted from its
 header. Ordering, paging, layout, filters, and grouping share the same URL and

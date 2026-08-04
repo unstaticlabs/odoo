@@ -612,6 +612,39 @@
                             aria-label="Close"/>
                 </header>
                 <div class="flex-grow-1 overflow-auto">
+                    <div t-if="state.selected.review_state !== 'reviewed'"
+                         t-att-class="'alert m-3 mb-0 o_usl_review_banner ' + (state.selected.review_state === 'needs_attention' ? 'alert-warning' : 'alert-info')">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="flex-grow-1">
+                                <strong t-if="state.selected.review_state === 'needs_attention'">
+                                    Review this document
+                                </strong>
+                                <strong t-else="">Ready for review</strong>
+                                <div t-if="state.selected.review_blocker"
+                                     class="small mt-1"
+                                     t-esc="state.selected.review_blocker"/>
+                                <div t-else="" class="small mt-1">
+                                    Check the company, classification, and linked records,
+                                    then confirm the review.
+                                </div>
+                                <div t-if="!state.selected.can_manage"
+                                     class="small mt-1 text-muted">
+                                    A Documents manager can complete the review.
+                                </div>
+                            </div>
+                            <button t-if="state.selected.can_manage"
+                                    type="button"
+                                    class="btn btn-sm btn-primary text-nowrap"
+                                    t-att-disabled="state.reviewing || !state.selected.can_mark_reviewed"
+                                    t-att-title="state.selected.review_blocker || 'Confirm that this document has been reviewed'"
+                                    t-on-click="markReviewed">
+                                <i t-if="state.reviewing"
+                                   class="fa fa-circle-o-notch fa-spin me-1"/>
+                                <i t-else="" class="fa fa-check me-1"/>
+                                Mark reviewed
+                            </button>
+                        </div>
+                    </div>
                     <div t-if="state.selected.archive_available === false"
                          class="alert alert-warning m-3 mb-0">
                         <strong>Archive temporarily unavailable.</strong>

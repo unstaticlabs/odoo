@@ -612,6 +612,7 @@ export class DocumentsWorkspaceView extends Component {
             documents: [],
             selected: null,
             selectedLoading: false,
+            reviewing: false,
             savingFields: {},
             tagShortcutQuery: "",
             operation: null,
@@ -2322,6 +2323,41 @@ export class DocumentsWorkspaceView extends Component {
                 this.state.selected.id,
                 this.state.selected.selected_version_id
             );
+        }
+    }
+
+    async markReviewed() {
+        const selectedId = this.state.selected?.id;
+        const documentName = this.state.selected?.name || "Document";
+        if (!selectedId || this.state.reviewing) {
+            return;
+        }
+        this.state.reviewing = true;
+        try {
+            const detail = await this.orm.call(
+                "usl.document",
+                "action_mark_reviewed",
+                [[selectedId]]
+            );
+            if (this.state.selected?.id === selectedId) {
+                this.state.selected = {
+                    ...detail,
+                    preview_url: this.documentPreviewUrl(detail),
+                };
+                await this.load();
+            }
+            this.notification.add(`“${documentName}” marked as reviewed.`, {
+                type: "success",
+            });
+        } catch (error) {
+            const reason =
+                error.data?.message || error.message || "The review was not saved.";
+            this.notification.add(
+                `“${documentName}” could not be marked as reviewed. ${reason}`,
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.reviewing = false;
         }
     }
 

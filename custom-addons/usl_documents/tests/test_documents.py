@@ -474,6 +474,52 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.permission_sync_state, "pending")
         sync_permissions.assert_called_once()
 
+    def test_review_completion_is_available_in_detail_and_fails_closed(self):
+        no_company = self._document(
+            1409,
+            company_id=False,
+            review_state="needs_attention",
+        )
+        no_company_detail = no_company.with_user(self.manager).document_detail(
+            no_company.id,
+        )
+        self.assertFalse(no_company_detail["can_mark_reviewed"])
+        self.assertIn("legal company", no_company_detail["review_blocker"])
+        with self.assertRaisesRegex(ValidationError, "legal company"):
+            no_company.with_user(self.manager).action_mark_reviewed()
+
+        ready = self._document(1410, review_state="needs_attention")
+        self.assertTrue(
+            ready.with_user(self.manager).document_detail(ready.id)[
+                "can_mark_reviewed"
+            ],
+        )
+        self.assertFalse(
+            ready.with_user(self.user).document_detail(ready.id)[
+                "can_mark_reviewed"
+            ],
+        )
+        with self.assertRaisesRegex(AccessError, "Documents administrators"):
+            ready.with_user(self.user).action_mark_reviewed()
+
+        unsafe_access = self._document(
+            1411,
+            review_state="needs_attention",
+            permission_sync_state="failed",
+        )
+        unsafe_detail = unsafe_access.with_user(self.manager).document_detail(
+            unsafe_access.id,
+        )
+        self.assertFalse(unsafe_detail["can_mark_reviewed"])
+        self.assertIn("archive access", unsafe_detail["review_blocker"])
+        with self.assertRaisesRegex(UserError, "archive access"):
+            unsafe_access.with_user(self.manager).action_mark_reviewed()
+
+        detail = ready.with_user(self.manager).action_mark_reviewed()
+        self.assertEqual(ready.review_state, "reviewed")
+        self.assertEqual(detail["review_state"], "reviewed")
+        self.assertFalse(detail["can_mark_reviewed"])
+
     def test_company_change_cannot_conflict_with_an_active_business_link(self):
         self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
         document = self._document(1408, company_id=self.company_a.id)

@@ -550,6 +550,115 @@ test("detail prioritizes title, native day-first date, versions, and links", asy
     expect(".o_usl_documents_detail").toHaveCount(1);
 });
 
+test("review banner completes review without opening the technical record", async () => {
+    let reviewState = "needs_attention";
+    let markReviewedCalls = 0;
+    const document = {
+        id: 71,
+        name: "Quarterly tax pack",
+        paperless_id: 171,
+        date: "2026-07-30",
+        company: "USL",
+        company_id: 1,
+        review_state: reviewState,
+        availability_state: "available",
+        access_error: false,
+        correspondent: "Tax authority",
+        document_type: "Tax filing",
+        tags: [],
+        link_count: 0,
+    };
+    const detail = () => ({
+        ...document,
+        review_state: reviewState,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        can_mark_reviewed: reviewState !== "reviewed",
+        review_blocker: false,
+        archive_available: true,
+        links: [],
+        versions: [],
+    });
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [{ ...document, review_state: reviewState }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail());
+    onRpc("usl.document", "action_mark_reviewed", ({ args }) => {
+        expect(args).toEqual([[71]]);
+        markReviewedCalls += 1;
+        reviewState = "reviewed";
+        return detail();
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_review_banner").toHaveText(/Review this document/);
+    expect(".o_usl_review_banner").toHaveText(
+        /Check the company, classification, and linked records/
+    );
+    await contains(".o_usl_review_banner button", {
+        text: "Mark reviewed",
+    }).click();
+    await animationFrame();
+
+    expect(markReviewedCalls).toBe(1);
+    expect(".o_usl_review_banner").toHaveCount(0);
+    expect(".o_usl_document_card .text-bg-warning").toHaveCount(0);
+    expect(".o_notification").toHaveText(
+        /“Quarterly tax pack” marked as reviewed/
+    );
+});
+
+test("review banner explains a blocking decision without a technical detour", async () => {
+    const document = {
+        id: 72,
+        name: "Unassigned evidence",
+        paperless_id: 172,
+        date: "2026-07-30",
+        company: false,
+        company_id: false,
+        review_state: "needs_attention",
+        availability_state: "available",
+        access_error: false,
+        correspondent: false,
+        document_type: false,
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        can_mark_reviewed: false,
+        review_blocker: "Choose the legal company before completing the review.",
+        archive_available: true,
+        links: [],
+        versions: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_review_banner").toHaveText(/Choose the legal company/);
+    expect(".o_usl_review_banner button").toHaveAttribute("disabled");
+});
+
 test("selected document survives a reload after the host router normalizes the URL", async () => {
     const document = {
         id: 77,

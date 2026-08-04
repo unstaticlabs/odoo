@@ -137,6 +137,15 @@ Ordinary users must see Company as read-only. A document linked to a business
 record in the original company must refuse the move until that relationship is
 removed; the error must leave the original company unchanged.
 
+Documents that still need a human decision show a short review banner at the
+top of the side panel. Check the company, useful classification, and linked
+business records, then select **Mark reviewed** without opening the technical
+record. The banner disappears when the review is complete. If safe archive
+access or the legal company is unresolved, the same banner explains the exact
+blocking action and does not allow a false completion. Only Documents managers
+finish reviews; other users may prepare the metadata and see who must complete
+the decision.
+
 ## 3. Understand and edit automatic classification
 
 Use the top **Tags**, **Correspondents**, and **Document types** menus.
