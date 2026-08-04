@@ -112,12 +112,13 @@ field_rows = rows(
     """
     SELECT model, name
       FROM ir_model_fields
-     WHERE name LIKE 'rebuild_source_%'
+     WHERE name LIKE %s
         OR name IN (
             'source_snapshot', 'source_dump_sha256',
             'x_content_bank_candidate'
         )
     """,
+    ("rebuild_source_%",),
 )
 for model_name, field_name in field_rows:
     errors.append(f"Migration field remains registered: {model_name}.{field_name}.")
@@ -157,13 +158,14 @@ schema_columns = rows(
       FROM information_schema.columns
      WHERE table_schema = 'public'
        AND (
-            column_name LIKE 'rebuild_source_%'
+            column_name LIKE %s
          OR column_name IN (
             'source_snapshot', 'source_dump_sha256',
             'x_content_bank_candidate'
          )
        )
     """,
+    ("rebuild_source_%",),
 )
 for table_name, column_name in schema_columns:
     errors.append(
