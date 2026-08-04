@@ -2572,8 +2572,13 @@
         <field name="context">{'search_default_open': 1, 'create': False, 'delete': False}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No open Accounting Hygiene issue.</p>
-            <p>Use Refresh Hygiene from Overview after accounting records change.</p>
+            <p>Accounting Managers refresh Hygiene automatically when this view opens.</p>
         </field>
+    </record>
+
+    <record id="action_open_current_company_hygiene" model="ir.actions.client">
+        <field name="name">Accounting Hygiene</field>
+        <field name="tag">rebuild_accounting_hygiene</field>
     </record>
 
 
@@ -4462,7 +4467,7 @@
         id="menu_rebuild_account_review_issues_priority"
         name="Accounting Hygiene"
         parent="account.account_audit_control_menu"
-        action="action_rebuild_account_hygiene"
+        action="action_open_current_company_hygiene"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem

@@ -409,9 +409,15 @@ class RebuildAccountOverview(models.Model):
             self.env["rebuild.account.hygiene.issue"].sync_for_company(
                 self.company_id,
             )
-        return self.action_open_hygiene_issues()
+        return self._hygiene_issues_action()
 
     def action_open_hygiene_issues(self):
+        self.ensure_one()
+        if self.env.user.has_group("account.group_account_manager"):
+            return self.action_refresh_hygiene()
+        return self._hygiene_issues_action()
+
+    def _hygiene_issues_action(self):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
@@ -426,6 +432,17 @@ class RebuildAccountOverview(models.Model):
                 "search_default_open": 1,
             },
         }
+
+    @api.model
+    def action_open_current_company_hygiene(self):
+        overview = self.search(
+            [("company_id", "=", self.env.company.id)],
+            limit=1,
+        )
+        if not overview:
+            message = "Accounting Hygiene is not available for the current company."
+            raise UserError(message)
+        return overview.action_open_hygiene_issues()
 
     def action_open_open_receivables(self):
         self.ensure_one()

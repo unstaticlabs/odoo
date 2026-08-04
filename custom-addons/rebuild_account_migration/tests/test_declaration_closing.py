@@ -852,6 +852,70 @@ class TestDeclarationAndClosing(TransactionCase):
             all(issue.resolved_at for issue in bill_issues),
         )
 
+    def test_opening_hygiene_refreshes_for_manager_only(self):
+        company = self._company("Automatic Hygiene Refresh Company", profile=False)
+        overview = self.env["rebuild.account.overview"].with_company(company).search(
+            [("company_id", "=", company.id)],
+            limit=1,
+        )
+        self.assertTrue(overview)
+
+        refreshed_action = {
+            "type": "ir.actions.act_window",
+            "res_model": "rebuild.account.hygiene.issue",
+        }
+        with patch.object(
+            type(overview),
+            "action_refresh_hygiene",
+            autospec=True,
+            return_value=refreshed_action,
+        ) as refresh:
+            self.assertEqual(
+                overview.action_open_hygiene_issues(),
+                refreshed_action,
+            )
+        refresh.assert_called_once_with(overview)
+
+        reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Automatic Hygiene Reviewer",
+            "login": "automatic.hygiene.reviewer@example.invalid",
+            "email": "automatic.hygiene.reviewer@example.invalid",
+            "company_id": company.id,
+            "company_ids": [Command.set([company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        reviewer_overview = overview.with_user(reviewer)
+        with patch.object(
+            type(reviewer_overview),
+            "action_refresh_hygiene",
+            autospec=True,
+        ) as refresh:
+            reviewer_action = reviewer_overview.action_open_hygiene_issues()
+        refresh.assert_not_called()
+        self.assertEqual(
+            reviewer_action["res_model"],
+            "rebuild.account.hygiene.issue",
+        )
+        self.assertEqual(
+            reviewer_action["domain"],
+            [("company_id", "=", company.id)],
+        )
+
+        client_action = self.env.ref(
+            "rebuild_account_migration.action_open_current_company_hygiene",
+        )
+        self.assertEqual(
+            client_action.tag,
+            "rebuild_accounting_hygiene",
+        )
+        menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_review_issues_priority",
+        )
+        self.assertEqual(
+            menu.action,
+            client_action,
+        )
+
     def test_hygiene_dismissal_is_scoped_to_material_evidence(self):
         company = self._company("Scoped Hygiene Dismissal Company")
         expense_account = self._account(

@@ -16,3 +16,14 @@ registry.category("actions").add("rebuild_accounting_home", async (env, clientAc
         stackPosition: "replaceCurrentAction",
     });
 });
+
+registry.category("actions").add("rebuild_accounting_hygiene", async (env) => {
+    const action = await env.services.orm.call(
+        "rebuild.account.overview",
+        "action_open_current_company_hygiene",
+        [],
+    );
+    return env.services.action.doAction(action, {
+        stackPosition: "replaceCurrentAction",
+    });
+});
