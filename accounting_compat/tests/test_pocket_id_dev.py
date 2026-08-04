@@ -243,6 +243,11 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             script,
         )
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
+        self.assertIn("requested_paperless_http_port", script)
+        self.assertIn(
+            'export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"',
+            script,
+        )
 
     def test_login_link_resolves_any_exact_pocket_username(self):
         api = Mock()

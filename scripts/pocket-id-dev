@@ -34,11 +34,33 @@ bootstrap() {
 }
 
 load_environment() {
+  local requested_compose_project="${COMPOSE_PROJECT_NAME:-}"
+  local requested_odoo_http_port="${ODOO_HTTP_PORT:-}"
+  local requested_odoo_gevent_port="${ODOO_GEVENT_PORT:-}"
+  local requested_pocket_id_http_port="${POCKET_ID_HTTP_PORT:-}"
+  local requested_paperless_http_port="${PAPERLESS_HTTP_PORT:-}"
+  local requested_paperless_public_url="${PAPERLESS_PUBLIC_URL:-}"
   bootstrap >/dev/null
   set -a
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
+  if [[ -n "$requested_compose_project" \
+      && "$COMPOSE_PROJECT_NAME" != "$requested_compose_project" ]]; then
+    printf 'Pocket ID environment targets %s, not requested project %s.\n' \
+      "$COMPOSE_PROJECT_NAME" "$requested_compose_project" >&2
+    return 2
+  fi
+  [[ -z "$requested_odoo_http_port" ]] \
+    || export ODOO_HTTP_PORT="$requested_odoo_http_port"
+  [[ -z "$requested_odoo_gevent_port" ]] \
+    || export ODOO_GEVENT_PORT="$requested_odoo_gevent_port"
+  [[ -z "$requested_pocket_id_http_port" ]] \
+    || export POCKET_ID_HTTP_PORT="$requested_pocket_id_http_port"
+  [[ -z "$requested_paperless_http_port" ]] \
+    || export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"
+  [[ -z "$requested_paperless_public_url" ]] \
+    || export PAPERLESS_PUBLIC_URL="$requested_paperless_public_url"
   if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
       || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
     printf 'Refusing Pocket ID while a live regulatory guard is enabled.\n' >&2
