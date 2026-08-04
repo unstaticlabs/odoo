@@ -150,8 +150,10 @@ class EinvoiceTestDataMixin:
             "account_peppol_proxy_state": "not_registered",
             "rebuild_einvoice_environment": "development",
             "rebuild_einvoice_provider": "odoo_pdp",
-            "account_peppol_contact_email": False,
-            "account_peppol_phone_number": False,
+            "account_peppol_contact_email": "company@example.invalid",
+            "account_peppol_phone_number": "+33142000000",
+            "l10n_fr_pdp_send_to_ppf": False,
+            "l10n_fr_pdp_pilot_phase": False,
         })
         cls.recipient = cls.env["res.partner"].create({
             "name": "French Electronic Invoice Recipient",
@@ -198,6 +200,47 @@ class EinvoiceTestDataMixin:
                 ).id,
             ])],
         })
+
+    @classmethod
+    def _create_persistent_received_invoice(
+        cls,
+        message_reference,
+        *,
+        invoice_reference="USL-SAFE-TEST",
+    ):
+        with file_open(
+            "rebuild_account_migration/static/src/einvoice/"
+            "representative_ubl_invoice.xml",
+            "rb",
+        ) as fixture:
+            raw = fixture.read()
+        raw = raw.replace(
+            b"<cbc:ID>USL-SAFE-TEST</cbc:ID>",
+            f"<cbc:ID>{invoice_reference}</cbc:ID>".encode(),
+            1,
+        )
+        attachment = cls.env["ir.attachment"].create({
+            "name": f"{message_reference}.xml",
+            "raw": raw,
+            "mimetype": "application/xml",
+        })
+        proxy_user = cls.env[
+            "account_edi_proxy_client.user"
+        ].sudo().new({
+            "company_id": cls.company.id,
+            "proxy_type": "pdp",
+            "edi_mode": "demo",
+        })
+        proxy_user._peppol_import_invoice(
+            attachment,
+            "done",
+            message_reference,
+            journal=cls.purchase_journal,
+        )
+        return cls.env["rebuild.einvoice.reception"].search([
+            ("company_id", "=", cls.company.id),
+            ("provider_message_uuid", "=", message_reference),
+        ], limit=1)
 
 
 @tagged(
@@ -313,53 +356,82 @@ class TestFrenchEinvoiceReception(
         )
         self.assertEqual(
             self.company.rebuild_einvoice_next_action,
-            "Test invoice reception",
+            "Run the reception self-check",
         )
         self.assertIn(
-            "Run the offline reception test",
+            "representative electronic invoice",
             self.company.rebuild_einvoice_next_steps,
         )
-
-        action = self.company.with_user(
-            self.manager,
-        ).action_rebuild_run_einvoice_acceptance_test()
-        evidence = self.company.rebuild_einvoice_test_reception_id
-        bill = evidence.move_id
-
-        self.assertEqual(action["res_id"], evidence.id)
-        self.assertEqual(self.company.rebuild_einvoice_test_status, "passed")
-        self.assertEqual(
-            self.company.rebuild_einvoice_capability_status,
-            "test_passed",
-        )
-        self.assertTrue(evidence.is_test)
-        self.assertEqual(evidence.status, "bill_created")
-        self.assertEqual(evidence.document_format, "ubl")
-        self.assertEqual(evidence.document_kind, "invoice")
-        self.assertEqual(evidence.attempt_count, 1)
-        self.assertEqual(bill.move_type, "in_invoice")
-        self.assertEqual(bill.state, "draft")
-        self.assertEqual(len(bill.invoice_line_ids), 2)
-        self.assertAlmostEqual(bill.amount_total, 175.0, places=2)
-        self.assertEqual(evidence.attachment_id.res_model, "account.move")
-        self.assertEqual(evidence.attachment_id.res_id, bill.id)
-        self.assertEqual(bill.ubl_cii_xml_id, evidence.attachment_id)
 
         self.company.write({
             "account_peppol_contact_email": "accounting@example.invalid",
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
         })
+        before_counts = {
+            "moves": self.env["account.move"].search_count([]),
+            "partners": self.env["res.partner"].search_count([]),
+            "attachments": self.env["ir.attachment"].search_count([]),
+            "receptions": self.env[
+                "rebuild.einvoice.reception"
+            ].search_count([]),
+        }
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_import_invoice",
+            side_effect=AssertionError(
+                "The self-check must not enter the commit-capable provider import.",
+            ),
+        ) as provider_import:
+            action = self.company.with_user(
+                self.manager,
+            ).action_rebuild_run_einvoice_acceptance_test()
+        provider_import.assert_not_called()
+
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(self.company.rebuild_einvoice_test_status, "passed")
+        self.assertTrue(self.company.rebuild_einvoice_test_current)
+        self.assertFalse(self.company.rebuild_einvoice_test_reception_id)
+        self.assertEqual(
+            self.company.rebuild_einvoice_test_summary,
+            "Reception self-check passed; no test bill was retained.",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_capability_status,
+            "test_passed",
+        )
+        self.assertEqual(
+            {
+                "moves": self.env["account.move"].search_count([]),
+                "partners": self.env["res.partner"].search_count([]),
+                "attachments": self.env["ir.attachment"].search_count([]),
+                "receptions": self.env[
+                    "rebuild.einvoice.reception"
+                ].search_count([]),
+            },
+            before_counts,
+        )
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
             "ready_inactive",
         )
         self.assertEqual(
             self.company.rebuild_einvoice_next_action,
-            "Continue during production deployment",
+            "Ready for production",
         )
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
 
+        source = self._source_invoice(reference="SELF-CHECK-LIFECYCLE")
+        payload, errors = self.env[
+            "account.edi.xml.ubl_21_fr"
+        ]._export_invoice(source)
+        self.assertFalse(errors)
+        _result, evidence, _attachment = self._import(
+            payload,
+            "normal-bill-lifecycle",
+        )
+        bill = evidence.move_id
         bill.action_post()
         payment = self.env["account.payment.register"].with_context(
             active_model="account.move",
@@ -376,6 +448,86 @@ class TestFrenchEinvoiceReception(
                     line.account_id.account_type == "liability_payable"
                 ),
             ).reconciled,
+        )
+
+    def test_self_check_is_invalidated_by_material_configuration_change(self):
+        self.company.write({
+            "account_peppol_contact_email": "accounting@example.invalid",
+            "account_peppol_phone_number": "+33612345678",
+        })
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        fingerprint = self.company.rebuild_einvoice_test_fingerprint
+        self.assertTrue(self.company.rebuild_einvoice_test_current)
+
+        self.company.account_peppol_contact_email = "new-contact@example.invalid"
+
+        self.assertEqual(
+            self.company.rebuild_einvoice_test_fingerprint,
+            fingerprint,
+        )
+        self.assertFalse(self.company.rebuild_einvoice_test_current)
+        self.assertEqual(
+            self.company.rebuild_einvoice_readiness_status,
+            "not_verified",
+        )
+
+    def test_failed_self_check_is_nonpolluting_and_actionable(self):
+        before_counts = {
+            "moves": self.env["account.move"].search_count([]),
+            "partners": self.env["res.partner"].search_count([]),
+            "attachments": self.env["ir.attachment"].search_count([]),
+            "receptions": self.env[
+                "rebuild.einvoice.reception"
+            ].search_count([]),
+        }
+        move_model = self.env.registry["account.move"]
+        with patch.object(
+            move_model,
+            "_get_edi_decoder",
+            side_effect=UserError("Synthetic decoder failure"),
+        ):
+            action = self.company.with_user(
+                self.manager,
+            ).action_rebuild_run_einvoice_acceptance_test()
+
+        self.assertEqual(action["params"]["type"], "warning")
+        self.assertEqual(self.company.rebuild_einvoice_test_status, "failed")
+        self.assertFalse(self.company.rebuild_einvoice_test_current)
+        self.assertIn(
+            "could not be validated",
+            self.company.rebuild_einvoice_test_summary,
+        )
+        self.assertEqual(
+            {
+                "moves": self.env["account.move"].search_count([]),
+                "partners": self.env["res.partner"].search_count([]),
+                "attachments": self.env["ir.attachment"].search_count([]),
+                "receptions": self.env[
+                    "rebuild.einvoice.reception"
+                ].search_count([]),
+            },
+            before_counts,
+        )
+
+    def test_upgrade_cleanup_removes_orphaned_legacy_self_check_bill(self):
+        evidence = self._create_persistent_received_invoice(
+            "offline-test-legacy-commit",
+            invoice_reference="USL-SAFE-TEST-LEGACY-COMMIT",
+        )
+        bill = evidence.move_id
+        evidence.attachment_id.name = "USL-SAFE-TEST-LEGACY-COMMIT.xml"
+        evidence.move_id = False
+
+        self.company._rebuild_cleanup_legacy_einvoice_self_checks()
+
+        self.assertFalse(bill.exists())
+        self.assertFalse(evidence.exists())
+        self.assertEqual(self.company.rebuild_einvoice_test_status, "not_run")
+        self.assertIn(
+            "non-polluting self-check",
+            self.company.rebuild_einvoice_test_summary,
         )
 
     def test_safe_defaults_and_native_demo_provider_are_network_free(self):
@@ -409,7 +561,9 @@ class TestFrenchEinvoiceReception(
             self.company.account_peppol_phone_number,
             "+33142000000",
         )
-        self.assertTrue(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
+        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
         self.assertEqual(
             self.env["ir.config_parameter"].sudo().get_str(
                 "account_peppol.edi.mode",
@@ -692,15 +846,100 @@ class TestFrenchEinvoiceReception(
         self.assertEqual(rejected.status, "rejected")
         self.assertFalse(rejected.can_retry)
 
-    def test_live_boundary_provider_recovery_and_reception_only_crons(self):
-        self.company.with_user(
+    def test_native_approval_and_refusal_responses_are_fully_offline(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "demo",
+        )
+        registration = self.env["pdp.registration"].with_user(
             self.manager,
-        ).action_rebuild_run_einvoice_acceptance_test()
+        ).with_company(self.company).with_context(
+            rebuild_einvoice_safe_demo=True,
+        ).create({
+            "company_id": self.company.id,
+        })
+        registration.button_trigger_authentication()
+        registration.button_register_pdp_participant()
+
+        approval = self._create_persistent_received_invoice(
+            "native-approval-response",
+        ).move_id
+        self.assertTrue(approval.pdp_can_send_response)
+        with patch.object(
+            NativePdpProxyUser,
+            "_call_peppol_proxy",
+            return_value={
+                "messages": [{"message_uuid": "mocked-approval-response"}],
+            },
+        ) as provider_call:
+            approval.action_post()
+        provider_call.assert_called_once()
+        approval_params = provider_call.call_args.kwargs["params"]
+        self.assertEqual(approval_params["status"], "approved")
+        self.assertTrue(approval_params["lifecycle"])
+        self.assertEqual(
+            approval_params["reference_uuids"],
+            ["native-approval-response"],
+        )
+        self.assertEqual(
+            approval.peppol_response_ids.filtered(
+                lambda response: response.response_code == "AP",
+            ).peppol_state,
+            "processing",
+        )
+
+        refusal_evidence = self._create_persistent_received_invoice(
+            "native-refusal-response",
+            invoice_reference="USL-SAFE-REFUSAL",
+        )
+        refusal = refusal_evidence.move_id
+        self.assertTrue(refusal.pdp_can_send_response)
+        action = refusal.button_cancel()
+        self.assertEqual(action["res_model"], "pdp.response.wizard")
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        wizard.reason_code = False
+        wizard.note = False
+        with self.assertRaisesRegex(
+            UserError,
+            "select a Reason Code",
+        ):
+            wizard.button_send()
+        wizard.write({
+            "reason_code": "NON_CONFORME",
+            "note": "Mandatory supplier information is missing.",
+        })
+        with patch.object(
+            NativePdpProxyUser,
+            "_call_peppol_proxy",
+            return_value={
+                "messages": [{"message_uuid": "mocked-refusal-response"}],
+            },
+        ) as provider_call:
+            wizard.button_send()
+        provider_call.assert_called_once()
+        refusal_params = provider_call.call_args.kwargs["params"]
+        self.assertEqual(refusal_params["status"], "refused")
+        self.assertEqual(
+            refusal_params["additional_info"]["native-refusal-response"],
+            {
+                "reason_code": "NON_CONFORME",
+                "note": "Mandatory supplier information is missing.",
+                "issue_datetime": refusal_params["additional_info"][
+                    "native-refusal-response"
+                ]["issue_datetime"],
+            },
+        )
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+
+    def test_live_boundary_provider_recovery_and_reception_only_crons(self):
         self.company.write({
             "account_peppol_contact_email": "accounting@example.invalid",
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
         })
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
         live_proxy = self.env["account_edi_proxy_client.user"].new({
             "company_id": self.company.id,
             "proxy_type": "pdp",
@@ -788,10 +1027,8 @@ class TestFrenchEinvoiceReception(
                 NativePdpProxyUser,
                 "_pdp_get_regulatory_documents",
             ) as regulatory_call:
-                self.assertIsNone(
-                    live_proxy._pdp_get_regulatory_documents(),
-                )
-                regulatory_call.assert_not_called()
+                live_proxy._pdp_get_regulatory_documents()
+                regulatory_call.assert_called_once()
             with patch.object(
                 NativePdpProxyUser,
                 "_pdp_send_lifecycles",
@@ -801,10 +1038,6 @@ class TestFrenchEinvoiceReception(
             with self.assertRaisesRegex(UserError, "E-reporting is inactive"):
                 self.env["l10n.fr.pdp.reports.flow"].action_send()
 
-            self.company.account_peppol_proxy_state = "receiver"
-            self.company.with_user(
-                self.manager,
-            ).action_rebuild_enable_einvoice_exchange()
             reception_crons = [
                 self.env.ref(xmlid)
                 for xmlid in (
@@ -812,23 +1045,96 @@ class TestFrenchEinvoiceReception(
                     "account_peppol.ir_cron_peppol_get_message_status",
                     "account_peppol.ir_cron_peppol_get_participant_status",
                     "account_peppol.ir_cron_peppol_webhook_keepalive",
+                    "l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents",
                 )
             ]
             restricted_crons = [
                 self.env.ref(xmlid)
                 for xmlid in (
                     "account_peppol_response.ir_cron_peppol_auto_register_services",
-                    "l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents",
                     "l10n_fr_pdp.ir_cron_pdp_send_lifecycles",
                     "l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows",
                 )
             ]
+            restricted_cron_state = {
+                cron.id: cron.active
+                for cron in restricted_crons
+            }
+            self.company.account_peppol_proxy_state = "receiver"
+            self.company.with_user(
+                self.manager,
+            ).action_rebuild_enable_einvoice_exchange()
             self.assertTrue(all(cron.active for cron in reception_crons))
-            self.assertFalse(any(cron.active for cron in restricted_crons))
+            self.assertEqual(
+                {cron.id: cron.active for cron in restricted_crons},
+                restricted_cron_state,
+            )
+            self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+            self.assertTrue(self.company.rebuild_einvoice_exchange_enabled)
             self.company.with_user(
                 self.manager,
             ).action_rebuild_suspend_einvoice_exchange()
-            self.assertFalse(any(cron.active for cron in reception_crons))
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+            self.assertTrue(all(cron.active for cron in reception_crons))
+
+    def test_upgrade_initialization_preserves_active_production_reception(self):
+        self.company.write({
+            "account_peppol_contact_email": "accounting@example.invalid",
+            "account_peppol_phone_number": "+33612345678",
+        })
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.company.rebuild_einvoice_environment = "production"
+        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False):
+            self.company.with_user(
+                self.manager,
+            ).action_rebuild_approve_einvoice_activation()
+            self._create_production_proxy_user()
+            self.company.write({
+                "pdp_kyc_status": "success",
+                "account_peppol_proxy_state": "receiver",
+            })
+            self.company.with_user(
+                self.manager,
+            ).action_rebuild_enable_einvoice_exchange()
+            active_crons = [
+                self.env.ref(xmlid)
+                for xmlid in (
+                    "account_peppol.ir_cron_peppol_get_new_documents",
+                    "account_peppol.ir_cron_peppol_get_message_status",
+                    "account_peppol.ir_cron_peppol_get_participant_status",
+                    "account_peppol.ir_cron_peppol_webhook_keepalive",
+                    "l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents",
+                )
+            ]
+            self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+
+        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+        self.assertTrue(self.company.rebuild_einvoice_exchange_enabled)
+        self.assertEqual(self.company.account_peppol_proxy_state, "receiver")
+        self.assertTrue(all(cron.active for cron in active_crons))
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+
+    def test_upgrade_initialization_preserves_current_offline_self_check(self):
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        tested_at = self.company.rebuild_einvoice_tested_at
+        fingerprint = self.company.rebuild_einvoice_test_fingerprint
+
+        self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+
+        self.assertEqual(self.company.rebuild_einvoice_test_status, "passed")
+        self.assertEqual(self.company.rebuild_einvoice_tested_at, tested_at)
+        self.assertEqual(
+            self.company.rebuild_einvoice_test_fingerprint,
+            fingerprint,
+        )
+        self.assertTrue(self.company.rebuild_einvoice_test_current)
+        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
 
     def test_daily_menus_hide_migration_and_parity_machinery(self):
         self.company.rebuild_einvoice_provider = False
@@ -874,7 +1180,7 @@ class TestFrenchEinvoiceReception(
         readiness_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_einvoice_readiness",
         )
-        self.assertEqual(readiness_menu.name, "E-Invoicing")
+        self.assertEqual(readiness_menu.name, "Electronic Invoicing")
         self.assertEqual(
             readiness_menu.parent_id,
             self.env.ref("account.account_invoicing_menu"),
@@ -883,7 +1189,7 @@ class TestFrenchEinvoiceReception(
             self.env.ref(
                 "rebuild_account_migration.action_rebuild_einvoice_readiness",
             ).name,
-            "E-Invoicing",
+            "Electronic Invoicing",
         )
         self.assertIn(
             self.env.ref(
@@ -896,7 +1202,15 @@ class TestFrenchEinvoiceReception(
         self.company.with_user(
             self.manager,
         ).action_rebuild_run_einvoice_acceptance_test()
-        evidence = self.company.rebuild_einvoice_test_reception_id
+        source = self._source_invoice(reference="ROLE-VISIBILITY")
+        payload, errors = self.env[
+            "account.edi.xml.ubl_21_fr"
+        ]._export_invoice(source)
+        self.assertFalse(errors)
+        _result, evidence, _attachment = self._import(
+            payload,
+            "role-visibility",
+        )
         self.assertEqual(evidence.with_user(self.reviewer).status, "bill_created")
         with self.assertRaises(AccessError):
             self.company.with_user(
@@ -955,16 +1269,13 @@ class TestFrenchEinvoiceReceptionBrowser(
             login=self.manager.login,
         )
         self.assertEqual(self.company.rebuild_einvoice_test_status, "passed")
-        self.assertEqual(
-            self.company.rebuild_einvoice_test_reception_id.move_id.state,
-            "draft",
-        )
+        self.assertTrue(self.company.rebuild_einvoice_test_current)
+        self.assertFalse(self.company.rebuild_einvoice_test_reception_id)
 
     def test_readonly_accountant_reception_visibility(self):
-        self.company.with_user(
-            self.manager,
-        ).action_rebuild_run_einvoice_acceptance_test()
-        evidence = self.company.rebuild_einvoice_test_reception_id
+        evidence = self._create_persistent_received_invoice(
+            "browser-readonly-reception",
+        )
         action = self.env.ref(
             "rebuild_account_migration.action_rebuild_einvoice_reception",
         )

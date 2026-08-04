@@ -69,3 +69,5 @@ usl-online-dump/
 /artifacts/user-docs/site/
 /output/
 /tmp/
+/.pocket-id.env
+/.pocket-id-*.env

@@ -1,9 +1,10 @@
-# Unstatic Labs Odoo Community fork
+# Unstatic Labs Odoo Distribution
 
-This repository is Unstatic Labs’ production-oriented Accounting product on
-Odoo Community `saas~19.2`. It extends upstream through isolated modules under
-`custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
-unchanged.
+This repository defines the USL Odoo Distribution: a versioned, deployable
+assembly of Odoo Community `saas~19.2`, pinned OCA dependencies, isolated USL
+modules, runtime configuration, migration tooling, tests and documentation.
+Two documented distribution-level core patches remain where no stable
+extension point exists.
 
 Accounting v1 provides the daily cockpit for journals, invoices, bills,
 expenses, payments, bank transactions and reconciliation, plus assets,
@@ -14,9 +15,10 @@ configuring or locking records.
 
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
-inactive**: no directory registration, production provider endpoint, scheduled
-reception or e-reporting may be enabled before the deliberate production
-activation procedure is approved.
+inactive**: its self-check leaves no synthetic accounting records, and no
+directory registration, production provider connection or reception may be
+enabled before deliberate production activation. E-reporting is a separate
+disabled rollout.
 
 Primary entry points:
 
@@ -27,6 +29,8 @@ Primary entry points:
 - `/usl/user-docs` for role- and task-based user guidance;
 - `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` for the
   production reception switch and rollback checklist;
+- `/usl/user-docs/how-to/review-incoming-electronic-invoice.md` for the normal
+  vendor-bill review and exception journey;
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
@@ -37,7 +41,7 @@ Primary entry points:
   for keeping reconstruction machinery out of the delivered Odoo runtime.
 
 The integration baseline is upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. The source dump and generated
 validation evidence are private local artifacts and must never be committed.
 
 ## Upstream Odoo
@@ -48,9 +52,9 @@ installation and developer documentation is available from
 
 ## Docker and Dev Container setup
 
-This fork includes two local workflows for Odoo `saas~19.2` Community. The
-branch is pinned to upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`. Local development uses one
+This distribution includes two local workflows for Odoo `saas~19.2`
+Community. The branch is pinned to upstream commit
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
@@ -200,7 +204,8 @@ actually runs. Init, test and Dev Container helper services remain at zero.
 Set `ODOO_MAX_CRON_THREADS=0` explicitly while restoring or auditing an
 imported database.
 
-Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
+Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the
+change is an explicitly justified and documented distribution-level patch.
 
 The production custom-module boundaries are:
 
@@ -241,15 +246,14 @@ container afterward. It refuses to use `odoo_dev` as a test database.
 Build the user-documentation site with its separate pinned toolchain:
 
 ```bash
-python3 -m venv .venv-docs
-.venv-docs/bin/python -m pip install -r requirements-docs.txt
-make USER_DOCS_PYTHON=.venv-docs/bin/python user-docs-build
+make user-docs-build
 ```
 
-MkDocs is intentionally not a production Odoo dependency. A plain
-`make user-docs-build` therefore expects MkDocs to be installed in the selected
-host Python; use `USER_DOCS_PYTHON` to select the disposable documentation
-environment explicitly.
+MkDocs is intentionally not a production Odoo dependency. The Make target
+creates and reuses the ignored `.venv-docs` environment from pinned
+`requirements-docs.txt`, so a clean checkout does not require a global MkDocs
+installation. Override `USER_DOCS_VENV` only when another isolated location is
+required.
 
 Debug configurations are available in `.devcontainer/launch.json`:
 
@@ -337,6 +341,14 @@ scripts/odoo-dev test base    # run an Odoo module test pass
 scripts/odoo-dev test-js rebuild_account_migration  # frontend unit tests
 scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
+scripts/odoo-dev bootstrap-immediate-settlement-qa
+                                      # three-action foreign settlement QA cases
+make disable-tours                    # disable automatic tours for internal QA users
+scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
+scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
+make login-link USER=valentin  # local passwordless login for any Pocket user
+scripts/target-finalize               # apply target-only config after migration
+scripts/target-reconstruct            # rebuild canonical data and target config
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
@@ -348,16 +360,37 @@ The normal shorthand is:
 make dev       # start the existing environment
 make deploy    # apply ordinary custom add-on changes
 make rebuild   # rebuild images, then deploy
+make target-finalize    # reapply and validate target-only configuration
+make target-reconstruct # recreate odoo_dev from the dump, then finalize it
 ```
 
-These helpers serve the database selected by `ODOO_DEV_DB` (default:
-`odoo_dev`), apply the same value to Odoo's database filter and verify the
+These helpers serve canonical `odoo_dev` by default. It is the disposable,
+production-shaped product target: reconstructed Online business data plus
+target-only configuration such as Pocket ID. `make dev`, `make deploy` and
+`make rebuild` use the pinned local Pocket ID overlay, keep the database filter
+at `^odoo_dev$`, provision stable local identities, and reapply the governed
+Odoo policy when configuration or modules are updated.
+
+Source parity and target configuration remain separate stages. The Online dump
+has no Pocket ID state, so `scripts/target-reconstruct` first validates the
+Accounting import, then restores Projects and Platform Billing, finalizes every
+temporary migration module out of the product, and finally applies Pocket ID.
+Migration tooling is a maintained repository deliverable under `migration/`
+and `scripts/`; it is not installed or exposed in the normal Odoo UI.
+
+The local Pocket ID workflow is pinned in `compose.pocket-id.yaml`, binds only
+to loopback, and stores generated secrets and stable immutable subjects in the
+ignored mode-0600 `.pocket-id.env`. Follow the
+[Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
+the client secret, break-glass password or raw subjects in Git. Production
+uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
+
+The helpers apply `ODOO_DEV_DB` to Odoo's database filter and verify the
 effective runtime filter before printing the login URL. They also verify that
-existing Compose containers belong to the current project and worktree before
-every Compose operation. Set `ODOO_DEV_REQUIRE_ISOLATED_PROJECT=1` for work
-that must use a dedicated `usl-odoo-fp-*` project. If you invoke
-`docker compose` directly instead, keep `ODOO_DB_FILTER` in the local `.env`
-aligned with the database you intend to serve.
+existing Compose containers belong to the selected project and this worktree.
+Set `ODOO_DEV_REQUIRE_ISOLATED_PROJECT=1` for feature work that must use a
+dedicated `usl-odoo-fp-*` project. Direct Compose calls must keep
+`ODOO_DB_FILTER` aligned with the database being served.
 
 ### Optional bootstrap fixture
 

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rebuild_account_migration.AccountPaymentSuggestions"
+       t-inherit="account.AccountPaymentField"
+       t-inherit-mode="extension">
+        <xpath expr="//strong[@id='outstanding']" position="attributes">
+            <attribute name="class" add="text-nowrap" separator=" "/>
+        </xpath>
+        <xpath expr="//table" position="attributes">
+            <attribute name="class"
+                       add="o_rebuild_payment_suggestions"
+                       separator=" "/>
+        </xpath>
+        <xpath expr="//t[@t-foreach='info.lines']/tr" position="attributes">
+            <attribute name="t-att-class">
+                {'o_rebuild_payment_suggestion': info.outstanding}
+            </attribute>
+        </xpath>
+        <xpath expr="//t[@t-foreach='info.lines']/tr" position="after">
+            <tr t-if="info.outstanding and line.match_reason"
+                class="o_rebuild_payment_suggestion_detail">
+                <td/>
+                <t t-set="match_explanation"
+                   t-value="(line.is_best_match
+                             ? 'Highest-ranked payment. '
+                             : 'Alternative payment. ')
+                            + 'Match: '
+                            + (line.match_summary or line.match_reason).replaceAll(' · ', '; ')
+                            + '. Source: '
+                            + (line.is_bank_statement_candidate
+                               ? 'bank transaction'
+                               : 'existing payment')
+                            + (line.partner_evidence
+                               ? '. Partner: ' + line.partner_evidence
+                               : '')
+                            + (line.partner_suggestion_reason
+                               ? '. Cited evidence: ' + line.partner_suggestion_reason
+                               : '')
+                            + '.'
+                            + (line.settlement_review_reason
+                               ? ' Review: ' + line.settlement_review_reason
+                               : '')"/>
+                <td colspan="3"
+                    class="o_rebuild_payment_suggestion_context text-start text-wrap"
+                    tabindex="0"
+                    t-att-title="match_explanation"
+                    t-att-aria-label="match_explanation"
+                    data-bs-toggle="tooltip">
+                    <span t-if="line.is_best_match"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_best">
+                        Best match
+                    </span>
+                    <span t-if="line.is_bank_statement_candidate"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_kind">
+                        Bank transaction
+                    </span>
+                    <span t-foreach="(line.match_summary or line.match_reason).split(' · ')"
+                          t-as="evidence"
+                          t-key="evidence_index"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_evidence"
+                          t-out="evidence"/>
+                </td>
+            </tr>
+        </xpath>
+        <xpath expr="//a[hasclass('outstanding_credit_assign')]" position="replace">
+            <div t-if="line.can_assign !== false"
+                 class="d-flex flex-wrap justify-content-end gap-1 o_immediate_settlement_actions">
+                <a role="button"
+                   t-att-class="{
+                       'oe_form_field btn btn-secondary outstanding_credit_assign d-print-none': true,
+                       'disabled': this.isSettlementRowPending(line.id),
+                   }"
+                   t-att-data-id="line.id"
+                   t-att-aria-disabled="this.isSettlementRowPending(line.id) ? 'true' : 'false'"
+                   t-att-aria-busy="this.isSettlementActionPending(line.id, 'add') ? 'true' : 'false'"
+                   t-att-title="line.add_action_helper
+                                or (line.partner_reassignment_required
+                                    ? 'Add this bank transaction to the bill. Odoo will use the bill supplier, move the outstanding amount to the payable account, and reconcile the available amount.'
+                                    : (line.account_reassignment_required
+                                       ? 'Add this bank transaction to the bill. Odoo will move the outstanding amount to the payable account and reconcile the available amount.'
+                                       : 'Add this existing payment to the bill and reconcile the available amount.'))"
+                   href="#"
+                   data-bs-toggle="tooltip"
+                   t-on-click.prevent="() => this.addOutstandingCredit(info.moveId, line.id)">
+                    <span t-if="this.isSettlementActionPending(line.id, 'add')"
+                          class="spinner-border spinner-border-sm me-1"
+                          aria-hidden="true"/>
+                    Add
+                </a>
+                <button t-if="line.can_immediate_settle"
+                        type="button"
+                        t-att-class="{
+                            'oe_form_field btn immediate_settlement_assign d-print-none': true,
+                            'btn-primary': line.recommended_settlement_action === 'settle',
+                            'btn-outline-primary': line.recommended_settlement_action !== 'settle',
+                        }"
+                        t-att-disabled="this.isSettlementRowPending(line.id)"
+                        t-att-aria-busy="this.isSettlementActionPending(line.id, 'settle') ? 'true' : 'false'"
+                        t-att-title="line.immediate_settlement_reason"
+                        data-bs-toggle="tooltip"
+                        t-on-click.stop.prevent="() => this.settleOutstandingCredit(info.moveId, line.id)">
+                    <span t-if="this.isSettlementActionPending(line.id, 'settle')"
+                          class="spinner-border spinner-border-sm me-1"
+                          aria-hidden="true"/>
+                    Settle
+                </button>
+                <button t-if="line.can_use_payment_rate"
+                        type="button"
+                        t-att-class="{
+                            'oe_form_field btn payment_rate_assign d-print-none': true,
+                            'btn-primary': line.recommended_settlement_action === 'payment_rate',
+                            'btn-outline-primary': line.recommended_settlement_action !== 'payment_rate',
+                        }"
+                        t-att-disabled="this.isSettlementRowPending(line.id)"
+                        t-att-aria-busy="this.isSettlementActionPending(line.id, 'payment_rate') ? 'true' : 'false'"
+                        t-att-title="line.payment_rate_settlement_reason"
+                        data-bs-toggle="tooltip"
+                        t-on-click.stop.prevent="() => this.usePaymentRateOutstandingCredit(info.moveId, line.id)">
+                    <span t-if="this.isSettlementActionPending(line.id, 'payment_rate')"
+                          class="spinner-border spinner-border-sm me-1"
+                          aria-hidden="true"/>
+                    Use payment rate
+                </button>
+            </div>
+            <span t-else=""
+                  class="small text-muted text-nowrap"
+                  aria-disabled="true"
+                  title="The bill must be posted before accounting entries can be reconciled.">
+                Available after posting
+            </span>
+        </xpath>
+        <xpath expr="//t[@t-if='!info.outstanding']/td/i" position="replace">
+            <i class="o_field_widget text-start o_payment_label">
+                <t t-if="line.is_immediate_settlement">
+                    <t t-if="line.is_payment_rate_settlement">Payment rate · </t>
+                    <t t-else="">Settled · </t>
+                    <t t-out="line.settlement_summary"/> on
+                </t>
+                <t t-elif="line.is_refund">Reversed on </t>
+                <t t-else="">Paid on </t>
+                <t t-out="line.formattedDate"/>
+            </i>
+        </xpath>
+    </t>
+
+    <t t-name="rebuild_account_migration.AccountPaymentSettlementPopOver"
+       t-inherit="account.AccountPaymentPopOver"
+       t-inherit-mode="extension">
+        <xpath expr="//tr[td[hasclass('fw-bolder')][normalize-space()='Journal:']]" position="after">
+            <t t-if="props.is_immediate_settlement">
+                <tr>
+                    <td class="fw-bolder">Method:</td>
+                    <td class="ps-1" t-out="props.settlement_method"/>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">Settlement pair:</td>
+                    <td class="ps-1" t-out="props.executed_pair"/>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">Discarded Odoo estimate:</td>
+                    <td class="ps-1" t-out="props.synthetic_estimate"/>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">Document carrying value:</td>
+                    <td class="ps-1" t-out="props.carrying_value"/>
+                </tr>
+                <tr t-if="!props.is_payment_rate_settlement">
+                    <td class="fw-bolder">Settlement difference:</td>
+                    <td class="ps-1" t-out="props.settlement_difference_label"/>
+                </tr>
+                <tr t-if="!props.is_payment_rate_settlement">
+                    <td class="fw-bolder">Exchange account:</td>
+                    <td class="ps-1" t-out="props.exchange_account_name"/>
+                </tr>
+                <tr t-if="!props.is_payment_rate_settlement and props.exchange_move_names">
+                    <td class="fw-bolder">Native exchange entry:</td>
+                    <td class="ps-1" t-out="props.exchange_move_names"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Original document value:</td>
+                    <td class="ps-1" t-out="props.original_document_value"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Payment-rate document value:</td>
+                    <td class="ps-1" t-out="props.repriced_document_value"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Document revaluation:</td>
+                    <td class="ps-1" t-out="props.document_revaluation_label"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Original document rate:</td>
+                    <td class="ps-1" t-out="props.original_invoice_currency_rate"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and props.is_document_reprice">
+                    <td class="fw-bolder">Applied document rate:</td>
+                    <td class="ps-1" t-out="props.applied_invoice_currency_rate"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and !props.is_document_reprice">
+                    <td class="fw-bolder">Economic adjustment:</td>
+                    <td class="ps-1" t-out="props.economic_adjustment_label"/>
+                </tr>
+                <tr t-if="props.is_payment_rate_settlement and !props.is_document_reprice and props.economic_account_names">
+                    <td class="fw-bolder">Adjusted accounts:</td>
+                    <td class="ps-1" t-out="props.economic_account_names"/>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">Executed rate:</td>
+                    <td class="ps-1" t-out="props.executed_rate"/>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">Reference rate:</td>
+                    <td class="ps-1" t-out="props.reference_rate"/>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">Provenance:</td>
+                    <td class="ps-1" t-out="props.provenance"/>
+                </tr>
+            </t>
+        </xpath>
+    </t>
+</templates>

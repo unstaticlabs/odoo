@@ -3,47 +3,22 @@ import { registry } from "@web/core/registry";
 registry.category("web_tour.tours").add("usl_einvoice_manager_reception", {
     steps: () => [
         {
-            content: "Open the company's electronic-invoice readiness",
+            content: "Open the company's electronic-invoice setup",
             trigger: ".o_list_view .o_data_row td[name='name']",
             run: "click",
         },
         {
-            content: "The focused readiness screen is open",
+            content: "The focused setup screen is open",
             trigger: "button[name='action_rebuild_run_einvoice_acceptance_test']",
         },
         {
-            content: "Run the safe offline reception journey",
+            content: "Run the safe reception self-check",
             trigger: "button[name='action_rebuild_run_einvoice_acceptance_test']",
             run: "click",
         },
         {
-            content: "The safe test reception is explicit",
-            trigger: ".o_form_view .ribbon span:contains('Safe test')",
-        },
-        {
-            content: "The structured document created a draft bill",
-            trigger:
-                ".o_form_view .o_statusbar_status button[data-value='bill_created'].o_arrow_button_current",
-        },
-        {
-            content: "Open the native vendor bill",
-            trigger: "button[name='action_open_bill']",
-            run: "click",
-        },
-        {
-            content: "A native draft vendor bill is open",
-            trigger:
-                ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current):has(button[name='action_post'])",
-        },
-        {
-            content: "Open the preserved structured evidence",
-            trigger: "button[role='tab']:contains('E-Invoice Evidence')",
-            run: "click",
-        },
-        {
-            content: "The bill retains the safe-test reception evidence",
-            trigger:
-                ".o_field_widget[name='rebuild_einvoice_reception_ids'] .o_data_row:contains('Draft Bill Created')",
+            content: "The self-check passed without retaining test accounting",
+            trigger: ".o_notification:contains('Reception is ready')",
         },
     ],
 });
@@ -70,13 +45,14 @@ registry.category("web_tour.tours").add("usl_einvoice_readonly_reception", {
         },
         {
             content: "Open evidence from the native bill",
-            trigger: "button[role='tab']:contains('E-Invoice Evidence')",
+            trigger:
+                "button[name='action_open_rebuild_einvoice_reception']",
             run: "click",
         },
         {
             content: "The original structured document remains visible",
             trigger:
-                ".o_field_widget[name='rebuild_einvoice_reception_ids'] .o_data_row:contains('Draft Bill Created')",
+                ".o_form_view .o_field_widget[name='attachment_id']",
         },
     ],
 });

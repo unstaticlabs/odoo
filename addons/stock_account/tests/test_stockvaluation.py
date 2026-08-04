@@ -2829,6 +2829,24 @@ class TestStockValuation(TestStockValuationCommon):
             ]
         )
 
+    def test_scrap_valuation_from_done_picking(self):
+        """A scrap from a done picking must still post its valuation entry (real_time)."""
+        product = self.product_standard_auto
+        accounts_data = product.product_tmpl_id.get_product_accounts()
+        receipt = self._make_in_move(product, 10, create_picking=True).picking_id
+
+        scrap_form = Form.from_action(self.env, receipt.action_scrap())
+        scrap_form.product_id = product
+        scrap_form.quantity = 2
+        scrap = scrap_form.save()
+        scrap.location_dest_id.valuation_account_id = self.account_stock_variation
+        scrap.action_scrap()
+
+        self.assertRecordValues(scrap.account_move_id.line_ids, [
+            {'account_id': accounts_data['stock_valuation'].id, 'debit': 0.0, 'credit': 20.0},
+            {'account_id': self.account_stock_variation.id, 'debit': 20.0, 'credit': 0.0},
+        ])
+
     def test_positive_stock_adjustment_valuation(self):
         product = self.product_standard_auto
         accounts_data = product.product_tmpl_id.get_product_accounts()
@@ -3441,7 +3459,8 @@ class TestStockValuation(TestStockValuationCommon):
 
     def test_cron_post_stock_valuation_domain(self):
         """ Cron must process daily/periodic every day and add monthly/periodic
-        on the last day of the month. Real-time and manual companies must be skipped.
+        on the last day of the month, regardless of the valuation method.
+        Manual companies must be skipped.
         """
         Company = self.env['res.company']
         daily_periodic, monthly_periodic, daily_realtime, manual_periodic = Company.create([
@@ -3479,7 +3498,7 @@ class TestStockValuation(TestStockValuationCommon):
                 Company._cron_post_stock_valuation()
                 self.assertIn(daily_periodic.id, called_ids)
                 self.assertNotIn(monthly_periodic.id, called_ids)
-                self.assertNotIn(daily_realtime.id, called_ids)
+                self.assertIn(daily_realtime.id, called_ids)
                 self.assertNotIn(manual_periodic.id, called_ids)
 
             with freeze_time('2026-03-31'):
@@ -3487,7 +3506,7 @@ class TestStockValuation(TestStockValuationCommon):
                 Company._cron_post_stock_valuation()
                 self.assertIn(daily_periodic.id, called_ids)
                 self.assertIn(monthly_periodic.id, called_ids)
-                self.assertNotIn(daily_realtime.id, called_ids)
+                self.assertIn(daily_realtime.id, called_ids)
                 self.assertNotIn(manual_periodic.id, called_ids)
 
             with freeze_time('2026-02-28'):
@@ -3495,7 +3514,7 @@ class TestStockValuation(TestStockValuationCommon):
                 Company._cron_post_stock_valuation()
                 self.assertIn(daily_periodic.id, called_ids)
                 self.assertIn(monthly_periodic.id, called_ids)
-                self.assertNotIn(daily_realtime.id, called_ids)
+                self.assertIn(daily_realtime.id, called_ids)
                 self.assertNotIn(manual_periodic.id, called_ids)
 
     def test_generate_entry_branch_correct_account(self):

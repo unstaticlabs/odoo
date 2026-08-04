@@ -18,16 +18,20 @@ Accounting managers use **Configuration** for:
 
 ## E-Invoicing
 
-Open **Configuration > Invoicing > E-Invoicing**. Complete the French company
-identifier and incoming purchase journal, then use **Test Reception** to create
-a synthetic draft supplier bill without contacting a provider.
+Open **Configuration > Invoicing > Electronic Invoicing**. Complete the four
+business steps: company identity, incoming purchase journal, accounting
+contact and reception self-check.
 
-**Ready but inactive** is the expected state before production. Authentication,
-production registration, Pilot Phase, live polling and deregistration are
+The self-check uses the native decoder and then rolls its transaction back. It
+does not contact a provider or leave synthetic accounting data.
+**Ready for production** is the expected pre-activation state. Authentication,
+production registration, manual production checks and deregistration are
 external actions, not configuration previews.
 
 Use [Prepare electronic-invoice reception](../how-to/prepare-electronic-invoice-reception.md)
 for safe checks. Use
+[Review an incoming electronic invoice](../how-to/review-incoming-electronic-invoice.md)
+for the normal bill journey. Use
 [Activate electronic-invoice reception in production](../how-to/activate-electronic-invoice-reception.md)
 only during the approved production change window.
 

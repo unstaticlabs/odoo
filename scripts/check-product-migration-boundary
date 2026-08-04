@@ -97,10 +97,12 @@ if (
         "The platform restoration harness does not explicitly pass the "
         "migration-only add-ons path.",
     )
-if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
+if "PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT" not in platform_restore_harness:
     errors.append(
-        "The platform restoration harness lacks the isolated-project guard.",
+        "The platform restoration harness lacks the isolated-project switch.",
     )
+if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
+    errors.append("The platform restoration harness lacks its project guard.")
 
 runtime_project = PRODUCT_ADDONS / "usl_project"
 for path in runtime_project.rglob("*"):

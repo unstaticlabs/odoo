@@ -6,14 +6,19 @@ cd "$repo_root"
 
 command_name="${1:-all}"
 compose_project="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-}}"
+require_isolated_project="${PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT:-${ODOO_DEV_REQUIRE_ISOLATED_PROJECT:-0}}"
 target_database="${PLATFORM_BILLING_TARGET_DATABASE:-odoo_dev}"
 test_database="${PLATFORM_BILLING_TEST_DATABASE:-odoo_test_platform_billing_restore}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 expected_dump_sha="ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/platform-billing-migration-addons"
 
-if [[ -z "$compose_project" || "$compose_project" != usl-odoo-fp-* ]]; then
-    echo "Refusing non-isolated Compose project ${compose_project:-<unset>}."
+if [[ -z "$compose_project" ]]; then
+    echo "Refusing an unset Compose project."
+    exit 2
+fi
+if [[ "$require_isolated_project" == "1" && "$compose_project" != usl-odoo-fp-* ]]; then
+    echo "Refusing non-isolated Compose project $compose_project."
     echo "Set COMPOSE_PROJECT_NAME to a dedicated usl-odoo-fp-* project."
     exit 2
 fi
@@ -207,10 +212,17 @@ cleanup_test_database() {
 test_restore() {
     local status=0
     cleanup_test_database
-    compose --profile platform-billing-migration run --rm \
+    # The production migration image deliberately excludes browser and HTTP
+    # mocking dependencies.  Build and use the repository test image here so
+    # dependencies' own test modules can be imported during a clean registry
+    # initialization (notably OCA auth_oidc's `responses` dependency).
+    compose build odoo
+    compose --profile test build test
+    compose --profile test run --rm \
+        --volume "$repo_root/migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro" \
         -e ODOO_INIT_DB="$test_database" \
         -e "ODOO_DB_FILTER=^${test_database}$" \
-        platform-billing-migration \
+        test \
         odoo --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" \
         --database="$test_database" \

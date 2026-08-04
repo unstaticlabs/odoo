@@ -17,17 +17,18 @@ tooling.
 - analytical pivot/list/graph reporting;
 - assets, deferrals, currency and FEC integration;
 - scoped read-only accountant access;
-- electronic-invoice reception readiness, inactive until approved production
-  activation.
+- electronic-invoice reception readiness, non-polluting offline self-check,
+  incoming document evidence and company-scoped production activation.
 
 Normal Accounting menus expose only operational concepts. Reconstruction,
 source comparison, parity review and import objects are restricted to technical
 administrators and remain outside the product navigation.
 
-The standard first-invoice walkthrough is recorded as consumed for the
-administrator when this module is installed or updated. Accounting therefore
-opens directly after a reconstruction or deployment, while unrelated Odoo
-tours remain available.
+This product module does not alter standard Odoo tour state. The dev/QA
+deployment helper sets the native per-user `tour_enabled` preference to false
+for internal users in `odoo_dev` and other explicitly operated QA targets.
+This runs after `make dev`, `make deploy`, and `make rebuild`;
+`make disable-tours` reapplies it directly.
 
 ## Dependencies
 
@@ -41,6 +42,21 @@ Shared extensions of existing native and OCA models live in
 module remains their compatibility consumer and retains installed
 `rebuild.*` models and stable XML/data ownership. See the
 [custom add-on architecture decision](../../docs/accounting/custom-addon-architecture.md).
+
+The source-faithful expense stage reads the former Online expense-to-bank
+suggestion cache only as migration evidence. It classifies every candidate,
+many-to-many and selected-line association, recomputes current operational
+suggestions through `usl_accounting`, and proves that refreshes are idempotent
+and leave expenses, moves, lines, payments and reconciliations unchanged. The
+legacy `x_sl_expense_bank_candidate` model, `x_*` fields, server actions, ACLs
+and inherited view are never imported.
+
+French e-invoicing reuses Odoo's native Approved Platform decoder,
+registration and response workflows. The compatibility-owned `rebuild.*`
+records provide one readiness state, a business inbox and upgrade-safe
+company-scoped reception. Reconstruction carries only the accounting contact
+and mapped purchase journal, derives `0225:SIREN`, and resets every live
+credential, registration, approval and e-reporting flag.
 
 The authenticated user guide at `/usl/user-docs` renders the repository files
 under `docs/users/` with the pinned CommonMark runtime. Common Markdown

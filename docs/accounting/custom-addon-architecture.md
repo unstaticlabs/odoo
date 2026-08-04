@@ -2,11 +2,11 @@
 
 Status: accepted architecture decision  
 Baseline: Odoo Community `saas~19.2` at
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`
+`6b54f539d80af8958990fa66f65d5bf8f420d3f4`
 
 ## Decision
 
-USL keeps one forked distribution repository. Odoo core, the exact OCA
+USL keeps one Odoo Distribution repository. Odoo core, the exact OCA
 integration pins, the isolated USL add-ons, deployment code, reconstruction
 harness and durable specifications must evolve together for a release to be
 reproducible. Splitting those concerns into separate distribution repositories
@@ -17,18 +17,14 @@ Runtime ownership inside the repository follows this order:
 1. native Odoo Community;
 2. maintained OCA functionality;
 3. isolated USL add-ons;
-4. a fork-level Odoo patch only when no stable extension point exists.
+4. a distribution-level core patch only when no stable extension point exists.
 
 The verified production add-on dependency direction is:
 
 ```text
-native Odoo + pinned OCA
-          |
-          v
-   usl_accounting
-          |
-          v
-rebuild_account_migration <--- usl_expense_batch <--- native hr_expense
+ pinned OCA auth_oidc ---> usl_pocketid -------------------+
+ native/OCA Accounting -> usl_accounting -----------------+--> rebuild_account_migration
+ native hr_expense -----> usl_expense_batch --------------+
   (product compatibility, stable XML-ID ownership and reconstruction)
 
 usl_bootstrap ---> native modules only (disposable test fixture)
@@ -74,6 +70,13 @@ not have equivalent Community/OCA replacements on the pinned baseline.
 Replacing them during a structural refactor would be a product redesign and
 is therefore rejected.
 
+The e-invoice boundary deliberately remains thin: native Odoo owns UBL/CII/
+Factur-X decoding, Approved Platform registration, draft vendor bills and
+approval/refusal responses. The compatibility module owns the business
+readiness state, non-polluting self-check, company enablement, evidence access
+and external-call guards. Global cron state is never used as company
+configuration.
+
 ### Reassign all XML IDs to the new modules
 
 This would make the source tree look cleaner, but it changes uninstall
@@ -87,6 +90,8 @@ identifiers. It is explicitly rejected for this increment.
 | --- | --- | --- | --- |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
+| Foreign-currency settlement definitions, views and payment-widget assets | `usl_accounting` | runtime foundation over native/OCA | exact/native-FX, payment-rate, reversal, ACL and browser tests |
+| Company-paid expense bank matching | `usl_accounting` | runtime foundation over native expenses and OCA reconciliation | ranked-candidate, ACL, native lifecycle, rollback and reconciliation tests |
 | Reconciliation-model intelligence | compatibility module for this stage | source-trace dependency, left unchanged | rule behavior and replay tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |
@@ -99,6 +104,9 @@ identifiers. It is explicitly rejected for this increment.
 | Existing security, views, actions, menus and seeded definitions | `rebuild_account_migration` | compatibility ownership | XML-ID continuity characterization test |
 | Configurable-definition mixin | compatibility module for this stage | generated model XML-ID ownership, left unchanged | XML-ID continuity characterization test |
 | User-document controller | compatibility module for this stage | shared delivery, left unchanged | authenticated route and Markdown renderer tests |
+| Pocket ID authentication and identity governance | `usl_pocketid` over pinned OCA `auth_oidc` | runtime authentication boundary | issuer/audience/nonce/PKCE/JWKS, identity lifecycle and named-profile tests |
+| Pocket ID accountant-reviewer profile | compatibility extension over `usl_pocketid` | the stable reviewer group XML ID is still owned here; the base SSO module has no reverse Accounting dependency | clean `usl_pocketid` install plus product-profile integration test |
+| Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project and Platform Billing finalization, product-boundary guard and target-finalization order tests |
 | `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
 
@@ -114,6 +122,14 @@ menus.
   change as part of source extraction.
 - Existing XML/data files stay in `rebuild_account_migration` until a separate
   rehearsed ownership migration proves install, upgrade and uninstall safety.
+- New runtime records and assets that have never shipped under a compatibility
+  XML ID belong directly to their product module. Immediate-settlement models,
+  views, security, payment-widget assets and tests therefore belong to
+  `usl_accounting`; no ownership transfer is required.
+- Source parity and target environment policy are separate. Odoo Online has no
+  Pocket ID state; canonical `odoo_dev` receives SSO only after imported
+  Accounting and Projects data pass their controls and temporary migration
+  modules are removed.
 - New feature modules do not seed copies of existing definitions.
 - The compatibility module depends on extracted modules, never the reverse.
 - A repeated compatibility-module upgrade must not duplicate definitions or
@@ -129,6 +145,7 @@ menus.
 
 | Repository | Commit |
 | --- | --- |
+| `server-auth` | `f51fe1b36965b78ac935e80c6b95d7115440a1b4` |
 | `account-financial-reporting` | `aa34bf33fc96fbae7fb5a2b9609b807b4e20514c` |
 | `account-reconcile` | `a9bbab67e42f3b762e9c34b30b6c1a77f9c373fb` |
 | `bank-statement-import` | `7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c` |

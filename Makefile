@@ -5,10 +5,12 @@ ACCOUNTING_TEST_TAGS ?= rebuild_account_migration_unit
 ACCOUNTING_TEST_LOG_LEVEL ?= warn
 USER_DOCS_HOST ?= 127.0.0.1
 USER_DOCS_PORT ?= 8079
-USER_DOCS_PYTHON ?= python3
+USER_DOCS_VENV ?= .venv-docs
+USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ODOO_DEV ?= scripts/odoo-dev
 
-.PHONY: dev deploy rebuild oca-addons-sync project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate platform-billing-restore platform-billing-restore-install platform-billing-restore-import platform-billing-restore-validate platform-billing-restore-idempotence platform-billing-restore-finalize platform-billing-product-validate platform-billing-restore-test product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
+.PHONY: dev deploy rebuild login-link disable-tours target-finalize target-reconstruct oca-addons-sync project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-deps user-docs-serve user-docs-build
+.PHONY: platform-billing-restore platform-billing-restore-install platform-billing-restore-import platform-billing-restore-validate platform-billing-restore-idempotence platform-billing-restore-finalize platform-billing-product-validate platform-billing-restore-test
 
 dev:
 	$(ODOO_DEV) start
@@ -18,6 +20,22 @@ deploy:
 
 rebuild:
 	$(ODOO_DEV) rebuild
+
+login-link:
+	@if [ "$(origin USER)" != "command line" ] || [ -z "$(strip $(USER))" ]; then \
+		printf 'Usage: make login-link USER=<Pocket ID username>\n' >&2; \
+		exit 2; \
+	fi
+	@scripts/pocket-id-dev one-time-link "$(USER)"
+
+disable-tours:
+	$(ODOO_DEV) disable-tours
+
+target-finalize:
+	scripts/target-finalize
+
+target-reconstruct:
+	scripts/target-reconstruct
 
 oca-addons-sync:
 	scripts/sync-oca-addons
@@ -181,8 +199,15 @@ accounting-evidence:
 accounting-addon-tests: oca-addons-sync
 	docker compose -p $(COMPOSE_PROJECT) --profile init run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) init-db odoo --config=/etc/odoo/odoo.conf --database=$(ACCOUNTING_TEST_DB) --init=rebuild_account_migration --without-demo=true --test-enable --test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
-user-docs-serve:
+$(USER_DOCS_VENV)/.requirements-ready: requirements-docs.txt
+	python3 -m venv $(USER_DOCS_VENV)
+	$(USER_DOCS_VENV)/bin/python -m pip install --disable-pip-version-check --requirement requirements-docs.txt
+	touch $(USER_DOCS_VENV)/.requirements-ready
+
+user-docs-deps: $(USER_DOCS_VENV)/.requirements-ready
+
+user-docs-serve: user-docs-deps
 	$(USER_DOCS_PYTHON) -m mkdocs serve --config-file mkdocs.yml --dev-addr $(USER_DOCS_HOST):$(USER_DOCS_PORT)
 
-user-docs-build:
+user-docs-build: user-docs-deps
 	$(USER_DOCS_PYTHON) -m mkdocs build --config-file mkdocs.yml

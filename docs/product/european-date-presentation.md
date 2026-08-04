@@ -33,7 +33,7 @@ Interface language and date convention are separate product choices:
 The `rebuild_account_migration` module governs the English and French
 `res.lang` date formats. Its backend date service maps only English-US
 human-readable rendering to European English ordering. This avoids hardcoded
-user changes and avoids a fork-level patch to Odoo's web client.
+user changes and avoids a distribution-level core patch to Odoo's web client.
 
 ## Upgrade and regression contract
 

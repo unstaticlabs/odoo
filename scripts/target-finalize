@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+target_database="${ODOO_DEV_DB:-odoo_dev}"
+if [[ "$target_database" != "odoo_dev" ]]; then
+  printf 'Target finalization is reserved for canonical odoo_dev.\n' >&2
+  exit 2
+fi
+if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
+    || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
+  printf 'Target finalization requires both regulatory live guards to be 0.\n' >&2
+  exit 2
+fi
+
+scripts/check-product-migration-boundary
+scripts/odoo-dev deploy rebuild_account_migration
+scripts/odoo-dev disable-tours
+scripts/check-product-migration-boundary
+
+printf '\nCanonical target finalized: odoo_dev\n'
+printf 'Product URL: http://odoo.localhost:8069/web/login?db=odoo_dev\n'
+printf 'Local login link: scripts/pocket-id-dev one-time-link valentin\n'

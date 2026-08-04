@@ -1058,7 +1058,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
-            "not_verified",
+            "needs_attention",
         )
         manager = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -1103,6 +1103,9 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_einvoice_environment": "production",
             "rebuild_einvoice_test_status": "passed",
         })
+        self.company.rebuild_einvoice_test_fingerprint = (
+            self.company._rebuild_einvoice_configuration_fingerprint()
+        )
         with patch.dict(
             "os.environ",
             {"USL_EINVOICE_LIVE_ENABLED": "1"},
@@ -1114,7 +1117,7 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(self.company.rebuild_einvoice_activation_approved)
             self.assertEqual(
                 self.company.rebuild_einvoice_readiness_status,
-                "activation_required",
+                "needs_attention",
             )
             self.assertEqual(
                 self.company.rebuild_einvoice_connection_status,
@@ -4420,6 +4423,41 @@ class TestRebuildAccountMigration(TransactionCase):
             },
         )
 
+    def test_legacy_expense_bank_match_bootstrap_schema_is_absent(self):
+        stats = self.env[
+            "rebuild.account.import.run"
+        ]._native_expense_legacy_bank_match_schema()
+
+        self.assertTrue(stats["absent"], stats)
+        self.assertIn(
+            "usl.expense.bank.match.candidate",
+            self.env.registry.models,
+        )
+        self.assertFalse(self.env["ir.model.fields"].search([
+            ("model", "=", "hr.expense"),
+            (
+                "name",
+                "in",
+                [
+                    "x_bank_match_candidate_ids",
+                    "x_candidate_bank_statement_line_ids",
+                    "x_selected_bank_statement_line_id",
+                    "x_selected_bank_statement_line_preview",
+                ],
+            ),
+        ]))
+        self.assertFalse(self.env["ir.actions.server"].search([
+            (
+                "name",
+                "in",
+                [
+                    "SL - Dépense - Chercher débits candidats",
+                    "SL - Dépense - Associer meilleur débit bancaire",
+                    "SL - Candidat bancaire - Associer à la dépense",
+                ],
+            ),
+        ]))
+
     def test_vendor_bills_and_receipts_have_separate_removable_default_filters(self):
         bills_action = self.env.ref("account.action_move_in_invoice")
         expenses_action = self.env.ref(
@@ -4574,9 +4612,11 @@ class TestRebuildAccountMigration(TransactionCase):
                 "rebuild_account_migration.view_company_rebuild_einvoice_readiness_form",
                 "form",
                 (
-                    "action_rebuild_approve_einvoice_activation",
-                    "action_rebuild_revoke_einvoice_activation",
+                    "action_rebuild_run_einvoice_acceptance_test",
+                    "action_rebuild_begin_einvoice_activation",
                     "action_rebuild_enable_einvoice_exchange",
+                    "action_rebuild_check_einvoice_now",
+                    "action_rebuild_review_einvoice_issues",
                     "action_rebuild_suspend_einvoice_exchange",
                 ),
             ),
@@ -5284,6 +5324,83 @@ class TestRebuildAccountMigration(TransactionCase):
                 accounts[source_account_id],
             )
 
+    def test_einvoice_import_keeps_safe_setup_but_not_live_connection(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Electronic invoice setup replay",
+            "source_snapshot_id": "unit-einvoice-setup",
+        })
+        purchase_journal = self._journal("purchase")
+        france = self.env.ref("base.fr")
+        self.company.write({
+            "country_id": france.id,
+            "account_fiscal_country_id": france.id,
+            "company_registry": "98398295000021",
+            "account_peppol_proxy_state": "receiver",
+            "rebuild_einvoice_activation_approved": True,
+            "rebuild_einvoice_exchange_enabled": True,
+            "l10n_fr_pdp_send_to_ppf": True,
+            "l10n_fr_pdp_pilot_phase": True,
+        })
+        proxy_count = self.env[
+            "account_edi_proxy_client.user"
+        ].search_count([])
+        source_row = {
+            "id": 990001,
+            "account_peppol_contact_email": "compta@unstaticlabs.com",
+            "account_peppol_phone_number": "+33651099030",
+            "peppol_purchase_journal_id": 990009,
+            "account_peppol_proxy_state": "receiver",
+            "peppol_eas": "0009",
+            "peppol_endpoint": "98398295000021",
+        }
+        options = {"source_company_ids": [990001]}
+
+        with (
+            patch.object(
+                type(import_run),
+                "_source_column_exists",
+                return_value=True,
+            ),
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                return_value=[source_row],
+            ),
+        ):
+            import_run._sync_company_einvoice_configuration(
+                object(),
+                options,
+                {990001: self.company},
+                {990009: purchase_journal},
+            )
+
+        self.assertEqual(
+            self.company.account_peppol_contact_email,
+            "compta@unstaticlabs.com",
+        )
+        self.assertEqual(
+            self.company.account_peppol_phone_number,
+            "+33651099030",
+        )
+        self.assertEqual(
+            self.company.peppol_purchase_journal_id,
+            purchase_journal,
+        )
+        self.assertEqual(self.company.peppol_eas, "0225")
+        self.assertEqual(self.company.peppol_endpoint, "983982950")
+        self.assertEqual(
+            self.company.account_peppol_proxy_state,
+            "not_registered",
+        )
+        self.assertFalse(self.company.rebuild_einvoice_activation_approved)
+        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
+        self.assertEqual(
+            self.env["account_edi_proxy_client.user"].search_count([]),
+            proxy_count,
+        )
+
     def test_account_group_import_preserves_prefix_hierarchy_and_is_idempotent(self):
         snapshot = "unit-account-groups"
         import_run = self.env["rebuild.account.import.run"].create({
@@ -5392,7 +5509,13 @@ class TestRebuildAccountMigration(TransactionCase):
             "source_snapshot_id": "unit-validation-native-expenses",
         }
 
-        with patch.object(type(import_run), "_fetchall", return_value=[source_row]):
+        with (
+            patch.object(type(import_run), "_fetchall", return_value=[source_row]),
+            patch.object(
+                type(import_run),
+                "_sync_company_einvoice_configuration",
+            ),
+        ):
             mapped = import_run._journal_map(
                 object(),
                 options,
@@ -9948,11 +10071,11 @@ class TestRebuildAccountMigration(TransactionCase):
             activation_path.read_text(encoding="utf-8"),
             activation_path.relative_to(docs_root).as_posix(),
         )
-        self.assertIn("Authorize production onboarding", activation_rendered)
-        self.assertIn("USL_EINVOICE_LIVE_ENABLED=1", activation_rendered)
-        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", activation_rendered)
-        self.assertIn("Verify the first real invoice", activation_rendered)
-        self.assertIn("Suspend or roll back", activation_rendered)
+        self.assertIn("Activate reception", activation_rendered)
+        self.assertIn("Validate the first invoice", activation_rendered)
+        self.assertIn("Pause incoming invoices", activation_rendered)
+        self.assertNotIn("USL_EINVOICE_LIVE_ENABLED", activation_rendered)
+        self.assertNotIn("USL_EREPORTING_LIVE_ENABLED", activation_rendered)
 
     def test_source_report_parity_levels_are_explicit(self):
         mandatory = self.env["rebuild.account.source.report"].create({

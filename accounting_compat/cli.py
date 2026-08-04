@@ -3763,6 +3763,38 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                   AND expense.date BETWEEN DATE '2024-01-10'
                                        AND source_end.date_to
             ),
+            'source_expense_bank_cache_association_count', (
+                (
+                    SELECT count(*)
+                    FROM x_sl_expense_bank_candidate candidate
+                    JOIN hr_expense expense
+                      ON expense.id = candidate.x_expense_id
+                    WHERE expense.company_id = 1
+                      AND expense.date
+                          BETWEEN DATE '2024-01-10'
+                              AND source_end.date_to
+                )
+                + (
+                    SELECT count(*)
+                    FROM x_hr_expense_bank_statement_line_rel relation
+                    JOIN hr_expense expense
+                      ON expense.id = relation.expense_id
+                    WHERE expense.company_id = 1
+                      AND expense.date
+                          BETWEEN DATE '2024-01-10'
+                              AND source_end.date_to
+                )
+                + (
+                    SELECT count(*)
+                    FROM hr_expense expense
+                    WHERE expense.company_id = 1
+                      AND expense.date
+                          BETWEEN DATE '2024-01-10'
+                              AND source_end.date_to
+                      AND expense.x_selected_bank_statement_line_id
+                          IS NOT NULL
+                )
+            ),
             'source_asset_count', (
                 SELECT count(*)
                 FROM account_asset asset
@@ -4127,6 +4159,31 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "imported_attachment_count"
         ]
         == source_profile["source_expense_attachment_count"]
+        and payload["expense_stats"]["expense_bank_matches"][
+            "source_cache_association_count"
+        ]
+        == source_profile[
+            "source_expense_bank_cache_association_count"
+        ]
+        and payload["expense_stats"]["expense_bank_matches"][
+            "classified_association_count"
+        ]
+        == source_profile[
+            "source_expense_bank_cache_association_count"
+        ]
+        and payload["expense_stats"]["expense_bank_matches"][
+            "refresh_error_count"
+        ]
+        == 0
+        and payload["expense_stats"]["expense_bank_matches"][
+            "refresh_idempotent"
+        ]
+        and payload["expense_stats"]["expense_bank_matches"][
+            "accounting_unchanged"
+        ]
+        and payload["expense_stats"]["expense_bank_matches"][
+            "legacy_target_schema"
+        ]["absent"]
     )
     checks["native_expense_url_evidence_matches"] = (
         query_json(

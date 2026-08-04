@@ -6,10 +6,10 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Accounting v1
 
-Status date: 28 July 2026
+Status date: 4 August 2026
 
-- Branch: `saas-19.2-usl-feat-accounting`
-- Upstream baseline: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
+- Branch: `19-usl`
+- Upstream baseline: `6b54f539d80af8958990fa66f65d5bf8f420d3f4`
 - Developer/QA product database: `odoo_dev`
 - Read-only source snapshot: `odoo_online_source_saas_19_2`
 

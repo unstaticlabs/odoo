@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_pocketid" model="ir.ui.view">
+        <field name="name">res.users.form.usl.pocketid</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page
+                    name="usl_pocketid"
+                    string="Pocket ID"
+                    groups="base.group_system">
+                    <group>
+                        <group string="Login governance">
+                            <field name="usl_identity_classification"/>
+                            <field name="usl_pocketid_access"/>
+                            <field
+                                name="usl_pocketid_email_link"
+                                invisible="not usl_pocketid_access"/>
+                            <field name="usl_local_break_glass"/>
+                        </group>
+                    </group>
+                    <field
+                        name="usl_oidc_identity_ids"
+                        context="{'default_user_id': id}">
+                        <list>
+                            <field name="issuer"/>
+                            <field name="subject_fingerprint"/>
+                            <field name="link_method"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="last_login_at"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
