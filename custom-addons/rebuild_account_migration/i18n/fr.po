@@ -879,6 +879,7 @@ msgstr "Cadre comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.actions.act_window,name:rebuild_account_migration.action_rebuild_account_hygiene
+#: model:ir.actions.client,name:rebuild_account_migration.action_open_current_company_hygiene
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_control_definition__applies_to_hygiene
 #: model:ir.ui.menu,name:rebuild_account_migration.menu_rebuild_account_review_issues_priority
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
@@ -898,6 +899,12 @@ msgstr "Masquage d’une alerte d’hygiène comptable"
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_hygiene_issue
 msgid "Accounting Hygiene Issue"
 msgstr "Problème d’hygiène comptable"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_overview.py:0
+msgid "Accounting Hygiene is not available for the current company."
+msgstr "L’hygiène comptable n’est pas disponible pour la société active."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -12244,10 +12251,10 @@ msgstr "Utiliser un partenaire"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.actions.act_window,help:rebuild_account_migration.action_rebuild_account_hygiene
-msgid "Use Refresh Hygiene from Overview after accounting records change."
+msgid "Accounting Managers refresh Hygiene automatically when this view opens."
 msgstr ""
-"Utilisez Actualiser l’hygiène depuis la vue d’ensemble après une "
-"modification des enregistrements comptables."
+"L’hygiène comptable est automatiquement actualisée lorsque le responsable "
+"comptable ouvre cette vue."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_activity_state__used

@@ -47,6 +47,12 @@ status, responsible role, evidence summary and next action. Hygiene results
 retain their definition, source links, first and last detection, resolution and
 dismissal history.
 
+Opening the main Accounting Hygiene queue as an Accounting Manager refreshes
+Hygiene and the current closing controls before showing results. This entry
+point reuses the same operation as **Refresh Hygiene** on Overview. A read-only
+accountant opens the current results without receiving permission to refresh
+or modify control records.
+
 Dismissal acknowledges one detected occurrence; it never disables its Control.
 The occurrence fingerprint uses the Control version, company-scoped related
 record IDs, affected amount, detection date, result kind and severity rather

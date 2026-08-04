@@ -1,6 +1,9 @@
 # Review Accounting Hygiene
 
-1. Open **Review > Accounting Hygiene**.
+1. Open **Review > Accounting Hygiene**. For an Accounting Manager, opening
+   the queue first refreshes Hygiene and the current closing controls from the
+   latest accounting records. Read-only accountants open the current results
+   without changing them.
 2. Keep the default **Open** filter. Prioritize Blocking, then Warning, then Attention.
 3. Use the queue's business columns first: severity, title, area, detection
    date, affected amount and responsible role. Technical definition and result
