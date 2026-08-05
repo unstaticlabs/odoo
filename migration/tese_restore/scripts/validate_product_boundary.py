@@ -72,8 +72,10 @@ if any(not payroll.attachment_id for payroll in posted):
     fail("Every posted Paie TESE record must retain its provider PDF.")
 if any(payroll.state not in {"paid", "to_reconcile"} for payroll in posted):
     fail("A posted Paie TESE record has an invalid workflow state.")
-if any(payroll.state != "to_post" for payroll in draft):
-    fail("A draft Paie TESE entry must remain ready for review and posting.")
+if any(payroll.state not in {"prepared", "to_post"} for payroll in draft):
+    fail(
+        "A draft Paie TESE entry must remain prepared or ready for posting.",
+    )
 if any(not payroll.profile_id for payroll in payrolls):
     fail("Every finalized Paie TESE record must retain its payroll profile.")
 
