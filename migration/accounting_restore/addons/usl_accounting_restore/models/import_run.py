@@ -12,6 +12,37 @@ from odoo import Command, _, fields, models
 from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
 
 
+# The Online source contains six misleading account names.  Account codes and
+# ledger relationships remain authoritative; these are explicit target chart
+# translations, not report-only aliases.
+USL_ACCOUNT_NAME_TRANSLATIONS = {
+    "281540": {
+        "en_US": "Depreciation of industrial equipment",
+        "fr_FR": "Amortissements du matériel industriel",
+    },
+    "281830": {
+        "en_US": "Depreciation of office and IT equipment",
+        "fr_FR": "Amortissements du matériel de bureau et informatique",
+    },
+    "511100": {
+        "en_US": "Platform transfers receivable — Etsy",
+        "fr_FR": "Virements de plateformes à encaisser — Etsy",
+    },
+    "627100": {
+        "en_US": "Bank charges",
+        "fr_FR": "Frais bancaires",
+    },
+    "631200": {
+        "en_US": "Apprenticeship tax",
+        "fr_FR": "Taxe d’apprentissage",
+    },
+    "768000": {
+        "en_US": "Other financial income",
+        "fr_FR": "Autres produits financiers",
+    },
+}
+
+
 class RebuildAccountImportRun(models.Model):
     _name = "rebuild.account.import.run"
     _description = "USL Accounting Import Run"
@@ -1838,6 +1869,22 @@ class RebuildAccountImportRun(models.Model):
             )
         return groups
 
+    @staticmethod
+    def _target_account_name_translations(source_name, account_code):
+        translations = {
+            language: translated_name
+            for language, translated_name in (
+                source_name.items()
+                if isinstance(source_name, dict)
+                else []
+            )
+            if translated_name
+        }
+        translations.update(
+            USL_ACCOUNT_NAME_TRANSLATIONS.get(account_code, {}),
+        )
+        return translations
+
     def _account_map(self, conn, options, companies, currencies):
         self._account_group_map(conn, options, companies)
         rows = self._fetchall(
@@ -1955,6 +2002,22 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
         self._quarantine_bootstrap_account_code_collisions(rows, options, companies)
+        account_languages = {
+            language
+            for row in rows
+            for language, translated_name in (
+                row["name"].items()
+                if isinstance(row["name"], dict)
+                else []
+            )
+            if translated_name
+        }
+        account_languages.update({"en_US", "fr_FR"})
+        if account_languages:
+            self.env["res.lang"].sudo().with_context(active_test=False).search([
+                ("code", "in", sorted(account_languages)),
+                ("active", "=", False),
+            ]).write({"active": True})
         accounts = {}
         archive_after_post = []
         Account = self.env["account.account"].with_context(active_test=False, import_file=True)
@@ -2029,6 +2092,12 @@ class RebuildAccountImportRun(models.Model):
                 account.with_company(company).write(vals)
             else:
                 account = Account.with_company(company).create(vals)
+            translations = self._target_account_name_translations(
+                row["name"],
+                code,
+            )
+            if translations:
+                account.update_field_translations("name", translations)
             accounts[row["id"]] = account
         self._archive_empty_bootstrap_unaffected_earnings_accounts(rows, options, companies)
         self._sync_company_accounting_defaults(

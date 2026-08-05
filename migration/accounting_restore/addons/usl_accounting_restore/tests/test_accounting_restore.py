@@ -8621,27 +8621,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "trial_balance",
         )
 
-    def test_french_statement_classification_and_account_presentations(self):
-        Presentation = self.env[
-            "rebuild.account.report.account.presentation"
-        ]
-        shared_presentations = Presentation._ensure_standard_presentations()
-        self.assertEqual(
-            set(shared_presentations.mapped("account_code")),
-            {
-                "281540",
-                "281830",
-                "511100",
-                "627100",
-                "631200",
-                "768000",
-            },
-        )
-        with self.assertRaises(UserError):
-            shared_presentations.filtered(
-                lambda item: item.account_code == "627100",
-            ).write({"display_label": "Unsafe shared change"})
-
+    def test_french_statement_classification_and_native_account_labels(self):
         account_701 = self._account(
             "701999",
             "Test production vendue",
@@ -8779,8 +8759,15 @@ class TestRebuildAccountMigration(TransactionCase):
 
         imported_label_account = self._account(
             "627100",
-            "Obsolete imported label",
+            "Bank charges",
             "expense",
+        )
+        imported_label_account.update_field_translations(
+            "name",
+            {
+                "en_US": "Bank charges",
+                "fr_FR": "Frais bancaires",
+            },
         )
         label_move = self.env["account.move"].create({
             "move_type": "entry",
@@ -8810,22 +8797,34 @@ class TestRebuildAccountMigration(TransactionCase):
             "target_move": "posted",
             "group_by": "none",
         })
-        presented_row = next(
+        report_row = next(
             row
-            for row in trial._raw_report_rows(
+            for row in trial.with_context(lang="en_US")._raw_report_rows(
                 trial.date_from,
                 trial.date_to,
             )
             if row.get("account_code") == "627100"
         )
-        self.assertEqual(presented_row["account_name"], "Frais bancaires")
+        self.assertEqual(report_row["account_name"], "Frais bancaires")
+        self.assertEqual(
+            imported_label_account.with_context(lang="en_US").name,
+            "Bank charges",
+        )
+        french_row = next(
+            row
+            for row in trial.with_context(lang="fr_FR")._raw_report_rows(
+                trial.date_from,
+                trial.date_to,
+            )
+            if row.get("account_code") == "627100"
+        )
+        self.assertEqual(french_row["account_name"], "Frais bancaires")
 
-        company_presentation = Presentation.create({
-            "company_id": self.company.id,
-            "account_code": "627100",
-            "display_label": "Frais bancaires USL",
+        imported_label_account.with_context(lang="fr_FR").write({
+            "name": "Frais bancaires et commissions",
         })
-        presented_row = next(
+        imported_label_account.flush_recordset(["name"])
+        renamed_row = next(
             row
             for row in trial._raw_report_rows(
                 trial.date_from,
@@ -8834,8 +8833,25 @@ class TestRebuildAccountMigration(TransactionCase):
             if row.get("account_code") == "627100"
         )
         self.assertEqual(
-            presented_row["account_name"],
-            company_presentation.display_label,
+            renamed_row["account_name"],
+            "Frais bancaires et commissions",
+        )
+
+        translations = self.env[
+            "rebuild.account.import.run"
+        ]._target_account_name_translations(
+            {"en_US": "Wrong source label"},
+            "627100",
+        )
+        self.assertEqual(
+            translations,
+            {"en_US": "Bank charges", "fr_FR": "Frais bancaires"},
+        )
+        self.assertFalse(
+            self.env.ref(
+                "rebuild_account_migration."
+                "menu_rebuild_account_report_account_presentations",
+            ).active,
         )
 
     def test_management_ratios_use_visible_values_and_defined_units(self):

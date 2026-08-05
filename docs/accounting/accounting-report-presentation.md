@@ -41,14 +41,16 @@ PDF and XLSX.
 
 No core Odoo patch is required.
 
-For misleading imported account labels, two alternatives were rejected:
-rewriting posted-ledger account master data during an upgrade would blur source
-traceability, while hardcoding labels independently in the browser and PDF
-would recreate output drift. A governed account-presentation model is used
-instead. Shared upgrade-managed corrections can be overridden per company and
-per report; the engine resolves the label once before grouping, drill-down and
-export. This keeps the imported account identity unchanged and gives the
-Accounting Manager an auditable configuration surface.
+Account labels use native, translated `account.account.name` values. A former
+report-only override model was retired because it made the Chart of Accounts
+and reports disagree and its six installed records had no company- or
+report-specific scope. Account code and ledger relationships remain the stable
+identity; the one-shot restore records source evidence externally and applies
+the six verified naming corrections to the target Chart of Accounts in French
+and English. This makes every native screen, report, PDF, XLSX and FEC consume
+one governed master-data label. Accounting Managers maintain names through
+**Configuration > Accounting > Chart of Accounts** and Odoo's standard
+translations.
 
 For statement drill-down, three credible approaches were compared:
 

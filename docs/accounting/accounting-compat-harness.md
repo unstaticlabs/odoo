@@ -718,9 +718,10 @@ The statement mapping follows the PCG distinction between account `701`
 production and account `707` merchandise sales. Associate current account
 `455100` is presented as financial/associate debt instead of supplier debt.
 Other operating products and total products/charges are explicit statement
-lines. Governed report-only label corrections preserve the imported account
-master and source trace while making the six materially misleading USL labels
-consistent across screen, PDF and XLSX.
+lines. The restore applies six verified French and English naming corrections
+to the native Chart of Accounts. Account codes and ledger relationships remain
+unchanged, source evidence stays outside the product database, and native
+views, screen reports, PDF, XLSX and FEC all use the same translated label.
 
 The generated private export is:
 
