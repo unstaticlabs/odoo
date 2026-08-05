@@ -3,7 +3,7 @@ from odoo.tests import TransactionCase, tagged
 
 @tagged("post_install", "-at_install", "usl_documents_accounting")
 class TestAccountingDocumentContexts(TransactionCase):
-    def test_accountant_reviewer_profile_includes_documents_review(self):
+    def test_accountant_reviewer_receives_evidence_reader_role(self):
         profile = self.env[
             "res.users"
         ]._usl_pocketid_profile_definitions()["accountant_reviewer"]
@@ -12,6 +12,15 @@ class TestAccountingDocumentContexts(TransactionCase):
             "usl_documents.group_documents_accountant",
             profile["groups"],
         )
+        self.assertNotIn(
+            "usl_documents.group_documents_user",
+            profile["groups"],
+        )
+        self.assertNotIn(
+            "usl_documents.group_documents_manager",
+            profile["groups"],
+        )
+        self.assertEqual(len(profile["groups"]), len(set(profile["groups"])))
 
     def test_tax_and_closing_records_support_archived_evidence(self):
         allowed = self.env["usl.document.link"]._allowed_models()

@@ -10,9 +10,6 @@ class ResUsers(models.Model):
         document_groups = {
             "administrator": ("usl_documents.group_documents_manager",),
             "collaborator": ("usl_documents.group_documents_user",),
-            "accountant_reviewer": (
-                "usl_documents.group_documents_accountant",
-            ),
         }
         for profile, groups in document_groups.items():
             if profile not in definitions:
