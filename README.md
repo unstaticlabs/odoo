@@ -417,7 +417,11 @@ scripts/preprod-release all /absolute/path/to/usl-online-dump
 It synchronizes the pinned OCA commits, builds a commit-tagged self-contained
 image, reconstructs `odoo_dev`, records the dump/image/module identity in the
 database, starts the no-bind-mount runtime and runs the source, database,
-schema, image and service gates. Both regulatory live guards remain `0`.
+schema, image, service and direct-Paperless-identity gates. Both regulatory live
+guards remain `0`. The final gate intentionally waits for each enabled
+Documents persona to complete a first Pocket ID login in Paperless and for a
+Documents administrator to verify that individual mapping; rerun only `gate`
+after those human identity handshakes.
 
 The main checkout owns the default `usl-odoo-saas-19-2` Compose project.
 Linked worktrees must use a dedicated project and non-conflicting ports; every

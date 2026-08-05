@@ -181,6 +181,17 @@ database_identity() {
     < "$ROOT/scripts/odoo/release_identity.py"
 }
 
+documents_identity_boundary() {
+  release_compose --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    -e ODOO_DB_FILTER='^odoo_dev$' \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    --shell-interface=python \
+    < "$ROOT/scripts/odoo/documents_identity_boundary.py"
+}
+
 clean_install_database=odoo_release_clean_install
 
 cleanup_clean_install_database() {
@@ -287,6 +298,8 @@ release_gate() {
   scripts/check-product-migration-boundary
   USL_PRODUCT_BOUNDARY_PREPROD=1 scripts/check-product-database-boundary
   release_compose --profile paperless run --rm --no-deps paperless-preflight
+  documents_identity_boundary \
+    | tee "$ROOT/artifacts/release/documents-identity-boundary.json"
   database_identity 0 > "$ROOT/artifacts/release/database-identity.json"
 
   local container_id mounts runtime_image
