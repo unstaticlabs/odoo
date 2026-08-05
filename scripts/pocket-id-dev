@@ -163,20 +163,60 @@ sync_paperless_identities() {
 
 configure_odoo() {
   local module="${1:-usl_pocketid}"
-  local status=0 update_modules
+  local status=0 module_name module_state modules_csv seen_modules
+  local -a init_modules requested_modules update_modules module_args
   provision
   start_paperless_runtime
+  "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
-  update_modules="usl_pocketid"
+  modules_csv="usl_pocketid"
   if [[ "$module" != "usl_pocketid" ]]; then
-    update_modules="$update_modules,$module"
+    modules_csv="$modules_csv,$module"
+  fi
+  seen_modules=","
+  IFS=',' read -r -a requested_modules <<< "$modules_csv"
+  for module_name in "${requested_modules[@]}"; do
+    if [[ ! "$module_name" =~ ^[a-z0-9_]+$ ]]; then
+      printf 'Refusing unsafe Odoo module name: %s\n' "$module_name" >&2
+      return 2
+    fi
+    if [[ "$seen_modules" == *",$module_name,"* ]]; then
+      continue
+    fi
+    seen_modules="${seen_modules}${module_name},"
+    module_state="$(
+      "${COMPOSE[@]}" exec -T db \
+        psql -X -qAt -U "${ODOO_DB_USER:-odoo}" \
+        -d "$ODOO_INIT_DB" \
+        -c "SELECT state FROM ir_module_module WHERE name = '$module_name'"
+    )"
+    case "$module_state" in
+      installed)
+        update_modules+=("$module_name")
+        ;;
+      ""|uninstalled)
+        init_modules+=("$module_name")
+        ;;
+      *)
+        printf 'Module %s has unresolved state %s.\n' \
+          "$module_name" "$module_state" >&2
+        return 2
+        ;;
+    esac
+  done
+  module_args=()
+  if ((${#init_modules[@]})); then
+    module_args+=("--init=$(IFS=,; printf '%s' "${init_modules[*]}")")
+  fi
+  if ((${#update_modules[@]})); then
+    module_args+=("--update=$(IFS=,; printf '%s' "${update_modules[*]}")")
   fi
   if "${COMPOSE[@]}" --profile init run --rm \
     -e ODOO_INIT_DB="$ODOO_INIT_DB" \
     init-db odoo \
     --config=/etc/odoo/odoo.conf \
     --database="$ODOO_INIT_DB" \
-    --update="$update_modules" \
+    "${module_args[@]}" \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn; then
