@@ -50,9 +50,17 @@ case "$PROJECT" in
     ;;
 esac
 case "$DATABASE" in
-  ""|odoo_dev|*[!A-Za-z0-9_]*)
+  ""|*[!A-Za-z0-9_]*)
     printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
     exit 2
+    ;;
+  odoo_dev)
+    if [[ "$ENVIRONMENT" != "preprod" \
+        || "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" != "1" \
+        || "$PROJECT" != usl-odoo-preprod-* ]]; then
+      printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
+      exit 2
+    fi
     ;;
 esac
 usl_verify_compose_scope "$PROJECT" "$ROOT" "Documents stack"
@@ -161,10 +169,18 @@ validate_config() {
       return 1
     }
   fi
-  if [[ "$ENVIRONMENT" = "preprod" ]] \
-    && ! grep -Fq "USL_DEPLOYMENT_ENV: preproduction" <<<"$config"; then
-    printf 'Pre-production target must set USL_DEPLOYMENT_ENV=preproduction.\n' >&2
-    return 1
+  if [[ "$ENVIRONMENT" = "preprod" ]]; then
+    if [[ "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
+        && "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" = "1" \
+        && "$PROJECT" = usl-odoo-preprod-* ]]; then
+      grep -Fq "USL_DEPLOYMENT_ENV: qa" <<<"$config" || {
+        printf 'Local pre-production recovery must keep QA live guards.\n' >&2
+        return 1
+      }
+    elif ! grep -Fq "USL_DEPLOYMENT_ENV: preproduction" <<<"$config"; then
+      printf 'Pre-production target must set USL_DEPLOYMENT_ENV=preproduction.\n' >&2
+      return 1
+    fi
   fi
 }
 

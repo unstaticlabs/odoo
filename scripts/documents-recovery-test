@@ -36,9 +36,17 @@ if [[ "${USL_DOCUMENTS_SYNTHETIC_RECOVERY:-0}" != "1" ]]; then
   exit 2
 fi
 case "$SOURCE_DATABASE" in
-  ""|odoo_dev|*[!A-Za-z0-9_]*)
+  ""|*[!A-Za-z0-9_]*)
     printf 'Refusing unsafe source database: %s\n' "$SOURCE_DATABASE" >&2
     exit 2
+    ;;
+  odoo_dev)
+    if [[ "$ENVIRONMENT" != "preprod" \
+        || "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" != "1" \
+        || "$SOURCE_PROJECT" != usl-odoo-preprod-* ]]; then
+      printf 'Refusing unsafe source database: %s\n' "$SOURCE_DATABASE" >&2
+      exit 2
+    fi
     ;;
 esac
 case "$RESTORE_PROJECT" in
@@ -52,7 +60,7 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${RESTORE_PROJECT}-"; then
   exit 2
 fi
 
-scripts/documents-stack "$ENVIRONMENT" preflight >/dev/null
+scripts/documents-stack "$ENVIRONMENT" preflight
 SOURCE_ENV_FILES=(--env-file "$ENV_FILE")
 if [[ -n "$SSO_ENV_FILE" ]]; then
   SOURCE_ENV_FILES+=(--env-file "$SSO_ENV_FILE")
@@ -103,6 +111,15 @@ SOURCE_PAPERLESS_CORS_ALLOWED_HOSTS="$(
 SOURCE_PAPERLESS_CSRF_TRUSTED_ORIGINS="$(
   sed -n 's/^PAPERLESS_CSRF_TRUSTED_ORIGINS=//p' "$ENV_FILE" | tail -n 1
 )"
+if [[ "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" ]]; then
+  SOURCE_ODOO_HTTP_PORT="${ODOO_HTTP_PORT:-$SOURCE_ODOO_HTTP_PORT}"
+  SOURCE_ODOO_GEVENT_PORT="${ODOO_GEVENT_PORT:-$SOURCE_ODOO_GEVENT_PORT}"
+  SOURCE_PAPERLESS_HTTP_PORT="${PAPERLESS_HTTP_PORT:-$SOURCE_PAPERLESS_HTTP_PORT}"
+  SOURCE_PAPERLESS_PUBLIC_URL="${PAPERLESS_PUBLIC_URL:-$SOURCE_PAPERLESS_PUBLIC_URL}"
+  SOURCE_PAPERLESS_PUBLIC_BASE_URL="${PAPERLESS_PUBLIC_BASE_URL:-$SOURCE_PAPERLESS_PUBLIC_BASE_URL}"
+  SOURCE_PAPERLESS_CORS_ALLOWED_HOSTS="${PAPERLESS_CORS_ALLOWED_HOSTS:-$SOURCE_PAPERLESS_CORS_ALLOWED_HOSTS}"
+  SOURCE_PAPERLESS_CSRF_TRUSTED_ORIGINS="${PAPERLESS_CSRF_TRUSTED_ORIGINS:-$SOURCE_PAPERLESS_CSRF_TRUSTED_ORIGINS}"
+fi
 BACKUP_ID="documents-restore-$(date -u +%Y%m%dT%H%M%SZ)"
 PRESERVE_RECOVERY="${USL_DOCUMENTS_PRESERVE_RECOVERY:-0}"
 [[ "$PRESERVE_RECOVERY" =~ ^[01]$ ]] || {
@@ -184,6 +201,12 @@ trap 'exit 143' TERM
 
 EXPECTED_DOCUMENTS="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM usl_document')"
 EXPECTED_RELATIONSHIPS="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM usl_document_link WHERE active')"
+EXPECTED_COMPANIES="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM res_company')"
+EXPECTED_INTERNAL_USERS="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM res_users WHERE active AND NOT share')"
+EXPECTED_MOVES="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM account_move')"
+EXPECTED_MOVE_LINES="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc 'SELECT count(*) FROM account_move_line')"
+EXPECTED_POSTED_DEBIT="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc "SELECT COALESCE(sum(line.debit), 0) FROM account_move_line line JOIN account_move move ON move.id = line.move_id WHERE move.state = 'posted'")"
+EXPECTED_POSTED_CREDIT="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc "SELECT COALESCE(sum(line.credit), 0) FROM account_move_line line JOIN account_move move ON move.id = line.move_id WHERE move.state = 'posted'")"
 
 "${SOURCE[@]}" exec -T paperless-webserver \
   mkdir -p "/usr/src/paperless/export/$BACKUP_ID"
@@ -215,6 +238,16 @@ restore_source
   < "$ROOT/scripts/odoo/documents_integrity_manifest.py" \
   > "$ARTIFACT_DIR/integrity.json"
 sha256sum "$ARTIFACT_DIR/integrity.json" >> "$ARTIFACT_DIR/SHA256SUMS"
+EXPECTED_SOURCE_INTEGRITY_OK="$(
+  python3 -c \
+    'import json, sys; print(int(bool(json.load(open(sys.argv[1]))["integrity_ok"])))' \
+    "$ARTIFACT_DIR/integrity.json"
+)"
+EXPECTED_PERMISSION_SYNC_FAILURES="$(
+  python3 -c \
+    'import json, sys; print(",".join(map(str, sorted(json.load(open(sys.argv[1]))["permission_sync_failures"]))))' \
+    "$ARTIFACT_DIR/integrity.json"
+)"
 
 export ODOO_HTTP_PORT="${USL_DOCUMENTS_RESTORE_ODOO_HTTP_PORT:-18180}"
 export ODOO_GEVENT_PORT="${USL_DOCUMENTS_RESTORE_ODOO_GEVENT_PORT:-18172}"
@@ -269,6 +302,18 @@ curl --fail --silent "http://127.0.0.1:${PAPERLESS_HTTP_PORT}/api/" >/dev/null
   -e ODOO_INIT_DB="$RESTORED_DATABASE" \
   -e USL_EXPECTED_DOCUMENT_COUNT="$EXPECTED_DOCUMENTS" \
   -e USL_EXPECTED_RELATIONSHIP_COUNT="$EXPECTED_RELATIONSHIPS" \
+  -e USL_EXPECTED_COMPANY_COUNT="$EXPECTED_COMPANIES" \
+  -e USL_EXPECTED_INTERNAL_USER_COUNT="$EXPECTED_INTERNAL_USERS" \
+  -e USL_EXPECTED_MOVE_COUNT="$EXPECTED_MOVES" \
+  -e USL_EXPECTED_MOVE_LINE_COUNT="$EXPECTED_MOVE_LINES" \
+  -e USL_EXPECTED_POSTED_DEBIT="$EXPECTED_POSTED_DEBIT" \
+  -e USL_EXPECTED_POSTED_CREDIT="$EXPECTED_POSTED_CREDIT" \
+  -e USL_EXPECTED_RELEASE_COMMIT="${USL_EXPECTED_RELEASE_COMMIT:-}" \
+  -e USL_EXPECTED_RELEASE_IMAGE="${USL_EXPECTED_RELEASE_IMAGE:-}" \
+  -e USL_EXPECTED_SOURCE_INTEGRITY_OK="$EXPECTED_SOURCE_INTEGRITY_OK" \
+  -e USL_EXPECTED_PERMISSION_SYNC_FAILURES="$EXPECTED_PERMISSION_SYNC_FAILURES" \
+  -e USL_RECOVERY_ALLOW_SOURCE_INTEGRITY_FAILURE="${USL_RECOVERY_ALLOW_SOURCE_INTEGRITY_FAILURE:-0}" \
+  -e USL_RECOVERY_REQUIRE_RESTRICTED_FIXTURE="${USL_RECOVERY_REQUIRE_RESTRICTED_FIXTURE:-1}" \
   -e USL_BACKUP_ID="$BACKUP_ID" \
   init-db odoo shell \
   --config=/etc/odoo/odoo.conf \

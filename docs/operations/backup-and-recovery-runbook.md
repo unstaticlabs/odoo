@@ -41,6 +41,26 @@ Regularly restore into an isolated environment and verify:
 - integrations remain disabled until explicitly authorized;
 - the recovery point and any data gap are clearly stated.
 
+For the local immutable pre-production candidate, run:
+
+```bash
+scripts/preprod-release recovery-rehearsal /absolute/path/to/usl-online-dump
+```
+
+The release helper uses the existing coordinated Documents recovery mechanism
+instead of inventing a second backup format. Compared with a Documents-only QA
+fixture, this route also checks the reconstructed companies, enabled internal
+users, accounting move/line counts, balanced posted debit/credit totals and
+stored release commit/image. It is intentionally limited to the isolated
+pre-production Compose project and cleans its restored project and sensitive
+temporary backup after the proof.
+
+Before individual Paperless identities are mapped, recovery acceptance may
+preserve the source's exact known permission-failure set. It still rejects any
+new missing document, orphaned relationship, checksum mismatch or unmirrored
+Paperless record. This is recovery evidence only; the pre-production release
+gate remains fail-closed until the permission-failure set is empty.
+
 ## Incident recovery
 
 When recovery is required:

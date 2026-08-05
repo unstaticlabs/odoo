@@ -8,16 +8,21 @@ import json
 import os
 
 
-manifest = env["usl.document"].with_user(env.ref("base.user_admin")).integrity_manifest(
-    os.environ.get("USL_BACKUP_ID")
+manager_group = env.ref("usl_documents.group_documents_manager")
+manager = env["res.users"].sudo().search(
+    [("active", "=", True), ("all_group_ids", "in", manager_group.id)],
+    order="id",
+    limit=1,
 )
+if not manager:
+    raise RuntimeError("No active Documents administrator can create the manifest.")
+documents = env["usl.document"].with_user(manager)
+manifest = documents.integrity_manifest(os.environ.get("USL_BACKUP_ID"))
 if os.environ.get("USL_BACKUP_COMPLETION_STATUS"):
     env["ir.config_parameter"].sudo().set_str(
         "usl_documents.backup_completion_status",
         os.environ["USL_BACKUP_COMPLETION_STATUS"],
     )
     env.cr.commit()
-    manifest = env["usl.document"].with_user(
-        env.ref("base.user_admin")
-    ).integrity_manifest(os.environ.get("USL_BACKUP_ID"))
+    manifest = documents.integrity_manifest(os.environ.get("USL_BACKUP_ID"))
 print(json.dumps(manifest, indent=2, sort_keys=True))

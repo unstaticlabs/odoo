@@ -54,6 +54,8 @@ class ReleaseIdentityTest(unittest.TestCase):
         for relative_path in (
             "scripts/release_identity.py",
             "scripts/odoo/documents_identity_boundary.py",
+            "scripts/odoo/documents_integrity_manifest.py",
+            "scripts/odoo/documents_restore_acceptance.py",
             "scripts/odoo/release_identity.py",
             "scripts/odoo/product_database_boundary.py",
         ):
@@ -113,7 +115,13 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("documents_identity_boundary", release)
         self.assertIn("documents-identity-boundary.json", release)
         self.assertIn("database_identity 0", release)
+        self.assertIn("recovery-rehearsal", release)
+        self.assertIn("scripts/documents-recovery-test preprod", release)
         self.assertIn("Pre-production release gate: PASS", release)
+        self.assertLess(
+            release.index("database_identity 0"),
+            release.index("documents_identity_boundary \\\n    | tee"),
+        )
         for module_name in (
             "usl_accounting_restore",
             "usl_identity_restore",
