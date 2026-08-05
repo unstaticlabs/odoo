@@ -60,6 +60,7 @@ class PocketIDClientConfiguration:
     token_auth_method: str
     scopes: str
     fresh_passkey_supported: bool
+    discovery_snapshot: dict[str, object]
 
 
 def _env_enabled(name):
@@ -294,7 +295,10 @@ class AuthOauthProvider(models.Model):
             raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
         strict_required = _env_enabled("USL_POCKET_ID_SIGN_FRESH_REQUIRED")
         strict_supported = discovery["fresh_passkey_reauthentication_supported"]
-        if strict_required and not strict_supported:
+        # Strong Sign has no permissive mode. The explicit environment switch
+        # makes deployment intent auditable, while discovery proves that the
+        # selected Pocket ID build can actually enforce a fresh passkey.
+        if not strict_required or not strict_supported:
             raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
         if "login" not in discovery["prompt_values_supported"]:
             raise PocketIDAccessDenied(PocketIDReason.CONFIGURATION)
@@ -310,6 +314,17 @@ class AuthOauthProvider(models.Model):
             token_auth_method=token_auth_method,
             scopes="openid profile email groups",
             fresh_passkey_supported=strict_supported,
+            discovery_snapshot={
+                "issuer": discovery["issuer"],
+                "authorization_endpoint": discovery["authorization_endpoint"],
+                "token_endpoint": discovery["token_endpoint"],
+                "jwks_uri": discovery["jwks_uri"],
+                "prompt_values_supported": discovery["prompt_values_supported"],
+                "token_endpoint_auth_methods_supported": discovery[
+                    "token_endpoint_auth_methods_supported"
+                ],
+                "fresh_passkey_reauthentication_supported": strict_supported,
+            },
         )
 
     @api.model

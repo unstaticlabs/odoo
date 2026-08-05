@@ -482,6 +482,7 @@ def _sign_client_payload(values: dict[str, str]) -> dict[str, object]:
         "pkceSupported": True,
         "requiresReauthentication": True,
         "requiresPushedAuthorizationRequests": False,
+        "disableRefreshTokens": True,
         "skipConsent": True,
         "credentials": {"federatedIdentities": []},
         "launchURL": odoo_url,

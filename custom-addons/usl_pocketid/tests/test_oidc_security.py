@@ -102,6 +102,10 @@ class TestPocketIDOidcSecurity(TransactionCase):
             token_auth_method="client_secret_basic",
             scopes="openid profile email groups",
             fresh_passkey_supported=True,
+            discovery_snapshot={
+                "issuer": self.provider.usl_oidc_issuer,
+                "fresh_passkey_reauthentication_supported": True,
+            },
         )
 
     def test_signed_token_validates_required_oidc_claims(self):
@@ -226,6 +230,19 @@ class TestPocketIDOidcSecurity(TransactionCase):
         ):
             self.provider._usl_pocketid_sign_configuration()
         discovery["fresh_passkey_reauthentication_supported"] = True
+        disabled_environment = environment | {
+            "USL_POCKET_ID_SIGN_FRESH_REQUIRED": "0",
+        }
+        with (
+            patch.dict(os.environ, disabled_environment, clear=False),
+            patch.object(
+                type(self.provider),
+                "_usl_discover_pocketid",
+                return_value=discovery,
+            ),
+            self.assertRaises(PocketIDAccessDenied),
+        ):
+            self.provider._usl_pocketid_sign_configuration()
         with (
             patch.dict(os.environ, environment, clear=False),
             patch.object(
@@ -237,6 +254,11 @@ class TestPocketIDOidcSecurity(TransactionCase):
             configuration = self.provider._usl_pocketid_sign_configuration()
         self.assertEqual(configuration.client_id, "sign-client")
         self.assertTrue(configuration.fresh_passkey_supported)
+        self.assertTrue(
+            configuration.discovery_snapshot[
+                "fresh_passkey_reauthentication_supported"
+            ],
+        )
 
     def test_login_link_uses_session_bound_state_nonce_and_pkce(self):
         self.env["auth.oauth.provider"].search(

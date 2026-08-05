@@ -463,7 +463,19 @@ class StrongSignController(http.Controller):
                 "oidc_subject": claims["sub"],
                 "oidc_auth_time": auth_time,
                 "oidc_claims_summary": summary,
+                "oidc_discovery_snapshot": configuration.discovery_snapshot,
                 "oidc_jwks_snapshot": {"keys": keys},
+                "oidc_validation_result": {
+                    "status": "valid_fresh_passkey",
+                    "issuer": configuration.issuer,
+                    "audience": configuration.client_id,
+                    "required_group": configuration.required_group,
+                    "authentication_method": "phr",
+                    "nonce_sha256": hashlib.sha256(
+                        ceremony.oidc_nonce.encode(),
+                    ).hexdigest(),
+                    "validated_at": fields.Datetime.to_string(fields.Datetime.now()),
+                },
                 "oidc_id_token": id_token,
             },
         )
@@ -667,8 +679,9 @@ class StrongSignController(http.Controller):
                 "subject_fingerprint": enrollment.pocket_subject_fingerprint,
                 "auth_time": fields.Datetime.to_string(ceremony.oidc_auth_time),
                 "claims": ceremony.oidc_claims_summary,
+                "discovery": ceremony.oidc_discovery_snapshot,
                 "jwks": ceremony.oidc_jwks_snapshot,
-                "validation": "valid_fresh_passkey",
+                "validation": ceremony.oidc_validation_result,
             },
         )
         signer.request_id._create_evidence(

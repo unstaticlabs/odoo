@@ -140,8 +140,11 @@ and no analytics. During each signing ceremony:
 7. Odoo invalidates the ceremony, terminates the worker and independently
    validates the persisted PDF.
 
-The signed ID token, bounded claims summary, JWKS snapshot and validation
-result are retained as restricted evidence; access and refresh tokens are not.
+The signed ID token, bounded claims summary, sanitized discovery and JWKS
+snapshots, and explicit validation result are retained as restricted evidence;
+access and refresh tokens are not.
+The dedicated Sign client does not advertise the refresh-token grant, so
+Pocket ID does not issue or store a refresh token for this ceremony.
 The distributable/Paperless dossier contains the token hash and sanitized
 validation summary, not the raw identity token; evidence reviewers can inspect
 the raw signed token in Odoo.

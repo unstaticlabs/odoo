@@ -321,7 +321,9 @@ class SignCeremony(models.Model):
     oidc_subject = fields.Char(readonly=True, copy=False)
     oidc_auth_time = fields.Datetime(readonly=True, copy=False)
     oidc_claims_summary = fields.Json(readonly=True, copy=False)
+    oidc_discovery_snapshot = fields.Json(readonly=True, copy=False)
     oidc_jwks_snapshot = fields.Json(readonly=True, copy=False)
+    oidc_validation_result = fields.Json(readonly=True, copy=False)
     oidc_id_token = fields.Text(
         readonly=True,
         copy=False,
