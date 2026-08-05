@@ -13,9 +13,13 @@ class TestSignRestore(TransactionCase):
         for item_type in ("signature", "initials", "name", "email", "phone", "company", "text", "textarea", "date"):
             self.assertTrue(self.env.ref(FIELD_XMLIDS[item_type]))
 
+    def test_template_without_supported_fields_requires_review(self):
+        commands, review = self.env["usl.sign.restore.run"]._template_items([])
+        self.assertFalse(commands)
+        self.assertIn("prepare this template before reuse", review[0])
+
     def test_completion_pair_requires_exact_signed_and_certificate_files(self):
         signed, certificate = UslSignRestoreRun._completion_pair([{"name": "signed.pdf"}, {"name": "completion certificate.pdf"}])
         self.assertEqual(signed["name"], "signed.pdf")
         self.assertEqual(certificate["name"], "completion certificate.pdf")
         self.assertEqual(UslSignRestoreRun._completion_pair([{"name": "signed.pdf"}]), (None, None))
-

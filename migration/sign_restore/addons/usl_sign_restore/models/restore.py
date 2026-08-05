@@ -278,8 +278,7 @@ class UslSignRestoreRun(models.Model):
             {
                 "name": source_text(signer.get("partner_name")) or email,
                 "email": email,
-                "phone": signer.get("partner_phone"),
-                "mobile": signer.get("sms_number"),
+                "phone": signer.get("sms_number") or signer.get("partner_phone"),
             }
         )
 
@@ -314,6 +313,10 @@ class UslSignRestoreRun(models.Model):
                         "placeholder": source_text(row.get("name")),
                     }
                 )
+            )
+        if not commands:
+            review.append(
+                "No supported source fields were available; prepare this template before reuse."
             )
         return commands, review
 
