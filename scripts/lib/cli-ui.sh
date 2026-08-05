@@ -50,3 +50,38 @@ usl_cli_blocked() {
         done
     fi
 }
+
+# Docker Compose reads the repository .env automatically, but host-side helper
+# scripts do not. Read only the four numeric UI ports so command summaries and
+# final URLs describe the same runtime Compose will start. Explicit shell
+# variables keep precedence over local files.
+usl_cli_load_local_port_defaults() {
+    local repository_root="$1"
+    local file key value
+    local keys=(
+        ODOO_HTTP_PORT
+        ODOO_GEVENT_PORT
+        POCKET_ID_HTTP_PORT
+        PAPERLESS_HTTP_PORT
+    )
+
+    for file in "$repository_root/.env" "$repository_root/.pocket-id.env"; do
+        [[ -f "$file" ]] || continue
+        for key in "${keys[@]}"; do
+            [[ -z "${!key:-}" ]] || continue
+            value="$(
+                awk -F= -v key="$key" '
+                    $1 == key {
+                        sub(/^[^=]*=/, "")
+                        result = $0
+                    }
+                    END {print result}
+                ' "$file"
+            )"
+            [[ "$value" =~ ^[0-9]+$ ]] || continue
+            ((value >= 1 && value <= 65535)) || continue
+            printf -v "$key" '%s' "$value"
+            export "$key"
+        done
+    done
+}

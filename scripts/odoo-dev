@@ -5,6 +5,7 @@ export COMPOSE_IGNORE_ORPHANS=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+usl_cli_load_local_port_defaults "$ROOT"
 
 COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}}"
 CANONICAL_COMPOSE_PROJECT="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"

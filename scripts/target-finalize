@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
+usl_cli_load_local_port_defaults "$ROOT"
 
 usl_require_explicit_compose_project "Target finalization"
 usl_verify_compose_scope \

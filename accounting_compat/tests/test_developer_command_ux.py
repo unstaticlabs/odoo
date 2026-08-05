@@ -151,6 +151,43 @@ esac
         self.assertNotIn("compose up", docker_calls)
         self.assertNotIn("compose down", docker_calls)
 
+    def test_cli_port_defaults_match_compose_env_without_overriding_shell(self):
+        repository = self.temporary / "checkout"
+        repository.mkdir()
+        (repository / ".env").write_text(
+            "ODOO_HTTP_PORT=18069\nODOO_GEVENT_PORT=18072\n",
+            encoding="utf-8",
+        )
+        (repository / ".pocket-id.env").write_text(
+            "POCKET_ID_HTTP_PORT=11411\nPAPERLESS_HTTP_PORT=18010\n",
+            encoding="utf-8",
+        )
+        command = (
+            'source "$1"; '
+            'usl_cli_load_local_port_defaults "$2"; '
+            "printf '%s|%s|%s|%s' \"$ODOO_HTTP_PORT\" \"$ODOO_GEVENT_PORT\" "
+            '"$POCKET_ID_HTTP_PORT" "$PAPERLESS_HTTP_PORT"'
+        )
+
+        completed = subprocess.run(
+            [
+                "bash",
+                "-c",
+                command,
+                "test",
+                str(ROOT / "scripts/lib/cli-ui.sh"),
+                str(repository),
+            ],
+            cwd=ROOT,
+            env={**os.environ, "ODOO_HTTP_PORT": "28069"},
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout, "28069|18072|11411|18010")
+
     def test_doctor_reports_a_missing_target_before_recommending_deploy(self):
         rows = self.row("one", "db", "running", str(ROOT), "db")
 
