@@ -135,6 +135,32 @@ class ReleaseIdentityTest(unittest.TestCase):
         ):
             self.assertIn(module_name, boundary)
 
+    def test_preproduction_bootstrap_owns_its_isolated_identity(self):
+        release = (ROOT / "scripts" / "preprod-release").read_text(
+            encoding="utf-8",
+        )
+        bootstrap = (
+            'POCKET_ID_ENV_FILE="$POCKET_ID_ENV_FILE" '
+            "scripts/pocket-id-dev bootstrap"
+        )
+
+        self.assertIn(
+            'USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME"',
+            release,
+        )
+        self.assertIn(
+            'USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_HTTP_PORT"',
+            release,
+        )
+        self.assertIn(
+            'USL_POCKET_ID_DEV_PAPERLESS_PORT="$PAPERLESS_HTTP_PORT"',
+            release,
+        )
+        self.assertLess(
+            release.index("USL_POCKET_ID_DEV_COMPOSE_PROJECT"),
+            release.index(bootstrap),
+        )
+
     def test_documents_direct_access_gate_is_fail_closed(self):
         boundary = (
             ROOT / "scripts" / "odoo" / "documents_identity_boundary.py"
