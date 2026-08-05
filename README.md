@@ -418,10 +418,12 @@ It synchronizes the pinned OCA commits, builds a commit-tagged self-contained
 image, reconstructs `odoo_dev`, records the dump/image/module identity in the
 database, starts the no-bind-mount runtime and runs the source, database,
 schema, image, service and direct-Paperless-identity gates. Both regulatory live
-guards remain `0`. The final gate intentionally waits for each enabled
-Documents persona to complete a first Pocket ID login in Paperless and for a
-Documents administrator to verify that individual mapping; rerun only `gate`
-after those human identity handshakes.
+guards remain `0`. Target finalization provisions and verifies the individual
+Paperless identities and synchronizes document permissions without importing
+source credentials or relying on first login. The final gate checks that state;
+the separate browser acceptance uses `make login-link USER=<username>` for each
+persona on local HTTP QA. External HTTPS deployments require Pocket ID
+passkeys and must not retain the QA one-time-link exception.
 
 The main checkout owns the default `usl-odoo-saas-19-2` Compose project.
 Linked worktrees must use a dedicated project and non-conflicting ports; every

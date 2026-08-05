@@ -62,29 +62,44 @@ success. This explicit path is the only recovery helper allowed to use the
 local `odoo_dev` source database, and only when its Compose project has the
 isolated `usl-odoo-preprod-*` identity.
 
-If the human Paperless identity checkpoint is still open, the rehearsal also
-requires the restored permission-failure ID set to match the source recovery
-point exactly. That proves recovery without misrepresenting the candidate as
-ready: `gate` still fails until the three individual mappings synchronize the
-set to zero.
+The rehearsal requires the restored permission-failure ID set to match the
+source recovery point exactly. A qualified candidate has no permission
+failures because target finalization has already reconciled all governed
+Paperless identities and synchronized their object grants.
 
 ### Complete individual Paperless acceptance
 
-Pocket ID proves identity but deliberately does not create Paperless business
-authorization. After `start`, each enabled Documents persona must sign in to
-Paperless once with Pocket ID. Paperless creates the individual remote account
-through its supported OIDC flow. A Documents administrator then opens
-**Documents > Configuration > User access**, maps the Odoo user to that numeric
-Paperless user, and runs **Verify identity**. Verification checks the same
-immutable Pocket link and synchronizes every visible document object grant.
+Target finalization provisions each governed Paperless account through the
+supported application models, attaches the immutable Pocket subject, verifies
+the Odoo mapping, and synchronizes the exact document-object grants. It does
+not import source credentials, passwords or sessions and does not rely on a
+person's first Paperless login. **Documents > Configuration > User access** is
+the inspection surface; `make paperless-users` safely reapplies reconciliation
+after a governed identity, Documents role or company assignment changes.
 
-Run `scripts/preprod-release gate ...` after all personas complete this step.
-The gate writes `artifacts/release/documents-identity-boundary.json` and fails
-with the exact incomplete users. Do not seed Paperless users locally, reuse a
-shared administrator, mark mappings verified in SQL, or weaken this gate. A
-fresh `all` run may therefore stop at this intentional human identity
-checkpoint; complete the handshakes and rerun only `gate` against the unchanged
-qualified image and database.
+The local QA deployment is HTTP, so WebAuthn passkeys are unavailable. Exercise
+the real Pocket ID authorization-code flow with the one-hour, single-user links
+created by the existing Make target. Select the release environment explicitly
+from this linked worktree:
+
+```bash
+POCKET_ID_ENV_FILE="$PWD/.pocket-id-preprod.env" make login-link USER=valentin
+POCKET_ID_ENV_FILE="$PWD/.pocket-id-preprod.env" make login-link USER=roger
+POCKET_ID_ENV_FILE="$PWD/.pocket-id-preprod.env" make login-link USER=prosper
+```
+
+Open each link only in the intended person's isolated browser session, complete
+both Odoo and Paperless SSO journeys, and discard the link after use. Never put
+the URL in a commit, ticket, screenshot or evidence artifact. The release gate
+writes `artifacts/release/documents-identity-boundary.json` and fails with the
+exact incomplete or unsynchronized identities; the separate browser acceptance
+record proves that each person can actually authenticate and reaches only their
+authorized surfaces.
+
+Do not create Paperless users in SQL, reuse a shared administrator, or mark
+mappings verified manually. Passkeys become the required human authentication
+mechanism after deployment behind HTTPS; QA one-time links must not be carried
+into that deployment.
 
 ## External pre-production deployment
 
@@ -100,9 +115,11 @@ qualified image and database.
 4. Restore the qualified database/filestore/Paperless volumes together or run
    the deterministic reconstruction in an isolated rehearsal environment,
    then start the qualified image with `--pull never`.
-5. Complete each direct Documents persona's first Pocket ID login and verified
-   Paperless mapping, then repeat the database boundary, release-identity check,
-   direct-access boundary and critical browser journeys before admitting users.
+5. Reapply the governed Paperless identity plan, then repeat the database
+   boundary, release-identity check, direct-access boundary and critical browser
+   journeys before admitting users. Require each person to use their Pocket ID
+   passkey on the HTTPS deployment; the local QA one-time-link exception ends at
+   deployment.
 
 Pocket ID issuer URLs, TLS, registry credentials, production-grade secret
 storage, provider eligibility and the deliberately separate French
