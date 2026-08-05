@@ -29,7 +29,7 @@
     "attachments": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "the complete attachment ledger integrity-checks and assigns all 2,322 rows; Accounting, Projects, native identity/product/HR images, all legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, signing, Knowledge, preference, and AI actions remain gated"
+      "evidence": "the complete attachment ledger integrity-checks and assigns all 2,322 rows; Accounting, Projects, signing evidence, native identity/product/HR images, all legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, Knowledge, preference, and AI actions remain gated"
     },
     "documents": {
       "status": "implemented",
@@ -42,9 +42,9 @@
       "evidence": "no Community target and no approved lossless translation are implemented"
     },
     "signing": {
-      "status": "incomplete",
-      "disposition": "archive",
-      "evidence": "signed originals and audit evidence are not yet reconstructed"
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "the temporary Sign stage restores 11 template links, 8 completed requests, 11 signers and 32 immutable original/signed/completion/audit evidence objects; real-snapshot replay, hash validation, final uninstall and delivered-registry checks pass"
     },
     "hr": {
       "status": "implemented",

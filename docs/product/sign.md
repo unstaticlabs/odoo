@@ -62,3 +62,83 @@ inferred when the preserved evidence does not prove it.
 
 One-shot extraction and source mappings belong under `migration/`; no source
 identifier or reconstruction model enters the delivered registry.
+
+## Delivered application
+
+The top-level **Sign** application exposes Templates, Requests, My Signatures,
+Completed and Configuration. A template manager prepares PDF templates with
+signature, initials, free text, signer name, date, checkbox, company and role
+fields. Each field belongs to a signer role and uses top-left PDF coordinates;
+rotated pages are normalized before provider payloads are built. A used
+template is versioned when its document, layout, policy or timing changes.
+
+A request freezes its source PDF, SHA-256, template version, field layout,
+signers and assurance policy before provider submission. Its normal lifecycle
+is Draft → Ready → Sent → Viewed/Partially signed → Completed. Declined,
+Expired and Cancelled are terminal. Provider or evidence discrepancies enter
+Action required and retain a recovery instruction instead of falsely reaching
+Completed. A provider “done” event is insufficient: the final PDF and every
+expected signer audit trail must be retrieved, hashed and stored first.
+
+Standard and Verified ceremonies are embedded on the Odoo signer page.
+Qualified ceremonies use an explicit handoff page because the provider must
+control its identity journey. Single-role Standard templates may expose a
+reusable public link. The link collects a fresh name, email, optional mobile
+and consent for each submission, applies a hashed per-source rate limit, and
+queues provider creation after the HTTP transaction commits. It never reveals
+another signer’s data or reuses their request.
+
+Odoo owns invitation and reminder cadence. Due reminders target only currently
+eligible signers, respect signer order, and stop at the policy/template cap.
+Expiry, decline and cancellation create immutable JSON evidence. Completed
+PDF delivery to signers is a per-company opt-in; portal users may otherwise
+download only completed documents assigned to their commercial contact.
+
+Templates linked to a business model participate in the standard OCA action
+menu. Contacts additionally show their request count and current state. The
+request chatter records business milestones without exposing provider secrets.
+
+## Permissions and company isolation
+
+- **Sign User** creates and operates requests they own and signs requests
+  assigned to their contact.
+- **Template Manager** additionally manages templates and their layouts.
+- **Evidence Reviewer** reads company requests, immutable evidence and
+  provider-event diagnostics but cannot change ceremonies.
+- **Sign Administrator** manages assurance policies, provider configuration
+  and recovery actions.
+
+Company record rules apply to templates, policies, requests, signers,
+provider events, public submissions and evidence. Provider API credentials and
+webhook secrets are environment variables; they are never readable Odoo
+fields. Public and portal routes use opaque tokens, return generic unavailable
+states, and never accept a provider transaction identifier as authorization.
+
+## Historical Odoo Online records
+
+The temporary `migration/sign_restore` service reads the source database in a
+read-only transaction and verifies every filestore object against its stored
+SHA-1 and size. It maps source templates to the native editor and stores each
+original PDF, signed PDF, completion certificate and privacy-reduced audit log
+as a separate immutable evidence object. Two source pairs share the same
+company/name/PDF fingerprint, so 11 source template links intentionally
+converge on 9 native templates; the 8 completed requests and 11 signers remain
+distinct.
+
+Historical requests use the `odoo_online` provider code, are read-only and
+cannot be resent. Their requested process class is retained as Standard while
+achieved assurance and authentication method remain empty and
+`migration_assurance_unproven` remains true. Finalization uninstalls the
+temporary module and proves that request/evidence counts and document hashes
+did not change.
+
+## Known limitations
+
+The first live adapter is Yousign API v3; additional providers require a new
+adapter implementing the existing service contract. The application does not
+independently validate an eIDAS certificate chain: provider audit evidence and
+the achieved level reported by the provider remain distinct from Odoo’s PDF
+readability check. PDF forms outside the supported field catalogue, corrupt or
+encrypted PDFs, ambiguous historical contacts, and malformed historical
+coordinates require manual review. Reusable links are intentionally restricted
+to one-role Standard templates.

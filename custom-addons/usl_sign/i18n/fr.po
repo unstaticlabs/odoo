@@ -1,0 +1,372 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_sign
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-05 01:00+0000\n"
+"PO-Revision-Date: 2026-08-05 01:00+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:sign_oca.sign_oca_root_menu
+msgid "Sign"
+msgstr "Signature"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:sign_oca.sign_oca_template_menu
+msgid "Templates"
+msgstr "Modèles"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:usl_sign.signature_requests_menu
+msgid "Signature Requests"
+msgstr "Demandes de signature"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:usl_sign.my_signatures_menu
+msgid "My Signatures"
+msgstr "Mes signatures"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:usl_sign.completed_documents_menu
+msgid "Completed Documents"
+msgstr "Documents terminés"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:usl_sign.configuration_menu
+msgid "Configuration"
+msgstr "Configuration"
+
+#. module: usl_sign
+#: model:ir.ui.menu,name:usl_sign.sign_policy_menu
+msgid "Assurance Policies"
+msgstr "Politiques de niveau de signature"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Ready"
+msgstr "Prête"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Sent"
+msgstr "Envoyée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Viewed"
+msgstr "Consultée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Partially signed"
+msgstr "Partiellement signée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Completed"
+msgstr "Terminée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Declined"
+msgstr "Refusée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Expired"
+msgstr "Expirée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Cancelled"
+msgstr "Annulée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Action required"
+msgstr "Action requise"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Invitation sent"
+msgstr "Invitation envoyée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Signed"
+msgstr "Signée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "Standard"
+msgstr "Standard"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "Verified"
+msgstr "Vérifiée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "Qualified"
+msgstr "Qualifiée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "No security code"
+msgstr "Aucun code de sécurité"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "Email security code"
+msgstr "Code de sécurité par courriel"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "SMS security code"
+msgstr "Code de sécurité par SMS"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "Identity verification"
+msgstr "Vérification d’identité"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/policy.py:0
+msgid "Qualified identity verification"
+msgstr "Vérification d’identité qualifiée"
+
+#. module: usl_sign
+#: model:sign.oca.field,name:usl_sign.field_initials
+msgid "Initials"
+msgstr "Paraphe"
+
+#. module: usl_sign
+#: model:sign.oca.field,name:usl_sign.field_date
+msgid "Date"
+msgstr "Date"
+
+#. module: usl_sign
+#: model:sign.oca.field,name:usl_sign.field_company
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_sign
+#: model:sign.oca.field,name:usl_sign.field_role
+msgid "Role"
+msgstr "Rôle"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Original document"
+msgstr "Document original"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Signed document"
+msgstr "Document signé"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Provider audit trail"
+msgstr "Piste d’audit du prestataire"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Completion evidence"
+msgstr "Preuve de fin de processus"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Decline evidence"
+msgstr "Preuve de refus"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Cancellation evidence"
+msgstr "Preuve d’annulation"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/evidence.py:0
+msgid "Expiration evidence"
+msgstr "Preuve d’expiration"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "Review required"
+msgstr "Vérification requise"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "Signature"
+msgstr "Signature"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "Text"
+msgstr "Texte"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "Signer name"
+msgstr "Nom du signataire"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "Checkbox"
+msgstr "Case à cocher"
+
+#. module: usl_sign
+#: model:res.groups,name:usl_sign.group_sign_user
+msgid "Sign User"
+msgstr "Utilisateur de Signature"
+
+#. module: usl_sign
+#: model:res.groups,name:usl_sign.group_sign_template_manager
+msgid "Sign Template Manager"
+msgstr "Gestionnaire des modèles de signature"
+
+#. module: usl_sign
+#: model:res.groups,name:usl_sign.group_sign_reviewer
+msgid "Sign Evidence Reviewer"
+msgstr "Contrôleur des preuves de signature"
+
+#. module: usl_sign
+#: model:res.groups,name:usl_sign.group_sign_admin
+msgid "Sign Administrator"
+msgstr "Administrateur de Signature"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Historical requests are read-only and cannot be sent."
+msgstr "Les demandes historiques sont en lecture seule et ne peuvent pas être envoyées."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Historical signature requests are read-only evidence."
+msgstr "Les demandes de signature historiques constituent des preuves en lecture seule."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_oca_request_form
+msgid "Historical evidence."
+msgstr "Preuve historique."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_oca_request_form
+msgid "The achieved assurance and authentication method could not be established from the preserved Odoo Online evidence. This completed request is read-only and cannot be sent again."
+msgstr "Le niveau d’assurance atteint et la méthode d’authentification n’ont pas pu être établis à partir des preuves Odoo Online conservées. Cette demande terminée est en lecture seule et ne peut pas être renvoyée."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Signature is complete; retrieve the pending evidence."
+msgstr "La signature est terminée; récupérez les preuves en attente."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "The PDF is encrypted. Upload an unlocked PDF to continue."
+msgstr "Le PDF est chiffré. Chargez un PDF déverrouillé pour continuer."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "The uploaded file is not a readable PDF. Replace it and try again."
+msgstr "Le fichier chargé n’est pas un PDF lisible. Remplacez-le puis réessayez."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "A reusable public link requires exactly one signer role."
+msgstr "Un lien public réutilisable exige exactement un rôle de signataire."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/template.py:0
+msgid "Review and correct this template before enabling a public link."
+msgstr "Vérifiez et corrigez ce modèle avant d’activer un lien public."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+msgid "This signing link is invalid or no longer available."
+msgstr "Ce lien de signature est invalide ou n’est plus disponible."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+msgid "This signing link has expired."
+msgstr "Ce lien de signature a expiré."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+msgid "Enter your full name."
+msgstr "Saisissez votre nom complet."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+msgid "Enter a valid email address."
+msgstr "Saisissez une adresse électronique valide."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+msgid "Confirm that the information belongs to you."
+msgstr "Confirmez que ces informations vous appartiennent."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+msgid "Too many attempts. Please try again later."
+msgstr "Trop de tentatives. Veuillez réessayer plus tard."
