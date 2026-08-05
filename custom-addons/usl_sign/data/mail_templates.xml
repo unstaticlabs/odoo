@@ -3,15 +3,37 @@
     <record id="mail_template_sign_invitation" model="mail.template">
         <field name="name">Sign: signature invitation</field>
         <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
-        <field name="subject">Signature requested: {{ object.request_id.name }}</field>
-        <field name="email_from">{{ object.request_id.user_id.email_formatted or user.email_formatted }}</field>
+        <field name="subject">Action requested by {{ object.request_id.company_id.name }}</field>
+        <field name="email_from">{{ object.request_id.company_id.email_formatted or object.request_id.user_id.email_formatted or user.email_formatted }}</field>
         <field name="email_to">{{ object.partner_id.email }}</field>
         <field name="lang">{{ object.partner_id.lang }}</field>
         <field name="body_html" type="html">
             <div style="font-family: Arial, sans-serif; font-size: 14px;">
                 <p>Hello <t t-out="object.partner_id.name"/>,</p>
-                <p><t t-out="object.request_id.user_id.name"/> has asked you to review and sign <strong t-out="object.request_id.name"/>.</p>
+                <p><t t-out="object.request_id.company_id.name"/> has asked you to review and sign <strong t-out="object.request_id.name"/>.</p>
                 <p t-if="object.request_id.responsible_message" t-out="object.request_id.responsible_message"/>
+                <p>
+                    <a t-att-href="object._absolute_access_url()"
+                       style="background:#714B67;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px;display:inline-block;">
+                        Review and sign
+                    </a>
+                </p>
+                <p>This personal link expires with the request and must not be forwarded.</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+    <record id="mail_template_sign_reminder" model="mail.template">
+        <field name="name">Sign: signature reminder</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
+        <field name="subject">Action requested by {{ object.request_id.company_id.name }}</field>
+        <field name="email_from">{{ object.request_id.company_id.email_formatted or object.request_id.user_id.email_formatted or user.email_formatted }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: Arial, sans-serif; font-size: 14px;">
+                <p>Hello <t t-out="object.partner_id.name"/>,</p>
+                <p><t t-out="object.request_id.company_id.name"/> is waiting for your review and signature.</p>
                 <p>
                     <a t-att-href="object._absolute_access_url()"
                        style="background:#714B67;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px;display:inline-block;">

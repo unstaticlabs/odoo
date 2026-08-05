@@ -14,3 +14,5 @@ access_sign_evidence_admin,sign.evidence.admin,model_usl_sign_evidence,group_sig
 access_sign_provider_event_reviewer,sign.provider.event.reviewer,model_usl_sign_provider_event,group_sign_reviewer,1,0,0,0
 access_sign_provider_event_admin,sign.provider.event.admin,model_usl_sign_provider_event,group_sign_admin,1,1,1,0
 access_sign_request_log_reviewer,sign.request.log.reviewer,sign_oca.model_sign_oca_request_log,group_sign_reviewer,1,0,0,0
+access_sign_public_submission_reviewer,sign.public.submission.reviewer,model_usl_sign_public_submission,group_sign_reviewer,1,0,0,0
+access_sign_public_submission_admin,sign.public.submission.admin,model_usl_sign_public_submission,group_sign_admin,1,1,1,0

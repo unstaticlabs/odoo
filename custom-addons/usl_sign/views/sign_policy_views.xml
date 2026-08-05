@@ -35,6 +35,7 @@
                             <field name="public_link_allowed"/>
                             <field name="expiration_days"/>
                             <field name="reminder_days"/>
+                            <field name="max_reminders"/>
                             <field name="active"/>
                         </group>
                     </group>
@@ -51,4 +52,3 @@
         <field name="view_mode">list,form</field>
     </record>
 </odoo>
-

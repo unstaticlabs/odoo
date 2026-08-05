@@ -12,8 +12,9 @@
             <xpath expr="//form/header" position="replace">
                 <header>
                     <button name="action_mark_ready" type="object" string="Review Request" class="btn-primary" invisible="state != 'draft'" groups="usl_sign.group_sign_user"/>
-                    <button name="action_send" type="object" string="Send for Signature" class="btn-primary" invisible="state not in ['ready', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <button name="action_send" type="object" string="Send for Signature" class="btn-primary" invisible="state not in ['ready', 'action_required'] or not provider_ready" groups="usl_sign.group_sign_user"/>
                     <button name="action_reconcile" type="object" string="Refresh Status" invisible="state not in ['sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <button name="action_send_reminder" type="object" string="Send Reminder" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders" groups="usl_sign.group_sign_user"/>
                     <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and revoke every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,ready,sent,viewed,partial,completed,action_required" readonly="1"/>
                 </header>
@@ -54,6 +55,9 @@
                 <field name="authentication_method" readonly="1"/>
                 <field name="expires_at" readonly="state not in ['draft', 'ready']"/>
                 <field name="reminder_days" readonly="state not in ['draft', 'ready']"/>
+                <field name="max_reminders" readonly="state not in ['draft', 'ready']"/>
+                <field name="reminder_count" readonly="1" invisible="state in ['draft', 'ready']"/>
+                <field name="last_reminder_at" readonly="1" invisible="not last_reminder_at"/>
                 <field name="signing_order" readonly="state not in ['draft', 'ready']"/>
                 <field name="responsible_message" readonly="state not in ['draft', 'ready']" placeholder="Optional concise note for signers"/>
                 <field name="template_version" invisible="not template_id" readonly="1"/>
@@ -67,8 +71,14 @@
             </xpath>
             <xpath expr="//field[@name='signer_ids']/list/field[@name='signed_on']" position="before">
                 <field name="state" readonly="1"/>
+                <field name="reminder_count" optional="hide" readonly="1"/>
+                <field name="decline_reason" optional="hide" readonly="1"/>
             </xpath>
             <xpath expr="//sheet" position="inside">
+                <field name="provider_ready" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="provider_ready or state not in ['draft', 'ready', 'action_required']">
+                    <field name="provider_setup_message" readonly="1" nolabel="1"/>
+                </div>
                 <notebook>
                     <page string="Evidence" name="usl_evidence" invisible="state not in ['completed', 'declined', 'expired', 'cancelled', 'action_required']">
                         <group>

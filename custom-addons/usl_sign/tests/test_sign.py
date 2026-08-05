@@ -19,6 +19,7 @@ class FakeProvider:
         self.fields = []
         self.calls = []
         self.fail_create_once = False
+        self.fail_audit = False
 
     def create_request(self, payload):
         self.calls.append(("create_request", payload))
@@ -98,6 +99,8 @@ class FakeProvider:
 
     def download_audit_trail(self, request_id, signer_id):
         self.calls.append(("download_audit_trail", request_id, signer_id))
+        if self.fail_audit:
+            raise ProviderError("Audit evidence is temporarily unavailable.", retryable=True)
         return self.pdf
 
 
@@ -155,13 +158,40 @@ class TestUslSign(TransactionCase):
             ],
         }
         vals.update(extra)
-        return self.env["sign.oca.request"].create(vals)
+        return self.env["sign.oca.request"].create(vals).with_context(
+            usl_sign_skip_provider_ready=True
+        )
 
     def _provider_patch(self, provider):
         return patch.multiple(
             "odoo.addons.usl_sign.models.provider",
             get_provider=lambda *args, **kwargs: provider,
         )
+
+    def _template(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Public acknowledgement",
+                "data": b64encode(self.pdf),
+                "filename": "acknowledgement.pdf",
+                "company_id": self.company.id,
+                "policy_id": self.policy.id,
+            }
+        )
+        self.env["sign.oca.template.item"].create(
+            {
+                "template_id": template.id,
+                "field_id": self.signature_field.id,
+                "role_id": self.role.id,
+                "page": 1,
+                "position_x": 60,
+                "position_y": 75,
+                "width": 20,
+                "height": 5,
+                "required": True,
+            }
+        )
+        return template
 
     def test_full_provider_lifecycle_and_immutable_evidence(self):
         sign_request = self._request()
@@ -213,6 +243,164 @@ class TestUslSign(TransactionCase):
             self.assertEqual(sign_request.state, "sent")
             creates = [call for call in provider.calls if call[0] == "create_request"]
             self.assertEqual(len(creates), 1)
+
+    def test_provider_done_waits_for_complete_evidence(self):
+        sign_request = self._request()
+        provider = FakeProvider(self.pdf)
+        provider.fail_audit = True
+        with patch.dict(
+            os.environ, {"USL_YOUSIGN_SANDBOX_API_KEY": "test-key"}
+        ), self._provider_patch(provider):
+            sign_request.action_send()
+            provider.request["status"] = "done"
+            provider.request["signers"][0]["status"] = "signed"
+            sign_request.action_reconcile()
+        self.assertEqual(sign_request.state, "action_required")
+        self.assertEqual(sign_request.evidence_status, "missing")
+        self.assertTrue(sign_request.final_data)
+
+    def test_reminders_are_due_once_and_capped(self):
+        sign_request = self._request(
+            state="sent",
+            sent_at="2026-08-01 00:00:00",
+            reminder_days=1,
+            max_reminders=2,
+        )
+        signer = sign_request.signer_ids
+        signer.write({"state": "notified"})
+        signer._portal_ensure_token()
+        sign_request._send_due_reminders()
+        self.assertEqual(sign_request.reminder_count, 1)
+        self.assertEqual(signer.reminder_count, 1)
+        sign_request._send_due_reminders()
+        self.assertEqual(sign_request.reminder_count, 1)
+        sign_request.action_send_reminder()
+        self.assertEqual(sign_request.reminder_count, 2)
+        with self.assertRaises(ValidationError):
+            sign_request.action_send_reminder()
+
+    def test_public_submission_is_independent_and_idempotent(self):
+        template = self._template()
+        provider = FakeProvider(self.pdf)
+        environment = {
+            "USL_YOUSIGN_SANDBOX_API_KEY": "test-key",
+            "USL_YOUSIGN_SANDBOX_WEBHOOK_SECRET": "test-secret",
+        }
+        with patch.dict(os.environ, environment), self._provider_patch(provider):
+            self.company.invalidate_recordset(
+                [
+                    "sign_yousign_configured",
+                    "sign_yousign_webhook_configured",
+                    "sign_provider_ready",
+                ]
+            )
+            template.action_enable_public_link()
+            submission = self.env["usl.sign.public.submission"]._create_submission(
+                template,
+                {"name": "Public Signer", "email": "public@example.test"},
+                "a" * 40,
+                "source-hash",
+            )
+            duplicate = self.env["usl.sign.public.submission"]._create_submission(
+                template,
+                {"name": "Duplicate", "email": "duplicate@example.test"},
+                "a" * 40,
+                "source-hash",
+            )
+            self.assertEqual(submission, duplicate)
+            self.assertEqual(
+                self.env["sign.oca.request"].search_count(
+                    [("template_id", "=", template.id)]
+                ),
+                1,
+            )
+            submission._process_pending()
+        self.assertEqual(submission.state, "sent")
+        self.assertEqual(submission.request_id.state, "sent")
+
+    def test_decline_and_expiration_preserve_terminal_evidence(self):
+        sign_request = self._request(
+            provider_transaction_id="request-terminal",
+            provider_environment="sandbox",
+            state="sent",
+        )
+        signer = sign_request.signer_ids
+        signer.write(
+            {
+                "provider_signer_id": "signer-terminal",
+                "state": "notified",
+                "access_token": "secure-token",
+            }
+        )
+        sign_request._apply_provider_event(
+            {
+                "event_id": "decline-event",
+                "event_name": "signer.declined",
+                "event_time": "1785916800",
+                "data": {
+                    "signer": {
+                        "id": "signer-terminal",
+                        "signature_request_id": "request-terminal",
+                        "decline_reason": "Terms not accepted",
+                    }
+                },
+            }
+        )
+        self.assertEqual(sign_request.state, "declined")
+        self.assertEqual(signer.decline_reason, "Terms not accepted")
+        self.assertTrue(signer.access_revoked)
+        self.assertIn("decline", sign_request.evidence_ids.mapped("kind"))
+
+        expiring = self._request(
+            state="sent", expires_at="2026-08-01 00:00:00"
+        )
+        expiring.signer_ids.write({"state": "notified"})
+        expiring._expire_request()
+        self.assertEqual(expiring.state, "expired")
+        self.assertEqual(expiring.signer_ids.state, "expired")
+        self.assertIn("expiration", expiring.evidence_ids.mapped("kind"))
+
+    def test_pdf_validation_and_rotated_page_coordinates(self):
+        malformed = self._request(data=b64encode(b"not a pdf"))
+        with self.assertRaisesRegex(ValidationError, "not a readable PDF"):
+            malformed._validate_source_pdf()
+
+        encrypted_stream = BytesIO()
+        encrypted_writer = PdfWriter()
+        encrypted_writer.add_blank_page(width=595, height=842)
+        encrypted_writer.encrypt("secret")
+        encrypted_writer.write(encrypted_stream)
+        encrypted = self._request(data=b64encode(encrypted_stream.getvalue()))
+        with self.assertRaisesRegex(ValidationError, "encrypted"):
+            encrypted._validate_source_pdf()
+
+        rotated_stream = BytesIO()
+        rotated_writer = PdfWriter()
+        rotated_writer.add_blank_page(width=595, height=842)
+        rotated_page = rotated_writer.add_blank_page(width=595, height=842)
+        rotated_page.rotate(90)
+        rotated_writer.write(rotated_stream)
+        rotated = self._request(data=b64encode(rotated_stream.getvalue()))
+        rotated.with_context(usl_sign_freeze=True).write(
+            {"original_data": rotated.data}
+        )
+        self.assertEqual(rotated._pdf_page_metrics(), [(595.0, 842.0), (842.0, 595.0)])
+        payload = rotated._field_payload(
+            {
+                "field_id": self.signature_field.id,
+                "page": 2,
+                "position_x": 50,
+                "position_y": 50,
+                "width": 20,
+                "height": 10,
+                "required": True,
+            },
+            rotated.signer_ids,
+            rotated._pdf_page_metrics(),
+        )
+        self.assertEqual(payload["page"], 2)
+        self.assertLessEqual(payload["x"] + payload["width"], 842)
+        self.assertLessEqual(payload["y"] + payload["height"], 595)
 
     def test_event_idempotency_and_out_of_order_protection(self):
         sign_request = self._request(

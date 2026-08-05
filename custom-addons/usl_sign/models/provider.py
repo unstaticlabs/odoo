@@ -102,12 +102,9 @@ class SignRequestProvider(models.Model):
                         "expiration_date": expiration.isoformat()
                         if expiration
                         else None,
-                        "reminder_settings": {
-                            "interval_in_days": self.reminder_days,
-                            "max_occurrences": 5,
-                        }
-                        if self.reminder_days
-                        else None,
+                        # Odoo owns branded invitations and reminder
+                        # idempotency; provider delivery remains disabled.
+                        "reminder_settings": None,
                     }
                 )
             self.with_context(usl_sign_transition=True).write(
@@ -203,6 +200,11 @@ class SignRequestProvider(models.Model):
             "info": self._partner_info(signer.partner_id),
             "signature_level": ASSURANCE_TO_YOUSIGN[self.requested_assurance],
             "delivery_mode": "none",
+            "redirect_urls": {
+                "success": f"{self.get_base_url()}/sign/result/success",
+                "error": f"{self.get_base_url()}/sign/result/error",
+                "declined": f"{self.get_base_url()}/sign/result/declined",
+            },
         }
         if self.authentication_method in {"no_otp", "otp_email", "otp_sms"}:
             payload["signature_authentication_mode"] = self.authentication_method
@@ -259,10 +261,16 @@ class SignRequestProvider(models.Model):
 
     def _pdf_page_metrics(self):
         reader = PdfReader(BytesIO(b64decode(self.original_data)))
-        return [
-            (float(page.mediabox.width), float(page.mediabox.height))
-            for page in reader.pages
-        ]
+        metrics = []
+        for page in reader.pages:
+            width = float(page.mediabox.width)
+            height = float(page.mediabox.height)
+            rotation = int(page.get("/Rotate", 0) or 0) % 360
+            # OCA positions fields against PDF.js' displayed page. Yousign's
+            # origin is also the visual top-left, so quarter-turn pages use
+            # their displayed (swapped) dimensions.
+            metrics.append((height, width) if rotation in {90, 270} else (width, height))
+        return metrics
 
     def _field_payload(self, item, signer, page_metrics):
         page_number = int(item.get("page") or 1)
@@ -388,9 +396,21 @@ class SignRequestProvider(models.Model):
             "last_reconciled_at": fields.Datetime.now(),
         }
         if target_state and self.state not in TERMINAL_REQUEST_STATES:
-            vals["state"] = target_state
+            vals["state"] = (
+                "action_required" if target_state == "completed" else target_state
+            )
         if target_state == "completed":
-            vals["completed_at"] = fields.Datetime.now()
+            vals.update(
+                {
+                    "evidence_status": "pending",
+                    "last_error": self.env._(
+                        "All signatures are complete; final evidence is being retrieved."
+                    ),
+                    "recovery_action": self.env._(
+                        "Refresh provider status to retry evidence retrieval."
+                    ),
+                }
+            )
         self.with_context(usl_sign_transition=True).write(vals)
         for row in snapshot.get("signers") or []:
             signer = self.signer_ids.filtered(
@@ -420,6 +440,20 @@ class SignRequestProvider(models.Model):
                     }
                 )
             signer.write(signer_vals)
+        if target_state != "completed" and self.state not in TERMINAL_REQUEST_STATES:
+            signed_count = len(
+                self.signer_ids.filtered(lambda signer: signer.state == "signed")
+            )
+            viewed_count = len(
+                self.signer_ids.filtered(lambda signer: signer.state == "viewed")
+            )
+            progress_state = (
+                "partial" if signed_count else "viewed" if viewed_count else False
+            )
+            if progress_state:
+                self.with_context(usl_sign_transition=True).write(
+                    {"state": progress_state}
+                )
 
     def _provider_reconcile(self, manual=False):
         for request in self:
@@ -530,17 +564,70 @@ class SignRequestProvider(models.Model):
                     "validation_status": "valid",
                 }
             )
-        self.with_context(usl_sign_transition=True).write(
-            {
-                "evidence_status": "missing" if audit_missing else "available",
-                "achieved_assurance": self.requested_assurance,
-                "completed_at": self.completed_at or fields.Datetime.now(),
-            }
+        all_signed = bool(self.signer_ids) and all(
+            signer.state == "signed" for signer in self.signer_ids
         )
-        if not audit_missing:
+        evidence_complete = not audit_missing and self.validation_status == "valid"
+        vals = {
+            "evidence_status": "available" if evidence_complete else "missing",
+            "achieved_assurance": self.requested_assurance if all_signed else False,
+        }
+        if evidence_complete and all_signed:
+            vals.update(
+                {
+                    "state": "completed",
+                    "completed_at": self.completed_at or fields.Datetime.now(),
+                    "last_error": False,
+                    "recovery_action": False,
+                }
+            )
+        else:
+            vals.update(
+                {
+                    "state": "action_required",
+                    "last_error": self.env._(
+                        "The provider completed signing, but the full evidence package is not yet available."
+                    ),
+                    "recovery_action": self.env._(
+                        "Refresh provider status to retry evidence retrieval."
+                    ),
+                }
+            )
+        self.with_context(usl_sign_transition=True).write(vals)
+        if evidence_complete and all_signed:
             self._post_business_event(
                 self.env._("Signed document available: %(name)s", name=self.name)
             )
+            self._notify_responsible(
+                self.env._("Signed document available"),
+                self.env._(
+                    "The signature request %(name)s is complete and its evidence is available.",
+                    name=self.name,
+                ),
+            )
+            self._deliver_completed_document()
+
+    def _deliver_completed_document(self):
+        self.ensure_one()
+        if not self.company_id.sign_deliver_completed_to_signers or not self.final_data:
+            return
+        attachment = self.env["ir.attachment"].sudo().search(
+            [
+                ("res_model", "=", "sign.oca.request"),
+                ("res_id", "=", self.id),
+                ("res_field", "=", "final_data"),
+            ],
+            limit=1,
+        )
+        self.env["mail.thread"].message_notify(
+            subject=self.env._("Your signed document is available"),
+            body=self.env._(
+                "All required signatures and the evidence package have been received."
+            ),
+            partner_ids=self.signer_ids.partner_id.ids,
+            attachment_ids=attachment.ids,
+            email_layout_xmlid="mail.mail_notification_light",
+        )
 
     def _provider_cancel(self):
         for request in self.filtered("provider_transaction_id"):
@@ -556,6 +643,13 @@ class SignRequestProvider(models.Model):
     def _apply_provider_event(self, payload):
         self.ensure_one()
         event_model = self.env["usl.sign.provider.event"].sudo()
+        event_id = payload.get("event_id")
+        existing = event_model.search(
+            [("provider_code", "=", "yousign"), ("event_id", "=", event_id)],
+            limit=1,
+        )
+        if event_id and existing:
+            return existing
         event_time = event_model._event_datetime(payload)
         if self.provider_last_event_at and event_time < self.provider_last_event_at:
             return event_model.record_event(
@@ -573,16 +667,24 @@ class SignRequestProvider(models.Model):
             )[0]
         request_state = {
             "signature_request.activated": "sent",
-            "signature_request.done": "completed",
+            "signature_request.done": "action_required",
             "signature_request.declined": "declined",
             "signature_request.expired": "expired",
             "signature_request.canceled": "cancelled",
         }.get(event_name)
         if request_state and self.state not in TERMINAL_REQUEST_STATES:
             vals = {"state": request_state, "provider_last_event_at": event_time}
-            if request_state == "completed":
+            if event_name == "signature_request.done":
                 vals.update(
-                    {"completed_at": fields.Datetime.now(), "evidence_status": "pending"}
+                    {
+                        "evidence_status": "pending",
+                        "last_error": self.env._(
+                            "All signatures are complete; final evidence is being retrieved."
+                        ),
+                        "recovery_action": self.env._(
+                            "Refresh provider status to retry evidence retrieval."
+                        ),
+                    }
                 )
             self.with_context(usl_sign_transition=True).write(vals)
         if signer:
@@ -614,15 +716,90 @@ class SignRequestProvider(models.Model):
                         }
                     )
                 elif signer_state == "declined":
+                    decline_reason = signer_data.get("decline_reason") or data.get(
+                        "decline_reason"
+                    )
                     vals.update(
                         {
                             "declined_at": fields.Datetime.now(),
                             "access_revoked": True,
+                            "decline_reason": decline_reason or False,
                         }
                     )
                 signer.write(vals)
                 if signer_state == "notified":
                     signer._send_signer_invitation()
+                elif signer_state == "viewed" and self.state == "sent":
+                    self.with_context(usl_sign_transition=True).write({"state": "viewed"})
+                elif signer_state == "signed" and self.state not in TERMINAL_REQUEST_STATES:
+                    self.with_context(usl_sign_transition=True).write({"state": "partial"})
+                elif signer_state == "declined":
+                    explanation = decline_reason or self.env._(
+                        "The signer declined the request."
+                    )
+                    self.with_context(usl_sign_transition=True).write(
+                        {"state": "declined"}
+                    )
+                    self.signer_ids.filtered(lambda row: row != signer).write(
+                        {"access_revoked": True}
+                    )
+                    self._store_terminal_evidence(
+                        "decline",
+                        explanation,
+                        signer=signer,
+                        reference=f"decline:{payload.get('event_id')}",
+                    )
+                    self._notify_responsible(
+                        self.env._("Signature request declined"),
+                        self.env._(
+                            "%(signer)s declined the signature request %(name)s.",
+                            signer=signer.partner_id.display_name,
+                            name=self.name,
+                        ),
+                    )
+                    self._post_business_event(
+                        self.env._("Signature request declined: %(name)s", name=self.name)
+                    )
+                elif signer_state == "error" and self.state not in TERMINAL_REQUEST_STATES:
+                    self._set_action_required(
+                        self.env._("Signer authentication requires attention."),
+                        self.env._("Reconcile provider status before asking the signer to retry."),
+                    )
+        if request_state == "expired":
+            self.signer_ids.filtered(lambda row: row.state != "signed").write(
+                {"state": "expired", "access_revoked": True}
+            )
+            self._store_terminal_evidence(
+                "expiration",
+                self.env._("The provider reported that the request expired."),
+                reference=f"expiration:{payload.get('event_id')}",
+            )
+            self._notify_responsible(
+                self.env._("Signature request expired"),
+                self.env._("The signature request %(name)s expired.", name=self.name),
+            )
+        elif request_state == "declined":
+            self.signer_ids.filtered(lambda row: row.state != "signed").write(
+                {"access_revoked": True}
+            )
+            self._store_terminal_evidence(
+                "decline",
+                self.env._("The provider reported that the request was declined."),
+                reference=f"decline:{payload.get('event_id')}",
+            )
+            self._notify_responsible(
+                self.env._("Signature request declined"),
+                self.env._("The signature request %(name)s was declined.", name=self.name),
+            )
+        elif request_state == "cancelled":
+            self.signer_ids.filtered(lambda row: row.state != "signed").write(
+                {"state": "cancelled", "access_revoked": True}
+            )
+            self._store_terminal_evidence(
+                "cancellation",
+                self.env._("The provider reported that the request was cancelled."),
+                reference=f"cancellation:{payload.get('event_id')}",
+            )
         if not self.provider_last_event_at or event_time >= self.provider_last_event_at:
             self.with_context(usl_sign_transition=True).write(
                 {"provider_last_event_at": event_time}

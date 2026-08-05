@@ -23,6 +23,7 @@
         "views/sign_request_views.xml",
         "views/sign_portal_templates.xml",
         "views/res_config_settings_views.xml",
+        "views/res_partner_views.xml",
         "views/sign_menu_views.xml",
     ],
     "post_init_hook": "post_init_hook",

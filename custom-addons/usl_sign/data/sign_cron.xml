@@ -9,4 +9,22 @@
         <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
+    <record id="ir_cron_sign_operations" model="ir.cron">
+        <field name="name">Sign: expire requests and send reminders</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sign_operations()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="ir_cron_sign_public_submissions" model="ir.cron">
+        <field name="name">Sign: process reusable-link submissions</field>
+        <field name="model_id" ref="model_usl_sign_public_submission"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_public_submissions()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>

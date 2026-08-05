@@ -140,6 +140,11 @@
         <field name="model_id" ref="model_usl_sign_provider_event"/>
         <field name="domain_force">[('request_id.company_id', 'in', company_ids)]</field>
     </record>
+    <record id="public_submission_company" model="ir.rule">
+        <field name="name">Reusable signature submissions: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_public_submission"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 
     <!-- Narrow the OCA foundation rules so chatter followers and legacy OCA
          manager assignments cannot widen the product security boundary. -->

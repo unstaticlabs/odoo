@@ -1,4 +1,6 @@
+import hashlib
 import secrets
+from base64 import b64decode
 from datetime import timedelta
 
 from odoo import api, fields, models
@@ -20,12 +22,27 @@ class SignTemplate(models.Model):
     )
     expiration_days = fields.Integer(default=30, required=True)
     reminder_days = fields.Integer(default=3, required=True)
+    max_reminders = fields.Integer(default=5, required=True)
     signing_order = fields.Boolean(string="Require signer order")
     public_link_enabled = fields.Boolean(copy=False)
     public_access_token = fields.Char(copy=False, readonly=True, groups="usl_sign.group_sign_admin")
     public_expires_at = fields.Datetime(copy=False)
     public_url = fields.Char(compute="_compute_public_url")
     has_requests = fields.Boolean(compute="_compute_has_requests")
+    document_sha256 = fields.Char(
+        compute="_compute_document_sha256", store=True, readonly=True, index=True
+    )
+    preparation_status = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("ready", "Ready"),
+            ("review_required", "Review required"),
+        ],
+        required=True,
+        default="draft",
+        tracking=True,
+    )
+    preparation_note = fields.Char()
 
     @api.model
     def _default_policy(self, company):
@@ -47,6 +64,15 @@ class SignTemplate(models.Model):
     def _compute_has_requests(self):
         for template in self:
             template.has_requests = bool(template.request_count)
+
+    @api.depends("data")
+    def _compute_document_sha256(self):
+        for template in self:
+            template.document_sha256 = (
+                hashlib.sha256(b64decode(template.data)).hexdigest()
+                if template.data
+                else False
+            )
 
     @api.depends("public_access_token", "public_link_enabled")
     def _compute_public_url(self):
@@ -74,6 +100,7 @@ class SignTemplate(models.Model):
                 "provider_code": self.policy_id.provider_code,
                 "template_version": self.version,
                 "reminder_days": self.reminder_days,
+                "max_reminders": self.max_reminders,
                 "signing_order": self.signing_order,
                 "expires_at": fields.Datetime.now()
                 + timedelta(days=self.expiration_days),
@@ -89,7 +116,9 @@ class SignTemplate(models.Model):
             "policy_id",
             "expiration_days",
             "reminder_days",
+            "max_reminders",
             "signing_order",
+            "preparation_status",
         }
         if material.intersection(vals):
             self._touch_version()
@@ -99,7 +128,9 @@ class SignTemplate(models.Model):
             )
         return super().write(vals)
 
-    @api.constrains("policy_id", "company_id", "expiration_days", "reminder_days")
+    @api.constrains(
+        "policy_id", "company_id", "expiration_days", "reminder_days", "max_reminders"
+    )
     def _check_usl_template(self):
         for template in self:
             if template.policy_id.company_id != template.company_id:
@@ -110,6 +141,55 @@ class SignTemplate(models.Model):
                 raise ValidationError(
                     self.env._("Expiration and reminder delays must be valid positive values.")
                 )
+            if not 0 <= template.max_reminders <= 10:
+                raise ValidationError(
+                    self.env._("The maximum reminder count must be between 0 and 10.")
+                )
+
+    def _public_link_status(self):
+        self.ensure_one()
+        if not self.active or not self.public_link_enabled or not self.public_access_token:
+            return False, self.env._("This signing link is invalid or no longer available.")
+        if self.public_expires_at and self.public_expires_at <= fields.Datetime.now():
+            return False, self.env._("This signing link has expired.")
+        roles = self.item_ids.mapped("role_id")
+        if (
+            len(roles) != 1
+            or not self.policy_id.public_link_allowed
+            or self.policy_id.assurance_level != "standard"
+        ):
+            return False, self.env._("This signing link is no longer eligible for public use.")
+        if not self.company_id.sign_provider_ready:
+            return False, self.env._("Signing is temporarily unavailable. Please try again later.")
+        return True, False
+
+    def _prepare_public_request_vals(self, partner):
+        self.ensure_one()
+        available, explanation = self._public_link_status()
+        if not available:
+            raise ValidationError(explanation)
+        role = self.item_ids.mapped("role_id").ensure_one()
+        return {
+            "name": self.name,
+            "template_id": self.id,
+            "template_version": self.version,
+            "company_id": self.company_id.id,
+            "policy_id": self.policy_id.id,
+            "requested_assurance": self.policy_id.assurance_level,
+            "authentication_method": self.policy_id.authentication_method,
+            "provider_code": self.policy_id.provider_code,
+            "signatory_data": self._get_signatory_data(),
+            "data": self.data,
+            "filename": self.filename,
+            "signing_order": False,
+            "expires_at": fields.Datetime.now() + timedelta(days=self.expiration_days),
+            "reminder_days": self.reminder_days,
+            "max_reminders": self.max_reminders,
+            "user_id": self.create_uid.id,
+            "signer_ids": [
+                (0, 0, {"partner_id": partner.id, "role_id": role.id, "sequence": 10})
+            ],
+        }
 
     def action_enable_public_link(self):
         for template in self:
@@ -125,6 +205,10 @@ class SignTemplate(models.Model):
             if not template.item_ids or not template.item_ids.filtered("required"):
                 raise ValidationError(
                     self.env._("Add at least one required field before enabling a public link.")
+                )
+            if template.preparation_status == "review_required":
+                raise ValidationError(
+                    self.env._("Review and correct this template before enabling a public link.")
                 )
             template.write(
                 {

@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const yousign = new window.Yousign(signatureLink, container.id);
     const report = async (event) => {
-        await fetch(container.dataset.statusUrl, {
+        const response = await fetch(container.dataset.statusUrl, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 id: Date.now(),
             }),
         });
+        if (response.ok) {
+            const status = event === "declined" ? "declined" : event === "error" ? "error" : "success";
+            window.location.assign(`${container.dataset.resultUrl}/${status}`);
+        }
     };
     yousign.onSuccess(() => report("success"));
     yousign.onSignatureDone(() => report("signature.done"));

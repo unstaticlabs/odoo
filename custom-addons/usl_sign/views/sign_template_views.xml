@@ -22,10 +22,14 @@
                 <field name="description" placeholder="What this template is for"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="version"/>
+                <field name="preparation_status" widget="badge"/>
+                <field name="preparation_note" invisible="not preparation_note"/>
+                <field name="document_sha256" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
                 <field name="policy_id" options="{'no_create': True}"/>
                 <field name="signing_order"/>
                 <field name="expiration_days"/>
                 <field name="reminder_days"/>
+                <field name="max_reminders"/>
                 <field name="active"/>
                 <field name="has_requests" invisible="1"/>
                 <field name="public_link_enabled" readonly="1" groups="usl_sign.group_sign_admin"/>
@@ -55,4 +59,3 @@
         </field>
     </record>
 </odoo>
-

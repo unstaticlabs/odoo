@@ -39,6 +39,7 @@ class SignPolicy(models.Model):
     public_link_allowed = fields.Boolean()
     expiration_days = fields.Integer(default=30, required=True)
     reminder_days = fields.Integer(default=3, required=True)
+    max_reminders = fields.Integer(default=5, required=True)
     description = fields.Text(translate=True)
 
     _company_level_unique = models.Constraint(
@@ -52,6 +53,7 @@ class SignPolicy(models.Model):
         "public_link_allowed",
         "expiration_days",
         "reminder_days",
+        "max_reminders",
     )
     def _check_policy(self):
         for policy in self:
@@ -59,6 +61,10 @@ class SignPolicy(models.Model):
                 raise ValidationError(self.env._("Expiration must be at least one day."))
             if policy.reminder_days < 0:
                 raise ValidationError(self.env._("Reminder delay cannot be negative."))
+            if not 0 <= policy.max_reminders <= 10:
+                raise ValidationError(
+                    self.env._("The maximum reminder count must be between 0 and 10.")
+                )
             allowed = {
                 "standard": {"no_otp", "otp_email", "otp_sms"},
                 "verified": {"otp_sms", "identity_verification"},

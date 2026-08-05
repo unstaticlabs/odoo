@@ -17,6 +17,9 @@
                         <setting string="Yousign workspace" help="Optional workspace UUID used to keep company records partitioned in Yousign.">
                             <field name="sign_yousign_workspace_id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
                         </setting>
+                        <setting string="Completed-document delivery" help="Optionally email the completed PDF to every signer after all evidence is stored.">
+                            <field name="sign_deliver_completed_to_signers"/>
+                        </setting>
                         <setting string="Server credential" help="API keys remain in server environment variables and are never stored in Odoo.">
                             <field name="sign_yousign_configured" readonly="1"/>
                         </setting>

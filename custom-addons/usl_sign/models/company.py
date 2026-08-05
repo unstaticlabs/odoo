@@ -22,12 +22,16 @@ class ResCompany(models.Model):
         default="sandbox",
     )
     sign_yousign_workspace_id = fields.Char(string="Yousign workspace ID")
+    sign_deliver_completed_to_signers = fields.Boolean(
+        string="Email completed documents to signers"
+    )
     sign_yousign_configured = fields.Boolean(
         compute="_compute_sign_yousign_configured"
     )
     sign_yousign_webhook_configured = fields.Boolean(
         compute="_compute_sign_yousign_configured"
     )
+    sign_provider_ready = fields.Boolean(compute="_compute_sign_yousign_configured")
     sign_yousign_webhook_url = fields.Char(
         compute="_compute_sign_yousign_webhook_url"
     )
@@ -36,14 +40,21 @@ class ResCompany(models.Model):
         self.ensure_one()
         return f"USL_YOUSIGN_{self.sign_yousign_environment.upper()}_{suffix}"
 
-    @api.depends("sign_yousign_environment")
+    @api.depends("sign_yousign_environment", "sign_provider_enabled")
     def _compute_sign_yousign_configured(self):
         for company in self:
-            company.sign_yousign_configured = bool(
-                os.getenv(company._yousign_env_name("API_KEY"))
-            )
-            company.sign_yousign_webhook_configured = bool(
+            api_ready = bool(os.getenv(company._yousign_env_name("API_KEY")))
+            webhook_ready = bool(
                 os.getenv(company._yousign_env_name("WEBHOOK_SECRET"))
+            )
+            live_ready = (
+                company.sign_yousign_environment != "production"
+                or os.getenv("USL_SIGN_LIVE_ENABLED", "0") == "1"
+            )
+            company.sign_yousign_configured = api_ready
+            company.sign_yousign_webhook_configured = webhook_ready
+            company.sign_provider_ready = bool(
+                company.sign_provider_enabled and api_ready and webhook_ready and live_ready
             )
 
     @api.depends_context("company")
@@ -125,6 +136,9 @@ class ResConfigSettings(models.TransientModel):
     )
     sign_yousign_workspace_id = fields.Char(
         related="company_id.sign_yousign_workspace_id", readonly=False
+    )
+    sign_deliver_completed_to_signers = fields.Boolean(
+        related="company_id.sign_deliver_completed_to_signers", readonly=False
     )
     sign_yousign_configured = fields.Boolean(
         related="company_id.sign_yousign_configured"

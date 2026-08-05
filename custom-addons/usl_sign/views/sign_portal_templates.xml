@@ -5,18 +5,141 @@
             <t t-set="title" t-value="signer.request_id.name"/>
             <div class="container-fluid py-3">
                 <div class="alert alert-info mb-3" role="status">
-                    <strong t-esc="signer.request_id.name"/>
-                    <span class="ms-2">Review every page before confirming your signature.</span>
+                    <strong t-esc="signer.request_id.company_id.name"/>
+                    <span class="ms-2">asks you to review and sign</span>
+                    <strong class="ms-1" t-esc="signer.request_id.name"/>.
+                    <div class="small mt-1">
+                        <span t-esc="dict(signer.request_id._fields['requested_assurance'].selection).get(signer.request_id.requested_assurance)"/>
+                        signature · Review every page before confirming.
+                    </div>
                 </div>
                 <div id="usl_yousign_iframe"
                      t-att-data-signature-link="signature_link"
                      t-att-data-status-url="status_url"
+                     data-result-url="/sign/result"
                      t-att-data-sandbox="'1' if sandbox else '0'"
                      style="height: calc(100vh - 12rem); min-height: 36rem;"/>
             </div>
             <script src="https://cdn.yousign.tech/iframe-sdk-1.6.0.min.js"
                     integrity="sha384-/7MD1voOOzWVz7FmgeMwmmd1DO85Mo0PkkxdYd9j2wDGzGDGRG/phgnL0c9Xyy52"
                     crossorigin="anonymous"></script>
+        </t>
+    </template>
+
+    <template id="portal_sign_qualified_redirect" name="Qualified signature transition">
+        <t t-call="portal.frontend_layout">
+            <t t-set="title">Qualified signature</t>
+            <main class="container py-5" style="max-width: 48rem;">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <h1 class="h3">Continue with secure identity verification</h1>
+                        <p class="lead mb-3">
+                            <t t-esc="signer.request_id.company_id.name"/> asks you to sign
+                            <strong t-esc="signer.request_id.name"/> with a Qualified electronic signature.
+                        </p>
+                        <p>You will continue on Yousign’s secure service to verify your identity and complete the signature, then return here.</p>
+                        <a class="btn btn-primary btn-lg" t-att-href="signature_link">Continue securely</a>
+                    </div>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_sign_unavailable" name="Signing link unavailable">
+        <t t-call="portal.frontend_layout">
+            <main class="container py-5" style="max-width: 42rem;">
+                <div class="alert alert-warning" role="alert">
+                    <h1 class="h4">This signing link is no longer available</h1>
+                    <p class="mb-0">It may have expired, been completed, or been revoked. Contact the sender if you still need to sign.</p>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_sign_result" name="Signature result">
+        <t t-call="portal.frontend_layout">
+            <main class="container py-5" style="max-width: 42rem;">
+                <div t-if="successful" class="alert alert-success" role="status">
+                    <h1 class="h4">Your signature was submitted</h1>
+                    <p class="mb-0">The completed document will be available after all required signers finish and the evidence is received.</p>
+                </div>
+                <div t-elif="declined" class="alert alert-info" role="status">
+                    <h1 class="h4">Your response was recorded</h1>
+                    <p class="mb-0">The sender can now review the declined request.</p>
+                </div>
+                <div t-else="" class="alert alert-warning" role="alert">
+                    <h1 class="h4">The signing step could not be confirmed</h1>
+                    <p class="mb-0">You can reopen your personal link or contact the sender. Your earlier actions will not be repeated.</p>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_public_identity" name="Public signature identity">
+        <t t-call="portal.frontend_layout">
+            <t t-set="title" t-value="template.name"/>
+            <main class="container py-4 py-md-5" style="max-width: 44rem;">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-muted mb-2" t-esc="template.company_id.name"/>
+                        <h1 class="h3" t-esc="template.name"/>
+                        <p t-if="template.description" class="lead" t-esc="template.description"/>
+                        <div t-if="errors.get('form')" class="alert alert-danger" role="alert" t-esc="errors['form']"/>
+                        <p>Enter your own contact details. A personal, expiring signing link will be sent after verification.</p>
+                        <form method="post" t-att-action="template.public_url" novalidate="novalidate">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="submission_token" t-att-value="submission_token"/>
+                            <div class="mb-3">
+                                <label class="form-label" for="public_sign_name">Full name</label>
+                                <input id="public_sign_name" name="name" type="text" autocomplete="name" required="required"
+                                       t-att-value="values.get('name', '')" t-att-class="'form-control is-invalid' if errors.get('name') else 'form-control'"/>
+                                <div t-if="errors.get('name')" class="invalid-feedback" t-esc="errors['name']"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="public_sign_email">Email</label>
+                                <input id="public_sign_email" name="email" type="email" autocomplete="email" required="required"
+                                       t-att-value="values.get('email', '')" t-att-class="'form-control is-invalid' if errors.get('email') else 'form-control'"/>
+                                <div t-if="errors.get('email')" class="invalid-feedback" t-esc="errors['email']"/>
+                            </div>
+                            <div class="mb-3" t-if="template.policy_id.authentication_method == 'otp_sms'">
+                                <label class="form-label" for="public_sign_mobile">Mobile number</label>
+                                <input id="public_sign_mobile" name="mobile" type="tel" autocomplete="tel" placeholder="+33612345678" required="required"
+                                       t-att-value="values.get('mobile', '')" t-att-class="'form-control is-invalid' if errors.get('mobile') else 'form-control'"/>
+                                <div t-if="errors.get('mobile')" class="invalid-feedback" t-esc="errors['mobile']"/>
+                            </div>
+                            <div class="form-check mb-4">
+                                <input id="public_sign_consent" name="consent" value="1" type="checkbox" required="required"
+                                       t-att-class="'form-check-input is-invalid' if errors.get('consent') else 'form-check-input'"/>
+                                <label class="form-check-label" for="public_sign_consent">These contact details belong to me and may be used for this signature request.</label>
+                                <div t-if="errors.get('consent')" class="invalid-feedback" t-esc="errors['consent']"/>
+                            </div>
+                            <button class="btn btn-primary btn-lg w-100" type="submit">Continue</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_public_unavailable" name="Public signing link unavailable">
+        <t t-call="portal.frontend_layout">
+            <main class="container py-5" style="max-width: 42rem;">
+                <div class="alert alert-warning" role="alert">
+                    <h1 class="h4">This signing link is unavailable</h1>
+                    <p class="mb-0" t-esc="explanation"/>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_public_received" name="Public signature request received">
+        <t t-call="portal.frontend_layout">
+            <main class="container py-5" style="max-width: 42rem;">
+                <div class="alert alert-success" role="status">
+                    <h1 class="h4">Check your email to continue</h1>
+                    <p class="mb-0"><t t-esc="company.name"/> is preparing your personal signing link. It will expire and must not be forwarded.</p>
+                </div>
+            </main>
         </t>
     </template>
 </odoo>

@@ -1,7 +1,7 @@
 import hashlib
 import json
 import secrets
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from copy import deepcopy
 from datetime import datetime
 from datetime import timedelta
@@ -103,7 +103,12 @@ class SignRequest(models.Model):
         readonly=True,
     )
     provider_code = fields.Selection(
-        [("yousign", "Yousign")], copy=False, readonly=True
+        [
+            ("yousign", "Yousign"),
+            ("odoo_online", "Odoo Online (historical)"),
+        ],
+        copy=False,
+        readonly=True,
     )
     provider_transaction_id = fields.Char(copy=False, readonly=True, index=True)
     provider_document_id = fields.Char(copy=False, readonly=True)
@@ -125,6 +130,7 @@ class SignRequest(models.Model):
     completed_at = fields.Datetime(copy=False, readonly=True)
     expires_at = fields.Datetime(copy=False)
     reminder_days = fields.Integer(default=3)
+    max_reminders = fields.Integer(default=5)
     reminder_count = fields.Integer(copy=False, readonly=True, default=0)
     last_reminder_at = fields.Datetime(copy=False, readonly=True)
     responsible_message = fields.Text()
@@ -135,6 +141,8 @@ class SignRequest(models.Model):
     signing_order = fields.Boolean()
     historical = fields.Boolean(copy=False, readonly=True)
     migration_assurance_unproven = fields.Boolean(copy=False, readonly=True)
+    provider_ready = fields.Boolean(related="company_id.sign_provider_ready")
+    provider_setup_message = fields.Char(compute="_compute_provider_setup_message")
 
     _idempotency_unique = models.Constraint(
         "UNIQUE(idempotency_key)", "The signature request operation key must be unique."
@@ -163,6 +171,7 @@ class SignRequest(models.Model):
                 vals.setdefault("policy_id", template.policy_id.id)
                 vals.setdefault("template_version", template.version)
                 vals.setdefault("reminder_days", template.reminder_days)
+                vals.setdefault("max_reminders", template.max_reminders)
                 vals.setdefault("signing_order", template.signing_order)
             if not vals.get("policy_id"):
                 policy = self._default_policy(company)
@@ -172,6 +181,7 @@ class SignRequest(models.Model):
             vals.setdefault("requested_assurance", policy.assurance_level)
             vals.setdefault("authentication_method", policy.authentication_method)
             vals.setdefault("provider_code", policy.provider_code)
+            vals.setdefault("max_reminders", policy.max_reminders)
             if not vals.get("expires_at"):
                 expiration_days = (
                     template.expiration_days if template else policy.expiration_days
@@ -211,6 +221,17 @@ class SignRequest(models.Model):
                 request.next_step = self.env._(
                     "Signature is complete; retrieve the pending evidence."
                 )
+
+    @api.depends("provider_ready", "company_id")
+    def _compute_provider_setup_message(self):
+        for sign_request in self:
+            sign_request.provider_setup_message = (
+                False
+                if sign_request.provider_ready
+                else self.env._(
+                    "Sending is unavailable until a Sign administrator enables the company provider, API credential and webhook secret."
+                )
+            )
 
     @api.constrains("policy_id", "company_id", "template_id")
     def _check_company_policy(self):
@@ -355,6 +376,11 @@ class SignRequest(models.Model):
                 )
             if request.state not in {"draft", "ready", "action_required"}:
                 return False
+            if (
+                not request.provider_ready
+                and not request.env.context.get("usl_sign_skip_provider_ready")
+            ):
+                raise ValidationError(request.provider_setup_message)
             request._freeze_document()
             if message:
                 request.responsible_message = message
@@ -370,6 +396,146 @@ class SignRequest(models.Model):
             request._provider_reconcile(manual=True)
         return True
 
+    def action_send_reminder(self):
+        self._send_due_reminders(force=True)
+        return True
+
+    def _send_due_reminders(self, force=False):
+        now = fields.Datetime.now()
+        for sign_request in self:
+            if sign_request.state not in {"sent", "viewed", "partial"}:
+                if force:
+                    raise ValidationError(
+                        self.env._("Reminders can only be sent for an active request.")
+                    )
+                continue
+            if sign_request.reminder_count >= sign_request.max_reminders:
+                if force:
+                    raise ValidationError(
+                        self.env._("The maximum number of reminders has been reached.")
+                    )
+                continue
+            due_at = (
+                sign_request.last_reminder_at or sign_request.sent_at or sign_request.create_date
+            ) + timedelta(days=sign_request.reminder_days)
+            if not force and (not sign_request.reminder_days or due_at > now):
+                continue
+            signers = sign_request.signer_ids.filtered(
+                lambda signer: signer.state in {"notified", "viewed"}
+                and not signer.access_revoked
+            )
+            if sign_request.signing_order and signers:
+                first_sequence = min(signers.mapped("sequence"))
+                signers = signers.filtered(lambda signer: signer.sequence == first_sequence)
+            if not signers:
+                continue
+            template = self.env.ref("usl_sign.mail_template_sign_reminder")
+            for signer in signers:
+                template.send_mail(signer.id, force_send=False)
+                signer.write(
+                    {
+                        "reminder_sent_at": now,
+                        "reminder_count": signer.reminder_count + 1,
+                    }
+                )
+            sign_request.with_context(usl_sign_transition=True).write(
+                {
+                    "last_reminder_at": now,
+                    "reminder_count": sign_request.reminder_count + 1,
+                }
+            )
+        return True
+
+    def _store_terminal_evidence(self, kind, explanation, signer=False, reference=False):
+        self.ensure_one()
+        reference = reference or f"{kind}:{self.id}:{fields.Datetime.now()}"
+        existing = self.env["usl.sign.evidence"].search_count(
+            [
+                ("request_id", "=", self.id),
+                ("kind", "=", kind),
+                ("provider_reference", "=", reference),
+            ],
+            limit=1,
+        )
+        if existing:
+            return
+        facts = {
+            "request": self.name,
+            "request_id": self.id,
+            "provider": self.provider_code,
+            "provider_transaction": self.provider_transaction_id,
+            "event": kind,
+            "recorded_at": fields.Datetime.to_string(fields.Datetime.now()),
+            "explanation": explanation,
+            "signer_id": signer.id if signer else False,
+        }
+        self.env["usl.sign.evidence"].create(
+            {
+                "request_id": self.id,
+                "signer_id": signer.id if signer else False,
+                "kind": kind,
+                "name": f"{self.name} - {kind}.json",
+                "data": b64encode(json.dumps(facts, sort_keys=True).encode()),
+                "mimetype": "application/json",
+                "provider_reference": reference,
+                "retrieved_at": fields.Datetime.now(),
+                "validation_status": "valid",
+            }
+        )
+
+    def _notify_responsible(self, subject, body):
+        for sign_request in self:
+            sign_request.message_post(
+                subject=subject,
+                body=body,
+                partner_ids=sign_request.user_id.partner_id.ids,
+                subtype_xmlid="mail.mt_comment",
+            )
+
+    def _expire_request(self):
+        for sign_request in self.filtered(
+            lambda item: item.state in {"sent", "viewed", "partial", "action_required"}
+        ):
+            sign_request.with_context(usl_sign_transition=True).write(
+                {"state": "expired", "provider_status": "expired"}
+            )
+            sign_request.signer_ids.filtered(
+                lambda signer: signer.state != "signed"
+            ).write({"state": "expired", "access_revoked": True})
+            sign_request._store_terminal_evidence(
+                "expiration", self.env._("The request reached its configured expiration."),
+                reference=f"expiration:{sign_request.id}",
+            )
+            sign_request._notify_responsible(
+                self.env._("Signature request expired"),
+                self.env._("The signature request %(name)s expired.", name=sign_request.name),
+            )
+            sign_request._post_business_event(
+                self.env._("Signature request expired: %(name)s", name=sign_request.name)
+            )
+
+    @api.model
+    def _cron_sign_operations(self):
+        now = fields.Datetime.now()
+        expired = self.search(
+            [
+                ("state", "in", list(ACTIVE_REQUEST_STATES)),
+                ("expires_at", "!=", False),
+                ("expires_at", "<=", now),
+            ],
+            limit=100,
+        )
+        expired._expire_request()
+        reminders = self.search(
+            [
+                ("state", "in", ["sent", "viewed", "partial"]),
+                ("reminder_days", ">", 0),
+                ("reminder_count", "<", 10),
+            ],
+            limit=100,
+        )
+        reminders._send_due_reminders()
+
     def cancel(self):
         for request in self:
             if request.state in TERMINAL_REQUEST_STATES:
@@ -379,6 +545,15 @@ class SignRequest(models.Model):
                 {"state": "cancelled", "provider_status": "cancelled"}
             )
             request.signer_ids.write({"state": "cancelled", "access_revoked": True})
+            request._store_terminal_evidence(
+                "cancellation",
+                self.env._("The responsible user cancelled the request."),
+                reference=f"cancellation:{request.id}",
+            )
+            request._notify_responsible(
+                self.env._("Signature request cancelled"),
+                self.env._("The signature request %(name)s was cancelled.", name=request.name),
+            )
             request._post_business_event(
                 self.env._("Signature request cancelled: %(name)s", name=request.name)
             )
@@ -407,8 +582,24 @@ class SignRequest(models.Model):
         self._post_business_event(
             self.env._("Signature request requires action: %(name)s", name=self.name)
         )
+        self._notify_responsible(
+            self.env._("Signature request needs attention"),
+            self.env._(
+                "The signature request %(name)s needs attention: %(explanation)s",
+                name=self.name,
+                explanation=explanation,
+            ),
+        )
 
     def write(self, vals):
+        if (
+            self.filtered("historical")
+            and vals
+            and not self.env.context.get("usl_sign_historical_restore")
+        ):
+            raise ValidationError(
+                self.env._("Historical signature requests are read-only evidence.")
+            )
         frozen_fields = {
             "data",
             "filename",
@@ -465,6 +656,8 @@ class SignRequestSigner(models.Model):
     declined_at = fields.Datetime(copy=False, readonly=True)
     invitation_sent_at = fields.Datetime(copy=False, readonly=True)
     invitation_count = fields.Integer(copy=False, readonly=True, default=0)
+    reminder_sent_at = fields.Datetime(copy=False, readonly=True)
+    reminder_count = fields.Integer(copy=False, readonly=True, default=0)
     achieved_assurance = fields.Selection(
         ASSURANCE_LEVELS, copy=False, readonly=True
     )
@@ -472,6 +665,7 @@ class SignRequestSigner(models.Model):
         AUTHENTICATION_METHODS, copy=False, readonly=True
     )
     provider_last_event_at = fields.Datetime(copy=False, readonly=True)
+    decline_reason = fields.Char(copy=False, readonly=True)
 
     _provider_signer_unique = models.Constraint(
         "UNIQUE(provider_signer_id)",
