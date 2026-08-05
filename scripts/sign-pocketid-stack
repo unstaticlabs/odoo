@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-pocketid-6605.env}"
+SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-pocketid-6605}"
+PROJECT="usl-sign-pocketid-6605"
+PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
+COMPOSE_FILES=(
+  -f "$ROOT/compose.yaml"
+  -f "$ROOT/compose.pocket-id.yaml"
+  -f "$ROOT/compose.sign-pocketid.qa.yaml"
+)
+
+bootstrap_environment() {
+  USL_POCKET_ID_DEV_COMPOSE_PROJECT="$PROJECT" \
+  USL_POCKET_ID_DEV_ODOO_DB=odoo_dev \
+  USL_POCKET_ID_DEV_ODOO_PORT=16669 \
+  USL_POCKET_ID_DEV_GEVENT_PORT=16672 \
+  USL_POCKET_ID_DEV_POCKET_PORT=16411 \
+  USL_POCKET_ID_DEV_ODOO_HOSTNAME=odoo-sign-6605.localhost \
+  USL_POCKET_ID_DEV_POCKET_HOSTNAME=pocket-id-sign-6605.localhost \
+  USL_POCKET_ID_DEV_PAPERLESS_URL=http://127.0.0.1:16810 \
+    python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
+}
+
+load_environment() {
+  bootstrap_environment >/dev/null
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+  if [[ "$COMPOSE_PROJECT_NAME" != "$PROJECT" \
+      || "$ODOO_INIT_DB" != "odoo_dev" \
+      || "$ODOO_DB_FILTER" != "^odoo_dev$" ]]; then
+    printf 'Refusing an unsafe or non-isolated Sign QA target.\n' >&2
+    return 2
+  fi
+  if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
+      || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
+    printf 'Refusing Sign QA while a regulatory live flag is enabled.\n' >&2
+    return 2
+  fi
+  if [[ "$COMPOSE_PROJECT_NAME" == "usl-odoo-saas-19-2" ]]; then
+    printf 'Refusing the canonical Compose project.\n' >&2
+    return 2
+  fi
+  export PAPERLESS_HTTP_PORT=16810
+  export USL_SIGN_SECRET_ROOT="$SECRET_ROOT"
+  export USL_SIGN_STEP_CA_DIR="$SECRET_ROOT/step-ca"
+  export USL_SIGN_DSS_SECRET_DIR="$SECRET_ROOT/dss"
+  export USL_SIGN_ODOO_SECRET_DIR="$SECRET_ROOT/odoo"
+  export USL_SIGN_STEP_CA_ENV_FILE="$SECRET_ROOT/step-ca.env"
+  export USL_SIGN_DSS_ENV_FILE="$SECRET_ROOT/dss.env"
+  export USL_SIGN_ODOO_ENV_FILE="$SECRET_ROOT/odoo.env"
+  export ODOO_IMAGE="${ODOO_IMAGE:-$PROJECT-odoo:latest}"
+  COMPOSE=(
+    docker compose
+    -p "$PROJECT"
+    --env-file "$ENV_FILE"
+    "${COMPOSE_FILES[@]}"
+    --profile sign
+    --profile paperless
+  )
+}
+
+bootstrap() {
+  load_environment
+  "$ROOT/scripts/sync-oca-addons"
+  if [[ ! -f "$SECRET_ROOT/step-ca/config/ca.json" ]]; then
+    USL_SIGN_SECRET_ROOT="$SECRET_ROOT" "$ROOT/scripts/sign-services-bootstrap"
+  fi
+}
+
+assert_ports_available() {
+  if [[ -n "$("${COMPOSE[@]}" ps -q)" ]]; then
+    return
+  fi
+  local port
+  for port in 16411 16669 16672 16810; do
+    if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+      printf 'Refusing occupied Sign QA port: %s.\n' "$port" >&2
+      return 2
+    fi
+  done
+}
+
+provision_pocket() {
+  "${COMPOSE[@]}" up -d --wait pocket-id
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
+}
+
+initialize_odoo() {
+  "${COMPOSE[@]}" --profile init run --rm \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    --init=usl_sign \
+    --update=usl_pocketid,usl_sign \
+    --without-demo=true \
+    --stop-after-init \
+    --log-level=warn
+  local policy
+  policy="$(USL_POCKET_ID_POLICY_SINGLE_COMPANY=1 \
+    USL_POCKET_ID_POLICY_CLEAN_DATABASE=1 \
+    python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" odoo-policy)"
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    -e USL_POCKET_ID_USERS_JSON="$policy" \
+    -e USL_POCKET_ID_BREAK_GLASS_PASSWORD="$USL_POCKET_ID_BREAK_GLASS_PASSWORD" \
+    -e USL_POCKET_ID_APPLY=1 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev < "$ROOT/scripts/odoo/pocket_id_configure.py"
+}
+
+start() {
+  bootstrap
+  assert_ports_available
+  "${COMPOSE[@]}" build odoo pocket-id usl-sign-dss
+  "${COMPOSE[@]}" --profile sign --profile paperless up -d \
+    db pocket-id usl-sign-step-ca usl-sign-dss \
+    paperless-webserver
+  provision_pocket
+  initialize_odoo
+  "${COMPOSE[@]}" --profile sign --profile paperless up -d --wait odoo
+  printf '\nOdoo: %s/web/login?db=odoo_dev\n' "$ODOO_PUBLIC_BASE_URL"
+  printf 'Pocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Paperless: %s\n' "$PAPERLESS_PUBLIC_URL"
+}
+
+stop() {
+  load_environment
+  "${COMPOSE[@]}" down
+}
+
+status() {
+  load_environment
+  "${COMPOSE[@]}" ps
+}
+
+logs() {
+  load_environment
+  shift
+  "${COMPOSE[@]}" logs -f "$@"
+}
+
+test_stack() {
+  bootstrap
+  local database="odoo_sign_pocketid_test"
+  local status=0
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
+    'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
+  "${COMPOSE[@]}" --profile test build test
+  "${COMPOSE[@]}" --profile test --profile sign run --rm \
+    -e ODOO_INIT_DB="$database" \
+    -e ODOO_DB_FILTER="^${database}$" \
+    test odoo --config=/etc/odoo/odoo.conf --database="$database" \
+    --init=usl_sign --without-demo=true --test-enable \
+    --test-tags=/usl_pocketid,/usl_sign --stop-after-init \
+    --log-level=test || status=$?
+  "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
+    'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
+  "${COMPOSE[@]}" --profile init run --rm --entrypoint sh \
+    -e TEST_DATABASE="$database" init-db -c '
+      directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+      if [ -d "$directory" ]; then
+        find "$directory" -mindepth 1 -delete
+        rmdir "$directory"
+      fi
+    '
+  return "$status"
+}
+
+test_pocket_patch() {
+  load_environment
+  docker build \
+    --file "$ROOT/services/usl-pocket-id/Dockerfile" \
+    --target backend-test \
+    --tag usl-pocket-id-sign:v2.12.0-fresh-passkey-tests \
+    "$ROOT"
+}
+
+smoke_services() {
+  load_environment
+  "${COMPOSE[@]}" exec -T odoo usl-sign-services-smoke
+}
+
+case "${1:-help}" in
+  bootstrap) bootstrap ;;
+  start) start ;;
+  stop) stop ;;
+  status) status ;;
+  logs) logs "$@" ;;
+  test) test_stack ;;
+  test-pocket) test_pocket_patch ;;
+  smoke) smoke_services ;;
+  help|*)
+    printf '%s\n' \
+      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke' \
+      'This helper owns only project usl-sign-pocketid-6605 and its isolated volumes.'
+    ;;
+esac

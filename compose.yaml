@@ -282,7 +282,7 @@ services:
     logging:
       driver: "none"
     env_file:
-      - path: .secrets/sign/step-ca.env
+      - path: ${USL_SIGN_STEP_CA_ENV_FILE:-.secrets/sign/step-ca.env}
         required: false
     command:
       - step-ca
@@ -316,7 +316,7 @@ services:
     image: ${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}
     restart: unless-stopped
     env_file:
-      - path: .secrets/sign/dss.env
+      - path: ${USL_SIGN_DSS_ENV_FILE:-.secrets/sign/dss.env}
         required: false
     environment:
       USL_DSS_PORT: 8443
@@ -365,7 +365,7 @@ services:
     env_file:
       - path: .env
         required: false
-      - path: .secrets/sign/odoo.env
+      - path: ${USL_SIGN_ODOO_ENV_FILE:-.secrets/sign/odoo.env}
         required: false
     environment:
       ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
@@ -394,6 +394,10 @@ services:
       USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
       USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
+      USL_POCKET_ID_SIGN_CLIENT_ID: ${USL_POCKET_ID_SIGN_CLIENT_ID:-}
+      USL_POCKET_ID_SIGN_CLIENT_SECRET: ${USL_POCKET_ID_SIGN_CLIENT_SECRET:-}
+      USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${USL_POCKET_ID_SIGN_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SIGN_FRESH_REQUIRED: ${USL_POCKET_ID_SIGN_FRESH_REQUIRED:-0}
     ports:
       - "${ODOO_HTTP_PORT:-8069}:8069"
       - "${ODOO_GEVENT_PORT:-8072}:8072"
@@ -421,7 +425,7 @@ services:
     env_file:
       - path: .env
         required: false
-      - path: .secrets/sign/odoo.env
+      - path: ${USL_SIGN_ODOO_ENV_FILE:-.secrets/sign/odoo.env}
         required: false
     environment:
       ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
@@ -446,6 +450,10 @@ services:
       USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
       USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
+      USL_POCKET_ID_SIGN_CLIENT_ID: ${USL_POCKET_ID_SIGN_CLIENT_ID:-}
+      USL_POCKET_ID_SIGN_CLIENT_SECRET: ${USL_POCKET_ID_SIGN_CLIENT_SECRET:-}
+      USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${USL_POCKET_ID_SIGN_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SIGN_FRESH_REQUIRED: ${USL_POCKET_ID_SIGN_FRESH_REQUIRED:-0}
       USL_POCKET_ID_USERS_JSON: ${USL_POCKET_ID_USERS_JSON:-}
       USL_POCKET_ID_BREAK_GLASS_PASSWORD: ${USL_POCKET_ID_BREAK_GLASS_PASSWORD:-}
       USL_POCKET_ID_APPLY: ${USL_POCKET_ID_APPLY:-0}
@@ -638,7 +646,7 @@ services:
     env_file:
       - path: .env
         required: false
-      - path: .secrets/sign/odoo.env
+      - path: ${USL_SIGN_ODOO_ENV_FILE:-.secrets/sign/odoo.env}
         required: false
     environment:
       ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
@@ -663,6 +671,10 @@ services:
       USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
       USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
+      USL_POCKET_ID_SIGN_CLIENT_ID: ${USL_POCKET_ID_SIGN_CLIENT_ID:-}
+      USL_POCKET_ID_SIGN_CLIENT_SECRET: ${USL_POCKET_ID_SIGN_CLIENT_SECRET:-}
+      USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${USL_POCKET_ID_SIGN_REQUIRED_GROUP:-}
+      USL_POCKET_ID_SIGN_FRESH_REQUIRED: ${USL_POCKET_ID_SIGN_FRESH_REQUIRED:-0}
     restart: "no"
     volumes:
       - odoo-data:/var/lib/odoo

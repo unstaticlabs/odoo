@@ -1,0 +1,131 @@
+diff --git a/backend/internal/controller/well_known_controller.go b/backend/internal/controller/well_known_controller.go
+index cf8c1c8..f6122f4 100644
+--- a/backend/internal/controller/well_known_controller.go
++++ b/backend/internal/controller/well_known_controller.go
+@@ -97,0 +98 @@ func (wkc *WellKnownController) computeOIDCConfiguration() ([]byte, error) {
++		"usl_fresh_passkey_reauthentication_supported":   true,
+diff --git a/backend/internal/oidc/authorization_service.go b/backend/internal/oidc/authorization_service.go
+index 026606d..aecc8dc 100644
+--- a/backend/internal/oidc/authorization_service.go
++++ b/backend/internal/oidc/authorization_service.go
+@@ -350 +350,3 @@ func (s *authorizationService) resolveRequirements(ctx context.Context, req auth
+-	if requirements.ReauthenticationRequired && req.reauthenticationToken != "" && s.reauth != nil {
++	credentialProofRequired := interactionSession != nil && interactionSession.Parameters["usl_fresh_passkey"] == "1"
++	credentialProofValid := !credentialProofRequired || strings.HasPrefix(req.reauthenticationToken, "phr.")
++	if requirements.ReauthenticationRequired && req.reauthenticationToken != "" && credentialProofValid && s.reauth != nil {
+@@ -659,0 +662,3 @@ func (s *authorizationService) completeReauthenticationStep(ctx context.Context,
++	if interactionSession.Parameters["usl_fresh_passkey"] == "1" && !strings.HasPrefix(reauthenticationToken, "phr.") {
++		return &common.ReauthenticationRequiredError{}
++	}
+@@ -722,0 +728,7 @@ func (s *authorizationService) interactionRequirementsForUser(ctx context.Contex
++	reauthenticationRequired := prompt.has("login") || interactionSession.Client.RequiresReauthentication || maxAgeReauthenticationRequired
++	// A passkey login performed after this interaction started is already fresh.
++	// Existing sessions still enter the reauthentication step, where this build
++	// accepts credential-backed WebAuthn only.
++	if interactionSession.Parameters["usl_fresh_passkey"] == "1" && !authenticationTime.Before(interactionSession.RequestedAt.UTC()) {
++		reauthenticationRequired = false
++	}
+@@ -726 +738 @@ func (s *authorizationService) interactionRequirementsForUser(ctx context.Contex
+-		ReauthenticationRequired: prompt.has("login") || interactionSession.Client.RequiresReauthentication || maxAgeReauthenticationRequired,
++		ReauthenticationRequired: reauthenticationRequired,
+diff --git a/backend/internal/oidc/authorization_service_test.go b/backend/internal/oidc/authorization_service_test.go
+index ddf0826..6da6c7f 100644
+--- a/backend/internal/oidc/authorization_service_test.go
++++ b/backend/internal/oidc/authorization_service_test.go
+@@ -23,0 +24,34 @@ type fakeAuditLogger struct {
++type trackingReauthenticationConsumer struct {
++	called bool
++	when   time.Time
++}
++
++func (f *trackingReauthenticationConsumer) ConsumeReauthenticationToken(_ context.Context, _ *gorm.DB, _ string, _ string) (time.Time, error) {
++	f.called = true
++	return f.when, nil
++}
++
++func TestStrictFreshPasskeyRejectsSessionProof(t *testing.T) {
++	db := testutils.NewDatabaseForTest(t)
++	consumer := &trackingReauthenticationConsumer{when: time.Now().UTC()}
++	service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil), consumer, nil, nil)
++	userID := "fresh-passkey-user"
++	interaction := &InteractionSession{
++		UserID:                   &userID,
++		ReauthenticationRequired: true,
++		Parameters: InteractionSessionParameters{
++			"usl_fresh_passkey": "1",
++		},
++	}
++
++	err := service.completeReauthenticationStep(t.Context(), interaction, userID, "session.recent-login")
++	require.Error(t, err)
++	require.ErrorAs(t, err, new(*common.ReauthenticationRequiredError))
++	require.False(t, consumer.called)
++
++	err = service.completeReauthenticationStep(t.Context(), interaction, userID, "phr.credential-backed")
++	require.NoError(t, err)
++	require.True(t, consumer.called)
++	require.False(t, interaction.ReauthenticationRequired)
++}
++
+@@ -878,0 +913,34 @@ func TestAuthorizationServiceAuthorizeRequiresReauthenticationWhenMaxAgeExceeded
++func TestStrictFreshPasskeyCountsAnInitialLoginOnce(t *testing.T) {
++	db := testutils.NewDatabaseForTest(t)
++	service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil), nil, nil, nil)
++
++	const (
++		userID   = "fresh-passkey-user"
++		clientID = "fresh-passkey-client"
++	)
++	requestedAt := time.Now().Add(-2 * time.Second).UTC()
++	require.NoError(t, db.Create(&model.User{Base: model.Base{ID: userID}}).Error)
++	require.NoError(t, db.Create(&model.OidcClient{Base: model.Base{ID: clientID}, Name: "Fresh passkey client"}).Error)
++	require.NoError(t, db.Create(&model.UserAuthorizedOidcClient{
++		UserID: userID, ClientID: clientID, Scope: datatype.StringList{"openid"},
++	}).Error)
++
++	interaction := &InteractionSession{
++		Scopes:      datatype.StringList{"openid"},
++		ClientID:    clientID,
++		Client:      model.OidcClient{Base: model.Base{ID: clientID}},
++		RequestedAt: datatype.DateTime(requestedAt),
++		Parameters: map[string]string{
++			"prompt":            "login",
++			"usl_fresh_passkey": "1",
++		},
++	}
++	fresh, err := service.interactionRequirementsForUser(t.Context(), userID, interaction, requestedAt.Add(time.Second))
++	require.NoError(t, err)
++	require.False(t, fresh.ReauthenticationRequired)
++
++	stale, err := service.interactionRequirementsForUser(t.Context(), userID, interaction, requestedAt.Add(-time.Second))
++	require.NoError(t, err)
++	require.True(t, stale.ReauthenticationRequired)
++}
++
+diff --git a/backend/internal/webauthn/service.go b/backend/internal/webauthn/service.go
+index 159f8f0..9b31ba8 100644
+--- a/backend/internal/webauthn/service.go
++++ b/backend/internal/webauthn/service.go
+@@ -428 +428 @@ func (s *Service) CreateReauthenticationTokenWithAccessToken(ctx context.Context
+-	reauthToken, err := s.createReauthenticationToken(ctx, tx, user.ID)
++	reauthToken, err := s.createReauthenticationToken(ctx, tx, user.ID, "session")
+@@ -486 +486 @@ func (s *Service) CreateReauthenticationTokenWithWebauthn(ctx context.Context, s
+-	token, err := s.createReauthenticationToken(ctx, tx, user.ID)
++	token, err := s.createReauthenticationToken(ctx, tx, user.ID, "phr")
+@@ -515,2 +515,2 @@ func (s *Service) ConsumeReauthenticationToken(ctx context.Context, tx *gorm.DB,
+-func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB, userID string) (string, error) {
+-	token, err := utils.GenerateRandomAlphanumericString(32)
++func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB, userID, proof string) (string, error) {
++	randomToken, err := utils.GenerateRandomAlphanumericString(32)
+@@ -519,0 +520 @@ func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB,
++	token := proof + "." + randomToken
+diff --git a/backend/internal/webauthn/service_test.go b/backend/internal/webauthn/service_test.go
+index b5c0891..0518e00 100644
+--- a/backend/internal/webauthn/service_test.go
++++ b/backend/internal/webauthn/service_test.go
+@@ -88 +88 @@ func TestCreateReauthenticationTokenWithAccessToken(t *testing.T) {
+-	t.Run("accepts a fresh access token from WebAuthn login", func(t *testing.T) {
++	t.Run("accepts a fresh access token as a session proof", func(t *testing.T) {
+@@ -96 +96 @@ func TestCreateReauthenticationTokenWithAccessToken(t *testing.T) {
+-		assert.NotEmpty(t, reauthenticationToken)
++		assert.Contains(t, reauthenticationToken, "session.")

@@ -19,12 +19,32 @@ The pinned components are:
 
 - EU DSS 6.4 in `services/usl-sign-dss`;
 - `step-ca` 0.30.2;
-- `webauthn` 3.0.0 in the Odoo Python environment;
+- Pocket ID 2.12.0 from exact commit
+  `b3fb8de5bc55aa813a27b4e15c1d761026fcceaa`, with the tracked strict
+  fresh-passkey patch in `services/usl-pocket-id`;
 - `@peculiar/x509` 2.0.0 in the dedicated browser worker;
 - pyHanko 0.36.2 in the DSS container for independent cross-validation;
 - veraPDF in the DSS container for PDF/A dossier validation.
 
-For a new development secret directory, run:
+For the worktree-isolated Pocket ID Sign QA environment, run:
+
+```shell
+scripts/sign-pocketid-stack bootstrap
+scripts/sign-pocketid-stack start
+scripts/sign-pocketid-stack status
+scripts/sign-pocketid-stack test-pocket
+scripts/sign-pocketid-stack test
+scripts/sign-pocketid-stack smoke
+```
+
+This creates project `usl-sign-pocketid-6605`, its own `odoo_dev` database,
+volumes, OIDC clients and ignored secret root. It exposes Odoo on port 16669,
+Pocket ID on 16411 and Paperless on 16810; it never shares the canonical
+tenant. The Sign authorization client is restricted to its own `usl-signers`
+group rather than inheriting ordinary Odoo access. `test-pocket` verifies the strict Pocket patch, `test` runs the Odoo
+and browser suites in a disposable database, and `smoke` exercises the local
+CA, DSS, pyHanko, veraPDF, replay and alteration checks. For the ordinary local
+Sign services, run:
 
 ```shell
 scripts/sign-services-bootstrap
@@ -87,10 +107,14 @@ names are ordinary catalog data; adding one does not enable an integration.
 
 ## Standard acceptance
 
-Use a synthetic, non-confidential PDF. Verify template creation, all supported
-field types, multiple pages, drag/drop, role colors, resize/move/delete,
-required fields, page navigation, zoom and keyboard use. Exercise a one-off
-request and a reusable template on desktop and mobile.
+Use a synthetic, non-confidential PDF. Select the signer and a typed field,
+then click the PDF to place it. Repeat with drag/drop and right-click; every
+path must show or retain the signer explicitly. Verify all supported field
+types, multiple pages, stable role colors, live recoloring after a role change,
+resize/move/delete, undo/redo, autosave and retry states, required markers,
+role preview, page navigation, zoom and keyboard use. Exercise a one-off
+request and a reusable template on desktop, and confirm that narrow screens
+show the deliberate non-authoring state while mobile signing remains usable.
 
 Verify multiple signers both unordered and ordered, secure-link exchange,
 portal/Pocket ID policy where configured, explicit consent, reminders,
@@ -108,23 +132,27 @@ expiration, refusal and cancellation. Confirm that:
 
 Use a real platform authenticator in a supported browser. Record the browser,
 OS and authenticator actually tested; do not advertise an untested platform.
-The RP ID and allowed HTTPS origin must exactly match the production host.
+The dedicated Pocket ID Sign client and callback must exactly match the
+production Odoo host. Strict discovery capability is mandatory.
 
 1. Create an enrolment for a synthetic known partner and record the relationship
    basis, reviewer and identity policy.
-2. Register one passkey, then a recovery passkey.
-3. Sign a frozen request with user verification.
+2. Connect the correct Pocket ID subject and have an identity reviewer confirm
+   it. Add and recover passkeys in Pocket ID, not Odoo.
+3. Sign a frozen request through the dedicated Pocket ID popup with a fresh
+   passkey interaction.
 4. Inspect browser network traffic and assert that no private JWK, PKCS#8,
    seed, private `CryptoKey` or equivalent key material left the worker.
-5. Verify the CSR/public-key hash and exact document hash are in the one-time
-   challenge, the certificate expires within ten minutes and renewal is
-   unavailable.
+5. Verify the CSR/public-key hash and exact document hash are in the canonical
+   binding; its digest equals the signed OIDC nonce. Confirm `amr` contains
+   `phr`, `auth_time` follows ceremony creation, the certificate expires within
+   ten minutes and renewal is unavailable.
 6. Verify the personal PAdES and final platform seal with DSS and pyHanko.
 7. Repeat with ordered strong signers and confirm each covers the prior PDF
    revision.
-8. Try replay, a different document, a stale ceremony, a revoked credential,
-   a lost passkey, invalid origin/RP ID, absent user verification and a reused
-   certificate token; each must fail closed.
+8. Try replay, a different document or CSR, a stale ceremony, OTP login, wrong
+   Pocket subject/group, a revoked enrolment, missing strict capability and a
+   reused certificate token; each must fail closed.
 9. Re-enrol after revocation and confirm earlier completed signatures are
    unchanged.
 
@@ -149,6 +177,11 @@ insufficient-level samples; all must become `Validation failed` without a
 downgrade or manual completion option.
 
 ## Evidence and archival operations
+
+In **Sign → Configuration → Settings**, keep **Send signers a copy of the final
+signed document** enabled unless company policy explicitly forbids signer
+delivery. USL Sign queues the final PDF/A-3 dossier once, and only after
+validation and Paperless archival have completed.
 
 For every completed request, inspect the source documents, frozen snapshots,
 signer/consent evidence, original/final hashes, complete event chain,

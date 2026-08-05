@@ -4,7 +4,7 @@ set -euo pipefail
 umask 077
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-sign_dir="$repo_root/.secrets/sign"
+sign_dir="${USL_SIGN_SECRET_ROOT:-$repo_root/.secrets/sign}"
 step_dir="$sign_dir/step-ca"
 offline_root_dir="$sign_dir/offline-root"
 odoo_secret_dir="$sign_dir/odoo"
