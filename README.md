@@ -112,6 +112,20 @@ Keep BuildKit enabled (the default in current Docker Engine and Docker
 Desktop). The Dockerfile uses cache and bind mounts that do not become image
 layers.
 
+### Dependency updates
+
+Dependabot monitors the maintained Python dependency set, Dockerfile base
+images and Compose service images from `.github/dependabot.yml`. Compatible
+Python updates are grouped monthly; container updates are checked weekly.
+Python major versions remain governed by the pinned upstream Odoo baseline.
+
+Dependabot PRs are qualification candidates, never automatic upgrades. Rebuild
+the image and run the checks appropriate to the affected runtime; Paperless,
+Pocket ID, PostgreSQL and other stateful-service changes require the clean
+install, reconstructed `odoo_dev` and pre-production release gates before
+merge. Odoo upstream commits and pinned OCA source revisions are updated by
+their documented replay/synchronization workflow, not by Dependabot.
+
 Milestone 13 also uses pinned OCA add-ons for Community accounting reports, reconciliation and spreadsheet/PDF support. Fetch them before running imported-accounting or report work:
 
 ```bash

@@ -1,0 +1,105 @@
+# Dependabot runs against the repository default branch (19-usl). Do not add a
+# target-branch here: GitHub only applies these settings to security updates
+# when the update entry targets the default branch.
+version: 2
+
+updates:
+  # requirements.txt and requirements-docs.txt. Odoo's upstream pins remain authoritative:
+  # routine PRs may refresh compatible releases, while major-version changes
+  # arrive through an upstream Odoo update or an explicit qualification task.
+  - package-ecosystem: "pip"
+    directory: "/"
+    exclude-paths:
+      - "addons/**"
+      - "oca-addons/**"
+      - "oca-src/**"
+      - "odoo/**"
+      - "setup/**"
+    schedule:
+      interval: "monthly"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    groups:
+      compatible-python-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Restrict routine version PRs, not security PRs. GitHub documents that
+    # allow.update-types never suppresses a security update.
+    allow:
+      - dependency-type: "direct"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Transitive Python pins used to make the distribution image reproducible.
+  # Keep this separate from direct Odoo requirements so each candidate can be
+  # rebuilt and diagnosed without an unrelated manifest rewrite.
+  - package-ecosystem: "pip"
+    directory: "/docker"
+    schedule:
+      interval: "monthly"
+      time: "06:30"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 2
+    groups:
+      compatible-python-lock-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    allow:
+      - dependency-type: "direct"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Base images used by the multi-stage distribution Dockerfile. Major image
+  # updates stay separate so Python/runtime-generation changes are explicit.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    groups:
+      compatible-dockerfile-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Runtime services shared by development, migration and pre-production.
+  # A PR is only a candidate: Paperless, Pocket ID and data-service updates
+  # still require the documented clean-install, reconstruction and release
+  # qualification before merge.
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    groups:
+      compatible-service-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
