@@ -119,6 +119,30 @@ RUN ln -s /opt/odoo/odoo-bin /usr/local/bin/odoo
 
 USER odoo
 
+# Resolve the pinned OCA add-on symlinks into real module trees so the product
+# image carries only the selected modules, not the oca-src vendor checkouts.
+# Run `make oca-addons-sync` before building this stage.
+FROM ${PYTHON_IMAGE} AS oca-resolve
+
+COPY oca-src /srv/oca-src
+COPY oca-addons /srv/oca-addons
+RUN cp -rL /srv/oca-addons /srv/resolved \
+    && find /srv/resolved -mindepth 2 -maxdepth 2 -name __manifest__.py | grep -q . \
+    || { echo "No resolved OCA modules; run make oca-addons-sync first" >&2; exit 1; }
+
+# Self-contained product image for QA/production deployments. It embeds the
+# custom add-ons, resolved OCA add-ons and user documentation that Compose
+# bind-mounts in development, so a deployment host needs no repository
+# checkout. The test-only usl_bootstrap fixture is excluded by .dockerignore.
+FROM base AS product
+
+COPY --link --chown=1000:1000 --from=oca-resolve /srv/resolved ./oca-addons
+COPY --link --chown=1000:1000 custom-addons ./custom-addons
+COPY --link --chown=1000:1000 docs/users ./docs/users
+
+ENV ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons \
+    USL_USER_DOCS_PATH=/opt/odoo/docs/users
+
 # Browser-capable test image, built only when the test profile is requested.
 FROM base AS test
 
