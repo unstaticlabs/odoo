@@ -1,7 +1,5 @@
+import base64
 import hashlib
-import secrets
-from base64 import b64decode
-from datetime import timedelta
 from io import BytesIO
 
 from odoo import api, fields, models
@@ -14,60 +12,33 @@ class SignTemplate(models.Model):
 
     description = fields.Text(translate=True)
     company_id = fields.Many2one(
-        "res.company", required=True, default=lambda self: self.env.company, index=True
+        "res.company", required=True, default=lambda self: self.env.company, index=True,
     )
     version = fields.Integer(required=True, default=1, readonly=True)
-    policy_id = fields.Many2one(
-        "usl.sign.policy",
-        required=True,
-        domain="[('company_id', '=', company_id), ('active', '=', True)]",
+    previous_version_id = fields.Many2one(
+        "sign.oca.template", readonly=True, copy=False, ondelete="restrict",
     )
+    policy_id = fields.Many2one("usl.sign.policy", ondelete="restrict")
+    signing_order = fields.Boolean(string="Require signer order")
     expiration_days = fields.Integer(default=30, required=True)
     reminder_days = fields.Integer(default=3, required=True)
     max_reminders = fields.Integer(default=5, required=True)
-    signing_order = fields.Boolean(string="Require signer order")
-    public_link_enabled = fields.Boolean(copy=False)
-    public_access_token = fields.Char(copy=False, readonly=True, groups="usl_sign.group_sign_admin")
-    public_expires_at = fields.Datetime(copy=False)
-    public_url = fields.Char(compute="_compute_public_url")
-    has_requests = fields.Boolean(compute="_compute_has_requests")
-    document_sha256 = fields.Char(
-        compute="_compute_document_sha256", store=True, readonly=True, index=True
-    )
     preparation_status = fields.Selection(
         [
             ("draft", "Draft"),
+            ("needs_fields", "Fields required"),
             ("ready", "Ready"),
-            ("review_required", "Review required"),
         ],
-        required=True,
         default="draft",
-        tracking=True,
+        required=True,
+        readonly=True,
     )
-    preparation_note = fields.Char()
-
-    @api.model
-    def _default_policy(self, company):
-        return self.env["usl.sign.policy"].search(
-            [("company_id", "=", company.id), ("is_default", "=", True)], limit=1
-        )
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            company = self.env["res.company"].browse(
-                vals.get("company_id") or self.env.company.id
-            )
-            if not vals.get("policy_id"):
-                vals["policy_id"] = self._default_policy(company).id
-        templates = super(
-            SignTemplate, self.with_context(usl_sign_template_initializing=True)
-        ).create(vals_list)
-        templates = templates.with_context(usl_sign_template_initializing=False)
-        templates.filtered(
-            lambda template: template.preparation_status == "ready"
-        )._validate_template_preparation()
-        return templates
+    preparation_note = fields.Char(readonly=True)
+    document_sha256 = fields.Char(compute="_compute_document_sha256", store=True)
+    document_ids = fields.One2many(
+        "usl.sign.template.document", "template_id", string="Documents and annexes",
+    )
+    has_requests = fields.Boolean(compute="_compute_has_requests")
 
     @api.depends("request_count")
     def _compute_has_requests(self):
@@ -77,276 +48,231 @@ class SignTemplate(models.Model):
     @api.depends("data")
     def _compute_document_sha256(self):
         for template in self:
+            # ``web_save`` reads Binary fields with ``bin_size=True``. A
+            # stored compute may therefore run after create with a display
+            # size (for example ``6.5 KB``) instead of the base64 payload.
+            document_data = template.with_context(bin_size=False).data
             template.document_sha256 = (
-                hashlib.sha256(b64decode(template.data)).hexdigest()
-                if template.data
+                hashlib.sha256(base64.b64decode(document_data)).hexdigest()
+                if document_data
                 else False
             )
 
-    @api.depends("public_access_token", "public_link_enabled")
-    def _compute_public_url(self):
-        base_url = self.env["ir.config_parameter"].sudo().get_str("web.base.url")
-        for template in self:
-            template.public_url = (
-                f"{base_url}/sign/public/{template.public_access_token}"
-                if template.public_link_enabled and template.public_access_token
-                else False
-            )
-
-    def _touch_version(self):
-        for template in self.filtered("request_count"):
-            super(SignTemplate, template).write({"version": template.version + 1})
-
-    def _invalidate_preparation(self):
-        for template in self.filtered(
-            lambda item: item.preparation_status == "ready"
-        ):
-            super(SignTemplate, template).write(
+    @api.model_create_multi
+    def create(self, vals_list):
+        templates = super().create(vals_list)
+        for template in templates.filtered(lambda row: row.data and not row.document_ids):
+            self.env["usl.sign.template.document"].create(
                 {
-                    "preparation_status": "review_required",
-                    "preparation_note": self.env._(
-                        "The document or field layout changed. Review it before creating new requests."
-                    ),
-                    "public_link_enabled": False,
-                    "public_access_token": False,
-                }
+                    "template_id": template.id,
+                    "name": template.name,
+                    "filename": template.filename or f"{template.name}.pdf",
+                    # The web client creates records with ``bin_size=True``;
+                    # always copy the persisted bytes, not the display size.
+                    "data": template.with_context(bin_size=False).data,
+                },
             )
+        return templates
 
-    def _validate_template_preparation(self):
+    def _ensure_draft(self):
+        self.ensure_one()
+        if self.request_count or self.preparation_status == "ready":
+            msg = "Published or used templates are immutable; create a new version."
+            raise ValidationError(msg)
+
+    def configure(self):
+        self.ensure_one()
+        if self.request_count or self.preparation_status == "ready":
+            return self._copy_new_version()._version_form_action()
+        action = super().configure()
+        action["tag"] = "usl_sign_template_configure"
+        return action
+
+    def _copy_new_version(self):
+        self.ensure_one()
+        new_template = self.copy(
+            {
+                "name": self.name,
+                "version": self.version + 1,
+                "previous_version_id": self.id,
+                "preparation_status": "draft",
+                "active": True,
+            },
+        )
+        self.active = False
+        return new_template
+
+    def action_new_version(self):
+        new_template = self._copy_new_version()
+        return new_template._version_form_action()
+
+    def _version_form_action(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "sign.oca.template",
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_mark_ready(self):
         for template in self:
-            try:
-                reader = PdfReader(BytesIO(b64decode(template.data)))
-                if getattr(reader, "is_encrypted", False):
-                    raise ValidationError(
-                        self.env._(
-                            "The PDF is encrypted. Upload an unlocked PDF before marking the template ready."
-                        )
-                    )
-                if not reader.pages:
-                    raise ValidationError(
-                        self.env._("The template PDF does not contain any pages.")
-                    )
-            except ValidationError:
-                raise
-            except Exception as error:
-                raise ValidationError(
-                    self.env._(
-                        "The template file is not a readable PDF. Replace it before marking the template ready."
-                    )
-                ) from error
-            if not template.item_ids:
-                raise ValidationError(
-                    self.env._(
-                        "Place at least one field before marking the template ready."
-                    )
-                )
-            if template.item_ids.filtered(
-                lambda item: not item.field_id or not item.role_id
-            ):
-                raise ValidationError(
-                    self.env._("Every template field must have a type and signer role.")
-                )
-            page_count = len(reader.pages)
-            invalid_geometry = template.item_ids.filtered(
-                lambda item: item.page < 1
-                or item.page > page_count
-                or item.position_x < 0
+            template._validate_template()
+            template.write(
+                {
+                    "preparation_status": "ready",
+                    "preparation_note": "Template fields, roles and documents passed review.",
+                },
+            )
+        return True
+
+    def _validate_template(self):
+        self.ensure_one()
+        if self.policy_id.company_id and self.policy_id.company_id != self.company_id:
+            msg = "The signing policy belongs to another company."
+            raise ValidationError(msg)
+        raw = base64.b64decode(self.data or b"")
+        try:
+            page_count = len(PdfReader(BytesIO(raw)).pages)
+        except Exception as error:
+            msg = "Upload a readable PDF before preparing the template."
+            raise ValidationError(msg) from error
+        if not self.item_ids:
+            msg = "Place at least one field on the PDF."
+            raise ValidationError(msg)
+        for item in self.item_ids:
+            if not item.field_id or not item.role_id:
+                msg = "Every template field needs a field type and signer role."
+                raise ValidationError(msg)
+            if item.page < 1 or item.page > page_count:
+                msg = "A field is placed on a page that does not exist."
+                raise ValidationError(msg)
+            if (
+                item.position_x < 0
                 or item.position_y < 0
                 or item.width <= 0
                 or item.height <= 0
                 or item.position_x + item.width > 100
                 or item.position_y + item.height > 100
+            ):
+                msg = "A template field is outside the PDF page."
+                raise ValidationError(msg)
+        roles = self.item_ids.mapped("role_id")
+        signature_roles = self.item_ids.filtered(
+            lambda item: item.field_id.usl_kind == "signature",
+        ).mapped("role_id")
+        missing = roles - signature_roles
+        if missing:
+            raise ValidationError(
+                "Place a signature field for these roles: " + ", ".join(missing.mapped("name")),
             )
-            if invalid_geometry:
-                raise ValidationError(
-                    self.env._(
-                        "A template field is outside the PDF page. Move or resize it before marking the template ready."
-                    )
-                )
-            roles = template.item_ids.mapped("role_id")
-            signature_roles = template.item_ids.filtered(
-                lambda item: item.field_id.usl_kind == "signature"
-            ).mapped("role_id")
-            missing = roles - signature_roles
-            if missing:
-                raise ValidationError(
-                    self.env._(
-                        "Place a signature field for these signer roles: %(roles)s",
-                        roles=", ".join(missing.mapped("name")),
-                    )
-                )
-        return True
 
     def _prepare_sign_oca_request_vals_from_record(self, record):
         self.ensure_one()
         if not self.active or self.preparation_status != "ready":
-            raise ValidationError(
-                self.env._(
-                    "Review and mark this template ready before creating a signature request."
-                )
-            )
-        vals = super()._prepare_sign_oca_request_vals_from_record(record)
-        vals.update(
+            msg = "Review and mark this template ready first."
+            raise ValidationError(msg)
+        values = super()._prepare_sign_oca_request_vals_from_record(record)
+        values.update(
             {
                 "company_id": self.company_id.id,
                 "policy_id": self.policy_id.id,
-                "requested_assurance": self.policy_id.assurance_level,
-                "authentication_method": self.policy_id.authentication_method,
-                "provider_code": self.policy_id.provider_code,
                 "template_version": self.version,
                 "reminder_days": self.reminder_days,
                 "max_reminders": self.max_reminders,
                 "signing_order": self.signing_order,
-                "expires_at": fields.Datetime.now()
-                + timedelta(days=self.expiration_days),
-            }
+                "document_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "sequence": document.sequence,
+                            "is_annex": document.is_annex,
+                            "name": document.name,
+                            "filename": document.filename,
+                            "data": document.data,
+                        },
+                    )
+                    for document in self.document_ids
+                ],
+            },
         )
-        return vals
+        return values
 
-    def write(self, vals):
+    def write(self, values):
         material = {
             "data",
+            "name",
+            "description",
             "company_id",
             "model_id",
             "policy_id",
+            "signing_order",
             "expiration_days",
             "reminder_days",
             "max_reminders",
-            "signing_order",
-            "preparation_status",
+            "item_ids",
+            "document_ids",
         }
-        material_changes = material.intersection(vals) - {"preparation_status"}
-        ready_before = self.filtered(
-            lambda template: template.preparation_status == "ready"
-        )
-        if material.intersection(vals):
-            self._touch_version()
-        if "company_id" in vals and self.filtered("request_count"):
-            raise ValidationError(
-                self.env._("A template already used for requests cannot change company.")
-            )
-        result = super().write(vals)
-        if material_changes and "preparation_status" not in vals:
-            ready_before._invalidate_preparation()
-        if vals.get("preparation_status") == "ready":
-            self._validate_template_preparation()
-            super(SignTemplate, self).write({"preparation_note": False})
-        return result
-
-    @api.constrains(
-        "policy_id", "company_id", "expiration_days", "reminder_days", "max_reminders"
-    )
-    def _check_usl_template(self):
-        for template in self:
-            if template.policy_id.company_id != template.company_id:
-                raise ValidationError(
-                    self.env._("The signature policy must belong to the template company.")
-                )
-            if template.expiration_days < 1 or template.reminder_days < 0:
-                raise ValidationError(
-                    self.env._("Expiration and reminder delays must be valid positive values.")
-                )
-            if not 0 <= template.max_reminders <= 10:
-                raise ValidationError(
-                    self.env._("The maximum reminder count must be between 0 and 10.")
-                )
-
-    def _public_link_status(self):
-        self.ensure_one()
-        if not self.active or not self.public_link_enabled or not self.public_access_token:
-            return False, self.env._("This signing link is invalid or no longer available.")
-        if self.preparation_status != "ready":
-            return False, self.env._("This signing template requires review.")
-        if self.public_expires_at and self.public_expires_at <= fields.Datetime.now():
-            return False, self.env._("This signing link has expired.")
-        roles = self.item_ids.mapped("role_id")
-        if (
-            len(roles) != 1
-            or not self.policy_id.public_link_allowed
-            or self.policy_id.assurance_level != "standard"
+        if material.intersection(values) and self.filtered(
+            lambda template: template.request_count or template.preparation_status == "ready",
         ):
-            return False, self.env._("This signing link is no longer eligible for public use.")
-        if not self.company_id.sign_provider_ready:
-            return False, self.env._("Signing is temporarily unavailable. Please try again later.")
-        return True, False
-
-    def _prepare_public_request_vals(self, partner):
-        self.ensure_one()
-        available, explanation = self._public_link_status()
-        if not available:
-            raise ValidationError(explanation)
-        role = self.item_ids.mapped("role_id").ensure_one()
-        return {
-            "name": self.name,
-            "template_id": self.id,
-            "template_version": self.version,
-            "company_id": self.company_id.id,
-            "policy_id": self.policy_id.id,
-            "requested_assurance": self.policy_id.assurance_level,
-            "authentication_method": self.policy_id.authentication_method,
-            "provider_code": self.policy_id.provider_code,
-            "signatory_data": self._get_signatory_data(),
-            "data": self.data,
-            "filename": self.filename,
-            "signing_order": False,
-            "expires_at": fields.Datetime.now() + timedelta(days=self.expiration_days),
-            "reminder_days": self.reminder_days,
-            "max_reminders": self.max_reminders,
-            "user_id": self.create_uid.id,
-            "signer_ids": [
-                (0, 0, {"partner_id": partner.id, "role_id": role.id, "sequence": 10})
-            ],
-        }
-
-    def action_enable_public_link(self):
-        for template in self:
-            if template.preparation_status != "ready":
-                raise ValidationError(
-                    self.env._(
-                        "Review and mark this template ready before enabling a public link."
-                    )
-                )
-            template._validate_template_preparation()
-            roles = template.item_ids.mapped("role_id")
-            if len(roles) != 1:
-                raise ValidationError(
-                    self.env._("A reusable public link requires exactly one signer role.")
-                )
-            if not template.policy_id.public_link_allowed:
-                raise ValidationError(
-                    self.env._("This assurance policy does not permit reusable public links.")
-                )
-            if not template.item_ids or not template.item_ids.filtered("required"):
-                raise ValidationError(
-                    self.env._("Add at least one required field before enabling a public link.")
-                )
-            if template.preparation_status == "review_required":
-                raise ValidationError(
-                    self.env._("Review and correct this template before enabling a public link.")
-                )
-            template.write(
+            msg = "Published or used templates are immutable; create a new version."
+            raise ValidationError(msg)
+        if material.intersection(values) and "preparation_status" not in values:
+            values.update(
                 {
-                    "public_link_enabled": True,
-                    "public_access_token": secrets.token_urlsafe(32),
-                }
+                    "preparation_status": "draft",
+                    "preparation_note": "Review this version after its material change.",
+                },
             )
-        return True
+        return super().write(values)
 
-    def action_disable_public_link(self):
-        self.write({"public_link_enabled": False, "public_access_token": False})
-        return True
+    def unlink(self):
+        if self.filtered(
+            lambda template: template.request_count or template.preparation_status == "ready",
+        ):
+            msg = "Published or used templates cannot be deleted; archive them."
+            raise ValidationError(msg)
+        return super().unlink()
 
     def copy_data(self, default=None):
-        defaults = dict(default or {})
-        defaults.update(
-            {
-                "version": 1,
-                "public_link_enabled": False,
-                "public_access_token": False,
-                "public_expires_at": False,
-            }
-        )
-        return super().copy_data(defaults)
+        values = super().copy_data(default=default)
+        for template, record_values in zip(self, values, strict=True):
+            record_values["item_ids"] = [
+                (
+                    0,
+                    0,
+                    {
+                        "field_id": item.field_id.id,
+                        "role_id": item.role_id.id,
+                        "required": item.required,
+                        "page": item.page,
+                        "position_x": item.position_x,
+                        "position_y": item.position_y,
+                        "width": item.width,
+                        "height": item.height,
+                        "placeholder": item.placeholder,
+                    },
+                )
+                for item in template.item_ids
+            ]
+            record_values["document_ids"] = [
+                (
+                    0,
+                    0,
+                    {
+                        "sequence": document.sequence,
+                        "is_annex": document.is_annex,
+                        "name": document.name,
+                        "filename": document.filename,
+                        "data": document.data,
+                    },
+                )
+                for document in template.document_ids
+            ]
+        return values
 
 
 class SignTemplateItem(models.Model):
@@ -354,25 +280,31 @@ class SignTemplateItem(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        records = super().create(vals_list)
-        records.mapped("template_id")._touch_version()
-        if not self.env.context.get("usl_sign_template_initializing"):
-            records.mapped("template_id")._invalidate_preparation()
-        return records
+        templates = self.env["sign.oca.template"].browse(
+            [values.get("template_id") for values in vals_list],
+        )
+        if templates.filtered(
+            lambda template: template.request_count or template.preparation_status == "ready",
+        ):
+            msg = "Published or used templates are immutable; create a new version."
+            raise ValidationError(msg)
+        return super().create(vals_list)
 
-    def write(self, vals):
-        templates = self.mapped("template_id")
-        result = super().write(vals)
-        templates._touch_version()
-        templates._invalidate_preparation()
-        return result
+    def write(self, values):
+        if self.mapped("template_id").filtered(
+            lambda template: template.request_count or template.preparation_status == "ready",
+        ):
+            msg = "Published or used templates are immutable; create a new version."
+            raise ValidationError(msg)
+        return super().write(values)
 
     def unlink(self):
-        templates = self.mapped("template_id")
-        result = super().unlink()
-        templates._touch_version()
-        templates._invalidate_preparation()
-        return result
+        if self.mapped("template_id").filtered(
+            lambda template: template.request_count or template.preparation_status == "ready",
+        ):
+            msg = "Published or used templates are immutable; create a new version."
+            raise ValidationError(msg)
+        return super().unlink()
 
 
 class SignField(models.Model):
@@ -383,9 +315,9 @@ class SignField(models.Model):
             ("signature", "Signature"),
             ("initials", "Initials"),
             ("text", "Text"),
-            ("signer_name", "Signer name"),
-            ("date", "Date"),
             ("checkbox", "Checkbox"),
+            ("date", "Date"),
+            ("signer_name", "Signer name"),
             ("company", "Company"),
             ("role", "Role"),
         ],

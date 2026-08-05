@@ -1,0 +1,29 @@
+:root {
+    color-scheme: light;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #17212b;
+    background: #f4f6f8;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+.usl-sign-shell { width: calc(100% - 2rem); max-width: 56rem; margin: 2rem auto; }
+.usl-sign-shell--compact { max-width: 42rem; }
+.usl-sign-eyebrow { color: #5d6975; font-weight: 650; margin: 0 0 .25rem; }
+h1 { font-size: clamp(1.75rem, 4vw, 2.4rem); margin: 0 0 .5rem; }
+.usl-sign-muted { color: #59636e; margin-top: 0; }
+.usl-sign-card { background: #fff; border: 1px solid #d8dee5; border-radius: .8rem; padding: 1.25rem; margin: 1.25rem 0; box-shadow: 0 .25rem 1rem rgba(23, 33, 43, .06); }
+.usl-sign-document { border: 1px solid #c8d0d9; border-radius: .5rem; width: 100%; height: 55vh; background: #fff; }
+.usl-sign-hash { overflow-wrap: anywhere; font-size: .8rem; }
+.usl-sign-consent { display: flex; align-items: flex-start; gap: .7rem; margin: 1.25rem 0; }
+.usl-sign-consent input { inline-size: 1.15rem; block-size: 1.15rem; margin-top: .15rem; }
+.usl-sign-field { display: grid; gap: .4rem; margin: 1rem 0; }
+.usl-sign-field input { font: inherit; padding: .7rem; border: 1px solid #9ba7b4; border-radius: .4rem; }
+.usl-sign-button { border: 0; border-radius: .45rem; background: #714b67; color: #fff; padding: .8rem 1.1rem; font: inherit; font-weight: 700; cursor: pointer; }
+.usl-sign-button:disabled { opacity: .55; cursor: wait; }
+.usl-sign-status { border-radius: .5rem; padding: .8rem 1rem; margin-top: 1rem; }
+.alert-info { background: #e7f2fa; color: #164c6d; }
+.alert-success { background: #e5f4ea; color: #205d36; }
+.alert-warning { background: #fff2cc; color: #684d00; }
+.alert-danger { background: #fbe7e8; color: #78252a; }
+.usl-sign-note { background: #e7f2fa; border-radius: .5rem; padding: 1rem; margin-top: 1.5rem; }

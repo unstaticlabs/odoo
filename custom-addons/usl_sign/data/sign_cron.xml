@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
-    <record id="ir_cron_sign_provider_reconcile" model="ir.cron">
-        <field name="name">Sign: reconcile provider state and evidence</field>
-        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
-        <field name="state">code</field>
-        <field name="code">model._cron_reconcile_provider()</field>
-        <field name="interval_number">5</field>
-        <field name="interval_type">minutes</field>
-        <field name="active" eval="True"/>
-    </record>
     <record id="ir_cron_sign_operations" model="ir.cron">
-        <field name="name">Sign: expire requests and send reminders</field>
+        <field name="name">USL Sign: lifecycle, reminders and archive recovery</field>
         <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
         <field name="state">code</field>
         <field name="code">model._cron_sign_operations()</field>
@@ -18,13 +9,13 @@
         <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
-    <record id="ir_cron_sign_public_submissions" model="ir.cron">
-        <field name="name">Sign: process reusable-link submissions</field>
-        <field name="model_id" ref="model_usl_sign_public_submission"/>
+    <record id="ir_cron_sign_daily_event_heads" model="ir.cron">
+        <field name="name">USL Sign: sign daily event-head manifests</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest"/>
         <field name="state">code</field>
-        <field name="code">model._cron_process_public_submissions()</field>
+        <field name="code">model._cron_build_daily_manifests()</field>
         <field name="interval_number">1</field>
-        <field name="interval_type">minutes</field>
+        <field name="interval_type">days</field>
         <field name="active" eval="True"/>
     </record>
 </odoo>

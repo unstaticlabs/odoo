@@ -11,7 +11,7 @@ class ResUsers(models.Model):
             "administrator": "usl_sign.group_sign_admin",
             "break_glass": "usl_sign.group_sign_admin",
             "collaborator": "usl_sign.group_sign_user",
-            "accountant_reviewer": "usl_sign.group_sign_reviewer",
+            "accountant_reviewer": "usl_sign.group_sign_evidence_reviewer",
         }
         for profile, group in sign_groups.items():
             if profile not in definitions:

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_oca.sign_oca_template_generate_act_window" model="ir.actions.act_window">
+        <field name="name">Prepare signature request</field>
+    </record>
+
+    <record id="sign_template_generate_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.generate.form.usl</field>
+        <field name="model">sign.oca.template.generate</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_generate_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Prepare a signature request</attribute>
+            </xpath>
+            <xpath expr="//field[@name='signer_ids']" position="after">
+                <group string="Choose the proportionate journey">
+                    <group>
+                        <field name="company_id" invisible="1"/>
+                        <field name="document_category"/>
+                        <field name="signer_type"/>
+                        <field name="risk_level"/>
+                        <field name="requires_signed_pdf"/>
+                        <field name="formal_qes_required"/>
+                    </group>
+                    <group>
+                        <field name="policy_id" readonly="1"/>
+                        <field name="recommended_trust" readonly="1"/>
+                        <field name="requested_trust"/>
+                        <field name="external_provider_id" invisible="requested_trust != 'qualified_external'"/>
+                        <field name="override_reason" invisible="requested_trust == recommended_trust" required="requested_trust != recommended_trust"/>
+                    </group>
+                </group>
+                <div class="alert alert-info" role="status">
+                    <strong>Why this is recommended</strong>
+                    <field name="recommendation_reason" nolabel="1" readonly="1"/>
+                    <strong>What this means</strong>
+                    <field name="recommendation_consequence" nolabel="1" readonly="1"/>
+                    <field name="journey_availability" nolabel="1" readonly="1"/>
+                    <field name="approval_recommended" invisible="1"/>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='generate']" position="attributes">
+                <attribute name="string">Create request for review</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

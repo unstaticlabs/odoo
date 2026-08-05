@@ -1,46 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="portal_sign_provider" name="Secure provider signing">
-        <t t-call="portal.frontend_layout">
-            <t t-set="title" t-value="signer.request_id.name"/>
-            <div class="container-fluid py-3">
-                <div class="alert alert-info mb-3" role="status">
-                    <strong t-esc="signer.request_id.company_id.name"/>
-                    <span class="ms-2">asks you to review and sign</span>
-                    <strong class="ms-1" t-esc="signer.request_id.name"/>.
-                    <div class="small mt-1">
-                        <span t-esc="dict(signer.request_id._fields['requested_assurance'].selection).get(signer.request_id.requested_assurance)"/>
-                        signature · Review every page before confirming.
-                    </div>
-                </div>
-                <div id="usl_yousign_iframe"
-                     t-att-data-signature-link="signature_link"
-                     t-att-data-status-url="status_url"
-                     data-result-url="/sign/result"
-                     t-att-data-sandbox="'1' if sandbox else '0'"
-                     style="height: calc(100vh - 12rem); min-height: 36rem;"/>
-            </div>
-            <script src="https://cdn.yousign.tech/iframe-sdk-1.6.0.min.js"
-                    integrity="sha384-/7MD1voOOzWVz7FmgeMwmmd1DO85Mo0PkkxdYd9j2wDGzGDGRG/phgnL0c9Xyy52"
-                    crossorigin="anonymous"></script>
+    <!--
+        Odoo 19 passes layout fragments as t-call attributes.  Keep this local
+        wrapper around OCA Sign so the upstream module remains untouched while
+        its portal application receives its assets and bootstrap code.
+    -->
+    <template id="portal_sign_document" name="USL Sign document">
+        <t t-set="head">
+            <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+            <meta name="robots" content="noindex,nofollow"/>
+            <t t-call-assets="oca_sign.assets_frontend_sign" t-js="false"/>
+            <t t-call-assets="oca_sign.assets_frontend_sign" t-css="false"/>
+            <script type="text/javascript">
+                odoo.define("usl_sign.document_portal", ["@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm"], function (require) {
+                    const { initDocumentToSign } = require("@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm");
+                    initDocumentToSign(document, <t t-out="json.dumps(sign_oca_backend_info)"/>)
+                        .then(() =&gt; document.getElementById("usl_sign_loading")?.remove())
+                        .catch(() =&gt; {
+                            const status = document.getElementById("usl_sign_loading");
+                            if (status) {
+                                status.classList.add("alert", "alert-danger");
+                                status.textContent = "The signing session could not be loaded. Refresh the page or ask the sender for a new invitation.";
+                            }
+                        });
+                });
+            </script>
         </t>
-    </template>
-
-    <template id="portal_sign_qualified_redirect" name="Qualified signature transition">
-        <t t-call="portal.frontend_layout">
-            <t t-set="title">Qualified signature</t>
-            <main class="container py-5" style="max-width: 48rem;">
-                <div class="card shadow-sm">
-                    <div class="card-body p-4 p-md-5">
-                        <h1 class="h3">Continue with secure identity verification</h1>
-                        <p class="lead mb-3">
-                            <t t-esc="signer.request_id.company_id.name"/> asks you to sign
-                            <strong t-esc="signer.request_id.name"/> with a Qualified electronic signature.
-                        </p>
-                        <p>You will continue on Yousign’s secure service to verify your identity and complete the signature, then return here.</p>
-                        <a class="btn btn-primary btn-lg" t-att-href="signature_link">Continue securely</a>
-                    </div>
-                </div>
+        <t t-call="web.layout"
+           html_data="{'lang': sign_oca_backend_info['lang']}"
+           head="head"
+           body_classname.f="o_web_client o_portal_sign_document_body">
+            <main id="usl_sign_loading" class="container py-5" role="status" aria-live="polite">
+                <p>Loading the secure signing session…</p>
             </main>
         </t>
     </template>
@@ -49,97 +40,96 @@
         <t t-call="portal.frontend_layout">
             <main class="container py-5" style="max-width: 42rem;">
                 <div class="alert alert-warning" role="alert">
-                    <h1 class="h4">This signing link is no longer available</h1>
-                    <p class="mb-0">It may have expired, been completed, or been revoked. Contact the sender if you still need to sign.</p>
+                    <h1 class="h4">This signing link is unavailable</h1>
+                    <p class="mb-0">It may have expired, been used, or been revoked. Ask the sender for a new invitation.</p>
                 </div>
             </main>
         </t>
     </template>
-
     <template id="portal_sign_result" name="Signature result">
         <t t-call="portal.frontend_layout">
             <main class="container py-5" style="max-width: 42rem;">
                 <div t-if="successful" class="alert alert-success" role="status">
-                    <h1 class="h4">Your signature was submitted</h1>
-                    <p class="mb-0">The completed document will be available after all required signers finish and the evidence is received.</p>
+                    <h1 class="h4">Your signature was recorded</h1>
+                    <p class="mb-0">Odoo is validating the completed document and building its evidence package.</p>
                 </div>
                 <div t-elif="declined" class="alert alert-info" role="status">
-                    <h1 class="h4">Your response was recorded</h1>
-                    <p class="mb-0">The sender can now review the declined request.</p>
+                    <h1 class="h4">Your refusal was recorded</h1>
                 </div>
-                <div t-else="" class="alert alert-warning" role="alert">
-                    <h1 class="h4">The signing step could not be confirmed</h1>
-                    <p class="mb-0">You can reopen your personal link or contact the sender. Your earlier actions will not be repeated.</p>
-                </div>
-            </main>
-        </t>
-    </template>
-
-    <template id="portal_public_identity" name="Public signature identity">
-        <t t-call="portal.frontend_layout">
-            <t t-set="title" t-value="template.name"/>
-            <main class="container py-4 py-md-5" style="max-width: 44rem;">
-                <div class="card shadow-sm">
-                    <div class="card-body p-4 p-md-5">
-                        <div class="text-muted mb-2" t-esc="template.company_id.name"/>
-                        <h1 class="h3" t-esc="template.name"/>
-                        <p t-if="template.description" class="lead" t-esc="template.description"/>
-                        <div t-if="errors.get('form')" class="alert alert-danger" role="alert" t-esc="errors['form']"/>
-                        <p>Enter your own contact details. A personal, expiring signing link will be sent after verification.</p>
-                        <form method="post" t-att-action="template.public_url" novalidate="novalidate">
-                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                            <input type="hidden" name="submission_token" t-att-value="submission_token"/>
-                            <div class="mb-3">
-                                <label class="form-label" for="public_sign_name">Full name</label>
-                                <input id="public_sign_name" name="name" type="text" autocomplete="name" required="required"
-                                       t-att-value="values.get('name', '')" t-att-class="'form-control is-invalid' if errors.get('name') else 'form-control'"/>
-                                <div t-if="errors.get('name')" class="invalid-feedback" t-esc="errors['name']"/>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" for="public_sign_email">Email</label>
-                                <input id="public_sign_email" name="email" type="email" autocomplete="email" required="required"
-                                       t-att-value="values.get('email', '')" t-att-class="'form-control is-invalid' if errors.get('email') else 'form-control'"/>
-                                <div t-if="errors.get('email')" class="invalid-feedback" t-esc="errors['email']"/>
-                            </div>
-                            <div class="mb-3" t-if="template.policy_id.authentication_method == 'otp_sms'">
-                                <label class="form-label" for="public_sign_mobile">Mobile number</label>
-                                <input id="public_sign_mobile" name="mobile" type="tel" autocomplete="tel" placeholder="+33612345678" required="required"
-                                       t-att-value="values.get('mobile', '')" t-att-class="'form-control is-invalid' if errors.get('mobile') else 'form-control'"/>
-                                <div t-if="errors.get('mobile')" class="invalid-feedback" t-esc="errors['mobile']"/>
-                            </div>
-                            <div class="form-check mb-4">
-                                <input id="public_sign_consent" name="consent" value="1" type="checkbox" required="required"
-                                       t-att-class="'form-check-input is-invalid' if errors.get('consent') else 'form-check-input'"/>
-                                <label class="form-check-label" for="public_sign_consent">These contact details belong to me and may be used for this signature request.</label>
-                                <div t-if="errors.get('consent')" class="invalid-feedback" t-esc="errors['consent']"/>
-                            </div>
-                            <button class="btn btn-primary btn-lg w-100" type="submit">Continue</button>
-                        </form>
-                    </div>
+                <div t-else="" class="alert alert-danger" role="alert">
+                    <h1 class="h4">The signature was not completed</h1>
+                    <p class="mb-0">Return to the invitation or contact the sender.</p>
                 </div>
             </main>
         </t>
     </template>
-
-    <template id="portal_public_unavailable" name="Public signing link unavailable">
+    <template id="portal_sign_email_otp" name="Signing email verification">
         <t t-call="portal.frontend_layout">
-            <main class="container py-5" style="max-width: 42rem;">
-                <div class="alert alert-warning" role="alert">
-                    <h1 class="h4">This signing link is unavailable</h1>
-                    <p class="mb-0"><t t-out="explanation"/></p>
-                </div>
+            <main class="container py-5" style="max-width: 32rem;">
+                <h1 class="h3">Verify your email</h1>
+                <p>Enter the eight-digit code sent to <strong t-out="signer.partner_id.email"/>. It expires in 10 minutes.</p>
+                <div t-if="error" class="alert alert-danger" role="alert" t-out="error"/>
+                <form method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <label class="form-label" for="usl_email_otp">Verification code</label>
+                    <input id="usl_email_otp" name="code" class="form-control form-control-lg" inputmode="numeric" pattern="[0-9]{8}" autocomplete="one-time-code" maxlength="8" required="required" autofocus="autofocus"/>
+                    <button type="submit" class="btn btn-primary mt-3 w-100">Continue to the document</button>
+                </form>
             </main>
         </t>
     </template>
-
-    <template id="portal_public_received" name="Public signature request received">
-        <t t-call="portal.frontend_layout">
-            <main class="container py-5" style="max-width: 42rem;">
-                <div class="alert alert-success" role="status">
-                    <h1 class="h4">Check your email to continue</h1>
-                    <p class="mb-0"><t t-esc="company.name"/> is preparing your personal signing link. It will expire and must not be forwarded.</p>
-                </div>
-            </main>
-        </t>
+    <template id="strong_sign_page" name="Strong personal signature">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Strong personal signature</title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body>
+                <main id="usl_strong_sign" class="usl-sign-shell" t-att-data-signer-id="signer.id" t-att-data-access-token="access_token" t-att-data-certificate-subject="('USL Sign Personal: %s' % signer.partner_id.name).replace(',', ' ')">
+                    <p class="usl-sign-eyebrow">USL Sign</p>
+                    <h1>Strong personal signature</h1>
+                    <p class="usl-sign-muted">Designed for advanced-signature requirements. This wording is not a formal legal classification.</p>
+                    <section class="usl-sign-card">
+                        <h2 t-out="signer.request_id.name"/>
+                        <p><strong>Exact document SHA-256:</strong> <code class="usl-sign-hash" t-out="signer.request_id.current_hash"/></p>
+                        <iframe class="usl-sign-document" t-att-src="'/sign_oca/content/%s/%s' % (signer.id, access_token)" title="Document to sign"/>
+                    </section>
+                    <label class="usl-sign-consent" for="usl_strong_consent">
+                        <input id="usl_strong_consent" type="checkbox"/>
+                        <span>I reviewed this exact document and authorize my strong personal electronic signature using my passkey.</span>
+                    </label>
+                    <button id="usl_strong_sign_button" class="usl-sign-button">Authorize with my passkey and sign</button>
+                    <div id="usl_strong_status" class="usl-sign-status" role="status" aria-live="polite"/>
+                </main>
+                <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
+            </body>
+        </html>
+    </template>
+    <template id="strong_enrollment_page" name="Strong signer enrolment">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Register a passkey for USL Sign</title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body>
+                <main id="usl_strong_enrollment" class="usl-sign-shell usl-sign-shell--compact" t-att-data-enrollment-id="enrollment.id" t-att-data-enrollment-token="enrollment_token">
+                    <p class="usl-sign-eyebrow">USL Sign enrolment</p>
+                    <h1>Register a passkey</h1>
+                    <p>Your identity relationship was reviewed by <t t-out="enrollment.reviewer_id.name"/> under policy <t t-out="enrollment.policy_version"/>.</p>
+                    <label class="usl-sign-field" for="usl_passkey_name">
+                        <span>Passkey name</span>
+                        <input id="usl_passkey_name" value="Primary passkey"/>
+                    </label>
+                    <button id="usl_enroll_button" class="usl-sign-button">Register passkey</button>
+                    <div id="usl_enroll_status" class="usl-sign-status" role="status" aria-live="polite"/>
+                    <div class="usl-sign-note">Register a second recovery passkey after the first one. Revocation never changes signatures already completed.</div>
+                </main>
+                <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
+            </body>
+        </html>
     </template>
 </odoo>

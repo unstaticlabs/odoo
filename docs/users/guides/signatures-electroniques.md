@@ -1,69 +1,120 @@
 # Préparer et suivre une signature électronique
 
-L’application **Signature** centralise les modèles, demandes, signataires et
-preuves. Odoo conserve le document original et le document signé; le prestataire
-de confiance réalise l’authentification et la cérémonie de signature.
+L’application **Signature** conserve dans Odoo le document, les signataires,
+les consentements, l’état, les contrôles et les preuves. Utilisez d’abord
+l’approbation habituelle de la fiche métier lorsqu’une décision attribuable
+suffit et qu’aucun PDF signé n’est nécessaire.
 
-## Choisir le bon niveau
+## Choisir le parcours
 
-- **Standard** convient aux validations courantes à faible risque.
-- **Vérifiée** ajoute les contrôles d’identité prévus par la politique de
-  l’entreprise.
-- **Qualifiée** est réservée aux actes pour lesquels une signature électronique
-  qualifiée est expressément requise. Le signataire quitte alors brièvement
-  Odoo pour le parcours d’identité sécurisé du prestataire.
+Odoo recommande un parcours et explique la raison et les conséquences avant
+l’envoi :
 
-Le niveau demandé et le niveau réellement atteint sont affichés séparément.
-Une attestation de fin de processus est une preuve technique; elle ne suffit
-pas, à elle seule, à qualifier juridiquement le contrat.
+- **Signature électronique standard avec preuve renforcée** : parcours normal
+  pour les NDA, devis, bons de commande, accusés de réception et accords
+  courants. Le lien individuel, le consentement, le dossier de preuves et le
+  sceau de la plateforme renforcent la preuve, sans constituer une signature
+  personnelle avancée ou qualifiée.
+- **Signature personnelle forte — conçue pour les exigences de signature
+  avancée** : pour un salarié, prestataire ou partenaire récurrent dont
+  l’identité a été contrôlée et qui a enregistré une clé d’accès. Face ID,
+  Touch ID, Windows Hello ou un mécanisme équivalent autorise une signature
+  personnelle liée au document exact.
+- **Signature qualifiée externe** : uniquement lorsqu’une QES est formellement
+  exigée ou que le risque impose l’assurance maximale. Le signataire suit les
+  instructions d’un prestataire examiné, puis Odoo contrôle le résultat
+  importé.
 
-## Créer un modèle
+Le niveau demandé et le niveau réellement atteint restent visibles
+séparément. Un utilisateur autorisé peut déroger à la recommandation avec une
+justification. Odoo ne réduit jamais le niveau demandé sans le signaler.
 
-1. Ouvrez Signature → Modèles, puis chargez un PDF lisible et non chiffré.
-2. Placez les champs Signature, Paraphe, Texte, Nom, Date, Case à cocher,
-   Société ou Rôle sur les pages voulues.
-3. Affectez chaque champ à un rôle de signataire et rendez obligatoires les
-   champs nécessaires.
-4. Choisissez la politique, le délai d’expiration et la fréquence/limite des
-   relances, puis marquez le modèle **Prêt**.
+## Créer un modèle ou une demande ponctuelle
 
-Un modèle déjà utilisé est versionné lors d’une modification importante. Une
-demande en cours conserve toujours sa version et sa mise en page gelées.
+1. Ouvrez **Signature → Modèles**, ou créez une demande ponctuelle depuis une
+   fiche métier.
+2. Ajoutez le PDF principal et, si nécessaire, les annexes.
+3. Placez les champs depuis la palette, choisissez leur rôle, leur caractère
+   obligatoire et contrôlez chaque page avec les miniatures et le zoom.
+4. Ajoutez les signataires dans l’ordre voulu. Activez l’ordre de signature si
+   chacun doit signer la révision créée par le précédent.
+5. Contrôlez la recommandation, l’échéance, les relances, le consentement et la
+   prochaine action.
+6. Passez à **Prête**, puis envoyez.
 
-## Envoyer et suivre une demande
+Un modèle publié ou déjà utilisé n’est plus modifiable. Créez une nouvelle
+version pour changer le PDF, les rôles ou les champs. La demande envoyée
+conserve toujours un instantané exact du modèle, des signataires, de la
+politique et du consentement.
 
-Créez la demande depuis Signature → Demandes ou depuis le menu Action d’une
-fiche liée. Vérifiez les signataires, leur adresse électronique, leur numéro de
-mobile si la politique l’exige, l’ordre de signature et l’échéance. Marquez la
-demande Prête, puis envoyez-la.
+## Signer en Standard
 
-Les états usuels sont Brouillon, Prête, Envoyée, Consultée, Partiellement
-signée et Terminée. Refusée, Expirée et Annulée sont définitifs. **Action
-requise** signifie qu’un administrateur doit rapprocher l’état du prestataire
-ou récupérer une preuve manquante; ne recréez pas une demande pour masquer
-l’erreur.
+Le signataire ouvre son lien individuel sur ordinateur ou mobile. Le lien est
+échangé contre une session courte et ne peut pas servir pour une autre
+personne ou un autre document. Selon la politique, le signataire peut aussi
+s’authentifier avec son portail ou Pocket ID.
 
-Les relances sont plafonnées et ne concernent que le prochain signataire
-éligible. Le titre confidentiel du document n’apparaît pas dans l’objet du
-courriel. Après achèvement, les signataires autorisés peuvent télécharger le
-PDF signé depuis leur portail.
+Après lecture, il renseigne les champs, accepte explicitement le consentement
+et signe. Odoo enregistre la méthode d’authentification, la date, l’adresse IP,
+le navigateur et les valeurs saisies. Le document final est scellé et contrôlé
+indépendamment avant toute attestation de fin.
 
-## Lien public réutilisable
+## S’inscrire et signer avec une clé d’accès
 
-Un gestionnaire peut activer un lien public uniquement pour un modèle Standard
-à un seul rôle. Chaque personne saisit ses propres nom, courriel, mobile et
-consentement; une nouvelle demande indépendante est créée. Le formulaire ne
-réaffiche jamais les données d’un signataire précédent. Désactivez le lien dès
-qu’il n’est plus nécessaire.
+La signature personnelle forte n’est proposée qu’après inscription :
 
-## Contrôler les preuves
+1. un contrôleur d’identité confirme le lien existant avec USL et sa politique
+   de contrôle ;
+2. le signataire ouvre l’invitation d’inscription sur une page isolée ;
+3. il enregistre une clé d’accès avec vérification de l’utilisateur ;
+4. il est invité à enregistrer une deuxième clé d’accès de récupération.
 
-La demande terminée contient le PDF original, le PDF signé, les pistes d’audit
-des signataires et leurs empreintes SHA-256. Les preuves sont non modifiables.
-Les demandes historiques provenant d’Odoo Online portent une mention indiquant
-que le niveau réellement atteint n’a pas pu être établi; elles sont consultables
-mais ne peuvent jamais être renvoyées.
+Lors de la signature, le téléphone ou l’ordinateur demande Face ID, Touch ID,
+Windows Hello ou l’équivalent. Une clé privée à usage unique est créée dans le
+navigateur pour ce document. Elle ne peut pas être exportée et n’est jamais
+envoyée à Odoo. Une clé d’accès perdue doit être déclarée perdue ou révoquée ;
+une nouvelle inscription n’altère pas les signatures déjà terminées.
 
-Signalez à l’administrateur toute preuve absente, empreinte incohérente, lien
-inattendu ou demande affectée à la mauvaise société. Ne transmettez jamais un
-lien de signature à une autre personne.
+## Suivre une signature qualifiée externe
+
+Odoo prépare et gèle le PDF exact, puis affiche le prestataire conseillé, les
+informations du signataire et des instructions adaptées au mobile. Le statut
+reste **En attente de signature externe** tant que le résultat n’est pas
+revenu.
+
+Importez ensuite le PDF signé et toutes les preuves fournies. L’import ne
+termine pas la demande : Odoo vérifie d’abord que la révision d’origine est
+strictement celle exportée, que la chaîne de certificats est approuvée, que le
+signataire correspond et que le niveau qualifié a réellement été atteint. Un
+résultat modifié, non fiable, mal attribué ou insuffisant passe en **Échec de
+validation**.
+
+## Comprendre les états et agir
+
+La demande distingue notamment **Brouillon**, **Prête**, **Envoyée**,
+**Consultée**, **Partiellement signée**, **En attente d’inscription**, **En
+attente de signature externe**, **Document signé à importer**, **Validation en
+cours**, **Preuves incomplètes**, **Échec de validation**, **Terminée** et
+**Action requise**. Les états **Refusée**, **Expirée** et **Annulée** décrivent
+une fin sans signature réussie.
+
+La fiche métier indique toujours la prochaine action. Une demande n’est
+**Terminée** que si toutes les signatures attendues sont présentes, si les
+contrôles sont réussis, si le dossier de preuves est complet et si Paperless a
+confirmé l’archivage. Un courriel envoyé, un fichier exporté ou importé, ou la
+déclaration d’un signataire ne suffit jamais.
+
+## Contrôler les preuves et résoudre un échec
+
+Le dossier Odoo contient les documents source et final, les empreintes
+SHA-256, les rôles et champs gelés, les consentements, la chaîne d’événements,
+les certificats, les horodatages disponibles, les rapports de validation et
+l’attestation de fin. Paperless reçoit un dossier PDF/A-3 unique avec ces
+éléments embarqués.
+
+En cas d’échec Paperless, utilisez **Réessayer l’archivage** : l’opération est
+idempotente et reconnaît un dossier déjà présent avec la même empreinte. En cas
+de désaccord de validation, de service indisponible ou de preuve incomplète,
+suivez la prochaine action et contactez un contrôleur des preuves. Ne remplacez
+jamais manuellement un PDF ou une empreinte, et ne transmettez pas un lien de
+signature à une autre personne.

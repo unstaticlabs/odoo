@@ -21,3 +21,6 @@
 !odoo/**
 !setup/
 !setup/**
+!services/
+!services/usl-sign-dss/
+!services/usl-sign-dss/**

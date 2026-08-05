@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_approval_list" model="ir.ui.view">
+        <field name="name">usl.sign.approval.list</field>
+        <field name="model">usl.sign.approval</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="record_ref"/>
+                <field name="requested_by_id"/>
+                <field name="approver_ids" widget="many2many_tags"/>
+                <field name="state"/>
+                <field name="decision_at"/>
+            </list>
+        </field>
+    </record>
+    <record id="sign_approval_form" model="ir.ui.view">
+        <field name="name">usl.sign.approval.form</field>
+        <field name="model">usl.sign.approval</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary" invisible="state != 'pending'"/>
+                    <button name="action_open_reject" type="object" string="Reject" class="btn-secondary" invisible="state != 'pending'"/>
+                    <button name="action_open_cancel" type="object" string="Cancel" invisible="state != 'pending'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="record_ref" readonly="state != 'pending'"/>
+                        <field name="requested_by_id"/>
+                        <field name="approver_ids" widget="many2many_tags" readonly="state != 'pending'"/>
+                        <field name="policy_version" readonly="state != 'pending'"/>
+                        <field name="decision_by_id" invisible="not decision_by_id"/>
+                        <field name="decision_at" invisible="not decision_at"/>
+                        <field name="decision_reason" invisible="not decision_reason"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="sign_approval_action" model="ir.actions.act_window">
+        <field name="name">Odoo Approvals</field>
+        <field name="res_model">usl.sign.approval</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="sign_approval_decision_wizard_form" model="ir.ui.view">
+        <field name="name">usl.sign.approval.decision.wizard.form</field>
+        <field name="model">usl.sign.approval.decision.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Record decision">
+                <group>
+                    <field name="approval_id" readonly="1"/>
+                    <field name="decision" readonly="1"/>
+                    <field name="reason" placeholder="Explain the business reason for this decision."/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

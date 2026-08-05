@@ -43,8 +43,6 @@ scripts/product-restore all
 stop_product
 scripts/hr-restore all
 stop_product
-scripts/sign-restore all
-stop_product
 PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
 stop_product
 TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore all

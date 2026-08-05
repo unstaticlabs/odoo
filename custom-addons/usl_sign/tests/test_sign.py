@@ -1,918 +1,1043 @@
-import os
-from base64 import b64encode
-from copy import deepcopy
+import base64
+import hashlib
+import itertools
+import json
+from datetime import timedelta
 from io import BytesIO
 from unittest.mock import patch
 
+from odoo import fields
 from odoo.exceptions import AccessError, ValidationError
-from odoo.tests import HttpCase, TransactionCase, tagged
+from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfWriter
 
-from ..services import ProviderError
-from ..services.yousign import YousignClient
+from ..models.constants import INTERNAL_OPERATION, REQUEST_STATES, TRUST_LEVELS
+from ..services import (
+    DSSClient,
+    DSSRejectedError,
+    DSSServiceError,
+    DSSUnavailableError,
+)
 
 
-class FakeProvider:
-    def __init__(self, pdf):
-        self.pdf = pdf
-        self.request = None
-        self.fields = []
-        self.calls = []
-        self.fail_create_once = False
-        self.fail_audit = False
-        self.audit_level = "Simple electronic signature"
+class FakeDSS:
+    def __init__(self, *, revision_matches=True):
+        self.revision_match = revision_matches
 
-    def create_request(self, payload):
-        self.calls.append(("create_request", payload))
-        self.request = {
-            "id": "request-1",
-            "external_id": payload["external_id"],
-            "status": "draft",
-            "documents": [],
-            "signers": [],
+    @staticmethod
+    def seal(document, **kwargs):
+        del kwargs
+        return {"document": base64.b64encode(document).decode()}
+
+    @staticmethod
+    def validate(document, expected_level, expected_signers=None):
+        del document, expected_signers
+        return {
+            "status": "valid",
+            "achievedTrust": expected_level,
+            "engineVersion": "6.4",
+            "signatureCount": 1,
+            "summary": "DSS validation passed.",
+            "reports": {"simple": "<SimpleReport><Status>valid</Status></SimpleReport>"},
+            "certificates": [],
+            "timestamps": [],
+            "revocation": {},
         }
-        if self.fail_create_once:
-            self.fail_create_once = False
-            raise ProviderError(
-                "The signature provider could not be reached. Reconcile before retrying.",
-                retryable=True,
-                uncertain=True,
-            )
-        return deepcopy(self.request)
 
-    def recover_request(self, external_id):
-        self.calls.append(("recover_request", external_id))
-        if self.request and self.request["external_id"] == external_id:
-            return deepcopy(self.request)
-        return None
-
-    def upload_document(self, request_id, filename, content, initials=None):
-        self.calls.append(("upload_document", request_id, filename, initials))
-        assert content == self.pdf
-        document = {"id": "document-1", "nature": "signable_document"}
-        self.request["documents"] = [document]
-        return deepcopy(document)
-
-    def add_signer(self, request_id, payload):
-        self.calls.append(("add_signer", request_id, payload))
-        signer = {
-            "id": f"signer-{len(self.request['signers']) + 1}",
-            "status": "initiated",
-            "info": payload["info"],
-            "signature_level": payload["signature_level"],
-            "signature_authentication_mode": payload.get(
-                "signature_authentication_mode"
-            ),
+    @staticmethod
+    def sign_manifest(manifest):
+        return {
+            "manifestSha256": hashlib.sha256(manifest).hexdigest(),
+            "signature": base64.b64encode(b"detached-signature").decode(),
+            "signatureAlgorithm": "ECDSA_SHA256",
+            "certificateChain": [base64.b64encode(b"certificate").decode()],
         }
-        self.request["signers"].append(signer)
-        return deepcopy(signer)
 
-    def add_field(self, request_id, document_id, payload):
-        self.calls.append(("add_field", request_id, document_id, payload))
-        field = {"id": f"field-{len(self.fields) + 1}", **payload}
-        self.fields.append(field)
-        return deepcopy(field)
+    @staticmethod
+    def build_dossier(**kwargs):
+        del kwargs
+        return {"document": base64.b64encode(_pdf()).decode()}
 
-    def list_fields(self, request_id, document_id):
-        self.calls.append(("list_fields", request_id, document_id))
-        return deepcopy(self.fields)
+    @staticmethod
+    def validate_pdfa(document):
+        del document
+        return {
+            "compliant": True,
+            "engine": "veraPDF",
+            "engineVersion": "1.30.2",
+            "profile": "PDF/A-3b",
+            "report": {"compliant": True},
+        }
 
-    def activate(self, request_id):
-        self.calls.append(("activate", request_id))
-        self.request["status"] = "ongoing"
-        for signer in self.request["signers"]:
-            signer.update(
-                {
-                    "status": "notified",
-                    "signature_link": f"https://sandbox.example/{signer['id']}",
-                    "signature_link_expiration_date": "2030-01-01 00:00:00",
-                }
-            )
-        return deepcopy(self.request)
+    @staticmethod
+    def cross_validate(document):
+        del document
+        return _pyhanko_valid()
 
-    def get_request(self, request_id):
-        self.calls.append(("get_request", request_id))
-        return deepcopy(self.request)
+    def revision_matches(self, original, signed):
+        del original, signed
+        return {"matches": self.revision_match}
 
-    def cancel(self, request_id):
-        self.calls.append(("cancel", request_id))
-        self.request["status"] = "canceled"
 
-    def download_document(self, request_id, document_id):
-        self.calls.append(("download_document", request_id, document_id))
-        return self.pdf
+def _pdf(pages=1):
+    stream = BytesIO()
+    writer = PdfWriter()
+    for _index in range(pages):
+        writer.add_blank_page(width=595, height=842)
+    writer.write(stream)
+    return stream.getvalue()
 
-    def download_audit_trail(self, request_id, signer_id):
-        self.calls.append(("download_audit_trail", request_id, signer_id))
-        if self.fail_audit:
-            raise ProviderError("Audit evidence is temporarily unavailable.", retryable=True)
-        return (
-            "{"
-            f'"electronic_signature_level":{{"level":"{self.audit_level}"}},'
-            '"authentication":{"mode":"otp_by_email"},'
-            f'"signer":{{"id":"{signer_id}"}}'
-            "}"
-        ).encode()
+
+def _pyhanko_valid(count=1):
+    return {
+        "engine": "pyHanko",
+        "engine_version": "0.36.2",
+        "status": "valid",
+        "signature_count": count,
+        "signatures": [{"intact": True, "cryptographically_valid": True}],
+    }
 
 
 @tagged("post_install", "-at_install")
-class TestUslSign(TransactionCase):
+class TestCleanUslSign(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        stream = BytesIO()
-        writer = PdfWriter()
-        writer.add_blank_page(width=595, height=842)
-        writer.write(stream)
-        cls.pdf = stream.getvalue()
         cls.company = cls.env.company
-        cls.company.sign_provider_enabled = True
-        cls.policy = cls.env["usl.sign.policy"].search(
-            [
-                ("company_id", "=", cls.company.id),
-                ("assurance_level", "=", "standard"),
-            ],
-            limit=1,
+        cls.company.email = "sign@example.test"
+        cls.pdf = _pdf()
+        cls.role_customer = cls.env.ref("sign_oca.sign_role_customer")
+        cls.role_employee = cls.env.ref("sign_oca.sign_role_employee")
+        cls.text_field = cls.env.ref("sign_oca.sign_field_name")
+        cls.partner_one = cls.env["res.partner"].create(
+            {"name": "Camille Signer", "email": "camille@example.test"},
         )
-        cls.role = cls.env.ref("sign_oca.sign_role_customer")
-        cls.signature_field = cls.env.ref("sign_oca.sign_field_signature")
-        cls.partner = cls.env["res.partner"].create(
-            {"name": "Camille Signer", "email": "camille@example.test"}
+        cls.partner_two = cls.env["res.partner"].create(
+            {"name": "Morgan Signer", "email": "morgan@example.test"},
         )
+        cls.sign_user = new_test_user(
+            cls.env,
+            login="usl-sign-user",
+            groups="usl_sign.group_sign_user",
+            company_id=cls.company.id,
+        )
+        cls.override_user = new_test_user(
+            cls.env,
+            login="usl-sign-override",
+            groups="usl_sign.group_sign_trust_override",
+            company_id=cls.company.id,
+        )
+        cls.reviewer = new_test_user(
+            cls.env,
+            login="usl-sign-reviewer",
+            groups="usl_sign.group_sign_identity_reviewer",
+            company_id=cls.company.id,
+        )
+        cls.policy = cls.env.ref("usl_sign.policy_routine_standard")
 
-    def _request(self, **extra):
-        vals = {
-            "name": "Employment agreement",
-            "data": b64encode(self.pdf),
-            "filename": "agreement.pdf",
+    def _request(self, *, partners=None, roles=None, **values):
+        partners = partners or [self.partner_one]
+        roles = roles or [self.role_customer]
+        layout = {}
+        for index, role in enumerate(roles, start=1):
+            layout[str(index)] = {
+                "id": index,
+                "field_id": self.text_field.id,
+                "field_type": self.text_field.field_type,
+                "required": True,
+                "name": self.text_field.name,
+                "role_id": role.id,
+                "page": 1,
+                "position_x": 10 + index,
+                "position_y": 20 + index,
+                "width": 25,
+                "height": 5,
+                "value": False,
+                "default_value": self.text_field.default_value,
+                "placeholder": "",
+            }
+        request_values = {
+            "name": "Clean Sign request",
+            "data": base64.b64encode(self.pdf),
+            "filename": "clean-request.pdf",
             "company_id": self.company.id,
-            "policy_id": self.policy.id,
             "user_id": self.env.user.id,
-            "signatory_data": {
-                "1": {
-                    "field_id": self.signature_field.id,
-                    "role_id": self.role.id,
-                    "page": 1,
-                    "position_x": 60,
-                    "position_y": 75,
-                    "width": 20,
-                    "height": 5,
-                    "required": True,
-                }
-            },
+            "policy_id": self.policy.id,
+            "signatory_data": layout,
             "signer_ids": [
                 (
                     0,
                     0,
-                    {"partner_id": self.partner.id, "role_id": self.role.id},
-                )
-            ],
-        }
-        vals.update(extra)
-        return self.env["sign.oca.request"].create(vals).with_context(
-            usl_sign_skip_provider_ready=True
-        )
-
-    def _provider_patch(self, provider):
-        return patch.multiple(
-            "odoo.addons.usl_sign.models.provider",
-            get_provider=lambda *args, **kwargs: provider,
-        )
-
-    def _template(self):
-        template = self.env["sign.oca.template"].create(
-            {
-                "name": "Public acknowledgement",
-                "data": b64encode(self.pdf),
-                "filename": "acknowledgement.pdf",
-                "company_id": self.company.id,
-                "policy_id": self.policy.id,
-            }
-        )
-        self.env["sign.oca.template.item"].create(
-            {
-                "template_id": template.id,
-                "field_id": self.signature_field.id,
-                "role_id": self.role.id,
-                "page": 1,
-                "position_x": 60,
-                "position_y": 75,
-                "width": 20,
-                "height": 5,
-                "required": True,
-            }
-        )
-        template.preparation_status = "ready"
-        return template
-
-    def test_full_provider_lifecycle_and_immutable_evidence(self):
-        sign_request = self._request()
-        provider = FakeProvider(self.pdf)
-        with patch.dict(
-            os.environ, {"USL_YOUSIGN_SANDBOX_API_KEY": "test-key"}
-        ), self._provider_patch(provider):
-            sign_request.action_mark_ready()
-            sign_request.action_send()
-            self.assertEqual(sign_request.state, "sent")
-            self.assertEqual(sign_request.provider_transaction_id, "request-1")
-            self.assertEqual(sign_request.provider_document_id, "document-1")
-            self.assertEqual(sign_request.signer_ids.state, "notified")
-            self.assertTrue(sign_request.signer_ids.access_token)
-            self.assertTrue(sign_request.signer_ids.invitation_sent_at)
-            self.assertEqual(len(sign_request.provider_field_map), 1)
-            self.assertEqual(sign_request.evidence_ids.mapped("kind"), ["original"])
-
-            provider.request["status"] = "done"
-            provider.request["signers"][0].update(
-                {"status": "signed", "signed_at": "2026-08-05 08:00:00"}
-            )
-            sign_request.action_reconcile()
-            self.assertEqual(sign_request.state, "completed")
-            self.assertEqual(sign_request.achieved_assurance, "standard")
-            self.assertEqual(sign_request.evidence_status, "available")
-            self.assertTrue(sign_request.retention_until)
-            self.assertEqual(sign_request.retention_status, "active")
-            self.assertEqual(
-                set(sign_request.evidence_ids.mapped("kind")),
-                {"original", "signed", "audit_trail"},
-            )
-            audit = sign_request.evidence_ids.filtered(
-                lambda evidence: evidence.kind == "audit_trail"
-            )
-            self.assertEqual(audit.mimetype, "application/json")
-            self.assertTrue(audit.name.endswith(".json"))
-            with self.assertRaises(ValidationError):
-                sign_request.evidence_ids.filtered(
-                    lambda evidence: evidence.kind == "signed"
-                ).write({"data": b64encode(b"replacement")})
-            with self.assertRaises(ValidationError):
-                sign_request.write({"data": b64encode(self.pdf + b"changed")})
-
-    def test_yousign_client_uses_signer_audit_json_endpoint(self):
-        client = YousignClient(
-            {"base_url": "https://api.example.test/v3", "api_key": "test-key"},
-            error_class=ProviderError,
-        )
-        with patch.object(
-            client,
-            "_request",
-            return_value={"signer": {"name": "Élodie", "id": "signer-1"}},
-        ) as request_call:
-            content = client.download_audit_trail("request-1", "signer-1")
-
-        request_call.assert_called_once_with(
-            "GET", "/signature_requests/request-1/signers/signer-1/audit_trails"
-        )
-        self.assertEqual(
-            content,
-            b'{"signer":{"id":"signer-1","name":"\xc3\x89lodie"}}',
-        )
-
-    def test_sms_authentication_uses_odoo_19_partner_phone(self):
-        self.assertNotIn("mobile", self.env["res.partner"]._fields)
-        self.partner.phone = "+33612345678"
-        verified_policy = self.env["usl.sign.policy"].search(
-            [
-                ("company_id", "=", self.company.id),
-                ("assurance_level", "=", "verified"),
-            ],
-            limit=1,
-        )
-        sign_request = self._request(policy_id=verified_policy.id)
-        sign_request.action_mark_ready()
-        payload = sign_request._signer_payload(sign_request.signer_ids)
-        self.assertEqual(payload["info"]["phone_number"], "+33612345678")
-
-    def test_uncertain_create_recovers_without_duplicate(self):
-        sign_request = self._request()
-        provider = FakeProvider(self.pdf)
-        provider.fail_create_once = True
-        with patch.dict(
-            os.environ, {"USL_YOUSIGN_SANDBOX_API_KEY": "test-key"}
-        ), self._provider_patch(provider):
-            sign_request.action_send()
-            self.assertEqual(sign_request.state, "action_required")
-            self.assertFalse(sign_request.provider_transaction_id)
-            sign_request.action_send()
-            self.assertEqual(sign_request.state, "sent")
-            creates = [call for call in provider.calls if call[0] == "create_request"]
-            self.assertEqual(len(creates), 1)
-
-    def test_provider_done_waits_for_complete_evidence(self):
-        sign_request = self._request()
-        provider = FakeProvider(self.pdf)
-        provider.fail_audit = True
-        with patch.dict(
-            os.environ, {"USL_YOUSIGN_SANDBOX_API_KEY": "test-key"}
-        ), self._provider_patch(provider):
-            sign_request.action_send()
-            provider.request["status"] = "done"
-            provider.request["signers"][0]["status"] = "signed"
-            sign_request.action_reconcile()
-        self.assertEqual(sign_request.state, "action_required")
-        self.assertEqual(sign_request.evidence_status, "missing")
-        self.assertTrue(sign_request.final_data)
-        self.assertIn("full evidence package", sign_request.last_error)
-        self.assertIn("Refresh provider status", sign_request.recovery_action)
-        with self.assertRaisesRegex(ValidationError, "already has a provider transaction"):
-            sign_request.action_send()
-
-    def test_achieved_assurance_requires_provider_audit_evidence(self):
-        sign_request = self._request()
-        provider = FakeProvider(self.pdf)
-        provider.audit_level = "Unknown signature level"
-        with patch.dict(
-            os.environ, {"USL_YOUSIGN_SANDBOX_API_KEY": "test-key"}
-        ), self._provider_patch(provider):
-            sign_request.action_send()
-            provider.request["status"] = "done"
-            provider.request["signers"][0]["status"] = "signed"
-            sign_request.action_reconcile()
-        self.assertEqual(sign_request.state, "action_required")
-        self.assertFalse(sign_request.achieved_assurance)
-        self.assertEqual(sign_request.evidence_status, "missing")
-
-    def test_reminders_are_due_once_and_capped(self):
-        sign_request = self._request(
-            state="sent",
-            sent_at="2026-08-01 00:00:00",
-            reminder_days=1,
-            max_reminders=2,
-        )
-        signer = sign_request.signer_ids
-        signer.write({"state": "notified"})
-        signer._portal_ensure_token()
-        sign_request._send_due_reminders()
-        self.assertEqual(sign_request.reminder_count, 1)
-        self.assertEqual(signer.reminder_count, 1)
-        sign_request._send_due_reminders()
-        self.assertEqual(sign_request.reminder_count, 1)
-        sign_request.action_send_reminder()
-        self.assertEqual(sign_request.reminder_count, 2)
-        with self.assertRaises(ValidationError):
-            sign_request.action_send_reminder()
-
-    def test_public_submission_is_independent_and_idempotent(self):
-        template = self._template()
-        provider = FakeProvider(self.pdf)
-        environment = {
-            "USL_YOUSIGN_SANDBOX_API_KEY": "test-key",
-            "USL_YOUSIGN_SANDBOX_WEBHOOK_SECRET": "test-secret",
-        }
-        with patch.dict(os.environ, environment), self._provider_patch(provider):
-            self.company.invalidate_recordset(
-                [
-                    "sign_yousign_configured",
-                    "sign_yousign_webhook_configured",
-                    "sign_provider_ready",
-                ]
-            )
-            template.action_enable_public_link()
-            submission = self.env["usl.sign.public.submission"]._create_submission(
-                template,
-                {"name": "Public Signer", "email": "public@example.test"},
-                "a" * 40,
-                "source-hash",
-            )
-            duplicate = self.env["usl.sign.public.submission"]._create_submission(
-                template,
-                {"name": "Duplicate", "email": "duplicate@example.test"},
-                "a" * 40,
-                "source-hash",
-            )
-            self.assertEqual(submission, duplicate)
-            self.assertEqual(
-                self.env["sign.oca.request"].search_count(
-                    [("template_id", "=", template.id)]
-                ),
-                1,
-            )
-            submission._process_pending()
-        self.assertEqual(submission.state, "sent")
-        self.assertEqual(submission.request_id.state, "sent")
-
-    def test_decline_and_expiration_preserve_terminal_evidence(self):
-        sign_request = self._request(
-            provider_transaction_id="request-terminal",
-            provider_environment="sandbox",
-            state="sent",
-        )
-        signer = sign_request.signer_ids
-        signer.write(
-            {
-                "provider_signer_id": "signer-terminal",
-                "state": "notified",
-                "access_token": "secure-token",
-            }
-        )
-        sign_request._apply_provider_event(
-            {
-                "event_id": "decline-event",
-                "event_name": "signer.declined",
-                "event_time": "1785916800",
-                "data": {
-                    "signer": {
-                        "id": "signer-terminal",
-                        "signature_request_id": "request-terminal",
-                        "decline_reason": "Terms not accepted",
-                    }
-                },
-            }
-        )
-        self.assertEqual(sign_request.state, "declined")
-        self.assertEqual(signer.decline_reason, "Terms not accepted")
-        self.assertTrue(signer.access_revoked)
-        self.assertIn("decline", sign_request.evidence_ids.mapped("kind"))
-
-        expiring = self._request(
-            state="sent", expires_at="2026-08-01 00:00:00"
-        )
-        expiring.signer_ids.write({"state": "notified"})
-        expiring._expire_request()
-        self.assertEqual(expiring.state, "expired")
-        self.assertEqual(expiring.signer_ids.state, "expired")
-        self.assertIn("expiration", expiring.evidence_ids.mapped("kind"))
-
-    def test_pdf_validation_and_rotated_page_coordinates(self):
-        malformed = self._request(data=b64encode(b"not a pdf"))
-        with self.assertRaisesRegex(ValidationError, "not a readable PDF"):
-            malformed._validate_source_pdf()
-
-        encrypted_stream = BytesIO()
-        encrypted_writer = PdfWriter()
-        encrypted_writer.add_blank_page(width=595, height=842)
-        encrypted_writer.encrypt("secret")
-        encrypted_writer.write(encrypted_stream)
-        encrypted = self._request(data=b64encode(encrypted_stream.getvalue()))
-        with self.assertRaisesRegex(ValidationError, "encrypted"):
-            encrypted._validate_source_pdf()
-
-        rotated_stream = BytesIO()
-        rotated_writer = PdfWriter()
-        rotated_writer.add_blank_page(width=595, height=842)
-        rotated_page = rotated_writer.add_blank_page(width=595, height=842)
-        rotated_page.rotate(90)
-        rotated_writer.write(rotated_stream)
-        rotated = self._request(data=b64encode(rotated_stream.getvalue()))
-        rotated.with_context(usl_sign_freeze=True).write(
-            {"original_data": rotated.data}
-        )
-        self.assertEqual(rotated._pdf_page_metrics(), [(595.0, 842.0), (842.0, 595.0)])
-        payload = rotated._field_payload(
-            {
-                "field_id": self.signature_field.id,
-                "page": 2,
-                "position_x": 50,
-                "position_y": 50,
-                "width": 20,
-                "height": 10,
-                "required": True,
-            },
-            rotated.signer_ids,
-            rotated._pdf_page_metrics(),
-        )
-        self.assertEqual(payload["page"], 2)
-        self.assertLessEqual(payload["x"] + payload["width"], 842)
-        self.assertLessEqual(payload["y"] + payload["height"], 595)
-
-    def test_event_idempotency_and_out_of_order_protection(self):
-        sign_request = self._request(
-            provider_transaction_id="request-1",
-            provider_environment="sandbox",
-            state="sent",
-        )
-        signer = sign_request.signer_ids
-        signer.provider_signer_id = "signer-1"
-        done = {
-            "event_id": "event-new",
-            "event_name": "signer.done",
-            "event_time": "1785916800",
-            "sandbox": True,
-            "data": {
-                "signer": {
-                    "id": "signer-1",
-                    "signature_request_id": "request-1",
-                    "signature_level": "electronic_signature",
-                }
-            },
-        }
-        sign_request._apply_provider_event(done)
-        sign_request._apply_provider_event(done)
-        self.assertEqual(signer.state, "signed")
-        self.assertEqual(
-            self.env["usl.sign.provider.event"].search_count(
-                [("event_id", "=", "event-new")]
-            ),
-            1,
-        )
-        old = deepcopy(done)
-        old.update(
-            {
-                "event_id": "event-old",
-                "event_name": "signer.link_opened",
-                "event_time": "1785916700",
-            }
-        )
-        event = sign_request._apply_provider_event(old)
-        self.assertEqual(event.status, "ignored")
-        self.assertEqual(signer.state, "signed")
-
-    def test_signer_event_order_is_independent_per_signer(self):
-        second_partner = self.env["res.partner"].create(
-            {"name": "Second Signer", "email": "second@example.test"}
-        )
-        sign_request = self._request(
-            provider_transaction_id="request-streams",
-            provider_environment="sandbox",
-            state="sent",
-        )
-        first = sign_request.signer_ids
-        first.provider_signer_id = "signer-first"
-        second = self.env["sign.oca.request.signer"].create(
-            {
-                "request_id": sign_request.id,
-                "partner_id": second_partner.id,
-                "role_id": self.role.id,
-                "provider_signer_id": "signer-second",
-            }
-        )
-        for event_id, event_time, provider_signer_id in (
-            ("first-later", "1785916800", first.provider_signer_id),
-            ("second-earlier", "1785916700", second.provider_signer_id),
-        ):
-            event = sign_request._apply_provider_event(
-                {
-                    "event_id": event_id,
-                    "event_name": "signer.done",
-                    "event_time": event_time,
-                    "data": {
-                        "signer": {
-                            "id": provider_signer_id,
-                            "signature_request_id": "request-streams",
-                            "signature_level": "electronic_signature",
-                        }
+                    {
+                        "partner_id": partner.id,
+                        "role_id": role.id,
+                        "sequence": index * 10,
                     },
-                }
-            )
-            self.assertEqual(event.status, "processed")
-        self.assertEqual(first.state, "signed")
-        self.assertEqual(second.state, "signed")
-
-    def test_identity_failure_is_durable_and_actionable(self):
-        sign_request = self._request(
-            provider_transaction_id="request-identity",
-            provider_environment="sandbox",
-            state="sent",
-        )
-        signer = sign_request.signer_ids
-        signer.provider_signer_id = "signer-identity"
-        event = sign_request._apply_provider_event(
-            {
-                "event_id": "identity-failed",
-                "event_name": "signer.identification_failed",
-                "event_time": "1785916800",
-                "data": {
-                    "signer": {
-                        "id": "signer-identity",
-                        "signature_request_id": "request-identity",
-                        "signature_level": "advanced_electronic_signature",
-                    }
-                },
-            }
-        )
-        self.assertEqual(event.status, "processed")
-        self.assertEqual(signer.state, "error")
-        self.assertEqual(sign_request.state, "action_required")
-        self.assertTrue(sign_request.last_error)
-        self.assertTrue(sign_request.recovery_action)
-
-    def test_secure_token_and_terminal_state_guards(self):
-        sign_request = self._request(state="sent")
-        signer = sign_request.signer_ids
-        signer._portal_ensure_token()
-        self.assertTrue(signer._check_secure_access(signer.access_token))
-        with self.assertRaises(AccessError):
-            signer._check_secure_access("wrong-token")
-        sign_request.with_context(usl_sign_transition=True).state = "cancelled"
-        with self.assertRaises(AccessError):
-            signer._check_secure_access(signer.access_token)
-        with self.assertRaises(ValidationError):
-            sign_request.write({"state": "draft"})
-
-    def test_odoo_19_configuration_urls_and_historical_boundary(self):
-        self.env["ir.config_parameter"].sudo().set_str(
-            "web.base.url", "https://sign.example.test"
-        )
-        template = self._template()
-        template.action_enable_public_link()
-        self.assertEqual(
-            template.public_url,
-            f"https://sign.example.test/sign/public/{template.public_access_token}",
-        )
-        self.company.invalidate_recordset(["sign_yousign_webhook_url"])
-        self.assertEqual(
-            self.company.sign_yousign_webhook_url,
-            f"https://sign.example.test/sign/webhooks/yousign/{self.company.id}",
-        )
-
-        historical = self._request(
-            historical=True,
-            state="completed",
-            provider_code="odoo_online",
-            authentication_method=False,
-            achieved_assurance=False,
-            expires_at=False,
-        )
-        self.assertFalse(historical.expires_at)
-        with self.assertRaisesRegex(ValidationError, "read-only evidence"):
-            historical.write({"name": "Changed historical record"})
-
-    def test_request_record_boundary(self):
-        owner = new_test_user(
-            self.env,
-            login="sign-owner",
-            groups="base.group_user,usl_sign.group_sign_user",
-        )
-        outsider = new_test_user(
-            self.env,
-            login="sign-outsider",
-            groups="base.group_user,usl_sign.group_sign_user",
-        )
-        sign_request = self._request(user_id=owner.id)
-        self.assertIn(
-            sign_request,
-            self.env["sign.oca.request"].with_user(owner).search(
-                [("id", "=", sign_request.id)]
-            ),
-        )
-        self.assertNotIn(
-            sign_request,
-            self.env["sign.oca.request"].with_user(outsider).search(
-                [("id", "=", sign_request.id)]
-            ),
-        )
-
-    def test_company_and_reviewer_security_boundaries(self):
-        other_company = self.env["res.company"].create({"name": "Other Sign Company"})
-        other_policy = self.env["usl.sign.policy"].search(
-            [
-                ("company_id", "=", other_company.id),
-                ("assurance_level", "=", "standard"),
+                )
+                for index, (partner, role) in enumerate(zip(partners, roles), start=1)
             ],
-            limit=1,
-        )
-        other_request = self._request(
-            company_id=other_company.id,
-            policy_id=other_policy.id,
-        )
-        company_admin = new_test_user(
-            self.env,
-            login="sign-company-admin",
-            groups="base.group_user,usl_sign.group_sign_admin",
-            company_id=self.company.id,
-            company_ids=[(6, 0, self.company.ids)],
-        )
-        self.assertFalse(
-            self.env["sign.oca.request"]
-            .with_user(company_admin)
-            .search([("id", "=", other_request.id)])
+        }
+        request_values.update(values)
+        return self.env["sign.oca.request"].create(request_values)
+
+    @staticmethod
+    def _items(request, role, value):
+        items = json.loads(json.dumps(request.frozen_layout))
+        for item in items.values():
+            if int(item["role_id"]) == role.id:
+                item["value"] = value
+        return items
+
+    def _ready(self, request):
+        request.action_mark_ready()
+        return request
+
+    def test_only_final_trust_and_lifecycle_vocabulary_is_registered(self):
+        self.assertEqual(
+            [key for key, _label in TRUST_LEVELS],
+            ["standard", "strong_personal", "qualified_external"],
         )
 
-        completed = self._request(state="completed")
-        reviewer = new_test_user(
-            self.env,
-            login="sign-evidence-reviewer",
-            groups="base.group_user,usl_sign.group_sign_reviewer",
-            company_id=self.company.id,
-            company_ids=[(6, 0, self.company.ids)],
+        self.assertEqual(
+            [label for _key, label in TRUST_LEVELS],
+            [
+                "Standard electronic signature with reinforced evidence.",
+                "Strong personal signature — designed for advanced-signature requirements.",
+                "Qualified external signature.",
+            ],
         )
-        reviewer_request = completed.with_user(reviewer)
-        self.assertTrue(reviewer_request.exists())
-        with self.assertRaises(AccessError):
-            reviewer_request.write({"name": "Reviewer mutation"})
+        self.assertEqual(
+            [key for key, _label in REQUEST_STATES],
+            [
+                "draft",
+                "ready",
+                "sent",
+                "viewed",
+                "partial",
+                "waiting_enrollment",
+                "waiting_external",
+                "signed_to_import",
+                "validating",
+                "completed",
+                "evidence_incomplete",
+                "validation_failed",
+                "declined",
+                "expired",
+                "cancelled",
+                "action_required",
+            ],
+        )
+        state_values = dict(self.env["sign.oca.request"]._fields["state"].selection)
+        self.assertEqual(set(state_values), {key for key, _label in REQUEST_STATES})
 
-    def test_template_readiness_versioning_and_geometry(self):
-        unprepared = self.env["sign.oca.template"].create(
-            {
-                "name": "Unprepared",
-                "data": b64encode(self.pdf),
-                "filename": "unprepared.pdf",
-                "company_id": self.company.id,
-                "policy_id": self.policy.id,
-            }
-        )
-        with self.assertRaisesRegex(ValidationError, "at least one field"):
-            unprepared.preparation_status = "ready"
-        with self.assertRaisesRegex(ValidationError, "mark this template ready"):
-            unprepared.action_enable_public_link()
-
-        template = self._template()
-        initial_version = template.version
-        sign_request = self._request(template_id=template.id)
-        self.assertEqual(sign_request.template_version, initial_version)
-        template.reminder_days += 1
-        self.assertEqual(template.preparation_status, "review_required")
-        self.assertGreater(template.version, initial_version)
-        self.assertEqual(sign_request.template_version, initial_version)
-
-        invalid = self._request()
-        layout = deepcopy(invalid.signatory_data)
-        layout["1"].update({"position_x": 95, "width": 10})
-        invalid.signatory_data = layout
-        with self.assertRaisesRegex(ValidationError, "outside the PDF page"):
-            invalid.action_mark_ready()
-
-    def test_sign_administrator_has_scoped_configuration(self):
-        other_company = self.env["res.company"].create(
-            {"name": "Restricted Configuration Company"}
-        )
-        administrator = new_test_user(
-            self.env,
-            login="sign-configuration-admin",
-            groups="base.group_user,usl_sign.group_sign_admin",
-            company_id=self.company.id,
-            company_ids=[(6, 0, self.company.ids)],
-        )
-        configuration_model = self.env["usl.sign.configuration"].with_user(
-            administrator
-        )
-        configuration = configuration_model.create(
-            {
-                "company_id": self.company.id,
-                "provider_enabled": True,
-                "environment": "sandbox",
-                "workspace_id": "workspace-test",
-                "deliver_completed_to_signers": True,
-                "evidence_retention_years": 12,
-            }
-        )
-        with patch.dict(
-            os.environ,
-            {
-                "USL_YOUSIGN_SANDBOX_API_KEY": "test-key",
-                "USL_YOUSIGN_SANDBOX_WEBHOOK_SECRET": "test-secret",
-            },
-        ):
-            configuration.invalidate_recordset()
-            self.assertTrue(configuration.provider_ready)
-        configuration.action_save()
-        self.company.invalidate_recordset()
-        self.assertEqual(self.company.sign_yousign_workspace_id, "workspace-test")
-        self.assertTrue(self.company.sign_deliver_completed_to_signers)
-        self.assertEqual(self.company.sign_evidence_retention_years, 12)
-
-        unauthorized = configuration_model.create(
-            {
-                "company_id": other_company.id,
-                "environment": "sandbox",
-                "evidence_retention_years": 10,
-            }
-        )
-        with self.assertRaises(AccessError):
-            unauthorized.action_save()
-
-        ordinary_user = new_test_user(
-            self.env,
-            login="sign-configuration-user",
-            groups="base.group_user,usl_sign.group_sign_user",
-        )
-        with self.assertRaises(AccessError):
-            self.env["usl.sign.configuration"].with_user(ordinary_user).create(
-                {
-                    "company_id": self.company.id,
-                    "environment": "sandbox",
-                    "evidence_retention_years": 10,
-                }
-            )
-
-    def test_partial_cancellation_preserves_completed_signer_history(self):
-        second_partner = self.env["res.partner"].create(
-            {"name": "Pending Signer", "email": "pending@example.test"}
-        )
-        sign_request = self._request()
-        first = sign_request.signer_ids
-        second = self.env["sign.oca.request.signer"].create(
-            {
-                "request_id": sign_request.id,
-                "partner_id": second_partner.id,
-                "role_id": self.role.id,
-            }
-        )
-        provider = FakeProvider(self.pdf)
-        with patch.dict(
-            os.environ, {"USL_YOUSIGN_SANDBOX_API_KEY": "test-key"}
-        ), self._provider_patch(provider):
-            sign_request.action_send()
-            first.write({"state": "signed", "signed_on": "2026-08-05 08:00:00"})
-            sign_request.with_context(usl_sign_transition=True).state = "partial"
-            sign_request.cancel()
-        self.assertEqual(sign_request.state, "cancelled")
-        self.assertEqual(first.state, "signed")
-        self.assertEqual(second.state, "cancelled")
-        self.assertTrue(sign_request.evidence_ids.filtered(lambda row: row.kind == "cancellation"))
-
-    def test_pocketid_profiles_include_scoped_sign_roles(self):
-        definitions = self.env["res.users"]._usl_pocketid_profile_definitions()
-        self.assertIn(
-            "usl_sign.group_sign_admin", definitions["administrator"]["groups"]
-        )
-        self.assertIn(
-            "usl_sign.group_sign_admin", definitions["break_glass"]["groups"]
-        )
-        self.assertIn(
-            "usl_sign.group_sign_user", definitions["collaborator"]["groups"]
-        )
-
-
-@tagged("post_install", "-at_install")
-class TestUslSignPublicPage(HttpCase):
-    def test_unavailable_public_link_keeps_actionable_explanation(self):
+    def test_pdf_without_page_dimensions_is_rejected_before_freezing(self):
         stream = BytesIO()
         writer = PdfWriter()
-        writer.add_blank_page(width=595, height=842)
+        page = writer.add_blank_page(width=595, height=842)
+        del page["/MediaBox"]
         writer.write(stream)
-        company = self.env.company
-        company.sign_provider_enabled = False
-        policy = self.env["usl.sign.policy"].search(
-            [
-                ("company_id", "=", company.id),
-                ("assurance_level", "=", "standard"),
-            ],
-            limit=1,
-        )
-        role = self.env.ref("sign_oca.sign_role_customer")
+        request = self._request()
+        with self.assertRaisesRegex(ValidationError, "valid page dimensions"):
+            self.env["usl.sign.request.document"].create(
+                {
+                    "request_id": request.id,
+                    "name": "Malformed PDF",
+                    "filename": "malformed.pdf",
+                    "data": base64.b64encode(stream.getvalue()),
+                },
+            )
+
+    def test_template_wizard_explains_trust_and_creates_a_reviewable_draft(self):
         template = self.env["sign.oca.template"].create(
             {
-                "name": "Public explanation rendering",
-                "data": b64encode(stream.getvalue()),
-                "filename": "public-explanation.pdf",
-                "company_id": company.id,
-                "policy_id": policy.id,
-            }
+                "name": "Guided Standard template",
+                "filename": "guided.pdf",
+                "data": base64.b64encode(self.pdf),
+                "company_id": self.company.id,
+                "policy_id": self.policy.id,
+            },
         )
+        signature = self.env.ref("sign_oca.sign_field_signature")
         self.env["sign.oca.template.item"].create(
             {
                 "template_id": template.id,
-                "field_id": self.env.ref("sign_oca.sign_field_signature").id,
-                "role_id": role.id,
-                "page": 1,
-                "position_x": 60,
-                "position_y": 75,
-                "width": 20,
-                "height": 5,
+                "field_id": signature.id,
+                "role_id": self.role_customer.id,
                 "required": True,
-            }
+                "page": 1,
+                "position_x": 10,
+                "position_y": 10,
+                "width": 25,
+                "height": 8,
+            },
         )
-        template.preparation_status = "ready"
-        template.action_enable_public_link()
-
-        response = self.url_open(f"/sign/public/{template.public_access_token}")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "Signing is temporarily unavailable. Please try again later.",
-            response.text,
-        )
-
-    def test_oca_source_pdf_route_uses_odoo_19_stream_api(self):
-        stream = BytesIO()
-        writer = PdfWriter()
-        writer.add_blank_page(width=595, height=842)
-        writer.write(stream)
-        pdf = stream.getvalue()
-        company = self.env.company
-        policy = self.env["usl.sign.policy"].search(
-            [("company_id", "=", company.id), ("is_default", "=", True)], limit=1
-        )
-        partner = self.env["res.partner"].create(
-            {"name": "Source route signer", "email": "source-route@example.test"}
-        )
-        sign_request = self.env["sign.oca.request"].create(
+        template.action_mark_ready()
+        wizard = self.env["sign.oca.template.generate"].create(
             {
-                "name": "Source PDF route",
-                "data": b64encode(pdf),
-                "filename": "source-route.pdf",
-                "company_id": company.id,
-                "policy_id": policy.id,
+                "template_id": template.id,
                 "signer_ids": [
                     (
                         0,
                         0,
                         {
-                            "partner_id": partner.id,
-                            "role_id": self.env.ref("sign_oca.sign_role_customer").id,
+                            "role_id": self.role_customer.id,
+                            "partner_id": self.partner_one.id,
                         },
-                    )
+                    ),
                 ],
-            }
+                "message": "Please review and sign.",
+            },
         )
-        signer = sign_request.signer_ids
-        signer._portal_ensure_token()
+        wizard._refresh_usl_journey()
+        self.assertEqual(wizard.recommended_trust, "standard")
+        self.assertEqual(wizard.requested_trust, "standard")
+        self.assertIn("reinforced evidence", wizard.journey_availability)
+        action = wizard.generate()
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        request = self.env["sign.oca.request"].browse(action["res_id"])
+        self.assertEqual(request.state, "draft")
+        self.assertEqual(request.requested_trust, "standard")
+        self.assertEqual(request.template_version, 1)
+        self.assertEqual(request.responsible_message, "<p>Please review and sign.</p>")
+        self.assertEqual(len(request.document_ids), 1)
+        self.assertEqual(request.document_ids.source_sha256, template.document_ids.source_sha256)
+        self.assertFalse(request.sent_at)
 
-        response = self.url_open(
-            f"/sign_oca/content/{signer.id}/{signer.access_token}"
+    def test_business_record_picker_excludes_technical_registry_models(self):
+        available = dict(self.env["sign.oca.request"]._sign_business_record_models())
+        self.assertIn("res.partner", available)
+        self.assertNotIn("ir.model", available)
+        self.assertFalse(any(model.startswith("usl.sign") for model in available))
+        self.assertFalse(any(model.startswith("sign.oca") for model in available))
+
+    def test_invitation_is_queued_and_failed_delivery_recovers(self):
+        request = self._ready(self._request())
+        request.action_send()
+        signer = request.signer_ids
+        first_hash = signer.access_token_sha256
+        first_mail = signer.invitation_mail_id
+        self.assertEqual(request.state, "sent")
+        self.assertEqual(signer.state, "notified")
+        self.assertEqual(signer.invitation_delivery_state, "queued")
+        self.assertEqual(first_mail.state, "outgoing")
+        self.assertFalse(signer.access_token)
+        first_mail.write(
+            {"state": "exception", "failure_reason": "Synthetic SMTP outage"},
+        )
+        self.env["sign.oca.request"]._cron_sign_operations()
+        self.assertEqual(request.state, "action_required")
+        self.assertEqual(signer.invitation_delivery_state, "failed")
+        self.assertIn("mail configuration", request.recovery_action)
+        request.action_retry_validation()
+        self.assertEqual(request.state, "sent")
+        self.assertFalse(first_mail.exists())
+        self.assertEqual(signer.invitation_delivery_state, "queued")
+        self.assertNotEqual(signer.access_token_sha256, first_hash)
+        self.assertFalse(request.last_error)
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"signed_on": fields.Datetime.now(), "state": "signed"},
+        )
+        self.assertEqual(signer.invitation_delivery_state, "resolved")
+
+    def test_policy_recommendation_and_authorized_override(self):
+        request = self._request(risk_level="material", signer_type="recurring")
+        self.assertEqual(request.recommended_trust, "strong_personal")
+        request.requested_trust = "standard"
+        request.override_reason = "Signer is not yet enrolled; routine fallback approved."
+        with self.assertRaises(AccessError):
+            request.with_user(self.sign_user).action_mark_ready()
+        request.with_user(self.override_user).action_mark_ready()
+        self.assertEqual(request.state, "ready")
+
+    def test_internal_decision_guides_to_attributable_odoo_approval(self):
+        request = self._request(
+            document_category="internal_decision", requires_signed_pdf=False,
+        )
+        self.assertTrue(request.approval_recommended)
+        with self.assertRaisesRegex(ValidationError, "Approve in Odoo"):
+            request.action_mark_ready()
+
+    def test_freeze_is_deterministic_and_sent_content_is_immutable(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        self.assertEqual(
+            request.original_sha256,
+            hashlib.sha256(base64.b64decode(request.original_data)).hexdigest(),
+        )
+        self.assertEqual(request.page_map[0]["sha256"], request.document_ids.source_sha256)
+        self.assertEqual(
+            set(request.evidence_ids.mapped("kind")), {"source", "frozen"},
+        )
+        self.assertEqual(request.policy_snapshot["version"], request.policy_version)
+        self.assertEqual(request.signer_snapshot[0]["partner_id"], self.partner_one.id)
+        self.assertTrue(request.consent_text_snapshot)
+        request._transition("sent", "request_sent")
+        with self.assertRaises(ValidationError):
+            request.write({"data": base64.b64encode(self.pdf + b"changed")})
+        with self.assertRaises(ValidationError):
+            request.signer_ids.write({"role_id": self.role_employee.id})
+
+    def test_event_chain_is_append_only_and_detectable(self):
+        request = self._request()
+        request._append_event("test_event", payload={"value": 1})
+        events = request.event_ids.sorted("sequence")
+        self.assertEqual(events.mapped("sequence"), list(range(1, len(events) + 1)))
+        for previous, current in itertools.pairwise(events):
+            self.assertEqual(current.previous_hash, previous.event_hash)
+            self.assertEqual(
+                current.event_hash,
+                hashlib.sha256(
+                    f"{previous.event_hash}:{current.payload_sha256}".encode(),
+                ).hexdigest(),
+            )
+        self.assertEqual(events.verify_chain(), events[-1])
+        with self.assertRaises(AccessError):
+            events[-1].write({"event_type": "tampered"})
+        with self.assertRaises(AccessError):
+            events[-1].unlink()
+
+    def test_rpc_context_boole_cannot_forge_internal_operations(self):
+        request = self._request()
+        signer = request.signer_ids
+        with self.assertRaisesRegex(ValidationError, "lifecycle action"):
+            request.with_context(usl_sign_transition=True).write({"state": "ready"})
+        with self.assertRaisesRegex(ValidationError, "controlled signer action"):
+            signer.with_context(usl_sign_signer_transition=True).write(
+                {"session_token_sha256": hashlib.sha256(b"forged").hexdigest()},
+            )
+        with self.assertRaisesRegex(AccessError, "controlled evidence"):
+            self.env["usl.sign.evidence"].with_context(
+                usl_sign_evidence_create=True,
+            ).create(
+                {
+                    "request_id": request.id,
+                    "kind": "validation",
+                    "name": "forged.json",
+                    "data": base64.b64encode(b"forged"),
+                    "mimetype": "application/json",
+                },
+            )
+        with self.assertRaisesRegex(AccessError, "controlled request action"):
+            self.env["usl.sign.external.journey"].with_context(
+                usl_sign_external_create=True,
+            ).create(
+                {
+                    "request_id": request.id,
+                    "provider_id": self.env["usl.sign.external.provider"].create(
+                        {
+                            "name": "Context-forgery test provider",
+                            "territory": "EU",
+                            "mobile_url": "https://provider.example.test",
+                            "instructions": "Test only.",
+                            "reviewed_on": fields.Date.today(),
+                        },
+                    ).id,
+                    "frozen_sha256": "0" * 64,
+                    "signer_information": [],
+                },
+            )
+
+    def test_signing_link_is_hash_only_one_time_and_revocable(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"sent_at": fields.Datetime.now(), "authentication_method": "secure_link"},
+        )
+        request._transition("sent", "request_sent")
+        signer = request.signer_ids
+        token = signer._issue_access_token()
+        self.assertFalse(signer.access_token)
+        self.assertNotEqual(token, signer.access_token_sha256)
+        session = signer._exchange_access_token(token)
+        self.assertFalse(signer.access_token_sha256)
+        with self.assertRaises(AccessError):
+            signer._exchange_access_token(token)
+        signer._check_token(session, session=True)
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"access_revoked": True},
+        )
+        with self.assertRaises(AccessError):
+            signer._check_token(session, session=True)
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"signed_on": fields.Datetime.now(), "state": "signed"},
+        )
+        with self.assertRaisesRegex(AccessError, "invalid, expired, or revoked"):
+            signer._exchange_access_token(token)
+
+    def test_signing_link_exchange_is_rate_limited(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"sent_at": fields.Datetime.now(), "authentication_method": "secure_link"},
+        )
+        request._transition("sent", "request_sent")
+        signer = request.signer_ids
+        valid_token = signer._issue_access_token()
+        for _attempt in range(5):
+            try:
+                signer._exchange_access_token("invalid-token")
+            except AccessError:
+                pass
+            else:
+                self.fail("An invalid invitation token was accepted.")
+        self.assertGreater(signer.access_blocked_until, fields.Datetime.now())
+        self.assertEqual(signer.access_failure_count, 5)
+        self.assertEqual(
+            request.event_ids.filtered(
+                lambda event: event.event_type == "signing_link_rejected",
+            )[-1].payload["payload"],
+            {"attempt_count": 5, "blocked": True},
+        )
+        with self.assertRaisesRegex(AccessError, "temporarily unavailable"):
+            signer._exchange_access_token(valid_token)
+
+    def test_email_otp_is_hash_only_one_time_and_rate_limited(self):
+        self.policy.default_authentication = "email_otp"
+        request = self._ready(self._request())
+        request._freeze_document()
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {
+                "sent_at": fields.Datetime.now(),
+                "authentication_method": "email_otp",
+            },
+        )
+        request._transition("sent", "request_sent")
+        signer = request.signer_ids
+        invitation = signer._issue_access_token()
+        with (
+            patch("odoo.addons.usl_sign.models.request.secrets.randbelow", return_value=42),
+            patch.object(type(signer), "_send_ephemeral_email", return_value=True),
+        ):
+            exchange = signer._exchange_access_token(invitation)
+        self.assertEqual(exchange["otp_required"], True)
+        self.assertFalse(signer.access_token_sha256)
+        self.assertFalse(signer.session_token_sha256)
+        self.assertNotEqual(signer.otp_exchange_token_sha256, exchange["exchange_token"])
+        self.assertNotEqual(signer.email_otp_sha256, "00000042")
+        with self.assertRaisesRegex(AccessError, "incorrect"):
+            signer._verify_email_otp(exchange["exchange_token"], "00000041")
+        session = signer._verify_email_otp(exchange["exchange_token"], "00000042")
+        signer._check_token(session, session=True)
+        self.assertFalse(signer.email_otp_sha256)
+        self.assertFalse(signer.otp_exchange_token_sha256)
+        with self.assertRaisesRegex(AccessError, "invalid or expired"):
+            signer._verify_email_otp(exchange["exchange_token"], "00000042")
+
+    def test_ordered_signers_and_frozen_geometry(self):
+        request = self._ready(
+            self._request(
+                partners=[self.partner_one, self.partner_two],
+                roles=[self.role_customer, self.role_employee],
+                signing_order=True,
+            ),
+        )
+        with patch.object(type(request.signer_ids), "_send_signer_invitation", return_value=True):
+            request.action_send()
+        first, second = request.signer_ids.sorted(lambda row: (row.sequence, row.id))
+        first.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {
+                "state": "viewed",
+                "session_token_sha256": hashlib.sha256(b"first-session").hexdigest(),
+                "session_expires_at": fields.Datetime.now() + timedelta(minutes=5),
+            },
+        )
+        with self.assertRaises(AccessError):
+            second._check_token("not-issued", session=True)
+        items = self._items(request, first.role_id, "Camille Signer")
+        own_item = next(
+            item for item in items.values() if int(item["role_id"]) == first.role_id.id
+        )
+        own_item.update({"page": 999, "position_x": 99, "width": 1})
+        with patch.object(type(first), "_activate_next_signer_or_finish", return_value=True):
+            first.action_sign(items, access_token="first-session", consent=True)
+        persisted = next(
+            item
+            for item in request.signatory_data.values()
+            if int(item["role_id"]) == first.role_id.id
+        )
+        frozen = next(
+            item
+            for item in request.frozen_layout.values()
+            if int(item["role_id"]) == first.role_id.id
+        )
+        self.assertEqual(persisted["value"], "Camille Signer")
+        self.assertEqual(persisted["page"], frozen["page"])
+        self.assertEqual(persisted["position_x"], frozen["position_x"])
+        self.assertEqual(persisted["width"], frozen["width"])
+
+    def test_cross_validation_disagreement_never_completes(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request._transition("sent", "request_sent")
+        request._transition("validating", "validation_started")
+        request.signer_ids.with_context(
+            usl_sign_signer_transition=INTERNAL_OPERATION,
+        ).write(
+            {
+                "state": "signed",
+                "signed_on": fields.Datetime.now(),
+                "authentication_method": "secure_link",
+                "consent_text": request.consent_text_snapshot,
+                "consent_version": "2026.1",
+                "consented_at": fields.Datetime.now(),
+                "signed_document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+            },
+        )
+        dss = FakeDSS()
+        dss.cross_validate = lambda document: {
+            "status": "invalid",
+            "signature_count": 0,
+        }
+        with patch.object(type(request), "_sign_dss_client", return_value=dss):
+            result = request._complete_validated_document(
+                self.pdf,
+                FakeDSS.validate(self.pdf, "standard"),
+            )
+        self.assertFalse(result)
+        self.assertEqual(request.state, "action_required")
+        self.assertEqual(request.validation_status, "indeterminate")
+        self.assertFalse(request.final_data)
+        self.assertIn("pyhanko", " ".join(request.evidence_ids.mapped("name")).lower())
+
+    def test_validation_without_achieved_trust_fails_closed(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request._transition("sent", "request_sent")
+        request._transition("validating", "validation_started")
+        validation = FakeDSS.validate(self.pdf, "standard")
+        validation.pop("achievedTrust")
+        with patch.object(type(request), "_sign_dss_client", return_value=FakeDSS()):
+            self.assertFalse(request._complete_validated_document(self.pdf, validation))
+        self.assertEqual(request.state, "validation_failed")
+        self.assertEqual(request.validation_status, "invalid")
+        self.assertFalse(request.achieved_trust)
+        self.assertFalse(request.final_data)
+
+    def test_preparation_rejects_fields_outside_the_pdf_page(self):
+        request = self._request()
+        layout = json.loads(json.dumps(request.signatory_data))
+        next(iter(layout.values())).update({"position_x": 90, "width": 20})
+        request.signatory_data = layout
+        with self.assertRaisesRegex(ValidationError, "outside the PDF page"):
+            request.action_mark_ready()
+
+    def test_published_template_configure_creates_a_clean_new_version(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Versioned clean template",
+                "data": base64.b64encode(self.pdf),
+                "filename": "versioned.pdf",
+                "company_id": self.company.id,
+                "policy_id": self.policy.id,
+            },
+        )
+        signature = self.env.ref("sign_oca.sign_field_signature")
+        self.env["sign.oca.template.item"].create(
+            {
+                "template_id": template.id,
+                "field_id": signature.id,
+                "role_id": self.role_customer.id,
+                "required": True,
+                "page": 1,
+                "position_x": 10,
+                "position_y": 10,
+                "width": 25,
+                "height": 8,
+            },
+        )
+        template.action_mark_ready()
+        with self.assertRaisesRegex(ValidationError, "cannot be deleted"):
+            template.unlink()
+        action = template.configure()
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        new_template = self.env["sign.oca.template"].browse(action["res_id"])
+        self.assertEqual(new_template.version, 2)
+        self.assertEqual(new_template.previous_version_id, template)
+        self.assertEqual(new_template.preparation_status, "draft")
+        self.assertFalse(template.active)
+        self.assertEqual(len(new_template.item_ids), 1)
+        self.assertEqual(len(new_template.document_ids), 1)
+        self.assertEqual(
+            new_template.configure()["tag"],
+            "usl_sign_template_configure",
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, pdf)
+    def test_template_hash_compute_ignores_web_binary_size_context(self):
+        template = self.env["sign.oca.template"].with_context(bin_size=True).create(
+            {
+                "name": "Browser upload hash regression",
+                "filename": "browser-upload.pdf",
+                "data": base64.b64encode(self.pdf),
+            },
+        )
+        self.assertEqual(
+            template.document_sha256,
+            hashlib.sha256(self.pdf).hexdigest(),
+        )
+
+    def test_request_editor_uses_a_reload_safe_client_action(self):
+        action = self._request().configure()
+        self.assertEqual(action["tag"], "usl_sign_request_configure")
+
+    def test_external_import_rejects_a_different_revision(self):
+        provider = self.env["usl.sign.external.provider"].create(
+            {
+                "name": "Configurable qualified provider",
+                "territory": "EU",
+                "mobile_url": "https://provider.example.test",
+                "instructions": "Download, sign and import.",
+                "reviewed_on": fields.Date.today(),
+            },
+        )
+        request = self._request(
+            requested_trust="qualified_external",
+            external_provider_id=provider.id,
+            risk_level="maximum",
+            formal_qes_required=True,
+        )
+        request.action_mark_ready()
+        request.action_send()
+        journey = request.external_journey_id
+        journey.with_context(usl_sign_external_transition=INTERNAL_OPERATION).write(
+            {
+                "imported_pdf": base64.b64encode(self.pdf),
+                "imported_filename": "signed.pdf",
+                "proof_package": base64.b64encode(b"provider proof"),
+                "proof_filename": "proof.bin",
+                "state": "imported",
+                "imported_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "imported_at": fields.Datetime.now(),
+            },
+        )
+        request._transition("signed_to_import", "external_document_imported")
+        with patch.object(type(request), "_sign_dss_client", return_value=FakeDSS(revision_matches=False)):
+            self.assertFalse(request.action_validate_external())
+        self.assertEqual(request.state, "validation_failed")
+        self.assertEqual(journey.state, "rejected")
+        self.assertFalse(request.completed_at)
+
+    def test_external_provider_requires_a_safe_https_journey(self):
+        with self.assertRaisesRegex(ValidationError, "HTTPS URL"):
+            self.env["usl.sign.external.provider"].create(
+                {
+                    "name": "Unsafe provider configuration",
+                    "territory": "EU",
+                    "mobile_url": "http://provider.example.test/sign",
+                    "instructions": "This record must be rejected.",
+                    "reviewed_on": fields.Date.today(),
+                },
+            )
+
+    def test_external_journey_exposes_export_instructions_and_import_gate(self):
+        provider = self.env["usl.sign.external.provider"].create(
+            {
+                "name": "Reviewed qualified provider",
+                "territory": "EU",
+                "mobile_url": "https://provider.example.test/mobile",
+                "instructions": "Download the frozen PDF and return every proof file.",
+                "reviewed_on": fields.Date.today(),
+            },
+        )
+        request = self._request(
+            requested_trust="qualified_external",
+            external_provider_id=provider.id,
+            risk_level="maximum",
+            formal_qes_required=True,
+        )
+        request.action_mark_ready()
+        request.action_send()
+        journey = request.external_journey_id
+
+        self.assertEqual(request.state, "waiting_external")
+        self.assertEqual(journey.state, "waiting")
+        self.assertTrue(journey.signer_summary.startswith("1. Camille Signer"))
+        self.assertEqual(
+            journey.action_open_details()["views"][0][0],
+            self.env.ref("usl_sign.sign_external_journey_form").id,
+        )
+        self.assertEqual(
+            journey.action_open_provider()["url"],
+            "https://provider.example.test/mobile",
+        )
+        provider.mobile_url = "https://provider.example.test/new-catalog-url"
+        self.assertEqual(
+            journey.action_open_provider()["url"],
+            "https://provider.example.test/mobile",
+        )
+        first_export = journey.action_export()
+        first_exported_at = journey.exported_at
+        second_export = journey.action_export()
+        self.assertEqual(first_export["target"], "download")
+        self.assertEqual(second_export["url"], first_export["url"])
+        self.assertEqual(journey.exported_at, first_exported_at)
+        self.assertEqual(
+            len(request.event_ids.filtered(lambda event: event.event_type == "external_document_exported")),
+            1,
+        )
+        import_action = journey.action_open_import()
+        self.assertEqual(import_action["res_model"], "usl.sign.external.import.wizard")
+        wizard = self.env["usl.sign.external.import.wizard"].create(
+            {
+                "journey_id": journey.id,
+                "signed_pdf": base64.b64encode(self.pdf),
+                "signed_filename": "qualified-signed.pdf",
+                "proof_package": base64.b64encode(b"external proof package"),
+                "proof_filename": "qualified-proof.zip",
+            },
+        )
+        result = wizard.action_import()
+        self.assertEqual(request.state, "signed_to_import")
+        self.assertEqual(journey.state, "imported")
+        self.assertEqual(result["res_id"], request.id)
+        self.assertFalse(request.completed_at)
+
+    def test_external_validation_outage_is_retryable_not_a_rejection(self):
+        provider = self.env["usl.sign.external.provider"].create(
+            {
+                "name": "Retryable qualified provider",
+                "territory": "EU",
+                "mobile_url": "https://provider.example.test/mobile",
+                "instructions": "Return the signed PDF and proof package.",
+                "reviewed_on": fields.Date.today(),
+            },
+        )
+        request = self._request(
+            requested_trust="qualified_external",
+            external_provider_id=provider.id,
+            risk_level="maximum",
+            formal_qes_required=True,
+        )
+        request.action_mark_ready()
+        request.action_send()
+        journey = request.external_journey_id
+        journey.with_context(usl_sign_external_transition=INTERNAL_OPERATION).write(
+            {
+                "imported_pdf": base64.b64encode(self.pdf),
+                "imported_filename": "signed.pdf",
+                "proof_package": base64.b64encode(b"provider proof"),
+                "proof_filename": "proof.zip",
+                "state": "imported",
+                "imported_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "imported_at": fields.Datetime.now(),
+            },
+        )
+        request._transition("signed_to_import", "external_document_imported")
+
+        class OfflineDSS:
+            @staticmethod
+            def revision_matches(*args, **kwargs):
+                del args, kwargs
+                msg = "DSS unavailable"
+                raise DSSServiceError(msg)
+
+        with patch.object(
+            type(request), "_sign_dss_client", return_value=OfflineDSS(),
+        ):
+            self.assertFalse(request.action_validate_external())
+        self.assertEqual(request.state, "action_required")
+        self.assertEqual(request.validation_status, "indeterminate")
+        self.assertEqual(journey.state, "imported")
+        self.assertFalse(journey.rejection_reason)
+        with patch.object(
+            type(request), "action_validate_external", autospec=True, return_value=True,
+        ) as retry_validation:
+            request.action_retry_validation()
+        retry_validation.assert_called_once()
+        self.assertEqual(request.state, "signed_to_import")
+
+    def test_completion_waits_for_archive_and_recovers_idempotently(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request._transition("sent", "request_sent")
+        request._transition("validating", "validation_started")
+        request.signer_ids.with_context(
+            usl_sign_signer_transition=INTERNAL_OPERATION,
+        ).write(
+            {
+                "state": "signed",
+                "signed_on": fields.Datetime.now(),
+                "authentication_method": "secure_link",
+                "consent_text": request.consent_text_snapshot,
+                "consent_version": "2026.1",
+                "consented_at": fields.Datetime.now(),
+                "signed_document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+            },
+        )
+        archived = self.env["usl.document"].sudo().create(
+            {
+                "name": "Clean Sign evidence dossier",
+                "paperless_id": 990001,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_generated",
+            },
+        )
+        upload = patch.object(
+            type(self.env["usl.document"]),
+            "upload_from_odoo",
+            side_effect=[
+                RuntimeError("synthetic Paperless outage"),
+                {
+                    "state": "duplicate",
+                    "document_id": archived.id,
+                    "message": "Checksum-identical dossier reused.",
+                },
+            ],
+        )
+        with (
+            patch.object(type(request), "_sign_dss_client", return_value=FakeDSS()),
+            upload,
+        ):
+            validation = request._complete_validated_document(
+                self.pdf, FakeDSS.validate(self.pdf, "standard"),
+            )
+            self.assertTrue(validation)
+            self.assertEqual(request.state, "evidence_incomplete")
+            self.assertEqual(request.archive_status, "failed")
+            self.assertFalse(request.completed_at)
+            signed_evidence = request.evidence_ids.filtered(
+                lambda evidence: evidence.kind == "signed",
+            )
+            self.assertEqual(len(signed_evidence), 1)
+            self.assertEqual(signed_evidence.sha256, request.final_sha256)
+            request.action_retry_archive()
+        self.assertEqual(request.state, "completed")
+        self.assertEqual(request.archive_status, "archived")
+        self.assertEqual(request.archive_document_id, archived)
+        self.assertTrue(request.completed_at)
+        self.assertEqual(request.evidence_status, "complete")
+
+    def test_passkey_enrolment_revocation_and_reenrolment_are_controlled(self):
+        enrollment = self.env["usl.sign.enrollment"].create(
+            {
+                "partner_id": self.partner_one.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+                "relationship_reference": "Contractor file C-001",
+                "policy_version": "2026.1",
+            },
+        )
+        enrollment.with_user(self.reviewer).action_confirm_identity()
+        passkey = self.env["usl.sign.passkey"].with_context(
+            usl_sign_passkey_registration=INTERNAL_OPERATION,
+        ).create(
+            {
+                "enrollment_id": enrollment.id,
+                "name": "Primary passkey",
+                "credential_id": "credential-one",
+                "public_key": base64.b64encode(b"credential-public-key"),
+            },
+        )
+        enrollment.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
+            {"state": "active"},
+        )
+        with self.assertRaises(AccessError):
+            passkey.write({"state": "lost"})
+        enrollment.with_user(self.reviewer).action_revoke("Passkey reported lost.")
+        self.assertEqual(enrollment.state, "revoked")
+        self.assertEqual(passkey.state, "revoked")
+        self.env.flush_all()
+        self.env.cr.execute(
+            "SELECT state FROM usl_sign_enrollment WHERE id = %s", [enrollment.id],
+        )
+        self.assertEqual(self.env.cr.fetchone()[0], "revoked")
+        replacement = self.env["usl.sign.enrollment"].create(
+            {
+                "partner_id": self.partner_one.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+                "relationship_reference": "Re-reviewed contractor file C-001",
+                "policy_version": "2026.2",
+            },
+        )
+        self.assertEqual(replacement.state, "pending_review")
+        with self.assertRaises(AccessError):
+            enrollment.unlink()
+
+    def test_approval_decisions_and_events_are_attributable_and_immutable(self):
+        approval = self.env["usl.sign.approval"].create(
+            {
+                "name": "Approve routine internal decision",
+                "record_ref": f"res.partner,{self.partner_one.id}",
+                "approver_ids": [(6, 0, [self.sign_user.id])],
+                "policy_version": "2026.1",
+            },
+        )
+        approval.with_user(self.sign_user).action_reject("Business owner declined.")
+        self.assertEqual(approval.state, "rejected")
+        self.assertEqual(approval.decision_by_id, self.sign_user)
+        self.assertEqual(approval.event_ids.mapped("event_type"), ["requested", "rejected"])
+        with self.assertRaises(AccessError):
+            approval.event_ids[-1].write({"reason": "changed"})
+        with self.assertRaises(AccessError):
+            approval.unlink()
+
+    def test_daily_event_head_manifest_is_signed_and_immutable(self):
+        request = self._request()
+        request._append_event("daily_manifest_test", payload={"case": "clean"})
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company, fields.Date.today(),
+            )
+        self.assertEqual(manifest.state, "signed")
+        self.assertGreaterEqual(manifest.event_count, 2)
+        raw = base64.b64decode(manifest.payload)
+        self.assertEqual(manifest.payload_sha256, hashlib.sha256(raw).hexdigest())
+        with self.assertRaises(AccessError):
+            manifest.write({"event_count": 0})
+        with self.assertRaises(AccessError):
+            manifest.unlink()
+
+    def test_service_failure_is_actionable_and_does_not_complete(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request._transition("sent", "request_sent")
+
+        class OfflineDSS:
+            @staticmethod
+            def seal(*args, **kwargs):
+                del args, kwargs
+                msg = "offline"
+                raise DSSServiceError(msg)
+
+        with patch.object(type(request), "_sign_dss_client", return_value=OfflineDSS()):
+            self.assertFalse(request._start_final_validation())
+        self.assertEqual(request.state, "action_required")
+        self.assertFalse(request.completed_at)
+        self.assertTrue(request.recovery_action)
+
+    def test_dss_client_distinguishes_rejection_from_outage(self):
+        class Response:
+            def __init__(self, status_code, message):
+                self.status_code = status_code
+                self.message = message
+
+            def json(self):
+                return {"ok": False, "error": self.message}
+
+        class Session:
+            def __init__(self, response):
+                self.response = response
+
+            def post(self, *args, **kwargs):
+                del args, kwargs
+                return self.response
+
+        def client(response):
+            result = DSSClient(
+                base_url="https://dss.example.test", session=Session(response),
+            )
+            result.client_cert = "/run/test/client.crt"
+            result.client_key = "/run/test/client.key"
+            result.ca_bundle = "/run/test/root.crt"
+            return result
+
+        with self.assertRaisesRegex(DSSRejectedError, "no signature revision"):
+            client(Response(422, "The PDF contains no signature revision.")).health()
+        with self.assertRaisesRegex(DSSUnavailableError, "temporarily unavailable"):
+            client(Response(503, "The service is temporarily unavailable.")).health()

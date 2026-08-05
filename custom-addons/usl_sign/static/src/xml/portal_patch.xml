@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignOcaPdfPortal" t-inherit="sign_oca.SignOcaPdfPortal" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="inside">
+            <div class="usl_sign_consent me-3">
+                <div class="form-check">
+                    <input id="usl_sign_consent" class="form-check-input" type="checkbox"/>
+                    <label class="form-check-label" for="usl_sign_consent">I reviewed this document and consent to use an electronic signature.</label>
+                </div>
+                <div id="usl_sign_consent_error" class="text-danger small d-none">Consent is required.</div>
+            </div>
+            <button class="btn btn-outline-secondary me-2" t-on-click="() => this._onClickDecline()">Decline</button>
+        </xpath>
+        <xpath expr="//div[hasclass('o_oca_sign_portal_info')]" position="replace">
+            <div class="o_oca_sign_portal_info justify-content-center" style="width:100%;height:100%">Review, complete the fields, and sign</div>
+        </xpath>
+    </t>
+    <t t-name="usl_sign.StandardSignatureDialog" t-inherit="web.SignatureDialog" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('mt16') and hasclass('small')]" position="replace">
+            <div class="mt16 small">
+                By adopting this signature, I confirm that it represents my electronic signature for this document. This Standard signature is supported by USL’s reinforced evidence trail; it is not described as advanced, qualified, certified, or automatically equivalent to a handwritten signature.
+            </div>
+        </xpath>
+    </t>
+</templates>

@@ -4,13 +4,15 @@
         <field name="name">usl.sign.policy.list</field>
         <field name="model">usl.sign.policy</field>
         <field name="arch" type="xml">
-            <list default_order="company_id, sequence">
+            <list>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="company_id" groups="base.group_multi_company"/>
-                <field name="assurance_level"/>
-                <field name="authentication_method"/>
-                <field name="is_default"/>
+                <field name="version"/>
+                <field name="document_category"/>
+                <field name="signer_type"/>
+                <field name="risk_level"/>
+                <field name="recommendation"/>
                 <field name="active"/>
             </list>
         </field>
@@ -21,33 +23,36 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
                         <group>
+                            <field name="active"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="assurance_level"/>
-                            <field name="authentication_method"/>
-                            <field name="provider_code" readonly="1"/>
+                            <field name="version"/>
+                            <field name="sequence"/>
+                            <field name="document_category"/>
+                            <field name="signer_type"/>
+                            <field name="risk_level"/>
+                            <field name="formal_qes_required"/>
                         </group>
                         <group>
-                            <field name="is_default"/>
-                            <field name="public_link_allowed"/>
+                            <field name="recommendation"/>
+                            <field name="default_authentication" invisible="recommendation != 'standard'"/>
                             <field name="expiration_days"/>
                             <field name="reminder_days"/>
                             <field name="max_reminders"/>
-                            <field name="active"/>
                         </group>
                     </group>
-                    <group string="When to use this policy">
-                        <field name="description" nolabel="1" placeholder="Give administrators concise business guidance."/>
+                    <group>
+                        <field name="reason"/>
+                        <field name="consequence"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
     <record id="sign_policy_action" model="ir.actions.act_window">
-        <field name="name">Assurance Policies</field>
+        <field name="name">Trust Policies</field>
         <field name="res_model">usl.sign.policy</field>
         <field name="view_mode">list,form</field>
     </record>

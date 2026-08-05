@@ -11,7 +11,6 @@ MIGRATION_ADDONS = {
         ROOT / "migration" / "accounting_restore" / "addons"
     ),
     "usl_project_restore": ROOT / "migration" / "project_restore" / "addons",
-    "usl_sign_restore": ROOT / "migration" / "sign_restore" / "addons",
     "usl_tese_restore": ROOT / "migration" / "tese_restore" / "addons",
     "usl_platform_billing_restore": (
         ROOT / "migration" / "platform_billing_restore" / "addons"
@@ -23,7 +22,6 @@ MIGRATION_PATHS = {
         "/mnt/accounting-migration-addons",
         "/mnt/project-migration-addons",
     ),
-    "sign-migration": ("/mnt/sign-migration-addons",),
     "tese-migration": (
         "/mnt/accounting-migration-addons",
         "/mnt/tese-migration-addons",
@@ -75,10 +73,7 @@ service_text = {
         compose, "accounting-migration", "project-migration",
     ),
     "project-migration": compose_service(
-        compose, "project-migration", "sign-migration",
-    ),
-    "sign-migration": compose_service(
-        compose, "sign-migration", "tese-migration",
+        compose, "project-migration", "tese-migration",
     ),
     "tese-migration": compose_service(
         compose, "tese-migration", "platform-billing-migration",
@@ -113,7 +108,6 @@ for service_name, expected_paths in MIGRATION_PATHS.items():
 restore_harnesses = {
     "Accounting": ROOT / "scripts" / "accounting-restore",
     "Projects": ROOT / "scripts" / "project-restore",
-    "Sign": ROOT / "scripts" / "sign-restore",
     "TESE": ROOT / "scripts" / "tese-restore",
     "Platform Billing": ROOT / "scripts" / "platform-billing-restore",
 }
@@ -137,6 +131,8 @@ runtime_modules = {
     PRODUCT_ADDONS / "usl_sign": (
         "usl.sign.restore",
         "usl_sign_restore",
+        "sign-restore",
+        "sign-migration",
         "rebuild_source_",
         "/mnt/sign-migration-addons",
     ),

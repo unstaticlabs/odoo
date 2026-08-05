@@ -14,4 +14,4 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Activate French electronic-invoice reception](activate-french-electronic-invoicing.md)
 - [Restore historical platform billing](platform-billing-migration.md)
 - [Pocket ID SSO runbook](pocket-id-sso-runbook.md)
-- [Sign and Yousign runbook](sign-yousign-runbook.md)
+- [USL Sign operations runbook](sign-runbook.md)

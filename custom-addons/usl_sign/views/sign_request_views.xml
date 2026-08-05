@@ -11,12 +11,15 @@
             </xpath>
             <xpath expr="//form/header" position="replace">
                 <header>
-                    <button name="action_mark_ready" type="object" string="Review Request" class="btn-primary" invisible="state != 'draft'" groups="usl_sign.group_sign_user"/>
-                    <button name="action_send" type="object" string="Send for Signature" class="btn-primary" invisible="state not in ['ready', 'action_required'] or not provider_ready or provider_transaction_created" groups="usl_sign.group_sign_user"/>
-                    <button name="action_reconcile" type="object" string="Refresh Status" invisible="state not in ['sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <button name="action_mark_ready" type="object" string="Review and Mark Ready" class="btn-primary" invisible="state != 'draft'" groups="usl_sign.group_sign_user"/>
+                    <button name="action_send" type="object" string="Send" class="btn-primary" invisible="state != 'ready'" groups="usl_sign.group_sign_user"/>
+                    <button name="action_resume_after_enrollment" type="object" string="Resume After Enrolment" class="btn-primary" invisible="state != 'waiting_enrollment'" groups="usl_sign.group_sign_user"/>
+                    <button name="action_validate_external" type="object" string="Validate Imported Document" class="btn-primary" invisible="state != 'signed_to_import'" groups="usl_sign.group_sign_user"/>
+                    <button name="action_retry_validation" type="object" string="Retry Action" invisible="state != 'action_required'" groups="usl_sign.group_sign_user"/>
+                    <button name="action_retry_archive" type="object" string="Retry Archive" invisible="state != 'evidence_incomplete' or archive_status != 'failed'" groups="usl_sign.group_sign_user"/>
                     <button name="action_send_reminder" type="object" string="Send Reminder" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders" groups="usl_sign.group_sign_user"/>
-                    <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and revoke every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,sent,viewed,partial,completed,action_required" readonly="1"/>
+                    <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and revoke every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external', 'signed_to_import', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,sent,viewed,partial,waiting_enrollment,waiting_external,signed_to_import,validating,evidence_incomplete,completed,action_required" readonly="1"/>
                 </header>
             </xpath>
             <xpath expr="//widget[@name='web_ribbon'][1]" position="attributes">
@@ -26,102 +29,154 @@
             <xpath expr="//widget[@name='web_ribbon'][2]" position="attributes">
                 <attribute name="invisible">state != 'cancelled'</attribute>
             </xpath>
-            <xpath expr="//button[@name='preview']" position="attributes">
-                <attribute name="string">Document</attribute>
-                <attribute name="invisible">state in ['draft']</attribute>
-                <attribute name="groups">usl_sign.group_sign_user,usl_sign.group_sign_reviewer</attribute>
-            </xpath>
             <xpath expr="//button[@name='configure']" position="attributes">
-                <attribute name="string">Prepare Document</attribute>
-                <attribute name="invisible">state not in ['draft', 'ready']</attribute>
+                <attribute name="string">Prepare PDF Fields</attribute>
+                <attribute name="invisible">state != 'draft'</attribute>
                 <attribute name="groups">usl_sign.group_sign_user</attribute>
             </xpath>
+            <xpath expr="//button[@name='preview']" position="attributes">
+                <attribute name="string">Document</attribute>
+                <attribute name="invisible">state == 'draft'</attribute>
+            </xpath>
             <xpath expr="//field[@name='data']" position="attributes">
-                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
-                <attribute name="string">Source PDF</attribute>
+                <attribute name="readonly">state != 'draft'</attribute>
+                <attribute name="string">Primary PDF</attribute>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="attributes">
-                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
+                <attribute name="readonly">state != 'draft'</attribute>
             </xpath>
             <xpath expr="//field[@name='record_ref']" position="attributes">
-                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
-                <attribute name="string">Related record</attribute>
+                <attribute name="readonly">state != 'draft'</attribute>
+                <attribute name="string">Related business record</attribute>
             </xpath>
             <xpath expr="//field[@name='record_ref']" position="after">
-                <field name="company_id" groups="base.group_multi_company" readonly="state not in ['draft', 'ready']"/>
-                <field name="policy_id" options="{'no_create': True}" readonly="state not in ['draft', 'ready']"/>
-                <field name="requested_assurance" readonly="1"/>
-                <field name="achieved_assurance" readonly="1" invisible="not achieved_assurance"/>
-                <field name="authentication_method" readonly="1"/>
-                <field name="expires_at" readonly="state not in ['draft', 'ready']"/>
-                <field name="reminder_days" readonly="state not in ['draft', 'ready']"/>
-                <field name="max_reminders" readonly="state not in ['draft', 'ready']"/>
-                <field name="reminder_count" readonly="1" invisible="state in ['draft', 'ready']"/>
-                <field name="last_reminder_at" readonly="1" invisible="not last_reminder_at"/>
-                <field name="signing_order" readonly="state not in ['draft', 'ready']"/>
-                <field name="responsible_message" readonly="state not in ['draft', 'ready']" placeholder="Optional concise note for signers"/>
-                <field name="template_version" invisible="not template_id" readonly="1"/>
+                <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                <field name="document_category" readonly="state != 'draft'"/>
+                <field name="signer_type" readonly="state != 'draft'"/>
+                <field name="risk_level" readonly="state != 'draft'"/>
+                <field name="requires_signed_pdf" readonly="state != 'draft'"/>
+                <field name="formal_qes_required" readonly="state != 'draft'"/>
+                <field name="recommended_trust" readonly="1"/>
+                <field name="requested_trust" readonly="state != 'draft'"/>
+                <field name="achieved_trust" readonly="1" invisible="not achieved_trust"/>
+                <field name="recommendation_reason" readonly="1"/>
+                <field name="recommendation_consequence" readonly="1"/>
+                <field name="override_reason" readonly="state != 'draft'" invisible="requested_trust == recommended_trust"/>
+                <field name="policy_id" readonly="1"/>
+                <field name="policy_version" readonly="1" invisible="not policy_version"/>
+                <field name="external_provider_id" readonly="state != 'draft'" invisible="requested_trust != 'qualified_external'"/>
+                <field name="signing_order" readonly="state != 'draft' or requested_trust == 'strong_personal'"/>
+                <field name="expires_at" readonly="state != 'draft'"/>
+                <field name="reminder_days" readonly="state != 'draft'"/>
+                <field name="max_reminders" readonly="state != 'draft'"/>
+                <field name="responsible_message" readonly="state != 'draft'"/>
                 <field name="next_step" readonly="1"/>
             </xpath>
             <xpath expr="//field[@name='signer_ids']" position="attributes">
-                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
+                <attribute name="readonly">state != 'draft'</attribute>
             </xpath>
             <xpath expr="//field[@name='signer_ids']/list/field[@name='role_id']" position="before">
                 <field name="sequence" widget="handle"/>
             </xpath>
             <xpath expr="//field[@name='signer_ids']/list/field[@name='signed_on']" position="before">
                 <field name="state" readonly="1"/>
-                <field name="reminder_count" optional="hide" readonly="1"/>
-                <field name="decline_reason" optional="hide" readonly="1"/>
+                <field name="authentication_method" optional="hide" readonly="1"/>
+                <field name="invitation_delivery_state" optional="show" readonly="1"/>
             </xpath>
-            <xpath expr="//sheet" position="inside">
-                <field name="provider_ready" invisible="1"/>
-                <field name="provider_transaction_created" invisible="1"/>
-                <field name="historical" invisible="1"/>
-                <div class="alert alert-warning" role="alert" invisible="not historical">
-                    <strong>Historical evidence.</strong>
-                    The achieved assurance and authentication method could not be established from the preserved Odoo Online evidence. This completed request is read-only and cannot be sent again.
-                </div>
-                <div class="alert alert-warning" role="alert" invisible="provider_ready or state not in ['draft', 'ready', 'action_required']">
-                    <field name="provider_setup_message" readonly="1" nolabel="1"/>
-                </div>
+            <xpath expr="//field[@name='signer_ids']" position="after">
                 <notebook>
-                    <page string="Evidence" name="usl_evidence" invisible="state not in ['completed', 'declined', 'expired', 'cancelled', 'action_required']">
+                    <page string="Documents" name="usl_documents">
+                        <field name="document_ids" readonly="state != 'draft'">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="is_annex"/>
+                                <field name="name"/>
+                                <field name="filename"/>
+                                <field name="data" filename="filename"/>
+                                <field name="source_sha256" readonly="1" optional="hide"/>
+                                <field name="page_start" readonly="1" optional="hide"/>
+                                <field name="page_end" readonly="1" optional="hide"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="External journey" name="usl_external" invisible="requested_trust != 'qualified_external'">
+                        <field name="external_journey_id" readonly="1">
+                            <list create="0" delete="0" edit="0">
+                                <field name="provider_id"/>
+                                <field name="state"/>
+                                <field name="frozen_sha256"/>
+                                <field name="exported_at"/>
+                                <field name="imported_at"/>
+                                <button name="action_open_details" type="object" string="Open Journey"/>
+                                <button name="action_export" type="object" string="Download PDF" invisible="state != 'waiting'"/>
+                                <button name="action_open_import" type="object" string="Import Result" invisible="state != 'waiting'"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Evidence" name="usl_evidence" invisible="state in ['draft', 'ready']">
                         <group>
                             <group>
                                 <field name="original_sha256" readonly="1"/>
                                 <field name="final_sha256" readonly="1" invisible="not final_sha256"/>
-                                <field name="evidence_status" readonly="1"/>
                                 <field name="validation_status" readonly="1"/>
+                                <field name="evidence_status" readonly="1"/>
                             </group>
                             <group>
-                                <field name="provider_code" readonly="1"/>
-                                <field name="provider_transaction_id" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
-                                <field name="provider_environment" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
-                                <field name="completed_at" readonly="1"/>
-                                <field name="retention_status" readonly="1"/>
-                                <field name="retention_until" readonly="1" invisible="not retention_until"/>
-                                <field name="legal_hold" groups="usl_sign.group_sign_admin"/>
+                                <field name="archive_status" readonly="1"/>
+                                <field name="archive_document_id" readonly="1" invisible="not archive_document_id"/>
+                                <field name="archive_last_error" readonly="1" invisible="not archive_last_error"/>
+                                <field name="completed_at" readonly="1" invisible="not completed_at"/>
                             </group>
                         </group>
-                        <field name="evidence_ids" readonly="1" nolabel="1">
+                        <group invisible="not final_data">
+                            <field name="final_filename" invisible="1"/>
+                            <field name="completion_filename" invisible="1"/>
+                            <field name="dossier_filename" invisible="1"/>
+                            <field name="final_data" filename="final_filename" string="Final validated signed PDF" readonly="1"/>
+                            <field name="completion_certificate" filename="completion_filename" string="Completion certificate" readonly="1" invisible="not completion_certificate"/>
+                            <field name="dossier_data" filename="dossier_filename" string="Paperless evidence dossier" readonly="1" invisible="not dossier_data"/>
+                        </group>
+                        <field name="evidence_ids" readonly="1">
                             <list create="0" delete="0" edit="0">
                                 <field name="kind"/>
                                 <field name="name"/>
                                 <field name="signer_id"/>
                                 <field name="sha256" optional="hide"/>
-                                <field name="validation_status"/>
-                                <field name="retrieved_at"/>
+                                <field name="created_at"/>
                                 <field name="data" filename="name"/>
                             </list>
                         </field>
                     </page>
-                    <page string="Recovery" name="usl_recovery" invisible="state != 'action_required'">
+                    <page string="Validation" name="usl_validation" invisible="not validation_ids">
+                        <field name="validation_ids" readonly="1">
+                            <list create="0" delete="0" edit="0">
+                                <field name="engine"/>
+                                <field name="engine_version"/>
+                                <field name="expected_trust"/>
+                                <field name="achieved_trust"/>
+                                <field name="status"/>
+                                <field name="signature_count"/>
+                                <field name="qualified_provider"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Event history" name="usl_events" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
+                        <field name="event_ids" readonly="1">
+                            <list create="0" delete="0" edit="0">
+                                <field name="sequence"/>
+                                <field name="occurred_at"/>
+                                <field name="event_type"/>
+                                <field name="signer_id"/>
+                                <field name="state_from"/>
+                                <field name="state_to"/>
+                                <field name="event_hash" optional="hide"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Recovery" name="usl_recovery" invisible="state not in ['action_required', 'evidence_incomplete', 'validation_failed']">
                         <group>
                             <field name="last_error" readonly="1"/>
                             <field name="recovery_action" readonly="1"/>
-                            <field name="last_reconciled_at" readonly="1"/>
-                            <field name="provider_status" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
                         </group>
                     </page>
                 </notebook>
@@ -135,9 +190,10 @@
         <field name="inherit_id" ref="sign_oca.sign_oca_request_tree_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='state']" position="after">
-                <field name="requested_assurance"/>
-                <field name="achieved_assurance" optional="show"/>
+                <field name="requested_trust"/>
+                <field name="achieved_trust" optional="show"/>
                 <field name="next_step" optional="show"/>
+                <field name="archive_status" optional="hide"/>
             </xpath>
             <xpath expr="//button[@name='sign']" position="replace"/>
         </field>
@@ -149,7 +205,7 @@
         <field name="inherit_id" ref="sign_oca.sign_oca_request_search_view"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='sent']" position="replace">
-                <filter name="sent" string="In progress" domain="[('state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <filter name="sent" string="In progress" domain="[('state', 'in', ['sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external', 'signed_to_import', 'validating'])]"/>
             </xpath>
             <xpath expr="//filter[@name='signed']" position="replace">
                 <filter name="signed" string="Completed" domain="[('state', '=', 'completed')]"/>
@@ -158,7 +214,7 @@
                 <filter name="canceled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
             </xpath>
             <xpath expr="//filter[@name='canceled']" position="after">
-                <filter name="action_required" string="Action required" domain="[('state', '=', 'action_required')]"/>
+                <filter name="action_required" string="Action required" domain="[('state', 'in', ['action_required', 'evidence_incomplete', 'validation_failed'])]"/>
                 <filter name="declined" string="Declined" domain="[('state', '=', 'declined')]"/>
                 <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
             </xpath>

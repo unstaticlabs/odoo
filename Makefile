@@ -13,7 +13,7 @@ TESE_QA_GENERATION ?= 01
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
 .PHONY: dev deploy rebuild login-link disable-tours target-finalize target-reconstruct oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
-.PHONY: sign-restore sign-restore-install sign-restore-import sign-restore-validate sign-restore-finalize sign-product-validate
+.PHONY: sign-product-validate
 .PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
 .PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
@@ -185,23 +185,9 @@ accounting-compat: oca-addons-sync
 project-restore:
 	scripts/project-restore all
 
-sign-restore:
-	scripts/sign-restore all
-
-sign-restore-install:
-	scripts/sign-restore install
-
-sign-restore-import:
-	scripts/sign-restore import
-
-sign-restore-validate:
-	scripts/sign-restore validate
-
-sign-restore-finalize:
-	scripts/sign-restore finalize
-
 sign-product-validate:
-	scripts/sign-restore product-validate
+	scripts/check-sign-clean-boundary
+	scripts/check-sign-worker-build
 
 project-restore-install:
 	scripts/project-restore install

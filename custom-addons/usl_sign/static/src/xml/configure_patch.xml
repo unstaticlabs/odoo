@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignOcaConfigure" t-inherit="sign_oca.SignOcaConfigure" t-inherit-mode="extension">
+        <xpath expr="//iframe" position="before">
+            <nav class="usl_sign_editor_toolbar" aria-label="PDF editor controls">
+                <div class="btn-group" role="group" aria-label="Page navigation">
+                    <button type="button" class="btn btn-outline-secondary" t-on-click="previousPage" title="Previous page"><i class="fa fa-chevron-left"/></button>
+                    <button type="button" class="btn btn-outline-secondary" t-on-click="nextPage" title="Next page"><i class="fa fa-chevron-right"/></button>
+                    <button type="button" class="btn btn-outline-secondary" t-on-click="showThumbnails"><i class="fa fa-th-large me-1"/>Thumbnails</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="Zoom controls">
+                    <button type="button" class="btn btn-outline-secondary" t-on-click="zoomOut" title="Zoom out"><i class="fa fa-search-minus"/></button>
+                    <button type="button" class="btn btn-outline-secondary" t-on-click="zoomIn" title="Zoom in"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="usl_sign_role_preview" aria-label="Role preview">
+                    <span class="small text-muted me-1">Preview</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" t-att-class="{'active': !uslEditor.previewRoleId}" data-role-id="0" t-on-click="setRolePreview">All</button>
+                    <button t-foreach="info.roles" t-as="role" t-key="role.id" type="button" class="btn btn-sm usl_sign_role_button" t-att-class="{'active': uslEditor.previewRoleId === role.id}" t-att-data-role-id="role.id" t-att-style="roleButtonStyle(role.id)" t-on-click="setRolePreview"><t t-out="role.name"/></button>
+                </div>
+            </nav>
+            <div t-if="uslEditor.loading" class="usl_sign_editor_state" role="status"><i class="fa fa-spinner fa-spin me-2"/>Loading the PDF editor…</div>
+            <div t-if="uslEditor.error" class="alert alert-danger m-2" role="alert">A field operation failed. Your saved layout is unchanged; retry the action or reload the editor.</div>
+            <aside class="usl_sign_field_palette" aria-label="Signing fields">
+                <div class="fw-bold mb-2">Fields</div>
+                <div class="small text-muted mb-2">Filled by</div>
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    <button t-foreach="info.roles" t-as="role" t-key="role.id" type="button" class="btn btn-sm usl_sign_role_button" t-att-class="{'active': uslEditor.selectedRoleId === role.id}" t-att-data-role-id="role.id" t-att-style="roleButtonStyle(role.id)" t-on-click="selectRole"><t t-out="role.name"/></button>
+                </div>
+                <div class="small text-muted mb-3">Drag a field onto the PDF. Click a placed field to change its role, requirement or placeholder.</div>
+                <div class="d-grid gap-2">
+                    <button t-foreach="info.fields" t-as="field" t-key="field.id" type="button" class="btn btn-outline-secondary text-start" draggable="true" t-on-dragstart="(event) => this.onPaletteDragStart(event, field)">
+                        <i class="fa fa-grip-vertical me-2"/><t t-out="field.name"/>
+                    </button>
+                </div>
+                <div class="small text-muted mt-3"><i class="fa fa-keyboard-o me-1"/>Arrow keys move a selected field; Shift + arrow resizes it; Alt makes fine adjustments; Delete removes it.</div>
+            </aside>
+        </xpath>
+        <xpath expr="//div[hasclass('alert-warning')]" position="replace"/>
+    </t>
+</templates>

@@ -1,160 +1,110 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
-
-ASSURANCE_LEVELS = [
-    ("standard", "Standard"),
-    ("verified", "Verified"),
-    ("qualified", "Qualified"),
-]
-
-AUTHENTICATION_METHODS = [
-    ("no_otp", "No security code"),
-    ("otp_email", "Email security code"),
-    ("otp_sms", "SMS security code"),
-    ("identity_verification", "Identity verification"),
-    ("qualified_identity", "Qualified identity verification"),
-]
+from .constants import TRUST_LEVELS
 
 
 class SignPolicy(models.Model):
     _name = "usl.sign.policy"
-    _description = "Signature Assurance Policy"
+    _description = "Signature Trust Recommendation Policy"
     _order = "company_id, sequence, id"
 
     name = fields.Char(required=True, translate=True)
-    sequence = fields.Integer(default=10)
+    sequence = fields.Integer(default=10, required=True)
     active = fields.Boolean(default=True)
-    company_id = fields.Many2one(
-        "res.company", required=True, default=lambda self: self.env.company
+    company_id = fields.Many2one("res.company", index=True, ondelete="cascade")
+    version = fields.Char(required=True, default="1")
+    document_category = fields.Selection(
+        [
+            ("internal_decision", "Internal decision"),
+            ("routine_agreement", "Routine agreement"),
+            ("employment", "Employment document"),
+            ("intellectual_property", "Intellectual property"),
+            ("commercial", "Commercial agreement"),
+            ("finance_guarantee", "Financing or guarantee"),
+            ("mandate", "Mandate"),
+            ("other", "Other"),
+        ],
     )
-    assurance_level = fields.Selection(ASSURANCE_LEVELS, required=True)
-    authentication_method = fields.Selection(
-        AUTHENTICATION_METHODS, required=True, default="no_otp"
+    signer_type = fields.Selection(
+        [
+            ("internal", "Internal user"),
+            ("recurring", "Known recurring signer"),
+            ("occasional", "Occasional external signer"),
+            ("any", "Any signer"),
+        ],
+        default="any",
+        required=True,
     )
-    provider_code = fields.Selection(
-        [("yousign", "Yousign")], required=True, default="yousign"
+    risk_level = fields.Selection(
+        [("low", "Low"), ("material", "Material"), ("maximum", "Maximum")],
+        default="low",
+        required=True,
     )
-    is_default = fields.Boolean()
-    public_link_allowed = fields.Boolean()
+    formal_qes_required = fields.Boolean()
+    recommendation = fields.Selection(TRUST_LEVELS, required=True)
+    reason = fields.Text(required=True, translate=True)
+    consequence = fields.Text(required=True, translate=True)
+    default_authentication = fields.Selection(
+        [
+            ("secure_link", "Secure invitation link"),
+            ("email_otp", "Secure link plus email verification code"),
+            ("pocket_id", "Pocket ID"),
+            ("portal", "Odoo portal account"),
+        ],
+        default="secure_link",
+        required=True,
+    )
     expiration_days = fields.Integer(default=30, required=True)
     reminder_days = fields.Integer(default=3, required=True)
     max_reminders = fields.Integer(default=5, required=True)
-    description = fields.Text(translate=True)
 
-    _company_level_unique = models.Constraint(
-        "UNIQUE(company_id, assurance_level)",
-        "Only one policy per assurance level is allowed for each company.",
-    )
-
-    @api.constrains(
-        "assurance_level",
-        "authentication_method",
-        "public_link_allowed",
-        "expiration_days",
-        "reminder_days",
-        "max_reminders",
-    )
-    def _check_policy(self):
+    @api.constrains("expiration_days", "reminder_days", "max_reminders")
+    def _check_timing(self):
         for policy in self:
             if policy.expiration_days < 1:
-                raise ValidationError(self.env._("Expiration must be at least one day."))
-            if policy.reminder_days < 0:
-                raise ValidationError(self.env._("Reminder delay cannot be negative."))
-            if not 0 <= policy.max_reminders <= 10:
-                raise ValidationError(
-                    self.env._("The maximum reminder count must be between 0 and 10.")
-                )
-            allowed = {
-                "standard": {"no_otp", "otp_email", "otp_sms"},
-                "verified": {"otp_sms", "identity_verification"},
-                "qualified": {"qualified_identity"},
-            }
-            if policy.authentication_method not in allowed[policy.assurance_level]:
-                raise ValidationError(
-                    self.env._(
-                        "%(authentication)s is not available for %(assurance)s signatures.",
-                        authentication=dict(AUTHENTICATION_METHODS)[
-                            policy.authentication_method
-                        ],
-                        assurance=dict(ASSURANCE_LEVELS)[policy.assurance_level],
-                    )
-                )
-            if policy.public_link_allowed and policy.assurance_level != "standard":
-                raise ValidationError(
-                    self.env._("Reusable public links are limited to Standard policies.")
-                )
+                msg = "A signing policy must expire after at least one day."
+                raise ValidationError(msg)
+            if not 0 <= policy.reminder_days < policy.expiration_days:
+                msg = "Reminder delay must be within the request lifetime."
+                raise ValidationError(msg)
+            if not 0 <= policy.max_reminders <= 20:
+                msg = "Maximum reminders must be between 0 and 20."
+                raise ValidationError(msg)
 
-    @api.constrains("is_default", "company_id")
-    def _check_single_default(self):
-        for policy in self.filtered("is_default"):
-            duplicate = self.search_count(
-                [
-                    ("company_id", "=", policy.company_id.id),
-                    ("is_default", "=", True),
-                    ("id", "!=", policy.id),
-                ],
-                limit=1,
-            )
-            if duplicate:
-                raise ValidationError(
-                    self.env._("A company can have only one default signature policy.")
-                )
+    @api.constrains("formal_qes_required", "recommendation")
+    def _check_qes_policy(self):
+        if self.filtered(
+            lambda policy: policy.formal_qes_required
+            and policy.recommendation != "qualified_external",
+        ):
+            msg = "A formal QES policy must recommend Qualified external."
+            raise ValidationError(msg)
 
     @api.model
-    def _ensure_company_defaults(self, companies):
-        definitions = [
-            {
-                "name": self.env._("Standard signature"),
-                "assurance_level": "standard",
-                "authentication_method": "otp_email",
-                "description": self.env._(
-                    "For routine approvals and low-risk documents."
-                ),
-                "is_default": True,
-                "public_link_allowed": True,
-                "sequence": 10,
-            },
-            {
-                "name": self.env._("Verified signature"),
-                "assurance_level": "verified",
-                "authentication_method": "identity_verification",
-                "description": self.env._(
-                    "For employment, contractor and material commercial agreements."
-                ),
-                "sequence": 20,
-            },
-            {
-                "name": self.env._("Qualified signature"),
-                "assurance_level": "qualified",
-                "authentication_method": "qualified_identity",
-                "description": self.env._(
-                    "For documents that intentionally require qualified assurance."
-                ),
-                "sequence": 30,
-            },
+    def recommend(self, company, *, category, signer_type, risk_level, formal_qes):
+        domain = [
+            ("active", "=", True),
+            ("company_id", "in", [False, company.id]),
         ]
-        for company in companies:
-            existing_levels = set(
-                self.search([("company_id", "=", company.id)]).mapped(
-                    "assurance_level"
-                )
+        candidates = self.search(domain, order="company_id desc, sequence, id")
+        if formal_qes:
+            qualified = candidates.filtered("formal_qes_required")
+            if qualified:
+                return qualified[0]
+        matches = candidates.filtered(
+            lambda policy: (
+                not policy.document_category or policy.document_category == category
             )
-            for definition in definitions:
-                if definition["assurance_level"] not in existing_levels:
-                    self.create({**definition, "company_id": company.id})
-
-
-class ResCompany(models.Model):
-    _inherit = "res.company"
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        companies = super().create(vals_list)
-        self.env["usl.sign.policy"]._ensure_company_defaults(companies)
-        return companies
-
-    def write(self, vals):
-        result = super().write(vals)
-        self.env["usl.sign.policy"]._ensure_company_defaults(self)
-        return result
+            and policy.signer_type in {"any", signer_type}
+            and policy.risk_level == risk_level
+            and not policy.formal_qes_required,
+        )
+        if matches:
+            return matches[0]
+        fallback = candidates.filtered(
+            lambda policy: not policy.document_category
+            and policy.signer_type == "any"
+            and not policy.formal_qes_required,
+        )
+        return fallback[:1]

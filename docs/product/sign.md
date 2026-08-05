@@ -1,154 +1,217 @@
-# Native Sign
+# USL Sign
 
 ## Product boundary
 
-Sign is an Odoo-owned business application. Odoo remains authoritative for
-templates, positioned fields, signer roles, policies, requests, business
-links, lifecycle, evidence and retention. A trust provider performs the
-identity, authentication and cryptographic signing ceremony. Provider
-identifiers are operational details attached to an Odoo request; they are not
-the product's business identity.
+USL Sign is an Odoo-native document-signing application. Odoo is the
+operational source of truth for templates, business links, signers, consent,
+lifecycle, validation, evidence and archive state. Paperless receives one
+durable dossier after Odoo has validated the completed ceremony; it does not
+become a second workflow system.
 
-Yousign, operated by Youtrust, is the first provider. Provider-neutral request
-and policy fields deliberately avoid Yousign product names so another
-eIDAS-capable provider can implement the same contract without replacing
-historical records or user journeys.
+The delivered application extends the pinned OCA `sign_oca` module at commit
+`3b768318bc5eaccb79535337478f49d59d17d0b1`. OCA supplies the PDF.js authoring
+surface, positioned fields, roles and portal foundation. `usl_sign` adds the
+final workflow, trust guidance, immutable snapshots, secure invitations,
+cryptographic services, evidence, archival and company-aware permissions.
+The vendored OCA module is not forked or modified.
 
-## Foundation decision
+The alternative of building another editor and request stack was rejected:
+it would duplicate the hardest interactive behavior and create a second
+signing architecture. Provider-managed signing was also rejected for normal
+use because it would move the workflow and evidence boundary outside Odoo and
+introduce a recurring dependency. External signing remains an exceptional,
+provider-neutral journey.
 
-The Distribution pins OCA `sign_oca` at
-`3b768318bc5eaccb79535337478f49d59d17d0b1` as the Community-native PDF editor
-and portal foundation. It already supplies useful OWL/PDF.js field placement,
-role assignment, request generation and portal-token concepts. Reusing it is
-safer and more maintainable than a second PDF coordinate editor.
+## Approval and trust guidance
 
-`sign_oca` alone is not the delivered trust product. Its native flow writes
-drawn values into the PDF after each signer, has only Draft, Sent, Signed and
-Cancelled states, and explicitly leaves cryptographic inalterability and OTP
-as future work. Its roles and permissions also do not distinguish template
-management, provider administration and evidence review. `usl_sign` therefore
-owns the production lifecycle, assurance, evidence, permissions, provider
-adapter and user-facing navigation while extending the useful OCA editor.
+An attributable Odoo approval is preferred when no signed PDF is required.
+The linked business record's native approval is used when available;
+otherwise `usl.sign.approval` records the record, approvers, decision, reason,
+policy and append-only events.
 
-The rejected alternative was a fully independent `usl_sign` editor and model
-stack. It would avoid adapting OCA semantics, but duplicate complex PDF.js,
-portal and positioned-field behavior and create a second Community signing
-ecosystem to maintain. The selected extension boundary preserves the strongest
-existing work while keeping provider and legal semantics in Distribution-owned
-code.
+Document requests have exactly three trust levels:
 
-## Assurance language
+- **Standard electronic signature with reinforced evidence.** This is the
+  default for routine documents. It combines explicit consent, secure
+  individual links, a frozen document, detailed evidence and a non-qualified
+  USL platform PAdES seal. The seal protects integrity and attests the evidence
+  process; it is not a personal signature.
+- **Strong personal signature — designed for advanced-signature
+  requirements.** This is for an identified recurring signer with a reviewed
+  enrolment and active passkey. Each signer authorizes a document-specific,
+  short-lived personal PAdES signature. No formal advanced-signature claim is
+  made until independent legal and security reviews support it.
+- **Qualified external signature.** This is reserved for a formal QES
+  requirement or maximum-assurance case. Odoo freezes and exports the exact
+  document, then validates the imported result independently before completion.
 
-- **Standard** requests a simple electronic signature. OTP is used when the
-  selected policy requires it.
-- **Verified** requests an advanced electronic signature and the identity or
-  authentication controls required by the policy and provider.
-- **Qualified** requests a qualified electronic signature. Under eIDAS this is
-  the level intentionally selected when handwritten-signature equivalence is
-  required.
+The versioned policy engine considers the document category, company, signer
+type, relationship, risk/value, enrolment and formal or counterparty
+requirements. The recommendation, business reason and consequence are visible
+before sending. Requested and achieved trust are separate fields. An
+authorized override needs a reason, is recorded in the event chain and never
+silently downgrades the request.
 
-Requested and achieved assurance are stored and displayed separately. A
-provider audit trail or completion certificate is evidence of the ceremony;
-it is not described as proof that every signature is qualified or that the
-underlying agreement is legally valid. Odoo derives achieved assurance and the
-authentication method from every preserved per-signer provider audit trail. An
-unknown or missing level leaves the request in Action required rather than
-copying the requested level into the achieved result.
+## Lifecycle and completion gate
 
-## Audited source perimeter
+The request lifecycle is:
 
-The preserved Odoo Online source contains 11 Sign templates, 8 requests, 99
-template items, 87 request values, 53 logs and 50 attachments classified as
-signing evidence. Historical completed requests must be reconstructed as
-read-only evidence. They are never re-signed, and no assurance level is
-inferred when the preserved evidence does not prove it.
+`Draft`, `Ready`, `Sent`, `Viewed`, `Partially signed`, `Waiting for enrolment`,
+`Waiting for external signature`, `Signed document to import`, `Validation in
+progress`, `Completed`, `Evidence incomplete`, `Validation failed`, `Declined`,
+`Expired`, `Cancelled`, and `Action required`.
 
-One-shot extraction and source mappings belong under `migration/`; no source
-identifier or reconstruction model enters the delivered registry.
+Every request can hold ordered source documents and annexes, a deterministic
+consolidated PDF and page map, template/field/policy/signer snapshots, ordered
+signers, validation runs, evidence artifacts and an archival operation.
+Published or used templates are immutable; editing starts a new version.
+Sending freezes the document bytes, SHA-256 hashes, layout, roles, signer
+identity, consent wording and policy.
 
-## Delivered application
+`Completed` is a strict conjunction: every expected signer has signed, EU DSS
+validation passes, pyHanko cross-validation agrees, the evidence package is
+complete, and Paperless has accepted the dossier or reported a
+checksum-identical duplicate. Sending mail, exporting a file, opening an
+external service, uploading a PDF or receiving a claimed completion never
+satisfies this gate.
 
-The top-level **Sign** application exposes Templates, Requests, My Signatures,
-Completed and Configuration. A template manager prepares PDF templates with
-signature, initials, free text, signer name, date, checkbox, company and role
-fields. Each field belongs to a signer role and uses top-left PDF coordinates;
-rotated pages are normalized before provider payloads are built. A used
-template is versioned when its document, layout, policy or timing changes.
+The linked Odoo record shows current state, next action, requested/achieved
+trust, completed PDF, completion certificate and archival state without
+requiring a chatter reconstruction.
 
-A request freezes its source PDF, SHA-256, template version, field layout,
-signers and assurance policy before provider submission. Its normal lifecycle
-is Draft → Ready → Sent → Viewed/Partially signed → Completed. Declined,
-Expired and Cancelled are terminal. Provider or evidence discrepancies enter
-Action required and retain a recovery instruction instead of falsely reaching
-Completed. A provider “done” event is insufficient: the final PDF and every
-expected signer audit trail must be retrieved, hashed and stored first.
+## Standard journey
 
-Standard and Verified ceremonies are embedded on the Odoo signer page.
-Qualified ceremonies use an explicit handoff page because the provider must
-control its identity journey. Single-role Standard templates may expose a
-reusable public link. The link collects a fresh name, email, optional mobile
-and consent for each submission, applies a hashed per-source rate limit, and
-queues provider creation after the HTTP transaction commits. It never reveals
-another signer’s data or reuses their request.
+Users can prepare reusable templates or one-off requests, place supported
+fields by role, preview roles, use multiple documents and signers, require
+signing order, set reminders and expiration, and handle refusal or
+cancellation. The OCA editor is extended with an Odoo-native palette,
+drag/drop placement, role colors, page navigation, zoom, move, resize, delete,
+required/optional configuration, keyboard access and explicit loading/error
+states.
 
-Odoo owns invitation and reminder cadence. Due reminders target only currently
-eligible signers, respect signer order, and stop at the policy/template cap.
-Expiry, decline and cancellation create immutable JSON evidence. Completed
-PDF delivery to signers is a per-company opt-in; portal users may otherwise
-download only completed documents assigned to their commercial contact.
-Completion also freezes the configured evidence-retention horizon on the
-request. Indefinite retention and legal holds are explicit states; evidence is
-not deleted by an unattended job.
+Each invitation contains 256 bits of entropy. Only its SHA-256 is stored. The
+first use is rate-limited and exchanges the bearer secret for a short-lived,
+revocable session bound to the request, signer and expiry. The policy can use
+the secure invitation, a portal account or Pocket ID. The signer page works on
+mobile, captures field values and explicit consent, and records the
+authentication method, timestamp, IP address and user agent.
 
-Templates linked to a business model participate in the standard OCA action
-menu. Contacts additionally show their request count and current state. The
-request chatter records business milestones without exposing provider secrets.
+After the last signer, Odoo renders the final PDF, asks the internal DSS
+service to apply the USL platform seal, re-reads the persisted bytes and runs
+independent validation. The completion certificate describes the ceremony and
+does not imply a personal, qualified or handwritten-equivalent signature.
+
+## Strong personal journey
+
+An identity reviewer first links a known partner to an explicit relationship
+basis: Pocket ID, employee, contractor or recurring-partner relationship. The
+enrolment records the reviewer, date, reference, notes and policy version.
+The signer registers one or more passkeys with user verification; a second
+passkey is encouraged for recovery. Credential metadata, AAGUID, transports,
+backup state and counters are retained, while raw identity documents are not
+retained by default. Lost credentials can be revoked and a new enrolment can
+be reviewed without changing completed signatures.
+
+Enrolment and signing use isolated pages with a strict Content Security Policy
+and no analytics. During each signing ceremony:
+
+1. Odoo freezes and hashes the current PDF revision.
+2. A dedicated browser worker creates an ECDSA P-256 key with
+   `extractable:false` and builds a PKCS#10 request using pinned
+   `@peculiar/x509` 2.0.0.
+3. Odoo creates a unique short-lived challenge binding the signer, enrolment,
+   request, role, document hashes, consent digest, CSR/public-key hash, policy,
+   nonce and expiry.
+4. The server verifies the passkey assertion with `webauthn` 3.0.0, including
+   RP ID, allowed HTTPS origin, exact challenge, credential state, user
+   verification, counter and replay protection.
+5. Only then does `step-ca` 0.30.2 issue a constrained ten-minute,
+   non-renewable certificate for this document and signer.
+6. EU DSS 6.4 returns the PAdES data-to-sign; the worker signs it and returns
+   only the certificate and signature value. DSS embeds the signature.
+7. Odoo invalidates the ceremony, terminates the worker and independently
+   validates the persisted PDF.
+
+The document private key is never exported or submitted to Odoo. Strong
+multi-signer requests are sequential so each personal signature covers the
+prior revision. The platform seal is applied only after all personal
+signatures. When an independent RFC 3161 TSA and revocation material are
+configured, DSS can augment to PAdES-T/LT; otherwise the achieved PAdES level
+is reported exactly as validated.
+
+This design targets the four Article 26 eIDAS properties. The local CA and
+platform seal are not qualified trust services; an existing relationship plus
+reviewer is not government-ID proofing; and terminating a browser worker does
+not prove physical memory zeroization.
+
+## Qualified external journey
+
+An administrator maintains a catalog of reviewed providers containing name,
+territory, supported level, mobile URL/instructions, commercial notes,
+priority and review date. These are ordinary configurable records: no provider
+API client, callback, credential, route or provider-specific lifecycle is part
+of the product.
+
+Odoo exports the exact DSS-prepared frozen PDF, signer information, hashes and
+instructions, then enters `Waiting for external signature`. The returned PDF
+and proof files enter `Signed document to import` and `Validation in progress`.
+DSS reconstructs the revision covered by the first signature and requires it
+to match the exported PDF, then validates the signatures, signer attribution,
+certificate chains, timestamps, qualified trust provider, qualified
+certificate/device indications and actual level against configured trusted
+lists. Insufficient, modified, untrusted or wrongly attributed results enter
+`Validation failed`; requested trust is never copied into achieved trust.
+
+## Cryptographic and evidence architecture
+
+The narrow `services/usl-sign-dss` Java service pins EU DSS 6.4 and provides
+PAdES preparation, embedding, platform sealing, augmentation, validation,
+revision comparison, deterministic PDF/A-3 dossier construction, veraPDF
+checking and manifest signing. It accepts only mutually authenticated TLS,
+applies payload/time limits, uses ephemeral files and sanitizes failures.
+
+`step-ca` 0.30.2 uses an offline root, online intermediate, restricted
+provisioner, template-enforced identity/document claims, ten-minute maximum
+leaf lifetimes and no renewal. CA, platform-seal, manifest, TSA and mTLS
+credentials are mounted secrets and never stored in Git or editable Odoo
+fields. pyHanko is a pinned independent cross-validator, never the authority;
+a disagreement causes `Action required`.
+
+Every meaningful operation appends an immutable event containing its sequence,
+previous hash, canonical payload hash, actor/authentication, IP, user agent,
+transition and timestamp. Request completion and daily signed head manifests
+verify the complete chain. Daily heads may optionally be submitted to
+OpenTimestamps; that anchoring is not described as RFC 3161 or qualified.
+
+The retained evidence includes source and annex PDFs, the frozen PDF and page
+map, fields/roles/policy/signers, consent, hashes, events, personal/platform
+certificates and chains, timestamps and revocation material, all DSS reports,
+external proof, signed canonical manifest, completion certificate and signed
+PDF. A deterministic PDF/A-3 dossier embeds the artifacts behind a readable
+cover, passes veraPDF, receives a platform seal and is sent through the
+checksum-idempotent `usl_documents` Paperless operation. Failed archival is
+visible and safely retryable; it blocks completion.
 
 ## Permissions and company isolation
 
-- **Sign User** creates and operates requests they own and signs requests
-  assigned to their contact.
-- **Template Manager** additionally manages templates and their layouts.
-- **Evidence Reviewer** reads company requests, immutable evidence and
-  provider-event diagnostics but cannot change ceremonies.
-- **Sign Administrator** manages assurance policies, provider configuration
-  and recovery actions.
+- **Sign User** creates and follows their company requests.
+- **Template Manager** publishes versioned templates and layouts.
+- **Identity Reviewer** reviews relationships, enrolments and passkey
+  revocation.
+- **Evidence Reviewer** inspects validation and evidence without changing the
+  ceremony.
+- **Sign Administrator** manages policies, provider catalog, services and
+  recovery actions.
 
-The administrator uses Sign → Configuration → Settings for the active allowed
-company. This narrowly scoped screen can change only Sign settings; it does not
-grant access to general system settings or expose server-side secrets.
+Global company rules isolate all operational and proof records. Controlled
+actions use narrowly scoped elevation while preserving the true actor in the
+event payload. Cryptographic evidence stays out of routine chatter.
 
-Company record rules apply to templates, policies, requests, signers,
-provider events, public submissions and evidence. Provider API credentials and
-webhook secrets are environment variables; they are never readable Odoo
-fields. Public and portal routes use opaque tokens, return generic unavailable
-states, and never accept a provider transaction identifier as authorization.
+## Release boundary
 
-## Historical Odoo Online records
-
-The temporary `migration/sign_restore` service reads the source database in a
-read-only transaction and verifies every filestore object against its stored
-SHA-1 and size. It maps source templates to the native editor and stores each
-original PDF, signed PDF, completion certificate and privacy-reduced audit log
-as a separate immutable evidence object. Two source pairs share the same
-company/name/PDF fingerprint, so 11 source template links intentionally
-converge on 9 native templates; the 8 completed requests and 11 signers remain
-distinct.
-
-Historical requests use the `odoo_online` provider code, are read-only and
-cannot be resent. Their requested process class is retained as Standard while
-achieved assurance and authentication method remain empty and
-`migration_assurance_unproven` remains true. Finalization uninstalls the
-temporary module and proves that request/evidence counts and document hashes
-did not change.
-
-## Known limitations
-
-The first live adapter is Yousign API v3; additional providers require a new
-adapter implementing the existing service contract. The application does not
-independently validate an eIDAS certificate chain: provider audit evidence and
-the achieved level reported by the provider remain distinct from Odoo’s PDF
-readability check. PDF forms outside the supported field catalogue, corrupt or
-encrypted PDFs, ambiguous historical contacts, and malformed historical
-coordinates require manual review. Reusable links are intentionally restricted
-to one-role Standard templates.
+The delivered registry and source contain only the final product model. The
+Sign development database is disposable and is rebuilt from the current
+modules. No compatibility model, reconstruction service, source binding,
+provider adapter or transition-only migration is shipped. Release checks scan
+the source, registry, schema, routes, jobs, settings, assets, tests and docs for
+obsolete Sign residue and run the repository product/migration boundary.

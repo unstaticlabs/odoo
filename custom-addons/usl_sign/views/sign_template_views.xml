@@ -5,39 +5,43 @@
         <field name="model">sign.oca.template</field>
         <field name="inherit_id" ref="sign_oca.sign_oca_template_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes">
-                <attribute name="create">1</attribute>
-                <attribute name="delete">0</attribute>
-            </xpath>
             <xpath expr="//form/header" position="inside">
-                <button name="configure" type="object" string="Prepare Document" class="btn-primary" groups="usl_sign.group_sign_template_manager"/>
-                <button name="action_enable_public_link" type="object" string="Enable Public Link" invisible="public_link_enabled or not active" groups="usl_sign.group_sign_admin"/>
-                <button name="action_disable_public_link" type="object" string="Disable Public Link" invisible="not public_link_enabled" groups="usl_sign.group_sign_admin"/>
+                <button name="action_mark_ready" type="object" string="Review and Publish" class="btn-primary" invisible="preparation_status == 'ready' or has_requests" groups="usl_sign.group_sign_template_manager"/>
+                <button name="action_new_version" type="object" string="Create New Version" invisible="preparation_status != 'ready' and not has_requests" groups="usl_sign.group_sign_template_manager"/>
             </xpath>
             <xpath expr="//button[@name='configure']" position="attributes">
-                <attribute name="string">Prepare Document</attribute>
+                <attribute name="string">Place Fields</attribute>
                 <attribute name="groups">usl_sign.group_sign_template_manager</attribute>
             </xpath>
             <xpath expr="//group/field[@name='name']" position="after">
-                <field name="description" placeholder="What this template is for"/>
+                <field name="description"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="version"/>
+                <field name="previous_version_id" invisible="not previous_version_id"/>
                 <field name="preparation_status" widget="badge"/>
                 <field name="preparation_note" invisible="not preparation_note"/>
-                <field name="document_sha256" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
-                <field name="policy_id" options="{'no_create': True}"/>
+                <field name="document_sha256" readonly="1" groups="usl_sign.group_sign_evidence_reviewer"/>
+                <field name="policy_id"/>
                 <field name="signing_order"/>
                 <field name="expiration_days"/>
                 <field name="reminder_days"/>
                 <field name="max_reminders"/>
                 <field name="active"/>
                 <field name="has_requests" invisible="1"/>
-                <field name="public_link_enabled" readonly="1" groups="usl_sign.group_sign_admin"/>
-                <field name="public_expires_at" invisible="not public_link_enabled" groups="usl_sign.group_sign_admin"/>
-                <field name="public_url" widget="url" invisible="not public_link_enabled" readonly="1" groups="usl_sign.group_sign_admin"/>
             </xpath>
-            <xpath expr="//page[@name='items']" position="attributes">
-                <attribute name="invisible">1</attribute>
+            <xpath expr="//page[@name='items']" position="before">
+                <page string="Documents and annexes" name="usl_template_documents">
+                    <field name="document_ids" readonly="has_requests or preparation_status == 'ready'">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="is_annex"/>
+                            <field name="name"/>
+                            <field name="filename"/>
+                            <field name="data" filename="filename"/>
+                            <field name="source_sha256" optional="hide" readonly="1"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>
@@ -49,12 +53,8 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="version"/>
+                <field name="preparation_status"/>
                 <field name="policy_id"/>
-                <field name="active"/>
-            </xpath>
-            <xpath expr="//button[@name='configure']" position="attributes">
-                <attribute name="string">Prepare</attribute>
-                <attribute name="groups">usl_sign.group_sign_template_manager</attribute>
             </xpath>
         </field>
     </record>
