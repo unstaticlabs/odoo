@@ -18,6 +18,24 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 export COMPOSE_IGNORE_ORPHANS=1
 
+reuse_documents="${USL_RECONSTRUCT_REUSE_DOCUMENTS:-0}"
+case "$reuse_documents" in
+  0)
+    documents_reset=1
+    documents_require_checkpoint=0
+    printf 'Documents archive: fresh deterministic ingestion.\n'
+    ;;
+  1)
+    documents_reset=0
+    documents_require_checkpoint=1
+    printf 'Documents archive: verified ingestion checkpoint reuse.\n'
+    ;;
+  *)
+    printf 'USL_RECONSTRUCT_REUSE_DOCUMENTS must be 0 or 1.\n' >&2
+    exit 2
+    ;;
+esac
+
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-$compose_project}"
 stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
@@ -54,7 +72,8 @@ stop_product
 COMPOSE_PROJECT_NAME="$compose_project" scripts/platform-billing-restore all
 stop_product
 DOCUMENTS_CANONICAL_TARGET=1 \
-  DOCUMENTS_CANONICAL_RESET=1 \
+  DOCUMENTS_CANONICAL_RESET="$documents_reset" \
+  DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint" \
   DOCUMENTS_TARGET_DATABASE=odoo_dev \
   COMPOSE_PROJECT_NAME="$compose_project" \
   scripts/documents-restore all

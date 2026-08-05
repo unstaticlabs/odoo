@@ -44,6 +44,34 @@ compose_project="${COMPOSE_PROJECT_NAME:-codex-migration-full}"
 target_database="${DOCUMENTS_TARGET_DATABASE-odoo_dev}"
 source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_2}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+canonical_reset="${DOCUMENTS_CANONICAL_RESET:-0}"
+require_checkpoint="${DOCUMENTS_REQUIRE_CHECKPOINT:-0}"
+case "$canonical_reset:$require_checkpoint" in
+    0:0|0:1|1:0) ;;
+    1:1)
+        echo "A Documents run cannot reset and reuse the Paperless archive together." >&2
+        exit 2
+        ;;
+    *)
+        echo "Documents reset and checkpoint flags must be 0 or 1." >&2
+        exit 2
+        ;;
+esac
+if [[ "$require_checkpoint" == 1 && "$canonical_target" != 1 ]]; then
+    echo "Checkpoint reuse is reserved for the guarded canonical target." >&2
+    exit 2
+fi
+if [[ "$require_checkpoint" == 1 && "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+    echo "Checkpoint reuse cannot run a limited Documents restore." >&2
+    exit 2
+fi
+case "$compose_project" in
+    *[!A-Za-z0-9_.-]*|"")
+        echo "Documents Compose project is unsafe for checkpoint storage." >&2
+        exit 2
+        ;;
+esac
+checkpoint_path="$ROOT/artifacts/migration/private/checkpoints/$compose_project/paperless-ingestion.json"
 if [[ "$canonical_target" == 1 ]]; then
     paperless_port="${DOCUMENTS_MIGRATION_PAPERLESS_PORT:-${PAPERLESS_HTTP_PORT:-8010}}"
     odoo_port="${DOCUMENTS_MIGRATION_ODOO_PORT:-${ODOO_HTTP_PORT:-8069}}"
@@ -165,7 +193,7 @@ start_archive() {
 
 reset_canonical_archive() {
     local volume
-    if [[ "$canonical_target" != 1 || "${DOCUMENTS_CANONICAL_RESET:-0}" != 1 ]]; then
+    if [[ "$canonical_target" != 1 || "$canonical_reset" != 1 ]]; then
         return
     fi
     "${compose[@]}" --profile paperless rm -sf \
@@ -180,6 +208,85 @@ reset_canonical_archive() {
         fi
     done
     printf 'Reset disposable canonical Paperless archive for dump reconstruction.\n'
+}
+
+read_archive_state() {
+    local archive_json archive_totals
+    archive_json="$(
+        "${compose[@]}" exec -T paperless-db psql \
+            -U "${PAPERLESS_DB_USER:-paperless}" \
+            -d "${PAPERLESS_DB_NAME:-paperless}" -Atc \
+            "SELECT COALESCE(
+                jsonb_agg(
+                    jsonb_build_array(
+                        id, deleted_at IS NOT NULL, title, mime_type, checksum,
+                        archive_checksum, page_count, created, filename,
+                        archive_filename, original_filename, correspondent_id,
+                        document_type_id, storage_path_id, content_length,
+                        root_document_id, version_label, version_index
+                    ) ORDER BY id
+                ),
+                '[]'::jsonb
+            )::text FROM documents_document"
+    )"
+    archive_totals="$(
+        "${compose[@]}" exec -T paperless-db psql \
+            -U "${PAPERLESS_DB_USER:-paperless}" \
+            -d "${PAPERLESS_DB_NAME:-paperless}" -Atc \
+            "SELECT count(*), count(*) FILTER (WHERE deleted_at IS NOT NULL)
+             FROM documents_document"
+    )"
+    IFS='|' read -r archive_document_count archive_trash_count <<<"$archive_totals"
+    archive_roots_sha256="$(
+        printf '%s' "$archive_json" | shasum -a 256 | awk '{print $1}'
+    )"
+    if [[ ! "$archive_document_count" =~ ^[0-9]+$ \
+        || ! "$archive_trash_count" =~ ^[0-9]+$ \
+        || ! "$archive_roots_sha256" =~ ^[0-9a-f]{64}$ ]]; then
+        echo "Could not calculate the Paperless archive checkpoint state." >&2
+        exit 1
+    fi
+}
+
+checkpoint_args() {
+    checkpoint_arguments=(
+        --root "$ROOT"
+        --checkpoint "$checkpoint_path"
+        --source-sha256 "$source_sha256"
+        --archive-sha256 "$archive_roots_sha256"
+        --document-count "$archive_document_count"
+        --trash-count "$archive_trash_count"
+        --runtime "paperless=${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}"
+        --runtime "postgres=${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}"
+        --runtime "gotenberg=${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}"
+        --runtime "tika=${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}"
+        --runtime "ocr_language=${PAPERLESS_OCR_LANGUAGE:-fra+eng}"
+        --runtime "barcodes=${PAPERLESS_CONSUMER_ENABLE_BARCODES:-true}"
+        --runtime 'ocr_user_args={"invalidate_digital_signatures": false}'
+        --runtime "api=v10"
+    )
+}
+
+verify_checkpoint() {
+    if [[ "$require_checkpoint" != 1 ]]; then
+        return
+    fi
+    read_archive_state
+    checkpoint_args
+    python3 migration/documents_archive/checkpoint.py verify \
+        "${checkpoint_arguments[@]}"
+    printf 'Reusing verified Paperless roots; Odoo links and every file will be revalidated.\n'
+}
+
+seal_checkpoint() {
+    if [[ "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+        printf 'Limited Documents restore cannot seal a reusable checkpoint.\n'
+        return
+    fi
+    read_archive_state
+    checkpoint_args
+    python3 migration/documents_archive/checkpoint.py seal \
+        "${checkpoint_arguments[@]}"
 }
 
 validate_runtime() {
@@ -316,15 +423,25 @@ case "$command_name" in
     import|validate)
         validate_source
         start_archive
+        verify_checkpoint
         run_restore
+        seal_checkpoint
         ;;
     all)
         validate_source
         reset_canonical_archive
         start_archive
+        verify_checkpoint
         install_module
         run_restore
         scripts/check-product-migration-boundary
+        seal_checkpoint
+        ;;
+    checkpoint-status)
+        validate_source
+        start_archive
+        require_checkpoint=1
+        verify_checkpoint
         ;;
     serve)
         "${compose[@]}" --profile accounting-compat up -d --wait db
@@ -335,7 +452,7 @@ case "$command_name" in
         validate_runtime
         ;;
     *)
-        echo "Usage: scripts/documents-restore [prepare-target|install|import|validate|all|serve|status]" >&2
+        echo "Usage: scripts/documents-restore [prepare-target|install|import|validate|all|checkpoint-status|serve|status]" >&2
         exit 2
         ;;
 esac

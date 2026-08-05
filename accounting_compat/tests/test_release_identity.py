@@ -112,6 +112,8 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("finalize-reconstruction", release)
         self.assertIn("finalize_reconstruction", release)
         self.assertIn("DOCUMENTS_CANONICAL_RESET=1", release)
+        self.assertIn("USL_RECONSTRUCT_REUSE_DOCUMENTS=0", release)
+        self.assertIn("DOCUMENTS_REQUIRE_CHECKPOINT=0", release)
         self.assertIn("documents_identity_boundary", release)
         self.assertIn("documents-identity-boundary.json", release)
         self.assertIn("database_identity 0", release)

@@ -3,7 +3,6 @@ import subprocess
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/documents-restore"
 
@@ -16,6 +15,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             env={**os.environ, **environment},
             capture_output=True,
             text=True,
+            check=False,
         )
 
     def test_rejects_non_migration_compose_project(self):
@@ -57,6 +57,25 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "--update=rebuild_account_migration,usl_documents,usl_documents_accounting",
             script,
         )
+
+    def test_checkpoint_reuse_is_explicit_and_fail_closed(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("DOCUMENTS_REQUIRE_CHECKPOINT", script)
+        self.assertIn("verify_checkpoint", script)
+        self.assertIn("seal_checkpoint", script)
+        self.assertLess(
+            script.index("verify_checkpoint\n        run_restore"),
+            script.index("seal_checkpoint\n        ;;"),
+        )
+        self.assertIn(
+            "A Documents run cannot reset and reuse the Paperless archive together.",
+            script,
+        )
+        checkpoint = (
+            ROOT / "migration/documents_archive/checkpoint.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Run the normal fresh reconstruction", checkpoint)
 
 
 if __name__ == "__main__":

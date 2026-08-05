@@ -127,6 +127,18 @@ incomplete. The strict
 whole-source gate separately prevents this product claim from being mistaken
 for delivery of every Online application.
 
+The fresh command deliberately resets Paperless and is the authoritative
+final-migration proof. Development may instead run
+`make target-reconstruct-reuse-documents`: it rebuilds `odoo_dev` but retains
+the already qualified Paperless archive when its private checkpoint proves the
+runtime compatibility contract and archive-root state are unchanged. A newer
+dump or compatible importer change runs through the complete idempotent
+Documents reconciliation and ingests only missing checksums. This is a
+content-addressed ingestion cache, not accepted migration evidence by itself:
+the importer still recreates Odoo relationships and verifies every binary,
+preview, catalog value and permission. Runtime incompatibility or archive
+drift rejects reuse rather than guessing.
+
 The main checkout owns the default Compose project. A linked worktree must
 pass a dedicated `COMPOSE_PROJECT` and non-conflicting published ports. Every
 reconstruction helper verifies existing containers' Compose project and
@@ -210,6 +222,13 @@ ports. Canonical `odoo_dev` is accepted only through the guarded
 archive before replay. A second non-resetting rehearsal must reuse every
 checksum root and relationship. Complete run evidence is dump-SHA-bound and
 stored outside the delivered database.
+
+The guarded development reuse command preserves those volumes across the
+clean Odoo reconstruction only after verifying
+`artifacts/migration/private/checkpoints/<compose-project>/paperless-ingestion.json`.
+The checkpoint contains hashes and counts only, is ignored by Git, and is
+atomically replaced only after a complete successful Documents validation.
+It never bypasses the importer or becomes product database state.
 
 The qualified full import and validation baseline reconciled 567 source
 Documents identities and 9 unassigned evidence files into 548 checksum roots,

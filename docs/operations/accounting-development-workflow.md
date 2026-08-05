@@ -55,6 +55,17 @@ worktree must name its dedicated Docker project and ports, for example
 ODOO_GEVENT_PORT=18672 POCKET_ID_HTTP_PORT=11411
 PAPERLESS_HTTP_PORT=18010 make target-reconstruct`. Reapply only the final
 target configuration with the same environment and `make target-finalize`.
+
+For repeated development reconstructions, use
+`make target-reconstruct-reuse-documents`. Accounting and every Odoo-side
+stage still start clean, but the expensive Paperless binaries/OCR are retained
+only when an ignored checkpoint matches the compatible pinned Paperless stack
+and current archive-root digest. A newer dump or compatible importer change is
+recorded and reconciled by the complete Documents importer, which refreshes
+links, metadata and permissions and reads back every original and preview.
+Runtime incompatibility or archive drift fails closed; use
+`make target-reconstruct` to perform and reseal a fully fresh ingestion.
+Release qualification never uses this development shortcut.
 The source contains no SSO
 configuration; Pocket ID is therefore intentionally absent from source parity
 and added only after the imported business state passes its controls. This

@@ -167,7 +167,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         forbidden_patterns = {
             "browser-native date input": re.compile(r"""\btype\s*=\s*["']date"""),
             "month-first placeholder": re.compile(
-                r"MM/DD/YYYY|MM/dd/yyyy|%m/%d/%Y"
+                r"MM/DD/YYYY|MM/dd/yyyy|%m/%d/%Y",
             ),
         }
         violations = []
@@ -177,7 +177,7 @@ class CustomAddonArchitectureTest(unittest.TestCase):
                 for label, pattern in forbidden_patterns.items():
                     if pattern.search(source):
                         violations.append(
-                            f"{path.relative_to(REPOSITORY_ROOT)}: {label}"
+                            f"{path.relative_to(REPOSITORY_ROOT)}: {label}",
                         )
         self.assertEqual(
             violations,
@@ -208,6 +208,12 @@ class CustomAddonArchitectureTest(unittest.TestCase):
 
         positions = [script.index(step) for step in ordered_steps]
         self.assertEqual(positions, sorted(positions))
+        self.assertIn('USL_RECONSTRUCT_REUSE_DOCUMENTS:-0', script)
+        self.assertIn('DOCUMENTS_CANONICAL_RESET="$documents_reset"', script)
+        self.assertIn(
+            'DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint"',
+            script,
+        )
 
     def test_project_restore_declares_temporary_accounting_dependency(self):
         manifest = ast.literal_eval(

@@ -99,6 +99,36 @@ It must reuse existing checksum roots, refresh authoritative Paperless
 metadata, recheck originals, previews, permissions and links, and leave counts
 unchanged.
 
+## Development ingestion checkpoint
+
+The canonical fresh path remains:
+
+```bash
+make target-reconstruct
+```
+
+It resets Paperless and proves a complete ingestion from nothing. Repeated
+development runs of the same qualified input may use:
+
+```bash
+make target-reconstruct-reuse-documents
+```
+
+This preserves only the Paperless volumes. It first verifies a private
+checkpoint containing the compatible pinned Paperless/OCR runtime and
+archive-root digest/counts. The dump and transformation digests are retained
+as provenance: when either changes, the full idempotent importer reconciles
+the new inputs and only missing binary checksums are ingested. Odoo is still
+rebuilt, and every business link, permission, original and preview is
+revalidated. Runtime incompatibility, a deliberately bumped reuse contract or
+archive drift aborts before importing and instructs the operator to use the
+fresh command. A successful validation atomically reseals the ignored
+checkpoint under `artifacts/migration/private/checkpoints/`.
+
+This optimization is deliberately disabled by the pre-production release
+orchestrator. It is analogous to reusing one verified build stage, not to
+restoring an unverified database snapshot.
+
 This stage deliberately uses only the non-human archive service identity. It
 does not copy Online users, tokens, passwords, SSO links or connection state.
 After all source-data stages and migration finalization pass,

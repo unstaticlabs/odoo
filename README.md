@@ -397,6 +397,7 @@ scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 make documents-restore                # isolated Documents migration rehearsal
 scripts/target-finalize               # apply target-only config after migration
 scripts/target-reconstruct            # rebuild canonical data and target config
+make target-reconstruct-reuse-documents # rebuild Odoo; reuse verified Paperless ingestion
 scripts/migration-source-truth inventory # audit all populated source perimeters
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
@@ -411,7 +412,20 @@ make deploy    # apply ordinary custom add-on changes
 make rebuild   # rebuild images, then deploy
 make target-finalize    # reapply identities, permissions and target config
 make target-reconstruct # recreate odoo_dev from the dump, then finalize it
+make target-reconstruct-reuse-documents
+                        # same Odoo rebuild; skip unchanged Paperless OCR safely
 ```
+
+`make target-reconstruct` is always the fresh, release-equivalent path and
+reprocesses Paperless. During repeated development runs against unchanged
+inputs, `make target-reconstruct-reuse-documents` retains the existing
+Paperless volumes, verifies their private content-addressed checkpoint, and
+then reruns the complete Documents importer to rebuild Odoo links and verify
+every original, preview and permission. A newer dump or compatible importer
+change is reconciled incrementally, so only new binaries are ingested. A
+changed Paperless/OCR contract or archive drift rejects reuse; run the normal
+fresh command to rebuild and reseal the checkpoint. Pre-production release
+qualification always forces the fresh path.
 
 The exact pre-production release lifecycle is one host command from a clean
 release branch:
