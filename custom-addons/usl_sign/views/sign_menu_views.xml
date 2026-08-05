@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_oca.sign_oca_root_menu" model="ir.ui.menu">
+        <field name="name">Sign</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_user'), ref('usl_sign.group_sign_reviewer')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_template_menu" model="ir.ui.menu">
+        <field name="name">Templates</field>
+        <field name="sequence">10</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_user')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_request_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <menuitem id="signature_requests_menu" name="Signature Requests" parent="sign_oca.sign_oca_root_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>
+    <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="30" groups="usl_sign.group_sign_user"/>
+    <menuitem id="completed_documents_menu" name="Completed Documents" parent="sign_oca.sign_oca_root_menu" action="completed_documents_action" sequence="40" groups="usl_sign.group_sign_user,usl_sign.group_sign_reviewer"/>
+    <menuitem id="configuration_menu" name="Configuration" parent="sign_oca.sign_oca_root_menu" sequence="90" groups="usl_sign.group_sign_admin"/>
+    <menuitem id="sign_policy_menu" name="Assurance Policies" parent="configuration_menu" action="sign_policy_action" sequence="10" groups="usl_sign.group_sign_admin"/>
+</odoo>
+

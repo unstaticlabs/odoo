@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sign_policy_user,sign.policy.user,model_usl_sign_policy,group_sign_user,1,0,0,0
+access_sign_policy_template_manager,sign.policy.template.manager,model_usl_sign_policy,group_sign_template_manager,1,0,0,0
+access_sign_policy_admin,sign.policy.admin,model_usl_sign_policy,group_sign_admin,1,1,1,0
+access_sign_template_manager,sign.template.manager,sign_oca.model_sign_oca_template,group_sign_template_manager,1,1,1,0
+access_sign_template_item_manager,sign.template.item.manager,sign_oca.model_sign_oca_template_item,group_sign_template_manager,1,1,1,1
+access_sign_request_user,sign.request.user,sign_oca.model_sign_oca_request,group_sign_user,1,1,1,1
+access_sign_request_signer_user,sign.request.signer.user,sign_oca.model_sign_oca_request_signer,group_sign_user,1,1,1,1
+access_sign_request_reviewer,sign.request.reviewer,sign_oca.model_sign_oca_request,group_sign_reviewer,1,0,0,0
+access_sign_request_signer_reviewer,sign.request.signer.reviewer,sign_oca.model_sign_oca_request_signer,group_sign_reviewer,1,0,0,0
+access_sign_evidence_user,sign.evidence.user,model_usl_sign_evidence,group_sign_user,1,0,0,0
+access_sign_evidence_reviewer,sign.evidence.reviewer,model_usl_sign_evidence,group_sign_reviewer,1,0,0,0
+access_sign_evidence_admin,sign.evidence.admin,model_usl_sign_evidence,group_sign_admin,1,1,1,0
+access_sign_provider_event_reviewer,sign.provider.event.reviewer,model_usl_sign_provider_event,group_sign_reviewer,1,0,0,0
+access_sign_provider_event_admin,sign.provider.event.admin,model_usl_sign_provider_event,group_sign_admin,1,1,1,0
+

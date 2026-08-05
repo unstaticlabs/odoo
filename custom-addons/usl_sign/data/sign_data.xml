@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sign_oca.sign_field_signature" model="sign.oca.field">
+        <field name="usl_kind">signature</field>
+    </record>
+    <record id="sign_oca.sign_field_name" model="sign.oca.field">
+        <field name="usl_kind">signer_name</field>
+    </record>
+    <record id="sign_oca.sign_field_email" model="sign.oca.field">
+        <field name="usl_kind">text</field>
+    </record>
+    <record id="sign_oca.sign_field_phone" model="sign.oca.field">
+        <field name="usl_kind">text</field>
+    </record>
+    <record id="sign_oca.sign_field_text" model="sign.oca.field">
+        <field name="usl_kind">text</field>
+    </record>
+    <record id="sign_oca.sign_field_check" model="sign.oca.field">
+        <field name="usl_kind">checkbox</field>
+    </record>
+    <record id="field_initials" model="sign.oca.field">
+        <field name="name">Initials</field>
+        <field name="field_type">signature</field>
+        <field name="usl_kind">initials</field>
+    </record>
+    <record id="field_date" model="sign.oca.field">
+        <field name="name">Date</field>
+        <field name="field_type">text</field>
+        <field name="usl_kind">date</field>
+    </record>
+    <record id="field_company" model="sign.oca.field">
+        <field name="name">Company</field>
+        <field name="field_type">text</field>
+        <field name="usl_kind">company</field>
+    </record>
+    <record id="field_role" model="sign.oca.field">
+        <field name="name">Role</field>
+        <field name="field_type">text</field>
+        <field name="usl_kind">role</field>
+    </record>
+</odoo>
+

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_template_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.form.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">1</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr="//form/header" position="inside">
+                <button name="configure" type="object" string="Prepare Document" class="btn-primary" groups="usl_sign.group_sign_template_manager"/>
+                <button name="action_enable_public_link" type="object" string="Enable Public Link" invisible="public_link_enabled or not active" groups="usl_sign.group_sign_admin"/>
+                <button name="action_disable_public_link" type="object" string="Disable Public Link" invisible="not public_link_enabled" groups="usl_sign.group_sign_admin"/>
+            </xpath>
+            <xpath expr="//button[@name='configure']" position="attributes">
+                <attribute name="string">Prepare Document</attribute>
+                <attribute name="groups">usl_sign.group_sign_template_manager</attribute>
+            </xpath>
+            <xpath expr="//group/field[@name='name']" position="after">
+                <field name="description" placeholder="What this template is for"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version"/>
+                <field name="policy_id" options="{'no_create': True}"/>
+                <field name="signing_order"/>
+                <field name="expiration_days"/>
+                <field name="reminder_days"/>
+                <field name="active"/>
+                <field name="has_requests" invisible="1"/>
+                <field name="public_link_enabled" readonly="1" groups="usl_sign.group_sign_admin"/>
+                <field name="public_expires_at" invisible="not public_link_enabled" groups="usl_sign.group_sign_admin"/>
+                <field name="public_url" widget="url" invisible="not public_link_enabled" readonly="1" groups="usl_sign.group_sign_admin"/>
+            </xpath>
+            <xpath expr="//page[@name='items']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_template_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.list.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version"/>
+                <field name="policy_id"/>
+                <field name="active"/>
+            </xpath>
+            <xpath expr="//button[@name='configure']" position="attributes">
+                <attribute name="string">Prepare</attribute>
+                <attribute name="groups">usl_sign.group_sign_template_manager</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

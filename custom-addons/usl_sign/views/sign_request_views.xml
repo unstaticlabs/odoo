@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_request_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.form.usl</field>
+        <field name="model">sign.oca.request</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">1</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr="//form/header" position="replace">
+                <header>
+                    <button name="action_mark_ready" type="object" string="Review Request" class="btn-primary" invisible="state != 'draft'" groups="usl_sign.group_sign_user"/>
+                    <button name="action_send" type="object" string="Send for Signature" class="btn-primary" invisible="state not in ['ready', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <button name="action_reconcile" type="object" string="Refresh Status" invisible="state not in ['sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and revoke every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,sent,viewed,partial,completed,action_required" readonly="1"/>
+                </header>
+            </xpath>
+            <xpath expr="//widget[@name='web_ribbon'][1]" position="attributes">
+                <attribute name="title">Completed</attribute>
+                <attribute name="invisible">state != 'completed'</attribute>
+            </xpath>
+            <xpath expr="//widget[@name='web_ribbon'][2]" position="attributes">
+                <attribute name="invisible">state != 'cancelled'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='preview']" position="attributes">
+                <attribute name="string">Document</attribute>
+                <attribute name="invisible">state in ['draft']</attribute>
+                <attribute name="groups">usl_sign.group_sign_user,usl_sign.group_sign_reviewer</attribute>
+            </xpath>
+            <xpath expr="//button[@name='configure']" position="attributes">
+                <attribute name="string">Prepare Document</attribute>
+                <attribute name="invisible">state not in ['draft', 'ready']</attribute>
+                <attribute name="groups">usl_sign.group_sign_user</attribute>
+            </xpath>
+            <xpath expr="//field[@name='data']" position="attributes">
+                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
+                <attribute name="string">Source PDF</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='record_ref']" position="attributes">
+                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
+                <attribute name="string">Related record</attribute>
+            </xpath>
+            <xpath expr="//field[@name='record_ref']" position="after">
+                <field name="company_id" groups="base.group_multi_company" readonly="state not in ['draft', 'ready']"/>
+                <field name="policy_id" options="{'no_create': True}" readonly="state not in ['draft', 'ready']"/>
+                <field name="requested_assurance" readonly="1"/>
+                <field name="achieved_assurance" readonly="1" invisible="not achieved_assurance"/>
+                <field name="authentication_method" readonly="1"/>
+                <field name="expires_at" readonly="state not in ['draft', 'ready']"/>
+                <field name="reminder_days" readonly="state not in ['draft', 'ready']"/>
+                <field name="signing_order" readonly="state not in ['draft', 'ready']"/>
+                <field name="responsible_message" readonly="state not in ['draft', 'ready']" placeholder="Optional concise note for signers"/>
+                <field name="template_version" invisible="not template_id" readonly="1"/>
+                <field name="next_step" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='signer_ids']" position="attributes">
+                <attribute name="readonly">state not in ['draft', 'ready']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='signer_ids']/list/field[@name='role_id']" position="before">
+                <field name="sequence" widget="handle"/>
+            </xpath>
+            <xpath expr="//field[@name='signer_ids']/list/field[@name='signed_on']" position="before">
+                <field name="state" readonly="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Evidence" name="usl_evidence" invisible="state not in ['completed', 'declined', 'expired', 'cancelled', 'action_required']">
+                        <group>
+                            <group>
+                                <field name="original_sha256" readonly="1"/>
+                                <field name="final_sha256" readonly="1" invisible="not final_sha256"/>
+                                <field name="evidence_status" readonly="1"/>
+                                <field name="validation_status" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="provider_code" readonly="1"/>
+                                <field name="provider_transaction_id" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
+                                <field name="provider_environment" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
+                                <field name="completed_at" readonly="1"/>
+                            </group>
+                        </group>
+                        <field name="evidence_ids" readonly="1" nolabel="1">
+                            <list create="0" delete="0" edit="0">
+                                <field name="kind"/>
+                                <field name="name"/>
+                                <field name="signer_id"/>
+                                <field name="sha256" optional="hide"/>
+                                <field name="validation_status"/>
+                                <field name="retrieved_at"/>
+                                <field name="data" filename="name"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Recovery" name="usl_recovery" invisible="state != 'action_required'">
+                        <group>
+                            <field name="last_error" readonly="1"/>
+                            <field name="recovery_action" readonly="1"/>
+                            <field name="last_reconciled_at" readonly="1"/>
+                            <field name="provider_status" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sign_request_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.list.usl</field>
+        <field name="model">sign.oca.request</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="requested_assurance"/>
+                <field name="achieved_assurance" optional="show"/>
+                <field name="next_step" optional="show"/>
+            </xpath>
+            <xpath expr="//button[@name='sign']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="sign_request_search_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.search.usl</field>
+        <field name="model">sign.oca.request</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_request_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='sent']" position="replace">
+                <filter name="sent" string="In progress" domain="[('state', 'in', ['sent', 'viewed', 'partial'])]"/>
+            </xpath>
+            <xpath expr="//filter[@name='signed']" position="replace">
+                <filter name="signed" string="Completed" domain="[('state', '=', 'completed')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='canceled']" position="replace">
+                <filter name="canceled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='canceled']" position="after">
+                <filter name="action_required" string="Action required" domain="[('state', '=', 'action_required')]"/>
+                <filter name="declined" string="Declined" domain="[('state', '=', 'declined')]"/>
+                <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sign_request_action" model="ir.actions.act_window">
+        <field name="name">Signature Requests</field>
+        <field name="res_model">sign.oca.request</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="context">{'search_default_created_by_me': 1}</field>
+    </record>
+    <record id="my_signatures_action" model="ir.actions.act_window">
+        <field name="name">My Signatures</field>
+        <field name="res_model">sign.oca.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('signer_ids.partner_id.user_ids', 'in', [uid])]</field>
+    </record>
+    <record id="completed_documents_action" model="ir.actions.act_window">
+        <field name="name">Completed Documents</field>
+        <field name="res_model">sign.oca.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'completed')]</field>
+    </record>
+</odoo>
