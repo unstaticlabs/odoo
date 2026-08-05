@@ -60,6 +60,108 @@
         <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
+    <!--
+        SQL-backed report models do not inherit the company rules of the
+        account.move/account.move.line tables used by their views.  Keep a
+        rule on every public report model so UI domains, RPC clients, exports,
+        and future MCP callers all enforce the same allowed-company boundary.
+    -->
+    <record id="rule_rebuild_account_trial_balance_line_company" model="ir.rule">
+        <field name="name">Trial balance: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_trial_balance_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_general_ledger_line_company" model="ir.rule">
+        <field name="name">General ledger: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_general_ledger_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_journal_report_line_company" model="ir.rule">
+        <field name="name">Journal report: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_journal_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_partner_ledger_line_company" model="ir.rule">
+        <field name="name">Partner ledger: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_partner_ledger_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_open_item_line_company" model="ir.rule">
+        <field name="name">Open items: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_open_item_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_aged_partner_balance_line_company" model="ir.rule">
+        <field name="name">Aged balances: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_aged_partner_balance_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_financial_statement_line_company" model="ir.rule">
+        <field name="name">Financial statements: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_financial_statement_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_tax_report_line_company" model="ir.rule">
+        <field name="name">Tax reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_tax_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_eu_tax_report_line_company" model="ir.rule">
+        <field name="name">EU tax reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_eu_tax_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_bank_reconciliation_line_company" model="ir.rule">
+        <field name="name">Bank reconciliation report: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_bank_reconciliation_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_currency_report_line_company" model="ir.rule">
+        <field name="name">Currency reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_currency_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_management_summary_line_company" model="ir.rule">
+        <field name="name">Management reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_management_summary_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_analytic_distribution_line_company" model="ir.rule">
+        <field name="name">Analytic distribution report: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_analytic_distribution_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_french_statement_line_company" model="ir.rule">
+        <field name="name">French statements: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_french_statement_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_french_tax_package_line_company" model="ir.rule">
+        <field name="name">French tax package: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_french_tax_package_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_assurance_decision_company" model="ir.rule">
+        <field name="name">Accounting assurance decisions: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_assurance_decision"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
     <record id="rule_rebuild_account_deferral_company" model="ir.rule">
         <field name="name">Deferrals: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_deferral"/>
