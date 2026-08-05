@@ -399,6 +399,12 @@ make stop                         # stop containers; preserve data
 make help-advanced                # migration, validation and specialized QA
 ```
 
+`make deploy` updates an existing `odoo_dev`; it never creates an empty
+replacement when reconstructed data is missing. `make doctor` reports
+`Target: present` when deployment is safe. If it reports `Target: missing`,
+restore the current dump with `make target-reconstruct` (or the verified
+Paperless-reuse variant) before deploying add-on changes.
+
 The underlying scripts remain stable automation interfaces:
 
 ```bash

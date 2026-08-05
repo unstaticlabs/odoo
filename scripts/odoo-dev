@@ -34,7 +34,7 @@ print_command_context() {
 
 doctor() {
   local mode="${1:-doctor}"
-  local volume_count volume_names
+  local volume_count volume_names database_status
   if [[ "$mode" == "doctor" ]]; then
     usl_cli_title "Environment doctor"
   else
@@ -55,6 +55,12 @@ doctor() {
     printf '  Volumes:  unavailable\n'
   fi
   usl_print_compose_inventory "$COMPOSE_PROJECT" "$ROOT"
+  database_status="not-checked"
+  if [[ "$USL_COMPOSE_SCOPE_STATE" == "owned" ]]; then
+    usl_compose_database_status "$COMPOSE_PROJECT" "$ROOT" "$DEV_DB"
+    database_status="$USL_COMPOSE_DATABASE_STATUS"
+  fi
+  printf '  Target:   %s\n' "$database_status"
   printf '  Configured URLs:\n'
   printf '             http://odoo.localhost:%s/odoo\n' "${ODOO_HTTP_PORT:-8069}"
   printf '             http://paperless.localhost:%s\n' "${PAPERLESS_HTTP_PORT:-8010}"
@@ -69,7 +75,21 @@ doctor() {
       ;;
     owned)
       printf '  Ownership is consistent with this checkout.\n'
-      printf '  Update mounted add-ons with: make deploy\n'
+      case "$database_status" in
+        present)
+          printf '  Update mounted add-ons with: make deploy\n'
+          ;;
+        missing)
+          printf '  The %s database is missing; deploy cannot recreate source data.\n' "$DEV_DB"
+          printf '  Reconstruct it from the current dump with: make target-reconstruct\n'
+          ;;
+        not-running)
+          printf '  The database service is stopped; run make dev to inspect the target.\n'
+          ;;
+        *)
+          printf '  Database readiness could not be verified; inspect the db logs.\n'
+          ;;
+      esac
       ;;
     foreign|mixed)
       printf '  Action required before mutating this project.\n'

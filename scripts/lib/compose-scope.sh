@@ -101,6 +101,44 @@ usl_print_compose_inventory() {
     done <<<"$USL_COMPOSE_SCOPE_RESOURCES"
 }
 
+usl_compose_database_status() {
+    local project="$1"
+    local repository_root="$2"
+    local database="$3"
+    local container_id state query_output
+
+    case "$database" in
+        ""|*[!A-Za-z0-9_]*)
+            USL_COMPOSE_DATABASE_STATUS="unsafe"
+            return 2
+            ;;
+    esac
+    usl_compose_scope_scan "$project" "$repository_root"
+    container_id="$(
+        printf '%s\n' "$USL_COMPOSE_SCOPE_RESOURCES" \
+            | awk -F'|' '$5 == "db" && $3 == "running" {print $1; exit}'
+    )"
+    if [[ -z "$container_id" ]]; then
+        USL_COMPOSE_DATABASE_STATUS="not-running"
+        return 0
+    fi
+    if ! query_output="$(
+        docker exec "$container_id" \
+            psql -X -qAt -U "${ODOO_DB_USER:-odoo}" -d postgres \
+            -c "SELECT 1 FROM pg_database WHERE datname = '$database'" \
+            2>/dev/null
+    )"; then
+        USL_COMPOSE_DATABASE_STATUS="unavailable"
+        return 0
+    fi
+    if [[ "$query_output" == "1" ]]; then
+        state="present"
+    else
+        state="missing"
+    fi
+    USL_COMPOSE_DATABASE_STATUS="$state"
+}
+
 usl_compose_active_unsafe_resources() {
     local row container_id container_name state owner service container_status oneoff
     while IFS= read -r row; do

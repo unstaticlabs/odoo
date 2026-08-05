@@ -30,6 +30,7 @@ usl_cli_success() {
 usl_cli_blocked() {
     local reason="$1"
     local why="$2"
+    local no_changes_message="${USL_CLI_NO_CHANGES_MESSAGE:-No changes were made.}"
     local line
     shift 2
     printf '\nBlocked\n' >&2
@@ -38,7 +39,7 @@ usl_cli_blocked() {
     while IFS= read -r line; do
         printf '  %s\n' "$line" >&2
     done <<<"$why"
-    printf '\nNo changes were made.\n' >&2
+    printf '\n%s\n' "$no_changes_message" >&2
     if (($#)); then
         printf '\nNext steps\n' >&2
         while (($#)); do

@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 ROOT = Path(__file__).resolve().parents[2]
 ODOO_DEV = ROOT / "scripts" / "odoo-dev"
 COMPOSE_SCOPE = ROOT / "scripts" / "lib" / "compose-scope.sh"
+POCKET_ID_DEV = ROOT / "scripts" / "pocket-id-dev"
 
 
 class DeveloperCommandUXTest(unittest.TestCase):
@@ -42,6 +43,9 @@ case "${1:-}" in
     [[ "${1:-}" == "--force" ]] && shift
     printf '%s\\n' "$@"
     [[ -z "${USL_FAKE_DOCKER_STATE:-}" ]] || : > "$USL_FAKE_DOCKER_STATE"
+    ;;
+  exec)
+    printf '%s' "${USL_FAKE_DATABASE_QUERY-1}"
     ;;
   *)
     exit 92
@@ -125,7 +129,7 @@ esac
                 self.assertIn(f"Ownership: {expected}", completed.stdout)
 
     def test_doctor_is_read_only_and_reports_branch_owners(self):
-        rows = self.row("one", "odoo", "running", str(ROOT), "odoo")
+        rows = self.row("one", "db", "running", str(ROOT), "db")
 
         completed = self.run_dev("doctor", rows)
 
@@ -142,9 +146,25 @@ esac
         docker_calls = self.docker_log.read_text(encoding="utf-8")
         self.assertIn("ps -a", docker_calls)
         self.assertIn("volume ls", docker_calls)
+        self.assertIn("exec one psql", docker_calls)
         self.assertNotIn("rm --force", docker_calls)
         self.assertNotIn("compose up", docker_calls)
         self.assertNotIn("compose down", docker_calls)
+
+    def test_doctor_reports_a_missing_target_before_recommending_deploy(self):
+        rows = self.row("one", "db", "running", str(ROOT), "db")
+
+        completed = self.run_dev(
+            "doctor",
+            rows,
+            USL_FAKE_DATABASE_QUERY="",
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Target:   missing", completed.stdout)
+        self.assertIn("deploy cannot recreate source data", completed.stdout)
+        self.assertIn("make target-reconstruct", completed.stdout)
+        self.assertNotIn("Update mounted add-ons with", completed.stdout)
 
     def test_mixed_project_blocks_deploy_with_actionable_next_steps(self):
         foreign = self.temporary / "foreign"
@@ -347,6 +367,23 @@ printf '%s' "$USL_FAKE_OWNED_ROWS" > "$USL_FAKE_DOCKER_STATE"
         self.assertNotIn("scripts/odoo-dev start", default.stdout)
         self.assertEqual(deploy.returncode, 0, deploy.stderr)
         self.assertIn('deploy "usl_accounting"', deploy.stdout)
+
+    def test_target_database_preflight_precedes_identity_and_document_services(self):
+        helper = POCKET_ID_DEV.read_text(encoding="utf-8")
+        configure = helper.split("configure_odoo() {", 1)[1].split(
+            "\n}\n\nsync_paperless_users()",
+            1,
+        )[0]
+
+        self.assertLess(
+            configure.index("require_target_database"),
+            configure.index("provision"),
+        )
+        self.assertLess(
+            configure.index("require_target_database"),
+            configure.index("start_paperless_runtime"),
+        )
+        self.assertIn("Deploy updates an existing reconstructed target", helper)
 
 
 if __name__ == "__main__":

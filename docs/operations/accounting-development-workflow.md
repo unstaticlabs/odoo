@@ -143,6 +143,11 @@ dev/QA state only: production tours are not disabled in delivered module code,
 and explicit automated browser tours continue to work. Run
 `make disable-tours` to reapply the setting without deploying.
 
+The doctor also verifies that `odoo_dev` exists when PostgreSQL is running.
+Deployment is an update operation, not a reconstruction shortcut: if the
+target is missing it stops before provisioning the surrounding services and
+points to `make target-reconstruct` or the verified Paperless-reuse variant.
+
 The canonical Compose project belongs exclusively to this main checkout.
 When `make doctor` reports foreign or mixed ownership, ordinary commands stop
 before changing anything. From the main checkout, and only after confirming no
