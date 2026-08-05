@@ -203,9 +203,24 @@
         </field>
     </record>
 
+    <!-- Keep the app title as the shortest route to the user's own expenses,
+         while exposing the operational workspaces directly in the navbar. -->
+    <record id="hr_expense.menu_hr_expense_root" model="ir.ui.menu">
+        <field name="action" ref="hr_expense.hr_expense_actions_my_all"/>
+    </record>
+    <record id="hr_expense.menu_hr_expense_my_expenses" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="hr_expense.menu_hr_expense_my_expenses_all" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="hr_expense.menu_hr_expense_expenses_to_process" model="ir.ui.menu">
+        <field name="parent_id" ref="hr_expense.menu_hr_expense_root"/>
+    </record>
+
     <menuitem id="menu_expense_batches"
               name="Expense Batches"
-              parent="hr_expense.menu_hr_expense_my_expenses"
+              parent="hr_expense.menu_hr_expense_root"
               action="action_expense_batches"
               sequence="2"
               groups="base.group_user"/>

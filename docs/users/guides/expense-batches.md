@@ -66,7 +66,7 @@ société : Odoo conservera leurs traitements comptables distincts.
 
 ## Contrôler une note
 
-Le responsable ouvre **Dépenses > Mes dépenses > Notes de frais** pour
+Le responsable ouvre **Dépenses > Notes de frais** pour
 contrôler l’objet commun, le total, la période, l’analytique et les
 justificatifs. La préparation globale apparaît en haut de la note ; les lignes
 affichent le **Statut de la dépense** et le **Statut du justificatif**, sans

@@ -1,7 +1,7 @@
 {
     "name": "USL Expense Batches",
     "summary": "Submit and review related expenses as a lightweight claim",
-    "version": "saas~19.2.1.0.1",
+    "version": "saas~19.2.1.0.2",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

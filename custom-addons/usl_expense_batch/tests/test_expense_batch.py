@@ -394,6 +394,33 @@ class TestExpenseBatch(TestExpenseCommon):
             my_expenses_action.context,
         )
 
+        expense_root = self.env.ref("hr_expense.menu_hr_expense_root")
+        self.assertEqual(expense_root.action, my_expenses_action)
+        self.assertFalse(
+            self.env.ref("hr_expense.menu_hr_expense_my_expenses").active,
+        )
+        self.assertFalse(
+            self.env.ref("hr_expense.menu_hr_expense_my_expenses_all").active,
+        )
+        self.assertEqual(
+            self.env.ref(
+                "hr_expense.menu_hr_expense_expenses_to_process",
+            ).parent_id,
+            expense_root,
+        )
+        self.assertEqual(
+            self.env.ref("usl_expense_batch.menu_expense_batches").parent_id,
+            expense_root,
+        )
+        self.assertEqual(
+            self.env.ref("hr_expense.menu_hr_expense_reports").parent_id,
+            expense_root,
+        )
+        self.assertEqual(
+            self.env.ref("hr_expense.menu_hr_expense_configuration").parent_id,
+            expense_root,
+        )
+
         move_form = self.env.ref("account.view_move_form")._get_combined_arch()
         self.assertTrue(
             move_form.xpath("//button[@name='action_open_expense_batch']"),
