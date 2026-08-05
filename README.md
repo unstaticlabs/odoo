@@ -457,8 +457,10 @@ and finalizes every temporary migration module out of the product. Its final
 target-only step provisions the governed Pocket identities in both Odoo and
 Paperless, maps the same immutable people, and synchronizes their exact
 Paperless document permissions. It never imports source credentials or SSO
-state. `make paperless-users` safely reapplies only this identity/access
-reconciliation when roles or identities change.
+state. `make paperless-users` reapplies this identity/access reconciliation in
+the default development topology. For an isolated release candidate, use
+`scripts/preprod-release finalize-reconstruction SOURCE_DIR` instead so Odoo is
+stopped and the exact qualified image and release Compose topology stay in use.
 Migration tooling is a maintained repository deliverable under `migration/`
 and `scripts/`; it is not installed or exposed in the normal Odoo UI.
 

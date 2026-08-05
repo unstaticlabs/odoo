@@ -39,7 +39,11 @@ login-link:
 		printf 'Usage: make login-link USER=<Pocket ID username>\n' >&2; \
 		exit 2; \
 	fi
-	@scripts/pocket-id-dev one-time-link "$(USER)"
+	@if [ -n "$${POCKET_ID_ENV_FILE:-}" ] && [ -f "$$POCKET_ID_ENV_FILE" ]; then \
+		COMPOSE_PROJECT_NAME= scripts/pocket-id-dev one-time-link "$(USER)"; \
+	else \
+		scripts/pocket-id-dev one-time-link "$(USER)"; \
+	fi
 
 paperless-users:
 	scripts/pocket-id-dev sync-paperless-users
