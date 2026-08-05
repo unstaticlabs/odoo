@@ -35,16 +35,24 @@ scripts/sign-pocketid-stack status
 scripts/sign-pocketid-stack test-pocket
 scripts/sign-pocketid-stack test
 scripts/sign-pocketid-stack smoke
+scripts/sign-pocketid-stack archive-acceptance
+scripts/sign-pocketid-stack passkey-acceptance
 ```
 
 This creates project `usl-sign-pocketid-6605`, its own `odoo_dev` database,
 volumes, OIDC clients and ignored secret root. It exposes Odoo on port 16669,
 Pocket ID on 16411 and Paperless on 16810; it never shares the canonical
 tenant. The Sign authorization client is restricted to its own `usl-signers`
-group rather than inheriting ordinary Odoo access. `test-pocket` verifies the strict Pocket patch, `test` runs the Odoo
-and browser suites in a disposable database, and `smoke` exercises the local
-CA, DSS, pyHanko, veraPDF, replay and alteration checks. For the ordinary local
-Sign services, run:
+group rather than inheriting ordinary Odoo access. The dedicated Sign client
+disables refresh-token issuance. `test-pocket` verifies the strict Pocket
+patch, `test` runs the Odoo and browser suites in a disposable database, and
+`smoke` exercises the local CA, DSS, pyHanko, veraPDF, replay and alteration
+checks. `archive-acceptance` proves real Paperless archive, checksum reuse,
+failure gating and recovery. `passkey-acceptance` creates a disposable Chrome
+profile and virtual platform passkey, then proves that two back-to-back Sign
+authorizations each require a WebAuthn assertion and produce a fresh
+`amr=["phr"]` ID token without a refresh token. For the ordinary local Sign
+services, run:
 
 ```shell
 scripts/sign-services-bootstrap

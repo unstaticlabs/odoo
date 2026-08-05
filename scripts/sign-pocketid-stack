@@ -115,6 +115,34 @@ initialize_odoo() {
     --database=odoo_dev < "$ROOT/scripts/odoo/pocket_id_configure.py"
 }
 
+configure_paperless() {
+  "${COMPOSE[@]}" --profile paperless run --rm paperless-access-init >/dev/null
+  local setup token service_user_id
+  setup="$(
+    "${COMPOSE[@]}" exec -T paperless-webserver \
+      python manage.py shell \
+      < "$ROOT/deploy/documents/paperless_sign_qa_init.py"
+  )"
+  token="$(sed -n 's/^USL_SIGN_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
+  service_user_id="$(
+    sed -n 's/^USL_SIGN_PAPERLESS_SERVICE_ID=//p' <<<"$setup" | tail -n 1
+  )"
+  if [[ -z "$token" || ! "$service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'Could not prepare the Paperless Sign integration identity.\n' >&2
+    return 1
+  fi
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    -e PAPERLESS_SIGN_TOKEN="$token" \
+    -e PAPERLESS_SIGN_SERVICE_USER_ID="$service_user_id" \
+    -e PAPERLESS_SIGN_INTERNAL_URL=http://paperless-webserver:8000 \
+    -e PAPERLESS_SIGN_PUBLIC_URL="$PAPERLESS_PUBLIC_URL" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    < "$ROOT/scripts/odoo/sign_paperless_configure.py"
+}
+
 start() {
   bootstrap
   assert_ports_available
@@ -124,6 +152,7 @@ start() {
     paperless-webserver
   provision_pocket
   initialize_odoo
+  configure_paperless
   "${COMPOSE[@]}" --profile sign --profile paperless up -d --wait odoo
   printf '\nOdoo: %s/web/login?db=odoo_dev\n' "$ODOO_PUBLIC_BASE_URL"
   printf 'Pocket ID: %s\n' "$POCKET_ID_APP_URL"
@@ -188,6 +217,31 @@ smoke_services() {
   "${COMPOSE[@]}" exec -T odoo usl-sign-services-smoke
 }
 
+configure_paperless_only() {
+  load_environment
+  "${COMPOSE[@]}" up -d --wait db paperless-webserver
+  configure_paperless
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+}
+
+archive_acceptance() {
+  load_environment
+  "${COMPOSE[@]}" up -d --wait \
+    db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver odoo
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    < "$ROOT/scripts/odoo/sign_paperless_acceptance.py"
+}
+
+passkey_acceptance() {
+  load_environment
+  "${COMPOSE[@]}" up -d --wait pocket-id
+  node "$ROOT/scripts/sign-pocketid-virtual-authenticator.mjs"
+}
+
 case "${1:-help}" in
   bootstrap) bootstrap ;;
   start) start ;;
@@ -197,9 +251,12 @@ case "${1:-help}" in
   test) test_stack ;;
   test-pocket) test_pocket_patch ;;
   smoke) smoke_services ;;
+  configure-paperless) configure_paperless_only ;;
+  archive-acceptance) archive_acceptance ;;
+  passkey-acceptance) passkey_acceptance ;;
   help|*)
     printf '%s\n' \
-      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke' \
+      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|configure-paperless|archive-acceptance|passkey-acceptance' \
       'This helper owns only project usl-sign-pocketid-6605 and its isolated volumes.'
     ;;
 esac
