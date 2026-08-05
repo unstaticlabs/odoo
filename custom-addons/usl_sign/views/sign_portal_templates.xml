@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_sign_provider" name="Secure provider signing">
+        <t t-call="portal.frontend_layout">
+            <t t-set="title" t-value="signer.request_id.name"/>
+            <div class="container-fluid py-3">
+                <div class="alert alert-info mb-3" role="status">
+                    <strong t-esc="signer.request_id.name"/>
+                    <span class="ms-2">Review every page before confirming your signature.</span>
+                </div>
+                <div id="usl_yousign_iframe"
+                     t-att-data-signature-link="signature_link"
+                     t-att-data-status-url="status_url"
+                     t-att-data-sandbox="'1' if sandbox else '0'"
+                     style="height: calc(100vh - 12rem); min-height: 36rem;"/>
+            </div>
+            <script src="https://cdn.yousign.tech/iframe-sdk-1.6.0.min.js"
+                    integrity="sha384-/7MD1voOOzWVz7FmgeMwmmd1DO85Mo0PkkxdYd9j2wDGzGDGRG/phgnL0c9Xyy52"
+                    crossorigin="anonymous"></script>
+        </t>
+    </template>
+</odoo>

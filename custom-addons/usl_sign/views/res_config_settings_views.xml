@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_sign" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.sign</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Sign" name="usl_sign" groups="usl_sign.group_sign_admin">
+                    <block title="Provider" name="sign_provider">
+                        <setting string="Provider-backed signatures" help="Keep disabled until the sandbox configuration and webhook checks pass.">
+                            <field name="sign_provider_enabled"/>
+                        </setting>
+                        <setting string="Yousign environment">
+                            <field name="sign_yousign_environment"/>
+                        </setting>
+                        <setting string="Yousign workspace" help="Optional workspace UUID used to keep company records partitioned in Yousign.">
+                            <field name="sign_yousign_workspace_id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
+                        </setting>
+                        <setting string="Server credential" help="API keys remain in server environment variables and are never stored in Odoo.">
+                            <field name="sign_yousign_configured" readonly="1"/>
+                        </setting>
+                        <setting string="Webhook endpoint" help="Register this exact endpoint for the selected environment and configure its server-side secret.">
+                            <field name="sign_yousign_webhook_url" readonly="1"/>
+                            <field name="sign_yousign_webhook_configured" readonly="1"/>
+                        </setting>
+                        <setting string="Connection check">
+                            <button name="action_test_sign_provider" type="object" string="Test connection" class="btn-link"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

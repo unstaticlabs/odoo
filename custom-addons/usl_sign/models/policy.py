@@ -142,8 +142,13 @@ class SignPolicy(models.Model):
 class ResCompany(models.Model):
     _inherit = "res.company"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        companies = super().create(vals_list)
+        self.env["usl.sign.policy"]._ensure_company_defaults(companies)
+        return companies
+
     def write(self, vals):
         result = super().write(vals)
         self.env["usl.sign.policy"]._ensure_company_defaults(self)
         return result
-

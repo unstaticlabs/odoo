@@ -16,13 +16,19 @@
         "security/usl_sign_security.xml",
         "security/ir.model.access.csv",
         "data/sign_data.xml",
+        "data/mail_templates.xml",
+        "data/sign_cron.xml",
         "views/sign_policy_views.xml",
         "views/sign_template_views.xml",
         "views/sign_request_views.xml",
+        "views/sign_portal_templates.xml",
+        "views/res_config_settings_views.xml",
         "views/sign_menu_views.xml",
     ],
     "post_init_hook": "post_init_hook",
+    "assets": {
+        "web.assets_frontend": ["usl_sign/static/src/js/portal_sign.js"],
+    },
     "application": True,
     "installable": True,
 }
-

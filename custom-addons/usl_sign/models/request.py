@@ -108,6 +108,8 @@ class SignRequest(models.Model):
     provider_transaction_id = fields.Char(copy=False, readonly=True, index=True)
     provider_document_id = fields.Char(copy=False, readonly=True)
     provider_status = fields.Char(copy=False, readonly=True)
+    provider_field_map = fields.Json(copy=False, readonly=True)
+    provider_last_event_at = fields.Datetime(copy=False, readonly=True)
     provider_environment = fields.Selection(
         [("sandbox", "Sandbox"), ("production", "Production")],
         copy=False,
@@ -264,6 +266,26 @@ class SignRequest(models.Model):
         if not (self.signatory_data or {}):
             raise ValidationError(
                 self.env._("Place at least one field on the document before sending it.")
+            )
+        signature_roles = {
+            int(item.get("role_id"))
+            for item in (self.signatory_data or {}).values()
+            if item.get("role_id")
+            and self.env["sign.oca.field"].browse(item.get("field_id")).usl_kind
+            == "signature"
+        }
+        missing_signature_roles = role_ids - signature_roles
+        if missing_signature_roles:
+            role_names = ", ".join(
+                self.env["sign.oca.role"]
+                .browse(list(missing_signature_roles))
+                .mapped("name")
+            )
+            raise ValidationError(
+                self.env._(
+                    "Place a signature field for these signer roles: %(roles)s",
+                    roles=role_names,
+                )
             )
         for signer in self.signer_ids:
             if not signer.partner_id.email:
@@ -441,12 +463,15 @@ class SignRequestSigner(models.Model):
     access_revoked = fields.Boolean(copy=False, readonly=True)
     viewed_at = fields.Datetime(copy=False, readonly=True)
     declined_at = fields.Datetime(copy=False, readonly=True)
+    invitation_sent_at = fields.Datetime(copy=False, readonly=True)
+    invitation_count = fields.Integer(copy=False, readonly=True, default=0)
     achieved_assurance = fields.Selection(
         ASSURANCE_LEVELS, copy=False, readonly=True
     )
     authentication_method = fields.Selection(
         AUTHENTICATION_METHODS, copy=False, readonly=True
     )
+    provider_last_event_at = fields.Datetime(copy=False, readonly=True)
 
     _provider_signer_unique = models.Constraint(
         "UNIQUE(provider_signer_id)",
@@ -518,10 +543,31 @@ class SignRequestSigner(models.Model):
                     "access_revoked": False,
                 }
             )
+            signer._send_signer_invitation(force=True)
         return True
 
     def action_revoke_link(self):
         self.write({"access_revoked": True})
+        return True
+
+    def _absolute_access_url(self):
+        self.ensure_one()
+        self._portal_ensure_token()
+        return f"{self.get_base_url()}{self.access_url}"
+
+    def _send_signer_invitation(self, force=False):
+        template = self.env.ref("usl_sign.mail_template_sign_invitation")
+        for signer in self:
+            signer._portal_ensure_token()
+            if signer.invitation_sent_at and not force:
+                continue
+            template.send_mail(signer.id, force_send=False)
+            signer.write(
+                {
+                    "invitation_sent_at": fields.Datetime.now(),
+                    "invitation_count": signer.invitation_count + 1,
+                }
+            )
         return True
 
     def _mark_viewed(self):
@@ -583,6 +629,17 @@ class SignProviderEvent(models.Model):
     )
 
     @api.model
+    def _event_datetime(self, payload):
+        event_epoch = payload.get("event_time")
+        if isinstance(event_epoch, str) and event_epoch.isdigit():
+            event_epoch = int(event_epoch)
+        return (
+            datetime.fromtimestamp(event_epoch, tz=timezone.utc).replace(tzinfo=None)
+            if isinstance(event_epoch, (int, float))
+            else fields.Datetime.to_datetime(event_epoch) or fields.Datetime.now()
+        )
+
+    @api.model
     def record_event(self, request, payload, status, explanation=False):
         event_id = payload.get("event_id")
         if not event_id:
@@ -593,12 +650,7 @@ class SignProviderEvent(models.Model):
         )
         if existing:
             return existing, False
-        event_epoch = payload.get("event_time")
-        event_time = (
-            datetime.fromtimestamp(event_epoch, tz=timezone.utc).replace(tzinfo=None)
-            if isinstance(event_epoch, (int, float))
-            else fields.Datetime.to_datetime(event_epoch) or fields.Datetime.now()
-        )
+        event_time = self._event_datetime(payload)
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
         return (
             self.create(
