@@ -250,6 +250,11 @@ immediately resynchronize affected permissions. An access reduction fails
 closed and rolls the Odoo change back when Paperless cannot revoke the old
 permission safely.
 
+Canonical target finalization creates the individual Paperless social account,
+links it to the existing Odoo user through that immutable subject, and applies
+the exact authorized document set. The first login therefore authenticates an
+already governed identity; it does not create or infer business access.
+
 Tags, correspondents, document types, and shared Saved Views use Paperless's
 supported unowned/shared form. Direct identities receive only the global model
 permission needed to list those shared concepts; actual document visibility

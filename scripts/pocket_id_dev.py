@@ -632,6 +632,26 @@ def odoo_policy(values: dict[str, str]) -> None:
     print(json.dumps(policy, separators=(",", ":")))
 
 
+def paperless_policy(values: dict[str, str]) -> None:
+    """Describe the governed people that need an individual Paperless login."""
+    policy = []
+    for username, definition in USER_DEFINITIONS.items():
+        email = (
+            values[definition["email_key"]]
+            if "email_key" in definition
+            else definition["email"]
+        )
+        policy.append(
+            {
+                "subject": values[definition["id_key"]],
+                "username": username,
+                "email": email,
+                "display_name": definition["display_name"],
+            },
+        )
+    print(json.dumps(policy, separators=(",", ":")))
+
+
 def _find_user(
     api: PocketIDAPI,
     values: dict[str, str],
@@ -793,6 +813,7 @@ def main() -> int:
     subparsers.add_parser("provision")
     subparsers.add_parser("ensure-unlinked")
     subparsers.add_parser("odoo-policy")
+    subparsers.add_parser("paperless-policy")
     link_parser = subparsers.add_parser("one-time-link")
     link_parser.add_argument("username")
     link_parser.add_argument("--ttl", default="1h")
@@ -818,6 +839,8 @@ def main() -> int:
             ensure_unlinked_test_user(values)
         elif arguments.command == "odoo-policy":
             odoo_policy(values)
+        elif arguments.command == "paperless-policy":
+            paperless_policy(values)
         elif arguments.command == "one-time-link":
             one_time_link(values, arguments.username, arguments.ttl)
         elif arguments.command == "set-disabled":

@@ -45,13 +45,17 @@ The complete canonical lifecycle is:
 Online dump → Accounting import/parity → Documents product/security
 → identity/Product/HR → Projects → Paie TESE → Platform Billing
 → Paperless archive
-→ uninstall migration modules → product-boundary checks → target configuration
+→ uninstall migration modules → product-boundary checks
+→ Pocket/Odoo/Paperless identities and target configuration
 ```
 
 Run it with `make target-reconstruct`. Reapply only the final target
 configuration with `make target-finalize`. The source contains no SSO
 configuration; Pocket ID is therefore intentionally absent from source parity
-and added only after the imported business state passes its controls.
+and added only after the imported business state passes its controls. This
+final step also creates governed Paperless users, maps them to existing Odoo
+users by immutable Pocket subject, and synchronizes document-object access; it
+never imports Online credentials or user-session state.
 The canonical command validates and restores the current local dump into the
 isolated read-only source service, refreshes source controls and extraction,
 then resets `odoo_dev`; it does not depend on a previously running source

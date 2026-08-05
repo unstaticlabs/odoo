@@ -247,6 +247,29 @@ services:
     volumes:
       - ./deploy/documents/paperless_access_init.py:/opt/usl/paperless_access_init.py:ro
 
+  paperless-identity-init:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    restart: "no"
+    depends_on:
+      paperless-webserver:
+        condition: service_healthy
+    working_dir: /usr/src/paperless/src
+    entrypoint: ["/bin/sh", "-ec"]
+    command: ["python manage.py shell < /opt/usl/paperless_identity_sync.py"]
+    environment:
+      PAPERLESS_REDIS: redis://paperless-broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME:-paperless}
+      PAPERLESS_DBUSER: ${PAPERLESS_DB_USER:-paperless}
+      PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
+      PAPERLESS_SSO_BASE_GROUP: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
+      PAPERLESS_OIDC_PROVIDER_ID: pocket-id
+      PAPERLESS_IDENTITY_PLAN_JSON: ${PAPERLESS_IDENTITY_PLAN_JSON:-[]}
+    volumes:
+      - ./deploy/documents/paperless_identity_sync.py:/opt/usl/paperless_identity_sync.py:ro
+
   paperless-gotenberg:
     profiles: ["paperless"]
     image: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}

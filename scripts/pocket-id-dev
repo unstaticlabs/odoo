@@ -83,6 +83,50 @@ run_policy() {
     --database="$ODOO_INIT_DB" < "$ROOT/scripts/odoo/pocket_id_configure.py"
 }
 
+sync_paperless_identities() {
+  local force_permissions="${1:-0}"
+  local identity_policy plan_output plan paperless_output identities
+  identity_policy="$(
+    python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" paperless-policy
+  )"
+  plan_output="$(
+    "${COMPOSE[@]}" --profile init run --rm -T \
+      -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+      -e USL_PAPERLESS_IDENTITY_POLICY_JSON="$identity_policy" \
+      init-db odoo shell \
+      --config=/etc/odoo/odoo.conf \
+      --database="$ODOO_INIT_DB" \
+      < "$ROOT/scripts/odoo/documents_identity_plan.py"
+  )"
+  plan="$(
+    sed -n 's/^USL_PAPERLESS_IDENTITY_PLAN=//p' <<<"$plan_output" | tail -n 1
+  )"
+  if [[ -z "$plan" ]]; then
+    printf 'Odoo did not produce a Paperless identity plan.\n' >&2
+    return 1
+  fi
+  paperless_output="$(
+    "${COMPOSE[@]}" --profile paperless run --rm --no-deps -T \
+      -e PAPERLESS_IDENTITY_PLAN_JSON="$plan" \
+      paperless-identity-init
+  )"
+  identities="$(
+    sed -n 's/^USL_PAPERLESS_IDENTITIES=//p' <<<"$paperless_output" | tail -n 1
+  )"
+  if [[ -z "$identities" ]]; then
+    printf 'Paperless did not produce verified individual identities.\n' >&2
+    return 1
+  fi
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    -e USL_PAPERLESS_IDENTITIES_JSON="$identities" \
+    -e USL_PAPERLESS_FORCE_PERMISSION_SYNC="$force_permissions" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    < "$ROOT/scripts/odoo/documents_identity_apply.py"
+}
+
 configure_odoo() {
   local module="${1:-usl_pocketid}"
   local status=0 update_modules
@@ -104,7 +148,11 @@ configure_odoo() {
     --log-level=warn; then
     if run_policy 0; then
       if run_policy 1; then
-        run_policy 0 || status=$?
+        if run_policy 0; then
+          sync_paperless_identities 0 || status=$?
+        else
+          status=$?
+        fi
       else
         status=$?
       fi
@@ -122,6 +170,13 @@ configure_odoo() {
   printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
   printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
   printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
+}
+
+sync_paperless_users() {
+  provision
+  start_paperless_runtime
+  "${COMPOSE[@]}" up -d --wait db
+  sync_paperless_identities 1
 }
 
 start_runtime() {
@@ -211,6 +266,9 @@ case "${1:-help}" in
   configure-odoo)
     configure_odoo "${2:-usl_pocketid}"
     ;;
+  sync-paperless-users)
+    sync_paperless_users
+    ;;
   start-runtime)
     start_runtime
     ;;
@@ -252,6 +310,7 @@ Commands:
   provision                  Idempotently configure users, group, and OIDC client
   ensure-unlinked            Add the Pocket-only lifecycle-denial identity
   configure-odoo [MODULE]    Configure canonical odoo_dev and start its SSO stack
+  sync-paperless-users       Reconcile governed Odoo and Paperless identities
   start-runtime              Start Odoo, Pocket ID, and Paperless for odoo_dev
   one-time-link USER         Generate a one-hour link for any Pocket ID user
   set-disabled USER BOOL     Enable or disable a named Pocket ID user
