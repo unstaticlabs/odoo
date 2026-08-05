@@ -28,6 +28,15 @@ from .constants import (
     TRUST_LEVELS,
 )
 from .document import _add_page
+from .template import (
+    EDITOR_ROLE_COLORS,
+    FIELD_PRESENTATION,
+    _field_info,
+    _field_kind,
+    _validate_complete_editor_geometry,
+    _validate_editor_geometry,
+    _validate_editor_uuid,
+)
 
 TRANSITIONS = {
     "draft": {"ready", "cancelled"},
@@ -122,6 +131,8 @@ class SignRequest(models.Model):
     page_map = fields.Json(readonly=True, copy=False)
     template_version = fields.Integer(readonly=True, copy=False)
     frozen_layout = fields.Json(readonly=True, copy=False)
+    editor_revision = fields.Integer(default=1, required=True, copy=False, readonly=True)
+    editor_operation_log = fields.Json(default=dict, copy=False, readonly=True)
     original_data = fields.Binary(readonly=True, copy=False, attachment=True)
     original_filename = fields.Char(readonly=True, copy=False)
     original_sha256 = fields.Char(readonly=True, copy=False, index=True)
@@ -492,7 +503,7 @@ class SignRequest(models.Model):
             msg = "Choose an active external provider reviewed for this company."
             raise ValidationError(msg)
         planned_authentication = (
-            "passkey"
+            "pocket_id_passkey"
             if self.requested_trust == "strong_personal"
             else self.policy_id.default_authentication or "secure_link"
         )
@@ -586,6 +597,184 @@ class SignRequest(models.Model):
         action["tag"] = "usl_sign_request_configure"
         return action
 
+    def _editor_roles_info(self):
+        self.ensure_one()
+        template_colors = {
+            mapping.role_id.id: mapping.color
+            for mapping in self.template_id.editor_role_ids
+        }
+        result = []
+        seen = set()
+        for index, signer in enumerate(self.signer_ids.sorted("sequence")):
+            if signer.role_id.id in seen:
+                continue
+            seen.add(signer.role_id.id)
+            result.append(
+                {
+                    "id": signer.role_id.id,
+                    "name": signer.role_id.name,
+                    "signer_name": signer.partner_id.name,
+                    "color": template_colors.get(
+                        signer.role_id.id,
+                        EDITOR_ROLE_COLORS[index % len(EDITOR_ROLE_COLORS)],
+                    ),
+                    "sequence": signer.sequence or (index + 1) * 10,
+                },
+            )
+        return result
+
+    def get_info(self):
+        self.ensure_one()
+        info = super().get_info()
+        fields_info = {
+            field.id: _field_info(field)
+            for field in self.env["sign.oca.field"].search([])
+        }
+        items = {}
+        for key, item in (self.signatory_data or {}).items():
+            field = fields_info.get(int(item["field_id"]))
+            items[str(key)] = {
+                **item,
+                "kind": field["kind"] if field else "text",
+                "field_type": field["field_type"] if field else item.get("field_type", "text"),
+            }
+        info.update(
+            {
+                "items": items,
+                "roles": self._editor_roles_info(),
+                "fields": list(fields_info.values()),
+                "revision": self.editor_revision,
+                "readonly": self.state != "draft",
+                "editor_mode": "request",
+            },
+        )
+        return info
+
+    def _editor_store_result(self, operation_uuid, result, signatory_data):
+        self.ensure_one()
+        operation_log = dict(self.editor_operation_log or {})
+        operation_log[operation_uuid] = result
+        if len(operation_log) > 100:
+            operation_log = dict(list(operation_log.items())[-100:])
+        self.with_context(usl_sign_editor_internal=INTERNAL_OPERATION).write(
+            {
+                "signatory_data": signatory_data,
+                "editor_revision": result["revision"],
+                "editor_operation_log": operation_log,
+            },
+        )
+
+    def _validate_editor_page(self, page):
+        self.ensure_one()
+        try:
+            page_count = len(
+                PdfReader(BytesIO(base64.b64decode(self.with_context(bin_size=False).data))).pages,
+            )
+        except Exception as error:
+            raise ValidationError("Attach a readable PDF before editing its fields.") from error
+        if int(page) < 1 or int(page) > page_count:
+            raise ValidationError("The selected PDF page does not exist.")
+
+    def editor_apply_command(self, operation_uuid, expected_revision, command):
+        self.ensure_one()
+        self._ensure_draft()
+        operation_uuid = _validate_editor_uuid(operation_uuid)
+        previous = (self.editor_operation_log or {}).get(operation_uuid)
+        if previous:
+            return previous
+        if int(expected_revision) != self.editor_revision:
+            return {
+                "status": "conflict",
+                "revision": self.editor_revision,
+                "message": "This request changed in another editor. Reload before continuing.",
+            }
+        action = command.get("action")
+        values = dict(command.get("values") or {})
+        allowed = {
+            "field_id", "role_id", "required", "placeholder", "page",
+            "position_x", "position_y", "width", "height",
+        }
+        if set(values) - allowed:
+            raise ValidationError("The editor command contains unsupported field values.")
+        _validate_editor_geometry(values)
+        data = {str(key): dict(value) for key, value in (self.signatory_data or {}).items()}
+        item = False
+        deleted_id = False
+        if action == "create":
+            if not values.get("field_id") or not values.get("role_id"):
+                raise ValidationError("Choose both a field type and a signer before placing it.")
+            field = self.env["sign.oca.field"].browse(values["field_id"]).exists()
+            allowed_roles = self.signer_ids.mapped("role_id")
+            role = allowed_roles.filtered(lambda row: row.id == int(values["role_id"]))
+            if not field or len(role) != 1:
+                raise ValidationError("The selected field type or signer is unavailable.")
+            item_id = max([int(key) for key in data] or [0]) + 1
+            tabindex = max(
+                [int(value.get("tabindex") or 0) for value in data.values()] or [0],
+            ) + 1
+            presentation = FIELD_PRESENTATION[_field_kind(field)]
+            item = {
+                "id": item_id,
+                "tabindex": tabindex,
+                "field_id": field.id,
+                "field_type": field.field_type,
+                "kind": _field_kind(field),
+                "required": field.field_type == "signature",
+                "name": field.name,
+                "role_id": role.id,
+                "page": 1,
+                "position_x": 0,
+                "position_y": 0,
+                "width": presentation["width"],
+                "height": presentation["height"],
+                "value": False,
+                "default_value": field.default_value,
+                "placeholder": "",
+                **values,
+            }
+            self._validate_editor_page(item["page"])
+            data[str(item_id)] = item
+            _validate_complete_editor_geometry(item)
+        elif action == "update":
+            item_id = str(int(command.get("item_id", 0)))
+            if item_id not in data:
+                raise ValidationError("The field no longer exists in this request.")
+            if "field_id" in values:
+                field = self.env["sign.oca.field"].browse(values["field_id"]).exists()
+                if not field:
+                    raise ValidationError("The selected field type is unavailable.")
+                values.update(
+                    {
+                        "name": field.name,
+                        "kind": _field_kind(field),
+                        "field_type": field.field_type,
+                        "default_value": field.default_value,
+                    },
+                )
+            if "role_id" in values and int(values["role_id"]) not in self.signer_ids.role_id.ids:
+                raise ValidationError("The selected signer is unavailable.")
+            data[item_id].update(values)
+            item = data[item_id]
+            self._validate_editor_page(item["page"])
+            _validate_complete_editor_geometry(item)
+        elif action == "delete":
+            item_id = str(int(command.get("item_id", 0)))
+            if item_id not in data:
+                raise ValidationError("The field no longer exists in this request.")
+            deleted_id = int(item_id)
+            data.pop(item_id)
+        else:
+            raise ValidationError("The editor command action is unsupported.")
+        new_revision = self.editor_revision + 1
+        result = {
+            "status": "ok",
+            "revision": new_revision,
+            "item": item,
+            "deleted_id": deleted_id,
+        }
+        self._editor_store_result(operation_uuid, result, data)
+        return result
+
     def _freeze_document(self):
         self.ensure_one()
         if self.original_data:
@@ -596,7 +785,7 @@ class SignRequest(models.Model):
         digest = hashlib.sha256(consolidated).hexdigest()
         consent_text = (
             "I have reviewed this exact document and authorize my strong personal "
-            "electronic signature using my passkey."
+            "electronic signature using my Pocket ID passkey."
             if self.requested_trust == "strong_personal"
             else "I have reviewed this document and consent to use an electronic "
             "signature for this request."
@@ -696,7 +885,7 @@ class SignRequest(models.Model):
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                 {
                     "sent_at": fields.Datetime.now(),
-                    "authentication_method": "passkey"
+                    "authentication_method": "pocket_id_passkey"
                     if request.requested_trust == "strong_personal"
                     else request.policy_id.default_authentication or "secure_link",
                 },
@@ -719,7 +908,10 @@ class SignRequest(models.Model):
                 msg = "Every strong signer must complete enrolment first."
                 raise ValidationError(msg)
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
-                {"sent_at": fields.Datetime.now(), "authentication_method": "passkey"},
+                {
+                    "sent_at": fields.Datetime.now(),
+                    "authentication_method": "pocket_id_passkey",
+                },
             )
             target_state = "partial" if request.signer_ids.filtered("signed_on") else "sent"
             request._transition(target_state, "strong_enrollment_complete")
@@ -1358,7 +1550,8 @@ class SignRequest(models.Model):
             },
         ]
         for evidence in self.evidence_ids.filtered(
-            lambda row: row.kind not in {"manifest", "dossier", "signed"},
+            lambda row: row.kind
+            not in {"authentication", "manifest", "dossier", "signed"},
         ):
             artifacts.append(
                 {
@@ -1369,6 +1562,34 @@ class SignRequest(models.Model):
                     "description": dict(evidence._fields["kind"].selection).get(
                         evidence.kind, "Evidence artifact",
                     ),
+                },
+            )
+        for evidence in self.evidence_ids.filtered(
+            lambda row: row.kind == "authentication",
+        ):
+            metadata = evidence.metadata or {}
+            summary = {
+                "format": "usl-sign-authentication-summary-v1",
+                "artifact_sha256": evidence.sha256,
+                "ceremony_id": metadata.get("ceremony_id"),
+                "issuer": metadata.get("issuer"),
+                "subject_fingerprint": metadata.get("subject_fingerprint"),
+                "auth_time": metadata.get("auth_time"),
+                "claims": metadata.get("claims"),
+                "validation": metadata.get("validation"),
+            }
+            artifacts.append(
+                {
+                    "name": f"authentication-summary-{evidence.id}.json",
+                    "content": json.dumps(
+                        summary,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                        ensure_ascii=False,
+                    ).encode(),
+                    "mimetype": "application/json",
+                    "relationship": "Supplement",
+                    "description": "Validated Pocket ID passkey authorization summary",
                 },
             )
         result = self._sign_dss_client().build_dossier(
@@ -1523,6 +1744,54 @@ class SignRequest(models.Model):
                     {"completed_at": fields.Datetime.now()},
                 )
                 request._transition("completed", "request_completed")
+                request._send_completed_dossier()
+
+    def _send_completed_dossier(self):
+        """Queue the final archived dossier once, using OCA's delivery setting."""
+        for request in self:
+            if (
+                request.state != "completed"
+                or not request.company_id.sign_oca_send_sign_request_copy
+                or request.event_ids.filtered(
+                    lambda event: event.event_type == "completed_dossier_queued",
+                )
+            ):
+                continue
+            attachment = self.env["ir.attachment"].sudo().search(
+                [
+                    ("res_model", "=", request._name),
+                    ("res_id", "=", request.id),
+                    ("res_field", "=", "dossier_data"),
+                ],
+                limit=1,
+            )
+            if not attachment:
+                msg = "The completed evidence dossier attachment is missing."
+                raise ValidationError(msg)
+            partners = request.signer_ids.mapped("partner_id")
+            body = self.env["ir.qweb"]._render(
+                "usl_sign.sign_completion_delivery_body",
+                {"record": request},
+                engine="ir.qweb",
+                minimal_qcontext=True,
+            )
+            self.env["mail.thread"].message_notify(
+                body=body,
+                partner_ids=partners.ids,
+                subject=self.env._("Completed signature dossier: %(name)s", name=request.name),
+                subtype_id=self.env.ref("mail.mt_comment").id,
+                mail_auto_delete=False,
+                email_layout_xmlid="mail.mail_notification_light",
+                attachment_ids=attachment.ids,
+            )
+            request._append_event(
+                "completed_dossier_queued",
+                payload={
+                    "partner_ids": partners.ids,
+                    "filename": request.dossier_filename,
+                    "sha256": hashlib.sha256(base64.b64decode(request.dossier_data)).hexdigest(),
+                },
+            )
 
     def action_send_reminder(self):
         return self._send_due_reminders(force=True)
@@ -1609,7 +1878,7 @@ class SignRequest(models.Model):
         )._send_due_reminders()
         ceremonies = self.env["usl.sign.ceremony"].search(
             [
-                ("state", "in", ["challenge", "authorized"]),
+                ("state", "in", ["challenge", "authorizing", "authorized"]),
                 ("expires_at", "<=", now),
             ],
             limit=200,
@@ -1621,13 +1890,14 @@ class SignRequest(models.Model):
             ceremony.request_id._append_event(
                 "strong_ceremony_expired",
                 signer=ceremony.signer_id,
-                authentication_method="passkey",
+                authentication_method="pocket_id_passkey",
                 payload={"ceremony_id": ceremony.id},
             )
         ceremonies.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
             {
                 "state": "expired",
                 "failure_code": "ceremony_expired",
+                "data_to_sign": False,
                 "dss_signing_context": False,
             },
         )
@@ -1697,10 +1967,15 @@ class SignRequest(models.Model):
         self.env["usl.sign.ceremony"].search(
             [
                 ("request_id", "=", self.id),
-                ("state", "in", ["challenge", "authorized"]),
+                ("state", "in", ["challenge", "authorizing", "authorized"]),
             ],
         ).with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-            {"state": "failed", "failure_code": failure_code, "dss_signing_context": False},
+            {
+                "state": "failed",
+                "failure_code": failure_code,
+                "data_to_sign": False,
+                "dss_signing_context": False,
+            },
         )
 
     def action_retry_validation(self):
@@ -1940,7 +2215,6 @@ class SignRequestSigner(models.Model):
                 ("partner_id", "=", self.partner_id.commercial_partner_id.id),
                 ("company_id", "=", self.request_id.company_id.id),
                 ("state", "=", "active"),
-                ("passkey_ids.state", "=", "active"),
             ],
             limit=1,
         )

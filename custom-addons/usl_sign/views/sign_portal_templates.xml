@@ -51,7 +51,7 @@
             <main class="container py-5" style="max-width: 42rem;">
                 <div t-if="successful" class="alert alert-success" role="status">
                     <h1 class="h4">Your signature was recorded</h1>
-                    <p class="mb-0">Odoo is validating the completed document and building its evidence package.</p>
+                    <p class="mb-0">Other participants may still need to sign. When the request is complete, Odoo will validate the final document and prepare the evidence dossier.</p>
                 </div>
                 <div t-elif="declined" class="alert alert-info" role="status">
                     <h1 class="h4">Your refusal was recorded</h1>
@@ -98,9 +98,9 @@
                     </section>
                     <label class="usl-sign-consent" for="usl_strong_consent">
                         <input id="usl_strong_consent" type="checkbox"/>
-                        <span>I reviewed this exact document and authorize my strong personal electronic signature using my passkey.</span>
+                        <span>I reviewed this exact document and authorize my strong personal electronic signature using my Pocket ID passkey.</span>
                     </label>
-                    <button id="usl_strong_sign_button" class="usl-sign-button">Authorize with my passkey and sign</button>
+                    <button id="usl_strong_sign_button" class="usl-sign-button">Open Pocket ID and sign</button>
                     <div id="usl_strong_status" class="usl-sign-status" role="status" aria-live="polite"/>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
@@ -112,23 +112,42 @@
             <head>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-                <title>Register a passkey for USL Sign</title>
+                <title>Connect Pocket ID to USL Sign</title>
                 <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
             </head>
             <body>
                 <main id="usl_strong_enrollment" class="usl-sign-shell usl-sign-shell--compact" t-att-data-enrollment-id="enrollment.id" t-att-data-enrollment-token="enrollment_token">
                     <p class="usl-sign-eyebrow">USL Sign enrolment</p>
-                    <h1>Register a passkey</h1>
-                    <p>Your identity relationship was reviewed by <t t-out="enrollment.reviewer_id.name"/> under policy <t t-out="enrollment.policy_version"/>.</p>
-                    <label class="usl-sign-field" for="usl_passkey_name">
-                        <span>Passkey name</span>
-                        <input id="usl_passkey_name" value="Primary passkey"/>
-                    </label>
-                    <button id="usl_enroll_button" class="usl-sign-button">Register passkey</button>
+                    <h1>Connect Pocket ID</h1>
+                    <p>Use your existing Pocket ID passkey to link the correct identity to this USL Sign enrolment under policy <t t-out="enrollment.policy_version"/>.</p>
+                    <button id="usl_enroll_button" class="usl-sign-button">Continue to Pocket ID</button>
                     <div id="usl_enroll_status" class="usl-sign-status" role="status" aria-live="polite"/>
-                    <div class="usl-sign-note">Register a second recovery passkey after the first one. Revocation never changes signatures already completed.</div>
+                    <div class="usl-sign-note">Pocket ID manages passkeys and recovery. USL Sign stores only the immutable Pocket ID identity link and reviewer decision, never passkey credentials.</div>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
+            </body>
+        </html>
+    </template>
+    <template id="pocketid_callback_result" name="Pocket ID authorization result">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Pocket ID authorization</title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body>
+                <main class="usl-sign-shell usl-sign-shell--compact">
+                    <p class="usl-sign-eyebrow">USL Sign</p>
+                    <div t-if="successful" class="alert alert-success" role="status">
+                        <h1 class="h3">Pocket ID verified</h1>
+                        <p class="mb-0">Return to the signing page. You can close this window.</p>
+                    </div>
+                    <div t-else="" class="alert alert-danger" role="alert">
+                        <h1 class="h3">Authorization stopped</h1>
+                        <p class="mb-0">Return to the signing page and start again. No signature was applied.</p>
+                    </div>
+                </main>
             </body>
         </html>
     </template>

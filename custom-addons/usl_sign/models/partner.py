@@ -16,7 +16,7 @@ class ResPartner(models.Model):
         [
             ("not_enrolled", "Not enrolled"),
             ("pending_review", "Identity review required"),
-            ("pending_passkey", "Passkey registration required"),
+            ("pending_pocket", "Pocket ID connection required"),
             ("active", "Active"),
             ("revoked", "Revoked"),
         ],

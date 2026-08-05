@@ -19,4 +19,15 @@
             <p>This personal link expires after first use and must not be forwarded.</p>
         </div>
     </template>
+
+    <template id="sign_completion_delivery_body" name="USL Sign completion delivery body">
+        <div style="font-family: Arial, sans-serif; font-size: 14px;">
+            <p>The signature request <strong t-out="record.name"/> is complete.</p>
+            <p>
+                The attached final evidence dossier contains the signed document,
+                completion certificate, and validation evidence.
+            </p>
+            <p t-out="record.company_id.name"/>
+        </div>
+    </template>
 </odoo>

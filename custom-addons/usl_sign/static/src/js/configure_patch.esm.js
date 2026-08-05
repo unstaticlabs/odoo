@@ -1,21 +1,39 @@
 /** @odoo-module **/
+/* global window */
 
-import {patch} from "@web/core/utils/patch";
+import {onWillUnmount, useState} from "@odoo/owl";
+import {_t} from "@web/core/l10n/translation";
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
-import {useState} from "@odoo/owl";
 import SignOcaConfigure from "@sign_oca/components/sign_oca_configure/sign_oca_configure.esm";
 
-const ROLE_COLORS = ["#7c3aed", "#0284c7", "#059669", "#d97706", "#dc2626", "#0891b2", "#9333ea", "#4d7c0f"];
+import {
+    clamp,
+    editableItemValues,
+    operationUuid,
+    pointToPlacement,
+    roleTint,
+} from "./editor_utils.esm";
 
-patch(SignOcaConfigure.prototype, {
+const EDITOR_VALUES = [
+    "field_id",
+    "role_id",
+    "required",
+    "placeholder",
+    "page",
+    "position_x",
+    "position_y",
+    "width",
+    "height",
+];
+
+export class UslSignTemplateEditor extends SignOcaConfigure {
     setup() {
         const routeModels = {
             usl_sign_request_configure: "sign.oca.request",
             usl_sign_template_configure: "sign.oca.template",
         };
-        const routeTag =
-            this.props.action.tag || window.location.pathname.split("/").at(-1);
+        const routeTag = this.props.action.tag || window.location.pathname.split("/").at(-1);
         const routeModel = routeModels[routeTag];
         if (routeModel && !this.props.action.params?.res_model) {
             const routeMatch = window.location.pathname.match(/\/(\d+)\/[^/]+\/?$/);
@@ -29,82 +47,144 @@ patch(SignOcaConfigure.prototype, {
         }
         super.setup(...arguments);
         this.notification = useService("notification");
-        this.uslEditor = useState({
+        this.editor = useState({
             loading: true,
-            error: false,
+            libraryOpen: true,
+            selectedFieldId: false,
             selectedRoleId: false,
+            selectedItemId: false,
             previewRoleId: false,
+            contextPlacement: false,
+            saveStatus: "saved",
+            pending: 0,
+            error: false,
+            conflict: false,
+            undoCount: 0,
+            redoCount: 0,
         });
-    },
+        this.commandQueue = Promise.resolve();
+        this.undoStack = [];
+        this.redoStack = [];
+        this.pageListeners = [];
+        this.beforeUnload = (event) => {
+            if (this.editor.pending || this.editor.error) {
+                event.preventDefault();
+                event.returnValue = "";
+            }
+        };
+        window.addEventListener("beforeunload", this.beforeUnload);
+        onWillUnmount(() => {
+            window.removeEventListener("beforeunload", this.beforeUnload);
+            for (const cleanup of this.pageListeners) {
+                cleanup();
+            }
+        });
+    }
 
     async willStart() {
         await super.willStart(...arguments);
         this.props.action.name = this.info.name;
-        // Reloaded client actions are reconstructed from the URL without an
-        // ``ir.actions.client`` record, so the action service initially calls
-        // them "Unnamed". Update the controller display name once the model
-        // metadata has loaded.
         this.env.config.setDisplayName?.(this.info.name);
-        this.uslEditor.selectedRoleId = this.info.roles[0]?.id || false;
-    },
+        this.editor.selectedRoleId = this.info.roles[0]?.id || false;
+        this.editor.selectedFieldId = this.info.fields[0]?.id || false;
+    }
 
-    roleColor(roleId) {
-        const index = Math.max(0, this.info.roles.findIndex((role) => role.id === roleId));
-        return ROLE_COLORS[index % ROLE_COLORS.length];
-    },
+    get selectedItem() {
+        return this.info.items[String(this.editor.selectedItemId)] ||
+            this.info.items[this.editor.selectedItemId] || false;
+    }
 
-    roleName(roleId) {
-        return this.info.roles.find((role) => role.id === roleId)?.name || "Unassigned role";
-    },
+    get selectedField() {
+        return this.info.fields.find((field) => field.id === this.editor.selectedFieldId);
+    }
 
-    roleButtonStyle(roleId) {
-        const color = this.roleColor(roleId);
-        return `--usl-role-color:${color};border-color:${color}`;
-    },
+    get isEditable() {
+        return !this.info.readonly && !this.editor.previewRoleId && !this.editor.conflict;
+    }
+
+    role(roleId) {
+        return this.info.roles.find((role) => role.id === Number(roleId));
+    }
+
+    field(fieldId) {
+        return this.info.fields.find((field) => field.id === Number(fieldId));
+    }
+
+    roleLabel(role) {
+        return role.signer_name || role.name;
+    }
+
+    roleButtonStyle(role) {
+        return `--usl-role-color:${role.color};--usl-role-tint:${roleTint(role.color)}`;
+    }
+
+    fieldIcon(item) {
+        return this.field(item.field_id)?.icon || "fa-font";
+    }
+
+    toggleLibrary() {
+        this.editor.libraryOpen = !this.editor.libraryOpen;
+    }
 
     selectRole(event) {
-        this.uslEditor.selectedRoleId = Number(event.currentTarget.dataset.roleId);
-    },
+        this.editor.selectedRoleId = Number(event.currentTarget.dataset.roleId);
+    }
+
+    selectField(event) {
+        if (!this.isEditable) {
+            return;
+        }
+        this.editor.selectedFieldId = Number(event.currentTarget.dataset.fieldId);
+        this.editor.selectedItemId = false;
+    }
 
     setRolePreview(event) {
-        this.uslEditor.previewRoleId = Number(event.currentTarget.dataset.roleId) || false;
+        this.editor.previewRoleId = Number(event.currentTarget.dataset.roleId) || false;
+        this.editor.selectedItemId = false;
+        this.editor.contextPlacement = false;
         this.applyRolePreview();
-    },
+    }
+
+    exitPreview() {
+        this.editor.previewRoleId = false;
+        this.applyRolePreview();
+    }
 
     applyRolePreview() {
-        const preview = this.uslEditor.previewRoleId;
-        for (const element of Object.values(this.items)) {
-            const matches = !preview || Number(element.dataset.roleId) === preview;
-            element.classList.toggle("usl_sign_role_dimmed", !matches);
-            element.style.opacity = matches ? "1" : "0.16";
+        const roleId = this.editor.previewRoleId;
+        for (const [itemId, element] of Object.entries(this.items)) {
+            const item = this.info.items[String(itemId)] || this.info.items[itemId];
+            const visible = !roleId || Number(item?.role_id) === roleId;
+            element.hidden = !visible;
+            element.classList.toggle("usl_sign_field_preview", Boolean(roleId));
         }
-    },
+    }
 
     pdfApplication() {
         return this.iframe.el?.contentWindow?.PDFViewerApplication;
-    },
+    }
 
     previousPage() {
         const viewer = this.pdfApplication()?.pdfViewer;
         if (viewer) {
             viewer.currentPageNumber = Math.max(1, viewer.currentPageNumber - 1);
         }
-    },
+    }
 
     nextPage() {
         const viewer = this.pdfApplication()?.pdfViewer;
         if (viewer) {
             viewer.currentPageNumber = Math.min(viewer.pagesCount, viewer.currentPageNumber + 1);
         }
-    },
+    }
 
     zoomIn() {
         this.pdfApplication()?.zoomIn();
-    },
+    }
 
     zoomOut() {
         this.pdfApplication()?.zoomOut();
-    },
+    }
 
     showThumbnails() {
         const sidebar = this.pdfApplication()?.pdfSidebar;
@@ -112,127 +192,532 @@ patch(SignOcaConfigure.prototype, {
             sidebar.switchView(1);
             sidebar.open();
         }
-    },
+    }
 
-    onPaletteDragStart(event, field) {
-        event.dataTransfer.effectAllowed = "copy";
-        event.dataTransfer.setData("application/x-usl-sign-field", String(field.id));
-    },
+    injectIframeAssets(document) {
+        if (!document.getElementById("usl-sign-oca-assets")) {
+            const stylesheet = document.createElement("link");
+            stylesheet.id = "usl-sign-oca-assets";
+            stylesheet.rel = "stylesheet";
+            stylesheet.href = "/sign_oca/get_assets.css";
+            document.head.append(stylesheet);
+        }
+        if (!document.getElementById("usl-sign-editor-style")) {
+            const style = document.createElement("style");
+            style.id = "usl-sign-editor-style";
+            style.textContent = `
+                #editorModeButtons, #printButton, #downloadButton, #secondaryPrint,
+                #secondaryDownload, #viewBookmark, #openFile { display: none !important; }
+                .o_sign_oca_field {
+                    box-sizing: border-box; border: 2px solid var(--usl-role-color);
+                    border-radius: 4px; background: var(--usl-role-tint); color: #17202a;
+                    cursor: pointer; display: flex; align-items: center; min-height: 24px;
+                    overflow: visible; z-index: 80;
+                }
+                .o_sign_oca_field.usl_sign_selected { outline: 3px solid rgba(113,75,103,.32); outline-offset: 2px; z-index: 82; }
+                .o_sign_oca_field.usl_sign_field_preview { cursor: default; }
+                .usl_sign_field_move { cursor: move; padding: 4px 5px; flex: 0 0 auto; }
+                .usl_sign_field_label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 12px system-ui; }
+                .usl_sign_required { margin-left: auto; padding: 0 5px; font-weight: 800; color: var(--usl-role-color); }
+                .usl_sign_resize_handle { position: absolute; right: -2px; bottom: -2px; width: 14px; height: 14px; cursor: nwse-resize; background: var(--usl-role-color); border-radius: 3px 0 3px 0; }
+                .usl_sign_resize_handle::after { content: ""; position: absolute; right: 3px; bottom: 3px; width: 6px; height: 6px; border-right: 2px solid white; border-bottom: 2px solid white; }
+            `;
+            document.head.append(style);
+        }
+    }
 
     postIframeFields() {
-        super.postIframeFields(...arguments);
-        this.uslEditor.loading = false;
-        const iframeDocument = this.iframe.el.contentDocument;
-        if (!iframeDocument.getElementById("usl-sign-editor-style")) {
-            const style = iframeDocument.createElement("style");
-            style.id = "usl-sign-editor-style";
-            style.textContent = ".o_sign_oca_field:focus{outline:3px solid rgba(113,75,103,.35)}";
-            iframeDocument.head.append(style);
+        const document = this.iframe.el.contentDocument;
+        this.injectIframeAssets(document);
+        for (const page of document.getElementsByClassName("page")) {
+            this.bindPage(page);
         }
-        for (const page of this.iframe.el.contentDocument.getElementsByClassName("page")) {
-            if (page.dataset.uslDropReady) {
-                continue;
-            }
-            page.dataset.uslDropReady = "1";
-            page.addEventListener("dragover", (event) => {
-                if (event.dataTransfer.types.includes("application/x-usl-sign-field")) {
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = "copy";
-                }
-            });
-            page.addEventListener("drop", async (event) => {
-                const fieldId = Number(
-                    event.dataTransfer.getData("application/x-usl-sign-field")
-                );
-                if (!fieldId) {
-                    return;
-                }
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                const rectangle = page.getBoundingClientRect();
-                const left = Math.round((((event.clientX - rectangle.left) * 100) / rectangle.width) * 2) / 2;
-                const top = Math.round((((event.clientY - rectangle.top) * 100) / rectangle.height) * 2) / 2;
-                try {
-                    const item = await this.orm.call(this.model, "add_item", [
-                        [this.res_id],
-                        {
-                            field_id: fieldId,
-                            role_id: this.uslEditor.selectedRoleId,
-                            page: Number(page.dataset.pageNumber),
-                            position_x: Math.max(0, Math.min(80, left)),
-                            position_y: Math.max(0, Math.min(96, top)),
-                            width: 20,
-                            height: 4,
-                        },
-                    ]);
-                    this.info.items[item.id] = item;
-                    this.postIframeField(item);
-                } catch {
-                    this.uslEditor.error = true;
-                    this.notification.add("The field could not be placed. Check access and retry.", {type: "danger"});
-                }
-            }, true);
+        for (const item of Object.values(this.info.items)) {
+            this.renderField(item);
         }
+        if (!document.querySelector(".o_sign_oca_ready")) {
+            const marker = document.createElement("div");
+            marker.className = "o_sign_oca_ready";
+            document.getElementsByClassName("page")[0]?.append(marker);
+        }
+        document.getElementById("viewer")?.classList.add("sign_oca_ready");
+        this.editor.loading = false;
         this.applyRolePreview();
-    },
+        this.iframeLoaded.resolve();
+    }
 
-    postIframeField(item) {
-        const element = super.postIframeField(...arguments);
-        element[0].dataset.roleId = item.role_id;
-        element[0].style.setProperty("--usl-role-color", this.roleColor(item.role_id));
-        element[0].style.borderColor = this.roleColor(item.role_id);
-        element[0].setAttribute("role", "button");
-        element[0].setAttribute(
-            "aria-label",
-            `${item.name}, ${this.roleName(item.role_id)}${item.required ? ", required" : ", optional"}`
-        );
-        element[0].title = `${this.roleName(item.role_id)} • ${item.required ? "Required" : "Optional"}`;
-        element[0].tabIndex = 0;
-        element[0].addEventListener("keydown", async (event) => {
-            if (event.key === "Delete" || event.key === "Backspace") {
-                event.preventDefault();
-                await this.orm.call(this.model, "delete_item", [[this.res_id], item.id]);
-                delete this.info.items[item.id];
-                element[0].remove();
+    bindPage(page) {
+        if (page.dataset.uslEditorReady) {
+            return;
+        }
+        page.dataset.uslEditorReady = "1";
+        const click = (event) => {
+            if (!this.isEditable || event.target.closest(".o_sign_oca_field")) {
                 return;
             }
-            const directions = {
-                ArrowLeft: [-1, 0],
-                ArrowRight: [1, 0],
-                ArrowUp: [0, -1],
-                ArrowDown: [0, 1],
-            };
-            if (!directions[event.key]) {
+            if (!this.editor.selectedFieldId || !this.editor.selectedRoleId) {
+                this.notification.add(_t("Choose a field type and signer first."), {type: "warning"});
+                return;
+            }
+            const field = this.selectedField;
+            const placement = pointToPlacement(
+                page.getBoundingClientRect(), event.clientX, event.clientY,
+                field.default_width, field.default_height
+            );
+            this.createField({
+                field_id: field.id,
+                role_id: this.editor.selectedRoleId,
+                page: Number(page.dataset.pageNumber),
+                ...placement,
+                width: field.default_width,
+                height: field.default_height,
+            });
+        };
+        const contextmenu = (event) => {
+            if (!this.isEditable || event.target.closest(".o_sign_oca_field")) {
                 return;
             }
             event.preventDefault();
-            const amount = event.altKey ? 0.1 : 0.5;
-            const [horizontal, vertical] = directions[event.key];
-            item.position_x = Number(item.position_x);
-            item.position_y = Number(item.position_y);
-            item.width = Number(item.width);
-            item.height = Number(item.height);
-            const updates = {};
-            if (event.shiftKey) {
-                updates.width = Math.max(1, Math.min(100 - item.position_x, item.width + horizontal * amount));
-                updates.height = Math.max(1, Math.min(100 - item.position_y, item.height + vertical * amount));
-            } else {
-                updates.position_x = Math.max(0, Math.min(100 - item.width, item.position_x + horizontal * amount));
-                updates.position_y = Math.max(0, Math.min(100 - item.height, item.position_y + vertical * amount));
-            }
-            Object.assign(item, updates);
-            Object.assign(element[0].style, {
-                left: `${item.position_x}%`,
-                top: `${item.position_y}%`,
-                width: `${item.width}%`,
-                height: `${item.height}%`,
-            });
-            await this.orm.call(this.model, "set_item_data", [[this.res_id], item.id, updates]);
+            const field = this.selectedField;
+            const width = field?.default_width || 20;
+            const height = field?.default_height || 5;
+            this.editor.contextPlacement = {
+                page: Number(page.dataset.pageNumber),
+                ...pointToPlacement(page.getBoundingClientRect(), event.clientX, event.clientY, width, height),
+            };
+            this.editor.selectedItemId = false;
+        };
+        page.addEventListener("click", click);
+        page.addEventListener("contextmenu", contextmenu);
+        this.pageListeners.push(() => {
+            page.removeEventListener("click", click);
+            page.removeEventListener("contextmenu", contextmenu);
         });
-        this.applyRolePreview();
-        return element;
-    },
-});
+    }
 
-registry.category("actions").add("usl_sign_template_configure", SignOcaConfigure);
-registry.category("actions").add("usl_sign_request_configure", SignOcaConfigure);
+    renderField(item) {
+        const document = this.iframe.el.contentDocument;
+        const page = document.getElementsByClassName("page")[Number(item.page) - 1];
+        if (!page) {
+            return;
+        }
+        this.items[item.id]?.remove();
+        const role = this.role(item.role_id);
+        const element = document.createElement("div");
+        element.className = "o_sign_oca_field";
+        element.dataset.field = item.id;
+        element.dataset.roleId = item.role_id;
+        element.tabIndex = this.isEditable ? 0 : -1;
+        element.setAttribute("role", "button");
+        element.setAttribute(
+            "aria-label",
+            `${item.name}, ${this.roleLabel(role)}, ${item.required ? _t("required") : _t("optional")}`
+        );
+        Object.assign(element.style, {
+            top: `${item.position_y}%`,
+            left: `${item.position_x}%`,
+            width: `${item.width}%`,
+            height: `${item.height}%`,
+            position: "absolute",
+        });
+        element.style.setProperty("--usl-role-color", role.color);
+        element.style.setProperty("--usl-role-tint", roleTint(role.color));
+        const move = document.createElement("span");
+        move.className = `usl_sign_field_move fa ${this.fieldIcon(item)}`;
+        move.title = _t("Move field");
+        const label = document.createElement("span");
+        label.className = "usl_sign_field_label";
+        label.textContent = item.placeholder || item.name;
+        element.append(move, label);
+        if (item.required) {
+            const required = document.createElement("span");
+            required.className = "usl_sign_required";
+            required.textContent = "*";
+            required.title = _t("Required");
+            element.append(required);
+        }
+        if (this.isEditable) {
+            const resize = document.createElement("span");
+            resize.className = "usl_sign_resize_handle";
+            resize.title = _t("Resize field");
+            element.append(resize);
+            move.addEventListener("pointerdown", (event) => this.startManipulation(event, item, "move"));
+            resize.addEventListener("pointerdown", (event) => this.startManipulation(event, item, "resize"));
+        }
+        element.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (!this.editor.previewRoleId) {
+                this.editor.selectedItemId = item.id;
+                this.editor.contextPlacement = false;
+                this.refreshSelection();
+            }
+        });
+        element.addEventListener("keydown", (event) => this.onFieldKeydown(event, item));
+        page.append(element);
+        this.items[item.id] = element;
+        this.refreshSelection();
+        return element;
+    }
+
+    refreshSelection() {
+        for (const [itemId, element] of Object.entries(this.items)) {
+            element.classList.toggle("usl_sign_selected", Number(itemId) === this.editor.selectedItemId);
+        }
+    }
+
+    startManipulation(event, item, mode) {
+        if (!this.isEditable) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const before = editableItemValues(item);
+        const page = event.currentTarget.closest(".page");
+        const rectangle = page.getBoundingClientRect();
+        const origin = {x: event.clientX, y: event.clientY};
+        const move = (pointerEvent) => {
+            const deltaX = ((pointerEvent.clientX - origin.x) * 100) / rectangle.width;
+            const deltaY = ((pointerEvent.clientY - origin.y) * 100) / rectangle.height;
+            if (mode === "move") {
+                item.position_x = clamp(before.position_x + deltaX, 0, 100 - before.width);
+                item.position_y = clamp(before.position_y + deltaY, 0, 100 - before.height);
+            } else {
+                item.width = clamp(before.width + deltaX, 2, 100 - before.position_x);
+                item.height = clamp(before.height + deltaY, 2, 100 - before.position_y);
+            }
+            Object.assign(this.items[item.id].style, {
+                left: `${item.position_x}%`, top: `${item.position_y}%`,
+                width: `${item.width}%`, height: `${item.height}%`,
+            });
+        };
+        const up = () => {
+            const document = this.iframe.el.contentDocument;
+            document.removeEventListener("pointermove", move);
+            document.removeEventListener("pointerup", up);
+            const after = editableItemValues(item);
+            if (
+                before.position_x === after.position_x &&
+                before.position_y === after.position_y &&
+                before.width === after.width &&
+                before.height === after.height
+            ) {
+                return;
+            }
+            const values = mode === "move"
+                ? {position_x: after.position_x, position_y: after.position_y}
+                : {width: after.width, height: after.height};
+            const inverse = mode === "move"
+                ? {position_x: before.position_x, position_y: before.position_y}
+                : {width: before.width, height: before.height};
+            this.updateField(item, values, inverse);
+        };
+        const document = this.iframe.el.contentDocument;
+        document.addEventListener("pointermove", move);
+        document.addEventListener("pointerup", up, {once: true});
+    }
+
+    onFieldKeydown(event, item) {
+        if (!this.isEditable) {
+            return;
+        }
+        if (event.key === "Delete" || event.key === "Backspace") {
+            event.preventDefault();
+            this.deleteField(item);
+            return;
+        }
+        const directions = {
+            ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+            ArrowUp: [0, -1], ArrowDown: [0, 1],
+        };
+        if (!directions[event.key]) {
+            return;
+        }
+        event.preventDefault();
+        const [horizontal, vertical] = directions[event.key];
+        const amount = event.altKey ? 0.1 : 0.5;
+        const before = editableItemValues(item);
+        let values;
+        let inverse;
+        if (event.shiftKey) {
+            values = {
+                width: clamp(before.width + horizontal * amount, 2, 100 - before.position_x),
+                height: clamp(before.height + vertical * amount, 2, 100 - before.position_y),
+            };
+            inverse = {width: before.width, height: before.height};
+        } else {
+            values = {
+                position_x: clamp(before.position_x + horizontal * amount, 0, 100 - before.width),
+                position_y: clamp(before.position_y + vertical * amount, 0, 100 - before.height),
+            };
+            inverse = {position_x: before.position_x, position_y: before.position_y};
+        }
+        this.updateField(item, values, inverse);
+    }
+
+    onPalettePointerDown(event, field) {
+        if (!this.isEditable || event.button !== 0) {
+            return;
+        }
+        const start = {x: event.clientX, y: event.clientY};
+        const button = event.currentTarget;
+        let dragged = false;
+        button.setPointerCapture(event.pointerId);
+        const move = (pointerEvent) => {
+            dragged ||= Math.hypot(pointerEvent.clientX - start.x, pointerEvent.clientY - start.y) > 6;
+        };
+        const up = (pointerEvent) => {
+            button.removeEventListener("pointermove", move);
+            button.removeEventListener("pointerup", up);
+            if (!dragged) {
+                return;
+            }
+            pointerEvent.preventDefault();
+            const iframeRectangle = this.iframe.el.getBoundingClientRect();
+            const iframeX = pointerEvent.clientX - iframeRectangle.left;
+            const iframeY = pointerEvent.clientY - iframeRectangle.top;
+            const pages = this.iframe.el.contentDocument.getElementsByClassName("page");
+            const page = [...pages].find((candidate) => {
+                const rectangle = candidate.getBoundingClientRect();
+                return iframeX >= rectangle.left && iframeX <= rectangle.right &&
+                    iframeY >= rectangle.top && iframeY <= rectangle.bottom;
+            });
+            if (!page) {
+                return;
+            }
+            const pageRectangle = page.getBoundingClientRect();
+            const placement = pointToPlacement(
+                pageRectangle, iframeX, iframeY, field.default_width, field.default_height
+            );
+            this.editor.selectedFieldId = field.id;
+            this.createField({
+                field_id: field.id,
+                role_id: this.editor.selectedRoleId,
+                page: Number(page.dataset.pageNumber),
+                ...placement,
+                width: field.default_width,
+                height: field.default_height,
+            });
+        };
+        button.addEventListener("pointermove", move);
+        button.addEventListener("pointerup", up, {once: true});
+    }
+
+    contextCreate() {
+        const field = this.selectedField;
+        if (!field || !this.editor.selectedRoleId || !this.editor.contextPlacement) {
+            this.notification.add(_t("Choose a field type and signer first."), {type: "warning"});
+            return;
+        }
+        this.createField({
+            field_id: field.id,
+            role_id: this.editor.selectedRoleId,
+            ...this.editor.contextPlacement,
+            width: field.default_width,
+            height: field.default_height,
+        });
+        this.editor.contextPlacement = false;
+    }
+
+    cancelContextPlacement() {
+        this.editor.contextPlacement = false;
+    }
+
+    async applyCommand(command) {
+        const run = async () => {
+            this.editor.pending += 1;
+            this.editor.saveStatus = "saving";
+            this.editor.error = false;
+            try {
+                const result = await this.orm.call(this.model, "editor_apply_command", [
+                    [this.res_id], operationUuid(), this.info.revision, command,
+                ]);
+                if (result.status === "conflict") {
+                    this.editor.conflict = true;
+                    this.editor.error = true;
+                    this.editor.saveStatus = "error";
+                    this.notification.add(result.message, {type: "danger", sticky: true});
+                    return result;
+                }
+                this.info.revision = result.revision;
+                if (result.item) {
+                    this.info.items[String(result.item.id)] = result.item;
+                    this.renderField(result.item);
+                }
+                if (result.deleted_id) {
+                    delete this.info.items[String(result.deleted_id)];
+                    delete this.info.items[result.deleted_id];
+                    this.items[result.deleted_id]?.remove();
+                    delete this.items[result.deleted_id];
+                    if (this.editor.selectedItemId === result.deleted_id) {
+                        this.editor.selectedItemId = false;
+                    }
+                }
+                this.editor.saveStatus = "saved";
+                return result;
+            } catch (error) {
+                this.editor.error = true;
+                this.editor.saveStatus = "error";
+                this.notification.add(
+                    _t("The field change could not be saved. The previous layout was restored."),
+                    {type: "danger"}
+                );
+                throw error;
+            } finally {
+                this.editor.pending -= 1;
+            }
+        };
+        const result = this.commandQueue.then(run, run);
+        this.commandQueue = result.catch(() => undefined);
+        return result;
+    }
+
+    pushHistory(entry) {
+        this.undoStack.push(entry);
+        this.redoStack = [];
+        this.editor.undoCount = this.undoStack.length;
+        this.editor.redoCount = 0;
+    }
+
+    async createField(values, {recordHistory = true} = {}) {
+        const result = await this.applyCommand({action: "create", values});
+        if (result.status !== "ok") {
+            return result;
+        }
+        this.editor.selectedItemId = result.item.id;
+        this.refreshSelection();
+        if (recordHistory) {
+            this.pushHistory({kind: "create", itemId: result.item.id, values: editableItemValues(result.item)});
+        }
+        return result;
+    }
+
+    async updateField(item, values, inverseValues = false, {recordHistory = true} = {}) {
+        const before = inverseValues || Object.fromEntries(
+            Object.keys(values).map((key) => [key, item[key]])
+        );
+        Object.assign(item, values);
+        this.renderField(item);
+        try {
+            const result = await this.applyCommand({action: "update", item_id: item.id, values});
+            if (result.status !== "ok") {
+                Object.assign(item, before);
+                this.renderField(item);
+                return result;
+            }
+            if (recordHistory) {
+                this.pushHistory({kind: "update", itemId: item.id, before, after: values});
+            }
+            return result;
+        } catch (error) {
+            Object.assign(item, before);
+            this.renderField(item);
+            throw error;
+        }
+    }
+
+    async deleteField(item, {recordHistory = true} = {}) {
+        const snapshot = editableItemValues(item);
+        const result = await this.applyCommand({action: "delete", item_id: item.id});
+        if (result.status === "ok" && recordHistory) {
+            this.pushHistory({kind: "delete", itemId: item.id, values: snapshot});
+        }
+        return result;
+    }
+
+    async undo() {
+        if (!this.isEditable || !this.undoStack.length) {
+            return;
+        }
+        const entry = this.undoStack.pop();
+        try {
+            let result;
+            if (entry.kind === "update") {
+                const item = this.info.items[String(entry.itemId)];
+                result = await this.updateField(item, entry.before, entry.after, {recordHistory: false});
+            } else if (entry.kind === "create") {
+                result = await this.deleteField(this.info.items[String(entry.itemId)], {recordHistory: false});
+            } else if (entry.kind === "delete") {
+                result = await this.createField(entry.values, {recordHistory: false});
+                if (result.status === "ok") {
+                    entry.itemId = result.item.id;
+                }
+            }
+            if (result?.status !== "ok") {
+                this.undoStack.push(entry);
+                return;
+            }
+        } catch (error) {
+            this.undoStack.push(entry);
+            throw error;
+        }
+        this.redoStack.push(entry);
+        this.editor.undoCount = this.undoStack.length;
+        this.editor.redoCount = this.redoStack.length;
+    }
+
+    async redo() {
+        if (!this.isEditable || !this.redoStack.length) {
+            return;
+        }
+        const entry = this.redoStack.pop();
+        try {
+            let result;
+            if (entry.kind === "update") {
+                const item = this.info.items[String(entry.itemId)];
+                result = await this.updateField(item, entry.after, entry.before, {recordHistory: false});
+            } else if (entry.kind === "create") {
+                result = await this.createField(entry.values, {recordHistory: false});
+                if (result.status === "ok") {
+                    entry.itemId = result.item.id;
+                }
+            } else if (entry.kind === "delete") {
+                result = await this.deleteField(this.info.items[String(entry.itemId)], {recordHistory: false});
+            }
+            if (result?.status !== "ok") {
+                this.redoStack.push(entry);
+                return;
+            }
+        } catch (error) {
+            this.redoStack.push(entry);
+            throw error;
+        }
+        this.undoStack.push(entry);
+        this.editor.undoCount = this.undoStack.length;
+        this.editor.redoCount = this.redoStack.length;
+    }
+
+    changeItemField(event) {
+        const field = this.field(Number(event.target.value));
+        this.updateField(this.selectedItem, {field_id: field.id});
+    }
+
+    changeItemRole(event) {
+        this.updateField(this.selectedItem, {role_id: Number(event.target.value)});
+    }
+
+    changeItemRequired(event) {
+        this.updateField(this.selectedItem, {required: event.target.checked});
+    }
+
+    changeItemPlaceholder(event) {
+        this.updateField(this.selectedItem, {placeholder: event.target.value});
+    }
+
+    changeItemNumber(event) {
+        const name = event.target.name;
+        const value = Number(event.target.value);
+        if (!EDITOR_VALUES.includes(name) || !Number.isFinite(value)) {
+            return;
+        }
+        this.updateField(this.selectedItem, {[name]: value});
+    }
+
+    reloadEditor() {
+        window.location.reload();
+    }
+}
+
+UslSignTemplateEditor.template = "usl_sign.SignTemplateEditor";
+
+registry.category("actions").add("usl_sign_template_configure", UslSignTemplateEditor, {force: true});
+registry.category("actions").add("usl_sign_request_configure", UslSignTemplateEditor, {force: true});

@@ -36,10 +36,14 @@
     "assets": {
         "web.assets_backend": [
             "usl_sign/static/src/js/business_summary.esm.js",
+            "usl_sign/static/src/js/editor_utils.esm.js",
             "usl_sign/static/src/js/configure_patch.esm.js",
             "usl_sign/static/src/xml/business_summary.xml",
             "usl_sign/static/src/xml/configure_patch.xml",
             "usl_sign/static/src/scss/sign.scss",
+        ],
+        "web.assets_unit_tests": [
+            "usl_sign/static/tests/editor_utils.test.js",
         ],
         "oca_sign.assets_frontend_sign": [
             "usl_sign/static/src/js/portal_patch.esm.js",
@@ -52,4 +56,5 @@
     },
     "application": True,
     "installable": True,
+    "post_init_hook": "post_init_hook",
 }

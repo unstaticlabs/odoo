@@ -11,22 +11,19 @@
     <record id="sign_oca.sign_oca_request_menu" model="ir.ui.menu"><field name="active" eval="False"/></record>
     <record id="sign_oca.sign_oca_settings_menu" model="ir.ui.menu">
         <field name="name">Configuration</field>
-        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_admin')])]"/>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_admin'), ref('usl_sign.group_sign_identity_reviewer'), ref('usl_sign.group_sign_evidence_reviewer')])]"/>
     </record>
-    <record id="sign_oca.sign_oca_general_settings_menu" model="ir.ui.menu"><field name="active" eval="False"/></record>
-    <record id="sign_config_settings_action" model="ir.actions.act_window">
-        <field name="name">USL Sign Settings</field>
-        <field name="res_model">res.config.settings</field>
-        <field name="view_mode">form</field>
-        <field name="context">{'module': 'usl_sign', 'bin_size': False}</field>
+    <record id="sign_oca.sign_oca_general_settings_menu" model="ir.ui.menu">
+        <field name="name">Settings</field>
+        <field name="active" eval="True"/>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_admin')])]"/>
     </record>
     <menuitem id="sign_approval_menu" name="Approve in Odoo" parent="sign_oca.sign_oca_root_menu" action="sign_approval_action" sequence="15"/>
     <menuitem id="signature_requests_menu" name="Signature Requests" parent="sign_oca.sign_oca_root_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>
     <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="30" groups="usl_sign.group_sign_user"/>
     <menuitem id="completed_documents_menu" name="Completed Documents" parent="sign_oca.sign_oca_root_menu" action="completed_documents_action" sequence="40" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
-    <menuitem id="sign_daily_manifest_menu" name="Daily Evidence Manifests" parent="sign_oca.sign_oca_root_menu" action="sign_daily_manifest_action" sequence="45" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
-    <menuitem id="sign_enrollment_menu" name="Strong Signer Enrolments" parent="sign_oca.sign_oca_root_menu" action="sign_enrollment_action" sequence="50" groups="usl_sign.group_sign_identity_reviewer"/>
+    <menuitem id="sign_daily_manifest_menu" name="Daily Evidence Manifests" parent="sign_oca.sign_oca_settings_menu" action="sign_daily_manifest_action" sequence="30" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
+    <menuitem id="sign_enrollment_menu" name="Strong Signer Enrolments" parent="sign_oca.sign_oca_settings_menu" action="sign_enrollment_action" sequence="40" groups="usl_sign.group_sign_identity_reviewer"/>
     <menuitem id="sign_policy_menu" name="Trust Policies" parent="sign_oca.sign_oca_settings_menu" action="sign_policy_action" sequence="10" groups="usl_sign.group_sign_admin"/>
     <menuitem id="sign_external_provider_menu" name="External QES Providers" parent="sign_oca.sign_oca_settings_menu" action="sign_external_provider_action" sequence="20" groups="usl_sign.group_sign_admin"/>
-    <menuitem id="sign_settings_menu" name="Settings" parent="sign_oca.sign_oca_settings_menu" action="sign_config_settings_action" sequence="30" groups="usl_sign.group_sign_admin"/>
 </odoo>

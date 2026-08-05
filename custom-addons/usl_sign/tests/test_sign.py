@@ -2,6 +2,7 @@ import base64
 import hashlib
 import itertools
 import json
+import uuid
 from datetime import timedelta
 from io import BytesIO
 from unittest.mock import patch
@@ -128,10 +129,22 @@ class TestCleanUslSign(TransactionCase):
             groups="usl_sign.group_sign_trust_override",
             company_id=cls.company.id,
         )
+        cls.template_manager = new_test_user(
+            cls.env,
+            login="usl-sign-template-manager",
+            groups="usl_sign.group_sign_template_manager",
+            company_id=cls.company.id,
+        )
         cls.reviewer = new_test_user(
             cls.env,
             login="usl-sign-reviewer",
             groups="usl_sign.group_sign_identity_reviewer",
+            company_id=cls.company.id,
+        )
+        cls.evidence_reviewer = new_test_user(
+            cls.env,
+            login="usl-sign-evidence-reviewer",
+            groups="usl_sign.group_sign_evidence_reviewer",
             company_id=cls.company.id,
         )
         cls.policy = cls.env.ref("usl_sign.policy_routine_standard")
@@ -304,6 +317,174 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.document_ids.source_sha256, template.document_ids.source_sha256)
         self.assertFalse(request.sent_at)
 
+    def test_template_editor_exposes_typed_fields_and_stable_role_colors(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Typed editor template",
+                "filename": "typed.pdf",
+                "data": base64.b64encode(self.pdf),
+                "company_id": self.company.id,
+            },
+        )
+        first = template.get_info()
+        second = template.get_info()
+        fields_by_name = {field["name"]: field for field in first["fields"]}
+        self.assertEqual(fields_by_name["Signature"]["kind"], "signature")
+        self.assertEqual(fields_by_name["Email"]["kind"], "email")
+        self.assertEqual(fields_by_name["Phone"]["kind"], "phone")
+        self.assertEqual(fields_by_name["Check"]["kind"], "checkbox")
+        self.assertEqual(fields_by_name["Initials"]["field_type"], "signature")
+        self.assertGreater(fields_by_name["Signature"]["default_width"], 0)
+        self.assertEqual(
+            {role["id"]: role["color"] for role in first["roles"]},
+            {role["id"]: role["color"] for role in second["roles"]},
+        )
+        self.assertTrue(all(role["color"].startswith("#") for role in first["roles"]))
+        self.assertEqual(first["revision"], 1)
+        self.assertFalse(first["readonly"])
+
+    def test_template_editor_commands_are_revision_checked_and_idempotent(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Command editor template",
+                "filename": "commands.pdf",
+                "data": base64.b64encode(self.pdf),
+                "company_id": self.company.id,
+            },
+        )
+        operation = str(uuid.uuid4())
+        command = {
+            "action": "create",
+            "values": {
+                "field_id": self.text_field.id,
+                "role_id": self.role_employee.id,
+                "page": 1,
+                "position_x": 10,
+                "position_y": 12,
+                "width": 24,
+                "height": 5,
+            },
+        }
+        created = template.editor_apply_command(operation, 1, command)
+        duplicate = template.editor_apply_command(operation, 1, command)
+        self.assertEqual(created, duplicate)
+        self.assertEqual(len(template.item_ids), 1)
+        self.assertEqual(template.item_ids.role_id, self.role_employee)
+        self.assertEqual(template.editor_revision, 2)
+        conflict = template.editor_apply_command(str(uuid.uuid4()), 1, command)
+        self.assertEqual(conflict["status"], "conflict")
+        self.assertEqual(template.editor_revision, 2)
+
+        updated = template.editor_apply_command(
+            str(uuid.uuid4()),
+            2,
+            {
+                "action": "update",
+                "item_id": created["item"]["id"],
+                "values": {"role_id": self.role_customer.id, "required": True},
+            },
+        )
+        self.assertEqual(updated["item"]["role_id"], self.role_customer.id)
+        self.assertTrue(updated["item"]["required"])
+
+    def test_template_editor_rejects_missing_role_and_out_of_page_geometry(self):
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Validated editor template",
+                "filename": "validated.pdf",
+                "data": base64.b64encode(self.pdf),
+                "company_id": self.company.id,
+            },
+        )
+        with self.assertRaisesRegex(ValidationError, "field type and a signer"):
+            template.editor_apply_command(
+                str(uuid.uuid4()),
+                1,
+                {"action": "create", "values": {"field_id": self.text_field.id}},
+            )
+        with self.assertRaisesRegex(ValidationError, "inside its PDF page"):
+            template.editor_apply_command(
+                str(uuid.uuid4()),
+                1,
+                {
+                    "action": "create",
+                    "values": {
+                        "field_id": self.text_field.id,
+                        "role_id": self.role_customer.id,
+                        "page": 1,
+                        "position_x": 95,
+                        "position_y": 10,
+                        "width": 20,
+                        "height": 5,
+                    },
+                },
+            )
+        with self.assertRaisesRegex(ValidationError, "page does not exist"):
+            template.editor_apply_command(
+                str(uuid.uuid4()),
+                1,
+                {
+                    "action": "create",
+                    "values": {
+                        "field_id": self.text_field.id,
+                        "role_id": self.role_customer.id,
+                        "page": 2,
+                        "position_x": 10,
+                        "position_y": 10,
+                        "width": 20,
+                        "height": 5,
+                    },
+                },
+            )
+
+    def test_request_editor_uses_assigned_signer_names_and_explicit_roles(self):
+        request = self._request(
+            partners=[self.partner_one, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+        )
+        info = request.get_info()
+        roles = {role["id"]: role for role in info["roles"]}
+        self.assertEqual(roles[self.role_customer.id]["signer_name"], self.partner_one.name)
+        self.assertEqual(roles[self.role_employee.id]["signer_name"], self.partner_two.name)
+        result = request.editor_apply_command(
+            str(uuid.uuid4()),
+            1,
+            {
+                "action": "create",
+                "values": {
+                    "field_id": self.text_field.id,
+                    "role_id": self.role_employee.id,
+                    "page": 1,
+                    "position_x": 35,
+                    "position_y": 40,
+                    "width": 24,
+                    "height": 5,
+                },
+            },
+        )
+        self.assertEqual(result["item"]["role_id"], self.role_employee.id)
+        self.assertEqual(result["item"]["tabindex"], 1)
+        self.assertEqual(request.editor_revision, 2)
+
+    def test_template_editor_role_colors_follow_template_company_rules(self):
+        other_company = self.env["res.company"].create({"name": "Other Sign Company"})
+        template = self.env["sign.oca.template"].with_company(other_company).create(
+            {
+                "name": "Other-company template",
+                "filename": "other.pdf",
+                "data": base64.b64encode(self.pdf),
+                "company_id": other_company.id,
+            },
+        )
+        template.get_info()
+        mappings = template.editor_role_ids
+        self.assertTrue(mappings)
+        self.assertFalse(
+            self.env["usl.sign.template.role"].with_user(self.template_manager).search(
+                [("id", "in", mappings.ids)],
+            ),
+        )
+
     def test_business_record_picker_excludes_technical_registry_models(self):
         available = dict(self.env["sign.oca.request"]._sign_business_record_models())
         self.assertIn("res.partner", available)
@@ -437,6 +618,29 @@ class TestCleanUslSign(TransactionCase):
                     "signer_information": [],
                 },
             )
+
+    def test_raw_pocket_token_is_restricted_to_evidence_reviewers(self):
+        request = self._request(user_id=self.sign_user.id)
+        public_evidence = request._create_evidence(
+            "consent",
+            "consent.json",
+            b'{"consent":true}',
+            mimetype="application/json",
+        )
+        authentication_evidence = request._create_evidence(
+            "authentication",
+            "pocket-id-token.jwt",
+            b"signed.identity.token",
+            mimetype="application/jwt",
+        )
+        visible_to_sign_user = self.env["usl.sign.evidence"].with_user(
+            self.sign_user,
+        ).search([("id", "in", (public_evidence | authentication_evidence).ids)])
+        self.assertEqual(visible_to_sign_user, public_evidence)
+        visible_to_reviewer = self.env["usl.sign.evidence"].with_user(
+            self.evidence_reviewer,
+        ).search([("id", "in", (public_evidence | authentication_evidence).ids)])
+        self.assertEqual(visible_to_reviewer, public_evidence | authentication_evidence)
 
     def test_signing_link_is_hash_only_one_time_and_revocable(self):
         request = self._ready(self._request())
@@ -847,6 +1051,7 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.state, "signed_to_import")
 
     def test_completion_waits_for_archive_and_recovers_idempotently(self):
+        self.company.sign_oca_send_sign_request_copy = True
         request = self._ready(self._request())
         request._freeze_document()
         request._transition("sent", "request_sent")
@@ -889,6 +1094,9 @@ class TestCleanUslSign(TransactionCase):
         with (
             patch.object(type(request), "_sign_dss_client", return_value=FakeDSS()),
             upload,
+            patch.object(
+                type(self.env["mail.thread"]), "message_notify", autospec=True,
+            ) as notify,
         ):
             validation = request._complete_validated_document(
                 self.pdf, FakeDSS.validate(self.pdf, "standard"),
@@ -903,13 +1111,28 @@ class TestCleanUslSign(TransactionCase):
             self.assertEqual(len(signed_evidence), 1)
             self.assertEqual(signed_evidence.sha256, request.final_sha256)
             request.action_retry_archive()
+            request._reconcile_archive()
+            notify.assert_called_once()
+            self.assertTrue(notify.call_args.kwargs["attachment_ids"])
         self.assertEqual(request.state, "completed")
         self.assertEqual(request.archive_status, "archived")
         self.assertEqual(request.archive_document_id, archived)
         self.assertTrue(request.completed_at)
         self.assertEqual(request.evidence_status, "complete")
+        self.assertEqual(
+            len(request.event_ids.filtered(
+                lambda event: event.event_type == "completed_dossier_queued",
+            )),
+            1,
+        )
 
-    def test_passkey_enrolment_revocation_and_reenrolment_are_controlled(self):
+    def test_oca_final_document_delivery_defaults_to_enabled(self):
+        defaults = self.env["res.company"].default_get(
+            ["sign_oca_send_sign_request_copy"],
+        )
+        self.assertTrue(defaults["sign_oca_send_sign_request_copy"])
+
+    def test_pocket_enrolment_revocation_and_reenrolment_are_controlled(self):
         enrollment = self.env["usl.sign.enrollment"].create(
             {
                 "partner_id": self.partner_one.id,
@@ -919,25 +1142,20 @@ class TestCleanUslSign(TransactionCase):
                 "policy_version": "2026.1",
             },
         )
-        enrollment.with_user(self.reviewer).action_confirm_identity()
-        passkey = self.env["usl.sign.passkey"].with_context(
-            usl_sign_passkey_registration=INTERNAL_OPERATION,
-        ).create(
-            {
-                "enrollment_id": enrollment.id,
-                "name": "Primary passkey",
-                "credential_id": "credential-one",
-                "public_key": base64.b64encode(b"credential-public-key"),
+        enrollment._bind_pocket_identity(
+            issuer="https://id.example.test",
+            claims={
+                "sub": "immutable-pocket-subject",
+                "name": "Camille Signer",
+                "email": "camille@example.test",
             },
         )
-        enrollment.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
-            {"state": "active"},
-        )
-        with self.assertRaises(AccessError):
-            passkey.write({"state": "lost"})
-        enrollment.with_user(self.reviewer).action_revoke("Passkey reported lost.")
+        self.assertEqual(enrollment.state, "pending_review")
+        self.assertEqual(enrollment.pocket_subject, "immutable-pocket-subject")
+        enrollment.with_user(self.reviewer).action_confirm_identity()
+        self.assertEqual(enrollment.state, "active")
+        enrollment.with_user(self.reviewer).action_revoke("Pocket identity access revoked.")
         self.assertEqual(enrollment.state, "revoked")
-        self.assertEqual(passkey.state, "revoked")
         self.env.flush_all()
         self.env.cr.execute(
             "SELECT state FROM usl_sign_enrollment WHERE id = %s", [enrollment.id],
@@ -952,7 +1170,7 @@ class TestCleanUslSign(TransactionCase):
                 "policy_version": "2026.2",
             },
         )
-        self.assertEqual(replacement.state, "pending_review")
+        self.assertEqual(replacement.state, "pending_pocket")
         with self.assertRaises(AccessError):
             enrollment.unlink()
 

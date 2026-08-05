@@ -106,6 +106,11 @@
         <field name="model_id" ref="sign_oca.model_sign_oca_template_item"/>
         <field name="domain_force">[('template_id.company_id', 'in', company_ids)]</field>
     </record>
+    <record id="template_role_company" model="ir.rule">
+        <field name="name">Signature template role colors: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_template_role"/>
+        <field name="domain_force">[('template_id.company_id', 'in', company_ids)]</field>
+    </record>
 
     <record id="policy_company" model="ir.rule">
         <field name="name">Signature policies: company or global</field>
@@ -117,6 +122,18 @@
         <field name="name">Signature evidence: allowed companies</field>
         <field name="model_id" ref="model_usl_sign_evidence"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="evidence_user_non_authentication" model="ir.rule">
+        <field name="name">Signature users: non-sensitive evidence</field>
+        <field name="model_id" ref="model_usl_sign_evidence"/>
+        <field name="domain_force">[('kind', '!=', 'authentication'), '|', ('request_id.user_id', '=', user.id), ('signer_id.partner_id', 'child_of', [user.partner_id.commercial_partner_id.id])]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: all company evidence</field>
+        <field name="model_id" ref="model_usl_sign_evidence"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
     </record>
     <record id="event_company" model="ir.rule">
         <field name="name">Signature events: allowed companies</field>
@@ -141,11 +158,6 @@
     <record id="enrollment_company" model="ir.rule">
         <field name="name">Strong signer enrolments: allowed companies</field>
         <field name="model_id" ref="model_usl_sign_enrollment"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
-    <record id="passkey_company" model="ir.rule">
-        <field name="name">Strong signer passkeys: allowed companies</field>
-        <field name="model_id" ref="model_usl_sign_passkey"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
     <record id="ceremony_company" model="ir.rule">

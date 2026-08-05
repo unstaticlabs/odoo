@@ -26,6 +26,7 @@ class SignEvidence(models.Model):
             ("frozen", "Frozen signing document"),
             ("signed", "Final validated signed document"),
             ("consent", "Consent evidence"),
+            ("authentication", "Authentication evidence"),
             ("snapshot", "Frozen policy and field snapshot"),
             ("lifecycle", "Lifecycle event history"),
             ("certificate", "Certificate or chain"),

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="usl_sign.SignOcaPdfPortal" t-inherit="sign_oca.SignOcaPdfPortal" t-inherit-mode="extension">
+        <xpath expr="//button[@id='sign_oca_button']" position="attributes">
+            <attribute name="aria-label">Confirm consent and submit my signature</attribute>
+        </xpath>
         <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="inside">
             <div class="usl_sign_consent me-3">
                 <div class="form-check">

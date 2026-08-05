@@ -38,7 +38,7 @@ Document requests have exactly three trust levels:
   process; it is not a personal signature.
 - **Strong personal signature — designed for advanced-signature
   requirements.** This is for an identified recurring signer with a reviewed
-  enrolment and active passkey. Each signer authorizes a document-specific,
+  enrolment and a fresh Pocket ID passkey interaction. Each signer authorizes a document-specific,
   short-lived personal PAdES signature. No formal advanced-signature claim is
   made until independent legal and security reviews support it.
 - **Qualified external signature.** This is reserved for a formal QES
@@ -84,10 +84,15 @@ requiring a chatter reconstruction.
 Users can prepare reusable templates or one-off requests, place supported
 fields by role, preview roles, use multiple documents and signers, require
 signing order, set reminders and expiration, and handle refusal or
-cancellation. The OCA editor is extended with an Odoo-native palette,
-drag/drop placement, role colors, page navigation, zoom, move, resize, delete,
-required/optional configuration, keyboard access and explicit loading/error
-states.
+cancellation. The OCA storage and PDF foundation is extended with a
+three-pane Odoo-native editor. A user chooses a typed field and signer, then
+clicks the PDF; drag/drop and right-click call the same explicit placement
+command. Per-template signer colors remain stable across reloads and are
+shared by the palette, PDF fields, inspector and signer preview. Required
+state uses a separate marker and never replaces the signer color. The editor
+also provides page navigation, zoom, move, resize, delete, keyboard access,
+undo/redo, autosave status, conflict detection and explicit loading,
+read-only and failure states.
 
 Each invitation contains 256 bits of entropy. Only its SHA-256 is stored. The
 first use is rate-limited and exchanges the bearer secret for a short-lived,
@@ -106,11 +111,12 @@ does not imply a personal, qualified or handwritten-equivalent signature.
 An identity reviewer first links a known partner to an explicit relationship
 basis: Pocket ID, employee, contractor or recurring-partner relationship. The
 enrolment records the reviewer, date, reference, notes and policy version.
-The signer registers one or more passkeys with user verification; a second
-passkey is encouraged for recovery. Credential metadata, AAGUID, transports,
-backup state and counters are retained, while raw identity documents are not
-retained by default. Lost credentials can be revoked and a new enrolment can
-be reviewed without changing completed signatures.
+The signer connects an existing Pocket ID identity, which is bound by immutable
+issuer and subject rather than email. An identity reviewer then confirms the
+relationship under the versioned policy. Pocket ID owns passkey registration,
+recovery and credential revocation; Odoo receives no passkey public key,
+counter, AAGUID or transport data. Odoo can independently revoke the Sign
+enrolment, and re-enrolment never changes completed signatures.
 
 Enrolment and signing use isolated pages with a strict Content Security Policy
 and no analytics. During each signing ceremony:
@@ -119,12 +125,14 @@ and no analytics. During each signing ceremony:
 2. A dedicated browser worker creates an ECDSA P-256 key with
    `extractable:false` and builds a PKCS#10 request using pinned
    `@peculiar/x509` 2.0.0.
-3. Odoo creates a unique short-lived challenge binding the signer, enrolment,
+3. Odoo creates a unique short-lived canonical binding covering the signer, enrolment,
    request, role, document hashes, consent digest, CSR/public-key hash, policy,
    nonce and expiry.
-4. The server verifies the passkey assertion with `webauthn` 3.0.0, including
-   RP ID, allowed HTTPS origin, exact challenge, credential state, user
-   verification, counter and replay protection.
+4. Its SHA-256 digest becomes the OIDC nonce for a dedicated confidential Sign
+   client. Pocket ID requires a new credential-backed passkey interaction and
+   returns a signed token with `amr=["phr"]`. Odoo verifies PKCE, state, issuer,
+   audience, subject, signer group, nonce, `auth_time`, expiry and single use;
+   login-code (`otp`) authorization is rejected.
 5. Only then does `step-ca` 0.30.2 issue a constrained ten-minute,
    non-renewable certificate for this document and signer.
 6. EU DSS 6.4 returns the PAdES data-to-sign; the worker signs it and returns
@@ -132,7 +140,13 @@ and no analytics. During each signing ceremony:
 7. Odoo invalidates the ceremony, terminates the worker and independently
    validates the persisted PDF.
 
-The document private key is never exported or submitted to Odoo. Strong
+The signed ID token, bounded claims summary, JWKS snapshot and validation
+result are retained as restricted evidence; access and refresh tokens are not.
+The distributable/Paperless dossier contains the token hash and sanitized
+validation summary, not the raw identity token; evidence reviewers can inspect
+the raw signed token in Odoo.
+The document and its content never go to Pocket ID. The document private key is
+never exported or submitted to Odoo or Pocket ID. Strong
 multi-signer requests are sequential so each personal signature covers the
 prior revision. The platform seal is applied only after all personal
 signatures. When an independent RFC 3161 TSA and revocation material are
@@ -192,12 +206,18 @@ cover, passes veraPDF, receives a platform seal and is sent through the
 checksum-idempotent `usl_documents` Paperless operation. Failed archival is
 visible and safely retryable; it blocks completion.
 
+The single OCA Sign option **Send signers a copy of the final signed document**
+defaults to enabled. USL Sign deliberately defers delivery until independent
+validation and Paperless archival are confirmed. It then queues the final
+PDF/A-3 evidence dossier, which embeds the signed PDF, completion certificate
+and validation evidence. There is no separate USL delivery option.
+
 ## Permissions and company isolation
 
 - **Sign User** creates and follows their company requests.
 - **Template Manager** publishes versioned templates and layouts.
-- **Identity Reviewer** reviews relationships, enrolments and passkey
-  revocation.
+- **Identity Reviewer** reviews relationships and Pocket-bound enrolments, and
+  can independently revoke Strong signing access.
 - **Evidence Reviewer** inspects validation and evidence without changing the
   ceremony.
 - **Sign Administrator** manages policies, provider catalog, services and

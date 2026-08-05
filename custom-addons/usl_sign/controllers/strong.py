@@ -1,27 +1,16 @@
 import base64
 import hashlib
 import json
+import logging
 import secrets
-from datetime import UTC, timedelta
+import time
+from datetime import UTC, datetime, timedelta
+from urllib.parse import urlencode
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
-from webauthn import (
-    generate_authentication_options,
-    generate_registration_options,
-    options_to_json,
-    verify_authentication_response,
-    verify_registration_response,
-)
-from webauthn.helpers import base64url_to_bytes, bytes_to_base64url
-from webauthn.helpers.structs import (
-    AuthenticatorSelectionCriteria,
-    PublicKeyCredentialDescriptor,
-    ResidentKeyRequirement,
-    UserVerificationRequirement,
-)
 
 from odoo import fields, http
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -29,14 +18,64 @@ from odoo.http import request
 
 from ..models.constants import INTERNAL_OPERATION
 from ..services import DSSClient, DSSServiceError, StepCAClient, StepCAError
+from odoo.addons.usl_pocketid.exceptions import PocketIDAccessDenied
+
+_logger = logging.getLogger(__name__)
+_TRANSACTION_TTL = 300
+_SESSION_TRANSACTIONS = "usl_sign_pocketid_transactions"
+_SESSION_ENROLMENTS = "usl_sign_pocketid_enrolments"
 
 
-def _json_options(options):
-    return json.loads(options_to_json(options))
+def _base64url(raw):
+    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+
+def _canonical_json(value):
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode()
 
 
 def _personal_certificate_subject(signer):
     return f"USL Sign Personal: {signer.partner_id.name}".replace(",", " ")
+
+
+def _fresh_passkey_claims_summary(claims, *, transaction_created, now=None):
+    authentication_methods = claims.get("amr", [])
+    auth_time = claims.get("auth_time")
+    current_time = int(time.time()) if now is None else int(now)
+    if (
+        not isinstance(authentication_methods, list)
+        or "phr" not in authentication_methods
+        or "otp" in authentication_methods
+        or not isinstance(auth_time, int | float)
+        or int(auth_time) < int(transaction_created)
+        or int(auth_time) > current_time + 60
+    ):
+        raise AccessError("A fresh Pocket ID passkey interaction is required.")
+    return {
+        key: claims.get(key)
+        for key in (
+            "iss",
+            "sub",
+            "aud",
+            "azp",
+            "name",
+            "preferred_username",
+            "email",
+            "email_verified",
+            "groups",
+            "amr",
+            "auth_time",
+            "iat",
+            "exp",
+            "nonce",
+        )
+        if key in claims
+    }
 
 
 class StrongSignController(http.Controller):
@@ -53,20 +92,13 @@ class StrongSignController(http.Controller):
                 "Cache-Control": "no-store, max-age=0",
                 "Content-Security-Policy": self._CSP,
                 "Cross-Origin-Opener-Policy": "same-origin",
-                "Permissions-Policy": "publickey-credentials-get=(self), publickey-credentials-create=(self)",
+                "Permissions-Policy": "publickey-credentials-get=(), publickey-credentials-create=()",
                 "Referrer-Policy": "no-referrer",
                 "X-Content-Type-Options": "nosniff",
                 "X-Frame-Options": "DENY",
             },
         )
         return response
-
-    def _origin(self, company):
-        origin = (request.httprequest.headers.get("Origin") or "").rstrip("/")
-        if origin not in company._sign_allowed_origins():
-            msg = "This browser origin is not allowed for passkeys."
-            raise AccessError(msg)
-        return origin
 
     def _lock_ceremony(self, ceremony_id, expected_state):
         request.env.cr.execute(
@@ -75,8 +107,9 @@ class StrongSignController(http.Controller):
         )
         row = request.env.cr.fetchone()
         if not row or row[0] != expected_state:
-            msg = "The strong-signature ceremony was already used or is unavailable."
-            raise ValidationError(msg)
+            raise ValidationError(
+                "The strong-signature ceremony was already used or is unavailable.",
+            )
         ceremony = request.env["usl.sign.ceremony"].sudo().browse(ceremony_id)
         ceremony.invalidate_recordset()
         return ceremony
@@ -84,18 +117,88 @@ class StrongSignController(http.Controller):
     def _enrollment(self, enrollment_id, token):
         enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id).exists()
         if not enrollment:
-            msg = "The enrolment does not exist."
-            raise AccessError(msg)
+            raise AccessError("The enrolment does not exist.")
         enrollment._check_invitation(token)
         return enrollment
 
     def _signer(self, signer_id, token):
         signer = request.env["sign.oca.request.signer"].sudo().browse(signer_id).exists()
         if not signer:
-            msg = "The signer does not exist."
-            raise AccessError(msg)
+            raise AccessError("The signer does not exist.")
         signer._check_token(token, session=True)
         return signer
+
+    def _pocket_client(self):
+        return request.env["auth.oauth.provider"].sudo()._usl_pocketid_sign_configuration()
+
+    def _create_oidc_transaction(self, *, purpose, nonce, values):
+        configuration = self._pocket_client()
+        state = secrets.token_urlsafe(32)
+        verifier = secrets.token_urlsafe(64)
+        challenge = _base64url(hashlib.sha256(verifier.encode()).digest())
+        now = int(time.time())
+        transactions = dict(request.session.get(_SESSION_TRANSACTIONS, {}))
+        transactions = {
+            key: transaction
+            for key, transaction in transactions.items()
+            if int(transaction.get("expires_unix", 0)) >= now
+        }
+        transactions[state] = {
+            "state": state,
+            "purpose": purpose,
+            "nonce": nonce,
+            "code_verifier": verifier,
+            "created_unix": now,
+            "expires_unix": now + _TRANSACTION_TTL,
+            **values,
+        }
+        request.session[_SESSION_TRANSACTIONS] = transactions
+        parameters = {
+            "client_id": configuration.client_id,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+            "max_age": "0",
+            "nonce": nonce,
+            "prompt": "login",
+            "redirect_uri": configuration.redirect_uri,
+            "response_type": "code",
+            "scope": configuration.scopes,
+            "state": state,
+            "usl_fresh_passkey": "1",
+        }
+        return state, f"{configuration.authorization_endpoint}?{urlencode(parameters)}"
+
+    def _consume_oidc_transaction(self, state):
+        transactions = dict(request.session.get(_SESSION_TRANSACTIONS, {}))
+        transaction = transactions.pop(state, None)
+        request.session[_SESSION_TRANSACTIONS] = transactions
+        if (
+            not transaction
+            or int(transaction.get("expires_unix", 0)) < int(time.time())
+            or not secrets.compare_digest(state, str(transaction.get("state", "")))
+        ):
+            raise AccessError("This Pocket ID authorization is invalid or expired.")
+        return transaction
+
+    def _validated_pocket_callback(self, transaction, code):
+        client = request.env["auth.oauth.provider"].sudo()
+        configuration = client._usl_pocketid_sign_configuration()
+        access_token, id_token = client._usl_pocketid_exchange_code_for_client(
+            configuration,
+            code=code,
+            code_verifier=transaction["code_verifier"],
+        )
+        claims, keys = client._usl_pocketid_validate_id_token_for_client(
+            configuration,
+            id_token=id_token,
+            access_token=access_token,
+            nonce=transaction["nonce"],
+        )
+        summary = _fresh_passkey_claims_summary(
+            claims,
+            transaction_created=transaction["created_unix"],
+        )
+        return configuration, claims, summary, keys, id_token
 
     @http.route(
         "/sign/enroll/<int:enrollment_id>/<string:token>",
@@ -122,88 +225,33 @@ class StrongSignController(http.Controller):
     )
     def enrollment_begin(self, enrollment_id, token):
         enrollment = self._enrollment(enrollment_id, token)
-        challenge = secrets.token_bytes(32)
-        credentials = [
-            PublicKeyCredentialDescriptor(id=base64url_to_bytes(key.credential_id))
-            for key in enrollment.passkey_ids.filtered(lambda item: item.state == "active")
-        ]
-        options = generate_registration_options(
-            rp_id=enrollment.company_id.sign_webauthn_rp_id,
-            rp_name=enrollment.company_id.name,
-            user_id=f"usl-sign:{enrollment.id}:{enrollment.partner_id.id}".encode(),
-            user_name=enrollment.partner_id.email or f"partner-{enrollment.partner_id.id}",
-            user_display_name=enrollment.partner_id.name,
-            challenge=challenge,
-            exclude_credentials=credentials,
-            authenticator_selection=AuthenticatorSelectionCriteria(
-                resident_key=ResidentKeyRequirement.PREFERRED,
-                user_verification=UserVerificationRequirement.REQUIRED,
-            ),
+        nonce = _base64url(secrets.token_bytes(32))
+        _state, authorization_url = self._create_oidc_transaction(
+            purpose="enrollment",
+            nonce=nonce,
+            values={"enrollment_id": enrollment.id},
         )
-        enrollment.sudo().with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
-            {
-                "registration_challenge": base64.b64encode(challenge),
-                "registration_challenge_expires_at": fields.Datetime.now()
-                + timedelta(minutes=5),
-            },
-        )
-        return _json_options(options)
+        return {"authorization_url": authorization_url, "expires_in": _TRANSACTION_TTL}
 
     @http.route(
-        "/sign/enroll/<int:enrollment_id>/<string:token>/complete",
+        "/sign/enroll/<int:enrollment_id>/<string:token>/status",
         type="jsonrpc",
         auth="public",
         csrf=False,
     )
-    def enrollment_complete(self, enrollment_id, token, credential, name, transports=None):
-        enrollment = self._enrollment(enrollment_id, token)
-        request.env.cr.execute(
-            "SELECT id FROM usl_sign_enrollment WHERE id = %s FOR UPDATE",
-            [enrollment.id],
-        )
-        enrollment.invalidate_recordset(
-            ["registration_challenge", "registration_challenge_expires_at"],
-        )
-        if (
-            not enrollment.registration_challenge
-            or enrollment.registration_challenge_expires_at < fields.Datetime.now()
-        ):
-            msg = "The passkey registration challenge expired."
-            raise ValidationError(msg)
-        verification = verify_registration_response(
-            credential=credential,
-            expected_challenge=base64.b64decode(enrollment.registration_challenge),
-            expected_rp_id=enrollment.company_id.sign_webauthn_rp_id,
-            expected_origin=self._origin(enrollment.company_id),
-            require_user_verification=True,
-        )
-        credential_id = bytes_to_base64url(verification.credential_id)
-        passkey = request.env["usl.sign.passkey"].sudo().with_context(
-            usl_sign_passkey_registration=INTERNAL_OPERATION,
-        ).create(
-            {
-                "enrollment_id": enrollment.id,
-                "name": (name or "Passkey").strip(),
-                "credential_id": credential_id,
-                "public_key": base64.b64encode(verification.credential_public_key),
-                "sign_count": verification.sign_count,
-                "aaguid": str(verification.aaguid),
-                "transports": transports or [],
-                "device_type": str(verification.credential_device_type),
-                "backed_up": bool(verification.credential_backed_up),
-            },
-        )
-        enrollment.sudo().with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
-            {
-                "state": "active",
-                "registration_challenge": False,
-                "registration_challenge_expires_at": False,
-            },
-        )
+    def enrollment_status(self, enrollment_id, token):
+        enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id).exists()
+        completed = set(request.session.get(_SESSION_ENROLMENTS, []))
+        if not enrollment:
+            raise AccessError("This enrolment is unavailable.")
+        if enrollment.id not in completed:
+            if enrollment.state != "pending_pocket":
+                raise AccessError("This enrolment is unavailable.")
+            enrollment._check_invitation(token)
         return {
-            "ok": True,
-            "passkey_id": passkey.id,
-            "recovery_ready": enrollment.recovery_ready,
+            "state": enrollment.state,
+            "display_name": enrollment.pocket_display_name,
+            "subject_fingerprint": enrollment.pocket_subject_fingerprint,
         }
 
     @http.route(
@@ -215,17 +263,16 @@ class StrongSignController(http.Controller):
     def strong_begin(self, signer_id, token, csr_pem, consent):
         signer = self._signer(signer_id, token)
         if signer.request_id.requested_trust != "strong_personal":
-            msg = "This is not a strong personal signature request."
-            raise ValidationError(msg)
+            raise ValidationError("This is not a strong personal signature request.")
         if not consent:
-            msg = "Explicit electronic-signature consent is required."
-            raise ValidationError(msg)
+            raise ValidationError("Explicit electronic-signature consent is required.")
         try:
             csr = x509.load_pem_x509_csr(csr_pem.encode())
             common_names = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
         except (TypeError, ValueError) as error:
-            msg = "The browser produced an invalid certificate request."
-            raise ValidationError(msg) from error
+            raise ValidationError(
+                "The browser produced an invalid certificate request.",
+            ) from error
         public_key = csr.public_key()
         if (
             not csr.is_signature_valid
@@ -234,14 +281,12 @@ class StrongSignController(http.Controller):
             or len(common_names) != 1
             or common_names[0].value != _personal_certificate_subject(signer)
         ):
-            msg = "The certificate request is not the expected signer-bound P-256 request."
             raise ValidationError(
-                msg,
+                "The certificate request is not the expected signer-bound P-256 request.",
             )
         enrollment = signer._active_enrollment()
-        if not enrollment:
-            msg = "Complete strong-signer enrolment first."
-            raise ValidationError(msg)
+        if not enrollment or not enrollment.pocket_subject:
+            raise ValidationError("Complete Pocket ID strong-signer enrolment first.")
         document = base64.b64decode(signer.request_id.data)
         document_sha256 = hashlib.sha256(document).hexdigest()
         csr_sha256 = hashlib.sha256(csr_pem.encode()).hexdigest()
@@ -251,21 +296,20 @@ class StrongSignController(http.Controller):
                 serialization.PublicFormat.SubjectPublicKeyInfo,
             ),
         ).hexdigest()
-        consent_text = signer.request_id.consent_text_snapshot
-        consent_sha256 = hashlib.sha256(consent_text.encode()).hexdigest()
+        consent_sha256 = hashlib.sha256(
+            signer.request_id.consent_text_snapshot.encode(),
+        ).hexdigest()
         policy_sha256 = hashlib.sha256(
-            json.dumps(
+            _canonical_json(
                 {
                     "version": signer.request_id.policy_version,
                     "snapshot": signer.request_id.policy_snapshot,
                 },
-                sort_keys=True,
-                separators=(",", ":"),
-                ensure_ascii=False,
-            ).encode(),
+            ),
         ).hexdigest()
+        expiry = fields.Datetime.now() + timedelta(minutes=5)
         binding = {
-            "format": "usl-strong-challenge-v1",
+            "format": "usl-strong-pocketid-binding-v1",
             "request_id": signer.request_id.id,
             "signer_id": signer.id,
             "enrollment_id": enrollment.id,
@@ -278,92 +322,65 @@ class StrongSignController(http.Controller):
             "policy_sha256": policy_sha256,
             "policy_version": signer.request_id.policy_version,
             "nonce": secrets.token_urlsafe(24),
-            "expires_at": fields.Datetime.to_string(
-                fields.Datetime.now() + timedelta(minutes=5),
-            ),
+            "expires_at": fields.Datetime.to_string(expiry),
         }
-        challenge = hashlib.sha256(
-            json.dumps(binding, sort_keys=True, separators=(",", ":")).encode(),
-        ).digest()
-        options = generate_authentication_options(
-            rp_id=signer.request_id.company_id.sign_webauthn_rp_id,
-            challenge=challenge,
-            allow_credentials=[
-                PublicKeyCredentialDescriptor(id=base64url_to_bytes(key.credential_id))
-                for key in enrollment.passkey_ids.filtered(
-                    lambda item: item.state == "active",
-                )
-            ],
-            user_verification=UserVerificationRequirement.REQUIRED,
-        )
+        binding_digest = hashlib.sha256(_canonical_json(binding)).digest()
+        oidc_nonce = _base64url(binding_digest)
         ceremony = request.env["usl.sign.ceremony"].sudo().create(
             {
                 "request_id": signer.request_id.id,
                 "signer_id": signer.id,
                 "enrollment_id": enrollment.id,
-                "challenge": base64.b64encode(challenge),
-                "challenge_sha256": hashlib.sha256(challenge).hexdigest(),
+                "challenge": base64.b64encode(binding_digest),
+                "challenge_sha256": binding_digest.hex(),
                 "document_sha256": document_sha256,
                 "consent_sha256": consent_sha256,
                 "csr_sha256": csr_sha256,
                 "public_key_sha256": public_key_sha256,
                 "csr_pem": csr_pem,
                 "binding_payload": binding,
-                "expires_at": fields.Datetime.now() + timedelta(minutes=5),
+                "expires_at": expiry,
+                "oidc_nonce": oidc_nonce,
             },
         )
-        return {"ceremony_id": ceremony.id, "options": _json_options(options)}
-
-    @http.route(
-        "/sign/strong/<int:signer_id>/<string:token>/authorize",
-        type="jsonrpc",
-        auth="public",
-        csrf=False,
-    )
-    def strong_authorize(self, signer_id, token, ceremony_id, credential):
-        signer = self._signer(signer_id, token)
-        ceremony = self._lock_ceremony(ceremony_id, "challenge").exists()
-        if (
-            not ceremony
-            or ceremony.signer_id != signer
-            or ceremony.state != "challenge"
-            or ceremony.expires_at < fields.Datetime.now()
-            or ceremony.document_sha256
-            != hashlib.sha256(base64.b64decode(signer.request_id.data)).hexdigest()
-        ):
-            msg = "The strong-signature challenge is invalid or expired."
-            raise ValidationError(msg)
-        credential_id = credential.get("id") or credential.get("rawId")
-        passkey = ceremony.enrollment_id.passkey_ids.filtered(
-            lambda key: key.state == "active" and key.credential_id == credential_id,
-        )[:1]
-        if not passkey:
-            msg = "The passkey is not active for this signer."
-            raise AccessError(msg)
-        verification = verify_authentication_response(
-            credential=credential,
-            expected_challenge=base64.b64decode(ceremony.challenge),
-            expected_rp_id=signer.request_id.company_id.sign_webauthn_rp_id,
-            expected_origin=self._origin(signer.request_id.company_id),
-            credential_public_key=base64.b64decode(passkey.public_key),
-            credential_current_sign_count=passkey.sign_count,
-            require_user_verification=True,
+        state, authorization_url = self._create_oidc_transaction(
+            purpose="strong_signature",
+            nonce=oidc_nonce,
+            values={"ceremony_id": ceremony.id},
         )
-        passkey.with_context(usl_sign_passkey_use=INTERNAL_OPERATION).write(
+        ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
             {
-                "sign_count": verification.new_sign_count,
-                "last_used_at": fields.Datetime.now(),
-                "device_type": str(verification.credential_device_type),
-                "backed_up": bool(verification.credential_backed_up),
+                "state": "authorizing",
+                "oidc_state_sha256": hashlib.sha256(state.encode()).hexdigest(),
             },
         )
+        return {
+            "ceremony_id": ceremony.id,
+            "authorization_url": authorization_url,
+            "expires_in": _TRANSACTION_TTL,
+        }
+
+    def _authorize_ceremony(self, ceremony, configuration, claims, summary, keys, id_token):
+        signer = ceremony.signer_id
+        enrollment = ceremony.enrollment_id
+        current_document_hash = hashlib.sha256(
+            base64.b64decode(signer.request_id.data),
+        ).hexdigest()
+        if (
+            ceremony.expires_at < fields.Datetime.now()
+            or current_document_hash != ceremony.document_sha256
+            or enrollment.state != "active"
+            or enrollment.pocket_issuer != configuration.issuer
+            or not secrets.compare_digest(enrollment.pocket_subject, claims["sub"])
+        ):
+            raise AccessError("The signer identity or document binding no longer matches.")
         try:
             issued = StepCAClient().issue(
                 ceremony.csr_pem,
                 subject=_personal_certificate_subject(signer),
                 binding={
                     "usl_signer": signer.id,
-                    "usl_enrollment": ceremony.enrollment_id.id,
+                    "usl_enrollment": enrollment.id,
                     "usl_request": signer.request_id.id,
                     "usl_role": signer.role_id.id,
                     "usl_document_sha256": ceremony.document_sha256,
@@ -371,9 +388,7 @@ class StrongSignController(http.Controller):
                     "usl_public_key_sha256": ceremony.public_key_sha256,
                 },
             )
-            issued_certificate = x509.load_pem_x509_certificate(
-                issued["certificate"].encode(),
-            )
+            issued_certificate = x509.load_pem_x509_certificate(issued["certificate"].encode())
             certificate_public_key_sha256 = hashlib.sha256(
                 issued_certificate.public_key().public_bytes(
                     serialization.Encoding.DER,
@@ -390,7 +405,7 @@ class StrongSignController(http.Controller):
             )
             expected_sans = {
                 f"urn:usl:signer:{signer.id}",
-                f"urn:usl:enrollment:{ceremony.enrollment_id.id}",
+                f"urn:usl:enrollment:{enrollment.id}",
                 f"urn:usl:request:{signer.request_id.id}",
                 f"urn:usl:role:{signer.role_id.id}",
                 f"urn:sha256:{ceremony.document_sha256}",
@@ -398,9 +413,7 @@ class StrongSignController(http.Controller):
                 f"urn:usl:public-key-sha256:{ceremony.public_key_sha256}",
             }
             now_utc = fields.Datetime.now().replace(tzinfo=UTC)
-            key_usage = issued_certificate.extensions.get_extension_for_class(
-                x509.KeyUsage,
-            ).value
+            key_usage = issued_certificate.extensions.get_extension_for_class(x509.KeyUsage).value
             if (
                 len(certificate_common_names) != 1
                 or certificate_common_names[0].value != _personal_certificate_subject(signer)
@@ -409,12 +422,12 @@ class StrongSignController(http.Controller):
                 or not key_usage.digital_signature
                 or issued_certificate.not_valid_before_utc > now_utc + timedelta(minutes=1)
                 or issued_certificate.not_valid_after_utc <= now_utc
-                or issued_certificate.not_valid_after_utc - issued_certificate.not_valid_before_utc
+                or issued_certificate.not_valid_after_utc
+                - issued_certificate.not_valid_before_utc
                 > timedelta(minutes=11)
             ):
-                msg = "The issued personal certificate does not satisfy the ceremony binding."
-                raise StepCAError(  # noqa: TRY301 - normalized to a safe ceremony failure below
-                    msg,
+                raise StepCAError(
+                    "The issued personal certificate does not satisfy the ceremony binding.",
                 )
             data_to_sign = DSSClient().data_to_sign(
                 base64.b64decode(signer.request_id.data),
@@ -423,21 +436,14 @@ class StrongSignController(http.Controller):
                 timestamp=signer.request_id.company_id.sign_rfc3161_enabled,
             )
         except (x509.ExtensionNotFound, TypeError, ValueError) as error:
-            ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-                {"state": "failed", "failure_code": "invalid_ca_certificate"},
-            )
-            msg = "The local certificate authority returned an invalid certificate."
-            raise UserError(msg) from error
-        except (StepCAError, DSSServiceError) as error:
-            ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-                {"state": "failed", "failure_code": type(error).__name__},
-            )
-            raise UserError(str(error)) from error
-        raw_to_sign = base64.b64decode(data_to_sign["dataToSign"])
+            raise StepCAError(
+                "The local certificate authority returned an invalid certificate.",
+            ) from error
+        raw_to_sign = base64.b64decode(data_to_sign["dataToSign"], validate=True)
+        auth_time = datetime.fromtimestamp(int(claims["auth_time"]), tz=UTC).replace(tzinfo=None)
         ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
             {
                 "state": "authorized",
-                "passkey_id": passkey.id,
                 "authorized_at": fields.Datetime.now(),
                 "certificate_pem": issued["certificate"],
                 "certificate_chain": issued["chain"],
@@ -450,26 +456,127 @@ class StrongSignController(http.Controller):
                 ),
                 "issuance_receipt": issued["receipt"],
                 "pades_level": data_to_sign["padesLevel"],
+                "data_to_sign": data_to_sign["dataToSign"],
                 "data_to_sign_sha256": hashlib.sha256(raw_to_sign).hexdigest(),
                 "dss_signing_context": data_to_sign["signingContext"],
+                "oidc_issuer": configuration.issuer,
+                "oidc_subject": claims["sub"],
+                "oidc_auth_time": auth_time,
+                "oidc_claims_summary": summary,
+                "oidc_jwks_snapshot": {"keys": keys},
+                "oidc_id_token": id_token,
             },
         )
-        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write({"state": "authorized"})
+        enrollment.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
+            {
+                "pocket_last_authorized_at": fields.Datetime.now(),
+                "pocket_authentication_method": "phr",
+            },
+        )
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"state": "authorized"},
+        )
         signer.request_id._append_event(
             "strong_signature_authorized",
             signer=signer,
-            authentication_method="passkey",
+            authentication_method="pocket_id_passkey",
             payload={
                 "ceremony_id": ceremony.id,
-                "challenge_sha256": ceremony.challenge_sha256,
+                "binding_sha256": ceremony.challenge_sha256,
                 "document_sha256": ceremony.document_sha256,
                 "csr_sha256": ceremony.csr_sha256,
-                "passkey_id": passkey.id,
+                "pocket_subject_fingerprint": enrollment.pocket_subject_fingerprint,
             },
         )
-        return {
-            "data_to_sign": data_to_sign["dataToSign"],
-        }
+
+    @http.route(
+        "/sign/pocketid/callback",
+        type="http",
+        auth="public",
+        methods=["GET"],
+        website=True,
+        sitemap=False,
+    )
+    def pocketid_callback(self, state=None, code=None, error=None, **_params):
+        transaction = None
+        try:
+            if not state:
+                raise AccessError("Pocket ID authorization was cancelled or denied.")
+            transaction = self._consume_oidc_transaction(state)
+            if error or not code:
+                raise AccessError("Pocket ID authorization was cancelled or denied.")
+            configuration, claims, summary, keys, id_token = self._validated_pocket_callback(
+                transaction,
+                code,
+            )
+            if transaction["purpose"] == "enrollment":
+                enrollment = self._enrollment_for_callback(transaction["enrollment_id"])
+                enrollment._bind_pocket_identity(issuer=configuration.issuer, claims=claims)
+                completed = set(request.session.get(_SESSION_ENROLMENTS, [])[-19:])
+                completed.add(enrollment.id)
+                request.session[_SESSION_ENROLMENTS] = sorted(completed)
+            elif transaction["purpose"] == "strong_signature":
+                ceremony = self._lock_ceremony(transaction["ceremony_id"], "authorizing")
+                self._authorize_ceremony(
+                    ceremony,
+                    configuration,
+                    claims,
+                    summary,
+                    keys,
+                    id_token,
+                )
+            else:
+                raise AccessError("The Pocket ID authorization purpose is invalid.")
+        except (AccessError, ValidationError, PocketIDAccessDenied, StepCAError, DSSServiceError) as exc:
+            _logger.warning("Pocket ID Sign authorization failed: %s", type(exc).__name__)
+            if transaction and transaction.get("ceremony_id"):
+                ceremony = request.env["usl.sign.ceremony"].sudo().browse(
+                    transaction["ceremony_id"],
+                ).exists()
+                if ceremony and ceremony.state == "authorizing":
+                    ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+                        {"state": "failed", "failure_code": type(exc).__name__},
+                    )
+            return self._secure_page(
+                "usl_sign.pocketid_callback_result",
+                {"successful": False},
+            )
+        return self._secure_page(
+            "usl_sign.pocketid_callback_result",
+            {"successful": True},
+        )
+
+    def _enrollment_for_callback(self, enrollment_id):
+        request.env.cr.execute(
+            "SELECT state FROM usl_sign_enrollment WHERE id = %s FOR UPDATE",
+            [enrollment_id],
+        )
+        row = request.env.cr.fetchone()
+        if not row or row[0] != "pending_pocket":
+            raise AccessError("This enrolment is no longer awaiting Pocket ID.")
+        enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id)
+        enrollment.invalidate_recordset()
+        return enrollment
+
+    @http.route(
+        "/sign/strong/<int:signer_id>/<string:token>/status",
+        type="jsonrpc",
+        auth="public",
+        csrf=False,
+    )
+    def strong_status(self, signer_id, token, ceremony_id):
+        signer = self._signer(signer_id, token)
+        ceremony = request.env["usl.sign.ceremony"].sudo().browse(ceremony_id).exists()
+        if not ceremony or ceremony.signer_id != signer:
+            raise AccessError("This strong-signature ceremony is unavailable.")
+        if ceremony.state in {"challenge", "authorizing"} and ceremony.expires_at < fields.Datetime.now():
+            ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+                {"state": "expired", "failure_code": "authorization_timeout"},
+            )
+        result = {"state": ceremony.state, "failure_code": ceremony.failure_code or None}
+        if ceremony.state == "authorized":
+            result["data_to_sign"] = ceremony.data_to_sign
+        return result
 
     @http.route(
         "/sign/strong/<int:signer_id>/<string:token>/finalize",
@@ -480,19 +587,19 @@ class StrongSignController(http.Controller):
     def strong_finalize(self, signer_id, token, ceremony_id, signature):
         signer = self._signer(signer_id, token)
         ceremony = self._lock_ceremony(ceremony_id, "authorized").exists()
+        enrollment = signer._active_enrollment()
         if (
             not ceremony
             or ceremony.signer_id != signer
-            or ceremony.state != "authorized"
             or ceremony.expires_at < fields.Datetime.now()
             or ceremony.document_sha256
             != hashlib.sha256(base64.b64decode(signer.request_id.data)).hexdigest()
-            or not ceremony.passkey_id
-            or ceremony.passkey_id.state != "active"
+            or not enrollment
+            or enrollment != ceremony.enrollment_id
+            or enrollment.pocket_subject != ceremony.oidc_subject
         ):
-            msg = "The strong-signature authorization is no longer valid."
-            raise ValidationError(msg)
-        signature_bytes = base64.b64decode(signature)
+            raise ValidationError("The strong-signature authorization is no longer valid.")
+        signature_bytes = base64.b64decode(signature, validate=True)
         try:
             embedded = DSSClient().embed_signature(
                 base64.b64decode(signer.request_id.data),
@@ -501,19 +608,19 @@ class StrongSignController(http.Controller):
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
                 signing_context=ceremony.dss_signing_context,
             )
-            signed_pdf = base64.b64decode(embedded["document"])
+            signed_pdf = base64.b64decode(embedded["document"], validate=True)
             validation = DSSClient().validate(signed_pdf, expected_level="strong_personal")
             if validation.get("status") != "valid" or validation.get(
                 "achievedTrust",
             ) != "strong_personal":
-                msg = "DSS rejected the personal PAdES signature."
-                raise DSSServiceError(msg)  # noqa: TRY301 - normalized to a safe ceremony failure below
+                raise DSSServiceError("DSS rejected the personal PAdES signature.")
             signer.request_id._store_dss_reports(validation)
         except DSSServiceError as error:
             ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
                 {
                     "state": "failed",
                     "failure_code": type(error).__name__,
+                    "data_to_sign": False,
                     "dss_signing_context": False,
                 },
             )
@@ -521,10 +628,7 @@ class StrongSignController(http.Controller):
         digest = hashlib.sha256(signed_pdf).hexdigest()
         now = fields.Datetime.now()
         signer.request_id.with_context(usl_sign_working_pdf=INTERNAL_OPERATION).write(
-            {
-                "data": base64.b64encode(signed_pdf),
-                "current_hash": digest,
-            },
+            {"data": base64.b64encode(signed_pdf), "current_hash": digest},
         )
         signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
             {
@@ -532,7 +636,7 @@ class StrongSignController(http.Controller):
                 "signed_on": now,
                 "signature_hash": digest,
                 "signed_document_sha256": digest,
-                "authentication_method": "passkey",
+                "authentication_method": "pocket_id_passkey",
                 "certificate_serial": ceremony.certificate_serial,
                 "consent_text": signer.request_id.consent_text_snapshot,
                 "consent_version": "1",
@@ -546,14 +650,35 @@ class StrongSignController(http.Controller):
             {
                 "state": "completed",
                 "completed_at": now,
+                "data_to_sign": False,
                 "dss_signing_context": False,
                 "pades_level": embedded.get("padesLevel") or ceremony.pades_level,
             },
         )
         signer.request_id._create_evidence(
+            "authentication",
+            f"{signer.request_id.name}-{signer.id}-pocket-id-token.jwt",
+            ceremony.oidc_id_token.encode(),
+            mimetype="application/jwt",
+            signer=signer,
+            metadata={
+                "ceremony_id": ceremony.id,
+                "issuer": ceremony.oidc_issuer,
+                "subject_fingerprint": enrollment.pocket_subject_fingerprint,
+                "auth_time": fields.Datetime.to_string(ceremony.oidc_auth_time),
+                "claims": ceremony.oidc_claims_summary,
+                "jwks": ceremony.oidc_jwks_snapshot,
+                "validation": "valid_fresh_passkey",
+            },
+        )
+        signer.request_id._create_evidence(
             "certificate",
             f"{signer.request_id.name}-{signer.id}-certificate-chain.pem",
-            (ceremony.certificate_pem + "\n" + "\n".join(ceremony.certificate_chain or [])).encode(),
+            (
+                ceremony.certificate_pem
+                + "\n"
+                + "\n".join(ceremony.certificate_chain or [])
+            ).encode(),
             mimetype="application/x-pem-file",
             signer=signer,
             metadata={
@@ -571,14 +696,14 @@ class StrongSignController(http.Controller):
         signer.request_id._create_evidence(
             "consent",
             f"{signer.request_id.name}-{signer.id}-strong-consent.json",
-            json.dumps(ceremony.binding_payload, sort_keys=True).encode(),
+            _canonical_json(ceremony.binding_payload),
             mimetype="application/json",
             signer=signer,
         )
         signer.request_id._append_event(
             "strong_personal_signature_applied",
             signer=signer,
-            authentication_method="passkey",
+            authentication_method="pocket_id_passkey",
             payload={"ceremony_id": ceremony.id, "document_sha256": digest},
         )
         signer._activate_next_signer_or_finish()

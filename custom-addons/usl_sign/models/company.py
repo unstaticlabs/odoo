@@ -1,5 +1,4 @@
 import os
-from urllib.parse import urlparse
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -8,19 +7,20 @@ from odoo.exceptions import ValidationError
 class ResCompany(models.Model):
     _inherit = "res.company"
 
+    sign_oca_send_sign_request_copy = fields.Boolean(
+        string="Send signers a copy of the final signed document",
+        help=(
+            "Once USL Sign has validated and archived the request, send each "
+            "signer the final evidence dossier."
+        ),
+        default=True,
+    )
+
     sign_default_policy_id = fields.Many2one(
         "usl.sign.policy", string="Default signing policy", ondelete="restrict",
     )
-    sign_deliver_completed_to_signers = fields.Boolean(
-        string="Send completed dossier to signers", default=True,
-    )
     sign_evidence_retention_years = fields.Integer(
         string="Evidence retention (years)", default=10,
-    )
-    sign_webauthn_rp_id = fields.Char(string="Passkey relying-party ID")
-    sign_webauthn_origins = fields.Char(
-        string="Allowed passkey origins",
-        help="Comma-separated HTTPS origins. Local HTTP is accepted only in development.",
     )
     sign_rfc3161_enabled = fields.Boolean(string="Use independent RFC 3161 timestamping")
     sign_services_ready = fields.Boolean(compute="_compute_sign_services_ready")
@@ -33,32 +33,6 @@ class ResCompany(models.Model):
                 msg = "Evidence retention must be between 1 and 100 years."
                 raise ValidationError(msg)
 
-    @api.constrains("sign_webauthn_rp_id", "sign_webauthn_origins")
-    def _check_webauthn_configuration(self):
-        development = os.getenv("USL_DEPLOYMENT_ENV", "development") == "development"
-        for company in self.filtered("sign_webauthn_origins"):
-            for origin in company._sign_allowed_origins():
-                parsed = urlparse(origin)
-                if parsed.scheme != "https" and not (
-                    development
-                    and parsed.scheme == "http"
-                    and parsed.hostname in {"localhost", "127.0.0.1", "odoo.localhost"}
-                ):
-                    msg = "Passkey origins must use HTTPS."
-                    raise ValidationError(msg)
-                if parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
-                    msg = "Passkey origins cannot contain paths or parameters."
-                    raise ValidationError(msg)
-
-    def _sign_allowed_origins(self):
-        self.ensure_one()
-        return {
-            origin.strip().rstrip("/")
-            for origin in (self.sign_webauthn_origins or "").split(",")
-            if origin.strip()
-        }
-
-    @api.depends("sign_webauthn_rp_id", "sign_webauthn_origins")
     def _compute_sign_services_ready(self):
         for company in self:
             missing = []
@@ -68,8 +42,21 @@ class ResCompany(models.Model):
                 missing.append("step-ca")
             if not os.getenv("USL_SIGN_STEP_CA_JWK_FILE"):
                 missing.append("certificate provisioner")
-            if not company.sign_webauthn_rp_id or not company._sign_allowed_origins():
-                missing.append("passkey origin")
+            required_pocket = {
+                "USL_POCKET_ID_ISSUER",
+                "USL_POCKET_ID_SIGN_CLIENT_ID",
+                "USL_POCKET_ID_SIGN_CLIENT_SECRET",
+                "USL_POCKET_ID_SIGN_REQUIRED_GROUP",
+            }
+            if any(not os.getenv(name) for name in required_pocket):
+                missing.append("Pocket ID Sign client")
+            if os.getenv("USL_POCKET_ID_SIGN_FRESH_REQUIRED", "").lower() not in {
+                "1",
+                "true",
+                "yes",
+                "on",
+            }:
+                missing.append("fresh Pocket ID authorization")
             company.sign_services_ready = not missing
             company.sign_services_message = (
                 "Signing services are ready."
@@ -84,17 +71,8 @@ class ResConfigSettings(models.TransientModel):
     sign_default_policy_id = fields.Many2one(
         related="company_id.sign_default_policy_id", readonly=False,
     )
-    sign_deliver_completed_to_signers = fields.Boolean(
-        related="company_id.sign_deliver_completed_to_signers", readonly=False,
-    )
     sign_evidence_retention_years = fields.Integer(
         related="company_id.sign_evidence_retention_years", readonly=False,
-    )
-    sign_webauthn_rp_id = fields.Char(
-        related="company_id.sign_webauthn_rp_id", readonly=False,
-    )
-    sign_webauthn_origins = fields.Char(
-        related="company_id.sign_webauthn_origins", readonly=False,
     )
     sign_rfc3161_enabled = fields.Boolean(
         related="company_id.sign_rfc3161_enabled", readonly=False,
