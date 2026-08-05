@@ -146,13 +146,22 @@ auto-signup, disabled regular frontend login, and optional automatic SSO
 redirect. Keep `PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS=false`: Pocket groups
 gate login and never become document authorization.
 
-Map direct users under **Documents > Configuration > User access**. Each map is
-one Odoo user, its immutable Pocket identity, and one numeric Paperless user;
-shared administrators are not a valid production mapping. After the first
-Paperless Pocket login creates or links the individual account, use **Verify
-identity**. Odoo requires the Paperless ID/username and active Pocket link to
-match before granting objects or exposing deep links. A failed check remains
-visible instead of being accepted optimistically. Install the Odoo-created
+Each direct user is one Odoo user, one immutable Pocket identity, and one
+individual numeric Paperless user; shared administrators are not a valid
+production mapping. `make target-finalize` provisions these accounts and their
+Pocket social links, verifies the Odoo mappings, and synchronizes exact
+document-object permissions. Run `make paperless-users` after a governed
+identity, Documents role, or company assignment changes. Both commands are
+idempotent and fail closed on an ambiguous subject, username, email, role, or
+remote identity.
+
+**Documents > Configuration > User access** remains the inspection and
+exception-maintenance surface. **Verify identity** is available for an
+explicitly managed identity outside the standard manifest, but the canonical
+target does not depend on a person's first Paperless login. Odoo requires the
+Paperless ID/username and active Pocket link to match before granting objects
+or exposing deep links. A failed check remains visible instead of being
+accepted optimistically. Install the Odoo-created
 fail-closed Paperless workflow before
 enabling web, consume, mail, or API intake. New archive items remain owned by
 the service context until Odoo assigns company/confidentiality and synchronizes
@@ -179,6 +188,12 @@ or individual Paperless mapping resynchronizes every affected document object.
 Permission expansion
 may remain pending and blocks access; permission revocation is fail-closed and
 rolls back the Odoo access change if the old Paperless grant cannot be removed.
+
+The migration imports no source Paperless user, token, password, proxy account,
+or connection state. The archive restore uses only its non-human service
+identity. Governed interactive accounts and mappings are target configuration
+created after business-data parity, so a clean reconstruction is immediately
+usable without weakening source-truth controls.
 
 ## Storage
 

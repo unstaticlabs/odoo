@@ -2812,6 +2812,19 @@ class UslDocument(models.Model):
             ("active", "=", True),
             ("sync_state", "=", "synchronized"),
         ]).filtered(lambda mapping: mapping._identity_is_safe())
+        visible_by_user = mappings.mapped(
+            "user_id",
+        )._documents_visible_for_permission_sync()
+        mapping_permissions = [
+            (
+                mapping.paperless_user_id,
+                visible_by_user.get(mapping.user_id.id, set()),
+                mapping.user_id.has_group(
+                    "usl_documents.group_documents_manager",
+                ),
+            )
+            for mapping in mappings
+        ]
         for document in self:
             if document.availability_state not in ("available", "permission_error"):
                 # Paperless bulk permission edits only accept live documents.
@@ -2828,16 +2841,12 @@ class UslDocument(models.Model):
                 continue
             view_users = []
             change_users = []
-            for mapping in mappings:
-                try:
-                    document.with_user(mapping.user_id).check_access("read")
-                except AccessError:
+            for paperless_user_id, visible_ids, may_change in mapping_permissions:
+                if document.id not in visible_ids:
                     continue
-                view_users.append(mapping.paperless_user_id)
-                if mapping.user_id.has_group(
-                    "usl_documents.group_documents_manager",
-                ):
-                    change_users.append(mapping.paperless_user_id)
+                view_users.append(paperless_user_id)
+                if may_change:
+                    change_users.append(paperless_user_id)
             try:
                 document._paperless().set_document_permissions(
                     document.paperless_id,

@@ -386,6 +386,7 @@ make disable-tours                    # disable automatic tours for internal QA 
 scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
+make paperless-users           # reconcile governed users and document access
 scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
 scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 make documents-restore                # isolated Documents migration rehearsal
@@ -403,7 +404,7 @@ The normal shorthand is:
 make dev       # start the existing environment
 make deploy    # apply ordinary custom add-on changes
 make rebuild   # rebuild images, then deploy
-make target-finalize    # reapply and validate target-only configuration
+make target-finalize    # reapply identities, permissions and target config
 make target-reconstruct # recreate odoo_dev from the dump, then finalize it
 ```
 
@@ -418,8 +419,12 @@ Source parity and target configuration remain separate stages. The Online dump
 has no Pocket ID state, so `scripts/target-reconstruct` validates Accounting,
 installs Documents security before restoring identities, restores Product,
 HR, Projects, Paie TESE and Platform Billing, rebuilds the Paperless archive,
-and finalizes every
-temporary migration module out of the product, and finally applies Pocket ID.
+and finalizes every temporary migration module out of the product. Its final
+target-only step provisions the governed Pocket identities in both Odoo and
+Paperless, maps the same immutable people, and synchronizes their exact
+Paperless document permissions. It never imports source credentials or SSO
+state. `make paperless-users` safely reapplies only this identity/access
+reconciliation when roles or identities change.
 Migration tooling is a maintained repository deliverable under `migration/`
 and `scripts/`; it is not installed or exposed in the normal Odoo UI.
 

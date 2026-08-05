@@ -41,10 +41,12 @@ authoritative native Odoo domain, grouping, and ordering definition.
 `usl.paperless.user.mapping` maps an Odoo user to one individual Paperless
 user; no credential is sent to the client. In an SSO environment the mapping
 also references the same Odoo-governed `(issuer, subject)` identity used for
-Pocket login. New or changed mappings remain pending until **Verify identity**
-confirms the remote Paperless user ID/username and the active Pocket link.
-Only verified, currently safe mappings participate in document-object grants
-or receive Paperless deep links.
+Pocket login. Target finalization deterministically provisions that Paperless
+identity, verifies the remote numeric ID/username, upserts the mapping and
+synchronizes object grants. New or manually changed mappings remain pending
+until **Verify identity** confirms the same contract. Only verified, currently
+safe mappings participate in document-object grants or receive Paperless deep
+links.
 
 Odoo and Paperless have separate Pocket client IDs, secrets, and callbacks.
 Pocket proves identity but does not supply Odoo companies, Documents roles, or
@@ -55,7 +57,11 @@ revokes those grants fail-closed. Paperless group synchronization is disabled.
 Paperless's documented social-account default group grants only the minimal
 model capabilities needed to load its UI, personal settings, and shared
 catalogs. It never grants a document object. A pinned, idempotent initializer
-creates that local Paperless group and reconciles existing Pocket accounts.
+creates that local Paperless group. A separate fail-closed reconciler creates
+or updates the individual account and `pocket-id` social-account link directly
+from the governed immutable-subject manifest, deactivates stale governed
+accounts, then lets Odoo write exact per-document grants. This avoids a
+first-login race without making Pocket groups an authorization source.
 The non-human Paperless API account remains separate from every interactive
 identity.
 

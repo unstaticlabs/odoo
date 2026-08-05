@@ -51,6 +51,9 @@ again to verify/map its new numeric Paperless identity and synchronize object
 permissions. Odoo and Paperless use separate clients but the same immutable
 person. Pocket groups do not add document access; the user must still see
 exactly the documents allowed by their Odoo company and Documents role.
+This first-login exercise belongs only to the isolated synthetic QA identity.
+Canonical `odoo_dev` and reconstructed targets pre-provision governed users and
+their mappings during `make target-finalize`.
 Both **Pocket ID** buttons must reach the same local Pocket tenant without a
 callback error. QA registers Paperless's exact HTTP callback; pre-production
 uses the equivalent HTTPS callback and disables Paperless password login.

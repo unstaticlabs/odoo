@@ -83,6 +83,12 @@ services:
       # must set and validate HTTPS.
       PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: ${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:-https}
 
+  paperless-identity-init:
+    environment:
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
+        {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}","settings":{"server_url":"${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}","token_auth_method":"client_secret_basic"}}]}}
+
   init-db:
     depends_on:
       pocket-id:

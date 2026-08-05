@@ -84,6 +84,10 @@ OIDC clients. A Paperless mapping is permission-eligible only while its Odoo
 user, Pocket `(issuer, subject)` link, and remote numeric Paperless identity
 remain verified. Pocket groups are never copied into Paperless authorization.
 The service API token remains a separate non-human integration identity.
+Canonical finalization pre-provisions each governed Paperless social account,
+upserts its Odoo mapping, and applies the exact visible document set. The
+reconciler is idempotent and fail-closed; first login is authentication proof,
+not an account-creation or authorization step.
 
 The implementation compared three credible approaches. Standard `ir.attachment`
 would preserve native UI but duplicate archive binaries and lacks Paperless OCR,

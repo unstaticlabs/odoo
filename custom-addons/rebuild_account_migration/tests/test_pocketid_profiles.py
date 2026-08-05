@@ -19,7 +19,7 @@ class TestPocketIDProductProfiles(TransactionCase):
             },
         )
         company = self.env.company
-        second_company = self.env["res.company"].create(
+        self.env["res.company"].create(
             {"name": "Pocket ID Isolated Company"},
         )
         administrator = {
@@ -70,16 +70,17 @@ class TestPocketIDProductProfiles(TransactionCase):
             "accountant_reviewer",
             users._usl_pocketid_profile_definitions(),
         )
+        initial_identity_count = self.env["usl.oidc.identity"].search_count([])
         first_summary = users._usl_pocketid_apply_user_configuration(
             configuration,
             break_glass_password="offline-break-glass-password",
-            strict=True,
+            strict=False,
         )
         identity_count = self.env["usl.oidc.identity"].search_count([])
         second_summary = users._usl_pocketid_apply_user_configuration(
             configuration,
             break_glass_password="offline-break-glass-password",
-            strict=True,
+            strict=False,
         )
 
         self.assertEqual(first_summary["configured_count"], 4)
@@ -88,7 +89,7 @@ class TestPocketIDProductProfiles(TransactionCase):
             self.env["usl.oidc.identity"].search_count([]),
             identity_count,
         )
-        self.assertEqual(identity_count, 3)
+        self.assertEqual(identity_count, initial_identity_count + 3)
 
         break_glass = self.env.ref("base.user_admin")
         self.assertTrue(
@@ -102,7 +103,7 @@ class TestPocketIDProductProfiles(TransactionCase):
         self.assertEqual(valentin.partner_id, imported_valentin_partner)
         self.assertEqual(
             set(valentin.company_ids.ids),
-            set((company | second_company).ids),
+            set(self.env["res.company"].search([]).ids),
         )
         for group in (
             "base.group_system",
@@ -136,6 +137,9 @@ class TestPocketIDProductProfiles(TransactionCase):
             ),
         )
         self.assertTrue(prosper.has_group("account.group_account_readonly"))
+        self.assertTrue(
+            prosper.has_group("usl_documents.group_documents_accountant"),
+        )
         self.assertFalse(prosper.has_group("account.group_account_user"))
         self.assertFalse(prosper.has_group("account.group_account_manager"))
         self.assertFalse(

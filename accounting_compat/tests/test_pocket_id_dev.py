@@ -83,8 +83,10 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertEqual(
             payload["callbackURLs"],
             [
-                "https://documents.example.test/"
-                "accounts/oidc/pocket-id/login/callback/",
+                (
+                    "https://documents.example.test/"
+                    "accounts/oidc/pocket-id/login/callback/"
+                ),
             ],
         )
         self.assertTrue(payload["pkceEnabled"])
@@ -138,6 +140,24 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertFalse(
             users_by_profile["accountant_reviewer"]["create_if_missing"],
         )
+
+    def test_paperless_policy_uses_immutable_pocket_people(self):
+        values = {
+            "POCKET_ID_PROSPER_EMAIL": "prosper@example.test",
+            "POCKET_ID_PROSPER_ID": "prosper-subject",
+            "POCKET_ID_ROGER_ID": "roger-subject",
+            "POCKET_ID_VALENTIN_ID": "valentin-subject",
+        }
+        with patch("builtins.print") as print_mock:
+            POCKET_ID_DEV.paperless_policy(values)
+        policy = json.loads(print_mock.call_args.args[0])
+        users = {entry["username"]: entry for entry in policy}
+
+        self.assertEqual(set(users), {"valentin", "roger", "prosper"})
+        self.assertEqual(users["valentin"]["subject"], "valentin-subject")
+        self.assertEqual(users["roger"]["email"], "roger@unstaticlabs.com")
+        self.assertEqual(users["prosper"]["subject"], "prosper-subject")
+        self.assertEqual(users["prosper"]["email"], "prosper@example.test")
 
     def test_noncanonical_database_cannot_be_selected_as_target(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -254,6 +274,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         initializer = (
             ROOT / "deploy" / "documents" / "paperless_access_init.py"
         ).read_text(encoding="utf-8")
+        identity_initializer = (
+            ROOT / "deploy" / "documents" / "paperless_identity_sync.py"
+        ).read_text(encoding="utf-8")
+        pocket_helper = (ROOT / "scripts" / "pocket-id-dev").read_text(
+            encoding="utf-8",
+        )
 
         self.assertIn("paperless-access-init:", compose)
         self.assertIn(
@@ -278,6 +304,35 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn('f"view_{model}"', initializer)
         self.assertNotIn("view_user", initializer)
         self.assertNotIn("change_document", initializer)
+        self.assertIn("paperless-identity-init:", compose)
+        self.assertIn("transaction.atomic()", identity_initializer)
+        self.assertIn("provider=provider_id", identity_initializer)
+        self.assertIn("SocialAccount.objects.create", identity_initializer)
+        self.assertIn('"usl_odoo_managed": True', identity_initializer)
+        self.assertIn("account.user.is_active = False", identity_initializer)
+        self.assertIn("sync_paperless_identities", pocket_helper)
+        configure_body = pocket_helper[
+            pocket_helper.index("configure_odoo() {") :
+            pocket_helper.index("\nsync_paperless_users() {")
+        ]
+        self.assertIn("sync_paperless_identities", configure_body)
+
+    def test_target_finalization_reconciles_paperless_people(self):
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        finalizer = (ROOT / "scripts" / "target-finalize").read_text(
+            encoding="utf-8",
+        )
+        apply_script = (
+            ROOT / "scripts" / "odoo" / "documents_identity_apply.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("paperless-users:", makefile)
+        self.assertIn("sync-paperless-users", makefile)
+        self.assertIn("scripts/pocket-id-dev configure-odoo", finalizer)
+        self.assertIn("_identity_is_safe", apply_script)
+        self.assertIn("action_sync_permissions", apply_script)
+        self.assertIn("USL_PAPERLESS_FORCE_PERMISSION_SYNC", apply_script)
+        self.assertIn("stale_mappings_disabled", apply_script)
 
     def test_documents_qa_uses_ports_isolated_from_canonical_development(self):
         qa_env = (ROOT / "deploy" / "documents" / "qa.env").read_text(
