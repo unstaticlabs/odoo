@@ -10,6 +10,14 @@ DEFAULT_ENV_FILE="$ROOT/.pocket-id.env"
 ENV_FILE="${POCKET_ID_ENV_FILE:-$DEFAULT_ENV_FILE}"
 PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
 COMPOSE_FILES=(-f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml")
+if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]; then
+  if [[ ! -f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE" ]]; then
+    printf 'Pocket ID Compose override is missing: %s\n' \
+      "$USL_POCKET_ID_COMPOSE_EXTRA_FILE" >&2
+    exit 2
+  fi
+  COMPOSE_FILES+=(-f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE")
+fi
 
 bootstrap() {
   if [[ -f "$ROOT/.git" && ! -f "$ENV_FILE" ]]; then

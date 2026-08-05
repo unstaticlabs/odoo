@@ -166,6 +166,15 @@ release_compose() {
     "$@"
 }
 
+release_helper() {
+  # Reconstruction services keep their dedicated migration-only mounts, while
+  # every delivered product service (Odoo and init-db) must execute from the
+  # same qualified image that will be retained at runtime.
+  COMPOSE_FILE="$ROOT/compose.yaml:$ROOT/compose.pocket-id.yaml:$ROOT/compose.preprod.yaml" \
+    USL_POCKET_ID_COMPOSE_EXTRA_FILE="$ROOT/compose.preprod.yaml" \
+    "$@"
+}
+
 database_identity() {
   local apply_mode="$1"
   local database="${2:-odoo_dev}"
@@ -250,7 +259,7 @@ clean_install_product() {
 reconstruct_target() {
   require_qualified_identity
   export ODOO_MAX_CRON_THREADS=0
-  scripts/target-reconstruct
+  release_helper scripts/target-reconstruct
   database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
 }
 
@@ -262,10 +271,10 @@ finish_reconstruction() {
     DOCUMENTS_CANONICAL_RESET=1 \
     DOCUMENTS_TARGET_DATABASE=odoo_dev \
     COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
-    scripts/documents-restore all
+    release_helper scripts/documents-restore all
   release_compose stop odoo >/dev/null 2>&1 || true
-  scripts/accounting-restore finalize
-  scripts/target-finalize
+  release_helper scripts/accounting-restore finalize
+  release_helper scripts/target-finalize
   database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
   printf 'Canonical reconstruction finalization complete: odoo_dev\n'
 }
@@ -274,8 +283,8 @@ finalize_reconstruction() {
   require_qualified_identity
   export ODOO_MAX_CRON_THREADS=0
   release_compose stop odoo >/dev/null 2>&1 || true
-  scripts/accounting-restore schema-finalize
-  scripts/target-finalize
+  release_helper scripts/accounting-restore schema-finalize
+  release_helper scripts/target-finalize
   database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
   printf 'Canonical target finalization complete: odoo_dev\n'
 }
