@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+target_database="${SIGN_TARGET_DATABASE:-odoo_dev}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/sign-migration-addons"
+
+case "$target_database" in
+  odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)
+    if [[ "${SIGN_RESTORE_ALLOW_PROTECTED_TARGET:-0}" != "1" ]]; then
+      printf 'Refusing protected database %s.\n' "$target_database" >&2
+      exit 2
+    fi
+    ;;
+esac
+
+source_snapshot() {
+  local dump_path="$source_dump_dir/dump.sql"
+  [[ -f "$dump_path" ]] || { printf 'Source dump is missing at %s.\n' "$dump_path" >&2; exit 2; }
+  local digest
+  digest="$(shasum -a 256 "$dump_path" | awk '{print $1}')"
+  printf 'source-%s\n' "${digest:0:12}"
+}
+
+require_source() {
+  [[ -f "$source_dump_dir/dump.sql" && -d "$source_dump_dir/filestore" ]] || {
+    printf 'Source dump or filestore is missing under %s.\n' "$source_dump_dir" >&2
+    exit 2
+  }
+}
+
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+product_was_running=0
+if docker compose -p "$compose_project" ps --status running --services | grep -qx odoo; then
+  product_was_running=1
+  docker compose -p "$compose_project" stop odoo >/dev/null
+fi
+restore_product_service() {
+  if ((product_was_running)); then
+    docker compose -p "$compose_project" up -d --wait odoo
+  fi
+}
+trap restore_product_service EXIT INT TERM
+
+install_module() {
+  local operation="--init=usl_sign,usl_sign_restore"
+  if docker compose -p "$compose_project" exec -T db psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
+    "SELECT 1 FROM ir_module_module WHERE name = 'usl_sign_restore' AND state = 'installed'" | grep -qx 1; then
+    operation="--update=usl_sign,usl_sign_restore"
+  fi
+  docker compose -p "$compose_project" --profile sign-migration run --rm \
+    -e ODOO_INIT_DB="$target_database" sign-migration \
+    odoo --config=/etc/odoo/odoo.conf --addons-path="$migration_addons_path" \
+    --database="$target_database" "$operation" --without-demo=true --stop-after-init
+}
+
+source_environment() {
+  printf '%s\n' \
+    -e "SIGN_SOURCE_DB_HOST=${SIGN_SOURCE_DB_HOST:-accounting-source-db}" \
+    -e "SIGN_SOURCE_DB_PORT=${SIGN_SOURCE_DB_PORT:-5432}" \
+    -e "SIGN_SOURCE_DB_USER=${SIGN_SOURCE_DB_USER:-odoo}" \
+    -e "SIGN_SOURCE_DB_PASSWORD=${SIGN_SOURCE_DB_PASSWORD:-odoo}" \
+    -e "SIGN_SOURCE_DATABASE=${SIGN_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+    -e "SIGN_SOURCE_SNAPSHOT=${SIGN_SOURCE_SNAPSHOT:-$(source_snapshot)}" \
+    -e SIGN_SOURCE_FILESTORE=/mnt/accounting-source/filestore
+}
+
+run_shell() {
+  local script="$1"
+  shift
+  docker compose -p "$compose_project" --profile sign-migration run --rm "$@" \
+    sign-migration odoo shell --config=/etc/odoo/odoo.conf \
+    --addons-path="$migration_addons_path" --database="$target_database" \
+    --shell-interface=python < "$script"
+}
+
+import_sign() {
+  require_source
+  local env_args=()
+  while IFS= read -r line; do env_args+=("$line"); done < <(source_environment)
+  run_shell migration/sign_restore/addons/usl_sign_restore/scripts/run_restore.py "${env_args[@]}"
+}
+
+validate_sign() {
+  run_shell migration/sign_restore/addons/usl_sign_restore/scripts/validate_restore.py
+}
+
+finalize_sign() {
+  run_shell migration/sign_restore/addons/usl_sign_restore/scripts/finalize_restore.py
+  docker compose -p "$compose_project" --profile init run --rm -e ODOO_INIT_DB="$target_database" init-db \
+    odoo shell --config=/etc/odoo/odoo.conf --database="$target_database" --shell-interface=python \
+    < migration/sign_restore/scripts/validate_product_boundary.py
+}
+
+case "$command_name" in
+  install) install_module ;;
+  import) import_sign ;;
+  validate) validate_sign ;;
+  finalize) finalize_sign ;;
+  product-validate)
+    docker compose -p "$compose_project" --profile init run --rm -e ODOO_INIT_DB="$target_database" init-db \
+      odoo shell --config=/etc/odoo/odoo.conf --database="$target_database" --shell-interface=python \
+      < migration/sign_restore/scripts/validate_product_boundary.py
+    ;;
+  all) install_module; import_sign; validate_sign; finalize_sign ;;
+  *) printf 'Usage: scripts/sign-restore [install|import|validate|finalize|product-validate|all]\n' >&2; exit 2 ;;
+esac
+
