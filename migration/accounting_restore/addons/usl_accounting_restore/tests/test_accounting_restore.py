@@ -2929,8 +2929,11 @@ class TestRebuildAccountMigration(TransactionCase):
         hygiene_action = self.env.ref(
             "rebuild_account_migration.action_rebuild_account_hygiene",
         )
+        hygiene_refresh_action = self.env.ref(
+            "rebuild_account_migration.action_open_current_company_hygiene",
+        )
         self.assertEqual(hygiene_menu.name, "Accounting Hygiene")
-        self.assertEqual(hygiene_menu.action, hygiene_action)
+        self.assertEqual(hygiene_menu.action, hygiene_refresh_action)
         self.assertEqual(
             hygiene_menu.parent_id,
             self.env.ref("account.account_audit_control_menu"),
@@ -5505,6 +5508,128 @@ class TestRebuildAccountMigration(TransactionCase):
             method_line_ids,
         )
         self.assertEqual(self.env["account.payment.method.line"].browse(method_line_ids).journal_id, journal)
+
+    def test_journal_replay_preserves_archived_source_state(self):
+        journal = self.env["account.journal"].create({
+            "name": "Archived source journal",
+            "code": "TARC",
+            "type": "general",
+            "company_id": self.company.id,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Archived journal replay",
+            "source_snapshot_id": "unit-complete-company-configuration",
+        })
+        source_row = {
+            "id": 990014,
+            "name": "Archived source journal",
+            "code": "TARC",
+            "type": "general",
+            "company_id": 990001,
+            "default_account_id": False,
+            "currency_id": False,
+            "active": False,
+            "sequence": journal.sequence,
+            "refund_sequence": journal.refund_sequence,
+            "restrict_mode_hash_table": journal.restrict_mode_hash_table,
+        }
+
+        with (
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                return_value=[source_row],
+            ),
+            patch.object(
+                type(import_run),
+                "_sync_company_einvoice_configuration",
+            ),
+        ):
+            mapped = import_run._journal_map(
+                object(),
+                {
+                    "source_company_ids": [990001],
+                    "source_snapshot_id": (
+                        "unit-complete-company-configuration"
+                    ),
+                },
+                {990001: self.company},
+                {},
+                {},
+            )
+
+        self.assertEqual(mapped[990014], journal)
+        self.assertFalse(journal.active)
+
+    def test_company_configuration_parity_is_source_traced_and_company_scoped(self):
+        snapshot = "unit-company-configuration-parity"
+        source_company_id = 990001
+        account = self.env["account.account"].create({
+            "name": "Source-traced company account",
+            "code": "TMC001",
+            "account_type": "asset_current",
+            "company_ids": [Command.set([self.company.id])],
+            "rebuild_source_model": "account.account",
+            "rebuild_source_id": 990101,
+            "rebuild_source_snapshot": snapshot,
+        })
+        self.env["account.account"].create({
+            "name": "Target-only bootstrap account",
+            "code": "TMC002",
+            "account_type": "asset_current",
+            "company_ids": [Command.set([self.company.id])],
+        })
+        journal = self.env["account.journal"].create({
+            "name": "Source-traced company journal",
+            "code": "TMCJ",
+            "type": "general",
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.journal",
+            "rebuild_source_id": 990201,
+            "rebuild_source_snapshot": snapshot,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company configuration parity",
+            "source_snapshot_id": snapshot,
+        })
+        source_rows = [{
+            "company_id": source_company_id,
+            "account_count": 1,
+            "active_account_count": 1,
+            "journal_count": 1,
+            "active_journal_count": 1,
+        }]
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            return_value=source_rows,
+        ):
+            passed = import_run._company_configuration_parity(
+                object(),
+                {
+                    "source_company_ids": [source_company_id],
+                    "source_snapshot_id": snapshot,
+                },
+                {source_company_id: self.company},
+            )
+            journal.active = False
+            failed = import_run._company_configuration_parity(
+                object(),
+                {
+                    "source_company_ids": [source_company_id],
+                    "source_snapshot_id": snapshot,
+                },
+                {source_company_id: self.company},
+            )
+
+        self.assertTrue(account.active)
+        self.assertEqual(passed["status"], "passed")
+        self.assertEqual(passed["mismatch_count"], 0)
+        self.assertEqual(failed["status"], "failed")
+        self.assertFalse(
+            failed["companies"][0]["checks"]["active_journal_count"],
+        )
 
     def test_reconciliation_model_replay_preserves_native_oca_rule_semantics(self):
         snapshot = "unit-reconciliation-models"

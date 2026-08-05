@@ -1890,112 +1890,15 @@ class RebuildAccountImportRun(models.Model):
         rows = self._fetchall(
             conn,
             """
-            WITH source_account_ids AS (
-                SELECT DISTINCT aml.account_id AS id
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE am.company_id = ANY(%(source_company_ids)s) AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
-                UNION
-                SELECT DISTINCT aml.account_id AS id
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE am.company_id = ANY(%(source_company_ids)s) AND am.state != 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
-                  AND aml.account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT default_account_id AS id
-                FROM account_journal
-                WHERE company_id = ANY(%(source_company_ids)s) AND default_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_id AS id
-                FROM account_tax_repartition_line
-                WHERE account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT cash_basis_transition_account_id AS id
-                FROM account_tax
-                WHERE cash_basis_transition_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT tax_payable_account_id AS id
-                FROM account_tax_group
-                WHERE tax_payable_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT tax_receivable_account_id AS id
-                FROM account_tax_group
-                WHERE tax_receivable_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT advance_tax_payment_account_id AS id
-                FROM account_tax_group
-                WHERE advance_tax_payment_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT income_currency_exchange_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND income_currency_exchange_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT expense_currency_exchange_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND expense_currency_exchange_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_journal_suspense_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND account_journal_suspense_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT transfer_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND transfer_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT outstanding_account_id AS id
-                FROM account_payment
-                WHERE company_id = ANY(%(source_company_ids)s)
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                  AND outstanding_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT destination_account_id AS id
-                FROM account_payment
-                WHERE company_id = ANY(%(source_company_ids)s)
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                  AND destination_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT general_account_id AS id
-                FROM account_analytic_line
-                WHERE company_id = ANY(%(source_company_ids)s)
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                  AND general_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_asset_id AS id
-                FROM account_asset
-                WHERE account_asset_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_depreciation_id AS id
-                FROM account_asset
-                WHERE account_depreciation_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_depreciation_expense_id AS id
-                FROM account_asset
-                WHERE account_depreciation_expense_id IS NOT NULL
-                UNION
-                SELECT DISTINCT line.account_id AS id
-                FROM account_reconcile_model_line line
-                JOIN account_reconcile_model model ON model.id = line.model_id
-                WHERE model.company_id = ANY(%(source_company_ids)s)
-                  AND line.account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT aa.id AS id
-                FROM account_account aa
-                JOIN account_account_res_company_rel rel ON rel.account_account_id = aa.id
-                WHERE aa.account_type = 'equity_unaffected'
-                  AND rel.res_company_id = ANY(%(source_company_ids)s)
-            )
             SELECT aa.id, aa.name, aa.code_store, aa.account_type, aa.active, aa.reconcile,
                    aa.non_trade, aa.currency_id,
                    array_remove(array_agg(rel.res_company_id ORDER BY rel.res_company_id), NULL) AS company_ids
             FROM account_account aa
-            LEFT JOIN account_account_res_company_rel rel ON rel.account_account_id = aa.id
-            WHERE aa.id IN (SELECT id FROM source_account_ids)
+            JOIN account_account_res_company_rel selected_rel
+              ON selected_rel.account_account_id = aa.id
+             AND selected_rel.res_company_id = ANY(%(source_company_ids)s)
+            LEFT JOIN account_account_res_company_rel rel
+              ON rel.account_account_id = aa.id
             GROUP BY aa.id
             ORDER BY aa.id
             """,
@@ -2789,32 +2692,7 @@ class RebuildAccountImportRun(models.Model):
             SELECT DISTINCT aj.id, aj.name, aj.code, aj.type, aj.company_id, aj.default_account_id,
                    aj.currency_id, aj.active, aj.sequence, aj.refund_sequence, aj.restrict_mode_hash_table
             FROM account_journal aj
-            WHERE aj.id IN (
-                SELECT DISTINCT journal_id
-                FROM account_move
-                WHERE company_id = ANY(%(source_company_ids)s) AND state = 'posted'
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                UNION
-                SELECT DISTINCT journal_id
-                FROM account_move
-                WHERE company_id = ANY(%(source_company_ids)s) AND state <> 'posted'
-                  AND date >= %(date_from)s
-                UNION
-                SELECT DISTINCT journal_id
-                FROM account_asset
-                WHERE journal_id IS NOT NULL
-                UNION
-                SELECT DISTINCT relation.account_journal_id
-                FROM account_journal_account_reconcile_model_rel relation
-                JOIN account_reconcile_model model
-                  ON model.id = relation.account_reconcile_model_id
-                WHERE model.company_id = ANY(%(source_company_ids)s)
-                UNION
-                SELECT peppol_purchase_journal_id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND peppol_purchase_journal_id IS NOT NULL
-            )
+            WHERE aj.company_id = ANY(%(source_company_ids)s)
             ORDER BY aj.company_id, aj.id
             """,
             options,
@@ -2839,7 +2717,7 @@ class RebuildAccountImportRun(models.Model):
                 "type": row["type"],
                 "company_id": company.id,
                 "sequence": row["sequence"] or 10,
-                "active": True,
+                "active": bool(row["active"]),
                 "refund_sequence": bool(row["refund_sequence"]),
                 "restrict_mode_hash_table": bool(row["restrict_mode_hash_table"]),
                 **self._trace_values("account.journal", row["id"], options),
@@ -2866,6 +2744,116 @@ class RebuildAccountImportRun(models.Model):
             journals,
         )
         return journals
+
+    def _company_configuration_parity(self, conn, options, companies):
+        """Prove complete per-company chart and journal reconstruction.
+
+        The target can contain additional native bootstrap records.  Parity is
+        therefore measured only on source-traced records and on their active
+        state, while every source account relationship is counted for each
+        selected company.
+        """
+        source_rows = self._fetchall(
+            conn,
+            """
+            SELECT company_id,
+                   SUM(account_count)::integer AS account_count,
+                   SUM(active_account_count)::integer AS active_account_count,
+                   SUM(journal_count)::integer AS journal_count,
+                   SUM(active_journal_count)::integer AS active_journal_count
+              FROM (
+                    SELECT relation.res_company_id AS company_id,
+                           COUNT(*) AS account_count,
+                           COUNT(*) FILTER (WHERE account.active)
+                               AS active_account_count,
+                           0 AS journal_count,
+                           0 AS active_journal_count
+                      FROM account_account_res_company_rel relation
+                      JOIN account_account account
+                        ON account.id = relation.account_account_id
+                     WHERE relation.res_company_id = ANY(%(source_company_ids)s)
+                     GROUP BY relation.res_company_id
+                    UNION ALL
+                    SELECT journal.company_id,
+                           0,
+                           0,
+                           COUNT(*),
+                           COUNT(*) FILTER (WHERE journal.active)
+                      FROM account_journal journal
+                     WHERE journal.company_id = ANY(%(source_company_ids)s)
+                     GROUP BY journal.company_id
+              ) configuration
+             GROUP BY company_id
+             ORDER BY company_id
+            """,
+            options,
+        )
+        source_by_company = {
+            row["company_id"]: row
+            for row in source_rows
+        }
+        snapshot = options.get("source_snapshot_id")
+        Account = self.env["account.account"].sudo().with_context(
+            active_test=False,
+        )
+        Journal = self.env["account.journal"].sudo().with_context(
+            active_test=False,
+        )
+        company_results = []
+        mismatch_count = 0
+        for source_company_id in self._source_company_ids(options):
+            company = companies[source_company_id]
+            source = source_by_company.get(source_company_id, {})
+            imported_accounts = Account.with_company(company).search([
+                ("rebuild_source_model", "=", "account.account"),
+                ("rebuild_source_snapshot", "=", snapshot),
+                ("company_ids", "in", company.id),
+            ])
+            imported_journals = Journal.with_company(company).search([
+                ("rebuild_source_model", "=", "account.journal"),
+                ("rebuild_source_snapshot", "=", snapshot),
+                ("company_id", "=", company.id),
+            ])
+            expected = {
+                "account_count": source.get("account_count", 0),
+                "active_account_count": source.get(
+                    "active_account_count",
+                    0,
+                ),
+                "journal_count": source.get("journal_count", 0),
+                "active_journal_count": source.get(
+                    "active_journal_count",
+                    0,
+                ),
+            }
+            actual = {
+                "account_count": len(imported_accounts),
+                "active_account_count": len(
+                    imported_accounts.filtered("active"),
+                ),
+                "journal_count": len(imported_journals),
+                "active_journal_count": len(
+                    imported_journals.filtered("active"),
+                ),
+            }
+            checks = {
+                key: actual[key] == expected[key]
+                for key in expected
+            }
+            mismatch_count += int(not all(checks.values()))
+            company_results.append({
+                "source_company_id": source_company_id,
+                "target_company_id": company.id,
+                "company_name": company.name,
+                "expected": expected,
+                "actual": actual,
+                "checks": checks,
+            })
+        return {
+            "status": "passed" if not mismatch_count else "failed",
+            "mismatch_count": mismatch_count,
+            "companies": company_results,
+        }
 
     def _sync_company_einvoice_configuration(
         self,
@@ -9034,6 +9022,25 @@ class RebuildAccountImportRun(models.Model):
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
 
+            company_configuration_parity = (
+                self._company_configuration_parity(
+                    conn,
+                    options,
+                    companies,
+                )
+            )
+            if company_configuration_parity["mismatch_count"]:
+                raise ValueError(
+                    "Per-company account or journal configuration differs "
+                    "from the source: %s"
+                    % json.dumps(
+                        company_configuration_parity,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
+
             non_posted_moves = [
                 row for row in move_rows if row["state"] != "posted"
             ]
@@ -9230,6 +9237,7 @@ class RebuildAccountImportRun(models.Model):
                 "journal_count": len(journals),
                 "partner_count": len(partners),
                 "company_count": len(companies),
+                "company_configuration": company_configuration_parity,
                 "currency_rates": currency_rate_stats,
                 "tax_configuration": tax_stats,
                 "payment_terms": payment_term_stats,
