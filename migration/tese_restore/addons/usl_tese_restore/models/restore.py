@@ -878,6 +878,15 @@ class UslTeseRestoreRun(models.Model):
             # Payment residuals may have changed since a previous rehearsal.
             # Re-derive the operational state even when source data is unchanged.
             payslip.action_finalize()
+            payslip.with_context(
+                _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
+            ).write({
+                "preparation_ok": True,
+                "preparation_message": (
+                    "Preparation complete: the payroll entry is balanced and "
+                    "posted, and the official TESE PDF is linked."
+                ),
+            })
         else:
             message = (
                 "The draft payroll entry and source payroll record were "

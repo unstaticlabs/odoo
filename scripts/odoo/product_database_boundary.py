@@ -23,6 +23,7 @@ PRODUCT_MODULES = {
     "usl_platform_billing_pocketid",
     "usl_pocketid",
     "usl_project",
+    "usl_tese_accounting",
     "usl_tese_payroll",
 }
 FORBIDDEN_MODELS = {

@@ -107,6 +107,7 @@ identifiers. It is explicitly rejected for this increment.
 | Electronic-invoice readiness and offline reception evidence | compatibility module for this stage | stable reception-model ownership, left unchanged | UBL/CII/Factur-X, duplicate, malformed, ACL and live-guard tests |
 | Expense claims/batches | `usl_expense_batch` | retained independent feature | clean module and browser tests |
 | External-provider payroll and TESE settlement | `usl_tese_payroll` | focused product module over native HR/Accounting and OCA matching | clean module, security, accounting and settlement tests |
+| TESE closing control | `usl_tese_accounting` | focused bridge from TESE payroll to the Accounting closing workspace | period, evidence, posting and liability-state tests |
 | Documents archive and access policy | `usl_documents` | Paperless-backed product module over native companies, contacts and access groups | backend/frontend suites, API/read-back and migration parity |
 | Accounting document evidence | `usl_documents_accounting` | focused bridge from Documents to Accounting records | record-link, authorization and accounting-view tests |
 | Overview and cash projections | compatibility module for this stage | operational cross-feature behavior, left unchanged | native ledger, controls and report tests |

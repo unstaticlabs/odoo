@@ -211,7 +211,7 @@ cleanup_clean_install_database() {
 clean_install_product() {
   require_qualified_identity
   local product_modules
-  product_modules="rebuild_account_migration,usl_documents_accounting,usl_project,usl_tese_payroll"
+  product_modules="rebuild_account_migration,usl_documents_accounting,usl_project,usl_tese_accounting"
   cleanup_clean_install_database
   trap cleanup_clean_install_database EXIT INT TERM
   release_compose --profile init run --rm -T \

@@ -72,7 +72,7 @@ deploy() {
   local module="${1:-$DEV_MODULE}"
   local update_modules="$module"
   if [[ "$module" == "rebuild_account_migration" ]]; then
-    update_modules="usl_accounting,rebuild_account_migration,usl_documents,usl_documents_accounting,usl_tese_payroll"
+    update_modules="usl_accounting,rebuild_account_migration,usl_documents,usl_documents_accounting,usl_tese_payroll,usl_tese_accounting"
   fi
   if is_canonical_target; then
     "$ROOT/scripts/pocket-id-dev" configure-odoo "$update_modules"
