@@ -31,5 +31,6 @@ scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
 
 printf '\nCanonical target finalized: odoo_dev\n'
-printf 'Product URL: http://odoo.localhost:8069/web/login?db=odoo_dev\n'
-printf 'Local login link: scripts/pocket-id-dev one-time-link valentin\n'
+printf 'Product URL: %s/web/login?db=odoo_dev\n' \
+  "${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:${ODOO_HTTP_PORT:-8069}}"
+printf 'Local QA login link: make login-link USER=valentin\n'

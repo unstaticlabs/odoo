@@ -92,8 +92,9 @@ Normal development does not require cleanup. `make dev`, `make deploy` and
 `make rebuild` keep the canonical target and local identity provider running.
 
 The local overlay deliberately enables insecure callback URLs only inside this
-loopback target topology. Staging and production require HTTPS and must not
-copy that setting. Pocket ID uses `prosper@preproduction.invalid` only as a
+loopback target topology. Staging and production require HTTPS, require each
+person's Pocket ID passkey, and must not copy the HTTP or one-time-link QA
+exception. Pocket ID uses `prosper@preproduction.invalid` only as a
 clearly synthetic provider-side placeholder. It is not written to Prosper's
 existing Odoo user, whose canonical email is currently blank. Replace the
 placeholder with an owner-confirmed address before any non-local activation.
