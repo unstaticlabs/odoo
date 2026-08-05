@@ -123,11 +123,15 @@ From the host shell:
 
 ```bash
 cd /Users/valentin/Code/odoo
+make doctor
 make dev
 make deploy
 ```
 
-`make dev` opens the existing environment. `make deploy` stops Odoo, updates
+Plain `make` displays the curated command help and never starts services.
+`make doctor` is read-only: it reports the selected checkout, branch, Compose
+project, database, ports, container owners and health. `make dev` opens the
+existing environment. `make deploy` stops Odoo, updates
 `rebuild_account_migration` in `odoo_dev`, recreates the web service and waits
 for it to become healthy. The compatibility module update also installs or
 updates its declared `usl_accounting` and `usl_expense_batch` dependencies. It
@@ -138,6 +142,22 @@ After the target is healthy, the helper sets Odoo's native per-user
 dev/QA state only: production tours are not disabled in delivered module code,
 and explicit automated browser tours continue to work. Run
 `make disable-tours` to reapply the setting without deploying.
+
+The canonical Compose project belongs exclusively to this main checkout.
+When `make doctor` reports foreign or mixed ownership, ordinary commands stop
+before changing anything. From the main checkout, and only after confirming no
+migration or test is active, recover with:
+
+```bash
+make dev-reclaim CONFIRM=usl-odoo-saas-19-2
+make deploy
+```
+
+Reclaim lists all affected resources, requires the exact confirmation, removes
+project containers only, then restarts the canonical Odoo, Pocket ID and
+Paperless runtime. It never removes named databases, filestores, Paperless
+archives, Pocket ID state, images or dumps. Linked worktrees must use their own
+`COMPOSE_PROJECT` and ports; they cannot reclaim the canonical project.
 
 Use `make rebuild` only after Dockerfile, dependency, system or
 core-source changes. Both commands print the development URL:

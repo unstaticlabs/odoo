@@ -367,7 +367,25 @@ The bootstrap refuses existing company identities and any enabled live guard.
 It makes no network call. Log in as `qa.manager` / `admin` or
 `qa.reviewer` / `admin`.
 
-### Helper commands
+### Developer commands
+
+Use Make as the human-facing interface. Plain `make` shows the common
+workflows and does not start or change services:
+
+```bash
+make                              # show common workflows
+make doctor                       # read-only ownership and configuration diagnosis
+make dev                          # start the existing development target
+make deploy                       # update the normal product add-on graph
+make deploy MODULE=usl_accounting # update one selected module
+make rebuild                      # rebuild the image, then deploy
+make status                       # show owners, service health and local URLs
+make logs SERVICE=odoo            # follow one service; omit SERVICE for all logs
+make stop                         # stop containers; preserve data
+make help-advanced                # migration, validation and specialized QA
+```
+
+The underlying scripts remain stable automation interfaces:
 
 ```bash
 scripts/odoo-dev build        # build Odoo images
@@ -404,7 +422,7 @@ scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
 ```
 
-The normal shorthand is:
+The normal development workflow is:
 
 ```bash
 make dev       # start the existing environment
@@ -448,7 +466,26 @@ passkeys and must not retain the QA one-time-link exception.
 The main checkout owns the default `usl-odoo-saas-19-2` Compose project.
 Linked worktrees must use a dedicated project and non-conflicting ports; every
 host helper verifies the Compose working-directory label before it mutates a
-container. For example:
+container. If a previous command or worktree left the canonical project mixed,
+the safety refusal is intentional. Diagnose it first, then explicitly replace
+only its containers from the main checkout:
+
+```bash
+make doctor
+make dev-reclaim CONFIRM=usl-odoo-saas-19-2
+make deploy
+```
+
+`make doctor` is read-only and reports every container, service, state,
+checkout owner and branch. Reclaim is never automatic: it requires the exact
+project confirmation, refuses while a migration, test or one-shot initializer
+is active, and removes/recreates project containers only. Named PostgreSQL,
+Odoo filestore, Paperless and Pocket ID volumes, images, source dumps and
+backups are preserved. Data deletion remains the separate, explicitly named
+reset workflow.
+
+A linked worktree cannot reclaim or use the canonical project. Give it an
+explicit project and non-conflicting ports instead. For example:
 
 ```bash
 COMPOSE_PROJECT=usl-odoo-preprod-9642 \

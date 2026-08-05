@@ -1,4 +1,5 @@
 ACCOUNTING_COMPAT ?= scripts/accounting-compat
+.DEFAULT_GOAL := help
 COMPOSE_PROJECT ?= usl-odoo-saas-19-2
 export COMPOSE_PROJECT_NAME := $(COMPOSE_PROJECT)
 ACCOUNTING_TEST_DB ?= odoo_rebuild_accounting_unit_$(shell date -u +%Y%m%d%H%M%S)
@@ -10,9 +11,12 @@ USER_DOCS_VENV ?= .venv-docs
 USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ODOO_DEV ?= scripts/odoo-dev
 TESE_QA_GENERATION ?= 01
+MODULE ?=
+SERVICE ?=
+CONFIRM ?=
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: dev deploy rebuild login-link paperless-users disable-tours target-finalize target-reconstruct target-reconstruct-reuse-documents oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link paperless-users disable-tours target-finalize target-reconstruct target-reconstruct-reuse-documents oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
@@ -25,14 +29,90 @@ TESE_QA_GENERATION ?= 01
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
 .PHONY: user-docs-deps user-docs-serve user-docs-build french-translations
 
+help:
+	@printf '%s\n' \
+	  '' \
+	  'USL Odoo Distribution — local development' \
+	  '' \
+	  'Common workflow' \
+	  '  make doctor                         Diagnose ownership and configuration' \
+	  '  make dev                            Start the existing development target' \
+	  '  make deploy [MODULE=module_name]    Update mounted add-ons without rebuilding' \
+	  '  make rebuild [MODULE=module_name]   Rebuild the image, then deploy' \
+	  '  make status                         Show service ownership, health, and URLs' \
+	  '  make logs [SERVICE=odoo]            Follow all or one service log' \
+	  '  make stop                           Stop containers and preserve data' \
+	  '' \
+	  'Access and recovery' \
+	  '  make login-link USER=username       Create a local one-time sign-in link' \
+	  '  make paperless-users                Reconcile governed document access' \
+	  '  make dev-reclaim CONFIRM=$(COMPOSE_PROJECT)' \
+	  '                                      Reclaim canonical containers; preserve volumes' \
+	  '' \
+	  'Data reconstruction' \
+	  '  make target-reconstruct             Full fresh deterministic reconstruction' \
+	  '  make target-reconstruct-reuse-documents' \
+	  '                                      Reuse verified Paperless ingestion in development' \
+	  '' \
+	  'Run make help-advanced for migration, validation, and specialized QA commands.'
+
+help-advanced:
+	@printf '%s\n' \
+	  '' \
+	  'USL Odoo Distribution — advanced commands' \
+	  '' \
+	  'Migration and boundaries' \
+	  '  make migration-source-inventory     Audit populated source perimeters' \
+	  '  make product-migration-boundary     Check source and database boundaries' \
+	  '  make accounting-compat              Run the complete Accounting harness' \
+	  '' \
+	  'Focused restoration' \
+	  '  make identity-restore | product-restore | hr-restore' \
+	  '  make project-restore | tese-restore | platform-billing-restore' \
+	  '  make documents-restore' \
+	  '' \
+	  'QA and documentation' \
+	  '  make accounting-addon-tests         Run focused Accounting module tests' \
+	  '  make documents-qa-test              Run Documents QA tests' \
+	  '  make user-docs-build                Render and validate user documentation' \
+	  '' \
+	  'All historical target names remain available; inspect Makefile for exact stages.'
+
+doctor:
+	@$(ODOO_DEV) doctor
+
+status:
+	@$(ODOO_DEV) status
+
 dev:
-	$(ODOO_DEV) start
+	@$(ODOO_DEV) start
 
 deploy:
-	$(ODOO_DEV) deploy
+	@if [ -n "$(strip $(MODULE))" ]; then \
+		$(ODOO_DEV) deploy "$(MODULE)"; \
+	else \
+		$(ODOO_DEV) deploy; \
+	fi
 
 rebuild:
-	$(ODOO_DEV) rebuild
+	@if [ -n "$(strip $(MODULE))" ]; then \
+		$(ODOO_DEV) rebuild "$(MODULE)"; \
+	else \
+		$(ODOO_DEV) rebuild; \
+	fi
+
+logs:
+	@if [ -n "$(strip $(SERVICE))" ]; then \
+		$(ODOO_DEV) logs "$(SERVICE)"; \
+	else \
+		$(ODOO_DEV) logs; \
+	fi
+
+stop:
+	@$(ODOO_DEV) stop
+
+dev-reclaim:
+	@USL_DEV_RECLAIM_CONFIRM="$(CONFIRM)" $(ODOO_DEV) reclaim
 
 login-link:
 	@if [ "$(origin USER)" != "command line" ] || [ -z "$(strip $(USER))" ]; then \
