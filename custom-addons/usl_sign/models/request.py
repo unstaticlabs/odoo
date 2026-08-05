@@ -182,7 +182,7 @@ class SignRequest(models.Model):
             vals.setdefault("authentication_method", policy.authentication_method)
             vals.setdefault("provider_code", policy.provider_code)
             vals.setdefault("max_reminders", policy.max_reminders)
-            if not vals.get("expires_at"):
+            if not vals.get("expires_at") and not vals.get("historical"):
                 expiration_days = (
                     template.expiration_days if template else policy.expiration_days
                 )

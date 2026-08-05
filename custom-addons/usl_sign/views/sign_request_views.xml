@@ -76,6 +76,11 @@
             </xpath>
             <xpath expr="//sheet" position="inside">
                 <field name="provider_ready" invisible="1"/>
+                <field name="historical" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="not historical">
+                    <strong>Historical evidence.</strong>
+                    The achieved assurance and authentication method could not be established from the preserved Odoo Online evidence. This completed request is read-only and cannot be sent again.
+                </div>
                 <div class="alert alert-warning" role="alert" invisible="provider_ready or state not in ['draft', 'ready', 'action_required']">
                     <field name="provider_setup_message" readonly="1" nolabel="1"/>
                 </div>

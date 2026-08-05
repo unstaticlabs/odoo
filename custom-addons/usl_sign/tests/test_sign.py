@@ -10,6 +10,7 @@ from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfWriter
 
 from ..services import ProviderError
+from ..services.yousign import YousignClient
 
 
 class FakeProvider:
@@ -101,7 +102,7 @@ class FakeProvider:
         self.calls.append(("download_audit_trail", request_id, signer_id))
         if self.fail_audit:
             raise ProviderError("Audit evidence is temporarily unavailable.", retryable=True)
-        return self.pdf
+        return b'{"signer":{"id":"signer-1"}}'
 
 
 @tagged("post_install", "-at_install")
@@ -222,12 +223,37 @@ class TestUslSign(TransactionCase):
                 set(sign_request.evidence_ids.mapped("kind")),
                 {"original", "signed", "audit_trail"},
             )
+            audit = sign_request.evidence_ids.filtered(
+                lambda evidence: evidence.kind == "audit_trail"
+            )
+            self.assertEqual(audit.mimetype, "application/json")
+            self.assertTrue(audit.name.endswith(".json"))
             with self.assertRaises(ValidationError):
                 sign_request.evidence_ids.filtered(
                     lambda evidence: evidence.kind == "signed"
                 ).write({"data": b64encode(b"replacement")})
             with self.assertRaises(ValidationError):
                 sign_request.write({"data": b64encode(self.pdf + b"changed")})
+
+    def test_yousign_client_uses_signer_audit_json_endpoint(self):
+        client = YousignClient(
+            {"base_url": "https://api.example.test/v3", "api_key": "test-key"},
+            error_class=ProviderError,
+        )
+        with patch.object(
+            client,
+            "_request",
+            return_value={"signer": {"name": "Élodie", "id": "signer-1"}},
+        ) as request_call:
+            content = client.download_audit_trail("request-1", "signer-1")
+
+        request_call.assert_called_once_with(
+            "GET", "/signature_requests/request-1/signers/signer-1/audit_trails"
+        )
+        self.assertEqual(
+            content,
+            b'{"signer":{"id":"signer-1","name":"\xc3\x89lodie"}}',
+        )
 
     def test_uncertain_create_recovers_without_duplicate(self):
         sign_request = self._request()
@@ -455,6 +481,34 @@ class TestUslSign(TransactionCase):
             signer._check_secure_access(signer.access_token)
         with self.assertRaises(ValidationError):
             sign_request.write({"state": "draft"})
+
+    def test_odoo_19_configuration_urls_and_historical_boundary(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            "web.base.url", "https://sign.example.test"
+        )
+        template = self._template()
+        template.action_enable_public_link()
+        self.assertEqual(
+            template.public_url,
+            f"https://sign.example.test/sign/public/{template.public_access_token}",
+        )
+        self.company.invalidate_recordset(["sign_yousign_webhook_url"])
+        self.assertEqual(
+            self.company.sign_yousign_webhook_url,
+            f"https://sign.example.test/sign/webhooks/yousign/{self.company.id}",
+        )
+
+        historical = self._request(
+            historical=True,
+            state="completed",
+            provider_code="odoo_online",
+            authentication_method=False,
+            achieved_assurance=False,
+            expires_at=False,
+        )
+        self.assertFalse(historical.expires_at)
+        with self.assertRaisesRegex(ValidationError, "read-only evidence"):
+            historical.write({"name": "Changed historical record"})
 
     def test_request_record_boundary(self):
         owner = new_test_user(

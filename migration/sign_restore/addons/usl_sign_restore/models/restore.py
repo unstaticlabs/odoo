@@ -365,7 +365,7 @@ class UslSignRestoreRun(models.Model):
 
     def _audit_json(self, request_row, signer_rows, log_rows):
         signer_by_source = {row["id"]: row for row in signer_rows}
-        secret = self.env["ir.config_parameter"].sudo().get_param("database.secret")
+        secret = self.env["ir.config_parameter"].sudo().get_str("database.secret")
         events = []
         for log in log_rows:
             signer = signer_by_source.get(log.get("sign_request_item_id"), {})
@@ -422,6 +422,7 @@ class UslSignRestoreRun(models.Model):
                         "achieved_assurance": False,
                         "authentication_method": False,
                         "migration_assurance_unproven": True,
+                        "expires_at": False,
                     }
                 )
                 restored += 1
@@ -480,6 +481,7 @@ class UslSignRestoreRun(models.Model):
                     "validation_status": "unknown",
                     "completed_at": row.get("completion_date"),
                     "sent_at": row.get("create_date"),
+                    "expires_at": False,
                     "idempotency_key": fingerprint,
                     "user_id": self._user(row.get("responsible_login")).id,
                     "signer_ids": signer_commands,

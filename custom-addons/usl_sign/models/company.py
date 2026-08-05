@@ -59,7 +59,7 @@ class ResCompany(models.Model):
 
     @api.depends_context("company")
     def _compute_sign_yousign_webhook_url(self):
-        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+        base_url = self.env["ir.config_parameter"].sudo().get_str("web.base.url")
         for company in self:
             company.sign_yousign_webhook_url = (
                 f"{base_url}/sign/webhooks/yousign/{company.id}"

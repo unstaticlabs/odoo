@@ -76,7 +76,7 @@ class SignTemplate(models.Model):
 
     @api.depends("public_access_token", "public_link_enabled")
     def _compute_public_url(self):
-        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+        base_url = self.env["ir.config_parameter"].sudo().get_str("web.base.url")
         for template in self:
             template.public_url = (
                 f"{base_url}/sign/public/{template.public_access_token}"

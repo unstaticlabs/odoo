@@ -183,11 +183,16 @@ class YousignClient:
         )
 
     def download_audit_trail(self, request_id, signer_id):
-        return self._request(
+        payload = self._request(
             "GET",
-            f"/signature_requests/{request_id}/signers/{signer_id}/audit_trails/download",
-            accept="application/pdf",
+            f"/signature_requests/{request_id}/signers/{signer_id}/audit_trails",
         )
+        return json.dumps(
+            payload,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode()
 
     def healthcheck(self):
         return self._request("GET", "/workspaces/default")

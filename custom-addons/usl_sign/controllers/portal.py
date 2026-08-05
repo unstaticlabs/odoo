@@ -141,7 +141,7 @@ class SignPortalController(PortalSign):
         )
 
     def _public_source_hash(self):
-        secret = request.env["ir.config_parameter"].sudo().get_param("database.secret")
+        secret = request.env["ir.config_parameter"].sudo().get_str("database.secret")
         source = request.httprequest.remote_addr or "unknown"
         return hashlib.sha256(f"{secret}|{source}".encode()).hexdigest()
 
