@@ -20,12 +20,29 @@ if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
   exit 2
 fi
 
+# Update the complete delivered product allow-list. A broad ``-u all`` would
+# also mutate unrelated native and OCA modules during target finalization.
+product_modules=(
+  rebuild_account_migration
+  usl_accounting
+  usl_documents
+  usl_documents_accounting
+  usl_expense_batch
+  usl_locale
+  usl_platform_billing
+  usl_platform_billing_pocketid
+  usl_pocketid
+  usl_project
+  usl_tese_accounting
+  usl_tese_payroll
+)
+product_modules_csv="$(IFS=,; printf '%s' "${product_modules[*]}")"
+
 scripts/check-product-migration-boundary
 scripts/accounting-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
-scripts/pocket-id-dev configure-odoo \
-  rebuild_account_migration,usl_documents,usl_documents_accounting,usl_tese_payroll,usl_tese_accounting
+scripts/pocket-id-dev configure-odoo "$product_modules_csv"
 scripts/odoo-dev disable-tours
 scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
