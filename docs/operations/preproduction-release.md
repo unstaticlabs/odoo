@@ -74,8 +74,17 @@ supported application models, attaches the immutable Pocket subject, verifies
 the Odoo mapping, and synchronizes the exact document-object grants. It does
 not import source credentials, passwords or sessions and does not rely on a
 person's first Paperless login. **Documents > Configuration > User access** is
-the inspection surface; `make paperless-users` safely reapplies reconciliation
-after a governed identity, Documents role or company assignment changes.
+the inspection surface. After a governed identity, Documents role or company
+assignment changes on the isolated candidate, reapply reconciliation through
+the coordinated release wrapper:
+
+```bash
+scripts/preprod-release finalize-reconstruction /absolute/path/to/usl-online-dump
+```
+
+Do not use the default-topology `make paperless-users` target against the
+isolated candidate; the release wrapper stops Odoo and retains the exact image,
+ports and no-bind-mount topology while applying the identity plan.
 
 The local QA deployment is HTTP, so WebAuthn passkeys are unavailable. Exercise
 the real Pocket ID authorization-code flow with the one-hour, single-user links
