@@ -584,6 +584,30 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.review_state, "classified")
         self.assertEqual(document.company_id, self.company_a)
 
+    def test_sync_cron_preserves_its_authorized_system_identity(self):
+        root = self.env.ref("base.user_root")
+        manager_group = self.env.ref("usl_documents.group_documents_manager")
+        self.env.ref("base.user_admin").write(
+            {"group_ids": [Command.unlink(manager_group.id)]},
+        )
+        payload = {"count": 0, "next": None, "results": []}
+
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(PaperlessClient, "list_documents", return_value=payload),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
+        ):
+            result = (
+                self.env["usl.document"]
+                .with_user(root)
+                .cron_sync_from_paperless()
+            )
+
+        self.assertEqual(result["synchronized"], 0)
+        with self.assertRaisesRegex(AccessError, "Documents administrators"):
+            self.env["usl.document"].with_user(self.user).cron_sync_from_paperless()
+
     def test_full_sync_confirms_recent_odoo_upload_before_marking_it_missing(self):
         document = self._document(
             178,

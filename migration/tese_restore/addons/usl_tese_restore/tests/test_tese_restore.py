@@ -351,6 +351,13 @@ class TestTeseRestore(TransactionCase):
         self.assertEqual(payslip.state, "to_reconcile")
         self.assertEqual(len(payslip.component_line_ids), 11)
         self.assertEqual(payslip.attachment_id.mimetype, "application/pdf")
+        self.assertEqual(
+            payslip.preparation_message,
+            (
+                "Preparation complete: the payroll entry is balanced and "
+                "posted, and the official TESE PDF is linked."
+            ),
+        )
         self.assertEqual(self.move.tese_payslip_id, payslip)
         profiles = self.env["usl.tese.profile"].sudo().with_context(
             active_test=False,
