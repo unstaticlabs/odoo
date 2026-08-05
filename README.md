@@ -77,6 +77,12 @@ The root `Dockerfile` uses purpose-specific stages:
 - `node-dependencies` resolves `rtlcss` without shipping npm's build tooling;
 - `runtime` contains only shared runtime libraries and configuration;
 - `base` adds the Odoo source for self-contained QA/deployment images;
+- `product` extends `base` with the custom add-ons, the resolved pinned OCA
+  add-ons and the user docs, so deployment hosts pull one registry artifact
+  and need no repository checkout. Run `make oca-addons-sync` before building
+  it. The test-only `usl_bootstrap` fixture is excluded. The
+  `.github/workflows/product-image.yml` workflow publishes it to
+  `ghcr.io/unstaticlabs/usl-odoo` pinned by commit SHA;
 - `test` adds Chromium only for browser-capable automated tests;
 - `dev` adds developer tools but uses the repository bind mount instead of
   embedding a second copy of the source tree.
