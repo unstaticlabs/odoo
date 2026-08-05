@@ -162,11 +162,13 @@ copy or imply the previous accountant's attestation, and it reminds the reader
 that closing methods, inventory work and any required legal notes still need
 their accountable review.
 
-Imported account master-data labels are not silently rewritten for cosmetic
-purposes. Accounting Managers can inspect the governed report-only corrections
-under **Configuration > Accounting Framework > Libellés de comptes** and make
-a company-specific override. The chosen label is shared by screen, PDF and
-XLSX while the original account and source identity remain intact.
+Account names come directly from the translated Chart of Accounts. Accounting
+Managers maintain them under **Configuration > Accounting > Chart of
+Accounts**; changing a name updates native views and the corresponding screen,
+PDF, XLSX and FEC labels consistently. The account code and ledger links remain
+unchanged. The one-shot Online restore preserves source evidence outside the
+product database and applies the verified USL naming corrections in French and
+English.
 
 ## Analytic pivot
 

@@ -4,9 +4,6 @@
         model="rebuild.account.report.definition"
         name="_ensure_standard_definitions"/>
     <function
-        model="rebuild.account.report.account.presentation"
-        name="_ensure_standard_presentations"/>
-    <function
         model="rebuild.account.declaration.rule"
         name="_ensure_governance_metadata"/>
     <function

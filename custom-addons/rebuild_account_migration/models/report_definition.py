@@ -67,53 +67,6 @@ WHOLE_EURO_DEFAULT_REPORT_TYPES = {
     "closing_package",
 }
 
-STANDARD_ACCOUNT_PRESENTATIONS = {
-    "281540": {
-        "display_label": "Amortissements du matériel industriel",
-        "evidence_note": (
-            "Libellé de présentation corrigé d’après la nature du compte "
-            "28154 et le grand livre historique USL."
-        ),
-    },
-    "281830": {
-        "display_label": (
-            "Amortissements du matériel de bureau et informatique"
-        ),
-        "evidence_note": (
-            "Libellé de présentation corrigé d’après la nature du compte "
-            "28183 et le grand livre historique USL."
-        ),
-    },
-    "511100": {
-        "display_label": "Virements de plateformes à encaisser — Etsy",
-        "evidence_note": (
-            "Libellé de présentation USL ; le compte retrace les virements "
-            "Etsy en attente d’encaissement."
-        ),
-    },
-    "627100": {
-        "display_label": "Frais bancaires",
-        "evidence_note": (
-            "Libellé de présentation USL ; le compte porte les frais et "
-            "commissions bancaires."
-        ),
-    },
-    "631200": {
-        "display_label": "Taxe d’apprentissage",
-        "evidence_note": (
-            "Libellé de présentation USL conforme au contenu du compte "
-            "historique."
-        ),
-    },
-    "768000": {
-        "display_label": "Autres produits financiers",
-        "evidence_note": (
-            "Libellé générique du PCG retenu pour éviter l’intitulé "
-            "spécialisé sans rapport avec les écritures USL."
-        ),
-    },
-}
-
 LEGACY_STANDARD_REPORT_NAMES = {
     "trial_balance": "Trial Balance",
     "general_ledger": "General Ledger",
@@ -791,13 +744,13 @@ class RebuildAccountReportDefinition(models.Model):
 
 
 class RebuildAccountReportAccountPresentation(models.Model):
-    """Govern end-user account labels without rewriting ledger master data."""
+    """Retain retired report-label records for upgrade compatibility."""
 
     _name = "rebuild.account.report.account.presentation"
-    _description = "Accounting Report Account Presentation"
+    _description = "Legacy Accounting Report Account Presentation"
     _order = "account_code, report_type, company_id"
 
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=False)
     company_id = fields.Many2one(
         "res.company",
         index=True,
@@ -822,136 +775,3 @@ class RebuildAccountReportAccountPresentation(models.Model):
             "account master-data label."
         ),
     )
-
-    @api.constrains("company_id", "report_type", "account_code")
-    def _check_unique_scope(self):
-        for presentation in self:
-            domain = [
-                ("id", "!=", presentation.id),
-                ("account_code", "=", presentation.account_code),
-                ("report_type", "=", presentation.report_type or False),
-            ]
-            domain.append(
-                ("company_id", "=", presentation.company_id.id)
-                if presentation.company_id
-                else ("company_id", "=", False)
-            )
-            if self.with_context(active_test=False).search_count(domain):
-                raise UserError(
-                    "Only one account presentation is allowed for the same "
-                    "account, report and company scope."
-                )
-
-    @api.model
-    def _ensure_standard_presentations(self):
-        for account_code, values in STANDARD_ACCOUNT_PRESENTATIONS.items():
-            presentation = self.with_context(active_test=False).search([
-                ("company_id", "=", False),
-                ("report_type", "=", False),
-                ("account_code", "=", account_code),
-            ], limit=1)
-            seed_values = {
-                "active": True,
-                "company_id": False,
-                "report_type": False,
-                "account_code": account_code,
-                **values,
-            }
-            if presentation:
-                presentation.with_context(
-                    accounting_presentation_seed=True,
-                ).write(seed_values)
-            else:
-                self.with_context(
-                    accounting_presentation_seed=True,
-                ).create(seed_values)
-        return self.with_context(active_test=False).search([
-            ("company_id", "=", False),
-            ("account_code", "in", list(STANDARD_ACCOUNT_PRESENTATIONS)),
-        ])
-
-    @api.model
-    def _resolve_labels(self, company, report_type, account_codes):
-        company.ensure_one()
-        account_codes = {
-            str(account_code or "").strip()
-            for account_code in account_codes
-            if str(account_code or "").strip()
-        }
-        if not account_codes:
-            return {}
-        candidates = self.search([
-            ("active", "=", True),
-            ("company_id", "in", [False, company.id]),
-            ("report_type", "in", [False, report_type]),
-            ("account_code", "in", sorted(account_codes)),
-        ])
-        resolved = {}
-        priorities = {}
-        for presentation in candidates:
-            priority = (
-                1 if presentation.company_id else 0,
-                1 if presentation.report_type else 0,
-                presentation.id,
-            )
-            if priority > priorities.get(
-                presentation.account_code,
-                (-1, -1, -1),
-            ):
-                priorities[presentation.account_code] = priority
-                resolved[presentation.account_code] = (
-                    presentation.display_label
-                )
-        return resolved
-
-    def action_customize_for_company(self):
-        self.ensure_one()
-        if self.company_id:
-            return {
-                "type": "ir.actions.act_window",
-                "res_model": self._name,
-                "res_id": self.id,
-                "view_mode": "form",
-                "target": "current",
-            }
-        presentation = self.search([
-            ("company_id", "=", self.env.company.id),
-            ("report_type", "=", self.report_type or False),
-            ("account_code", "=", self.account_code),
-        ], limit=1)
-        if not presentation:
-            presentation = self.copy({"company_id": self.env.company.id})
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": self._name,
-            "res_id": presentation.id,
-            "view_mode": "form",
-            "target": "current",
-        }
-
-    def write(self, vals):
-        if (
-            not self.env.context.get("accounting_presentation_seed")
-            and self.filtered(lambda presentation: not presentation.company_id)
-        ):
-            raise UserError(
-                "Shared account presentations are upgrade-managed. "
-                "Customize the presentation for the company instead."
-            )
-        return super().write(vals)
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        if not self.env.context.get("accounting_presentation_seed"):
-            for values in vals_list:
-                if not values.get("company_id"):
-                    values["company_id"] = self.env.company.id
-        return super().create(vals_list)
-
-    def unlink(self):
-        if self.filtered(lambda presentation: not presentation.company_id):
-            raise UserError(
-                "Shared account presentations are upgrade-managed and "
-                "cannot be deleted."
-            )
-        return super().unlink()

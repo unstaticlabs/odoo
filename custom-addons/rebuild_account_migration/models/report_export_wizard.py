@@ -3938,10 +3938,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 company_rows = clone._report_rows_single()
             finally:
                 clone.sudo().unlink()
-            company_rows = self._apply_account_presentations(
-                company_rows,
-                company,
-            )
             for row in company_rows:
                 row = dict(row)
                 row.update({
@@ -3952,47 +3948,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 })
                 rows.append(row)
         return rows
-
-    def _apply_account_presentations(self, rows, company):
-        """Apply governed labels to screen and export rows alike."""
-        self.ensure_one()
-        account_codes = {
-            str(row.get("account_code") or "").strip()
-            for row in rows
-            if row.get("account_code")
-        }
-        for row in rows:
-            account_codes.update(
-                str(item.get("account_code") or "").strip()
-                for item in row.get("account_breakdown") or []
-                if item.get("account_code")
-            )
-        labels = self.env[
-            "rebuild.account.report.account.presentation"
-        ]._resolve_labels(company, self.report_type, account_codes)
-        if not labels:
-            return rows
-        presented_rows = []
-        for source_row in rows:
-            row = dict(source_row)
-            account_code = str(row.get("account_code") or "").strip()
-            if account_code in labels:
-                row["account_name"] = labels[account_code]
-                if row.get("hierarchy_kind") == "account":
-                    row["label"] = labels[account_code]
-            if row.get("account_breakdown"):
-                row["account_breakdown"] = [
-                    {
-                        **item,
-                        "account_name": labels.get(
-                            str(item.get("account_code") or "").strip(),
-                            item.get("account_name") or "",
-                        ),
-                    }
-                    for item in row["account_breakdown"]
-                ]
-            presented_rows.append(row)
-        return presented_rows
 
     def _report_clone_values(self, company, date_from, date_to):
         journals = self.journal_ids.filtered(
