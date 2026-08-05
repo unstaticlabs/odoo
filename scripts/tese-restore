@@ -80,6 +80,26 @@ require_source() {
     fi
 }
 
+require_reconstruction_schema() {
+    local trace_count
+    trace_count="$(
+        docker compose -p "$compose_project" exec -T db \
+            psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
+            "SELECT count(*)
+               FROM information_schema.columns
+              WHERE table_schema = current_schema()
+                AND (table_name, column_name) IN (
+                    ('res_company', 'rebuild_source_id'),
+                    ('account_move', 'rebuild_source_id')
+                )"
+    )"
+    if [[ "$trace_count" != "2" ]]; then
+        echo "TESE restoration requires the active reconstruction schema."
+        echo "This target is finalized; use a product-module upgrade instead."
+        exit 2
+    fi
+}
+
 run_shell() {
     script_path="$1"
     require_source
@@ -132,15 +152,18 @@ validate_product_boundary() {
 
 case "$command_name" in
     install)
+        require_reconstruction_schema
         install_modules
         ;;
     import)
+        require_reconstruction_schema
         import_tese
         ;;
     validate)
         validate_tese
         ;;
     idempotence)
+        require_reconstruction_schema
         import_tese
         validate_tese
         ;;
@@ -151,6 +174,7 @@ case "$command_name" in
         validate_product_boundary
         ;;
     all)
+        require_reconstruction_schema
         install_modules
         import_tese
         validate_tese

@@ -246,6 +246,17 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         )
         self.assertIn("/mnt/accounting-migration-addons", tese_script)
         self.assertIn("TESE_RESTORE_DEFER_PRODUCT_VALIDATE", tese_script)
+        self.assertIn("require_reconstruction_schema", tese_script)
+        self.assertIn(
+            "This target is finalized; use a product-module upgrade instead.",
+            tese_script,
+        )
+        recovery_script = (
+            REPOSITORY_ROOT
+            / "migration/tese_restore/scripts/recover_partial_finalized_target.py"
+        ).read_text()
+        self.assertIn("USL_TESE_RECOVER_PARTIAL_RERUN", recovery_script)
+        self.assertIn("migration_modules.button_immediate_uninstall()", recovery_script)
 
 
 if __name__ == "__main__":
