@@ -1,6 +1,6 @@
 # Process an Expense
 
-1. Open the **Expenses** app, then **My Expenses > Expenses to Process**. The removable **Needs action** filter initially shows drafts and approved expenses that still need work.
+1. Open the **Expenses** app, then **Expenses to Process**. The removable **Needs action** filter initially shows drafts and approved expenses that still need work. Select the **Expenses** app title whenever you want to return to **My Expenses**.
 2. Select **Upload** to create an expense from a receipt, or **New** to enter one manually.
 3. Check the employee, description, date, category, paid-by method, currency and analytic distribution.
 4. Use the compact **Receipt** status (**Attached**, **Missing** or **Not

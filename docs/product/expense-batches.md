@@ -75,10 +75,12 @@ remain unchanged.
 
 ## User experience contract
 
-The normal **Expenses > My Expenses** list stays focused on the expense
-records. It shows **Attachment status**, the optional **Expense Batch** link
-and the native expense status, but it does not add a permanent **Batch
-readiness** column.
+Selecting the **Expenses** app title opens **My Expenses** directly and keeps
+that list focused on the expense records. It shows **Attachment status**, the
+optional **Expense Batch** link and the native expense status, but it does not
+add a permanent **Batch readiness** column. The navbar exposes **Expenses to
+Process** and **Expense Batches** directly; a redundant **My Expenses** menu
+group is intentionally absent.
 
 The **Not in a batch** filter is selected by default on **My Expenses**, so
 the working list contains only expenses that can still be grouped. Users can

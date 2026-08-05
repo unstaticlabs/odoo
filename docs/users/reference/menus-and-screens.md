@@ -83,10 +83,13 @@ Employee expense claims remain in the separate **Expenses** application.
 
 ## Expenses application
 
-Use **Expenses > My Expenses** for individual expense evidence and workflow.
-The list shows **Attachment status**, each expense's normal status and its
-optional **Expense Batch** link. It deliberately does not show a permanent
-**Batch readiness** column.
+Select the **Expenses** app title for **My Expenses**, the individual expense
+evidence and workflow list. The navbar links directly to **Expenses to
+Process** and **Expense Batches**, followed by **Reporting** and
+**Configuration**. It deliberately has no redundant **My Expenses** menu
+group. The list shows **Attachment status**, each expense's normal status and
+its optional **Expense Batch** link without a permanent **Batch readiness**
+column.
 
 The default **Not in a batch** filter keeps the working list limited to
 expenses that can still be grouped; remove it to review historical batched
@@ -98,9 +101,9 @@ The preview shows aggregate readiness, attachment and expense statuses, and
 missing information before the batch is saved or its Draft lines are
 submitted. Both completion actions close the preview and refresh the list.
 
-Managers use **My Expenses > Expense Batches** to review the shared purpose,
-period, totals, analytic context and individual evidence. Accounting entries
-retain a direct link back to the batch and its expenses.
+Managers use **Expense Batches** to review the shared purpose, period, totals,
+analytic context and individual evidence. Accounting entries retain a direct
+link back to the batch and its expenses.
 
 ## Action explanations
 

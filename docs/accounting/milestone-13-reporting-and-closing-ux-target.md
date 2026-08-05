@@ -81,7 +81,7 @@ Primary paths should be two clicks away:
 - Accounting -> Customers -> Credit Notes
 - Accounting -> Vendors -> Bills
 - Accounting -> Vendors -> Refunds
-- Expenses -> My Expenses -> Expenses to Process
+- Expenses -> Expenses to Process
 - Accounting -> Journals -> Bank Matching
 - Accounting -> Journals -> Transactions
 - Accounting -> Accounting -> Journal Entries
