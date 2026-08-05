@@ -53,6 +53,7 @@ class ReleaseIdentityTest(unittest.TestCase):
     def test_release_and_database_boundary_scripts_parse(self):
         for relative_path in (
             "scripts/release_identity.py",
+            "scripts/odoo/documents_identity_boundary.py",
             "scripts/odoo/release_identity.py",
             "scripts/odoo/product_database_boundary.py",
         ):
@@ -109,6 +110,8 @@ class ReleaseIdentityTest(unittest.TestCase):
         self.assertIn("finalize-reconstruction", release)
         self.assertIn("finalize_reconstruction", release)
         self.assertIn("DOCUMENTS_CANONICAL_RESET=1", release)
+        self.assertIn("documents_identity_boundary", release)
+        self.assertIn("documents-identity-boundary.json", release)
         self.assertIn("database_identity 0", release)
         self.assertIn("Pre-production release gate: PASS", release)
         for module_name in (
@@ -121,6 +124,18 @@ class ReleaseIdentityTest(unittest.TestCase):
             "usl_platform_billing_restore",
         ):
             self.assertIn(module_name, boundary)
+
+    def test_documents_direct_access_gate_is_fail_closed(self):
+        boundary = (
+            ROOT / "scripts" / "odoo" / "documents_identity_boundary.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("usl_documents.group_documents_manager", boundary)
+        self.assertIn("usl_documents.group_documents_user", boundary)
+        self.assertIn("usl_documents.group_documents_accountant", boundary)
+        self.assertIn('mapping.sync_state != "synchronized"', boundary)
+        self.assertIn("document.permission_sync_state", boundary)
+        self.assertIn("Each person must first sign in to Paperless", boundary)
 
 
 if __name__ == "__main__":
