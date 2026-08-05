@@ -55,6 +55,15 @@ class TestDocuments(TransactionCase):
             "company_id": cls.company_a.id,
         })
 
+    def test_application_menu_has_module_owned_icon(self):
+        menu = self.env.ref("usl_documents.menu_usl_documents_root")
+
+        self.assertEqual(
+            menu.web_icon,
+            "usl_documents,static/description/icon.png",
+        )
+        self.assertTrue(menu.web_icon_data)
+
     def _document(self, paperless_id, **values):
         return self.env["usl.document"].create({
             "name": values.pop("name", f"Document {paperless_id}"),

@@ -421,6 +421,7 @@
     </record>
 
     <menuitem id="menu_usl_documents_root" name="Documents" sequence="45"
+              web_icon="usl_documents,static/description/icon.png"
               groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant,usl_documents.group_documents_manager"/>
     <menuitem id="menu_usl_documents_workspace" name="Documents" parent="menu_usl_documents_root"
               action="action_documents_workspace" sequence="10"/>
