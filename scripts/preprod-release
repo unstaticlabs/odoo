@@ -11,7 +11,7 @@ identity_path="$ROOT/artifacts/release/identity.json"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/preprod-release <build|clean-install|reconstruct|finish-reconstruction|finalize-reconstruction|start|gate|identity|all> SOURCE_DIR
+Usage: scripts/preprod-release <build|clean-install|reconstruct|finish-reconstruction|finalize-reconstruction|start|recovery-rehearsal|gate|identity|all> SOURCE_DIR
 
 Commands:
   build        Sync pinned OCA code and build the self-contained commit image
@@ -23,6 +23,8 @@ Commands:
   finalize-reconstruction
                Resume target finalization after Documents and accounting passed
   start        Start the qualified image without checkout bind mounts
+  recovery-rehearsal
+               Restore a coordinated Odoo/Paperless backup in an isolated project
   gate         Verify source, database, image, runtime mounts and service preflight
   identity     Print and refresh the exact non-secret release identity
   all          Build, reconstruct, start and run the release gate
@@ -293,13 +295,35 @@ start_distribution() {
   printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
 }
 
+recovery_rehearsal() {
+  require_qualified_identity
+  USL_DOCUMENTS_PREPROD_ENV="$POCKET_ID_ENV_FILE" \
+    USL_DOCUMENTS_PREPROD_PROJECT="$COMPOSE_PROJECT_NAME" \
+    USL_DOCUMENTS_PREPROD_DB=odoo_dev \
+    USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY=1 \
+    USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY=1 \
+    USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 \
+    USL_RECOVERY_ALLOW_SOURCE_INTEGRITY_FAILURE=1 \
+    USL_RECOVERY_REQUIRE_RESTRICTED_FIXTURE=0 \
+    USL_DEPLOYMENT_ENV=qa \
+    PAPERLESS_EMPTY_TRASH_DELAY=36500 \
+    PAPERLESS_DISABLE_REGULAR_LOGIN=true \
+    PAPERLESS_REDIRECT_LOGIN_TO_SSO=true \
+    PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS=false \
+    ODOO_DB_NAME=odoo_dev \
+    ODOO_DB_FILTER='^odoo_dev$' \
+    ODOO_IMAGE="$ODOO_IMAGE" \
+    USL_EXPECTED_RELEASE_COMMIT="$(git rev-parse HEAD)" \
+    USL_EXPECTED_RELEASE_IMAGE="$ODOO_IMAGE" \
+    scripts/documents-recovery-test preprod \
+    | tee "$ROOT/artifacts/release/recovery-rehearsal.txt"
+}
+
 release_gate() {
   require_qualified_identity
   scripts/check-product-migration-boundary
   USL_PRODUCT_BOUNDARY_PREPROD=1 scripts/check-product-database-boundary
   release_compose --profile paperless run --rm --no-deps paperless-preflight
-  documents_identity_boundary \
-    | tee "$ROOT/artifacts/release/documents-identity-boundary.json"
   database_identity 0 > "$ROOT/artifacts/release/database-identity.json"
 
   local container_id mounts runtime_image
@@ -321,6 +345,8 @@ release_gate() {
   release_compose images --format json \
     > "$ROOT/artifacts/release/compose-images.jsonl"
   release_compose ps
+  documents_identity_boundary \
+    | tee "$ROOT/artifacts/release/documents-identity-boundary.json"
   printf 'Pre-production release gate: PASS\n'
 }
 
@@ -348,6 +374,10 @@ case "$command_name" in
   start)
     prepare_environment
     start_distribution
+    ;;
+  recovery-rehearsal)
+    prepare_environment
+    recovery_rehearsal
     ;;
   gate)
     prepare_environment

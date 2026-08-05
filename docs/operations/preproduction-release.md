@@ -39,6 +39,7 @@ scripts/preprod-release build /absolute/path/to/usl-online-dump
 scripts/preprod-release clean-install /absolute/path/to/usl-online-dump
 scripts/preprod-release reconstruct /absolute/path/to/usl-online-dump
 scripts/preprod-release start /absolute/path/to/usl-online-dump
+scripts/preprod-release recovery-rehearsal /absolute/path/to/usl-online-dump
 scripts/preprod-release gate /absolute/path/to/usl-online-dump
 ```
 
@@ -50,6 +51,22 @@ the migrated `odoo_dev` reconstruction.
 
 Do not set `USL_RELEASE_ALLOW_DIRTY=1` for qualification. That switch exists
 only to test release tooling while it is being developed.
+
+`recovery-rehearsal` briefly stops the isolated candidate while it captures
+Odoo PostgreSQL/filestore and Paperless PostgreSQL/media/data as one recovery
+point. It restores them under a timestamped Compose project, verifies the
+services independently, checks document checksums and links, and compares
+company, active-user, journal-entry, move-line and posted debit/credit controls.
+The restored project, volumes and sensitive temporary backup are removed after
+success. This explicit path is the only recovery helper allowed to use the
+local `odoo_dev` source database, and only when its Compose project has the
+isolated `usl-odoo-preprod-*` identity.
+
+If the human Paperless identity checkpoint is still open, the rehearsal also
+requires the restored permission-failure ID set to match the source recovery
+point exactly. That proves recovery without misrepresenting the candidate as
+ready: `gate` still fails until the three individual mappings synchronize the
+set to zero.
 
 ### Complete individual Paperless acceptance
 
