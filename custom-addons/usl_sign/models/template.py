@@ -2,9 +2,11 @@ import hashlib
 import secrets
 from base64 import b64decode
 from datetime import timedelta
+from io import BytesIO
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools.pdf import PdfReader
 
 
 class SignTemplate(models.Model):
@@ -58,7 +60,14 @@ class SignTemplate(models.Model):
             )
             if not vals.get("policy_id"):
                 vals["policy_id"] = self._default_policy(company).id
-        return super().create(vals_list)
+        templates = super(
+            SignTemplate, self.with_context(usl_sign_template_initializing=True)
+        ).create(vals_list)
+        templates = templates.with_context(usl_sign_template_initializing=False)
+        templates.filtered(
+            lambda template: template.preparation_status == "ready"
+        )._validate_template_preparation()
+        return templates
 
     @api.depends("request_count")
     def _compute_has_requests(self):
@@ -88,8 +97,94 @@ class SignTemplate(models.Model):
         for template in self.filtered("request_count"):
             super(SignTemplate, template).write({"version": template.version + 1})
 
+    def _invalidate_preparation(self):
+        for template in self.filtered(
+            lambda item: item.preparation_status == "ready"
+        ):
+            super(SignTemplate, template).write(
+                {
+                    "preparation_status": "review_required",
+                    "preparation_note": self.env._(
+                        "The document or field layout changed. Review it before creating new requests."
+                    ),
+                    "public_link_enabled": False,
+                    "public_access_token": False,
+                }
+            )
+
+    def _validate_template_preparation(self):
+        for template in self:
+            try:
+                reader = PdfReader(BytesIO(b64decode(template.data)))
+                if getattr(reader, "is_encrypted", False):
+                    raise ValidationError(
+                        self.env._(
+                            "The PDF is encrypted. Upload an unlocked PDF before marking the template ready."
+                        )
+                    )
+                if not reader.pages:
+                    raise ValidationError(
+                        self.env._("The template PDF does not contain any pages.")
+                    )
+            except ValidationError:
+                raise
+            except Exception as error:
+                raise ValidationError(
+                    self.env._(
+                        "The template file is not a readable PDF. Replace it before marking the template ready."
+                    )
+                ) from error
+            if not template.item_ids:
+                raise ValidationError(
+                    self.env._(
+                        "Place at least one field before marking the template ready."
+                    )
+                )
+            if template.item_ids.filtered(
+                lambda item: not item.field_id or not item.role_id
+            ):
+                raise ValidationError(
+                    self.env._("Every template field must have a type and signer role.")
+                )
+            page_count = len(reader.pages)
+            invalid_geometry = template.item_ids.filtered(
+                lambda item: item.page < 1
+                or item.page > page_count
+                or item.position_x < 0
+                or item.position_y < 0
+                or item.width <= 0
+                or item.height <= 0
+                or item.position_x + item.width > 100
+                or item.position_y + item.height > 100
+            )
+            if invalid_geometry:
+                raise ValidationError(
+                    self.env._(
+                        "A template field is outside the PDF page. Move or resize it before marking the template ready."
+                    )
+                )
+            roles = template.item_ids.mapped("role_id")
+            signature_roles = template.item_ids.filtered(
+                lambda item: item.field_id.usl_kind == "signature"
+            ).mapped("role_id")
+            missing = roles - signature_roles
+            if missing:
+                raise ValidationError(
+                    self.env._(
+                        "Place a signature field for these signer roles: %(roles)s",
+                        roles=", ".join(missing.mapped("name")),
+                    )
+                )
+        return True
+
     def _prepare_sign_oca_request_vals_from_record(self, record):
         self.ensure_one()
+        if not self.active or self.preparation_status != "ready":
+            raise ValidationError(
+                self.env._(
+                    "Review and mark this template ready before creating a signature request."
+                )
+            )
         vals = super()._prepare_sign_oca_request_vals_from_record(record)
         vals.update(
             {
@@ -120,13 +215,23 @@ class SignTemplate(models.Model):
             "signing_order",
             "preparation_status",
         }
+        material_changes = material.intersection(vals) - {"preparation_status"}
+        ready_before = self.filtered(
+            lambda template: template.preparation_status == "ready"
+        )
         if material.intersection(vals):
             self._touch_version()
         if "company_id" in vals and self.filtered("request_count"):
             raise ValidationError(
                 self.env._("A template already used for requests cannot change company.")
             )
-        return super().write(vals)
+        result = super().write(vals)
+        if material_changes and "preparation_status" not in vals:
+            ready_before._invalidate_preparation()
+        if vals.get("preparation_status") == "ready":
+            self._validate_template_preparation()
+            super(SignTemplate, self).write({"preparation_note": False})
+        return result
 
     @api.constrains(
         "policy_id", "company_id", "expiration_days", "reminder_days", "max_reminders"
@@ -150,6 +255,8 @@ class SignTemplate(models.Model):
         self.ensure_one()
         if not self.active or not self.public_link_enabled or not self.public_access_token:
             return False, self.env._("This signing link is invalid or no longer available.")
+        if self.preparation_status != "ready":
+            return False, self.env._("This signing template requires review.")
         if self.public_expires_at and self.public_expires_at <= fields.Datetime.now():
             return False, self.env._("This signing link has expired.")
         roles = self.item_ids.mapped("role_id")
@@ -193,6 +300,13 @@ class SignTemplate(models.Model):
 
     def action_enable_public_link(self):
         for template in self:
+            if template.preparation_status != "ready":
+                raise ValidationError(
+                    self.env._(
+                        "Review and mark this template ready before enabling a public link."
+                    )
+                )
+            template._validate_template_preparation()
             roles = template.item_ids.mapped("role_id")
             if len(roles) != 1:
                 raise ValidationError(
@@ -242,18 +356,22 @@ class SignTemplateItem(models.Model):
     def create(self, vals_list):
         records = super().create(vals_list)
         records.mapped("template_id")._touch_version()
+        if not self.env.context.get("usl_sign_template_initializing"):
+            records.mapped("template_id")._invalidate_preparation()
         return records
 
     def write(self, vals):
         templates = self.mapped("template_id")
         result = super().write(vals)
         templates._touch_version()
+        templates._invalidate_preparation()
         return result
 
     def unlink(self):
         templates = self.mapped("template_id")
         result = super().unlink()
         templates._touch_version()
+        templates._invalidate_preparation()
         return result
 
 

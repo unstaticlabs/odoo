@@ -370,3 +370,244 @@ msgstr "Confirmez que ces informations vous appartiennent."
 #: code:addons/usl_sign/controllers/portal.py:0
 msgid "Too many attempts. Please try again later."
 msgstr "Trop de tentatives. Veuillez réessayer plus tard."
+
+#. module: usl_sign
+msgid "Sign Settings"
+msgstr "Paramètres de Signature"
+
+#. module: usl_sign
+#. odoo-python
+msgid "Sign Configuration"
+msgstr "Configuration de Signature"
+
+#. module: usl_sign
+#. odoo-python
+msgid "Sign configuration"
+msgstr "Configuration de Signature"
+
+#. module: usl_sign
+msgid "Enable provider-backed signatures"
+msgstr "Activer les signatures avec prestataire de confiance"
+
+#. module: usl_sign
+msgid "Sandbox"
+msgstr "Bac à sable"
+
+#. module: usl_sign
+msgid "Production"
+msgstr "Production"
+
+#. module: usl_sign
+msgid "Yousign workspace ID"
+msgstr "Identifiant d’espace de travail Yousign"
+
+#. module: usl_sign
+msgid "Email completed documents to signers"
+msgstr "Envoyer les documents terminés aux signataires par e-mail"
+
+#. module: usl_sign
+msgid "Evidence retention (years)"
+msgstr "Conservation des preuves (années)"
+
+#. module: usl_sign
+msgid "Evidence retention"
+msgstr "Conservation des preuves"
+
+#. module: usl_sign
+msgid "Server credential configured"
+msgstr "Identifiant serveur configuré"
+
+#. module: usl_sign
+msgid "Webhook secret configured"
+msgstr "Secret webhook configuré"
+
+#. module: usl_sign
+msgid "Production activation approved"
+msgstr "Activation de la production approuvée"
+
+#. module: usl_sign
+msgid "Provider ready"
+msgstr "Prestataire prêt"
+
+#. module: usl_sign
+msgid "Webhook URL"
+msgstr "URL du webhook"
+
+#. module: usl_sign
+msgid "Operational status"
+msgstr "État opérationnel"
+
+#. module: usl_sign
+msgid "Evidence"
+msgstr "Preuves"
+
+#. module: usl_sign
+msgid "Save"
+msgstr "Enregistrer"
+
+#. module: usl_sign
+msgid "Test connection"
+msgstr "Tester la connexion"
+
+#. module: usl_sign
+msgid "Use 0 for indefinite retention. Evidence is never deleted automatically."
+msgstr "Utilisez 0 pour une conservation illimitée. Les preuves ne sont jamais supprimées automatiquement."
+
+#. module: usl_sign
+msgid "API keys and webhook secrets remain in server environment variables and are never stored in Odoo."
+msgstr "Les clés API et les secrets webhook restent dans les variables d’environnement du serveur et ne sont jamais stockés dans Odoo."
+
+#. module: usl_sign
+#. odoo-python
+msgid "You cannot configure this company."
+msgstr "Vous ne pouvez pas configurer cette société."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The Sign configuration was saved."
+msgstr "La configuration de Signature a été enregistrée."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Signature provider"
+msgstr "Prestataire de signature"
+
+#. module: usl_sign
+#. odoo-python
+msgid "The Yousign connection is ready."
+msgstr "La connexion Yousign est prête."
+
+#. module: usl_sign
+msgid "Retention active"
+msgstr "Conservation active"
+
+#. module: usl_sign
+msgid "Retention review due"
+msgstr "Révision de conservation requise"
+
+#. module: usl_sign
+msgid "Legal hold"
+msgstr "Gel juridique"
+
+#. module: usl_sign
+msgid "Indefinite"
+msgstr "Illimitée"
+
+#. module: usl_sign
+#. odoo-python
+msgid "Evidence retention must be between 0 and 99 years."
+msgstr "La conservation des preuves doit être comprise entre 0 et 99 ans."
+
+#. module: usl_sign
+#. odoo-python
+msgid "This request already has a provider transaction. Refresh its status instead of sending it again."
+msgstr "Cette demande possède déjà une transaction chez le prestataire. Actualisez son état au lieu de la renvoyer."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The provider completed signing, but the full evidence package or achieved assurance is not yet available."
+msgstr "Le prestataire a terminé la signature, mais le dossier de preuves complet ou le niveau d’assurance atteint n’est pas encore disponible."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Every document field must have a type and signer role."
+msgstr "Chaque champ du document doit avoir un type et un rôle de signataire."
+
+#. module: usl_sign
+#. odoo-python
+msgid "A document field has invalid placement values."
+msgstr "Un champ du document possède des valeurs de placement invalides."
+
+#. module: usl_sign
+#. odoo-python
+msgid "A document field is outside the PDF page. Move or resize it before sending."
+msgstr "Un champ du document dépasse de la page PDF. Déplacez-le ou redimensionnez-le avant l’envoi."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Review and mark the template ready before creating a signature request."
+msgstr "Vérifiez le modèle et marquez-le comme prêt avant de créer une demande de signature."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The document or field layout changed. Review it before creating new requests."
+msgstr "Le document ou la disposition des champs a changé. Vérifiez le modèle avant de créer de nouvelles demandes."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The PDF is encrypted. Upload an unlocked PDF before marking the template ready."
+msgstr "Le PDF est chiffré. Chargez un PDF déverrouillé avant de marquer le modèle comme prêt."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The template PDF does not contain any pages."
+msgstr "Le PDF du modèle ne contient aucune page."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The template file is not a readable PDF. Replace it before marking the template ready."
+msgstr "Le fichier du modèle n’est pas un PDF lisible. Remplacez-le avant de marquer le modèle comme prêt."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Place at least one field before marking the template ready."
+msgstr "Placez au moins un champ avant de marquer le modèle comme prêt."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Every template field must have a type and signer role."
+msgstr "Chaque champ du modèle doit avoir un type et un rôle de signataire."
+
+#. module: usl_sign
+#. odoo-python
+msgid "A template field is outside the PDF page. Move or resize it before marking the template ready."
+msgstr "Un champ du modèle dépasse de la page PDF. Déplacez-le ou redimensionnez-le avant de marquer le modèle comme prêt."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Place a signature field for these signer roles: %(roles)s"
+msgstr "Placez un champ de signature pour ces rôles de signataire : %(roles)s"
+
+#. module: usl_sign
+#. odoo-python
+msgid "Review and mark this template ready before creating a signature request."
+msgstr "Vérifiez ce modèle et marquez-le comme prêt avant de créer une demande de signature."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Review and mark this template ready before enabling a public link."
+msgstr "Vérifiez ce modèle et marquez-le comme prêt avant d’activer un lien public."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The signer invitation could not be delivered."
+msgstr "L’invitation du signataire n’a pas pu être remise."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The signer requested a change before signing."
+msgstr "Le signataire a demandé une modification avant de signer."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Signer authentication requires attention."
+msgstr "L’authentification du signataire requiert une intervention."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Signature provider submission attempted."
+msgstr "Tentative d’envoi au prestataire de signature."
+
+#. module: usl_sign
+#. odoo-python
+msgid "The provider transaction was established."
+msgstr "La transaction chez le prestataire a été établie."
+
+#. module: usl_sign
+#. odoo-python
+msgid "Manual provider reconciliation requested."
+msgstr "Rapprochement manuel avec le prestataire demandé."
+
+#. module: usl_sign
+msgid "Field Types"
+msgstr "Types de champs"

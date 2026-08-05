@@ -1,4 +1,5 @@
 import hashlib
+import json
 import re
 from base64 import b64decode, b64encode
 from datetime import timezone
@@ -16,6 +17,30 @@ ASSURANCE_TO_YOUSIGN = {
     "standard": "electronic_signature",
     "verified": "advanced_electronic_signature",
     "qualified": "qualified_electronic_signature",
+}
+
+YOUSIGN_TO_ASSURANCE = {
+    "electronic_signature": "standard",
+    "simple_electronic_signature": "standard",
+    "simple electronic signature": "standard",
+    "advanced_electronic_signature": "verified",
+    "advanced electronic signature": "verified",
+    "electronic_signature_with_qualified_certificate": "verified",
+    "electronic signature with qualified certificate": "verified",
+    "qualified_electronic_signature": "qualified",
+    "qualified_electronic_signature_mode_1": "qualified",
+    "qualified electronic signature": "qualified",
+}
+
+YOUSIGN_TO_AUTHENTICATION = {
+    "none": "no_otp",
+    "no_code": "no_otp",
+    "no_otp": "no_otp",
+    "email": "otp_email",
+    "otp_by_email": "otp_email",
+    "otp_email": "otp_email",
+    "sms": "otp_sms",
+    "otp_sms": "otp_sms",
 }
 
 PROVIDER_REQUEST_STATES = {
@@ -52,6 +77,9 @@ class SignRequestProvider(models.Model):
             "SELECT id FROM sign_oca_request WHERE id = %s FOR UPDATE", [self.id]
         )
         client = self._provider_client()
+        self.message_post(
+            body=self.env._("Signature provider submission attempted.")
+        )
         try:
             snapshot = self._recover_or_create_provider_request(client)
             self._recover_or_upload_document(client, snapshot)
@@ -114,7 +142,30 @@ class SignRequestProvider(models.Model):
                     "provider_status": snapshot.get("status", "draft"),
                 }
             )
+            self.message_post(
+                body=self.env._("The provider transaction was established.")
+            )
         return snapshot
+
+    @staticmethod
+    def _provider_assurance(value):
+        return YOUSIGN_TO_ASSURANCE.get(str(value or "").strip().lower())
+
+    @classmethod
+    def _audit_facts(cls, audit):
+        try:
+            payload = json.loads(audit)
+        except (TypeError, ValueError, UnicodeDecodeError):
+            return False, False
+        level = payload.get("electronic_signature_level") or {}
+        authentication = payload.get("authentication") or {}
+        achieved = cls._provider_assurance(
+            level.get("level") if isinstance(level, dict) else level
+        )
+        mode = authentication.get("mode") if isinstance(authentication, dict) else False
+        return achieved, YOUSIGN_TO_AUTHENTICATION.get(
+            str(mode or "").strip().lower()
+        )
 
     def _initials_configuration(self):
         self.ensure_one()
@@ -184,7 +235,7 @@ class SignRequestProvider(models.Model):
             "identity_verification",
             "qualified_identity",
         }:
-            phone = re.sub(r"[^\d+]", "", partner.mobile or partner.phone or "")
+            phone = re.sub(r"[^\d+]", "", partner.phone or "")
             if not re.fullmatch(r"\+[1-9]\d{7,14}", phone):
                 raise ValidationError(
                     self.env._(
@@ -435,7 +486,9 @@ class SignRequestProvider(models.Model):
                         "signed_on": row.get("signed_at")
                         or signer.signed_on
                         or fields.Datetime.now(),
-                        "achieved_assurance": self.requested_assurance,
+                        "achieved_assurance": self._provider_assurance(
+                            row.get("signature_level")
+                        ),
                         "access_revoked": True,
                     }
                 )
@@ -457,6 +510,10 @@ class SignRequestProvider(models.Model):
 
     def _provider_reconcile(self, manual=False):
         for request in self:
+            if manual:
+                request.message_post(
+                    body=request.env._("Manual provider reconciliation requested.")
+                )
             if not request.provider_transaction_id:
                 if manual:
                     recovered = request._provider_client().recover_request(
@@ -481,9 +538,10 @@ class SignRequestProvider(models.Model):
                 request._apply_provider_snapshot(snapshot)
                 if snapshot.get("status") == "done":
                     request._retrieve_provider_evidence()
-                request.with_context(usl_sign_transition=True).write(
-                    {"last_error": False, "recovery_action": False}
-                )
+                else:
+                    request.with_context(usl_sign_transition=True).write(
+                        {"last_error": False, "recovery_action": False}
+                    )
             except ProviderError as error:
                 request._set_action_required(
                     str(error),
@@ -533,6 +591,7 @@ class SignRequestProvider(models.Model):
                 }
             )
         audit_missing = False
+        assurance_missing = False
         for signer in self.signer_ids.filtered("provider_signer_id"):
             reference = f"audit:{signer.provider_signer_id}"
             if evidence_model.search_count(
@@ -551,6 +610,17 @@ class SignRequestProvider(models.Model):
             except ProviderError:
                 audit_missing = True
                 continue
+            achieved_assurance, authentication_method = self._audit_facts(audit)
+            if not achieved_assurance:
+                assurance_missing = True
+            signer_values = {"achieved_assurance": achieved_assurance}
+            if (
+                authentication_method
+                and signer.authentication_method
+                in {"no_otp", "otp_email", "otp_sms"}
+            ):
+                signer_values["authentication_method"] = authentication_method
+            signer.write(signer_values)
             evidence_model.create(
                 {
                     "request_id": self.id,
@@ -561,22 +631,39 @@ class SignRequestProvider(models.Model):
                     "mimetype": "application/json",
                     "provider_reference": reference,
                     "retrieved_at": fields.Datetime.now(),
-                    "validation_status": "valid",
+                    "validation_status": "valid"
+                    if achieved_assurance
+                    else "unknown",
                 }
             )
         all_signed = bool(self.signer_ids) and all(
             signer.state == "signed" for signer in self.signer_ids
         )
+        assurance_complete = bool(self.signer_ids) and all(
+            signer.achieved_assurance for signer in self.signer_ids
+        )
+        achieved_assurance = False
+        if assurance_complete:
+            assurance_rank = {"standard": 0, "verified": 1, "qualified": 2}
+            achieved_assurance = min(
+                self.signer_ids.mapped("achieved_assurance"),
+                key=assurance_rank.get,
+            )
         evidence_complete = not audit_missing and self.validation_status == "valid"
         vals = {
-            "evidence_status": "available" if evidence_complete else "missing",
-            "achieved_assurance": self.requested_assurance if all_signed else False,
+            "evidence_status": "available"
+            if evidence_complete and assurance_complete and not assurance_missing
+            else "missing",
+            "achieved_assurance": achieved_assurance,
         }
-        if evidence_complete and all_signed:
+        if evidence_complete and all_signed and assurance_complete and not assurance_missing:
+            completed_at = self.completed_at or fields.Datetime.now()
             vals.update(
                 {
                     "state": "completed",
-                    "completed_at": self.completed_at or fields.Datetime.now(),
+                    "completed_at": completed_at,
+                    "retention_until": self.retention_until
+                    or self._completion_retention_until(completed_at),
                     "last_error": False,
                     "recovery_action": False,
                 }
@@ -586,7 +673,7 @@ class SignRequestProvider(models.Model):
                 {
                     "state": "action_required",
                     "last_error": self.env._(
-                        "The provider completed signing, but the full evidence package is not yet available."
+                        "The provider completed signing, but the full evidence package or achieved assurance is not yet available."
                     ),
                     "recovery_action": self.env._(
                         "Refresh provider status to retry evidence retrieval."
@@ -650,17 +737,25 @@ class SignRequestProvider(models.Model):
         )
         if event_id and existing:
             return existing
-        event_time = event_model._event_datetime(payload)
-        if self.provider_last_event_at and event_time < self.provider_last_event_at:
-            return event_model.record_event(
-                self, payload, "ignored", "Older than the latest processed event"
-            )[0]
         event_name = payload.get("event_name", "")
         data = payload.get("data") or {}
         signer_data = data.get("signer") or {}
         signer = self.signer_ids.filtered(
             lambda row: row.provider_signer_id == signer_data.get("id")
         )[:1]
+        event_time = event_model._event_datetime(payload)
+        if (
+            not signer_data
+            and self.provider_last_event_at
+            and event_time < self.provider_last_event_at
+        ):
+            return event_model.record_event(
+                self, payload, "ignored", "Older than the latest request event"
+            )[0]
+        if signer_data and not signer:
+            return event_model.record_event(
+                self, payload, "ignored", "Signer does not belong to this request"
+            )[0]
         if signer and signer.provider_last_event_at and event_time < signer.provider_last_event_at:
             return event_model.record_event(
                 self, payload, "ignored", "Older than the latest signer event"
@@ -696,6 +791,9 @@ class SignRequestProvider(models.Model):
                 "signer.error": "error",
                 "signer.identification_failed": "error",
                 "signer.identification_blocked": "error",
+                "signer.identification_expired": "error",
+                "signer.notification_delivery_failed": "error",
+                "signer.sender_contacted": "error",
             }.get(event_name)
             if signer_state and (
                 not signer.provider_last_event_at
@@ -711,7 +809,9 @@ class SignRequestProvider(models.Model):
                     vals.update(
                         {
                             "signed_on": fields.Datetime.now(),
-                            "achieved_assurance": self.requested_assurance,
+                            "achieved_assurance": self._provider_assurance(
+                                signer_data.get("signature_level")
+                            ),
                             "access_revoked": True,
                         }
                     )
@@ -761,8 +861,19 @@ class SignRequestProvider(models.Model):
                         self.env._("Signature request declined: %(name)s", name=self.name)
                     )
                 elif signer_state == "error" and self.state not in TERMINAL_REQUEST_STATES:
+                    explanations = {
+                        "signer.notification_delivery_failed": self.env._(
+                            "The signer invitation could not be delivered."
+                        ),
+                        "signer.sender_contacted": self.env._(
+                            "The signer requested a change before signing."
+                        ),
+                    }
                     self._set_action_required(
-                        self.env._("Signer authentication requires attention."),
+                        explanations.get(
+                            event_name,
+                            self.env._("Signer authentication requires attention."),
+                        ),
                         self.env._("Reconcile provider status before asking the signer to retry."),
                     )
         if request_state == "expired":
@@ -800,7 +911,10 @@ class SignRequestProvider(models.Model):
                 self.env._("The provider reported that the request was cancelled."),
                 reference=f"cancellation:{payload.get('event_id')}",
             )
-        if not self.provider_last_event_at or event_time >= self.provider_last_event_at:
+        if not signer_data and (
+            not self.provider_last_event_at
+            or event_time >= self.provider_last_event_at
+        ):
             self.with_context(usl_sign_transition=True).write(
                 {"provider_last_event_at": event_time}
             )

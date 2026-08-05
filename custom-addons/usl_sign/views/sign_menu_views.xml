@@ -12,10 +12,29 @@
     <record id="sign_oca.sign_oca_request_menu" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
+    <record id="sign_oca.sign_oca_settings_menu" model="ir.ui.menu">
+        <field name="name">Configuration</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_admin')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_general_settings_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sign_oca.sign_oca_role_menu" model="ir.ui.menu">
+        <field name="sequence">30</field>
+    </record>
+    <record id="sign_oca.sign_oca_field_menu" model="ir.ui.menu">
+        <field name="name">Field Types</field>
+        <field name="sequence">40</field>
+    </record>
     <menuitem id="signature_requests_menu" name="Signature Requests" parent="sign_oca.sign_oca_root_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>
     <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="30" groups="usl_sign.group_sign_user"/>
     <menuitem id="completed_documents_menu" name="Completed Documents" parent="sign_oca.sign_oca_root_menu" action="completed_documents_action" sequence="40" groups="usl_sign.group_sign_user,usl_sign.group_sign_reviewer"/>
-    <menuitem id="configuration_menu" name="Configuration" parent="sign_oca.sign_oca_root_menu" sequence="90" groups="usl_sign.group_sign_admin"/>
-    <menuitem id="sign_policy_menu" name="Assurance Policies" parent="configuration_menu" action="sign_policy_action" sequence="10" groups="usl_sign.group_sign_admin"/>
+    <record id="configuration_menu" model="ir.ui.menu">
+        <field name="name">Configuration</field>
+        <field name="parent_id" ref="sign_oca.sign_oca_root_menu"/>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_admin')])]"/>
+        <field name="active" eval="False"/>
+    </record>
+    <menuitem id="sign_policy_menu" name="Assurance Policies" parent="sign_oca.sign_oca_settings_menu" action="sign_policy_action" sequence="10" groups="usl_sign.group_sign_admin"/>
+    <menuitem id="sign_configuration_menu" name="Settings" parent="sign_oca.sign_oca_settings_menu" action="sign_configuration_action" sequence="20" groups="usl_sign.group_sign_admin"/>
 </odoo>
-

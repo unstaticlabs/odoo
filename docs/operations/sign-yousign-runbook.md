@@ -41,7 +41,9 @@ https://<odoo-host>/sign/webhooks/yousign/<company_id>
 
 Subscribe to `signature_request.activated`, `.done`, `.declined`, `.expired`
 and `.canceled`, plus `signer.notified`, `.link_opened`, `.done`, `.declined`,
-`.error`, `.identification_failed` and `.identification_blocked`. Yousign must
+`.error`, `.identification_failed`, `.identification_blocked`,
+`.identification_expired`, `.notification_delivery_failed` and
+`.sender_contacted`. Yousign must
 sign the raw request body with the shared webhook secret. Odoo verifies
 `X-Yousign-Signature-256`, records the provider event identifier, and processes
 an exact identifier only once. A successful HTTP response means the event was
@@ -60,10 +62,12 @@ handoff. Confirm that:
 3. a provider “done” state without final PDF or audit trails becomes Action
    required, never Completed;
 4. final/original hashes and signer audit trails are stored;
-5. malformed or encrypted PDFs fail before submission;
-6. a reusable link creates a fresh independent request and does not expose
+5. achieved assurance and authentication are derived from each preserved
+   signer audit trail, and an unknown level prevents completion;
+6. malformed or encrypted PDFs fail before submission;
+7. a reusable link creates a fresh independent request and does not expose
    prior identity data; and
-7. cancelled, declined, expired and historical requests cannot be reopened or
+8. cancelled, declined, expired and historical requests cannot be reopened or
    sent.
 
 Record the sandbox transaction identifiers in private release evidence, not in
@@ -108,8 +112,10 @@ company-scoped immutable records. The adapter does not depend on Yousign's
 restricted aggregate audit-trail PDF endpoint. Treat signing links, phone
 numbers, IP-related evidence and identity results as personal/confidential
 data. Export only the evidence needed for an authorized case and preserve its
-SHA-256. Retention deletion is not an ordinary Sign operation; follow the
-company retention/legal-hold policy and approved database/attachment process.
+SHA-256. Each completed request freezes its company retention horizon; the
+request shows Active, Due, Indefinite or Legal hold status. Retention deletion
+is not an ordinary Sign operation and is never automatic; follow the company
+retention/legal-hold policy and approved database/attachment process.
 Provider deletion must never precede verified Odoo evidence retrieval and
 backup.
 

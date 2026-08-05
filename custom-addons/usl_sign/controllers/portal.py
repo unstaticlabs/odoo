@@ -5,8 +5,9 @@ from datetime import timedelta
 from werkzeug.exceptions import NotFound
 
 from odoo import fields, http
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
+from odoo.http.stream import Stream
 from odoo.tools import email_normalize
 
 from odoo.addons.sign_oca.controllers.main import PortalSign
@@ -101,6 +102,19 @@ class SignPortalController(PortalSign):
             ),
         ]
 
+    @http.route()
+    def get_sign_oca_content_access(self, signer_id, access_token):
+        """Keep the OCA PDF route compatible with Odoo 19's HTTP package."""
+        try:
+            signer_sudo = self._document_check_access(
+                "sign.oca.request.signer", signer_id, access_token,
+            )
+        except (AccessError, MissingError):
+            return request.redirect("/my")
+        return Stream.from_binary_field(
+            signer_sudo.request_id, "data",
+        ).get_response(mimetype="application/pdf")
+
     def _get_my_sign_requests_searchbar_filters(self):
         return {
             "all": {"label": request.env._("All"), "domain": []},
@@ -129,7 +143,7 @@ class SignPortalController(PortalSign):
             return request.not_found()
         if not sign_request.final_data:
             return request.not_found()
-        stream = http.Stream.from_binary_field(sign_request, "final_data")
+        stream = Stream.from_binary_field(sign_request, "final_data")
         stream.download_name = sign_request.final_filename or "signed-document.pdf"
         return stream.get_response(as_attachment=True)
 
@@ -217,7 +231,7 @@ class SignPortalController(PortalSign):
             {
                 "name": values["name"],
                 "email": normalized_email,
-                "mobile": values["mobile"] or False,
+                "phone": values["mobile"] or False,
             },
             submission_token,
             source_hash,

@@ -32,6 +32,11 @@
 
     <!-- OCA gives every internal user read access to requests. This rule turns
          that access into the intended signer/responsible boundary. -->
+    <record id="request_company" model="ir.rule">
+        <field name="name">Signature requests: allowed companies</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="request_internal_boundary" model="ir.rule">
         <field name="name">Signature requests: responsible or assigned signer</field>
         <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
@@ -81,6 +86,11 @@
         <field name="perm_write" eval="1"/>
         <field name="perm_create" eval="1"/>
         <field name="perm_unlink" eval="1"/>
+    </record>
+    <record id="request_signer_company" model="ir.rule">
+        <field name="name">Signature recipients: allowed companies</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
+        <field name="domain_force">[('request_id.company_id', 'in', company_ids)]</field>
     </record>
     <record id="request_signer_admin_all" model="ir.rule">
         <field name="name">Signature administrators: all company recipients</field>

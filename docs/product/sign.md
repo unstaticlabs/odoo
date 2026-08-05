@@ -50,7 +50,10 @@ code.
 Requested and achieved assurance are stored and displayed separately. A
 provider audit trail or completion certificate is evidence of the ceremony;
 it is not described as proof that every signature is qualified or that the
-underlying agreement is legally valid.
+underlying agreement is legally valid. Odoo derives achieved assurance and the
+authentication method from every preserved per-signer provider audit trail. An
+unknown or missing level leaves the request in Action required rather than
+copying the requested level into the achieved result.
 
 ## Audited source perimeter
 
@@ -93,6 +96,9 @@ eligible signers, respect signer order, and stop at the policy/template cap.
 Expiry, decline and cancellation create immutable JSON evidence. Completed
 PDF delivery to signers is a per-company opt-in; portal users may otherwise
 download only completed documents assigned to their commercial contact.
+Completion also freezes the configured evidence-retention horizon on the
+request. Indefinite retention and legal holds are explicit states; evidence is
+not deleted by an unattended job.
 
 Templates linked to a business model participate in the standard OCA action
 menu. Contacts additionally show their request count and current state. The
@@ -107,6 +113,10 @@ request chatter records business milestones without exposing provider secrets.
   provider-event diagnostics but cannot change ceremonies.
 - **Sign Administrator** manages assurance policies, provider configuration
   and recovery actions.
+
+The administrator uses Sign → Configuration → Settings for the active allowed
+company. This narrowly scoped screen can change only Sign settings; it does not
+grant access to general system settings or expose server-side secrets.
 
 Company record rules apply to templates, policies, requests, signers,
 provider events, public submissions and evidence. Provider API credentials and

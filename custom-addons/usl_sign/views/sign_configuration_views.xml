@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_configuration_view_form" model="ir.ui.view">
+        <field name="name">usl.sign.configuration.form</field>
+        <field name="model">usl.sign.configuration</field>
+        <field name="arch" type="xml">
+            <form string="Sign Settings">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="company_id"/>
+                        <h1><field name="company_id" options="{'no_create': True}"/></h1>
+                    </div>
+                    <group string="Provider">
+                        <field name="provider_enabled"/>
+                        <field name="environment"/>
+                        <field name="workspace_id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
+                        <field name="deliver_completed_to_signers"/>
+                    </group>
+                    <group string="Evidence">
+                        <field name="evidence_retention_years"/>
+                        <div class="text-muted" colspan="2">Use 0 for indefinite retention. Evidence is never deleted automatically.</div>
+                    </group>
+                    <group string="Operational status">
+                        <field name="api_credential_configured" readonly="1"/>
+                        <field name="webhook_secret_configured" readonly="1"/>
+                        <field name="production_gate_enabled" readonly="1" invisible="environment != 'production'"/>
+                        <field name="provider_ready" readonly="1"/>
+                        <field name="webhook_url" widget="url" readonly="1"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        API keys and webhook secrets remain in server environment variables and are never stored in Odoo.
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_save" type="object" string="Save" class="btn-primary"/>
+                    <button name="action_test_provider" type="object" string="Test connection" class="btn-secondary" invisible="not provider_enabled"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_configuration_action" model="ir.actions.act_window">
+        <field name="name">Sign Settings</field>
+        <field name="res_model">usl.sign.configuration</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+</odoo>

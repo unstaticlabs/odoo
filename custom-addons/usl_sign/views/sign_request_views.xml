@@ -12,7 +12,7 @@
             <xpath expr="//form/header" position="replace">
                 <header>
                     <button name="action_mark_ready" type="object" string="Review Request" class="btn-primary" invisible="state != 'draft'" groups="usl_sign.group_sign_user"/>
-                    <button name="action_send" type="object" string="Send for Signature" class="btn-primary" invisible="state not in ['ready', 'action_required'] or not provider_ready" groups="usl_sign.group_sign_user"/>
+                    <button name="action_send" type="object" string="Send for Signature" class="btn-primary" invisible="state not in ['ready', 'action_required'] or not provider_ready or provider_transaction_created" groups="usl_sign.group_sign_user"/>
                     <button name="action_reconcile" type="object" string="Refresh Status" invisible="state not in ['sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
                     <button name="action_send_reminder" type="object" string="Send Reminder" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders" groups="usl_sign.group_sign_user"/>
                     <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and revoke every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'action_required']" groups="usl_sign.group_sign_user"/>
@@ -76,6 +76,7 @@
             </xpath>
             <xpath expr="//sheet" position="inside">
                 <field name="provider_ready" invisible="1"/>
+                <field name="provider_transaction_created" invisible="1"/>
                 <field name="historical" invisible="1"/>
                 <div class="alert alert-warning" role="alert" invisible="not historical">
                     <strong>Historical evidence.</strong>
@@ -98,6 +99,9 @@
                                 <field name="provider_transaction_id" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
                                 <field name="provider_environment" readonly="1" groups="usl_sign.group_sign_reviewer,usl_sign.group_sign_admin"/>
                                 <field name="completed_at" readonly="1"/>
+                                <field name="retention_status" readonly="1"/>
+                                <field name="retention_until" readonly="1" invisible="not retention_until"/>
+                                <field name="legal_hold" groups="usl_sign.group_sign_admin"/>
                             </group>
                         </group>
                         <field name="evidence_ids" readonly="1" nolabel="1">

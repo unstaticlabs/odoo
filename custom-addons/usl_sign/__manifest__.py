@@ -11,6 +11,7 @@
         "mail",
         "portal",
         "usl_locale",
+        "usl_pocketid",
     ],
     "data": [
         "security/usl_sign_security.xml",
@@ -21,6 +22,7 @@
         "views/sign_policy_views.xml",
         "views/sign_template_views.xml",
         "views/sign_request_views.xml",
+        "views/sign_configuration_views.xml",
         "views/sign_portal_templates.xml",
         "views/res_config_settings_views.xml",
         "views/res_partner_views.xml",

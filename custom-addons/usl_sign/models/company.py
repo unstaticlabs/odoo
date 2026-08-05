@@ -25,6 +25,11 @@ class ResCompany(models.Model):
     sign_deliver_completed_to_signers = fields.Boolean(
         string="Email completed documents to signers"
     )
+    sign_evidence_retention_years = fields.Integer(
+        string="Evidence retention (years)",
+        default=10,
+        help="Use 0 to retain signature evidence indefinitely until an approved review.",
+    )
     sign_yousign_configured = fields.Boolean(
         compute="_compute_sign_yousign_configured"
     )
@@ -35,6 +40,14 @@ class ResCompany(models.Model):
     sign_yousign_webhook_url = fields.Char(
         compute="_compute_sign_yousign_webhook_url"
     )
+
+    @api.constrains("sign_evidence_retention_years")
+    def _check_sign_evidence_retention_years(self):
+        for company in self:
+            if not 0 <= company.sign_evidence_retention_years <= 99:
+                raise ValidationError(
+                    self.env._("Evidence retention must be between 0 and 99 years.")
+                )
 
     def _yousign_env_name(self, suffix):
         self.ensure_one()
@@ -139,6 +152,9 @@ class ResConfigSettings(models.TransientModel):
     )
     sign_deliver_completed_to_signers = fields.Boolean(
         related="company_id.sign_deliver_completed_to_signers", readonly=False
+    )
+    sign_evidence_retention_years = fields.Integer(
+        related="company_id.sign_evidence_retention_years", readonly=False
     )
     sign_yousign_configured = fields.Boolean(
         related="company_id.sign_yousign_configured"

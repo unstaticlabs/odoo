@@ -8,6 +8,8 @@ from datetime import timedelta
 from datetime import timezone
 from io import BytesIO
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.pdf import PdfReader
@@ -143,6 +145,21 @@ class SignRequest(models.Model):
     migration_assurance_unproven = fields.Boolean(copy=False, readonly=True)
     provider_ready = fields.Boolean(related="company_id.sign_provider_ready")
     provider_setup_message = fields.Char(compute="_compute_provider_setup_message")
+    provider_transaction_created = fields.Boolean(
+        compute="_compute_provider_transaction_created"
+    )
+    retention_years = fields.Integer(readonly=True)
+    retention_until = fields.Datetime(copy=False, readonly=True)
+    legal_hold = fields.Boolean(copy=False, tracking=True)
+    retention_status = fields.Selection(
+        [
+            ("active", "Retention active"),
+            ("review_due", "Retention review due"),
+            ("legal_hold", "Legal hold"),
+            ("indefinite", "Indefinite"),
+        ],
+        compute="_compute_retention_status",
+    )
 
     _idempotency_unique = models.Constraint(
         "UNIQUE(idempotency_key)", "The signature request operation key must be unique."
@@ -167,6 +184,16 @@ class SignRequest(models.Model):
             template = self.env["sign.oca.template"].browse(vals.get("template_id"))
             policy = self.env["usl.sign.policy"].browse(vals.get("policy_id"))
             if template:
+                company = template.company_id
+                if (
+                    not vals.get("historical")
+                    and (not template.active or template.preparation_status != "ready")
+                ):
+                    raise ValidationError(
+                        self.env._(
+                            "Review and mark the template ready before creating a signature request."
+                        )
+                    )
                 vals.setdefault("company_id", template.company_id.id)
                 vals.setdefault("policy_id", template.policy_id.id)
                 vals.setdefault("template_version", template.version)
@@ -182,6 +209,17 @@ class SignRequest(models.Model):
             vals.setdefault("authentication_method", policy.authentication_method)
             vals.setdefault("provider_code", policy.provider_code)
             vals.setdefault("max_reminders", policy.max_reminders)
+            retention_years = vals.setdefault(
+                "retention_years", company.sign_evidence_retention_years
+            )
+            if (
+                vals.get("completed_at")
+                and retention_years
+                and not vals.get("retention_until")
+            ):
+                vals["retention_until"] = fields.Datetime.to_datetime(
+                    vals["completed_at"]
+                ) + relativedelta(years=retention_years)
             if not vals.get("expires_at") and not vals.get("historical"):
                 expiration_days = (
                     template.expiration_days if template else policy.expiration_days
@@ -200,6 +238,35 @@ class SignRequest(models.Model):
     def _compute_evidence_count(self):
         for request in self:
             request.evidence_count = len(request.evidence_ids)
+
+    @api.depends("provider_transaction_id")
+    def _compute_provider_transaction_created(self):
+        for request in self:
+            request.provider_transaction_created = bool(
+                request.provider_transaction_id
+            )
+
+    @api.depends("retention_until", "legal_hold", "retention_years")
+    def _compute_retention_status(self):
+        now = fields.Datetime.now()
+        for request in self:
+            if request.legal_hold:
+                request.retention_status = "legal_hold"
+            elif not request.retention_years or not request.retention_until:
+                request.retention_status = "indefinite"
+            elif request.retention_until <= now:
+                request.retention_status = "review_due"
+            else:
+                request.retention_status = "active"
+
+    def _completion_retention_until(self, completed_at=None):
+        self.ensure_one()
+        if not self.retention_years:
+            return False
+        completed_at = fields.Datetime.to_datetime(
+            completed_at or self.completed_at or fields.Datetime.now()
+        )
+        return completed_at + relativedelta(years=self.retention_years)
 
     @api.depends("state", "evidence_status", "last_error")
     def _compute_next_step(self):
@@ -267,7 +334,7 @@ class SignRequest(models.Model):
 
     def _validate_preparation(self):
         self.ensure_one()
-        self._validate_source_pdf()
+        reader = self._validate_source_pdf()
         if not self.signer_ids:
             raise ValidationError(self.env._("Add at least one signer."))
         role_ids = set(self.signer_ids.mapped("role_id").ids)
@@ -288,6 +355,36 @@ class SignRequest(models.Model):
             raise ValidationError(
                 self.env._("Place at least one field on the document before sending it.")
             )
+        for item in (self.signatory_data or {}).values():
+            if not item.get("field_id") or not item.get("role_id"):
+                raise ValidationError(
+                    self.env._("Every document field must have a type and signer role.")
+                )
+            try:
+                page = int(item.get("page") or 0)
+                position_x = float(item.get("position_x"))
+                position_y = float(item.get("position_y"))
+                width = float(item.get("width"))
+                height = float(item.get("height"))
+            except (TypeError, ValueError) as error:
+                raise ValidationError(
+                    self.env._("A document field has invalid placement values.")
+                ) from error
+            if (
+                page < 1
+                or page > len(reader.pages)
+                or position_x < 0
+                or position_y < 0
+                or width <= 0
+                or height <= 0
+                or position_x + width > 100
+                or position_y + height > 100
+            ):
+                raise ValidationError(
+                    self.env._(
+                        "A document field is outside the PDF page. Move or resize it before sending."
+                    )
+                )
         signature_roles = {
             int(item.get("role_id"))
             for item in (self.signatory_data or {}).values()
@@ -320,7 +417,7 @@ class SignRequest(models.Model):
                 "otp_sms",
                 "identity_verification",
                 "qualified_identity",
-            } and not (signer.partner_id.mobile or signer.partner_id.phone):
+            } and not signer.partner_id.phone:
                 raise ValidationError(
                     self.env._(
                         "Add a mobile phone number to signer %(signer)s for this assurance policy.",
@@ -376,6 +473,12 @@ class SignRequest(models.Model):
                 )
             if request.state not in {"draft", "ready", "action_required"}:
                 return False
+            if request.state == "action_required" and request.provider_transaction_id:
+                raise ValidationError(
+                    self.env._(
+                        "This request already has a provider transaction. Refresh its status instead of sending it again."
+                    )
+                )
             if (
                 not request.provider_ready
                 and not request.env.context.get("usl_sign_skip_provider_ready")
@@ -544,7 +647,10 @@ class SignRequest(models.Model):
             request.with_context(usl_sign_transition=True).write(
                 {"state": "cancelled", "provider_status": "cancelled"}
             )
-            request.signer_ids.write({"state": "cancelled", "access_revoked": True})
+            request.signer_ids.write({"access_revoked": True})
+            request.signer_ids.filtered(
+                lambda signer: signer.state != "signed"
+            ).write({"state": "cancelled"})
             request._store_terminal_evidence(
                 "cancellation",
                 self.env._("The responsible user cancelled the request."),

@@ -126,7 +126,7 @@
             <main class="container py-5" style="max-width: 42rem;">
                 <div class="alert alert-warning" role="alert">
                     <h1 class="h4">This signing link is unavailable</h1>
-                    <p class="mb-0" t-esc="explanation"/>
+                    <p class="mb-0"><t t-out="explanation"/></p>
                 </div>
             </main>
         </t>
