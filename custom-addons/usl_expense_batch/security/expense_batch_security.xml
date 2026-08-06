@@ -33,14 +33,35 @@
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[
             (4, ref('hr_expense.group_hr_expense_user')),
-            (4, ref('account.group_account_user'))
+            (4, ref('account.group_account_user')),
+            (4, ref('account.group_account_manager'))
         ]"/>
+    </record>
+
+    <!-- A separate XML ID makes this upgrade-safe for databases where the
+         original noupdate manager rule was already loaded. -->
+    <record id="rule_expense_batch_accounting_manager" model="ir.rule">
+        <field name="name">Accounting manager expense batches</field>
+        <field name="model_id" ref="model_usl_expense_batch"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('account.group_account_manager'))]"/>
     </record>
 
     <record id="rule_expense_batch_readonly_accountant" model="ir.rule">
         <field name="name">Read-only accountant expense batches</field>
         <field name="model_id" ref="model_usl_expense_batch"/>
         <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_expense_batch_expense_readonly_accountant" model="ir.rule">
+        <field name="name">Read-only accountant expense evidence</field>
+        <field name="model_id" ref="hr_expense.model_hr_expense"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>

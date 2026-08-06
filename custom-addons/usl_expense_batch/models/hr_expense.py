@@ -1,7 +1,17 @@
+from lxml import etree
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 EXPENSE_BATCH_ELIGIBLE_STATES = ("draft", "approved", "posted")
+
+CONTEXT_SOURCES = [
+    ("product", "Category default"),
+    ("batch", "Batch context"),
+    ("explicit", "Expense exception"),
+    ("inferred", "Suggested"),
+    ("legacy", "Existing value"),
+]
 
 
 class HrExpense(models.Model):
@@ -39,6 +49,88 @@ class HrExpense(models.Model):
         compute="_compute_batch_attachment_status",
         string="Attachment status",
     )
+    account_context_source = fields.Selection(
+        CONTEXT_SOURCES,
+        default="product",
+        required=True,
+        copy=False,
+        tracking=True,
+        string="Account source",
+    )
+    analytic_context_source = fields.Selection(
+        CONTEXT_SOURCES,
+        default="product",
+        required=True,
+        copy=False,
+        tracking=True,
+        string="Analytic source",
+    )
+    pre_batch_account_id = fields.Many2one(
+        "account.account",
+        copy=False,
+        check_company=True,
+    )
+    pre_batch_account_context_source = fields.Selection(CONTEXT_SOURCES, copy=False)
+    pre_batch_analytic_distribution = fields.Json(copy=False)
+    pre_batch_analytic_context_source = fields.Selection(CONTEXT_SOURCES, copy=False)
+    batch_applied_account_id = fields.Many2one(
+        "account.account",
+        copy=False,
+        check_company=True,
+    )
+    batch_applied_analytic_distribution = fields.Json(copy=False)
+    batch_account_baseline_captured = fields.Boolean(copy=False)
+    batch_analytic_baseline_captured = fields.Boolean(copy=False)
+    batch_context_revision = fields.Integer(copy=False)
+    batch_context_status = fields.Selection(
+        selection=[
+            ("inherited", "Uses Batch context"),
+            ("exception", "Expense exception"),
+            ("stale", "Batch context changed"),
+            ("fixed", "Existing accounting preserved"),
+        ],
+        compute="_compute_batch_context_status",
+        string="Context status",
+    )
+    batch_warning_reason = fields.Char(
+        compute="_compute_batch_context_status",
+        string="Review warning",
+    )
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        result = super().get_view(view_id, view_type, **options)
+        if (
+            view_type == "form"
+            and self.env.user.has_group("account.group_account_readonly")
+            and not self.env.user.has_group("account.group_account_user")
+        ):
+            arch = etree.fromstring(result["arch"])
+            arch.set("create", "false")
+            arch.set("edit", "false")
+            arch.set("delete", "false")
+            for control in arch.xpath("//header/button | //header/widget"):
+                control.getparent().remove(control)
+            result["arch"] = etree.tostring(arch, encoding="unicode")
+        return result
+
+    def _native_product_account(self):
+        self.ensure_one()
+        expense = self.with_company(self.company_id)
+        if not expense.product_id:
+            return expense.company_id.expense_account_id
+        return expense.product_id.product_tmpl_id._get_product_accounts()["expense"]
+
+    def _native_analytic_distribution(self):
+        self.ensure_one()
+        return self.env["account.analytic.distribution.model"]._get_distribution({
+            "product_id": self.product_id.id,
+            "product_categ_id": self.product_id.categ_id.id,
+            "partner_id": self.employee_id.work_contact_id.id,
+            "partner_category_id": self.employee_id.work_contact_id.category_id.ids,
+            "account_prefix": self.account_id.code,
+            "company_id": self.company_id.id,
+        }) or {}
 
     def _is_batch_receipt_required(self):
         self.ensure_one()
@@ -61,7 +153,70 @@ class HrExpense(models.Model):
             reasons.append(_("non-zero amount"))
         if self.product_id and self.batch_attachment_status == "missing":
             reasons.append(_("receipt"))
+        if not self.account_id:
+            reasons.append(_("account"))
         return reasons
+
+    @api.depends(
+        "expense_batch_id",
+        "expense_batch_id.context_revision",
+        "expense_batch_id.context_date_from",
+        "expense_batch_id.context_date_to",
+        "expense_batch_id.account_override_id",
+        "expense_batch_id.analytic_distribution",
+        "account_context_source",
+        "analytic_context_source",
+        "batch_context_revision",
+        "date",
+        "same_receipt_expense_ids",
+        "duplicate_expense_ids",
+        "state",
+    )
+    def _compute_batch_context_status(self):
+        for expense in self:
+            batch = expense.expense_batch_id
+            if not batch:
+                expense.batch_context_status = False
+                expense.batch_warning_reason = False
+                continue
+            if expense.state != "draft":
+                expense.batch_context_status = "fixed"
+            elif (
+                (batch.account_override_id and expense.account_context_source == "explicit")
+                or (
+                    batch.analytic_distribution
+                    and expense.analytic_context_source == "explicit"
+                )
+            ):
+                expense.batch_context_status = "exception"
+            elif (
+                expense.batch_context_revision
+                and expense.batch_context_revision != batch.context_revision
+                and (
+                    expense.account_context_source == "batch"
+                    or expense.analytic_context_source == "batch"
+                )
+            ):
+                expense.batch_context_status = "stale"
+            else:
+                expense.batch_context_status = "inherited"
+
+            warnings = []
+            if expense.same_receipt_expense_ids:
+                warnings.append(_("same receipt already used"))
+            elif expense.duplicate_expense_ids:
+                warnings.append(_("possible duplicate"))
+            if (
+                batch.context_date_from
+                and expense.date
+                and expense.date < batch.context_date_from
+            ) or (
+                batch.context_date_to
+                and expense.date
+                and expense.date > batch.context_date_to
+            ):
+                warnings.append(_("outside the Batch dates"))
+            expense.batch_warning_reason = ", ".join(warnings) or False
 
     @api.depends("message_main_attachment_id", "nb_attachment", "product_id")
     def _compute_batch_attachment_status(self):
@@ -143,7 +298,39 @@ class HrExpense(models.Model):
                     _("The expense and its batch must belong to the same employee."),
                 )
 
+    @api.model_create_multi
+    def create(self, values_list):
+        records = super().create(values_list)
+        for expense, incoming_values in zip(records, values_list):
+            provenance = {}
+            if (
+                "account_id" in incoming_values
+                and "account_context_source" not in incoming_values
+            ):
+                provenance["account_context_source"] = (
+                    "product"
+                    if expense.account_id == expense._native_product_account()
+                    else "explicit"
+                )
+            if (
+                "analytic_distribution" in incoming_values
+                and "analytic_context_source" not in incoming_values
+            ):
+                provenance["analytic_context_source"] = (
+                    "product"
+                    if (expense.analytic_distribution or {})
+                    == expense._native_analytic_distribution()
+                    else "explicit"
+                )
+            if provenance:
+                expense.with_context(usl_batch_context_internal=True).write(provenance)
+        return records
+
     def write(self, values):
+        if len(self) > 1 and values.get("expense_batch_id") is False:
+            for expense in self:
+                expense.write(values)
+            return True
         new_batch_id = values.get("expense_batch_id")
         if new_batch_id and any(
             expense.expense_batch_id
@@ -156,7 +343,135 @@ class HrExpense(models.Model):
                     "it to another one.",
                 ),
             )
-        return super().write(values)
+        values = dict(values)
+        internal = self.env.context.get("usl_batch_context_internal")
+        if not internal:
+            if "account_id" in values:
+                values.setdefault("account_context_source", "explicit")
+            if "analytic_distribution" in values:
+                values.setdefault("analytic_context_source", "explicit")
+
+        removing_batch = "expense_batch_id" in values and not values["expense_batch_id"]
+        if removing_batch and len(self) == 1 and self.expense_batch_id:
+            if (
+                self.account_context_source == "batch"
+                and self.account_id == self.batch_applied_account_id
+                and self.batch_account_baseline_captured
+            ):
+                values.update({
+                    "account_id": self.pre_batch_account_id.id,
+                    "account_context_source": (
+                        self.pre_batch_account_context_source or "product"
+                    ),
+                })
+            if (
+                self.analytic_context_source == "batch"
+                and (self.analytic_distribution or {})
+                == (self.batch_applied_analytic_distribution or {})
+                and self.batch_analytic_baseline_captured
+            ):
+                values.update({
+                    "analytic_distribution": self.pre_batch_analytic_distribution or {},
+                    "analytic_context_source": (
+                        self.pre_batch_analytic_context_source or "product"
+                    ),
+                })
+            values.update({
+                "pre_batch_account_id": False,
+                "pre_batch_account_context_source": False,
+                "pre_batch_analytic_distribution": False,
+                "pre_batch_analytic_context_source": False,
+                "batch_applied_account_id": False,
+                "batch_applied_analytic_distribution": False,
+                "batch_account_baseline_captured": False,
+                "batch_analytic_baseline_captured": False,
+                "batch_context_revision": 0,
+            })
+
+        result = super().write(values)
+        if new_batch_id:
+            batch = self.env["usl.expense.batch"].browse(new_batch_id)
+            batch.apply_context(expense_ids=self.ids)
+            batch._link_existing_moves()
+        return result
+
+    def _compute_account_id(self):
+        protected = [
+            (expense, expense.account_id)
+            for expense in self
+            if expense.account_context_source in ("explicit", "batch")
+        ]
+        super()._compute_account_id()
+        for expense, previous_account in protected:
+            if expense.account_context_source == "explicit":
+                expense.account_id = previous_account
+            elif expense.batch_applied_account_id:
+                expense.account_id = expense.batch_applied_account_id
+
+    def _compute_analytic_distribution(self):
+        protected = [
+            (expense, expense.analytic_distribution)
+            for expense in self
+            if expense.analytic_context_source in ("explicit", "batch")
+        ]
+        super()._compute_analytic_distribution()
+        for expense, previous_distribution in protected:
+            if expense.analytic_context_source == "explicit":
+                expense.analytic_distribution = previous_distribution
+            elif expense.batch_applied_analytic_distribution:
+                expense.analytic_distribution = (
+                    expense.batch_applied_analytic_distribution
+                )
+
+    @api.model
+    def get_expense_batch_candidates(self, expense_ids):
+        expenses = self.browse(expense_ids).exists()
+        if not expenses:
+            return []
+        expenses.check_access("read")
+        if len(expenses.company_id) != 1 or len(expenses.employee_id) != 1:
+            raise ValidationError(
+                _("Select expenses for one employee and one company."),
+            )
+        dates = expenses.mapped("date")
+        date_from = min(dates) if dates else False
+        date_to = max(dates) if dates else False
+        selected_analytics = self._get_analytic_account_ids_from_distributions(
+            expenses.mapped("analytic_distribution"),
+        )
+        candidates = self.env["usl.expense.batch"].search([
+            ("employee_id", "=", expenses.employee_id.id),
+            ("company_id", "=", expenses.company_id.id),
+            ("state", "=", "draft"),
+        ])
+        result = []
+        for batch in candidates:
+            batch_analytics = self._get_analytic_account_ids_from_distributions(
+                batch.analytic_distribution,
+            )
+            analytic_overlap = len(selected_analytics.intersection(batch_analytics))
+            date_overlap = bool(
+                date_from
+                and date_to
+                and batch.context_date_from
+                and batch.context_date_to
+                and date_from <= batch.context_date_to
+                and date_to >= batch.context_date_from,
+            )
+            score = analytic_overlap * 100 + (25 if date_overlap else 0)
+            result.append({
+                "id": batch.id,
+                "name": batch.display_name,
+                "purpose": batch.purpose,
+                "date_from": batch.context_date_from or batch.date_from,
+                "date_to": batch.context_date_to or batch.date_to,
+                "expense_count": batch.expense_count,
+                "total": batch.total_amount,
+                "score": score,
+                "date_overlap": date_overlap,
+                "analytic_overlap": analytic_overlap,
+            })
+        return sorted(result, key=lambda item: (-item["score"], item["name"]))
 
     @api.model
     def action_open_expense_batch_wizard(self, expense_ids=None):

@@ -1,0 +1,291 @@
+"""Prepare a disposable, network-free Expense Batch browser QA database."""
+
+import base64
+import os
+
+from odoo import Command, fields
+
+TRUTHY_VALUES = {"1", "true", "yes", "on"}
+MISSING_OPT_IN = "Set USL_EXPENSE_BATCH_QA_BOOTSTRAP=1 explicitly."
+LIVE_GUARD_ENABLED = "QA bootstrap refuses to run with a live guard enabled."
+NON_EMPTY_LEDGER = "QA bootstrap refuses a database that already has posted entries."
+
+
+def _is_enabled(name):
+    return os.getenv(name, "").strip().lower() in TRUTHY_VALUES
+
+
+def _user(env, *, login, name, groups, company):
+    user = env["res.users"].sudo().search([("login", "=", login)], limit=1)
+    values = {
+        "name": name,
+        "login": login,
+        "password": "admin",
+        "email": f"{login}@example.invalid",
+        "company_id": company.id,
+        "company_ids": [Command.set(company.ids)],
+        "group_ids": [Command.set(groups.ids)],
+        "active": True,
+    }
+    if user:
+        user.write(values)
+    else:
+        user = env["res.users"].with_context(
+            no_reset_password=True,
+        ).sudo().create(values)
+    return user
+
+
+def _analytic_account(env, *, name, plan, company):
+    account = env["account.analytic.account"].sudo().search([
+        ("name", "=", name),
+        ("plan_id", "=", plan.id),
+        ("company_id", "in", (False, company.id)),
+    ], limit=1)
+    return account or env["account.analytic.account"].sudo().create({
+        "name": name,
+        "plan_id": plan.id,
+        "company_id": company.id,
+    })
+
+
+def _product(env, *, name, code, account):
+    product = env["product.product"].sudo().search([
+        ("default_code", "=", code),
+    ], limit=1)
+    values = {
+        "name": name,
+        "default_code": code,
+        "can_be_expensed": True,
+        "property_account_expense_id": account.id,
+        "supplier_taxes_id": [Command.clear()],
+        "active": True,
+    }
+    if product:
+        product.write(values)
+    else:
+        product = env["product.product"].sudo().create(values)
+    return product
+
+
+def _expense(
+    env,
+    *,
+    employee,
+    product,
+    name,
+    date,
+    amount,
+    payment_mode,
+    analytic_distribution=None,
+    explicit=False,
+    receipt=True,
+):
+    expense = env["hr.expense"].sudo().search([
+        ("employee_id", "=", employee.id),
+        ("name", "=", name),
+        ("date", "=", date),
+    ], limit=1)
+    values = {
+        "employee_id": employee.id,
+        "company_id": employee.company_id.id,
+        "product_id": product.id,
+        "name": name,
+        "date": date,
+        "payment_mode": payment_mode,
+        "total_amount_currency": amount,
+        "analytic_distribution": analytic_distribution or False,
+    }
+    if analytic_distribution:
+        values["analytic_context_source"] = (
+            "explicit" if explicit else "inferred"
+        )
+    else:
+        values["analytic_context_source"] = "product"
+    if expense:
+        expense.write(values)
+    else:
+        expense = env["hr.expense"].sudo().create(values)
+    if receipt and not expense.message_main_attachment_id:
+        attachment = env["ir.attachment"].sudo().create({
+            "name": f"{name}.pdf",
+            "type": "binary",
+            "datas": base64.b64encode(f"QA receipt: {name}".encode()),
+            "res_model": "hr.expense",
+            "res_id": expense.id,
+        })
+        expense.message_main_attachment_id = attachment
+    return expense
+
+
+def bootstrap(env):
+    if not _is_enabled("USL_EXPENSE_BATCH_QA_BOOTSTRAP"):
+        raise RuntimeError(MISSING_OPT_IN)
+    if (
+        _is_enabled("USL_EINVOICE_LIVE_ENABLED")
+        or _is_enabled("USL_EREPORTING_LIVE_ENABLED")
+    ):
+        raise RuntimeError(LIVE_GUARD_ENABLED)
+
+    company = env.company.sudo()
+    if env["account.move"].sudo().search_count([
+        ("company_id", "=", company.id),
+        ("state", "=", "posted"),
+    ]):
+        raise RuntimeError(NON_EMPTY_LEDGER)
+    if company.chart_template != "fr_comp":
+        env["account.chart.template"].try_loading(
+            "fr_comp",
+            company=company,
+            install_demo=False,
+        )
+
+    mission_account = env["account.account"].sudo().search([
+        ("code", "=", "625600"),
+        ("company_ids", "in", company.id),
+    ], limit=1)
+    if not mission_account:
+        mission_account = env["account.account"].sudo().create({
+            "code": "625600",
+            "name": "Missions",
+            "account_type": "expense",
+            "company_ids": [Command.set(company.ids)],
+        })
+
+    project_plan = env["account.analytic.plan"].sudo().search([
+        ("name", "=", "Projet"),
+    ], limit=1) or env["account.analytic.plan"].sudo().create({"name": "Projet"})
+    epic_plan = env["account.analytic.plan"].sudo().search([
+        ("name", "=", "Epic"),
+    ], limit=1) or env["account.analytic.plan"].sudo().create({"name": "Epic"})
+    project = _analytic_account(
+        env,
+        name="SBFH prod",
+        plan=project_plan,
+        company=company,
+    )
+    epic = _analytic_account(
+        env,
+        name="Canada 2026",
+        plan=epic_plan,
+        company=company,
+    )
+    exception = _analytic_account(
+        env,
+        name="Executive exception",
+        plan=epic_plan,
+        company=company,
+    )
+    transport = _product(
+        env,
+        name="Transport & Accommodation",
+        code="TRANS-QA",
+        account=mission_account,
+    )
+    meals = _product(
+        env,
+        name="Foreign Meals",
+        code="FOOD-QA",
+        account=mission_account,
+    )
+
+    base_user = env.ref("base.group_user")
+    submitter = _user(
+        env,
+        login="qa.expense.submitter",
+        name="QA Expense Submitter",
+        groups=base_user | env.ref("hr_expense.group_hr_expense_user"),
+        company=company,
+    )
+    _user(
+        env,
+        login="qa.expense.manager",
+        name="QA Expense and Accounting Manager",
+        groups=base_user | env.ref("account.group_account_manager"),
+        company=company,
+    )
+    _user(
+        env,
+        login="qa.expense.readonly",
+        name="QA Read-Only Accountant",
+        groups=base_user | env.ref("account.group_account_readonly"),
+        company=company,
+    )
+    employee = env["hr.employee"].sudo().search([
+        ("user_id", "=", submitter.id),
+        ("company_id", "=", company.id),
+    ], limit=1) or env["hr.employee"].sudo().create({
+        "name": submitter.name,
+        "user_id": submitter.id,
+        "company_id": company.id,
+        "work_contact_id": submitter.partner_id.id,
+    })
+
+    distribution = {f"{project.id},{epic.id}": 100.0}
+    batch = env["usl.expense.batch"].sudo().search([
+        ("name", "=", "SBFH — Canada 2026 QA"),
+        ("employee_id", "=", employee.id),
+    ], limit=1)
+    values = {
+        "name": "SBFH — Canada 2026 QA",
+        "purpose": "Customer and partner meetings in Canada",
+        "context_type": "travel",
+        "context_date_from": fields.Date.from_string("2026-07-01"),
+        "context_date_to": fields.Date.from_string("2026-07-31"),
+        "employee_id": employee.id,
+        "company_id": company.id,
+        "account_override_id": mission_account.id,
+        "analytic_distribution": distribution,
+    }
+    if batch:
+        batch.write(values)
+    else:
+        batch = env["usl.expense.batch"].sudo().create(values)
+
+    expenses = env["hr.expense"]
+    expenses |= _expense(
+        env,
+        employee=employee,
+        product=transport,
+        name="QA Toronto hotel",
+        date=fields.Date.from_string("2026-07-10"),
+        amount=480,
+        payment_mode="own_account",
+        analytic_distribution=distribution,
+    )
+    expenses |= _expense(
+        env,
+        employee=employee,
+        product=transport,
+        name="QA Toronto taxi company card",
+        date=fields.Date.from_string("2026-07-11"),
+        amount=45,
+        payment_mode="company_account",
+        analytic_distribution=distribution,
+    )
+    expenses |= _expense(
+        env,
+        employee=employee,
+        product=meals,
+        name="QA Toronto team meal exception",
+        date=fields.Date.from_string("2026-07-12"),
+        amount=92,
+        payment_mode="own_account",
+        analytic_distribution={f"{project.id},{exception.id}": 100.0},
+        explicit=True,
+    )
+    expenses |= _expense(
+        env,
+        employee=employee,
+        product=meals,
+        name="QA Toronto missing receipt",
+        date=fields.Date.from_string("2026-07-13"),
+        amount=18,
+        payment_mode="company_account",
+        receipt=False,
+    )
+    expenses.filtered("expense_batch_id").write({"expense_batch_id": False})
+    env.cr.commit()
+
+
+bootstrap(globals()["env"])
