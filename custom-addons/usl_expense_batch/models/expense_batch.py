@@ -9,12 +9,39 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 class UslExpenseBatch(models.Model):
     _name = "usl.expense.batch"
     _description = "Expense Batch"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "analytic.mixin"]
     _order = "date_from desc, id desc"
     _check_company_auto = True
 
     name = fields.Char(required=True, tracking=True)
     purpose = fields.Text(required=True, tracking=True)
+    context_type = fields.Selection(
+        selection=[
+            ("travel", "Travel"),
+            ("production_event", "Production or event"),
+            ("project", "Project"),
+            ("period", "Periodic claim"),
+            ("other", "Other"),
+        ],
+        default="other",
+        required=True,
+        tracking=True,
+    )
+    context_date_from = fields.Date(string="Context from", tracking=True)
+    context_date_to = fields.Date(string="Context to", tracking=True)
+    notes = fields.Html(string="Shared justification and notes", tracking=True)
+    account_override_id = fields.Many2one(
+        "account.account",
+        string="Shared expense account",
+        check_company=True,
+        tracking=True,
+        domain="[('account_type', 'not in', ('asset_receivable', 'liability_payable', 'asset_cash', 'liability_credit_card'))]",
+        help=(
+            "When configured, this account replaces category defaults on draft "
+            "expenses unless the expense has an explicit account exception."
+        ),
+    )
+    context_revision = fields.Integer(default=1, readonly=True, copy=False)
     employee_id = fields.Many2one(
         "hr.employee",
         required=True,
@@ -109,6 +136,26 @@ class UslExpenseBatch(models.Model):
         string="Batch readiness",
     )
     main_analytic_activity = fields.Char(compute="_compute_review_context")
+    analytic_context_summary = fields.Char(compute="_compute_review_context")
+    product_summary = fields.Char(compute="_compute_review_context")
+    exception_count = fields.Integer(compute="_compute_review_context")
+    stale_context_count = fields.Integer(compute="_compute_review_context")
+    warning_count = fields.Integer(compute="_compute_review_context")
+    employee_paid_open_count = fields.Integer(compute="_compute_review_context")
+    company_paid_open_count = fields.Integer(compute="_compute_review_context")
+    accounted_expense_count = fields.Integer(compute="_compute_accounting_reconciliation")
+    accounting_reconciliation_state = fields.Selection(
+        selection=[
+            ("pending", "Accounting pending"),
+            ("matched", "Accounting reconciles"),
+            ("difference", "Accounting difference"),
+        ],
+        compute="_compute_accounting_reconciliation",
+    )
+    accounting_difference = fields.Monetary(
+        compute="_compute_accounting_reconciliation",
+        currency_field="currency_id",
+    )
     move_ids = fields.Many2many(
         "account.move",
         compute="_compute_moves",
@@ -176,9 +223,15 @@ class UslExpenseBatch(models.Model):
         "expense_ids.batch_readiness",
         "expense_ids.batch_incomplete_reason",
         "expense_ids.analytic_distribution",
+        "expense_ids.product_id",
+        "expense_ids.payment_mode",
+        "expense_ids.state",
+        "expense_ids.batch_context_status",
+        "expense_ids.batch_warning_reason",
+        "analytic_distribution",
     )
     def _compute_review_context(self):
-        analytic_account_model = self.env["account.analytic.account"]
+        analytic_account_model = self.env["account.analytic.account"].sudo()
         for batch in self:
             incomplete = batch.expense_ids.filtered(
                 lambda expense: bool(expense.batch_incomplete_reason),
@@ -188,20 +241,74 @@ class UslExpenseBatch(models.Model):
             batch.readiness_state = "incomplete" if incomplete else "ready"
 
             analytic_weights = defaultdict(float)
-            for distribution in batch.expense_ids.mapped("analytic_distribution"):
+            distributions = (
+                [batch.analytic_distribution]
+                if batch.analytic_distribution
+                else batch.expense_ids.mapped("analytic_distribution")
+            )
+            for distribution in distributions:
                 for account_keys, weight in (distribution or {}).items():
                     for account_key in account_keys.split(","):
                         if account_key.isdigit():
                             analytic_weights[int(account_key)] += weight
             if not analytic_weights:
                 batch.main_analytic_activity = False
-                continue
-            main_account_id = max(
-                analytic_weights,
-                key=lambda account_id: analytic_weights[account_id],
+                batch.analytic_context_summary = False
+            else:
+                main_account_id = max(
+                    analytic_weights,
+                    key=lambda account_id: analytic_weights[account_id],
+                )
+                accounts = analytic_account_model.browse(analytic_weights).exists()
+                batch.main_analytic_activity = (
+                    analytic_account_model.browse(main_account_id).display_name
+                )
+                by_plan = defaultdict(list)
+                for account in accounts.sorted(
+                    key=lambda item: (item.plan_id.display_name, item.display_name),
+                ):
+                    by_plan[account.plan_id.display_name].append(account.display_name)
+                batch.analytic_context_summary = " · ".join(
+                    f"{plan}: {', '.join(names)}"
+                    for plan, names in by_plan.items()
+                )
+
+            product_totals = defaultdict(float)
+            for expense in batch.expense_ids:
+                product_totals[expense.product_id.display_name or _("Uncategorized")] += (
+                    expense.total_amount
+                )
+            batch.product_summary = " · ".join(
+                f"{name}: {amount:.2f}"
+                for name, amount in sorted(
+                    product_totals.items(),
+                    key=lambda item: (-item[1], item[0]),
+                )
+            ) or False
+            batch.exception_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.batch_context_status == "exception",
+                ),
             )
-            batch.main_analytic_activity = (
-                analytic_account_model.browse(main_account_id).display_name
+            batch.stale_context_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.batch_context_status == "stale",
+                ),
+            )
+            batch.warning_count = len(
+                batch.expense_ids.filtered("batch_warning_reason"),
+            )
+            batch.employee_paid_open_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.payment_mode == "own_account"
+                    and expense.state not in ("paid", "refused"),
+                ),
+            )
+            batch.company_paid_open_count = len(
+                batch.expense_ids.filtered(
+                    lambda expense: expense.payment_mode == "company_account"
+                    and expense.state not in ("paid", "refused"),
+                ),
             )
 
     @api.depends("expense_ids.account_move_id")
@@ -209,6 +316,32 @@ class UslExpenseBatch(models.Model):
         for batch in self:
             batch.move_ids = batch.expense_ids.account_move_id
             batch.move_count = len(batch.move_ids)
+
+    @api.depends(
+        "expense_ids.account_move_id",
+        "expense_ids.account_move_id.state",
+        "expense_ids.total_amount",
+    )
+    def _compute_accounting_reconciliation(self):
+        for batch in self:
+            active_expenses = batch.expense_ids.filtered(
+                lambda expense: expense.state != "refused",
+            )
+            accounted = batch.expense_ids.filtered(
+                lambda expense: expense.account_move_id.state == "posted",
+            )
+            batch.accounted_expense_count = len(accounted)
+            if not active_expenses or len(accounted) != len(active_expenses):
+                batch.accounting_reconciliation_state = "pending"
+                batch.accounting_difference = 0.0
+                continue
+            expected_total = sum(accounted.mapped("total_amount"))
+            ledger_total = sum(accounted.account_move_id.line_ids.mapped("debit"))
+            difference = batch.currency_id.round(ledger_total - expected_total)
+            batch.accounting_difference = difference
+            batch.accounting_reconciliation_state = (
+                "matched" if batch.currency_id.is_zero(difference) else "difference"
+            )
 
     @api.constrains("expense_ids", "employee_id", "company_id")
     def _check_expense_compatibility(self):
@@ -228,6 +361,18 @@ class UslExpenseBatch(models.Model):
                     _("A batch cannot contain expenses from different employees."),
                 )
 
+    @api.constrains("context_date_from", "context_date_to")
+    def _check_context_dates(self):
+        for batch in self:
+            if (
+                batch.context_date_from
+                and batch.context_date_to
+                and batch.context_date_from > batch.context_date_to
+            ):
+                raise ValidationError(
+                    _("The context start date must be on or before the end date."),
+                )
+
     def _check_readonly_accountant_mutation(self):
         if (
             not self.env.su
@@ -237,6 +382,21 @@ class UslExpenseBatch(models.Model):
             raise AccessError(
                 _("Read-only accountants cannot change expense batches."),
             )
+
+    def _check_account_override_access(self, values=None, force=False):
+        values = values or {}
+        if not force:
+            if "account_override_id" not in values:
+                return
+            if not values["account_override_id"] and not self.account_override_id:
+                return
+        if self.env.su or self.env.user.has_group(
+            "hr_expense.group_hr_expense_manager",
+        ) or self.env.user.has_group("account.group_account_manager"):
+            return
+        raise AccessError(
+            _("Only Expense or Accounting Managers can override accounts."),
+        )
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
@@ -252,21 +412,31 @@ class UslExpenseBatch(models.Model):
             if view_type == "form":
                 for control in arch.xpath("//header/button"):
                     control.getparent().remove(control)
+                for control in arch.xpath(
+                    "//button[@name='action_return_from_batch']",
+                ):
+                    control.getparent().remove(control)
             result["arch"] = etree.tostring(arch, encoding="unicode")
         return result
 
     @api.model_create_multi
     def create(self, values_list):
         self._check_readonly_accountant_mutation()
+        for values in values_list:
+            self._check_account_override_access(values)
         clean_values_list = []
         expense_ids_list = []
         for values in values_list:
             values = dict(values)
-            expense_ids_list.append(
-                self._expense_ids_from_create_commands(
-                    values.pop("expense_ids", []),
-                ),
+            expense_ids = self._expense_ids_from_create_commands(
+                values.pop("expense_ids", []),
             )
+            expenses = self.env["hr.expense"].browse(expense_ids).exists()
+            dates = expenses.mapped("date")
+            if dates:
+                values.setdefault("context_date_from", min(dates))
+                values.setdefault("context_date_to", max(dates))
+            expense_ids_list.append(expense_ids)
             clean_values_list.append(values)
 
         batches = super().create(clean_values_list)
@@ -342,6 +512,23 @@ class UslExpenseBatch(models.Model):
 
     def write(self, values):
         self._check_readonly_accountant_mutation()
+        self._check_account_override_access(values)
+        context_fields = {
+            "context_type",
+            "context_date_from",
+            "context_date_to",
+            "purpose",
+            "notes",
+            "account_override_id",
+            "analytic_distribution",
+        }
+        if context_fields.intersection(values) and "context_revision" not in values:
+            for batch in self:
+                super(UslExpenseBatch, batch).write({
+                    **values,
+                    "context_revision": batch.context_revision + 1,
+                })
+            return True
         return super().write(values)
 
     def unlink(self):
@@ -371,6 +558,262 @@ class UslExpenseBatch(models.Model):
                 ),
             )
         return actionable
+
+    def _context_expenses(self, expense_ids=None):
+        self.ensure_one()
+        expenses = (
+            self.env["hr.expense"].browse(expense_ids).exists()
+            if expense_ids is not None
+            else self.expense_ids
+        )
+        if expenses - self.expense_ids:
+            raise ValidationError(
+                _("Every expense must already belong to this batch."),
+            )
+        expenses.check_access("read")
+        return expenses
+
+    def preview_context_application(self, expense_ids=None, force_expense_ids=None):
+        """Return an RPC-safe, side-effect-free application preview."""
+        self.ensure_one()
+        expenses = self._context_expenses(expense_ids)
+        force_ids = set(force_expense_ids or [])
+        unknown_force_ids = force_ids - set(expenses.ids)
+        if unknown_force_ids:
+            raise ValidationError(_("Forced exceptions must belong to the preview."))
+
+        lines = []
+        counts = defaultdict(int)
+        for expense in expenses.sorted(lambda item: (item.date, item.id)):
+            line = {
+                "expense_id": expense.id,
+                "name": expense.display_name,
+                "state": expense.state,
+                "account": "unchanged",
+                "analytics": "unchanged",
+                "status": "unchanged",
+                "reason": False,
+                "has_exception": False,
+            }
+            if expense.state != "draft":
+                line.update({
+                    "status": "skipped",
+                    "reason": _("Only draft expenses can receive shared context."),
+                })
+                counts["skipped"] += 1
+                lines.append(line)
+                continue
+
+            forced = expense.id in force_ids
+            actions = []
+            if self.account_override_id:
+                if expense.account_context_source == "explicit" and not forced:
+                    line["account"] = "exception"
+                    actions.append("exception")
+                elif (
+                    expense.account_id != self.account_override_id
+                    or expense.account_context_source != "batch"
+                    or expense.batch_context_revision != self.context_revision
+                ):
+                    line["account"] = "replace" if forced else "inherit"
+                    actions.append("change")
+            if self.analytic_distribution:
+                if expense.analytic_context_source == "explicit" and not forced:
+                    line["analytics"] = "exception"
+                    actions.append("exception")
+                elif (
+                    (expense.analytic_distribution or {})
+                    != (self.analytic_distribution or {})
+                    or expense.analytic_context_source != "batch"
+                    or expense.batch_context_revision != self.context_revision
+                ):
+                    line["analytics"] = "replace" if forced else "inherit"
+                    actions.append("change")
+
+            if "change" in actions:
+                line["status"] = "change"
+                counts["changed"] += 1
+            elif "exception" in actions:
+                line["status"] = "exception"
+            if "exception" in actions:
+                line["has_exception"] = True
+                counts["exceptions"] += 1
+            if not actions:
+                counts["unchanged"] += 1
+            lines.append(line)
+
+        return {
+            "batch_id": self.id,
+            "context_revision": self.context_revision,
+            "changed": counts["changed"],
+            "unchanged": counts["unchanged"],
+            "exceptions": counts["exceptions"],
+            "skipped": counts["skipped"],
+            "lines": lines,
+        }
+
+    def apply_context(
+        self,
+        expense_ids=None,
+        force_expense_ids=None,
+        expected_revision=None,
+    ):
+        """Apply shared context atomically while preserving explicit choices."""
+        self.ensure_one()
+        self._check_readonly_accountant_mutation()
+        if expected_revision is not None and expected_revision != self.context_revision:
+            raise UserError(
+                _("The batch context changed. Refresh the preview before applying it."),
+            )
+        force_ids = set(force_expense_ids or [])
+        if force_ids:
+            self._check_account_override_access(force=True)
+        expenses = self._context_expenses(expense_ids)
+        preview = self.preview_context_application(
+            expense_ids=expenses.ids,
+            force_expense_ids=list(force_ids),
+        )
+        changed = self.env["hr.expense"]
+        for expense in expenses:
+            if expense.state != "draft":
+                continue
+            values = {}
+            forced = expense.id in force_ids
+            apply_account = self.account_override_id and (
+                expense.account_context_source != "explicit" or forced
+            ) and (
+                expense.account_id != self.account_override_id
+                or expense.account_context_source != "batch"
+                or expense.batch_context_revision != self.context_revision
+            )
+            if apply_account:
+                if not expense.batch_account_baseline_captured:
+                    values.update({
+                        "pre_batch_account_id": expense.account_id.id,
+                        "pre_batch_account_context_source": (
+                            expense.account_context_source
+                        ),
+                        "batch_account_baseline_captured": True,
+                    })
+                values.update({
+                    "account_id": self.account_override_id.id,
+                    "account_context_source": "batch",
+                    "batch_applied_account_id": self.account_override_id.id,
+                })
+            apply_analytics = self.analytic_distribution and (
+                expense.analytic_context_source != "explicit" or forced
+            ) and (
+                (expense.analytic_distribution or {})
+                != (self.analytic_distribution or {})
+                or expense.analytic_context_source != "batch"
+                or expense.batch_context_revision != self.context_revision
+            )
+            if apply_analytics:
+                if not expense.batch_analytic_baseline_captured:
+                    values.update({
+                        "pre_batch_analytic_distribution": (
+                            expense.analytic_distribution or {}
+                        ),
+                        "pre_batch_analytic_context_source": (
+                            expense.analytic_context_source
+                        ),
+                        "batch_analytic_baseline_captured": True,
+                    })
+                values.update({
+                    "analytic_distribution": self.analytic_distribution,
+                    "analytic_context_source": "batch",
+                    "batch_applied_analytic_distribution": self.analytic_distribution,
+                })
+            if values:
+                values["batch_context_revision"] = self.context_revision
+                expense.with_context(usl_batch_context_internal=True).write(values)
+                changed |= expense
+        if changed:
+            self.message_post(
+                body=_(
+                    "Shared context revision %(revision)s applied to %(changed)s "
+                    "expense(s); %(exceptions)s explicit exception(s) were preserved "
+                    "and %(skipped)s later-stage expense(s) were skipped.",
+                    revision=self.context_revision,
+                    changed=len(changed),
+                    exceptions=preview["exceptions"],
+                    skipped=preview["skipped"],
+                ),
+            )
+        return preview | {"applied": len(changed)}
+
+    def get_review_summary(self):
+        self.ensure_one()
+        analytics = defaultdict(list)
+        account_ids = self._get_analytic_account_ids_from_distributions(
+            self.analytic_distribution,
+        )
+        for account in self.env["account.analytic.account"].sudo().browse(
+            account_ids,
+        ).exists():
+            analytics[account.plan_id.display_name].append({
+                "id": account.id,
+                "name": account.display_name,
+                "code": account.code,
+            })
+        products = defaultdict(lambda: {"count": 0, "total": 0.0})
+        for expense in self.expense_ids:
+            key = expense.product_id.display_name or _("Uncategorized")
+            products[key]["count"] += 1
+            products[key]["total"] += expense.total_amount
+        return {
+            "id": self.id,
+            "name": self.name,
+            "purpose": self.purpose,
+            "context_type": self.context_type,
+            "context_revision": self.context_revision,
+            "date_from": self.date_from,
+            "date_to": self.date_to,
+            "context_date_from": self.context_date_from,
+            "context_date_to": self.context_date_to,
+            "total": self.total_amount,
+            "expense_count": self.expense_count,
+            "employee_paid_total": self.employee_paid_total,
+            "company_paid_total": self.company_paid_total,
+            "employee_paid_open_count": self.employee_paid_open_count,
+            "company_paid_open_count": self.company_paid_open_count,
+            "incomplete_count": self.incomplete_count,
+            "exception_count": self.exception_count,
+            "stale_context_count": self.stale_context_count,
+            "warning_count": self.warning_count,
+            "analytics": dict(analytics),
+            "products": dict(products),
+            "account_override": (
+                {
+                    "id": self.account_override_id.id,
+                    "name": self.account_override_id.display_name,
+                }
+                if self.account_override_id
+                else False
+            ),
+            "move_ids": self.move_ids.ids,
+            "accounting": {
+                "state": self.accounting_reconciliation_state,
+                "accounted_expense_count": self.accounted_expense_count,
+                "difference": self.accounting_difference,
+            },
+        }
+
+    def action_open_context_wizard(self):
+        self.ensure_one()
+        wizard = self.env["usl.expense.batch.context.apply.wizard"].create({
+            "batch_id": self.id,
+            "expected_revision": self.context_revision,
+        })
+        return {
+            "name": _("Apply shared Batch context"),
+            "type": "ir.actions.act_window",
+            "res_model": "usl.expense.batch.context.apply.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "res_id": wizard.id,
+            "target": "new",
+        }
 
     def action_submit(self):
         self.ensure_one()

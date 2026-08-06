@@ -10,6 +10,7 @@
                   decoration-success="state in ('approved', 'posted', 'paid')">
                 <field name="currency_id" column_invisible="True"/>
                 <field name="name"/>
+                <field name="context_type" optional="show"/>
                 <field name="employee_id" widget="many2one_avatar_employee"/>
                 <field name="purpose" optional="show"/>
                 <field name="date_from"/>
@@ -20,6 +21,8 @@
                        widget="badge"
                        decoration-success="readiness_state == 'ready'"
                        decoration-warning="readiness_state == 'incomplete'"/>
+                <field name="exception_count" optional="show"/>
+                <field name="warning_count" optional="hide"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'submitted'"
@@ -38,6 +41,7 @@
                 <field name="name"/>
                 <field name="employee_id"/>
                 <field name="purpose"/>
+                <field name="context_type"/>
                 <filter name="my_batches"
                         string="My expense batches"
                         domain="[('employee_id.user_id', '=', uid)]"/>
@@ -49,6 +53,7 @@
                 <group>
                     <filter name="employee" string="Employee" domain="[]" context="{'group_by': 'employee_id'}"/>
                     <filter name="state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter name="group_context_type" string="Context" domain="[]" context="{'group_by': 'context_type'}"/>
                     <filter name="company" string="Company" domain="[]" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>
                 </group>
@@ -62,6 +67,11 @@
         <field name="arch" type="xml">
             <form string="Expense Batch">
                 <header>
+                    <button name="action_open_context_wizard"
+                            string="Apply shared context"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state != 'draft' or (not account_override_id and not analytic_distribution)"/>
                     <button name="action_submit"
                             string="Submit batch"
                             type="object"
@@ -87,6 +97,8 @@
                            statusbar_visible="draft,submitted,approved,posted,paid"/>
                 </header>
                 <sheet>
+                    <field name="account_override_id" invisible="1"/>
+                    <field name="analytic_distribution" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_moves"
                                 type="object"
@@ -113,14 +125,17 @@
                     </div>
                     <group>
                         <group>
+                            <field name="context_type" readonly="state != 'draft'"/>
                             <field name="employee_id" readonly="state != 'draft'"/>
                             <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
                             <field name="purpose" readonly="state != 'draft'"/>
-                            <field name="main_analytic_activity" readonly="1"/>
+                            <field name="analytic_context_summary" readonly="1"/>
                         </group>
                         <group>
-                            <field name="date_from"/>
-                            <field name="date_to"/>
+                            <field name="context_date_from" readonly="state != 'draft'"/>
+                            <field name="context_date_to" readonly="state != 'draft'"/>
+                            <field name="date_from" string="First expense" readonly="1"/>
+                            <field name="date_to" string="Last expense" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="total_amount"/>
                             <field name="employee_paid_total"/>
@@ -132,8 +147,20 @@
                                    decoration-warning="readiness_state == 'incomplete'"/>
                             <field name="incomplete_count"
                                    invisible="incomplete_count == 0"/>
+                            <field name="exception_count"
+                                   invisible="exception_count == 0"/>
+                            <field name="stale_context_count"
+                                   invisible="stale_context_count == 0"/>
+                            <field name="warning_count"
+                                   invisible="warning_count == 0"/>
                         </group>
                     </group>
+                    <div class="alert alert-warning" role="alert" invisible="stale_context_count == 0">
+                        The shared context changed after it was applied. Review and apply the current revision before submission.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="exception_count == 0">
+                        Explicit expense exceptions are preserved and remain visible in the expense list.
+                    </div>
                     <notebook>
                         <page name="expenses" string="Expenses">
                             <field name="expense_ids" readonly="state not in ('draft', 'submitted', 'approved')">
@@ -144,6 +171,12 @@
                                     <field name="name"/>
                                     <field name="product_id"/>
                                     <field name="payment_mode"/>
+                                    <field name="batch_context_status"
+                                           widget="badge"
+                                           decoration-info="batch_context_status == 'inherited'"
+                                           decoration-warning="batch_context_status == 'stale'"
+                                           decoration-danger="batch_context_status == 'exception'"
+                                           optional="show"/>
                                     <field name="batch_attachment_status"
                                            widget="badge"
                                            decoration-success="batch_attachment_status in ('attached', 'not_required')"
@@ -156,6 +189,12 @@
                                     <field name="batch_incomplete_reason"
                                            string="Missing information"
                                            optional="hide"/>
+                                    <field name="batch_warning_reason"
+                                           string="Review warning"
+                                           optional="show"/>
+                                    <field name="account_id"
+                                           optional="hide"
+                                           groups="account.group_account_readonly"/>
                                     <field name="total_amount" sum="Total"/>
                                     <button name="action_return_from_batch"
                                             string="Remove"
@@ -167,6 +206,33 @@
                             </field>
                         </page>
                         <page name="review" string="Review">
+                            <group string="Shared context">
+                                <field name="context_revision"/>
+                                <field name="analytic_distribution"
+                                       widget="analytic_distribution"
+                                       readonly="state != 'draft'"
+                                       groups="analytic.group_analytic_accounting"/>
+                                <field name="account_override_id"
+                                       readonly="state != 'draft'"
+                                       groups="hr_expense.group_hr_expense_manager,account.group_account_manager"/>
+                                <field name="notes" readonly="state != 'draft'"/>
+                            </group>
+                            <group string="Breakdown and remaining work">
+                                <field name="product_summary"/>
+                                <field name="employee_paid_open_count"/>
+                                <field name="company_paid_open_count"/>
+                                <field name="exception_count"/>
+                                <field name="warning_count"/>
+                            </group>
+                            <group string="Accounting traceability" groups="account.group_account_readonly">
+                                <field name="accounting_reconciliation_state" widget="badge"
+                                       decoration-success="accounting_reconciliation_state == 'matched'"
+                                       decoration-warning="accounting_reconciliation_state == 'pending'"
+                                       decoration-danger="accounting_reconciliation_state == 'difference'"/>
+                                <field name="accounted_expense_count"/>
+                                <field name="accounting_difference"
+                                       invisible="accounting_reconciliation_state != 'difference'"/>
+                            </group>
                             <group>
                                 <field name="submitted_by_id"/>
                                 <field name="submitted_date"/>
@@ -199,7 +265,6 @@
         <field name="res_model">usl.expense.batch</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_expense_batch_search"/>
-        <field name="context">{'search_default_my_batches': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create an expense batch</p>
             <p>Group related receipts into one clear submission and accounting context.</p>

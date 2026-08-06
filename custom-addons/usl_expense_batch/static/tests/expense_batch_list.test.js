@@ -1,6 +1,7 @@
 import { expect, test } from "@odoo/hoot";
 
 import {
+    batchActionIsPrimary,
     canCreateExpenseBatch,
     refreshExpenseList,
 } from "../src/js/expense_batch_list";
@@ -31,6 +32,14 @@ test("batch creation accepts only unbatched eligible expense states", () => {
         expect(canCreateExpenseBatch([record(state)])).toBe(false);
     }
     expect(canCreateExpenseBatch([record("draft", [42, "Existing batch"])])).toBe(
+        false
+    );
+});
+
+test("batch assignment is primary only for eligible multi-selection", () => {
+    expect(batchActionIsPrimary([record("draft")])).toBe(false);
+    expect(batchActionIsPrimary([record("draft"), record("draft")])).toBe(true);
+    expect(batchActionIsPrimary([record("draft"), record("submitted")])).toBe(
         false
     );
 });

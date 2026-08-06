@@ -909,3 +909,253 @@ msgstr "Retire cette dépense de la note pour permettre sa correction individuel
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid "Group the selected expenses without submitting, posting, or paying them."
 msgstr "Regroupe les dépenses sélectionnées sans les soumettre, les comptabiliser ni les payer."
+msgid "Add to a Batch"
+msgstr "Ajouter à une note de frais"
+
+#. module: usl_expense_batch
+msgid "Create and submit"
+msgstr "Créer et soumettre"
+
+#. module: usl_expense_batch
+msgid "Travel"
+msgstr "Voyage"
+
+#. module: usl_expense_batch
+msgid "Production or event"
+msgstr "Production ou événement"
+
+#. module: usl_expense_batch
+msgid "Project"
+msgstr "Projet"
+
+#. module: usl_expense_batch
+msgid "Periodic claim"
+msgstr "Note périodique"
+
+#. module: usl_expense_batch
+msgid "Other"
+msgstr "Autre"
+
+#. module: usl_expense_batch
+msgid "Context from"
+msgstr "Contexte du"
+
+#. module: usl_expense_batch
+msgid "Context to"
+msgstr "Contexte au"
+
+#. module: usl_expense_batch
+msgid "Shared justification and notes"
+msgstr "Justification et notes communes"
+
+#. module: usl_expense_batch
+msgid "Shared expense account"
+msgstr "Compte de charge commun"
+
+#. module: usl_expense_batch
+msgid "Analytic Context Summary"
+msgstr "Synthèse analytique"
+
+#. module: usl_expense_batch
+msgid "Product Summary"
+msgstr "Répartition par catégorie"
+
+#. module: usl_expense_batch
+msgid "Exception Count"
+msgstr "Nombre d’exceptions"
+
+#. module: usl_expense_batch
+msgid "Stale Context Count"
+msgstr "Contextes à actualiser"
+
+#. module: usl_expense_batch
+msgid "Warning Count"
+msgstr "Nombre d’avertissements"
+
+#. module: usl_expense_batch
+msgid "Employee Paid Open Count"
+msgstr "Remboursements restant à traiter"
+
+#. module: usl_expense_batch
+msgid "Company Paid Open Count"
+msgstr "Paiements société restant à traiter"
+
+#. module: usl_expense_batch
+msgid "Accounted Expense Count"
+msgstr "Dépenses comptabilisées"
+
+#. module: usl_expense_batch
+msgid "Accounting pending"
+msgstr "Comptabilisation en attente"
+
+#. module: usl_expense_batch
+msgid "Accounting reconciles"
+msgstr "Comptabilité concordante"
+
+#. module: usl_expense_batch
+msgid "Accounting difference"
+msgstr "Écart comptable"
+
+#. module: usl_expense_batch
+msgid "Accounting Difference"
+msgstr "Écart comptable"
+
+#. module: usl_expense_batch
+msgid "Context Revision"
+msgstr "Révision du contexte"
+
+#. module: usl_expense_batch
+msgid "First expense"
+msgstr "Première dépense"
+
+#. module: usl_expense_batch
+msgid "Last expense"
+msgstr "Dernière dépense"
+
+#. module: usl_expense_batch
+msgid "Shared context"
+msgstr "Contexte commun"
+
+#. module: usl_expense_batch
+msgid "Breakdown and remaining work"
+msgstr "Répartition et travail restant"
+
+#. module: usl_expense_batch
+msgid "Accounting traceability"
+msgstr "Traçabilité comptable"
+
+#. module: usl_expense_batch
+msgid "Review warning"
+msgstr "Avertissement à contrôler"
+
+#. module: usl_expense_batch
+msgid "Apply shared Batch context"
+msgstr "Appliquer le contexte commun de la note"
+
+#. module: usl_expense_batch
+msgid "Apply shared context"
+msgstr "Appliquer le contexte commun"
+
+#. module: usl_expense_batch
+msgid "Changed Count"
+msgstr "Lignes modifiées"
+
+#. module: usl_expense_batch
+msgid "Unchanged Count"
+msgstr "Lignes inchangées"
+
+#. module: usl_expense_batch
+msgid "Skipped Count"
+msgstr "Lignes ignorées"
+
+#. module: usl_expense_batch
+msgid "Force Expenses"
+msgstr "Exceptions à remplacer"
+
+#. module: usl_expense_batch
+msgid "New Batch"
+msgstr "Nouvelle note"
+
+#. module: usl_expense_batch
+msgid "Existing Batch"
+msgstr "Note existante"
+
+#. module: usl_expense_batch
+msgid "Product or default"
+msgstr "Catégorie ou valeur par défaut"
+
+#. module: usl_expense_batch
+msgid "Batch inherited"
+msgstr "Hérité de la note"
+
+#. module: usl_expense_batch
+msgid "Explicit exception"
+msgstr "Exception explicite"
+
+#. module: usl_expense_batch
+msgid "Inferred suggestion"
+msgstr "Suggestion inférée"
+
+#. module: usl_expense_batch
+msgid "Legacy"
+msgstr "Historique"
+
+#. module: usl_expense_batch
+msgid "Inherited from Batch"
+msgstr "Hérité de la note"
+
+#. module: usl_expense_batch
+msgid "Context to update"
+msgstr "Contexte à actualiser"
+
+#. module: usl_expense_batch
+msgid "Fixed accounting"
+msgstr "Comptabilité figée"
+
+#. module: usl_expense_batch
+msgid "Account Context Source"
+msgstr "Origine du compte"
+
+#. module: usl_expense_batch
+msgid "Analytic Context Source"
+msgstr "Origine de l’analytique"
+
+#. module: usl_expense_batch
+msgid "Batch Context Status"
+msgstr "Statut du contexte de la note"
+
+#. module: usl_expense_batch
+msgid "The shared context changed after it was applied. Review and apply the current revision before submission."
+msgstr "Le contexte commun a changé après son application. Contrôlez et appliquez la révision actuelle avant la soumission."
+
+#. module: usl_expense_batch
+msgid "Explicit expense exceptions are preserved and remain visible in the expense list."
+msgstr "Les exceptions explicites sont conservées et restent visibles dans la liste des dépenses."
+
+#. module: usl_expense_batch
+msgid "The selected expense exceptions will be replaced. Their previous values remain in the audit trail and are restored only when they still match the last Batch-applied value."
+msgstr "Les exceptions sélectionnées seront remplacées. Leurs anciennes valeurs restent dans la piste d’audit et ne sont restaurées que si elles correspondent encore à la dernière valeur appliquée par la note."
+
+#. module: usl_expense_batch
+msgid "Category default"
+msgstr "Valeur par défaut de la catégorie"
+
+#. module: usl_expense_batch
+msgid "Batch context"
+msgstr "Contexte de la note"
+
+#. module: usl_expense_batch
+msgid "Expense exception"
+msgstr "Exception de la dépense"
+
+#. module: usl_expense_batch
+msgid "Suggested"
+msgstr "Suggéré"
+
+#. module: usl_expense_batch
+msgid "Existing value"
+msgstr "Valeur existante"
+
+#. module: usl_expense_batch
+msgid "Uses Batch context"
+msgstr "Utilise le contexte de la note"
+
+#. module: usl_expense_batch
+msgid "Batch context changed"
+msgstr "Contexte de la note modifié"
+
+#. module: usl_expense_batch
+msgid "Existing accounting preserved"
+msgstr "Comptabilité existante conservée"
+
+#. module: usl_expense_batch
+msgid "Account source"
+msgstr "Origine du compte"
+
+#. module: usl_expense_batch
+msgid "Analytic source"
+msgstr "Origine de l’analytique"
+
+#. module: usl_expense_batch
+msgid "Context status"
+msgstr "Statut du contexte"
