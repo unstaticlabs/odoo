@@ -8,10 +8,10 @@ import {join, resolve} from "node:path";
 
 
 const ROOT = resolve(import.meta.dirname, "..");
-const ENV_FILE = process.env.USL_SIGN_POCKETID_ENV_FILE || join(ROOT, ".sign-pocketid-6605.env");
+const ENV_FILE = process.env.USL_SIGN_POCKETID_ENV_FILE || join(ROOT, ".sign-pocketid-qa.env");
 const CHROME = process.env.CHROME_BIN || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const CLIENT_ID = "usl-sign-authorization";
-const REDIRECT_URI = "http://odoo-sign-6605.localhost:16669/sign/pocketid/callback";
+const REDIRECT_URI = "http://odoo-sign-qa.localhost:16669/sign/pocketid/callback";
 
 
 function readEnv(raw) {
@@ -193,7 +193,7 @@ async function clickPocketAuthorization(client, sessionId, assertedCount, descri
         () => evaluate(
             client,
             sessionId,
-            `document.body?.innerText?.includes("Pocket ID verified")`
+            `document.getElementById("usl_pocketid_callback")?.dataset.successful === "true"`
         ),
         `${description} verification result`,
         10000
@@ -557,7 +557,7 @@ async function fullStrongAcceptance({
         () => evaluate(
             client,
             popupSession,
-            `document.readyState === "complete" && location.origin.includes("pocket-id-sign-6605")`
+            `document.readyState === "complete" && location.origin.includes("pocket-id-sign-qa")`
         ),
         "Pocket ID Strong authorization popup",
         20000
@@ -658,7 +658,7 @@ async function main() {
             "--disable-gpu",
             "--disable-features=WebAuthenticationEnclaveAuthenticator",
             "--remote-allow-origins=*",
-            `--unsafely-treat-insecure-origin-as-secure=${env.POCKET_ID_APP_URL},http://odoo-sign-6605.localhost:16669`,
+            `--unsafely-treat-insecure-origin-as-secure=${env.POCKET_ID_APP_URL},http://odoo-sign-qa.localhost:16669`,
             "about:blank",
         ],
         {stdio: ["ignore", "ignore", "pipe"]}

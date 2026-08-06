@@ -14,6 +14,7 @@ SCANNED = (
     ROOT / "docs" / "operations" / "sign-runbook.md",
     ROOT / "compose.yaml",
     ROOT / ".env.example",
+    ROOT / "scripts" / "odoo" / "sign_qa_bootstrap.py",
 )
 FORBIDDEN = (
     "yousign",
@@ -28,6 +29,10 @@ FORBIDDEN = (
     "historical evidence",
     "odoo online",
     "/sign/webhook",
+    "usl.sign.passkey",
+    "sign_webauthn",
+    "registration_challenge",
+    "verify_authentication_response",
 )
 FORBIDDEN_PATHS = (
     ROOT / "migration" / "sign_restore",

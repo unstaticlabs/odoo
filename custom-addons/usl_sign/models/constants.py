@@ -11,6 +11,10 @@ TRUST_LEVELS = [
 # Every protected Sign mutation must carry this exact in-process sentinel.
 INTERNAL_OPERATION = object()
 
+# The public result page carries only a short-lived, non-sensitive summary in
+# the current browser session. It never puts request or signer data in a URL.
+SIGN_RESULT_SESSION_KEY = "usl_sign_last_result"
+
 REQUEST_STATES = [
     ("draft", "Draft"),
     ("ready", "Ready"),

@@ -16,7 +16,7 @@ from odoo import fields, http
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request
 
-from ..models.constants import INTERNAL_OPERATION
+from ..models.constants import INTERNAL_OPERATION, SIGN_RESULT_SESSION_KEY
 from ..services import DSSClient, DSSServiceError, StepCAClient, StepCAError
 from odoo.addons.usl_pocketid.exceptions import PocketIDAccessDenied
 
@@ -24,6 +24,7 @@ _logger = logging.getLogger(__name__)
 _TRANSACTION_TTL = 300
 _SESSION_TRANSACTIONS = "usl_sign_pocketid_transactions"
 _SESSION_ENROLMENTS = "usl_sign_pocketid_enrolments"
+_SESSION_COMPLETIONS = "usl_sign_strong_completions"
 
 
 def _base64url(raw):
@@ -55,7 +56,8 @@ def _fresh_passkey_claims_summary(claims, *, transaction_created, now=None):
         or int(auth_time) < int(transaction_created)
         or int(auth_time) > current_time + 60
     ):
-        raise AccessError("A fresh Pocket ID passkey interaction is required.")
+        msg = "A fresh Pocket ID passkey interaction is required."
+        raise AccessError(msg)
     return {
         key: claims.get(key)
         for key in (
@@ -107,8 +109,9 @@ class StrongSignController(http.Controller):
         )
         row = request.env.cr.fetchone()
         if not row or row[0] != expected_state:
+            msg = "The strong-signature ceremony was already used or is unavailable."
             raise ValidationError(
-                "The strong-signature ceremony was already used or is unavailable.",
+                msg,
             )
         ceremony = request.env["usl.sign.ceremony"].sudo().browse(ceremony_id)
         ceremony.invalidate_recordset()
@@ -117,19 +120,39 @@ class StrongSignController(http.Controller):
     def _enrollment(self, enrollment_id, token):
         enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id).exists()
         if not enrollment:
-            raise AccessError("The enrolment does not exist.")
+            msg = "The enrolment does not exist."
+            raise AccessError(msg)
         enrollment._check_invitation(token)
         return enrollment
 
     def _signer(self, signer_id, token):
         signer = request.env["sign.oca.request.signer"].sudo().browse(signer_id).exists()
         if not signer:
-            raise AccessError("The signer does not exist.")
+            msg = "The signer does not exist."
+            raise AccessError(msg)
         signer._check_token(token, session=True)
         return signer
 
     def _pocket_client(self):
         return request.env["auth.oauth.provider"].sudo()._usl_pocketid_sign_configuration()
+
+    def _callback_context(self, transaction):
+        purpose = (transaction or {}).get("purpose")
+        company = request.env["res.company"]
+        if purpose == "enrollment" and transaction.get("enrollment_id"):
+            enrollment = request.env["usl.sign.enrollment"].sudo().browse(
+                transaction["enrollment_id"],
+            ).exists()
+            company = enrollment.company_id
+        elif purpose == "strong_signature" and transaction.get("ceremony_id"):
+            ceremony = request.env["usl.sign.ceremony"].sudo().browse(
+                transaction["ceremony_id"],
+            ).exists()
+            company = ceremony.request_id.company_id
+        return {
+            "callback_purpose": purpose,
+            "company_name": company.name if company else False,
+        }
 
     def _create_oidc_transaction(self, *, purpose, nonce, values):
         configuration = self._pocket_client()
@@ -176,7 +199,8 @@ class StrongSignController(http.Controller):
             or int(transaction.get("expires_unix", 0)) < int(time.time())
             or not secrets.compare_digest(state, str(transaction.get("state", "")))
         ):
-            raise AccessError("This Pocket ID authorization is invalid or expired.")
+            msg = "This Pocket ID authorization is invalid or expired."
+            raise AccessError(msg)
         return transaction
 
     def _validated_pocket_callback(self, transaction, code):
@@ -242,10 +266,12 @@ class StrongSignController(http.Controller):
         enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id).exists()
         completed = set(request.session.get(_SESSION_ENROLMENTS, []))
         if not enrollment:
-            raise AccessError("This enrolment is unavailable.")
+            msg = "This enrolment is unavailable."
+            raise AccessError(msg)
         if enrollment.id not in completed:
             if enrollment.state != "pending_pocket":
-                raise AccessError("This enrolment is unavailable.")
+                msg = "This enrolment is unavailable."
+                raise AccessError(msg)
             enrollment._check_invitation(token)
         return {
             "state": enrollment.state,
@@ -262,15 +288,18 @@ class StrongSignController(http.Controller):
     def strong_begin(self, signer_id, token, csr_pem, consent):
         signer = self._signer(signer_id, token)
         if signer.request_id.requested_trust != "strong_personal":
-            raise ValidationError("This is not a strong personal signature request.")
+            msg = "This is not a strong personal signature request."
+            raise ValidationError(msg)
         if not consent:
-            raise ValidationError("Explicit electronic-signature consent is required.")
+            msg = "Explicit electronic-signature consent is required."
+            raise ValidationError(msg)
         try:
             csr = x509.load_pem_x509_csr(csr_pem.encode())
             common_names = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
         except (TypeError, ValueError) as error:
+            msg = "The browser produced an invalid certificate request."
             raise ValidationError(
-                "The browser produced an invalid certificate request.",
+                msg,
             ) from error
         public_key = csr.public_key()
         if (
@@ -280,12 +309,39 @@ class StrongSignController(http.Controller):
             or len(common_names) != 1
             or common_names[0].value != _personal_certificate_subject(signer)
         ):
+            msg = "The certificate request is not the expected signer-bound P-256 request."
             raise ValidationError(
-                "The certificate request is not the expected signer-bound P-256 request.",
+                msg,
             )
         enrollment = signer._active_enrollment()
         if not enrollment or not enrollment.pocket_subject:
-            raise ValidationError("Complete Pocket ID strong-signer enrolment first.")
+            msg = "Complete Pocket ID strong-signer enrolment first."
+            raise ValidationError(msg)
+        # Serialize attempts for this signer before creating any one-use key or
+        # certificate state. Expired abandoned attempts are closed here so a
+        # refresh can recover without an administrator; a genuinely live tab
+        # remains protected from being silently replaced by another tab.
+        request.env.cr.execute(
+            "SELECT id FROM sign_oca_request_signer WHERE id = %s FOR UPDATE",
+            [signer.id],
+        )
+        live_ceremonies = request.env["usl.sign.ceremony"].sudo().search(
+            [
+                ("signer_id", "=", signer.id),
+                ("state", "in", ["challenge", "authorizing", "authorized"]),
+            ],
+        )
+        expired = live_ceremonies.filtered(
+            lambda row: row.expires_at < fields.Datetime.now(),
+        )
+        expired.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+            {"state": "expired", "failure_code": "authorization_timeout"},
+        )
+        if live_ceremonies - expired:
+            msg = "A protected signing attempt is already open for this document."
+            raise ValidationError(
+                msg,
+            )
         document = base64.b64decode(signer.request_id.data)
         document_sha256 = hashlib.sha256(document).hexdigest()
         csr_sha256 = hashlib.sha256(csr_pem.encode()).hexdigest()
@@ -372,7 +428,8 @@ class StrongSignController(http.Controller):
             or enrollment.pocket_issuer != configuration.issuer
             or not secrets.compare_digest(enrollment.pocket_subject, claims["sub"])
         ):
-            raise AccessError("The signer identity or document binding no longer matches.")
+            msg = "The signer identity or document binding no longer matches."
+            raise AccessError(msg)
         try:
             issued = StepCAClient().issue(
                 ceremony.csr_pem,
@@ -425,8 +482,9 @@ class StrongSignController(http.Controller):
                 - issued_certificate.not_valid_before_utc
                 > timedelta(minutes=11)
             ):
+                msg = "The issued personal certificate does not satisfy the ceremony binding."
                 raise StepCAError(
-                    "The issued personal certificate does not satisfy the ceremony binding.",
+                    msg,
                 )
             data_to_sign = DSSClient().data_to_sign(
                 base64.b64decode(signer.request_id.data),
@@ -436,8 +494,9 @@ class StrongSignController(http.Controller):
                 timestamp=signer.request_id.company_id.sign_rfc3161_enabled,
             )
         except (x509.ExtensionNotFound, TypeError, ValueError) as error:
+            msg = "The local certificate authority returned an invalid certificate."
             raise StepCAError(
-                "The local certificate authority returned an invalid certificate.",
+                msg,
             ) from error
         raw_to_sign = base64.b64decode(data_to_sign["dataToSign"], validate=True)
         auth_time = datetime.fromtimestamp(int(claims["auth_time"]), tz=UTC).replace(tzinfo=None)
@@ -513,10 +572,12 @@ class StrongSignController(http.Controller):
         transaction = None
         try:
             if not state:
-                raise AccessError("Pocket ID authorization was cancelled or denied.")
+                msg = "Pocket ID authorization was cancelled or denied."
+                raise AccessError(msg)  # noqa: TRY301 - normalized by the safe callback page
             transaction = self._consume_oidc_transaction(state)
             if error or not code:
-                raise AccessError("Pocket ID authorization was cancelled or denied.")
+                msg = "Pocket ID authorization was cancelled or denied."
+                raise AccessError(msg)  # noqa: TRY301 - normalized by the safe callback page
             configuration, claims, summary, keys, id_token = self._validated_pocket_callback(
                 transaction,
                 code,
@@ -538,7 +599,8 @@ class StrongSignController(http.Controller):
                     id_token,
                 )
             else:
-                raise AccessError("The Pocket ID authorization purpose is invalid.")
+                msg = "The Pocket ID authorization purpose is invalid."
+                raise AccessError(msg)  # noqa: TRY301 - normalized by the safe callback page
         except (AccessError, ValidationError, PocketIDAccessDenied, StepCAError, DSSServiceError) as exc:
             _logger.warning("Pocket ID Sign authorization failed: %s", type(exc).__name__)
             if transaction and transaction.get("ceremony_id"):
@@ -551,11 +613,11 @@ class StrongSignController(http.Controller):
                     )
             return self._secure_page(
                 "usl_sign.pocketid_callback_result",
-                {"successful": False},
+                {"successful": False, **self._callback_context(transaction)},
             )
         return self._secure_page(
             "usl_sign.pocketid_callback_result",
-            {"successful": True},
+            {"successful": True, **self._callback_context(transaction)},
         )
 
     def _enrollment_for_callback(self, enrollment_id):
@@ -565,7 +627,8 @@ class StrongSignController(http.Controller):
         )
         row = request.env.cr.fetchone()
         if not row or row[0] != "pending_pocket":
-            raise AccessError("This enrolment is no longer awaiting Pocket ID.")
+            msg = "This enrolment is no longer awaiting Pocket ID."
+            raise AccessError(msg)
         enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id)
         enrollment.invalidate_recordset()
         return enrollment
@@ -577,10 +640,17 @@ class StrongSignController(http.Controller):
         csrf=False,
     )
     def strong_status(self, signer_id, token, ceremony_id):
+        completion = request.session.get(_SESSION_COMPLETIONS, {}).get(str(ceremony_id), {})
+        if (
+            completion.get("signer_id") == signer_id
+            and int(completion.get("expires_unix", 0)) >= int(time.time())
+        ):
+            return {"state": "completed", "redirect": completion["redirect"]}
         signer = self._signer(signer_id, token)
         ceremony = request.env["usl.sign.ceremony"].sudo().browse(ceremony_id).exists()
         if not ceremony or ceremony.signer_id != signer:
-            raise AccessError("This strong-signature ceremony is unavailable.")
+            msg = "This strong-signature ceremony is unavailable."
+            raise AccessError(msg)
         if ceremony.state in {"challenge", "authorizing"} and ceremony.expires_at < fields.Datetime.now():
             ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
                 {"state": "expired", "failure_code": "authorization_timeout"},
@@ -589,6 +659,40 @@ class StrongSignController(http.Controller):
         if ceremony.state == "authorized":
             result["data_to_sign"] = ceremony.data_to_sign
         return result
+
+    @http.route(
+        "/sign/strong/<int:signer_id>/<string:token>/cancel",
+        type="jsonrpc",
+        auth="public",
+        csrf=False,
+    )
+    def strong_cancel(self, signer_id, token, ceremony_id):
+        signer = self._signer(signer_id, token)
+        request.env.cr.execute(
+            "SELECT state FROM usl_sign_ceremony WHERE id = %s FOR UPDATE",
+            [ceremony_id],
+        )
+        row = request.env.cr.fetchone()
+        ceremony = request.env["usl.sign.ceremony"].sudo().browse(ceremony_id).exists()
+        if not row or not ceremony or ceremony.signer_id != signer:
+            msg = "This signing attempt is unavailable."
+            raise AccessError(msg)
+        if row[0] in {"challenge", "authorizing", "authorized"}:
+            ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+                {
+                    "state": "revoked",
+                    "failure_code": "signer_restarted",
+                    "data_to_sign": False,
+                    "dss_signing_context": False,
+                },
+            )
+            signer.request_id._append_event(
+                "strong_signature_attempt_cancelled",
+                signer=signer,
+                authentication_method="pocket_id_passkey",
+                payload={"ceremony_id": ceremony.id},
+            )
+        return {"state": ceremony.state}
 
     @http.route(
         "/sign/strong/<int:signer_id>/<string:token>/finalize",
@@ -610,7 +714,8 @@ class StrongSignController(http.Controller):
             or enrollment != ceremony.enrollment_id
             or enrollment.pocket_subject != ceremony.oidc_subject
         ):
-            raise ValidationError("The strong-signature authorization is no longer valid.")
+            msg = "The strong-signature authorization is no longer valid."
+            raise ValidationError(msg)
         signature_bytes = base64.b64decode(signature, validate=True)
         try:
             embedded = DSSClient().embed_signature(
@@ -625,7 +730,8 @@ class StrongSignController(http.Controller):
             if validation.get("status") != "valid" or validation.get(
                 "achievedTrust",
             ) != "strong_personal":
-                raise DSSServiceError("DSS rejected the personal PAdES signature.")
+                msg = "DSS rejected the personal PAdES signature."
+                raise DSSServiceError(msg)  # noqa: TRY301 - handled by fail-closed cleanup below
             signer.request_id._store_dss_reports(validation)
         except DSSServiceError as error:
             ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
@@ -720,4 +826,21 @@ class StrongSignController(http.Controller):
             payload={"ceremony_id": ceremony.id, "document_sha256": digest},
         )
         signer._activate_next_signer_or_finish()
-        return {"ok": True, "redirect": "/sign/result/success"}
+        redirect = "/sign/result/success"
+        completions = {
+            key: value
+            for key, value in request.session.get(_SESSION_COMPLETIONS, {}).items()
+            if int(value.get("expires_unix", 0)) >= int(time.time())
+        }
+        completions[str(ceremony.id)] = {
+            "signer_id": signer.id,
+            "expires_unix": int(time.time()) + 300,
+            "redirect": redirect,
+        }
+        request.session[_SESSION_COMPLETIONS] = completions
+        request.session[SIGN_RESULT_SESSION_KEY] = {
+            "status": "success",
+            "company_id": signer.request_id.company_id.id,
+            "request_name": signer.request_id.name,
+        }
+        return {"ok": True, "redirect": redirect}

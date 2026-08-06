@@ -2836,10 +2836,14 @@ class SignRequestSigner(models.Model):
         )
         body = (
             f"<p>Hello {escape(self.partner_id.name)},</p>"
-            f"<p>Your one-time USL Sign verification code is <strong>{code}</strong>.</p>"
+            f"<p>Your one-time {escape(self.request_id.company_id.name)} document-signing "
+            f"verification code is <strong>{code}</strong>.</p>"
             "<p>It expires in 10 minutes. Do not forward it.</p>"
         )
-        self._send_ephemeral_email(subject="Your USL Sign verification code", body=body)
+        self._send_ephemeral_email(
+            subject=f"Your {self.request_id.company_id.name} signing code",
+            body=body,
+        )
         self.request_id._append_event(
             "email_otp_issued",
             signer=self,
@@ -3287,6 +3291,8 @@ class SignRequestSigner(models.Model):
         return {
             "role_id": self.role_id.id if not self.signed_on else False,
             "name": self.request_id.name,
+            "company_name": self.request_id.company_id.name,
+            "signer_role_name": self.role_id.name,
             "items": layout,
             "to_sign": not self.signed_on and not self.access_revoked,
             "ask_location": self.request_id.ask_location,

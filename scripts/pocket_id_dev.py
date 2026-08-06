@@ -123,7 +123,12 @@ def _write_new_env(path: Path) -> None:
     if path.exists():
         values = _read_env(
             path,
-            required_keys=BASE_REQUIRED_ENV_KEYS - {"POCKET_ID_SIGN_GROUP_NAME"},
+            required_keys=BASE_REQUIRED_ENV_KEYS
+            - {
+                "POCKET_ID_SIGN_CLIENT_ID",
+                "POCKET_ID_SIGN_CLIENT_SECRET",
+                "POCKET_ID_SIGN_GROUP_NAME",
+            },
         )
         additions = {}
         paperless_public_url = values.get("PAPERLESS_PUBLIC_BASE_URL") or os.getenv(

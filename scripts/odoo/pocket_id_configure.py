@@ -28,6 +28,11 @@ def configure(env):
     apply_changes = _is_enabled("USL_POCKET_ID_APPLY")
     try:
         env["auth.oauth.provider"]._usl_pocketid_apply_environment()
+        public_base_url = os.getenv("USL_POCKET_ID_ODOO_BASE_URL", "").strip().rstrip("/")
+        if public_base_url:
+            parameters = env["ir.config_parameter"].sudo()
+            parameters.set_str("web.base.url", public_base_url)
+            parameters.set_str("web.base.url.freeze", "True")
         users = env["res.users"]
         if not apply_changes:
             # The dry run is rolled back, but Paperless permission updates are

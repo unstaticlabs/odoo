@@ -3,9 +3,16 @@ import hashlib
 import itertools
 import json
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
+from functools import lru_cache
 from io import BytesIO
+from types import SimpleNamespace
 from unittest.mock import patch
+
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.x509.oid import NameOID
 
 from odoo import fields
 from odoo.exceptions import AccessError, ValidationError
@@ -13,6 +20,7 @@ from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfWriter
 
+from ..controllers.strong import StrongSignController
 from ..models.constants import INTERNAL_OPERATION, REQUEST_STATES, TRUST_LEVELS
 from ..services import (
     DSSClient,
@@ -90,13 +98,43 @@ def _pdf(pages=1):
     return stream.getvalue()
 
 
+@lru_cache(maxsize=1)
+def _test_certificate_der():
+    key = ec.generate_private_key(ec.SECP256R1())
+    subject = issuer = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "USL Sign test certificate")],
+    )
+    now = datetime.now(UTC)
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - timedelta(minutes=1))
+        .not_valid_after(now + timedelta(minutes=10))
+        .sign(key, hashes.SHA256())
+    )
+    return base64.b64encode(
+        certificate.public_bytes(serialization.Encoding.DER),
+    ).decode()
+
+
 def _pyhanko_valid(count=1):
     return {
         "engine": "pyHanko",
         "engine_version": "0.36.2",
         "status": "valid",
         "signature_count": count,
-        "signatures": [{"intact": True, "cryptographically_valid": True}],
+        "signatures": [
+            {
+                "intact": True,
+                "cryptographically_valid": True,
+                "field_name": f"USL-Test-Signature-{index + 1}",
+                "certificate_chain": [_test_certificate_der()],
+            }
+            for index in range(count)
+        ],
     }
 
 
@@ -528,6 +566,7 @@ class TestCleanUslSign(TransactionCase):
         request.override_reason = "Signer is not yet enrolled; routine fallback approved."
         with self.assertRaises(AccessError):
             request.with_user(self.sign_user).action_mark_ready()
+        request.coordinator_ids = self.override_user
         request.with_user(self.override_user).action_mark_ready()
         self.assertEqual(request.state, "ready")
 
@@ -536,7 +575,7 @@ class TestCleanUslSign(TransactionCase):
             document_category="internal_decision", requires_signed_pdf=False,
         )
         self.assertTrue(request.approval_recommended)
-        with self.assertRaisesRegex(ValidationError, "Approve in Odoo"):
+        with self.assertRaisesRegex(ValidationError, "business decision instead"):
             request.action_mark_ready()
 
     def test_freeze_is_deterministic_and_sent_content_is_immutable(self):
@@ -658,6 +697,10 @@ class TestCleanUslSign(TransactionCase):
         with self.assertRaises(AccessError):
             signer._exchange_access_token(token)
         signer._check_token(session, session=True)
+        public_info = signer.get_info(access_token=session)
+        self.assertEqual(public_info["company_name"], self.company.name)
+        self.assertEqual(public_info["signer_role_name"], self.role_customer.name)
+        self.assertNotIn("access_token", public_info)
         signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
             {"access_revoked": True},
         )
@@ -754,7 +797,14 @@ class TestCleanUslSign(TransactionCase):
         )
         own_item.update({"page": 999, "position_x": 99, "width": 1})
         with patch.object(type(first), "_activate_next_signer_or_finish", return_value=True):
-            first.action_sign(items, access_token="first-session", consent=True)
+            first.action_sign(
+                items,
+                access_token="first-session",
+                document_sha256=hashlib.sha256(
+                    base64.b64decode(request.data),
+                ).hexdigest(),
+                consent=True,
+            )
         persisted = next(
             item
             for item in request.signatory_data.values()
@@ -1191,6 +1241,77 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(replacement.state, "pending_pocket")
         with self.assertRaises(AccessError):
             enrollment.unlink()
+
+    def test_signer_can_cancel_and_retry_a_live_strong_ceremony(self):
+        enrollment = self.env["usl.sign.enrollment"].create(
+            {
+                "partner_id": self.partner_one.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+                "relationship_reference": "Controlled cancellation fixture",
+                "policy_version": "2026.1",
+            },
+        )
+        enrollment._bind_pocket_identity(
+            issuer="https://id.example.test",
+            claims={"sub": "cancel-fixture-subject", "name": self.partner_one.name},
+        )
+        enrollment.with_user(self.reviewer).action_confirm_identity()
+        sign_request = self._request(
+            policy_id=self.env.ref("usl_sign.policy_material_recurring_strong").id,
+            document_category="commercial",
+            signer_type="recurring",
+            risk_level="material",
+            requested_trust="strong_personal",
+        )
+        sign_request.action_mark_ready()
+        sign_request.action_send()
+        signer = sign_request.signer_ids
+        invitation_token = signer._issue_access_token()
+        session_token = signer._exchange_access_token(invitation_token)
+        ceremony = self.env["usl.sign.ceremony"].create(
+            {
+                "request_id": sign_request.id,
+                "signer_id": signer.id,
+                "enrollment_id": enrollment.id,
+                "challenge": base64.b64encode(b"binding"),
+                "challenge_sha256": hashlib.sha256(b"binding").hexdigest(),
+                "document_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "consent_sha256": hashlib.sha256(b"consent").hexdigest(),
+                "csr_sha256": hashlib.sha256(b"csr").hexdigest(),
+                "public_key_sha256": hashlib.sha256(b"public").hexdigest(),
+                "csr_pem": "fixture-csr",
+                "binding_payload": {"fixture": True},
+                "expires_at": fields.Datetime.now() + timedelta(minutes=5),
+            },
+        )
+        ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+            {
+                "state": "authorizing",
+                "data_to_sign": "one-use-data",
+                "dss_signing_context": "one-use-context",
+            },
+        )
+        fake_request = SimpleNamespace(env=self.env, session={})
+        with patch(
+            "odoo.addons.usl_sign.controllers.strong.request",
+            fake_request,
+        ):
+            result = StrongSignController().strong_cancel(
+                signer.id,
+                session_token,
+                ceremony.id,
+            )
+        ceremony.invalidate_recordset()
+        self.assertEqual(result["state"], "revoked")
+        self.assertEqual(ceremony.state, "revoked")
+        self.assertFalse(ceremony.data_to_sign)
+        self.assertFalse(ceremony.dss_signing_context)
+        self.assertEqual(ceremony.failure_code, "signer_restarted")
+        self.assertEqual(
+            sign_request.event_ids[-1].event_type,
+            "strong_signature_attempt_cancelled",
+        )
 
     def test_approval_decisions_and_events_are_attributable_and_immutable(self):
         approval = self.env["usl.sign.approval"].create(

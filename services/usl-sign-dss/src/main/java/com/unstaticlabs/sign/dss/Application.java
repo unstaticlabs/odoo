@@ -120,6 +120,8 @@ public final class Application {
 
     private final String platformStore = requiredEnv("USL_DSS_PLATFORM_KEYSTORE");
     private final char[] platformPassword = requiredEnv("USL_DSS_PLATFORM_KEYSTORE_PASSWORD").toCharArray();
+    private final String manifestStore = requiredEnv("USL_DSS_MANIFEST_KEYSTORE");
+    private final char[] manifestPassword = requiredEnv("USL_DSS_MANIFEST_KEYSTORE_PASSWORD").toCharArray();
     private final CertificateSource localTrust;
     private volatile TrustedListsCertificateSource qualifiedTrust;
     private volatile Instant qualifiedTrustRefreshedAt;
@@ -131,8 +133,34 @@ public final class Application {
     });
 
     private Application() throws Exception {
+        enforceSigningKeySeparation();
         localTrust = loadLocalTrust();
         refreshQualifiedTrust();
+    }
+
+    private void enforceSigningKeySeparation() throws Exception {
+        if (Path.of(platformStore).toAbsolutePath().normalize()
+                .equals(Path.of(manifestStore).toAbsolutePath().normalize())) {
+            throw new IllegalStateException(
+                    "Platform sealing and evidence manifests require separate keystores.");
+        }
+        try (Pkcs12SignatureToken platformToken = new Pkcs12SignatureToken(
+                    platformStore, new PasswordProtection(platformPassword));
+             Pkcs12SignatureToken manifestToken = new Pkcs12SignatureToken(
+                    manifestStore, new PasswordProtection(manifestPassword))) {
+            DSSPrivateKeyEntry platformKey = platformToken.getKeys().stream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "The platform keystore contains no private key."));
+            DSSPrivateKeyEntry manifestKey = manifestToken.getKeys().stream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "The manifest keystore contains no private key."));
+            if (Arrays.equals(
+                    platformKey.getCertificate().getEncoded(),
+                    manifestKey.getCertificate().getEncoded())) {
+                throw new IllegalStateException(
+                        "Platform sealing and evidence manifests require different certificates.");
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -498,9 +526,9 @@ public final class Application {
         handle(exchange, payload -> {
             byte[] manifest = document(payload, "manifest");
             try (Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                    platformStore, new PasswordProtection(platformPassword))) {
+                    manifestStore, new PasswordProtection(manifestPassword))) {
                 DSSPrivateKeyEntry privateKey = token.getKeys().stream().findFirst()
-                        .orElseThrow(() -> new IllegalStateException("The platform keystore contains no private key."));
+                        .orElseThrow(() -> new IllegalStateException("The manifest keystore contains no private key."));
                 SignatureValue signature = token.sign(new ToBeSigned(manifest), DigestAlgorithm.SHA256, privateKey);
                 List<String> chain = Arrays.stream(privateKey.getCertificateChain())
                         .map(certificate -> b64(certificate.getEncoded())).toList();

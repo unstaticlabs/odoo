@@ -82,13 +82,13 @@ requiring a chatter reconstruction.
 ## Standard journey
 
 Users can prepare reusable templates or one-off requests, place supported
-fields by role, preview roles, use multiple documents and signers, require
+fields by role, use multiple documents and signers, require
 signing order, set reminders and expiration, and handle refusal or
 cancellation. The OCA storage and PDF foundation is extended with a
 three-pane Odoo-native editor. A user chooses a typed field and signer, then
 clicks the PDF; drag/drop and right-click call the same explicit placement
 command. Per-template signer colors remain stable across reloads and are
-shared by the palette, PDF fields, inspector and signer preview. Required
+shared by the palette, PDF fields, inspector and signer badges. Required
 state uses a separate marker and never replaces the signer color. The editor
 also provides page navigation, zoom, move, resize, delete, keyboard access,
 undo/redo, autosave status, conflict detection and explicit loading,
@@ -139,6 +139,19 @@ and no analytics. During each signing ceremony:
    only the certificate and signature value. DSS embeds the signature.
 7. Odoo invalidates the ceremony, terminates the worker and independently
    validates the persisted PDF.
+
+The public journey identifies the company that requested the signature rather
+than exposing an internal product name. It presents three focused stages:
+review the document, confirm identity with Pocket ID, and complete the
+document-bound signature. Pocket ID opens in a short-lived authentication
+window because the non-exportable document key must remain alive in the
+isolated worker on the signing page. The window closes after confirmation and
+the signing page remains the authoritative source of progress and outcome.
+The signer can cancel a live attempt and start again without changing the
+frozen document. If the final browser response is lost after the server has
+accepted the signature, a short-lived session receipt recovers the confirmed
+outcome instead of asking the signer to sign twice. Raw hashes and technical
+evidence remain available only in a collapsed details area.
 
 The signed ID token, bounded claims summary, sanitized discovery and JWKS
 snapshots, and explicit validation result are retained as restricted evidence;

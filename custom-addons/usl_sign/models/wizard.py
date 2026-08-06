@@ -168,7 +168,7 @@ class SignTemplateGenerate(models.TransientModel):
                     + ", ".join(missing.mapped("name"))
                     + ". Create the request for review, then enrol them or choose another justified journey."
                 )
-            return "Every selected signer has an active USL Sign enrolment."
+            return "Every selected signer has a reviewed signing identity."
         if self.requested_trust == "qualified_external":
             return (
                 "Odoo will freeze the exact document and wait for a provider-neutral "

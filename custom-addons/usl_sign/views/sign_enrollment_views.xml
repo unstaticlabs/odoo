@@ -49,7 +49,7 @@
                         </group>
                     </group>
                     <div class="alert alert-info" role="status">
-                        Pocket ID owns passkey registration, recovery and credential revocation. USL Sign stores only the Pocket identity link and the reviewer decision. Revoking this enrolment independently blocks Strong signing.
+                        Pocket ID owns passkey registration, recovery and credential revocation. Odoo keeps only the Pocket ID identity link and the reviewer decision. Revoking this enrolment immediately blocks Strong signing without affecting completed documents.
                     </div>
                 </sheet>
             </form>

@@ -136,10 +136,12 @@ class SignEnrollment(models.Model):
     def _bind_pocket_identity(self, *, issuer, claims):
         self.ensure_one()
         if self.state != "pending_pocket":
-            raise ValidationError("This Pocket ID enrolment is no longer available.")
+            msg = "This Pocket ID enrolment is no longer available."
+            raise ValidationError(msg)
         subject = claims.get("sub")
         if not isinstance(subject, str) or not subject:
-            raise ValidationError("Pocket ID did not return a stable identity subject.")
+            msg = "Pocket ID did not return a stable identity subject."
+            raise ValidationError(msg)
         fingerprint = hashlib.sha256(f"{issuer}\0{subject}".encode()).hexdigest()[:16]
         display_name = claims.get("name") or claims.get("preferred_username") or subject
         self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
@@ -286,6 +288,7 @@ class SignCeremony(models.Model):
             ("completed", "Completed"),
             ("expired", "Expired"),
             ("failed", "Failed"),
+            ("revoked", "Cancelled"),
         ],
         default="challenge",
         required=True,

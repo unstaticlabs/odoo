@@ -6,6 +6,7 @@ from odoo.exceptions import AccessError
 from odoo.tests import TransactionCase, tagged
 
 from ..controllers.strong import (
+    _SESSION_COMPLETIONS,
     _SESSION_TRANSACTIONS,
     StrongSignController,
     _fresh_passkey_claims_summary,
@@ -14,6 +15,29 @@ from ..controllers.strong import (
 
 @tagged("post_install", "-at_install")
 class TestPocketIDStrongAuthorization(TransactionCase):
+    def test_completed_ceremony_recovers_a_lost_final_response(self):
+        controller = StrongSignController()
+        fake_request = SimpleNamespace(
+            session={
+                _SESSION_COMPLETIONS: {
+                    "42": {
+                        "signer_id": 7,
+                        "expires_unix": 150,
+                        "redirect": "/sign/result/success",
+                    },
+                },
+            },
+        )
+        with (
+            patch("odoo.addons.usl_sign.controllers.strong.request", fake_request),
+            patch("odoo.addons.usl_sign.controllers.strong.time.time", return_value=100),
+        ):
+            result = controller.strong_status(7, "already-revoked-token", 42)
+        self.assertEqual(
+            result,
+            {"state": "completed", "redirect": "/sign/result/success"},
+        )
+
     def test_fresh_passkey_claims_require_phr_and_current_auth_time(self):
         valid = {
             "iss": "https://id.example.test",

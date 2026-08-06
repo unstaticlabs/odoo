@@ -5,7 +5,8 @@ from odoo.exceptions import AccessError
 from odoo.http import request
 from odoo.http.stream import Stream
 
-from ..models.constants import TRUST_LEVELS
+from ..models.constants import SIGN_RESULT_SESSION_KEY, TRUST_LEVELS
+from .strong import _personal_certificate_subject
 from odoo.addons.sign_oca.controllers.main import PortalSign
 
 STRONG_CSP = (
@@ -21,7 +22,7 @@ def _secure_strong_response(response):
             "Cache-Control": "no-store, max-age=0",
             "Content-Security-Policy": STRONG_CSP,
             "Cross-Origin-Opener-Policy": "same-origin",
-            "Permissions-Policy": "publickey-credentials-get=(self), publickey-credentials-create=(self)",
+            "Permissions-Policy": "publickey-credentials-get=(), publickey-credentials-create=()",
             "Referrer-Policy": "no-referrer",
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
@@ -152,7 +153,11 @@ class SignPortalController(PortalSign):
             return _secure_strong_response(
                 request.render(
                     "usl_sign.strong_sign_page",
-                    {"signer": signer, "access_token": access_token},
+                    {
+                        "signer": signer,
+                        "access_token": access_token,
+                        "certificate_subject": _personal_certificate_subject(signer),
+                    },
                 ),
             )
         return request.render(
@@ -229,7 +234,7 @@ class SignPortalController(PortalSign):
         consent=False,
     ):
         signer = self._secure_signer(signer_id, access_token)
-        return signer.action_sign(
+        action = signer.action_sign(
             items,
             access_token=access_token,
             document_sha256=document_sha256,
@@ -237,6 +242,12 @@ class SignPortalController(PortalSign):
             longitude=longitude,
             consent=consent,
         )
+        request.session[SIGN_RESULT_SESSION_KEY] = {
+            "status": "success",
+            "company_id": signer.request_id.company_id.id,
+            "request_name": signer.request_id.name,
+        }
+        return action
 
     @http.route(
         "/sign/decline/<int:signer_id>/<string:access_token>",
@@ -246,7 +257,13 @@ class SignPortalController(PortalSign):
     )
     def decline(self, signer_id, access_token, reason):
         signer = self._secure_signer(signer_id, access_token)
-        return signer.action_decline(reason, access_token=access_token)
+        result = signer.action_decline(reason, access_token=access_token)
+        request.session[SIGN_RESULT_SESSION_KEY] = {
+            "status": "declined",
+            "company_id": signer.request_id.company_id.id,
+            "request_name": signer.request_id.name,
+        }
+        return result
 
     @http.route(
         "/sign/result/<string:status>",
@@ -256,9 +273,20 @@ class SignPortalController(PortalSign):
         sitemap=False,
     )
     def sign_result(self, status):
+        summary = request.session.get(SIGN_RESULT_SESSION_KEY, {})
+        if summary.get("status") != status:
+            summary = {}
+        company = request.env["res.company"].sudo().browse(
+            summary.get("company_id"),
+        ).exists()
         return request.render(
             "usl_sign.portal_sign_result",
-            {"successful": status == "success", "declined": status == "declined"},
+            {
+                "successful": status == "success",
+                "declined": status == "declined",
+                "result_company": company,
+                "result_request_name": summary.get("request_name"),
+            },
         )
 
     @http.route(

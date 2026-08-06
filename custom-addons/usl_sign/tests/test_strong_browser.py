@@ -1,17 +1,9 @@
 import base64
-import hashlib
 import json
-import secrets
 from io import BytesIO
 from unittest.mock import patch
 from urllib.parse import urlsplit
 
-import cbor2
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-from webauthn.helpers import bytes_to_base64url
-
-from odoo import fields
 from odoo.tests import HttpCase, tagged
 from odoo.tests import common as test_common
 from odoo.tests.common import (
@@ -21,12 +13,10 @@ from odoo.tests.common import (
 )
 from odoo.tools.pdf import PdfWriter
 
-from ..models.constants import INTERNAL_OPERATION
-
 
 @tagged("post_install", "-at_install")
-class TestStrongBrowserCeremony(HttpCase):
-    """Exercise the production WebAuthn UI with a virtual platform passkey."""
+class TestSignBrowserJourneys(HttpCase):
+    """Exercise requester and Standard signer journeys without biometrics."""
 
     @classmethod
     def setUpClass(cls):
@@ -56,32 +46,6 @@ class TestStrongBrowserCeremony(HttpCase):
             groups="usl_sign.group_sign_admin",
             company_id=cls.company.id,
         )
-
-    def _enable_virtual_platform_authenticator(self, browser, credential=None):
-        browser._websocket_request("WebAuthn.enable")
-        result = browser._websocket_request(
-            "WebAuthn.addVirtualAuthenticator",
-            params={
-                "options": {
-                    "protocol": "ctap2",
-                    "transport": "internal",
-                    "hasResidentKey": True,
-                    "hasUserVerification": True,
-                    "isUserVerified": True,
-                    "automaticPresenceSimulation": True,
-                },
-            },
-        )
-        self.assertTrue(result["authenticatorId"])
-        if credential:
-            browser._websocket_request(
-                "WebAuthn.addCredential",
-                params={
-                    "authenticatorId": result["authenticatorId"],
-                    "credential": credential,
-                },
-            )
-        return result["authenticatorId"]
 
     @staticmethod
     def _pdf():
@@ -435,92 +399,113 @@ class TestStrongBrowserCeremony(HttpCase):
             timeout=60,
         )
 
-    def test_passkey_enrollment_through_public_browser_page(self):
-        origin = self._localhost_origin()
-        self.company.write(
-            {
-                "sign_webauthn_rp_id": "localhost",
-                "sign_webauthn_origins": origin,
-            },
-        )
+    def test_pocket_id_enrollment_page_uses_company_facing_copy(self):
         enrollment = self.env["usl.sign.enrollment"].create(
             {
                 "partner_id": self.partner.id,
                 "company_id": self.company.id,
                 "relationship_basis": "recurring_partner",
-                "relationship_reference": "Browser acceptance fixture",
+                "relationship_reference": "Public journey copy fixture",
                 "policy_version": "browser-acceptance-v1",
-                "review_note": "Identity reviewed for automated browser acceptance.",
+                "review_note": "Identity reviewed after Pocket ID connection.",
             },
         )
-        action = enrollment.with_user(self.reviewer).action_confirm_identity()
-        enrollment_path = urlsplit(action["url"]).path
+        action = enrollment.with_user(self.reviewer).action_create_invitation()
+        response = self.url_open(urlsplit(action["url"]).path)
+        self.assertEqual(response.status_code, 200)
+        page = response.text
+        self.assertIn("Connect your Pocket ID", page)
+        self.assertIn(self.company.name, page)
+        self.assertIn("never your passkey credentials", page)
+        self.assertIn("Protected session", page)
+        self.assertNotIn("Pocket ID verified", page)
+        self.assertEqual(response.headers["Cache-Control"], "no-store, max-age=0")
+        self.assertIn(
+            "publickey-credentials-get=()",
+            response.headers["Permissions-Policy"],
+        )
 
-        original_navigate = ChromeBrowser.navigate_to
-        original_handle_request = ChromeBrowser._handle_request_paused
-
-        def navigate_with_platform_passkey(browser, url, wait_stop=False):
-            self._enable_virtual_platform_authenticator(browser)
-            browser.set_cookie("session_id", self.session.sid, "/", "localhost")
-            browser.set_cookie(
-                TEST_CURSOR_COOKIE_NAME,
-                self.http_request_key,
-                "/",
-                "localhost",
-            )
-            localhost_url = url.replace(self.base_url().rstrip("/"), origin, 1)
-            return original_navigate(browser, localhost_url, wait_stop=wait_stop)
-
-        with (
-            patch.object(
-                ChromeBrowser,
-                "navigate_to",
-                new=navigate_with_platform_passkey,
-            ),
-            patch.object(
-                ChromeBrowser,
-                "_handle_request_paused",
-                new=self._allow_localhost_requests(origin, original_handle_request),
-            ),
+    def test_strong_signing_page_is_focused_company_facing_and_isolated(self):
+        self.company.email = "sign-browser@example.test"
+        enrollment = self.env["usl.sign.enrollment"].create(
+            {
+                "partner_id": self.partner.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+                "relationship_reference": "Strong public-page fixture",
+                "policy_version": "browser-acceptance-v1",
+                "review_note": "Known recurring signer reviewed for acceptance.",
+            },
+        )
+        enrollment._bind_pocket_identity(
+            issuer="http://pocket-id.localhost:1411",
+            claims={"sub": "strong-page-fixture", "name": self.partner.name},
+        )
+        enrollment.with_user(self.reviewer).action_confirm_identity()
+        role = self.env.ref("sign_oca.sign_role_customer")
+        signature = self.env.ref("sign_oca.sign_field_signature")
+        sign_request = self.env["sign.oca.request"].create(
+            {
+                "name": "Material agreement",
+                "data": base64.b64encode(self._pdf()),
+                "filename": "material-agreement.pdf",
+                "company_id": self.company.id,
+                "user_id": self.env.user.id,
+                "policy_id": self.env.ref(
+                    "usl_sign.policy_material_recurring_strong",
+                ).id,
+                "document_category": "commercial",
+                "signer_type": "recurring",
+                "risk_level": "material",
+                "requested_trust": "strong_personal",
+                "signatory_data": {
+                    "1": {
+                        "id": 1,
+                        "field_id": signature.id,
+                        "field_type": signature.field_type,
+                        "required": True,
+                        "name": signature.name,
+                        "role_id": role.id,
+                        "page": 1,
+                        "position_x": 12,
+                        "position_y": 72,
+                        "width": 28,
+                        "height": 9,
+                        "value": False,
+                        "default_value": signature.default_value,
+                        "placeholder": "",
+                    },
+                },
+                "signer_ids": [
+                    (0, 0, {"partner_id": self.partner.id, "role_id": role.id}),
+                ],
+            },
+        )
+        sign_request.action_mark_ready()
+        with patch.object(
+            type(sign_request.signer_ids),
+            "_send_signer_invitation",
+            return_value=True,
         ):
-            self.browser_js(
-                enrollment_path,
-                """
-                (async () => {
-                    document.getElementById("usl_passkey_name").value = "Platform passkey";
-                    document.getElementById("usl_enroll_button").click();
-                    const status = document.getElementById("usl_enroll_status");
-                    for (let attempt = 0; attempt < 300; attempt++) {
-                        await new Promise((resolve) => setTimeout(resolve, 100));
-                        if (status.classList.contains("alert-success")) {
-                            console.log("test successful");
-                            return;
-                        }
-                        if (status.classList.contains("alert-danger")) {
-                            throw new Error(status.textContent);
-                        }
-                    }
-                    throw new Error("Passkey registration did not finish in time.");
-                })();
-                """,
-                ready=(
-                    "document.getElementById('usl_strong_enrollment')?.dataset.ready === 'true' && "
-                    "!document.getElementById('usl_enroll_button').disabled"
-                ),
-                login=None,
-                timeout=60,
-            )
-
-        enrollment.invalidate_recordset()
-        self.assertEqual(enrollment.state, "active")
-        self.assertFalse(enrollment.registration_challenge)
-        self.assertEqual(enrollment.active_passkey_count, 1)
-        passkey = enrollment.passkey_ids
-        self.assertEqual(passkey.name, "Platform passkey")
-        self.assertEqual(passkey.state, "active")
-        self.assertIn("internal", passkey.transports)
-        self.assertTrue(passkey.credential_id)
-        self.assertTrue(passkey.public_key)
+            sign_request.action_send()
+        signer = sign_request.signer_ids
+        session_token = signer._exchange_access_token(signer._issue_access_token())
+        response = self.url_open(
+            f"/sign/session/{signer.id}/{session_token}?review=1",
+        )
+        self.assertEqual(response.status_code, 200)
+        page = response.text
+        self.assertIn(self.company.name, page)
+        self.assertIn("Review and confirm your signature", page)
+        self.assertIn("Confirm identity and sign", page)
+        self.assertIn("The document never leaves this page", page)
+        self.assertNotIn("Exact document SHA-256", page)
+        self.assertNotIn("Pocket ID verified", page)
+        self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])
+        self.assertIn(
+            "publickey-credentials-get=()",
+            response.headers["Permissions-Policy"],
+        )
 
     def test_standard_signature_through_public_browser_and_archive(self):
         origin = self._localhost_origin()
@@ -954,333 +939,3 @@ class TestStrongBrowserCeremony(HttpCase):
             sign_request.original_sha256,
         )
         self.assertEqual(consent_payload["consent"], sign_request.consent_text_snapshot)
-
-    def test_ordered_document_specific_strong_signatures_through_browser_workers(self):
-        origin = self._localhost_origin()
-        self.company.write(
-            {
-                "email": "sign-browser@example.test",
-                "sign_webauthn_rp_id": "localhost",
-                "sign_webauthn_origins": origin,
-            },
-        )
-
-        def create_passkey_fixture(partner, suffix):
-            enrollment = self.env["usl.sign.enrollment"].create(
-                {
-                    "partner_id": partner.id,
-                    "company_id": self.company.id,
-                    "relationship_basis": "recurring_partner",
-                    "relationship_reference": (
-                        f"Browser signing acceptance fixture {suffix}"
-                    ),
-                    "policy_version": "browser-acceptance-v1",
-                    "review_note": (
-                        "Identity reviewed for automated browser acceptance."
-                    ),
-                },
-            )
-            enrollment.with_context(
-                usl_sign_enrollment_transition=INTERNAL_OPERATION,
-            ).write(
-                {
-                    "state": "active",
-                    "reviewer_id": self.reviewer.id,
-                    "reviewed_at": fields.Datetime.now(),
-                },
-            )
-            credential_bytes = secrets.token_bytes(32)
-            credential_id = bytes_to_base64url(credential_bytes)
-            private_key = ec.generate_private_key(ec.SECP256R1())
-            public_numbers = private_key.public_key().public_numbers()
-            cose_public_key = cbor2.dumps(
-                {
-                    1: 2,
-                    3: -7,
-                    -1: 1,
-                    -2: public_numbers.x.to_bytes(32, "big"),
-                    -3: public_numbers.y.to_bytes(32, "big"),
-                },
-            )
-            passkey = self.env["usl.sign.passkey"].with_context(
-                usl_sign_passkey_registration=INTERNAL_OPERATION,
-            ).create(
-                {
-                    "enrollment_id": enrollment.id,
-                    "name": f"Virtual platform passkey {suffix}",
-                    "credential_id": credential_id,
-                    "public_key": base64.b64encode(cose_public_key),
-                    "sign_count": 0,
-                    "aaguid": "00000000-0000-0000-0000-000000000000",
-                    "transports": ["internal"],
-                    "device_type": "single_device",
-                    "backed_up": False,
-                },
-            )
-            virtual_credential = {
-                "credentialId": base64.b64encode(credential_bytes).decode(),
-                "isResidentCredential": False,
-                "rpId": "localhost",
-                "privateKey": base64.b64encode(
-                    private_key.private_bytes(
-                        serialization.Encoding.DER,
-                        serialization.PrivateFormat.PKCS8,
-                        serialization.NoEncryption(),
-                    ),
-                ).decode(),
-                "signCount": 0,
-            }
-            return passkey, virtual_credential
-
-        passkey, virtual_credential = create_passkey_fixture(self.partner, "one")
-        passkey_two, virtual_credential_two = create_passkey_fixture(
-            self.partner_two,
-            "two",
-        )
-
-        role = self.env.ref("sign_oca.sign_role_customer")
-        role_two = self.env.ref("sign_oca.sign_role_employee")
-        signature_field = self.env.ref("sign_oca.sign_field_signature")
-        layout = {
-            "1": {
-                "id": 1,
-                "field_id": signature_field.id,
-                "field_type": signature_field.field_type,
-                "required": True,
-                "name": signature_field.name,
-                "role_id": role.id,
-                "page": 1,
-                "position_x": 12,
-                "position_y": 72,
-                "width": 28,
-                "height": 9,
-                "value": False,
-                "default_value": signature_field.default_value,
-                "placeholder": "",
-            },
-            "2": {
-                "id": 2,
-                "field_id": signature_field.id,
-                "field_type": signature_field.field_type,
-                "required": True,
-                "name": signature_field.name,
-                "role_id": role_two.id,
-                "page": 1,
-                "position_x": 52,
-                "position_y": 72,
-                "width": 28,
-                "height": 9,
-                "value": False,
-                "default_value": signature_field.default_value,
-                "placeholder": "",
-            },
-        }
-        sign_request = self.env["sign.oca.request"].create(
-            {
-                "name": "Browser strong-signature acceptance",
-                "data": base64.b64encode(self._pdf()),
-                "filename": "browser-strong-signature.pdf",
-                "company_id": self.company.id,
-                "user_id": self.env.user.id,
-                "policy_id": self.env.ref(
-                    "usl_sign.policy_material_recurring_strong",
-                ).id,
-                "document_category": "commercial",
-                "signer_type": "recurring",
-                "risk_level": "material",
-                "requested_trust": "strong_personal",
-                "signing_order": True,
-                "signatory_data": layout,
-                "signer_ids": [
-                    (
-                        0,
-                        0,
-                        {
-                            "partner_id": self.partner.id,
-                            "role_id": role.id,
-                            "sequence": 10,
-                        },
-                    ),
-                    (
-                        0,
-                        0,
-                        {
-                            "partner_id": self.partner_two.id,
-                            "role_id": role_two.id,
-                            "sequence": 20,
-                        },
-                    ),
-                ],
-            },
-        )
-        sign_request.action_mark_ready()
-        sign_request.action_send()
-        signer, signer_two = sign_request.signer_ids.sorted(
-            lambda row: (row.sequence, row.id),
-        )
-        invitation_token = signer._issue_access_token()
-        session_token = signer._exchange_access_token(invitation_token)
-        signing_path = f"/sign/session/{signer.id}/{session_token}?review=1"
-
-        captured_requests = []
-        active_virtual_credential = {"value": virtual_credential}
-        original_navigate = ChromeBrowser.navigate_to
-        original_handle_request = ChromeBrowser._handle_request_paused
-        original_external_request = type(self)._request_handler
-
-        def navigate_with_registered_passkey(browser, url, wait_stop=False):
-            self._enable_virtual_platform_authenticator(
-                browser,
-                active_virtual_credential["value"],
-            )
-
-            def capture_request(request, **_params):
-                if "/sign/strong/" in request["url"] and request.get("postData"):
-                    captured_requests.append(
-                        {"url": request["url"], "body": request["postData"]},
-                    )
-
-            browser._handlers["Network.requestWillBeSent"] = capture_request
-            browser._websocket_request("Network.enable")
-            browser.set_cookie("session_id", self.session.sid, "/", "localhost")
-            browser.set_cookie(
-                TEST_CURSOR_COOKIE_NAME,
-                self.http_request_key,
-                "/",
-                "localhost",
-            )
-            localhost_url = url.replace(self.base_url().rstrip("/"), origin, 1)
-            return original_navigate(browser, localhost_url, wait_stop=wait_stop)
-
-        def allow_local_sign_services(test_class, session, prepared, **kwargs):
-            del test_class
-            if urlsplit(prepared.url).hostname in {
-                "paperless-webserver",
-                "usl-sign-dss",
-                "usl-sign-step-ca",
-            }:
-                return test_common._super_send(session, prepared, **kwargs)
-            return original_external_request(session, prepared, **kwargs)
-
-        def run_signer_browser(path):
-            self.browser_js(
-                path,
-                """
-                window.addEventListener(
-                    "beforeunload",
-                    () => console.log("test successful"),
-                    {once: true},
-                );
-                const status = document.getElementById("usl_strong_status");
-                new MutationObserver(() => {
-                    if (status.classList.contains("alert-danger")) {
-                        console.error(status.textContent);
-                    }
-                }).observe(status, {attributes: true, childList: true, subtree: true});
-                document.getElementById("usl_strong_consent").checked = true;
-                document.getElementById("usl_strong_sign_button").click();
-                """,
-                ready=(
-                    "document.getElementById('usl_strong_sign')?.dataset.ready === 'true' && "
-                    "!document.getElementById('usl_strong_sign_button').disabled"
-                ),
-                login=None,
-                timeout=120,
-            )
-
-        with (
-            patch.object(
-                ChromeBrowser,
-                "navigate_to",
-                new=navigate_with_registered_passkey,
-            ),
-            patch.object(
-                ChromeBrowser,
-                "_handle_request_paused",
-                new=self._allow_localhost_requests(origin, original_handle_request),
-            ),
-            patch.object(
-                type(self),
-                "_request_handler",
-                new=classmethod(allow_local_sign_services),
-            ),
-        ):
-            run_signer_browser(signing_path)
-            sign_request.invalidate_recordset(["data", "state"])
-            signer.invalidate_recordset()
-            signer_two.invalidate_recordset()
-            passkey.invalidate_recordset()
-            first_signed_sha256 = hashlib.sha256(
-                base64.b64decode(sign_request.data),
-            ).hexdigest()
-            first_ceremony = self.env["usl.sign.ceremony"].search(
-                [("request_id", "=", sign_request.id), ("signer_id", "=", signer.id)],
-            )
-            self.assertEqual(sign_request.state, "partial")
-            self.assertEqual(signer.state, "signed")
-            self.assertEqual(signer_two.state, "notified")
-            self.assertEqual(first_ceremony.state, "completed")
-            self.assertEqual(first_ceremony.passkey_id, passkey)
-            self.assertNotEqual(first_signed_sha256, sign_request.original_sha256)
-
-            invitation_token_two = signer_two._issue_access_token()
-            session_token_two = signer_two._exchange_access_token(invitation_token_two)
-            signing_path_two = (
-                f"/sign/session/{signer_two.id}/{session_token_two}?review=1"
-            )
-            active_virtual_credential["value"] = virtual_credential_two
-            run_signer_browser(signing_path_two)
-
-        sign_request.invalidate_recordset()
-        signer.invalidate_recordset()
-        signer_two.invalidate_recordset()
-        passkey.invalidate_recordset()
-        passkey_two.invalidate_recordset()
-        ceremony = self.env["usl.sign.ceremony"].search(
-            [("request_id", "=", sign_request.id)],
-        )
-        self.assertEqual(len(ceremony), 2)
-        self.assertEqual(set(ceremony.mapped("state")), {"completed"})
-        self.assertEqual(set(ceremony.mapped("passkey_id")), {passkey, passkey_two})
-        self.assertTrue(all(ceremony.mapped("certificate_serial")))
-        self.assertTrue(all(ceremony.mapped("certificate_not_after")))
-        first_ceremony = ceremony.filtered(lambda row: row.signer_id == signer)
-        second_ceremony = ceremony.filtered(lambda row: row.signer_id == signer_two)
-        self.assertEqual(first_ceremony.document_sha256, sign_request.original_sha256)
-        self.assertEqual(second_ceremony.document_sha256, first_signed_sha256)
-        self.assertEqual(signer.state, "signed")
-        self.assertEqual(signer_two.state, "signed")
-        self.assertEqual(signer.authentication_method, "passkey")
-        self.assertEqual(signer_two.authentication_method, "passkey")
-        self.assertTrue(signer.signed_document_sha256)
-        self.assertTrue(signer_two.signed_document_sha256)
-        self.assertTrue(passkey.last_used_at)
-        self.assertTrue(passkey_two.last_used_at)
-        self.assertTrue(sign_request.final_data)
-        self.assertEqual(sign_request.achieved_trust, "strong_personal")
-        self.assertEqual(sign_request.validation_status, "valid")
-        self.assertTrue(
-            sign_request.evidence_ids.filtered(lambda item: item.kind == "certificate"),
-        )
-        self.assertTrue(
-            sign_request.evidence_ids.filtered(lambda item: item.kind == "consent"),
-        )
-
-        payloads = {"begin": [], "authorize": [], "finalize": []}
-        for captured in captured_requests:
-            route = urlsplit(captured["url"]).path.rsplit("/", 1)[-1]
-            payloads[route].append(json.loads(captured["body"])["params"])
-        self.assertEqual({route: len(rows) for route, rows in payloads.items()}, {
-            "begin": 2,
-            "authorize": 2,
-            "finalize": 2,
-        })
-        for params in payloads["begin"]:
-            self.assertEqual(set(params), {"csr_pem", "consent"})
-        for params in payloads["authorize"]:
-            self.assertEqual(set(params), {"ceremony_id", "credential"})
-        for params in payloads["finalize"]:
-            self.assertEqual(set(params), {"ceremony_id", "signature"})
-        serialized_payloads = json.dumps(payloads).lower()
-        for forbidden in ("privatekey", "private_key", "pkcs8", "jwk", "seed"):
-            self.assertNotIn(forbidden, serialized_payloads)

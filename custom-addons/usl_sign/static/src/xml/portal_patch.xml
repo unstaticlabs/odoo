@@ -26,15 +26,15 @@
     <t t-name="usl_sign.SignOcaPdfPortal" t-inherit="sign_oca.SignOcaPdfPortal" t-inherit-mode="extension">
         <xpath expr="//header" position="replace">
             <header class="usl_sign_portal_header">
-                <a class="usl_sign_portal_brand" href="/" aria-label="USL Sign home">
-                    <img src="/logo.png" alt="" loading="eager"/>
-                    <span>USL Sign</span>
-                </a>
+                <div class="usl_sign_portal_brand" aria-label="Secure document signing">
+                    <span class="usl_sign_portal_brand_mark"><i class="fa fa-shield" aria-hidden="true"/></span>
+                    <span><small>Document signing</small><strong t-esc="info.company_name"/></span>
+                </div>
                 <div class="usl_sign_portal_instruction">
                     <strong>Review and sign</strong>
-                    <span>Complete every required field, then confirm below.</span>
+                    <span>Complete the required fields, then confirm below.</span>
                 </div>
-                <span class="badge rounded-pill text-bg-light border">Secure signing session</span>
+                <span class="badge rounded-pill text-bg-light border"><i class="fa fa-lock me-1"/> Protected session</span>
             </header>
         </xpath>
         <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="replace">
@@ -59,7 +59,7 @@
     <t t-name="usl_sign.StandardSignatureDialog" t-inherit="web.SignatureDialog" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('mt16') and hasclass('small')]" position="replace">
             <div class="mt16 small">
-                By adopting this signature, I confirm that it represents my electronic signature for this document. This Standard signature is supported by USL’s reinforced evidence trail; it is not described as advanced, qualified, certified, or automatically equivalent to a handwritten signature.
+                By adopting this signature, I confirm that it represents my electronic signature for this document. The sender’s signing application records consent and validation evidence. This Standard signature is not described as advanced, qualified, certified, or automatically equivalent to a handwritten signature.
             </div>
         </xpath>
     </t>

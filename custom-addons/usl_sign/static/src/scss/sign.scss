@@ -225,11 +225,40 @@
     text-decoration: none;
 }
 
-.usl_sign_portal_brand img {
-    width: auto;
-    max-width: 8.5rem;
-    height: 2.5rem;
-    object-fit: contain;
+.usl_sign_portal_brand > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.usl_sign_portal_brand small {
+    color: #757c84;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .045em;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.usl_sign_portal_brand strong {
+    overflow: hidden;
+    font-size: .95rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.usl_sign_portal_brand_mark {
+    display: inline-flex;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 2.35rem;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: #714b67;
+    border-radius: .65rem;
+    box-shadow: 0 .2rem .6rem rgba(113, 75, 103, .2);
 }
 
 .usl_sign_portal_instruction {
@@ -459,9 +488,10 @@
         padding: .625rem .75rem;
     }
 
-    .usl_sign_portal_brand img {
-        max-width: 6rem;
+    .usl_sign_portal_brand_mark {
+        width: 2rem;
         height: 2rem;
+        flex-basis: 2rem;
     }
 
     .usl_sign_portal_header .badge {

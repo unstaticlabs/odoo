@@ -2,9 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-pocketid-6605.env}"
-SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-pocketid-6605}"
-PROJECT="usl-sign-pocketid-6605"
+ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-pocketid-qa.env}"
+SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-pocketid-qa}"
+PROJECT="usl-sign-pocketid-qa"
 PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
 COMPOSE_FILES=(
   -f "$ROOT/compose.yaml"
@@ -18,8 +18,8 @@ bootstrap_environment() {
   USL_POCKET_ID_DEV_ODOO_PORT=16669 \
   USL_POCKET_ID_DEV_GEVENT_PORT=16672 \
   USL_POCKET_ID_DEV_POCKET_PORT=16411 \
-  USL_POCKET_ID_DEV_ODOO_HOSTNAME=odoo-sign-6605.localhost \
-  USL_POCKET_ID_DEV_POCKET_HOSTNAME=pocket-id-sign-6605.localhost \
+  USL_POCKET_ID_DEV_ODOO_HOSTNAME=odoo-sign-qa.localhost \
+  USL_POCKET_ID_DEV_POCKET_HOSTNAME=pocket-id-sign-qa.localhost \
   USL_POCKET_ID_DEV_PAPERLESS_URL=http://127.0.0.1:16810 \
     python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
 }
@@ -316,6 +316,6 @@ case "${1:-help}" in
       '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
       '       scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID [RUN_ID]' \
       '       scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID' \
-      'This helper owns only project usl-sign-pocketid-6605 and its isolated volumes.'
+      'This helper owns only project usl-sign-pocketid-qa and its isolated volumes.'
     ;;
 esac

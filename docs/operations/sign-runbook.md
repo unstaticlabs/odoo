@@ -42,7 +42,7 @@ scripts/sign-pocketid-stack passkey-acceptance
 scripts/sign-pocketid-stack strong-acceptance
 ```
 
-This creates project `usl-sign-pocketid-6605`, its own `odoo_dev` database,
+This creates project `usl-sign-pocketid-qa`, its own `odoo_dev` database,
 volumes, OIDC clients and ignored secret root. It exposes Odoo on port 16669,
 Pocket ID on 16411 and Paperless on 16810; it never shares the canonical
 tenant. The Sign authorization client is restricted to its own `usl-signers`
@@ -132,7 +132,7 @@ then click the PDF to place it. Repeat with drag/drop and right-click; every
 path must show or retain the signer explicitly. Verify all supported field
 types, multiple pages, stable role colors, live recoloring after a role change,
 resize/move/delete, undo/redo, autosave and retry states, required markers,
-role preview, page navigation, zoom and keyboard use. Exercise a one-off
+page navigation, zoom and keyboard use. Exercise a one-off
 request and a reusable template on desktop, and confirm that narrow screens
 show the deliberate non-authoring state while mobile signing remains usable.
 
@@ -160,7 +160,7 @@ account-settings link for the synthetic Roger user:
 
 ```bash
 scripts/sign-pocketid-stack start
-python3 scripts/pocket_id_dev.py --env-file .sign-pocketid-6605.env \
+python3 scripts/pocket_id_dev.py --env-file .sign-pocketid-qa.env \
   one-time-link roger --ttl 16m
 ```
 
@@ -169,7 +169,7 @@ less. This QA tenant disables code-based Strong authorization, so the manual
 onboarding link deliberately uses sixteen minutes and redirects directly to
 account settings. Open it in the browser being tested and add the real
 platform passkey. The credential is scoped to the isolated
-`pocket-id-sign-6605.localhost` relying party.
+`pocket-id-sign-qa.localhost` relying party.
 
 Prepare the reviewed browser journey and copy the IDs and URLs printed after
 each command:
@@ -210,6 +210,16 @@ Windows Hello or another platform product.
 If DSS, CA or TSA is unavailable, never bypass the ceremony. Keep the request
 in an actionable failure/waiting state and retry only after service health is
 restored.
+
+The signing page must remain open while Pocket ID confirms identity: its
+isolated worker owns the non-exportable document key. Pocket ID therefore opens
+in a short-lived window and closes itself after a valid callback. The main page
+must display the authoritative state, not a successful popup alone. A signer
+may cancel an unfinished attempt and retry against the same frozen revision.
+If the final HTTP response is interrupted after the server commits the
+signature, the five-minute session receipt must recover the completed state
+without creating another signature. Do not rely on polling `window.closed`:
+cross-origin isolation can intentionally sever that browser reference.
 
 ### Recorded real-platform acceptance
 
@@ -256,7 +266,8 @@ downgrade or manual completion option.
 
 In **Sign → Configuration → Settings**, keep **Send signers a copy of the final
 signed document** enabled unless company policy explicitly forbids signer
-delivery. USL Sign queues the final PDF/A-3 dossier once, and only after
+delivery. The signing application queues the final PDF/A-3 dossier once, and
+only after
 validation and Paperless archival have completed.
 
 For every completed request, inspect the source documents, frozen snapshots,

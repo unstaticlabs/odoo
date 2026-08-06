@@ -59,6 +59,7 @@
             "usl_sign/static/src/scss/sign.scss",
         ],
         "usl_sign.assets_strong": [
+            "web/static/src/libs/fontawesome/css/font-awesome.css",
             "usl_sign/static/src/scss/strong_sign.scss",
         ],
     },

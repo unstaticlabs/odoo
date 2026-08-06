@@ -5,13 +5,6 @@ from .dss import (
     DSSUnavailableError,
 )
 from .step_ca import StepCAClient, StepCAError
-from .strong import (
-    build_strong_binding,
-    personal_certificate_subject,
-    strong_challenge,
-    validate_personal_csr,
-    verify_strong_assertion,
-)
 
 __all__ = [
     "DSSClient",
@@ -20,9 +13,4 @@ __all__ = [
     "DSSUnavailableError",
     "StepCAClient",
     "StepCAError",
-    "build_strong_binding",
-    "personal_certificate_subject",
-    "strong_challenge",
-    "validate_personal_csr",
-    "verify_strong_assertion",
 ]

@@ -37,8 +37,7 @@
         <field name="name">Service Status</field>
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="sign_service_status_form"/>
-        <field name="context">{'bin_size': False}</field>
+        <field name="context">{'module': 'usl_sign', 'bin_size': False}</field>
     </record>
     <record id="my_sign_identity_action" model="ir.actions.act_window">
         <field name="name">Signing Identities</field>

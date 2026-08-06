@@ -22,13 +22,7 @@ def bootstrap(env):
     company = env.company
     if not company.email:
         company.email = "sign@example.test"
-    company.write(
-        {
-            "sign_oca_send_sign_request_copy": True,
-            "sign_webauthn_rp_id": "odoo.localhost",
-            "sign_webauthn_origins": "http://odoo.localhost:20436",
-        },
-    )
+    company.sign_oca_send_sign_request_copy = True
 
     sign_admin = env.ref("usl_sign.group_sign_admin")
     sign_user = env.ref("usl_sign.group_sign_user")
