@@ -23,7 +23,7 @@ CONFIRM ?=
 .PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
 .PHONY: tese-restore tese-restore-install tese-restore-import tese-restore-validate tese-restore-idempotence tese-restore-finalize tese-product-validate tese-qa-bootstrap
 .PHONY: platform-billing-restore platform-billing-restore-install platform-billing-restore-import platform-billing-restore-validate platform-billing-restore-idempotence platform-billing-restore-finalize platform-billing-product-validate platform-billing-restore-test
-.PHONY: product-migration-source-boundary product-migration-boundary accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests
+.PHONY: product-migration-source-boundary product-migration-boundary accounting-compat accounting-multicompany-acceptance accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
@@ -65,6 +65,8 @@ help-advanced:
 	  '  make migration-source-inventory     Audit populated source perimeters' \
 	  '  make product-migration-boundary     Check source and database boundaries' \
 	  '  make accounting-compat              Run the complete Accounting harness' \
+	  '  make accounting-multicompany-acceptance' \
+	  '                                      Prove company isolation and workflows' \
 	  '' \
 	  'Focused restoration' \
 	  '  make identity-restore | product-restore | hr-restore' \
@@ -352,6 +354,14 @@ product-migration-source-boundary:
 
 product-migration-boundary: product-migration-source-boundary
 	scripts/check-product-database-boundary
+
+accounting-multicompany-acceptance:
+	docker compose -p $(COMPOSE_PROJECT) exec -T \
+		-e USL_EINVOICE_LIVE_ENABLED=0 \
+		-e USL_EREPORTING_LIVE_ENABLED=0 \
+		odoo odoo shell --config=/etc/odoo/odoo.conf \
+		--database=$${ODOO_INIT_DB:-odoo_dev} \
+		< scripts/odoo/multicompany_accounting_acceptance.py
 
 accounting-source-package-validate:
 	$(ACCOUNTING_COMPAT) source-validate

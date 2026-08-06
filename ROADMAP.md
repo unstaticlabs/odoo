@@ -33,8 +33,9 @@ Documents application.
   analytical accounting.
 - Native multi-company operation with complete company accounting
   configuration, company-scoped roles and same-currency combined management
-  statements. Legal consolidation, eliminations and currency translation are
-  explicitly outside Accounting v1.
+  statements, verified against both companies in the canonical dump. Legal
+  consolidation, eliminations, currency translation and unused Enterprise
+  payment transports are explicitly outside Accounting v1.
 - Configurable, versioned Controls, Reports and Declarations under Accounting
   Configuration, with operational results kept separate.
 - Compact interactive financial, partner, tax, management and analytical
