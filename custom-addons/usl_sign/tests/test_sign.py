@@ -1079,10 +1079,8 @@ class TestCleanUslSign(TransactionCase):
                 "source": "odoo_generated",
             },
         )
-        upload = patch.object(
-            type(self.env["usl.document"]),
-            "upload_from_odoo",
-            side_effect=[
+        archive_results = iter(
+            [
                 RuntimeError("synthetic Paperless outage"),
                 {
                     "state": "duplicate",
@@ -1090,6 +1088,22 @@ class TestCleanUslSign(TransactionCase):
                     "message": "Checksum-identical dossier reused.",
                 },
             ],
+        )
+        archive_call_users = []
+
+        def archive_upload(documents, *args, **kwargs):
+            del args, kwargs
+            archive_call_users.append(documents.env.user.id)
+            result = next(archive_results)
+            if isinstance(result, Exception):
+                raise result
+            return result
+
+        upload = patch.object(
+            type(self.env["usl.document"]),
+            "upload_from_odoo",
+            autospec=True,
+            side_effect=archive_upload,
         )
         with (
             patch.object(type(request), "_sign_dss_client", return_value=FakeDSS()),
@@ -1117,6 +1131,10 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.state, "completed")
         self.assertEqual(request.archive_status, "archived")
         self.assertEqual(request.archive_document_id, archived)
+        self.assertEqual(
+            set(archive_call_users),
+            {self.env.ref("base.user_root").id},
+        )
         self.assertTrue(request.completed_at)
         self.assertEqual(request.evidence_status, "complete")
         self.assertEqual(

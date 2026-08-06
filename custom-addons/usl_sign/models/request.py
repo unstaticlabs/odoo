@@ -1618,7 +1618,12 @@ class SignRequest(models.Model):
             try:
                 result = (
                     self.env["usl.document"]
-                    .sudo()
+                    # A portal signer can trigger completion, but must never
+                    # become the owner of the asynchronous archive operation.
+                    # The technical root actor completes the fail-closed Odoo
+                    # relationship; signer and requester attribution remains in
+                    # the immutable Sign evidence and event chain.
+                    .with_user(self.env.ref("base.user_root"))
                     .with_company(request.company_id)
                     .upload_from_odoo(
                         request.dossier_filename,

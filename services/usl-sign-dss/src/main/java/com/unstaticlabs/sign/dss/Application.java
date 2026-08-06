@@ -233,6 +233,8 @@ public final class Application {
             cleanupContexts();
             byte[] document = document(payload, "document");
             String certificatePem = text(payload, "certificate");
+            List<String> certificateChainPem = optionalStringList(
+                    payload.get("certificateChain"), 10);
             String reference = text(payload, "requestReference");
             boolean timestamp = Boolean.TRUE.equals(payload.get("timestamp"));
             CertificateToken certificate = certificate(certificatePem);
@@ -240,7 +242,15 @@ public final class Application {
             parameters.setSignatureLevel(
                     timestamp ? SignatureLevel.PAdES_BASELINE_T : SignatureLevel.PAdES_BASELINE_B);
             parameters.setSigningCertificate(certificate);
-            parameters.setCertificateChain(List.of(certificate));
+            List<CertificateToken> certificateChain = new ArrayList<>();
+            certificateChain.add(certificate);
+            for (String issuerPem : certificateChainPem) {
+                CertificateToken issuer = certificate(issuerPem);
+                if (!issuer.equals(certificate) && !certificateChain.contains(issuer)) {
+                    certificateChain.add(issuer);
+                }
+            }
+            parameters.setCertificateChain(certificateChain);
             parameters.setReason("Strong personal signature authorized by a document-bound passkey ceremony");
             PAdESService service = service(timestamp);
             ToBeSigned result = service.getDataToSign(pdf(document), parameters);

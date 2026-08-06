@@ -84,12 +84,21 @@ class DSSClient:
             },
         )
 
-    def data_to_sign(self, data, certificate_pem, *, request_reference, timestamp=False):
+    def data_to_sign(
+        self,
+        data,
+        certificate_pem,
+        *,
+        certificate_chain=None,
+        request_reference,
+        timestamp=False,
+    ):
         return self._call(
             "pades/data-to-sign",
             {
                 "document": self._document(data),
                 "certificate": certificate_pem,
+                "certificateChain": list(certificate_chain or []),
                 "requestReference": request_reference,
                 "timestamp": bool(timestamp),
             },

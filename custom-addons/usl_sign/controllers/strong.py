@@ -432,6 +432,7 @@ class StrongSignController(http.Controller):
             data_to_sign = DSSClient().data_to_sign(
                 base64.b64decode(signer.request_id.data),
                 issued["certificate"],
+                certificate_chain=issued["chain"],
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
                 timestamp=signer.request_id.company_id.sign_rfc3161_enabled,
             )

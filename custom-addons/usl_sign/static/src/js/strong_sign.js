@@ -48,9 +48,9 @@ function delay(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-function openPocketID(url) {
+function openPocketID() {
     const popup = window.open(
-        url,
+        "about:blank",
         "usl_sign_pocketid",
         "popup=yes,width=520,height=760,resizable=yes,scrollbars=yes"
     );
@@ -60,6 +60,15 @@ function openPocketID(url) {
         );
     }
     return popup;
+}
+
+function navigatePocketID(popup, url) {
+    if (!popup || popup.closed) {
+        throw new Error(
+            "The Pocket ID window was closed. Start again when you are ready to use your passkey."
+        );
+    }
+    popup.location.replace(url);
 }
 
 async function poll(route, params, acceptedStates, timeoutSeconds) {
@@ -85,14 +94,17 @@ async function enroll(container) {
     const button = document.getElementById("usl_enroll_button");
     const status = document.getElementById("usl_enroll_status");
     button.addEventListener("click", async () => {
-        button.disabled = true;
-        status.className = "mt-3 alert alert-info";
-        status.textContent = "Opening Pocket ID…";
+        // Open synchronously from the user gesture. Opening after the begin RPC
+        // is rejected by normal popup blockers in Chrome, Safari and Firefox.
         let popup;
         try {
+            popup = openPocketID();
+            button.disabled = true;
+            status.className = "mt-3 alert alert-info";
+            status.textContent = "Opening Pocket ID…";
             const base = `/sign/enroll/${container.dataset.enrollmentId}/${container.dataset.enrollmentToken}`;
             const started = await rpc(`${base}/begin`, {});
-            popup = openPocketID(started.authorization_url);
+            navigatePocketID(popup, started.authorization_url);
             status.textContent = "Use your Pocket ID passkey in the new window.";
             const result = await poll(`${base}/status`, {}, ["pending_review", "active"], 300);
             popup?.close();
@@ -118,10 +130,15 @@ async function strongSign(container) {
             status.textContent = "Review the document and confirm your consent first.";
             return;
         }
-        button.disabled = true;
-        const ceremonyWorker = workerClient();
+        // Keep the popup and document-key worker alive in the signing tab. The
+        // blank window must be created before any awaited operation so browser
+        // popup protection still recognises the explicit user action.
         let popup;
+        let ceremonyWorker;
         try {
+            popup = openPocketID();
+            button.disabled = true;
+            ceremonyWorker = workerClient();
             status.className = "mt-3 alert alert-info";
             status.textContent = "Creating a one-use document key in this browser…";
             const generated = await ceremonyWorker.call("generate", {
@@ -132,7 +149,7 @@ async function strongSign(container) {
                 csr_pem: generated.csrPem,
                 consent: true,
             });
-            popup = openPocketID(begin.authorization_url);
+            navigatePocketID(popup, begin.authorization_url);
             status.textContent = "Use your Pocket ID passkey in the new window.";
             const authorization = await poll(
                 `${base}/status`,
@@ -154,7 +171,7 @@ async function strongSign(container) {
             window.location.assign(result.redirect);
         } catch (error) {
             popup?.close();
-            ceremonyWorker.worker.terminate();
+            ceremonyWorker?.worker.terminate();
             status.className = "mt-3 alert alert-danger";
             status.textContent =
                 error.message || "The strong signature could not be completed.";
