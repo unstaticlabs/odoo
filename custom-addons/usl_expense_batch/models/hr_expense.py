@@ -96,6 +96,18 @@ class HrExpense(models.Model):
         compute="_compute_batch_context_status",
         string="Review warning",
     )
+    batch_attention_level = fields.Selection(
+        selection=[
+            ("info", "Information"),
+            ("warning", "Needs attention"),
+        ],
+        compute="_compute_batch_attention",
+        string="Attention",
+    )
+    batch_attention_message = fields.Char(
+        compute="_compute_batch_attention",
+        string="Attention details",
+    )
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
@@ -131,6 +143,62 @@ class HrExpense(models.Model):
             "account_prefix": self.account_id.code,
             "company_id": self.company_id.id,
         }) or {}
+
+    @api.model
+    def _canonical_analytic_distribution(self, distribution):
+        """Return a stable representation of a native analytic distribution."""
+        normalized = {}
+        for account_keys, percentage in (distribution or {}).items():
+            key = tuple(
+                sorted(
+                    int(account_id)
+                    for account_id in str(account_keys).split(",")
+                    if account_id.isdigit()
+                ),
+            )
+            if key:
+                normalized[key] = normalized.get(key, 0.0) + float(percentage)
+        return tuple(
+            sorted(
+                (key, round(percentage, 6))
+                for key, percentage in normalized.items()
+                if round(percentage, 6)
+            ),
+        )
+
+    @api.model
+    def _analytic_distributions_equal(self, left, right):
+        return self._canonical_analytic_distribution(
+            left,
+        ) == self._canonical_analytic_distribution(right)
+
+    @api.model
+    def _analytic_distribution_label(self, distribution):
+        account_ids = {
+            account_id
+            for account_keys, _percentage in self._canonical_analytic_distribution(
+                distribution,
+            )
+            for account_id in account_keys
+        }
+        if not account_ids:
+            return _("none")
+        # Submitters can review an expense without direct read access to the
+        # analytic-account model. The distribution is already visible on the
+        # line; sudo is limited to resolving those referenced IDs for a label.
+        accounts = (
+            self.env["account.analytic.account"].sudo().browse(account_ids).exists()
+        )
+        by_plan = {}
+        for account in accounts.sorted(
+            key=lambda item: (item.plan_id.display_name, item.display_name),
+        ):
+            by_plan.setdefault(account.plan_id.display_name, []).append(
+                account.display_name,
+            )
+        return " · ".join(
+            f"{plan}: {', '.join(names)}" for plan, names in by_plan.items()
+        )
 
     def _is_batch_receipt_required(self):
         self.ensure_one()
@@ -182,10 +250,18 @@ class HrExpense(models.Model):
             if expense.state != "draft":
                 expense.batch_context_status = "fixed"
             elif (
-                (batch.account_override_id and expense.account_context_source == "explicit")
+                (
+                    batch.account_override_id
+                    and expense.account_context_source == "explicit"
+                    and expense.account_id != batch.account_override_id
+                )
                 or (
                     batch.analytic_distribution
                     and expense.analytic_context_source == "explicit"
+                    and not expense._analytic_distributions_equal(
+                        expense.analytic_distribution,
+                        batch.analytic_distribution,
+                    )
                 )
             ):
                 expense.batch_context_status = "exception"
@@ -202,10 +278,16 @@ class HrExpense(models.Model):
                 expense.batch_context_status = "inherited"
 
             warnings = []
-            if expense.same_receipt_expense_ids:
-                warnings.append(_("same receipt already used"))
-            elif expense.duplicate_expense_ids:
-                warnings.append(_("possible duplicate"))
+            # Native duplicate receipt computation removes ``expense.id`` from
+            # a set of stored integer IDs.  During a One2many onchange the row
+            # has a NewId, so ask the stored origin instead of triggering that
+            # unsafe native computation on the transient row.
+            stored_expense = expense._origin
+            if stored_expense and stored_expense.id:
+                if stored_expense.same_receipt_expense_ids:
+                    warnings.append(_("same receipt already used"))
+                elif stored_expense.duplicate_expense_ids:
+                    warnings.append(_("possible duplicate"))
             if (
                 batch.context_date_from
                 and expense.date
@@ -217,6 +299,79 @@ class HrExpense(models.Model):
             ):
                 warnings.append(_("outside the Batch dates"))
             expense.batch_warning_reason = ", ".join(warnings) or False
+
+    @api.depends(
+        "batch_context_status",
+        "batch_warning_reason",
+        "batch_incomplete_reason",
+        "account_id",
+        "analytic_distribution",
+        "expense_batch_id.account_override_id",
+        "expense_batch_id.analytic_distribution",
+    )
+    def _compute_batch_attention(self):
+        for expense in self:
+            batch = expense.expense_batch_id
+            if not batch:
+                expense.batch_attention_level = False
+                expense.batch_attention_message = False
+                continue
+
+            details = []
+            level = False
+            if expense.batch_context_status == "exception":
+                level = "warning"
+                if (
+                    batch.account_override_id
+                    and expense.account_context_source == "explicit"
+                    and expense.account_id != batch.account_override_id
+                ):
+                    details.append(
+                        _(
+                            "Expense account %(expense)s differs from Batch account %(batch)s.",
+                            expense=expense.account_id.display_name or _("none"),
+                            batch=batch.account_override_id.display_name,
+                        ),
+                    )
+                if (
+                    batch.analytic_distribution
+                    and expense.analytic_context_source == "explicit"
+                    and not expense._analytic_distributions_equal(
+                        expense.analytic_distribution,
+                        batch.analytic_distribution,
+                    )
+                ):
+                    details.append(
+                        _(
+                            "Expense analytics %(expense)s differ from Batch analytics %(batch)s.",
+                            expense=expense._analytic_distribution_label(
+                                expense.analytic_distribution,
+                            ),
+                            batch=expense._analytic_distribution_label(
+                                batch.analytic_distribution,
+                            ),
+                        ),
+                    )
+            elif expense.batch_context_status == "stale":
+                level = "warning"
+                details.append(
+                    _("Shared context changed after it was applied to this expense."),
+                )
+            elif expense.batch_context_status == "fixed":
+                level = "info"
+                details.append(
+                    _("Accounting is preserved because this expense is no longer a draft."),
+                )
+
+            if expense.batch_incomplete_reason:
+                level = "warning"
+                details.append(expense.batch_incomplete_reason)
+            if expense.batch_warning_reason:
+                level = "warning"
+                details.append(expense.batch_warning_reason)
+
+            expense.batch_attention_level = level
+            expense.batch_attention_message = " ".join(details) or False
 
     @api.depends("message_main_attachment_id", "nb_attachment", "product_id")
     def _compute_batch_attachment_status(self):
@@ -318,8 +473,10 @@ class HrExpense(models.Model):
             ):
                 provenance["analytic_context_source"] = (
                     "product"
-                    if (expense.analytic_distribution or {})
-                    == expense._native_analytic_distribution()
+                    if expense._analytic_distributions_equal(
+                        expense.analytic_distribution,
+                        expense._native_analytic_distribution(),
+                    )
                     else "explicit"
                 )
             if provenance:
@@ -366,8 +523,10 @@ class HrExpense(models.Model):
                 })
             if (
                 self.analytic_context_source == "batch"
-                and (self.analytic_distribution or {})
-                == (self.batch_applied_analytic_distribution or {})
+                and self._analytic_distributions_equal(
+                    self.analytic_distribution,
+                    self.batch_applied_analytic_distribution,
+                )
                 and self.batch_analytic_baseline_captured
             ):
                 values.update({

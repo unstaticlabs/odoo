@@ -5,6 +5,7 @@ import {
     canCreateExpenseBatch,
     refreshExpenseList,
 } from "../src/js/expense_batch_list";
+import { attentionIconClass } from "../src/js/expense_batch_attention_field";
 
 function record(state, expenseBatchId = false) {
     return {
@@ -61,4 +62,9 @@ test("closing the batch wizard reloads and renders the expense list", async () =
     await refreshExpenseList(controller);
 
     expect.verifySteps(["load", "render:true"]);
+});
+
+test("attention indicator stays compact and distinguishes warnings from locks", () => {
+    expect(attentionIconClass("warning")).toInclude("text-warning");
+    expect(attentionIconClass("info")).toInclude("fa-lock");
 });

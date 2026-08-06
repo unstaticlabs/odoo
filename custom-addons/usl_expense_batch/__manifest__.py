@@ -1,7 +1,7 @@
 {
     "name": "USL Expense Batches",
     "summary": "Review related expenses with shared business and accounting context",
-    "version": "saas~19.2.1.1.0",
+    "version": "saas~19.2.1.2.0",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -18,7 +18,10 @@
     "assets": {
         "web.assets_backend": [
             "usl_expense_batch/static/src/js/expense_batch_list.js",
+            "usl_expense_batch/static/src/js/expense_batch_attention_field.js",
             "usl_expense_batch/static/src/xml/expense_batch_list.xml",
+            "usl_expense_batch/static/src/xml/expense_batch_attention_field.xml",
+            "usl_expense_batch/static/src/scss/expense_batch.scss",
         ],
         "web.assets_unit_tests": [
             "usl_expense_batch/static/tests/expense_batch_list.test.js",

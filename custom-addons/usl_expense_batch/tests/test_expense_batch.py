@@ -2,7 +2,7 @@ import base64
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -377,6 +377,8 @@ class TestExpenseBatch(TestExpenseCommon):
             {str(self.analytic_account_2.id): 100},
         )
         self.assertEqual(exception.batch_context_status, "exception")
+        self.assertEqual(exception.batch_attention_level, "warning")
+        self.assertIn("analytics", exception.batch_attention_message)
         self.assertEqual(batch.exception_count, 1)
 
         inherited.product_id = self.product_a
@@ -410,6 +412,47 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(inherited.analytic_distribution, original_distribution)
         self.assertEqual(exception.expense_batch_id, batch)
         self.assertEqual(exception.account_context_source, "explicit")
+
+    def test_matching_explicit_context_is_not_reported_as_an_exception(self):
+        expense = self._expense("Toronto matching context")
+        expense.with_context(usl_batch_context_internal=True).write({
+            "account_context_source": "explicit",
+            "analytic_context_source": "explicit",
+        })
+        batch = self.env["usl.expense.batch"].with_user(
+            self.expense_user_manager,
+        ).create({
+            "name": "Matching context",
+            "purpose": "Prove semantic comparison",
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+            "account_override_id": expense.account_id.id,
+            "analytic_distribution": expense.analytic_distribution,
+            "expense_ids": [Command.set(expense.ids)],
+        })
+
+        self.assertEqual(expense.batch_context_status, "inherited")
+        self.assertEqual(batch.exception_count, 0)
+        self.assertEqual(batch.preview_context_application()["exceptions"], 0)
+        self.assertFalse(expense.batch_attention_message)
+
+    def test_analytic_distribution_comparison_is_order_independent(self):
+        expense_model = self.env["hr.expense"]
+        left = {f"{self.analytic_account_1.id},{self.analytic_account_2.id}": 100}
+        right = {f"{self.analytic_account_2.id},{self.analytic_account_1.id}": 100.0}
+        self.assertTrue(expense_model._analytic_distributions_equal(left, right))
+
+    def test_batch_form_onchange_does_not_compute_duplicates_on_new_ids(self):
+        expense = self._expense("Toronto onchange")
+        batch = self._batch(expense)
+
+        with Form(
+            batch,
+            view=self.env.ref("usl_expense_batch.view_expense_batch_form"),
+        ) as batch_form:
+            batch_form.purpose = "Updated safely through the Batch form"
+
+        self.assertEqual(batch.purpose, "Updated safely through the Batch form")
 
     def test_candidate_service_and_create_or_select_flow(self):
         existing = self.env["usl.expense.batch"].with_user(
@@ -635,6 +678,15 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertTrue(
             expense_lines.xpath("./field[@name='batch_attachment_status']"),
         )
+        self.assertEqual(expense_lines.get("delete"), "false")
+        self.assertFalse(
+            expense_lines.xpath("./field[@name='batch_context_status']"),
+        )
+        attention = expense_lines.xpath(
+            "./field[@name='batch_attention_level']",
+        )[0]
+        self.assertEqual(attention.get("widget"), "expense_batch_attention")
+        self.assertEqual(attention.get("string"), "")
         self.assertTrue(expense_lines.xpath("./field[@name='state']"))
         missing_information = expense_lines.xpath(
             "./field[@name='batch_incomplete_reason']",
@@ -644,6 +696,24 @@ class TestExpenseBatch(TestExpenseCommon):
             "Missing information",
         )
         self.assertTrue(batch_form.xpath("//field[@name='readiness_state']"))
+        self.assertFalse(batch_form.xpath("//page[@name='review']"))
+        self.assertTrue(batch_form.xpath("//page[@name='accounting_history']"))
+        analytic_fields = batch_form.xpath(
+            "//group[@string='Shared context']/field[@name='analytic_distribution']",
+        )
+        self.assertEqual(analytic_fields[0].get("widget"), "analytic_distribution")
+        self.assertNotEqual(analytic_fields[0].get("invisible"), "1")
+        remove_actions = expense_lines.xpath(
+            "./button[@name='action_return_from_batch']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in remove_actions},
+            {"Remove from Batch", "Return for correction"},
+        )
+        apply_context = batch_form.xpath(
+            "//button[@name='action_open_context_wizard']",
+        )[0]
+        self.assertIn("Line-specific choices", apply_context.get("title"))
         submit = batch_form.xpath("//button[@name='action_submit']")[0]
         self.assertIn("only the draft expenses", submit.get("title"))
         self.assertIn("does not post", submit.get("title").lower())
