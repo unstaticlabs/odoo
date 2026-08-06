@@ -16,6 +16,7 @@ import stat
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
@@ -798,7 +799,10 @@ def one_time_link(values: dict[str, str], username: str, ttl: str) -> None:
     )
     if not isinstance(result, dict) or not isinstance(result.get("token"), str):
         raise PocketIDError("Pocket ID did not return a one-time access token.")
-    print(f"{values['POCKET_ID_APP_URL'].rstrip('/')}/lc/{result['token']}")
+    redirect = urllib.parse.urlencode({"redirect": "/settings/account"})
+    print(
+        f"{values['POCKET_ID_APP_URL'].rstrip('/')}/lc/{result['token']}?{redirect}",
+    )
 
 
 def set_disabled(values: dict[str, str], username: str, disabled: bool) -> None:
