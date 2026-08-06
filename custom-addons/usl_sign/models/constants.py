@@ -46,7 +46,7 @@ AUTHENTICATION_METHODS = [
     ("email_otp", "Secure link plus email verification code"),
     ("pocket_id", "Pocket ID"),
     ("portal", "Odoo portal account"),
-    ("passkey", "Passkey with user verification"),
+    ("pocket_id_passkey", "Fresh Pocket ID passkey"),
     ("external_provider", "External qualified-signature provider"),
 ]
 

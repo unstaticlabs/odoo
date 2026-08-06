@@ -1,1 +1,1 @@
-from . import test_sign, test_strong_browser
+from . import test_sign, test_strong_pocketid

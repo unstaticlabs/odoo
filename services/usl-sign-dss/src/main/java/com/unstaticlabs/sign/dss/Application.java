@@ -120,8 +120,6 @@ public final class Application {
 
     private final String platformStore = requiredEnv("USL_DSS_PLATFORM_KEYSTORE");
     private final char[] platformPassword = requiredEnv("USL_DSS_PLATFORM_KEYSTORE_PASSWORD").toCharArray();
-    private final String manifestStore = requiredEnv("USL_DSS_MANIFEST_KEYSTORE");
-    private final char[] manifestPassword = requiredEnv("USL_DSS_MANIFEST_KEYSTORE_PASSWORD").toCharArray();
     private final CertificateSource localTrust;
     private volatile TrustedListsCertificateSource qualifiedTrust;
     private volatile Instant qualifiedTrustRefreshedAt;
@@ -133,7 +131,6 @@ public final class Application {
     });
 
     private Application() throws Exception {
-        enforceSigningKeySeparation();
         localTrust = loadLocalTrust();
         refreshQualifiedTrust();
     }
@@ -236,21 +233,23 @@ public final class Application {
             cleanupContexts();
             byte[] document = document(payload, "document");
             String certificatePem = text(payload, "certificate");
+            List<String> certificateChainPem = optionalStringList(
+                    payload.get("certificateChain"), 10);
             String reference = text(payload, "requestReference");
             boolean timestamp = Boolean.TRUE.equals(payload.get("timestamp"));
             CertificateToken certificate = certificate(certificatePem);
-            List<CertificateToken> certificateChain = new ArrayList<>();
-            certificateChain.add(certificate);
-            for (String chainPem : optionalStringList(payload.get("certificateChain"), 10)) {
-                CertificateToken chainCertificate = certificate(chainPem);
-                if (!chainCertificate.equals(certificate)) {
-                    certificateChain.add(chainCertificate);
-                }
-            }
             PAdESSignatureParameters parameters = parameters();
             parameters.setSignatureLevel(
                     timestamp ? SignatureLevel.PAdES_BASELINE_T : SignatureLevel.PAdES_BASELINE_B);
             parameters.setSigningCertificate(certificate);
+            List<CertificateToken> certificateChain = new ArrayList<>();
+            certificateChain.add(certificate);
+            for (String issuerPem : certificateChainPem) {
+                CertificateToken issuer = certificate(issuerPem);
+                if (!issuer.equals(certificate) && !certificateChain.contains(issuer)) {
+                    certificateChain.add(issuer);
+                }
+            }
             parameters.setCertificateChain(certificateChain);
             parameters.setReason("Strong personal signature authorized by a document-bound passkey ceremony");
             PAdESService service = service(timestamp);
@@ -499,7 +498,7 @@ public final class Application {
         handle(exchange, payload -> {
             byte[] manifest = document(payload, "manifest");
             try (Pkcs12SignatureToken token = new Pkcs12SignatureToken(
-                    manifestStore, new PasswordProtection(manifestPassword))) {
+                    platformStore, new PasswordProtection(platformPassword))) {
                 DSSPrivateKeyEntry privateKey = token.getKeys().stream().findFirst()
                         .orElseThrow(() -> new IllegalStateException("The platform keystore contains no private key."));
                 SignatureValue signature = token.sign(new ToBeSigned(manifest), DigestAlgorithm.SHA256, privateKey);
@@ -512,24 +511,6 @@ public final class Application {
                         "certificateChain", chain);
             }
         });
-    }
-
-    private void enforceSigningKeySeparation() throws Exception {
-        try (Pkcs12SignatureToken platformToken = new Pkcs12SignatureToken(
-                    platformStore, new PasswordProtection(platformPassword));
-             Pkcs12SignatureToken manifestToken = new Pkcs12SignatureToken(
-                    manifestStore, new PasswordProtection(manifestPassword))) {
-            DSSPrivateKeyEntry platformKey = platformToken.getKeys().stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException("The platform keystore contains no private key."));
-            DSSPrivateKeyEntry manifestKey = manifestToken.getKeys().stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException("The manifest keystore contains no private key."));
-            if (Arrays.equals(
-                    platformKey.getCertificate().getPublicKey().getEncoded(),
-                    manifestKey.getCertificate().getPublicKey().getEncoded())) {
-                throw new IllegalStateException(
-                        "The PDF platform seal and evidence manifest must use different signing keys.");
-            }
-        }
     }
 
     private void buildDossier(HttpExchange exchange) throws IOException {

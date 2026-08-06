@@ -123,10 +123,10 @@
         <field name="model_id" ref="model_usl_sign_evidence"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
-    <record id="evidence_participant" model="ir.rule">
-        <field name="name">Signature evidence: request participants</field>
+    <record id="evidence_user_non_authentication" model="ir.rule">
+        <field name="name">Signature users: non-sensitive evidence</field>
         <field name="model_id" ref="model_usl_sign_evidence"/>
-        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="domain_force">[('kind', '!=', 'authentication'), '|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
     </record>
     <record id="evidence_reviewer_all" model="ir.rule">
@@ -205,23 +205,6 @@
     <record id="enrollment_reviewer_all" model="ir.rule">
         <field name="name">Identity reviewers: company identities</field>
         <field name="model_id" ref="model_usl_sign_enrollment"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_sign_identity_reviewer'))]"/>
-    </record>
-    <record id="passkey_company" model="ir.rule">
-        <field name="name">Strong signer passkeys: allowed companies</field>
-        <field name="model_id" ref="model_usl_sign_passkey"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
-    <record id="passkey_own_identity" model="ir.rule">
-        <field name="name">Signing passkeys: own identity</field>
-        <field name="model_id" ref="model_usl_sign_passkey"/>
-        <field name="domain_force">[('enrollment_id.partner_id', '=', user.partner_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
-    </record>
-    <record id="passkey_reviewer_all" model="ir.rule">
-        <field name="name">Identity reviewers: company passkeys</field>
-        <field name="model_id" ref="model_usl_sign_passkey"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('group_sign_identity_reviewer'))]"/>
     </record>

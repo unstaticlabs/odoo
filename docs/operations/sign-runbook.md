@@ -19,12 +19,52 @@ The pinned components are:
 
 - EU DSS 6.4 in `services/usl-sign-dss`;
 - `step-ca` 0.30.2;
-- `webauthn` 3.0.0 in the Odoo Python environment;
+- Pocket ID 2.12.0 from exact commit
+  `b3fb8de5bc55aa813a27b4e15c1d761026fcceaa`, with the tracked strict
+  fresh-passkey patch in `services/usl-pocket-id`; the generic upstream design
+  is tracked in Pocket ID issue
+  [#1654](https://github.com/pocket-id/pocket-id/issues/1654);
 - `@peculiar/x509` 2.0.0 in the dedicated browser worker;
 - pyHanko 0.36.2 in the DSS container for independent cross-validation;
 - veraPDF in the DSS container for PDF/A dossier validation.
 
-For a new development secret directory, run:
+For the worktree-isolated Pocket ID Sign QA environment, run:
+
+```shell
+scripts/sign-pocketid-stack bootstrap
+scripts/sign-pocketid-stack start
+scripts/sign-pocketid-stack status
+scripts/sign-pocketid-stack test-pocket
+scripts/sign-pocketid-stack test
+scripts/sign-pocketid-stack smoke
+scripts/sign-pocketid-stack archive-acceptance
+scripts/sign-pocketid-stack passkey-acceptance
+scripts/sign-pocketid-stack strong-acceptance
+```
+
+This creates project `usl-sign-pocketid-6605`, its own `odoo_dev` database,
+volumes, OIDC clients and ignored secret root. It exposes Odoo on port 16669,
+Pocket ID on 16411 and Paperless on 16810; it never shares the canonical
+tenant. The Sign authorization client is restricted to its own `usl-signers`
+group rather than inheriting ordinary Odoo access. Its generic
+`requiresFreshPasskey` policy is enabled and Pocket ID advertises the matching
+discovery capability; no USL-specific authorization parameter controls the
+security decision. The dedicated Sign client also disables refresh-token
+issuance. `test-pocket` verifies the strict Pocket
+patch, `test` runs the Odoo and browser suites in a disposable database, and
+`smoke` exercises the local CA, DSS, pyHanko, veraPDF, replay and alteration
+checks. `archive-acceptance` proves real Paperless archive, checksum reuse,
+failure gating and recovery. `passkey-acceptance` creates a disposable Chrome
+profile and virtual platform passkey, then proves that two back-to-back Sign
+authorizations each require a WebAuthn assertion and produce a fresh
+`amr=["phr"]` ID token without a refresh token. `strong-acceptance` drives the
+complete isolated journey with a virtual
+platform authenticator: Pocket-backed enrolment, reviewer confirmation,
+document-bound browser key, fresh authorization, step-ca issuance, personal
+PAdES, DSS validation, network key-material inspection, evidence dossier,
+Paperless archival and the final completion gate. It complements, but does not
+replace, the real-platform-authenticator check below. For the ordinary local
+Sign services, run:
 
 ```shell
 scripts/sign-services-bootstrap
@@ -32,11 +72,6 @@ docker compose build usl-sign-dss
 docker compose up -d usl-sign-step-ca usl-sign-dss
 docker compose exec -T odoo usl-sign-services-smoke
 ```
-
-For a development secret set created before manifest-key separation was
-introduced, run `scripts/sign-services-manifest-key-bootstrap` once, rebuild
-and recreate `usl-sign-dss`, then rerun the smoke test. The additive helper
-refuses to replace an existing manifest keystore or any CA/platform material.
 
 The bootstrap creates the offline/online CA material, restricted provisioner,
 platform seal, manifest key and mutually authenticated service certificates.
@@ -57,11 +92,6 @@ USL_SIGN_STEP_CA_PROVISIONER=usl-sign
 USL_SIGN_STEP_CA_JWK_FILE=/run/usl-sign/provisioner.jwk
 USL_SIGN_STEP_CA_CA_BUNDLE=/run/usl-sign/root_ca.crt
 ```
-
-The DSS deployment additionally requires separate mounted PKCS#12 credentials
-for `USL_DSS_PLATFORM_KEYSTORE` and `USL_DSS_MANIFEST_KEYSTORE`, with their
-passwords supplied through the secret environment. The service refuses to
-start if both purposes resolve to the same public key.
 
 Never enable `USL_SIGN_DSS_ALLOW_PLAINTEXT` outside a tightly isolated unit
 test. Configure an RFC 3161 TSA only after its trust, retention, privacy,
@@ -95,39 +125,6 @@ In each company:
 An empty provider catalog is safer than an unreviewed recommendation. Provider
 names are ordinary catalog data; adding one does not enable an integration.
 
-## Routine-agreement QA walkthrough
-
-Use synthetic names and a non-confidential PDF.
-
-Running `scripts/odoo-dev bootstrap-sign-qa` assigns the required Sign roles to
-the existing `valentin`, `roger@unstaticlabs.com`, and `prosper` Pocket ID
-accounts and creates the synthetic ready template. Switch users through Pocket
-ID with each account's registered passkey. Odoo-local passwords and Odoo-local
-passkeys remain disabled for Pocket ID-managed users, including in QA.
-
-1. Open **Sign**. Confirm the landing page groups Sign now, Decide, Prepare and
-   send, Resolve issues, Waiting on others and Recently completed.
-2. Click **Start → Request document signatures**. Choose a ready Routine
-   Agreement template or upload a one-off PDF.
-3. Add the signer or signers and their order. Confirm Standard is recommended,
-   read the business reason, then review and send.
-4. As the requester, open **Open Requests**. Confirm progress, next action, due
-   date and requested trust are visible without opening Proof & Validation.
-5. As the invited user, open **My Signatures → To sign**, or use the secure
-   invitation in a private browser. Review the sender, role, signing level and
-   deadline; complete the assigned fields, consent and confirm.
-6. Return as the requester. Completion must wait for DSS validation, evidence
-   construction and Paperless archival. If archival is deliberately stopped,
-   confirm Resolve issues shows the request and retry succeeds after recovery.
-7. Open **Library → Completed Documents**. Retrieve the final PDF, completion
-   certificate and evidence dossier. Confirm the request does not appear there
-   before validation and archival succeed.
-
-For a coordinator check, add a named coordinator before sending. Confirm they
-can prepare, remind and safely retry, but cannot change sharing or trust, send,
-or perform owner-only cancellation. Confirm an ordinary signer does not appear
-in Open Requests unless also named as coordinator or owner.
-
 ## Standard acceptance
 
 Use a synthetic, non-confidential PDF. Select the signer and a typed field,
@@ -135,7 +132,7 @@ then click the PDF to place it. Repeat with drag/drop and right-click; every
 path must show or retain the signer explicitly. Verify all supported field
 types, multiple pages, stable role colors, live recoloring after a role change,
 resize/move/delete, undo/redo, autosave and retry states, required markers,
-page navigation, zoom and keyboard use. Exercise a one-off
+role preview, page navigation, zoom and keyboard use. Exercise a one-off
 request and a reusable template on desktop, and confirm that narrow screens
 show the deliberate non-authoring state while mobile signing remains usable.
 
@@ -148,62 +145,96 @@ expiration, refusal and cancellation. Confirm that:
 - repeated actions/events are idempotent;
 - the platform seal validates under the local trust policy;
 - altering persisted PDF bytes fails validation;
-- two unordered signers cannot overwrite each other: a signer submitting an
-  older reviewed revision is asked to reload, and the earlier signature remains
-  intact;
-- consent evidence identifies both the exact reviewed revision and the
-  resulting signed revision;
 - the completion certificate uses cautious Standard wording;
 - archive failure leaves the request incomplete and retry recovers safely.
-
-The automated public-browser acceptance uses the actual PDF.js signer page and
-production submission route. It fills assigned typed fields, records explicit
-consent, applies the platform PAdES seal, validates with DSS and pyHanko, and
-builds the completion certificate and dossier. Because a newly created isolated
-test database has no Paperless API credential, that one test substitutes only a
-checksum-identical final transport response. Use `odoo_dev` for the separate
-real Paperless connectivity and recovery check; do not describe the isolated
-browser test as a live Paperless upload.
 
 ## Strong-personal acceptance
 
 Use a real platform authenticator in a supported browser. Record the browser,
 OS and authenticator actually tested; do not advertise an untested platform.
-The RP ID and allowed HTTPS origin must exactly match the production host.
+The dedicated Pocket ID Sign client and callback must exactly match the
+production Odoo host. Strict discovery capability is mandatory.
 
-The clean `scripts/odoo-dev test usl_sign NAME` run starts the local DSS and
-CA services and exercises enrolment and signing through Chromium with a virtual
-platform authenticator. It covers the real WebAuthn verification, browser
-worker, non-exportable document key, certificate issuance, personal PAdES,
-DSS validation and network-payload boundary. This is repeatable integration
-evidence, but it does not replace the real-device checks below.
+For the isolated worktree tenant, start the stack and create a short-lived
+account-settings link for the synthetic Roger user:
+
+```bash
+scripts/sign-pocketid-stack start
+python3 scripts/pocket_id_dev.py --env-file .sign-pocketid-6605.env \
+  one-time-link roger --ttl 16m
+```
+
+Pocket ID uses six-character login codes at lifetimes of fifteen minutes or
+less. This QA tenant disables code-based Strong authorization, so the manual
+onboarding link deliberately uses sixteen minutes and redirects directly to
+account settings. Open it in the browser being tested and add the real
+platform passkey. The credential is scoped to the isolated
+`pocket-id-sign-6605.localhost` relying party.
+
+Prepare the reviewed browser journey and copy the IDs and URLs printed after
+each command:
+
+```bash
+scripts/sign-pocketid-stack strong-acceptance-prepare touchid-qa real_platform
+# Open invitation_url and connect the same Pocket ID account.
+scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID touchid-qa
+# Open signing_url, consent, and complete the fresh passkey signature.
+scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID
+```
+
+The prepare command records whether the run used a virtual or real platform
+authenticator. Never label a virtual-credential result as Touch ID, Face ID,
+Windows Hello or another platform product.
 
 1. Create an enrolment for a synthetic known partner and record the relationship
    basis, reviewer and identity policy.
-2. Register one passkey, then a recovery passkey.
-3. Sign a frozen request with user verification.
+2. Connect the correct Pocket ID subject and have an identity reviewer confirm
+   it. Add and recover passkeys in Pocket ID, not Odoo.
+3. Sign a frozen request through the dedicated Pocket ID popup with a fresh
+   passkey interaction.
 4. Inspect browser network traffic and assert that no private JWK, PKCS#8,
    seed, private `CryptoKey` or equivalent key material left the worker.
-5. Verify the CSR/public-key hash and exact document hash are in the one-time
-   challenge, the certificate expires within ten minutes and renewal is
-   unavailable.
+5. Verify the CSR/public-key hash and exact document hash are in the canonical
+   binding; its digest equals the signed OIDC nonce. Confirm `amr` contains
+   `phr`, `auth_time` follows ceremony creation, the certificate expires within
+   ten minutes and renewal is unavailable.
 6. Verify the personal PAdES and final platform seal with DSS and pyHanko.
 7. Repeat with ordered strong signers and confirm each covers the prior PDF
    revision.
-8. Try replay, a different document, a stale ceremony, a revoked credential,
-   a lost passkey, invalid origin/RP ID, absent user verification and a reused
-   certificate token; each must fail closed.
+8. Try replay, a different document or CSR, a stale ceremony, OTP login, wrong
+   Pocket subject/group, a revoked enrolment, missing strict capability and a
+   reused certificate token; each must fail closed.
 9. Re-enrol after revocation and confirm earlier completed signatures are
    unchanged.
-10. Open the same signer journey in two tabs. A new unused challenge may
-    replace the earlier challenge, but a second authorization or finalization
-    must not issue or persist another result. Confirm the
-    `usl_sign_ceremony_active_signer_unique` index is installed and no signer
-    has more than one `challenge`/`authorized` ceremony.
 
 If DSS, CA or TSA is unavailable, never bypass the ceremony. Keep the request
 in an actionable failure/waiting state and retry only after service health is
 restored.
+
+### Recorded real-platform acceptance
+
+The isolated worktree acceptance completed on 2026-08-06 with Chrome
+150.0.7871.187 on macOS 26.6 arm64 and the Pocket ID credential named
+`Chrome on Mac Passkey`. Touch ID was approved for both identity connection
+and the document-bound signing authorization. Disposable QA request 23 and
+ceremony 10 completed with:
+
+- `amr=["phr"]` and an authentication time after ceremony creation;
+- canonical binding SHA-256
+  `ffc64126f505816441a353d68cd9cd8539ec0065ff0be6b7b714aeb7213f95a5`;
+- exact document SHA-256
+  `7ab6576a1338e000eb465b8d5f36f4d5a5fd951ba58dc15266893f05c1212c64`;
+- a 600-second personal certificate and achieved `PAdES_BASELINE_B`;
+- final PDF SHA-256
+  `9ebaed38328baf401ffce9ff9b714762997d47f6d905590699f942a84856ecfd`;
+- valid EU DSS 6.4 validation, complete evidence, a valid event chain and
+  Paperless dossier 17 archived.
+
+The automated CDP acceptance separately proves that no private JWK, PKCS#8,
+seed or private `CryptoKey` appears in browser traffic while exercising the
+same worker and ceremony code. The real-platform run proves Touch ID and the
+platform credential path; do not misdescribe the virtual traffic capture as a
+manual DevTools recording of the real Touch ID session.
 
 ## Qualified-external acceptance
 
@@ -219,11 +250,7 @@ correct, the chain and timestamps validate, the trust provider and qualified
 certificate/device indications are trusted, and QES was actually achieved.
 Exercise modified PDF, signer mismatch, invalid/untrusted chain and
 insufficient-level samples; all must become `Validation failed` without a
-downgrade or manual completion option. The rejected PDF and provider proof are
-retained as explicitly unverified evidence. The requester then uses **Create
-replacement** to receive a clean draft containing only the reviewed source
-documents, layout, signers and policy choices; failed validation records,
-external transactions and proof are never copied into the replacement.
+downgrade or manual completion option.
 
 ## Evidence and archival operations
 

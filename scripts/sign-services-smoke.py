@@ -142,6 +142,35 @@ def main():
     assert replay.status_code >= 400, "step-ca accepted a reused one-time token"
 
     source = minimal_pdf()
+    personal_prepared = dss.data_to_sign(
+        source,
+        issued["certificate"],
+        certificate_chain=issued["chain"],
+        request_reference="USL-SIGN-PERSONAL-SMOKE",
+    )
+    personal_signature = key.sign(
+        base64.b64decode(personal_prepared["dataToSign"]),
+        ec.ECDSA(hashes.SHA256()),
+    )
+    personal_embedded = dss.embed_signature(
+        source,
+        issued["certificate"],
+        personal_signature,
+        request_reference="USL-SIGN-PERSONAL-SMOKE",
+        signing_context=personal_prepared["signingContext"],
+    )
+    personal_pdf = base64.b64decode(personal_embedded["document"])
+    personal_validation = dss.validate(
+        personal_pdf,
+        expected_level="strong_personal",
+    )
+    assert personal_validation["status"] == "valid", json.dumps(
+        personal_validation, indent=2
+    )[:12000]
+    assert personal_validation["achievedTrust"] == "strong_personal"
+    personal_cross_validation = dss.cross_validate(personal_pdf)
+    assert personal_cross_validation["status"] == "valid"
+
     sealed = dss.seal(source, request_reference="USL-SIGN-SMOKE")
     signed = base64.b64decode(sealed["document"])
     validation = dss.validate(signed, expected_level="standard")

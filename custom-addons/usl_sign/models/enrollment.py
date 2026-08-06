@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 from .constants import INTERNAL_OPERATION
@@ -16,21 +16,20 @@ class SignEnrollment(models.Model):
     _order = "create_date desc, id desc"
 
     partner_id = fields.Many2one(
-        "res.partner", required=True, index=True, ondelete="restrict", tracking=True,
+        "res.partner", required=True, index=True, ondelete="restrict",
     )
     company_id = fields.Many2one(
         "res.company", required=True, default=lambda self: self.env.company, index=True,
     )
     state = fields.Selection(
         [
+            ("pending_pocket", "Pocket ID connection required"),
             ("pending_review", "Identity review required"),
-            ("pending_passkey", "Passkey registration required"),
             ("active", "Active"),
             ("revoked", "Revoked"),
         ],
         required=True,
-        default="pending_review",
-        tracking=True,
+        default="pending_pocket",
     )
     relationship_basis = fields.Selection(
         [
@@ -46,13 +45,16 @@ class SignEnrollment(models.Model):
     reviewed_at = fields.Datetime(readonly=True)
     policy_version = fields.Char(required=True, default="1")
     review_note = fields.Text()
-    passkey_ids = fields.One2many("usl.sign.passkey", "enrollment_id")
-    active_passkey_count = fields.Integer(compute="_compute_active_passkey_count")
-    recovery_ready = fields.Boolean(compute="_compute_active_passkey_count")
+    pocket_issuer = fields.Char(readonly=True, copy=False, index=True)
+    pocket_subject = fields.Char(readonly=True, copy=False, index=True)
+    pocket_subject_fingerprint = fields.Char(readonly=True, copy=False, index=True)
+    pocket_email = fields.Char(readonly=True, copy=False)
+    pocket_display_name = fields.Char(readonly=True, copy=False)
+    pocket_linked_at = fields.Datetime(readonly=True, copy=False)
+    pocket_last_authorized_at = fields.Datetime(readonly=True, copy=False)
+    pocket_authentication_method = fields.Char(readonly=True, copy=False)
     invitation_token_sha256 = fields.Char(readonly=True, copy=False, index=True)
     invitation_expires_at = fields.Datetime(readonly=True, copy=False)
-    registration_challenge = fields.Binary(readonly=True, copy=False)
-    registration_challenge_expires_at = fields.Datetime(readonly=True, copy=False)
     revoked_at = fields.Datetime(readonly=True)
     status_changed_at = fields.Datetime(readonly=True)
     status_changed_by_id = fields.Many2one("res.users", readonly=True, ondelete="restrict")
@@ -68,18 +70,17 @@ class SignEnrollment(models.Model):
              WHERE state <> 'revoked'
             """,
         )
-
-    @api.depends("passkey_ids.state")
-    def _compute_active_passkey_count(self):
-        for enrollment in self:
-            enrollment.active_passkey_count = len(
-                enrollment.passkey_ids.filtered(lambda key: key.state == "active"),
-            )
-            enrollment.recovery_ready = enrollment.active_passkey_count >= 2
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS usl_sign_enrollment_pocket_unique
+                ON usl_sign_enrollment (company_id, pocket_issuer, pocket_subject)
+             WHERE state <> 'revoked' AND pocket_subject IS NOT NULL
+            """,
+        )
 
     def action_confirm_identity(self):
         self.ensure_one()
-        if self.state != "pending_review":
+        if self.state != "pending_review" or not self.pocket_subject:
             msg = "Only a pending identity review can be confirmed."
             raise ValidationError(msg)
         if not self.env.user.has_group("usl_sign.group_sign_identity_reviewer"):
@@ -87,17 +88,20 @@ class SignEnrollment(models.Model):
             raise AccessError(msg)
         self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
             {
-                "state": "pending_passkey",
+                "state": "active",
                 "reviewer_id": self.env.user.id,
                 "reviewed_at": fields.Datetime.now(),
+                "status_changed_at": fields.Datetime.now(),
+                "status_changed_by_id": self.env.user.id,
+                "status_reason": "Pocket ID identity reviewed",
             },
         )
-        return self.action_create_invitation()
+        return True
 
     def action_create_invitation(self):
         self.ensure_one()
-        if self.state not in {"pending_passkey", "active"}:
-            msg = "Confirm the signer identity before registering a passkey."
+        if self.state != "pending_pocket":
+            msg = "Only an enrolment waiting for Pocket ID can be connected."
             raise ValidationError(msg)
         token = secrets.token_urlsafe(32)
         self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
@@ -123,11 +127,39 @@ class SignEnrollment(models.Model):
             not valid
             or not self.invitation_expires_at
             or self.invitation_expires_at < fields.Datetime.now()
-            or self.state not in {"pending_passkey", "active"}
+            or self.state != "pending_pocket"
         ):
             msg = "This enrolment invitation is invalid or expired."
             raise AccessError(msg)
         return True
+
+    def _bind_pocket_identity(self, *, issuer, claims):
+        self.ensure_one()
+        if self.state != "pending_pocket":
+            raise ValidationError("This Pocket ID enrolment is no longer available.")
+        subject = claims.get("sub")
+        if not isinstance(subject, str) or not subject:
+            raise ValidationError("Pocket ID did not return a stable identity subject.")
+        fingerprint = hashlib.sha256(f"{issuer}\0{subject}".encode()).hexdigest()[:16]
+        display_name = claims.get("name") or claims.get("preferred_username") or subject
+        self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
+            {
+                "state": "pending_review",
+                "pocket_issuer": issuer,
+                "pocket_subject": subject,
+                "pocket_subject_fingerprint": fingerprint,
+                "pocket_email": claims.get("email"),
+                "pocket_display_name": display_name,
+                "pocket_linked_at": fields.Datetime.now(),
+                "pocket_last_authorized_at": fields.Datetime.now(),
+                "pocket_authentication_method": "phr",
+                "invitation_token_sha256": False,
+                "invitation_expires_at": False,
+                "status_changed_at": fields.Datetime.now(),
+                "status_reason": "Pocket ID identity connected; reviewer confirmation required",
+            },
+        )
+        return fingerprint
 
     def action_revoke(self, reason=None):
         for enrollment in self:
@@ -139,10 +171,6 @@ class SignEnrollment(models.Model):
             if not self.env.user.has_group("usl_sign.group_sign_identity_reviewer"):
                 msg = "Identity reviewer access is required."
                 raise AccessError(msg)
-            for passkey in enrollment.passkey_ids.filtered(
-                lambda key: key.state == "active",
-            ):
-                passkey._mark_unavailable("revoked", reason)
             now = fields.Datetime.now()
             enrollment.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
                 {
@@ -154,6 +182,20 @@ class SignEnrollment(models.Model):
                     "status_reason": reason,
                     "invitation_token_sha256": False,
                     "invitation_expires_at": False,
+                },
+            )
+            ceremonies = self.env["usl.sign.ceremony"].sudo().search(
+                [
+                    ("enrollment_id", "=", enrollment.id),
+                    ("state", "in", ["challenge", "authorizing", "authorized"]),
+                ],
+            )
+            ceremonies.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
+                {
+                    "state": "failed",
+                    "failure_code": "enrollment_revoked",
+                    "data_to_sign": False,
+                    "dss_signing_context": False,
                 },
             )
             enrollment.flush_recordset(["state"])
@@ -179,8 +221,14 @@ class SignEnrollment(models.Model):
             "reviewed_at",
             "invitation_token_sha256",
             "invitation_expires_at",
-            "registration_challenge",
-            "registration_challenge_expires_at",
+            "pocket_issuer",
+            "pocket_subject",
+            "pocket_subject_fingerprint",
+            "pocket_email",
+            "pocket_display_name",
+            "pocket_linked_at",
+            "pocket_last_authorized_at",
+            "pocket_authentication_method",
             "revoked_at",
             "status_changed_at",
             "status_changed_by_id",
@@ -192,9 +240,7 @@ class SignEnrollment(models.Model):
         ) is not INTERNAL_OPERATION:
             msg = "Use a controlled identity-enrolment action."
             raise AccessError(msg)
-        if self.filtered(lambda enrollment: enrollment.state == "revoked") and set(
-            values,
-        ) - {"message_follower_ids", "activity_ids"}:
+        if self.filtered(lambda enrollment: enrollment.state == "revoked") and values:
             msg = "A revoked identity enrolment is immutable."
             raise ValidationError(msg)
         return super().write(values)
@@ -202,180 +248,6 @@ class SignEnrollment(models.Model):
     def unlink(self):
         msg = "Identity enrolments cannot be deleted; revoke them instead."
         raise AccessError(msg)
-
-
-class SignPasskey(models.Model):
-    _name = "usl.sign.passkey"
-    _description = "Strong Signer Passkey"
-    _order = "create_date desc, id desc"
-
-    enrollment_id = fields.Many2one(
-        "usl.sign.enrollment", required=True, index=True, ondelete="restrict",
-    )
-    company_id = fields.Many2one(related="enrollment_id.company_id", store=True, index=True)
-    partner_id = fields.Many2one(related="enrollment_id.partner_id", store=True, index=True)
-    name = fields.Char(required=True)
-    state = fields.Selection(
-        [("active", "Active"), ("lost", "Lost"), ("revoked", "Revoked")],
-        required=True,
-        default="active",
-    )
-    credential_id = fields.Char(required=True, index=True, readonly=True)
-    public_key = fields.Binary(required=True, readonly=True)
-    sign_count = fields.Integer(default=0, readonly=True)
-    aaguid = fields.Char(readonly=True)
-    transports = fields.Json(readonly=True)
-    device_type = fields.Char(readonly=True)
-    backed_up = fields.Boolean(readonly=True)
-    created_at = fields.Datetime(default=fields.Datetime.now, required=True, readonly=True)
-    last_used_at = fields.Datetime(readonly=True)
-    revoked_at = fields.Datetime(readonly=True)
-    status_changed_at = fields.Datetime(readonly=True)
-    status_changed_by_id = fields.Many2one("res.users", readonly=True, ondelete="restrict")
-    status_reason = fields.Text(readonly=True)
-
-    _credential_unique = models.Constraint(
-        "UNIQUE(credential_id)", "This passkey is already registered.",
-    )
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        if self.env.context.get("usl_sign_passkey_registration") is not INTERNAL_OPERATION:
-            msg = "Passkeys can only be created through registration."
-            raise AccessError(msg)
-        return super().create(vals_list)
-
-    def write(self, values):
-        permitted = (
-            self.env.context.get("usl_sign_passkey_use") is INTERNAL_OPERATION
-            or self.env.context.get("usl_sign_revoke") is INTERNAL_OPERATION
-        )
-        if not permitted:
-            msg = "Passkeys can only change through controlled ceremonies."
-            raise AccessError(msg)
-        return super().write(values)
-
-    def action_mark_lost(self):
-        self.ensure_one()
-        return self._status_wizard_action("lost")
-
-    def action_revoke(self):
-        self.ensure_one()
-        return self._status_wizard_action("revoked")
-
-    def _status_wizard_action(self, status):
-        if self.state != "active":
-            msg = "Only an active passkey can be marked unavailable."
-            raise ValidationError(msg)
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": "usl.sign.passkey.status.wizard",
-            "view_mode": "form",
-            "target": "new",
-            "context": {
-                "default_passkey_id": self.id,
-                "default_status": status,
-            },
-        }
-
-    def _mark_unavailable(self, status, reason):
-        self.ensure_one()
-        if status not in {"lost", "revoked"}:
-            msg = "Choose a valid passkey status."
-            raise ValidationError(msg)
-        if self.state != "active":
-            msg = "Only an active passkey can be marked unavailable."
-            raise ValidationError(msg)
-        if not reason:
-            msg = "Record why this passkey is unavailable."
-            raise ValidationError(msg)
-        if not self.env.user.has_group("usl_sign.group_sign_identity_reviewer"):
-            msg = "Identity reviewer access is required."
-            raise AccessError(msg)
-        now = fields.Datetime.now()
-        self.with_context(usl_sign_revoke=INTERNAL_OPERATION).write(
-            {
-                "state": status,
-                "revoked_at": now,
-                "status_changed_at": now,
-                "status_changed_by_id": self.env.user.id,
-                "status_reason": reason,
-            },
-        )
-        # The reviewer controls passkey status, while the ceremony and request proof
-        # remain restricted to evidence reviewers. Apply only the resulting, scoped
-        # invalidations with elevated access and keep the human reviewer in the event
-        # payload and passkey status fields.
-        ceremonies = self.env["usl.sign.ceremony"].sudo().search(
-            [
-                ("enrollment_id", "=", self.enrollment_id.id),
-                ("state", "in", ["challenge", "authorized"]),
-            ],
-        )
-        ceremonies.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-            {
-                "state": "failed",
-                "failure_code": f"credential_{status}",
-                "dss_signing_context": False,
-            },
-        )
-        ceremonies.mapped("signer_id").filtered(
-            lambda signer: signer.state == "authorized" and not signer.signed_on,
-        ).with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write({"state": "notified"})
-        enrollment = self.enrollment_id
-        if not enrollment.passkey_ids.filtered(lambda key: key.state == "active"):
-            enrollment.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
-                {
-                    "state": "pending_passkey",
-                    "invitation_token_sha256": False,
-                    "invitation_expires_at": False,
-                    "status_changed_at": now,
-                    "status_changed_by_id": self.env.user.id,
-                    "status_reason": reason,
-                },
-            )
-            requests = ceremonies.mapped("request_id") | self.env[
-                "sign.oca.request"
-            ].sudo().search(
-                [
-                    ("requested_trust", "=", "strong_personal"),
-                    ("state", "in", ["sent", "viewed", "partial"]),
-                    ("signer_ids.partner_id", "=", enrollment.partner_id.id),
-                ],
-            )
-            for sign_request in requests.filtered(
-                lambda request: request.state in {"sent", "viewed", "partial"},
-            ):
-                sign_request._transition(
-                    "waiting_enrollment",
-                    "passkey_unavailable",
-                    payload={
-                        "enrollment_id": enrollment.id,
-                        "passkey_id": self.id,
-                        "reviewer_id": self.env.user.id,
-                    },
-                )
-        return True
-
-    def unlink(self):
-        msg = "Passkeys cannot be deleted; revoke them instead."
-        raise AccessError(msg)
-
-
-class SignPasskeyStatusWizard(models.TransientModel):
-    _name = "usl.sign.passkey.status.wizard"
-    _description = "Mark a Strong Signer Passkey Unavailable"
-
-    passkey_id = fields.Many2one("usl.sign.passkey", required=True, readonly=True)
-    status = fields.Selection(
-        [("lost", "Lost"), ("revoked", "Revoked")], required=True, readonly=True,
-    )
-    reason = fields.Text(required=True)
-
-    def action_apply(self):
-        self.ensure_one()
-        self.passkey_id._mark_unavailable(self.status, self.reason)
-        return {"type": "ir.actions.act_window_close"}
 
 
 class SignEnrollmentRevokeWizard(models.TransientModel):
@@ -405,11 +277,11 @@ class SignCeremony(models.Model):
     enrollment_id = fields.Many2one(
         "usl.sign.enrollment", required=True, ondelete="restrict",
     )
-    passkey_id = fields.Many2one("usl.sign.passkey", ondelete="restrict")
     company_id = fields.Many2one(related="request_id.company_id", store=True, index=True)
     state = fields.Selection(
         [
             ("challenge", "Authorization challenge"),
+            ("authorizing", "Pocket ID authorization"),
             ("authorized", "Authorized"),
             ("completed", "Completed"),
             ("expired", "Expired"),
@@ -438,8 +310,27 @@ class SignCeremony(models.Model):
     issuance_receipt = fields.Json(readonly=True)
     pades_level = fields.Char(readonly=True)
     data_to_sign_sha256 = fields.Char(readonly=True)
+    data_to_sign = fields.Text(
+        readonly=True,
+        copy=False,
+        groups="usl_sign.group_sign_evidence_reviewer",
+    )
     dss_signing_context = fields.Char(readonly=True)
     failure_code = fields.Char(readonly=True)
+    oidc_state_sha256 = fields.Char(readonly=True, copy=False, index=True)
+    oidc_nonce = fields.Char(readonly=True, copy=False)
+    oidc_issuer = fields.Char(readonly=True, copy=False)
+    oidc_subject = fields.Char(readonly=True, copy=False)
+    oidc_auth_time = fields.Datetime(readonly=True, copy=False)
+    oidc_claims_summary = fields.Json(readonly=True, copy=False)
+    oidc_discovery_snapshot = fields.Json(readonly=True, copy=False)
+    oidc_jwks_snapshot = fields.Json(readonly=True, copy=False)
+    oidc_validation_result = fields.Json(readonly=True, copy=False)
+    oidc_id_token = fields.Text(
+        readonly=True,
+        copy=False,
+        groups="usl_sign.group_sign_evidence_reviewer",
+    )
 
     def init(self):
         """Keep one live document-key ceremony per signer at the database boundary."""
@@ -447,7 +338,7 @@ class SignCeremony(models.Model):
             """
             CREATE UNIQUE INDEX IF NOT EXISTS usl_sign_ceremony_active_signer_unique
                 ON usl_sign_ceremony (signer_id)
-             WHERE state IN ('challenge', 'authorized')
+             WHERE state IN ('challenge', 'authorizing', 'authorized')
             """,
         )
 

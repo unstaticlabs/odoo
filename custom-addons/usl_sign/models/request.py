@@ -683,7 +683,7 @@ class SignRequest(models.Model):
             msg = "Choose an active external provider reviewed for this company."
             raise ValidationError(msg)
         planned_authentication = (
-            "passkey"
+            "pocket_id_passkey"
             if self.requested_trust == "strong_personal"
             else self.policy_id.default_authentication or "secure_link"
         )
@@ -984,7 +984,7 @@ class SignRequest(models.Model):
         digest = hashlib.sha256(consolidated).hexdigest()
         consent_text = (
             "I have reviewed this exact document and authorize my strong personal "
-            "electronic signature using my passkey."
+            "electronic signature using my Pocket ID passkey."
             if self.requested_trust == "strong_personal"
             else "I have reviewed this document and consent to use an electronic "
             "signature for this request."
@@ -1085,7 +1085,7 @@ class SignRequest(models.Model):
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                 {
                     "sent_at": fields.Datetime.now(),
-                    "authentication_method": "passkey"
+                    "authentication_method": "pocket_id_passkey"
                     if request.requested_trust == "strong_personal"
                     else request.policy_id.default_authentication or "secure_link",
                 },
@@ -1108,7 +1108,10 @@ class SignRequest(models.Model):
                 msg = "Every strong signer must complete enrolment first."
                 raise ValidationError(msg)
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
-                {"sent_at": fields.Datetime.now(), "authentication_method": "passkey"},
+                {
+                    "sent_at": fields.Datetime.now(),
+                    "authentication_method": "pocket_id_passkey",
+                },
             )
             target_state = "partial" if request.signer_ids.filtered("signed_on") else "sent"
             request._transition(target_state, "strong_enrollment_complete")
@@ -1941,7 +1944,8 @@ class SignRequest(models.Model):
             },
         ]
         for evidence in self.evidence_ids.filtered(
-            lambda row: row.kind not in {"manifest", "dossier", "signed"},
+            lambda row: row.kind
+            not in {"authentication", "manifest", "dossier", "signed"},
         ):
             artifacts.append(
                 {
@@ -1952,6 +1956,34 @@ class SignRequest(models.Model):
                     "description": dict(evidence._fields["kind"].selection).get(
                         evidence.kind, "Evidence artifact",
                     ),
+                },
+            )
+        for evidence in self.evidence_ids.filtered(
+            lambda row: row.kind == "authentication",
+        ):
+            metadata = evidence.metadata or {}
+            summary = {
+                "format": "usl-sign-authentication-summary-v1",
+                "artifact_sha256": evidence.sha256,
+                "ceremony_id": metadata.get("ceremony_id"),
+                "issuer": metadata.get("issuer"),
+                "subject_fingerprint": metadata.get("subject_fingerprint"),
+                "auth_time": metadata.get("auth_time"),
+                "claims": metadata.get("claims"),
+                "validation": metadata.get("validation"),
+            }
+            artifacts.append(
+                {
+                    "name": f"authentication-summary-{evidence.id}.json",
+                    "content": json.dumps(
+                        summary,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                        ensure_ascii=False,
+                    ).encode(),
+                    "mimetype": "application/json",
+                    "relationship": "Supplement",
+                    "description": "Validated Pocket ID passkey authorization summary",
                 },
             )
         result = self._sign_dss_client().build_dossier(
@@ -2258,7 +2290,7 @@ class SignRequest(models.Model):
         )._send_due_reminders()
         ceremonies = self.env["usl.sign.ceremony"].search(
             [
-                ("state", "in", ["challenge", "authorized"]),
+                ("state", "in", ["challenge", "authorizing", "authorized"]),
                 ("expires_at", "<=", now),
             ],
             limit=200,
@@ -2270,13 +2302,14 @@ class SignRequest(models.Model):
             ceremony.request_id._append_event(
                 "strong_ceremony_expired",
                 signer=ceremony.signer_id,
-                authentication_method="passkey",
+                authentication_method="pocket_id_passkey",
                 payload={"ceremony_id": ceremony.id},
             )
         ceremonies.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
             {
                 "state": "expired",
                 "failure_code": "ceremony_expired",
+                "data_to_sign": False,
                 "dss_signing_context": False,
             },
         )
@@ -2347,10 +2380,15 @@ class SignRequest(models.Model):
         self.env["usl.sign.ceremony"].search(
             [
                 ("request_id", "=", self.id),
-                ("state", "in", ["challenge", "authorized"]),
+                ("state", "in", ["challenge", "authorizing", "authorized"]),
             ],
         ).with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-            {"state": "failed", "failure_code": failure_code, "dss_signing_context": False},
+            {
+                "state": "failed",
+                "failure_code": failure_code,
+                "data_to_sign": False,
+                "dss_signing_context": False,
+            },
         )
 
     def action_retry_validation(self):
@@ -2688,7 +2726,6 @@ class SignRequestSigner(models.Model):
                 ("partner_id", "=", self.partner_id.id),
                 ("company_id", "=", self.request_id.company_id.id),
                 ("state", "=", "active"),
-                ("passkey_ids.state", "=", "active"),
             ],
             limit=1,
         )

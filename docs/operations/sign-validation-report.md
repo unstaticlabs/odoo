@@ -2,6 +2,40 @@
 
 Status date: 2026-08-06
 
+## Paused post-merge checkpoint
+
+The journey-led productization work was paused after merging the completed
+Pocket ID passkey branch. The merge keeps Pocket ID as the passkey owner and
+keeps Odoo responsible for document binding, consent, identity review,
+certificates, PAdES, evidence and workflow. The merged source has not been
+deployed or revalidated; the results below describe evidence produced on the
+two parent implementations and must not be presented as a fresh merged-build
+result.
+
+Pending work when development resumes:
+
+- Review the complete merged diff, especially the shared request lifecycle,
+  enrolment rules, strong-signing controller, portal templates and evidence
+  boundary.
+- Reconcile this older validation narrative with the Pocket ID product and
+  runbook wording; remove obsolete Odoo-owned WebAuthn/RP references.
+- Adapt or split `test_strong_browser.py`: keep its requester, Standard mobile
+  and workspace acceptance coverage, but replace its obsolete Odoo-owned
+  virtual WebAuthn ceremony with the Pocket ID acceptance harness.
+- Rebuild disposable Sign data from the final modules, then install or upgrade
+  `usl_pocketid` and `usl_sign` in `odoo_dev` with the dedicated Sign OIDC
+  client and external secrets.
+- Run clean-install Odoo tests, desktop/mobile frontend tests, Pocket ID Go
+  tests, DSS/pyHanko/veraPDF checks, Paperless acceptance, the Sign clean
+  boundary, `make product-migration-boundary`, and the end-to-end requester and
+  signer journeys.
+- Confirm the final registry and source contain no Odoo-owned passkey models,
+  credential material, WebAuthn registration ceremony, legacy provider code
+  or stale configuration UI.
+- Refresh this report using only post-merge evidence. Preserve the independent
+  legal/security audit, additional authenticator/browser, TSA/PAdES-T/LT and
+  qualified-external sample limitations until they are genuinely closed.
+
 ## Outcome and product boundary
 
 USL Sign is implemented as the product extension `usl_sign` over the pinned,

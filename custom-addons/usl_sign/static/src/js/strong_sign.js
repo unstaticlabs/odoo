@@ -7,68 +7,13 @@ async function rpc(route, params) {
     });
     const payload = await response.json();
     if (!response.ok || payload.error) {
-        throw new Error(payload.error?.data?.message || payload.error?.message || "The secure operation failed.");
+        throw new Error(
+            payload.error?.data?.message ||
+                payload.error?.message ||
+                "The secure operation failed."
+        );
     }
     return payload.result;
-}
-
-function decodeBase64Url(value) {
-    const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
-    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-    const binary = atob(padded);
-    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
-}
-
-function encodeBase64Url(value) {
-    let binary = "";
-    for (const byte of new Uint8Array(value)) {
-        binary += String.fromCharCode(byte);
-    }
-    return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-}
-
-function publicKeyOptions(options) {
-    const result = {...options, challenge: decodeBase64Url(options.challenge)};
-    if (result.user?.id) {
-        result.user = {...result.user, id: decodeBase64Url(result.user.id)};
-    }
-    for (const key of ["allowCredentials", "excludeCredentials"]) {
-        if (result[key]) {
-            result[key] = result[key].map((credential) => ({
-                ...credential,
-                id: decodeBase64Url(credential.id),
-            }));
-        }
-    }
-    return result;
-}
-
-function serializeCredential(credential) {
-    const response = credential.response;
-    const result = {
-        id: credential.id,
-        rawId: encodeBase64Url(credential.rawId),
-        type: credential.type,
-        authenticatorAttachment: credential.authenticatorAttachment,
-        clientExtensionResults: credential.getClientExtensionResults(),
-        response: {
-            clientDataJSON: encodeBase64Url(response.clientDataJSON),
-        },
-    };
-    for (const key of [
-        "attestationObject",
-        "authenticatorData",
-        "signature",
-        "userHandle",
-    ]) {
-        if (response[key]) {
-            result.response[key] = encodeBase64Url(response[key]);
-        }
-    }
-    if (response.getTransports) {
-        result.response.transports = response.getTransports();
-    }
-    return result;
 }
 
 function workerClient() {
@@ -99,32 +44,78 @@ function workerClient() {
     };
 }
 
+function delay(milliseconds) {
+    return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+function openPocketID() {
+    const popup = window.open(
+        "about:blank",
+        "usl_sign_pocketid",
+        "popup=yes,width=520,height=760,resizable=yes,scrollbars=yes"
+    );
+    if (!popup) {
+        throw new Error(
+            "Your browser blocked the Pocket ID window. Allow pop-ups for this page and try again."
+        );
+    }
+    return popup;
+}
+
+function navigatePocketID(popup, url) {
+    if (!popup || popup.closed) {
+        throw new Error(
+            "The Pocket ID window was closed. Start again when you are ready to use your passkey."
+        );
+    }
+    popup.location.replace(url);
+}
+
+async function poll(route, params, acceptedStates, timeoutSeconds) {
+    const deadline = Date.now() + timeoutSeconds * 1000;
+    while (Date.now() < deadline) {
+        const result = await rpc(route, params);
+        if (acceptedStates.includes(result.state)) {
+            return result;
+        }
+        if (["failed", "expired", "revoked"].includes(result.state)) {
+            throw new Error(
+                result.failure_code
+                    ? `Authorization stopped (${result.failure_code}). Start again.`
+                    : "Authorization stopped. Start again."
+            );
+        }
+        await delay(1000);
+    }
+    throw new Error("Pocket ID authorization timed out. Start again.");
+}
+
 async function enroll(container) {
     const button = document.getElementById("usl_enroll_button");
     const status = document.getElementById("usl_enroll_status");
     button.addEventListener("click", async () => {
-        button.disabled = true;
-        status.className = "mt-3 alert alert-info";
-        status.textContent = "Waiting for your passkey…";
+        // Open synchronously from the user gesture. Opening after the begin RPC
+        // is rejected by normal popup blockers in Chrome, Safari and Firefox.
+        let popup;
         try {
+            popup = openPocketID();
+            button.disabled = true;
+            status.className = "mt-3 alert alert-info";
+            status.textContent = "Opening Pocket ID…";
             const base = `/sign/enroll/${container.dataset.enrollmentId}/${container.dataset.enrollmentToken}`;
-            const options = await rpc(`${base}/begin`, {});
-            const credential = await navigator.credentials.create({
-                publicKey: publicKeyOptions(options),
-            });
-            const result = await rpc(`${base}/complete`, {
-                credential: serializeCredential(credential),
-                name: document.getElementById("usl_passkey_name").value,
-                transports: credential.response.getTransports?.() || [],
-            });
+            const started = await rpc(`${base}/begin`, {});
+            navigatePocketID(popup, started.authorization_url);
+            status.textContent = "Use your Pocket ID passkey in the new window.";
+            const result = await poll(`${base}/status`, {}, ["pending_review", "active"], 300);
+            popup?.close();
             status.className = "mt-3 alert alert-success";
-            status.textContent = result.recovery_ready
-                ? "Passkey registered. Recovery is ready."
-                : "Passkey registered. Add a second recovery passkey when possible.";
+            status.textContent = result.display_name
+                ? `Pocket ID connected as ${result.display_name}. An identity reviewer must now confirm the enrolment.`
+                : "Pocket ID connected. An identity reviewer must now confirm the enrolment.";
         } catch (error) {
+            popup?.close();
             status.className = "mt-3 alert alert-danger";
-            status.textContent = error.message || "Passkey registration failed.";
-        } finally {
+            status.textContent = error.message || "Pocket ID connection failed.";
             button.disabled = false;
         }
     });
@@ -142,9 +133,15 @@ async function strongSign(container) {
             status.textContent = "Review the document and confirm your consent first.";
             return;
         }
-        button.disabled = true;
-        const ceremonyWorker = workerClient();
+        // Keep the popup and document-key worker alive in the signing tab. The
+        // blank window must be created before any awaited operation so browser
+        // popup protection still recognises the explicit user action.
+        let popup;
+        let ceremonyWorker;
         try {
+            popup = openPocketID();
+            button.disabled = true;
+            ceremonyWorker = workerClient();
             status.className = "mt-3 alert alert-info";
             status.textContent = "Creating a one-use document key in this browser…";
             const generated = await ceremonyWorker.call("generate", {
@@ -155,15 +152,17 @@ async function strongSign(container) {
                 csr_pem: generated.csrPem,
                 consent: true,
             });
-            status.textContent = "Verify with your passkey…";
-            const credential = await navigator.credentials.get({
-                publicKey: publicKeyOptions(begin.options),
-            });
-            const authorization = await rpc(`${base}/authorize`, {
-                ceremony_id: begin.ceremony_id,
-                credential: serializeCredential(credential),
-            });
-            status.textContent = "Applying and independently validating your personal PAdES signature…";
+            navigatePocketID(popup, begin.authorization_url);
+            status.textContent = "Use your Pocket ID passkey in the new window.";
+            const authorization = await poll(
+                `${base}/status`,
+                {ceremony_id: begin.ceremony_id},
+                ["authorized"],
+                begin.expires_in
+            );
+            popup?.close();
+            status.textContent =
+                "Applying and independently validating your personal PAdES signature…";
             const signed = await ceremonyWorker.call("sign", {
                 dataToSign: authorization.data_to_sign,
             });
@@ -174,9 +173,11 @@ async function strongSign(container) {
             await ceremonyWorker.call("destroy");
             window.location.assign(result.redirect);
         } catch (error) {
-            ceremonyWorker.worker.terminate();
+            popup?.close();
+            ceremonyWorker?.worker.terminate();
             status.className = "mt-3 alert alert-danger";
-            status.textContent = error.message || "The strong signature could not be completed.";
+            status.textContent =
+                error.message || "The strong signature could not be completed.";
             button.disabled = false;
         }
     });
@@ -188,15 +189,20 @@ async function strongSign(container) {
 document.addEventListener("DOMContentLoaded", () => {
     const enrollment = document.getElementById("usl_strong_enrollment");
     const signing = document.getElementById("usl_strong_sign");
-    if (!window.isSecureContext || !window.PublicKeyCredential || !window.crypto?.subtle) {
-        const target = document.getElementById("usl_enroll_status") || document.getElementById("usl_strong_status");
-        const action = document.getElementById("usl_enroll_button") || document.getElementById("usl_strong_sign_button");
+    if (!window.isSecureContext || !window.crypto?.subtle || (signing && !window.Worker)) {
+        const target =
+            document.getElementById("usl_enroll_status") ||
+            document.getElementById("usl_strong_status");
+        const action =
+            document.getElementById("usl_enroll_button") ||
+            document.getElementById("usl_strong_sign_button");
         if (action) {
             action.disabled = true;
         }
         if (target) {
             target.className = "mt-3 alert alert-danger";
-            target.textContent = "This browser cannot perform the secure passkey ceremony. Use a current passkey-capable browser on a trusted device, or contact the sender to choose another permitted journey.";
+            target.textContent =
+                "Use a current browser in a secure HTTPS session, or ask the sender for another permitted journey.";
         }
         return;
     }
