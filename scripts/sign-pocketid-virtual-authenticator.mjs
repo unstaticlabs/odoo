@@ -42,6 +42,20 @@ function sleep(milliseconds) {
 }
 
 
+function stackAcceptance(command, ...args) {
+    const output = execFileSync(
+        join(ROOT, "scripts/sign-pocketid-stack"),
+        [command, ...args.map(String)],
+        {cwd: ROOT, encoding: "utf8"}
+    );
+    const marker = output.match(/^USL_SIGN_STRONG_ACCEPTANCE=(.+)$/m)?.[1];
+    if (!marker) {
+        throw new Error(`The ${command} fixture did not return its acceptance marker`);
+    }
+    return JSON.parse(marker);
+}
+
+
 async function waitFor(read, description, timeout = 15000) {
     const deadline = Date.now() + timeout;
     let lastError;
@@ -112,10 +126,10 @@ class CDPClient {
 }
 
 
-async function evaluate(client, sessionId, expression) {
+async function evaluate(client, sessionId, expression, {userGesture = false} = {}) {
     const result = await client.send(
         "Runtime.evaluate",
-        {expression, awaitPromise: true, returnByValue: true},
+        {expression, awaitPromise: true, returnByValue: true, userGesture},
         sessionId
     );
     if (result.exceptionDetails) {
@@ -139,6 +153,73 @@ async function clickVisibleButton(client, sessionId, labels) {
             if (!button) return false;
             button.click();
             return true;
+        })()`
+    );
+}
+
+
+async function clickPocketAuthorization(client, sessionId, assertedCount, description) {
+    const before = assertedCount.value;
+    const clicked = await waitFor(
+        () => clickVisibleButton(
+            client,
+            sessionId,
+            ["Authenticate", "Continue", "Log in", "Sign in", "Use passkey", "Use Passkey"]
+        ),
+        `${description} action`,
+        10000
+    );
+    if (!clicked) {
+        throw new Error(`${description} did not expose a Pocket ID action`);
+    }
+    await waitFor(
+        async () => {
+            const location = await evaluate(client, sessionId, "location.href");
+            return location.startsWith(REDIRECT_URI);
+        },
+        `${description} callback`,
+        30000
+    ).catch(async (error) => {
+        const diagnostic = await evaluate(
+            client,
+            sessionId,
+            `({url: location.href, text: (document.body?.innerText || "").slice(0, 900)})`
+        ).catch(() => ({url: "unavailable", text: ""}));
+        throw new Error(
+            `${error.message}; stopped at ${diagnostic.url}: ${diagnostic.text.replaceAll("\n", " | ")}`
+        );
+    });
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `document.body?.innerText?.includes("Pocket ID verified")`
+        ),
+        `${description} verification result`,
+        10000
+    );
+    if (assertedCount.value <= before) {
+        throw new Error(`${description} did not invoke the virtual passkey`);
+    }
+}
+
+
+async function jsonRpc(client, sessionId, route, params = {}) {
+    return evaluate(
+        client,
+        sessionId,
+        `(async () => {
+            const response = await fetch(${JSON.stringify(route)}, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({jsonrpc: "2.0", method: "call", params: ${JSON.stringify(params)}}),
+            });
+            const payload = await response.json();
+            if (!response.ok || payload.error) {
+                throw new Error(payload.error?.data?.message || payload.error?.message || "RPC failed");
+            }
+            return payload.result;
         })()`
     );
 }
@@ -337,6 +418,208 @@ async function authorizeFreshPasskey(client, sessionId, discovery, env, asserted
 }
 
 
+async function fullStrongAcceptance({
+    client,
+    sessionId,
+    authenticatorId,
+    credentials,
+    assertedCount,
+    networkRequests,
+    trackedSessions,
+}) {
+    const runId = randomBytes(5).toString("hex");
+    const prepared = stackAcceptance("strong-acceptance-prepare", runId);
+    await client.send("Fetch.disable", {}, sessionId);
+    await client.send("Page.navigate", {url: prepared.invitation_url}, sessionId);
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `document.readyState === "complete" && Boolean(document.getElementById("usl_enroll_button"))`
+        ),
+        "Odoo Strong enrolment page",
+        15000
+    );
+    const enrollmentUrl = new URL(prepared.invitation_url);
+    const enrollmentBase = enrollmentUrl.pathname;
+    const enrollmentBegin = await jsonRpc(
+        client,
+        sessionId,
+        `${enrollmentBase}/begin`
+    );
+    await client.send("Page.navigate", {url: enrollmentBegin.authorization_url}, sessionId);
+    await clickPocketAuthorization(
+        client,
+        sessionId,
+        assertedCount,
+        "Pocket ID enrolment"
+    );
+
+    const reviewed = stackAcceptance(
+        "strong-acceptance-review",
+        prepared.enrollment_id,
+        runId
+    );
+    await client.send("Page.navigate", {url: reviewed.signing_url}, sessionId);
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `document.readyState === "complete"
+                && Boolean(document.getElementById("usl_strong_sign_button"))`
+        ),
+        "Odoo Strong signing page",
+        20000
+    );
+
+    const targetsBefore = new Set(
+        (await client.send("Target.getTargets")).targetInfos.map((target) => target.targetId)
+    );
+    await evaluate(
+        client,
+        sessionId,
+        `(() => {
+            document.getElementById("usl_strong_consent").click();
+            document.getElementById("usl_strong_sign_button").click();
+            return true;
+        })()`,
+        {userGesture: true}
+    );
+    const popupTarget = await waitFor(
+        async () => {
+            const targets = (await client.send("Target.getTargets")).targetInfos;
+            return targets.find(
+                (target) => target.type === "page" && !targetsBefore.has(target.targetId)
+            );
+        },
+        "Strong Pocket ID popup",
+        20000
+    ).catch(async (error) => {
+        const targets = (await client.send("Target.getTargets")).targetInfos.map(
+            ({targetId, type, url}) => ({
+                isNew: !targetsBefore.has(targetId),
+                type,
+                url,
+            })
+        );
+        const diagnostic = await evaluate(
+            client,
+            sessionId,
+            `({
+                buttonDisabled: document.getElementById("usl_strong_sign_button")?.disabled,
+                status: document.getElementById("usl_strong_status")?.innerText,
+                url: location.href,
+            })`
+        );
+        throw new Error(
+            `${error.message}; signer page=${JSON.stringify(diagnostic)}; targets=${JSON.stringify(targets)}`
+        );
+    });
+    const popupAttachment = await client.send(
+        "Target.attachToTarget",
+        {targetId: popupTarget.targetId, flatten: true}
+    );
+    const popupSession = popupAttachment.sessionId;
+    trackedSessions.add(popupSession);
+    await Promise.all([
+        client.send("Page.enable", {}, popupSession),
+        client.send("Runtime.enable", {}, popupSession),
+        client.send("Network.enable", {}, popupSession),
+        client.send("WebAuthn.enable", {}, popupSession),
+    ]);
+    const popupAuthenticator = await client.send(
+        "WebAuthn.addVirtualAuthenticator",
+        {
+            options: {
+                protocol: "ctap2",
+                transport: "internal",
+                hasResidentKey: true,
+                hasUserVerification: true,
+                isUserVerified: true,
+                automaticPresenceSimulation: true,
+            },
+        },
+        popupSession
+    );
+    for (const credential of credentials) {
+        await client.send(
+            "WebAuthn.addCredential",
+            {authenticatorId: popupAuthenticator.authenticatorId, credential},
+            popupSession
+        );
+    }
+    const popupAssertions = {value: 0};
+    client.on("WebAuthn.credentialAsserted", (_params, eventSessionId) => {
+        if (eventSessionId === popupSession) {
+            popupAssertions.value += 1;
+        }
+    });
+    await waitFor(
+        () => evaluate(
+            client,
+            popupSession,
+            `document.readyState === "complete" && location.origin.includes("pocket-id-sign-6605")`
+        ),
+        "Pocket ID Strong authorization popup",
+        20000
+    );
+    const popupCount = {value: 0};
+    Object.defineProperty(popupCount, "value", {
+        get: () => popupAssertions.value,
+    });
+    await clickPocketAuthorization(
+        client,
+        popupSession,
+        popupCount,
+        "Pocket ID Strong authorization"
+    );
+    await waitFor(
+        () => evaluate(
+            client,
+            sessionId,
+            `location.pathname === "/sign/result/success"`
+        ),
+        "completed Strong signing redirect",
+        120000
+    );
+    await client.send(
+        "WebAuthn.removeVirtualAuthenticator",
+        {authenticatorId: popupAuthenticator.authenticatorId},
+        popupSession
+    ).catch(() => undefined);
+
+    const forbidden = [
+        /BEGIN (?:EC |RSA )?PRIVATE KEY/i,
+        /private[_-]?jwk/i,
+        /pkcs\s*#?8/i,
+        /privateKey/i,
+        /["']seed["']\s*:/i,
+        /["']d["']\s*:/i,
+    ];
+    const requestPayloads = networkRequests
+        .filter((entry) => entry.url.includes("/sign/") || entry.url.includes("pocket-id-sign"))
+        .map((entry) => entry.postData || "")
+        .join("\n");
+    if (forbidden.some((pattern) => pattern.test(requestPayloads))) {
+        throw new Error("Private key material appeared in Odoo or Pocket ID browser traffic");
+    }
+    const verified = stackAcceptance("strong-acceptance-verify", reviewed.request_id);
+    return {
+        archive_status: verified.archive_status,
+        browser_private_material_detected: false,
+        ceremony_completed: verified.checks.ceremony_completed,
+        document_key_transport: "CSR and signature value only",
+        evidence_complete: verified.checks.evidence_complete,
+        oidc_validated: verified.checks.oidc_validated,
+        passkey_assertions: popupAssertions.value,
+        request_id: verified.request_id,
+        state: verified.state,
+        validation_engine: verified.validation_engine,
+        validation_status: verified.validation_status,
+    };
+}
+
+
 async function main() {
     const env = readEnv(await readFile(ENV_FILE, "utf8"));
     if (!env.POCKET_ID_SIGN_CLIENT_SECRET || !env.POCKET_ID_APP_URL) {
@@ -379,13 +662,22 @@ async function main() {
             `--unsafely-treat-insecure-origin-as-secure=${env.POCKET_ID_APP_URL},http://odoo-sign-6605.localhost:16669`,
             "about:blank",
         ],
-        {stdio: "ignore"}
+        {stdio: ["ignore", "ignore", "pipe"]}
     );
+    let chromeStderr = "";
+    chrome.stderr.on("data", (chunk) => {
+        chromeStderr = `${chromeStderr}${chunk}`.slice(-4000);
+    });
     let client;
     let authenticatorId;
     try {
         const activePort = await waitFor(
             async () => {
+                if (chrome.exitCode !== null) {
+                    throw new Error(
+                        `Chrome exited with ${chrome.exitCode}: ${chromeStderr.trim()}`
+                    );
+                }
                 const raw = await readFile(join(profile, "DevToolsActivePort"), "utf8");
                 return raw.trim();
             },
@@ -400,6 +692,16 @@ async function main() {
             {targetId, flatten: true}
         );
         const sessionId = attached.sessionId;
+        const networkRequests = [];
+        const trackedSessions = new Set([sessionId]);
+        client.on("Network.requestWillBeSent", (params, eventSessionId) => {
+            if (trackedSessions.has(eventSessionId)) {
+                networkRequests.push({
+                    url: params.request?.url || "",
+                    postData: params.request?.postData || "",
+                });
+            }
+        });
         await Promise.all([
             client.send("Page.enable", {}, sessionId),
             client.send("Runtime.enable", {}, sessionId),
@@ -440,34 +742,46 @@ async function main() {
             "Pocket ID account onboarding"
         );
         const credentials = await registerPasskey(client, sessionId, authenticatorId);
-        assertedCount.before = assertedCount.value;
-        const first = await authorizeFreshPasskey(
-            client, sessionId, discovery, env, assertedCount
-        );
-        const firstAssertionCount = assertedCount.value;
-        assertedCount.before = assertedCount.value;
-        const second = await authorizeFreshPasskey(
-            client, sessionId, discovery, env, assertedCount
-        );
-        const secondAssertionCount = assertedCount.value - firstAssertionCount;
-        if (firstAssertionCount < 1 || secondAssertionCount < 1) {
-            throw new Error("Every strict authorization must invoke the passkey");
-        }
-        console.log(
-            JSON.stringify(
-                {
+        const fullAcceptance = process.env.USL_SIGN_FULL_ACCEPTANCE === "1";
+        if (fullAcceptance) {
+            const strongAcceptance = await fullStrongAcceptance({
+                client,
+                sessionId,
+                authenticatorId,
+                credentials,
+                assertedCount,
+                networkRequests,
+                trackedSessions,
+            });
+            console.log(JSON.stringify({
                     credential_count: credentials.length,
-                    first_authorization: first,
-                    first_passkey_assertions: firstAssertionCount,
-                    recent_session_bypass_rejected: true,
-                    second_authorization: second,
-                    second_passkey_assertions: secondAssertionCount,
                     strict_capability: true,
-                },
-                null,
-                2
-            )
-        );
+                    strong_acceptance: strongAcceptance,
+                }, null, 2));
+        } else {
+            assertedCount.before = assertedCount.value;
+            const first = await authorizeFreshPasskey(
+                client, sessionId, discovery, env, assertedCount
+            );
+            const firstAssertionCount = assertedCount.value;
+            assertedCount.before = assertedCount.value;
+            const second = await authorizeFreshPasskey(
+                client, sessionId, discovery, env, assertedCount
+            );
+            const secondAssertionCount = assertedCount.value - firstAssertionCount;
+            if (firstAssertionCount < 1 || secondAssertionCount < 1) {
+                throw new Error("Every strict authorization must invoke the passkey");
+            }
+            console.log(JSON.stringify({
+                credential_count: credentials.length,
+                first_authorization: first,
+                first_passkey_assertions: firstAssertionCount,
+                recent_session_bypass_rejected: true,
+                second_authorization: second,
+                second_passkey_assertions: secondAssertionCount,
+                strict_capability: true,
+            }, null, 2));
+        }
     } finally {
         if (client && authenticatorId) {
             await client.send(

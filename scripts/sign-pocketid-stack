@@ -242,6 +242,53 @@ passkey_acceptance() {
   node "$ROOT/scripts/sign-pocketid-virtual-authenticator.mjs"
 }
 
+strong_acceptance_shell() {
+  local script="$1"
+  shift
+  load_environment
+  "${COMPOSE[@]}" up -d --wait \
+    db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver odoo
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    "$@" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    < "$ROOT/scripts/odoo/$script"
+}
+
+strong_acceptance_prepare() {
+  strong_acceptance_shell sign_strong_acceptance_prepare.py \
+    -e "USL_SIGN_ACCEPTANCE_RUN_ID=${2:-qa}"
+}
+
+strong_acceptance_review() {
+  if [[ ! "${2:-}" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'A numeric enrolment ID is required.\n' >&2
+    return 2
+  fi
+  strong_acceptance_shell sign_strong_acceptance_review.py \
+    -e "USL_SIGN_ACCEPTANCE_ENROLLMENT_ID=$2" \
+    -e "USL_SIGN_ACCEPTANCE_RUN_ID=${3:-qa}"
+}
+
+strong_acceptance_verify() {
+  if [[ ! "${2:-}" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'A numeric request ID is required.\n' >&2
+    return 2
+  fi
+  strong_acceptance_shell sign_strong_acceptance_verify.py \
+    -e "USL_SIGN_ACCEPTANCE_REQUEST_ID=$2"
+}
+
+strong_acceptance() {
+  load_environment
+  "${COMPOSE[@]}" up -d --wait \
+    db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver odoo
+  USL_SIGN_FULL_ACCEPTANCE=1 \
+    node "$ROOT/scripts/sign-pocketid-virtual-authenticator.mjs"
+}
+
 case "${1:-help}" in
   bootstrap) bootstrap ;;
   start) start ;;
@@ -254,9 +301,13 @@ case "${1:-help}" in
   configure-paperless) configure_paperless_only ;;
   archive-acceptance) archive_acceptance ;;
   passkey-acceptance) passkey_acceptance ;;
+  strong-acceptance-prepare) strong_acceptance_prepare "$@" ;;
+  strong-acceptance-review) strong_acceptance_review "$@" ;;
+  strong-acceptance-verify) strong_acceptance_verify "$@" ;;
+  strong-acceptance) strong_acceptance ;;
   help|*)
     printf '%s\n' \
-      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|configure-paperless|archive-acceptance|passkey-acceptance' \
+      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
       'This helper owns only project usl-sign-pocketid-6605 and its isolated volumes.'
     ;;
 esac

@@ -22,6 +22,17 @@ params.set_str("usl_documents.paperless_token", token)
 params.set_int("usl_documents.paperless_timeout", 20)
 params.set_int("usl_documents.paperless_service_user_id", service_user_id)
 
+# The isolated QA tenant must be able to send attributable invitations and the
+# final dossier.  Keep these product defaults in the stack configuration rather
+# than hiding them inside an acceptance fixture.
+company = env.company
+company.write(
+    {
+        "email": company.email or "sign-qa@preproduction.invalid",
+        "sign_oca_send_sign_request_copy": True,
+    },
+)
+
 client = env["usl.document"].sudo()._paperless()
 compatibility = client.compatibility()
 policy = client.ensure_fail_closed_ingestion_policy()
@@ -31,6 +42,7 @@ print(
         {
             "api_version": compatibility["api_version"],
             "configured": True,
+            "final_dossier_copy_enabled": company.sign_oca_send_sign_request_copy,
             "fail_closed_workflow_id": policy["workflow_id"],
             "server_version": compatibility["server_version"],
             "service_user_id": service_user_id,
