@@ -402,8 +402,29 @@ make help-advanced                # migration, validation and specialized QA
 `make deploy` updates an existing `odoo_dev`; it never creates an empty
 replacement when reconstructed data is missing. `make doctor` reports
 `Target: present` when deployment is safe. If it reports `Target: missing`,
-restore the current dump with `make target-reconstruct` (or the verified
-Paperless-reuse variant) before deploying add-on changes.
+use the qualified QA seed with `make qa` or perform the authoritative fresh
+migration with `make target-reconstruct` before deploying add-on changes.
+
+For branch and worktree QA, choose the smallest honest data profile:
+
+```bash
+make qa                              # complete cached production-shaped state
+make qa PROFILE=no-documents         # complete Odoo ledger; no Documents runtime
+make qa PROFILE=documents-smoke      # deterministic source-derived document sample
+make qa PROFILE=clean-install        # clean product plus self-contained fixtures
+make qa-cache-status                 # read-only cache identity/freshness check
+make qa-cache-refresh                # fresh migration, then atomic seed publication
+make qa-cache-prune CONFIRM=qa-seeds # remove superseded private seeds; keep current
+```
+
+Each QA target owns independent writable PostgreSQL, Odoo and Paperless
+volumes. No live volume is shared between worktrees. The host-local seed is
+private and ignored by Git; Pocket identities, API tokens and environment
+secrets are recreated after hydration. Missing or incompatible seeds fail
+immediately instead of silently starting a long source ingestion. Partial
+profiles are stamped in the database and cannot pass a pre-production gate.
+Arbitrary partial accounting ledgers are intentionally unsupported.
+Seed pruning is never automatic and requires the explicit confirmation above.
 
 The underlying scripts remain stable automation interfaces:
 
@@ -464,6 +485,11 @@ change is reconciled incrementally, so only new binaries are ingested. A
 changed Paperless/OCR contract or archive drift rejects reuse; run the normal
 fresh command to rebuild and reseal the checkpoint. Pre-production release
 qualification always forces the fresh path.
+
+The same-project checkpoint is retained as an advanced diagnostic. Normal
+worktree QA uses `make qa`: the qualified Paperless export is imported into new
+volumes with zero OCR submissions, then current-branch modules, links,
+permissions and isolated identities are reapplied.
 
 The exact pre-production release lifecycle is one host command from a clean
 release branch:

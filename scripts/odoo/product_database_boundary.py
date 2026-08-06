@@ -68,6 +68,16 @@ if os.environ.get("USL_EINVOICE_LIVE_ENABLED", "0") != "0":
 if os.environ.get("USL_EREPORTING_LIVE_ENABLED", "0") != "0":
     errors.append("E-reporting live access is enabled.")
 
+qa_profile_rows = rows(
+    "SELECT value FROM ir_config_parameter WHERE key = %s",
+    ("usl.qa.data_profile",),
+)
+qa_profile = qa_profile_rows[0][0] if qa_profile_rows else "full"
+if os.environ.get("USL_PRODUCT_BOUNDARY_PREPROD", "0") == "1" and qa_profile != "full":
+    errors.append(
+        f"Pre-production cannot use partial QA data profile {qa_profile}.",
+    )
+
 module_states = dict(rows(
     "SELECT name, state FROM ir_module_module WHERE name = ANY(%s)",
     (list(MIGRATION_MODULES | PRODUCT_MODULES | {"usl_bootstrap"}),),

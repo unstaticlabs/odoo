@@ -49,23 +49,29 @@ Online dump → Accounting import/parity → Documents product/security
 → Pocket/Odoo/Paperless identities and target configuration
 ```
 
-Run it from the main checkout with `make target-reconstruct`. A linked
-worktree must name its dedicated Docker project and ports, for example
-`COMPOSE_PROJECT=usl-odoo-preprod-9642 ODOO_HTTP_PORT=18669
-ODOO_GEVENT_PORT=18672 POCKET_ID_HTTP_PORT=11411
-PAPERLESS_HTTP_PORT=18010 make target-reconstruct`. Reapply only the final
-target configuration with the same environment and `make target-finalize`.
+Run the authoritative path from the main checkout with
+`make target-reconstruct`. It always rebuilds Paperless from source and is the
+only path used for final migration and release qualification.
 
-For repeated development reconstructions, use
-`make target-reconstruct-reuse-documents`. Accounting and every Odoo-side
-stage still start clean, but the expensive Paperless binaries/OCR are retained
-only when an ignored checkpoint matches the compatible pinned Paperless stack
-and current archive-root digest. A newer dump or compatible importer change is
-recorded and reconciled by the complete Documents importer, which refreshes
-links, metadata and permissions and reads back every original and preview.
-Runtime incompatibility or archive drift fails closed; use
-`make target-reconstruct` to perform and reseal a fully fresh ingestion.
-Release qualification never uses this development shortcut.
+Normal branch/worktree QA uses `make qa`. It verifies a sealed host-local seed,
+restores independent Odoo/Paperless volumes, upgrades the current branch,
+recreates Pocket and Paperless identities, and reruns product boundaries.
+Create or replace that seed from the main checkout with
+`make qa-cache-refresh`; publication is atomic and occurs only after the full
+fresh reconstruction and target finalization pass. The manifest binds the seed
+to source dump and filestore digests, migration code, resolved image IDs, OCR
+settings, archive digests and product module versions.
+
+Use `PROFILE=no-documents` when Documents is irrelevant,
+`PROFILE=documents-smoke` for a deterministic relationship-complete source
+sample, or `PROFILE=clean-install` for product installability with only
+self-contained synthetic fixtures. Source-template TESE and settlement
+fixtures remain separate explicit QA commands. Partial profiles
+are recorded in `usl.qa.data_profile`, included in timing evidence, and rejected
+by pre-production gates. They retain the complete Accounting ledger. The older
+`target-reconstruct-reuse-documents` command remains a same-project diagnostic.
+Superseded private seeds are retained for rollback until an operator runs
+`make qa-cache-prune CONFIRM=qa-seeds`; the current qualified seed is preserved.
 The source contains no SSO
 configuration; Pocket ID is therefore intentionally absent from source parity
 and added only after the imported business state passes its controls. This

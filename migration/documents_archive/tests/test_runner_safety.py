@@ -5,6 +5,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/documents-restore"
+QA_SCRIPT = ROOT / "scripts/qa-environment"
+SEED_SCRIPT = ROOT / "scripts/qa-seed"
+TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -76,6 +79,35 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             ROOT / "migration/documents_archive/checkpoint.py"
         ).read_text(encoding="utf-8")
         self.assertIn("Run the normal fresh reconstruction", checkpoint)
+
+    def test_fast_qa_verifies_seed_before_reset_and_uses_official_importer(self):
+        script = QA_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertLess(
+            script.index('stage "verify qualified seed (read only)"'),
+            script.index('stage "reset isolated QA project"'),
+        )
+        self.assertIn(
+            "document_importer --no-progress-bar /usr/src/paperless/export/qa-seed",
+            script,
+        )
+        self.assertIn("usl-odoo-qa-?*", script)
+        self.assertIn("No containers or data volumes were changed", script)
+
+    def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("no-documents", target)
+        self.assertIn("documents-smoke", target)
+        self.assertIn("Paperless checkpoint reuse is only valid", target)
+        self.assertIn('USL_QA_DATA_PROFILE="$qa_profile"', target)
+
+    def test_seed_pruning_requires_confirmation_and_preserves_current(self):
+        seed = SEED_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("USL_QA_SEED_PRUNE_CONFIRM", seed)
+        self.assertIn('[[ "$candidate" != "$current_dir" ]]', seed)
+        self.assertIn("CONFIRM=qa-seeds", seed)
 
 
 if __name__ == "__main__":

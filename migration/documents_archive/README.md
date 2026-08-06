@@ -129,6 +129,26 @@ This optimization is deliberately disabled by the pre-production release
 orchestrator. It is analogous to reusing one verified build stage, not to
 restoring an unverified database snapshot.
 
+### Portable worktree QA seed
+
+The same-project checkpoint cannot be shared safely by linked worktrees. Use
+`make qa` instead: it restores a credential-sanitized Odoo snapshot and the
+official Paperless exporter bundle into new, independently writable volumes.
+The ignored seed under `artifacts/migration/private/qa-seeds/` is sealed against
+the source dump and filestore, migration code, archive content, OCR settings
+and actual resolved runtime image IDs. It is never uploaded or committed.
+
+`DOCUMENTS_RESTORE_PROFILE` supports `full`, `accounting`, `hr` and `smoke`.
+Semantic selection retains whole checksum groups and never splits duplicates
+from their Odoo relationships. `smoke` deterministically covers both companies
+plus accounting evidence, HR-restricted material, Trash, duplicates,
+unassigned evidence, PDF/image/Tika formats and permissions. The numeric limit
+remains an internal diagnostic and cannot seal reusable evidence.
+
+Final production migration always uses the fresh `full` profile. Cached QA
+uses the official importer without OCR; target finalization then rebuilds Odoo
+links and governed identity mappings for the isolated environment.
+
 This stage deliberately uses only the non-human archive service identity. It
 does not copy Online users, tokens, passwords, SSO links or connection state.
 After all source-data stages and migration finalization pass,

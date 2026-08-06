@@ -21,6 +21,15 @@ if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
   exit 2
 fi
 
+qa_profile="${USL_QA_DATA_PROFILE:-full}"
+case "$qa_profile" in
+  full|no-documents|documents-smoke|clean-install) ;;
+  *)
+    printf 'Unsupported USL_QA_DATA_PROFILE: %s\n' "$qa_profile" >&2
+    exit 2
+    ;;
+esac
+
 # Update the complete delivered product allow-list. A broad ``-u all`` would
 # also mutate unrelated native and OCA modules during target finalization.
 product_modules=(
@@ -40,15 +49,26 @@ product_modules=(
 product_modules_csv="$(IFS=,; printf '%s' "${product_modules[*]}")"
 
 scripts/check-product-migration-boundary
+if [[ "$qa_profile" == no-documents ]]; then
+  USL_QA_DATA_PROFILE="$qa_profile" \
+    scripts/pocket-id-dev configure-odoo-no-paperless "$product_modules_csv"
+else
+  USL_QA_DATA_PROFILE="$qa_profile" \
+    scripts/pocket-id-dev configure-odoo "$product_modules_csv"
+fi
+scripts/odoo-dev disable-tours
+# Validate the upgraded current-branch registry, not the schema captured in a
+# seed or left by the preceding migration stage.
 scripts/accounting-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
-scripts/pocket-id-dev configure-odoo "$product_modules_csv"
-scripts/odoo-dev disable-tours
 scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
 
 printf '\nCanonical target finalized: odoo_dev\n'
+if [[ "$qa_profile" != full ]]; then
+  printf 'QA profile: %s (partial; not valid release evidence)\n' "$qa_profile"
+fi
 printf 'Product URL: %s/web/login?db=odoo_dev\n' \
   "${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:${ODOO_HTTP_PORT:-8069}}"
 printf 'Local QA login link: make login-link USER=valentin\n'

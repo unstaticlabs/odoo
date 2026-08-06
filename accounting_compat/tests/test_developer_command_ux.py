@@ -405,6 +405,16 @@ printf '%s' "$USL_FAKE_OWNED_ROWS" > "$USL_FAKE_DOCKER_STATE"
         self.assertEqual(deploy.returncode, 0, deploy.stderr)
         self.assertIn('deploy "usl_accounting"', deploy.stdout)
 
+        qa = subprocess.run(
+            ["make", "-n", "qa", "PROFILE=documents-smoke"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(qa.returncode, 0, qa.stderr)
+        self.assertIn('scripts/qa-environment "documents-smoke"', qa.stdout)
+
     def test_target_database_preflight_precedes_identity_and_document_services(self):
         helper = POCKET_ID_DEV.read_text(encoding="utf-8")
         configure = helper.split("configure_odoo() {", 1)[1].split(
@@ -421,6 +431,18 @@ printf '%s' "$USL_FAKE_OWNED_ROWS" > "$USL_FAKE_DOCKER_STATE"
             configure.index("start_paperless_runtime"),
         )
         self.assertIn("Deploy updates an existing reconstructed target", helper)
+
+    def test_preproduction_boundary_rejects_partial_qa_profiles(self):
+        boundary = (ROOT / "scripts/odoo/product_database_boundary.py").read_text(
+            encoding="utf-8",
+        )
+        runner = (ROOT / "scripts/check-product-database-boundary").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("usl.qa.data_profile", boundary)
+        self.assertIn("Pre-production cannot use partial QA data profile", boundary)
+        self.assertIn("USL_PRODUCT_BOUNDARY_PREPROD", runner)
 
 
 if __name__ == "__main__":

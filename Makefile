@@ -14,9 +14,10 @@ TESE_QA_GENERATION ?= 01
 MODULE ?=
 SERVICE ?=
 CONFIRM ?=
+PROFILE ?= full
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link paperless-users disable-tours target-finalize target-reconstruct target-reconstruct-reuse-documents oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-prune target-finalize target-reconstruct target-reconstruct-reuse-documents oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
@@ -50,6 +51,12 @@ help:
 	  '                                      Reclaim canonical containers; preserve volumes' \
 	  '' \
 	  'Data reconstruction' \
+	  '  make qa [PROFILE=full]              Fast isolated QA from qualified cache' \
+	  '  make qa PROFILE=no-documents        Full Odoo data without Documents runtime' \
+	  '  make qa PROFILE=documents-smoke     Deterministic Documents sample' \
+	  '  make qa PROFILE=clean-install       Clean product plus self-contained fixtures' \
+	  '  make qa-cache-status                Check shared cache compatibility' \
+	  '  make qa-cache-refresh               Full fresh migration and atomic cache refresh' \
 	  '  make target-reconstruct             Full fresh deterministic reconstruction' \
 	  '  make target-reconstruct-reuse-documents' \
 	  '                                      Reuse verified Paperless ingestion in development' \
@@ -75,6 +82,8 @@ help-advanced:
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make documents-qa-test              Run Documents QA tests' \
 	  '  make user-docs-build                Render and validate user documentation' \
+	  '  make qa-cache-prune CONFIRM=qa-seeds' \
+	  '                                      Remove superseded private QA seeds' \
 	  '' \
 	  'All historical target names remain available; inspect Makefile for exact stages.'
 
@@ -130,6 +139,18 @@ paperless-users:
 
 disable-tours:
 	$(ODOO_DEV) disable-tours
+
+qa:
+	@COMPOSE_PROJECT_NAME= PROFILE="$(PROFILE)" scripts/qa-environment "$(PROFILE)"
+
+qa-cache-status:
+	@COMPOSE_PROJECT_NAME= scripts/qa-seed status
+
+qa-cache-refresh:
+	@USL_QA_DATA_PROFILE=full USL_QA_SEED_REFRESH=1 scripts/target-reconstruct
+
+qa-cache-prune:
+	@USL_QA_SEED_PRUNE_CONFIRM="$(CONFIRM)" COMPOSE_PROJECT_NAME= scripts/qa-seed prune
 
 target-finalize:
 	scripts/target-finalize

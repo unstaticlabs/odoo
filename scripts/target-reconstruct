@@ -18,7 +18,31 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 export COMPOSE_IGNORE_ORPHANS=1
 
+qa_profile="${USL_QA_DATA_PROFILE:-full}"
+case "$qa_profile" in
+  full)
+    documents_profile=full
+    documents_enabled=1
+    ;;
+  no-documents)
+    documents_profile=full
+    documents_enabled=0
+    ;;
+  documents-smoke)
+    documents_profile=smoke
+    documents_enabled=1
+    ;;
+  *)
+    printf 'USL_QA_DATA_PROFILE must be full, no-documents, or documents-smoke.\n' >&2
+    exit 2
+    ;;
+esac
+
 reuse_documents="${USL_RECONSTRUCT_REUSE_DOCUMENTS:-0}"
+if [[ "$qa_profile" != full && "$reuse_documents" == 1 ]]; then
+  printf 'Paperless checkpoint reuse is only valid for the full profile.\n' >&2
+  exit 2
+fi
 case "$reuse_documents" in
   0)
     documents_reset=1
@@ -37,48 +61,145 @@ case "$reuse_documents" in
 esac
 
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-$compose_project}"
+timing_dir="$ROOT/artifacts/migration/private/qa-runs"
+mkdir -p "$timing_dir"
+timing_tsv="$timing_dir/${compose_project}-reconstruct-$(date -u +%Y%m%dT%H%M%SZ).tsv"
+timing_json="${timing_tsv%.tsv}.json"
+: > "$timing_tsv"
+run_started="$(date +%s)"
+seed_pending=0
+
+run_stage() {
+  local label="$1" started status
+  shift
+  started="$(date +%s)"
+  set +e
+  (set -e; "$@")
+  status=$?
+  set -e
+  printf '%s\t%s\t%s\n' "$label" "$(( $(date +%s) - started ))" "$status" >> "$timing_tsv"
+  return "$status"
+}
+
+write_timing() {
+  local outcome="$1"
+  python3 - "$timing_tsv" "$timing_json" "$qa_profile" "$reuse_documents" "$run_started" "$outcome" "$ROOT" <<'PY'
+import json
+import sys
+import time
+from pathlib import Path
+
+stages = []
+for row in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
+    name, duration, status = row.split("\t")
+    stages.append({"duration_seconds": int(duration), "name": name, "status": int(status)})
+payload = {
+    "cache": "same-project-checkpoint" if sys.argv[4] == "1" else "miss-fresh",
+    "duration_seconds": int(time.time()) - int(sys.argv[5]),
+    "outcome": sys.argv[6],
+    "profile": sys.argv[3],
+    "stages": stages,
+    "validation_level": "canonical-full" if sys.argv[3] == "full" else "partial",
+}
+evidence = sorted(
+    Path(sys.argv[7]).glob("accounting_compat/private/snapshots/*/evidence/documents-restore-*.json"),
+    key=lambda path: path.stat().st_mtime,
+)
+if evidence and evidence[-1].stat().st_mtime >= int(sys.argv[5]):
+    result = json.loads(evidence[-1].read_text(encoding="utf-8"))
+    payload.update({
+        "documents_evidence": str(evidence[-1]),
+        "downloaded_bytes": result.get("submitted_bytes", 0),
+        "ocr_submissions": result.get("ocr_submissions", 0),
+        "reused_document_roots": result.get("reused_roots", 0),
+    })
+Path(sys.argv[2]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+}
+
+cleanup() {
+  local status=$?
+  trap - EXIT
+  [[ "$seed_pending" == 0 ]] || scripts/qa-seed discard >/dev/null 2>&1 || true
+  if ((status)); then
+    write_timing failed
+  fi
+  exit "$status"
+}
+trap cleanup EXIT
+
 stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
 }
 
 stop_product
-scripts/accounting-compat source-restore
-scripts/migration-source-truth product-gate
-scripts/sync-oca-addons
-scripts/accounting-compat source-restore
-scripts/accounting-compat source-controls
-scripts/accounting-compat extract
-scripts/accounting-compat dev-reset
+run_stage "restore source database" scripts/accounting-compat source-restore
+run_stage "source product gate" scripts/migration-source-truth product-gate
+run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
+run_stage "refresh source database" scripts/accounting-compat source-restore
+run_stage "source accounting controls" scripts/accounting-compat source-controls
+run_stage "extract accounting source" scripts/accounting-compat extract
+run_stage "reset target database" scripts/accounting-compat dev-reset
 stop_product
-scripts/accounting-compat dev-import
+run_stage "import accounting" scripts/accounting-compat dev-import
 stop_product
-scripts/accounting-compat dev-validate
+run_stage "validate accounting" scripts/accounting-compat dev-validate
 stop_product
-DOCUMENTS_CANONICAL_TARGET=1 \
+run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
   DOCUMENTS_TARGET_DATABASE=odoo_dev \
   COMPOSE_PROJECT_NAME="$compose_project" \
   scripts/documents-restore prepare-target
 stop_product
-scripts/identity-restore all
+run_stage "restore identities" scripts/identity-restore all
 stop_product
-scripts/product-restore all
+run_stage "restore product data" scripts/product-restore all
 stop_product
-scripts/hr-restore all
+run_stage "restore HR" scripts/hr-restore all
 stop_product
-PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
+run_stage "restore Projects" env PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
 stop_product
-TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore all
+run_stage "restore Paie TESE" env TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore all
 stop_product
-COMPOSE_PROJECT_NAME="$compose_project" scripts/platform-billing-restore all
+run_stage "restore Platform Billing" env COMPOSE_PROJECT_NAME="$compose_project" scripts/platform-billing-restore all
 stop_product
-DOCUMENTS_CANONICAL_TARGET=1 \
-  DOCUMENTS_CANONICAL_RESET="$documents_reset" \
-  DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint" \
-  DOCUMENTS_TARGET_DATABASE=odoo_dev \
-  COMPOSE_PROJECT_NAME="$compose_project" \
-  scripts/documents-restore all
-stop_product
-scripts/accounting-restore finalize
-scripts/target-finalize
+if [[ "$documents_enabled" == 1 ]]; then
+  run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_CANONICAL_RESET="$documents_reset" \
+    DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint" \
+    DOCUMENTS_RESTORE_PROFILE="$documents_profile" \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev \
+    COMPOSE_PROJECT_NAME="$compose_project" \
+    scripts/documents-restore all
+  stop_product
+else
+  printf 'Documents archive: skipped by explicit no-documents QA profile.\n'
+fi
+run_stage "finalize migration boundary" scripts/accounting-restore finalize
 
-printf '\nCanonical reconstruction complete: source parity plus target configuration.\n'
+seed_refresh="${USL_QA_SEED_REFRESH:-0}"
+case "$seed_refresh" in
+  0) ;;
+  1)
+    if [[ "$qa_profile" != full || "$reuse_documents" != 0 ]]; then
+      printf 'QA seed refresh requires a full fresh Documents reconstruction.\n' >&2
+      exit 2
+    fi
+    run_stage "capture pending QA seed" scripts/qa-seed capture
+    seed_pending=1
+    ;;
+  *)
+    printf 'USL_QA_SEED_REFRESH must be 0 or 1.\n' >&2
+    exit 2
+    ;;
+esac
+
+run_stage "apply target configuration" env USL_QA_DATA_PROFILE="$qa_profile" scripts/target-finalize
+if [[ "$seed_refresh" == 1 ]]; then
+  run_stage "publish qualified QA seed" scripts/qa-seed publish
+  seed_pending=0
+fi
+
+write_timing passed
+trap - EXIT
+printf '\nReconstruction complete: profile=%s.\n' "$qa_profile"
+printf 'Timing evidence: %s\n' "$timing_json"
