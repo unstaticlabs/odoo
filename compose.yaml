@@ -43,7 +43,7 @@ services:
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:8.1.3-alpine}
+      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}
       PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
@@ -147,7 +147,7 @@ services:
 
   paperless-broker:
     profiles: ["paperless"]
-    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:8.1.3-alpine}
+    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
     restart: unless-stopped
     command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
     healthcheck:
