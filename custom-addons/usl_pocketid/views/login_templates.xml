@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sso_only_login" inherit_id="web.login" name="Pocket ID SSO-only login">
+        <xpath expr="//owl-component[@name='web.user_switch']" position="attributes">
+            <attribute name="t-if">not login and not usl_sso_only</attribute>
+        </xpath>
         <xpath expr="//form[@data-captcha='login']" position="attributes">
             <attribute name="t-if">not usl_sso_only</attribute>
         </xpath>

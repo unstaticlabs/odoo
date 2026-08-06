@@ -125,6 +125,9 @@ class TestPocketIDHttpLogin(HttpCase):
             document = html.fromstring(response.content)
             self.assertFalse(document.xpath("//input[@name='password']"))
             self.assertFalse(document.xpath("//input[@name='login']"))
+            self.assertFalse(
+                document.xpath("//owl-component[@name='web.user_switch']"),
+            )
             buttons = document.xpath(
                 "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
             )
