@@ -24,6 +24,11 @@ updates:
       compatible-python-updates:
         patterns:
           - "*"
+        # These packages have a strict mutual compatibility window. Separate
+        # PRs make a resolver conflict visible instead of hiding it in a batch.
+        exclude-patterns:
+          - "cryptography"
+          - "pyopenssl"
         update-types:
           - "minor"
           - "patch"
