@@ -128,6 +128,9 @@ async function enroll(container) {
             button.disabled = false;
         }
     });
+    status.textContent = "";
+    button.disabled = false;
+    container.dataset.ready = "true";
 }
 
 async function strongSign(container) {
@@ -177,6 +180,9 @@ async function strongSign(container) {
             button.disabled = false;
         }
     });
+    status.textContent = "";
+    button.disabled = false;
+    container.dataset.ready = "true";
 }
 
 document.addEventListener("DOMContentLoaded", () => {

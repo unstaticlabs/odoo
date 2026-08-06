@@ -1278,10 +1278,9 @@ class UslDocument(models.Model):
 
     @api.model
     def cron_sync_from_paperless(self):
-        self._require_manager()
-        manager = self.env.ref("base.user_admin")
+        service = self.with_user(self.env.ref("base.user_root"))
         try:
-            return self.with_user(manager).sync_from_paperless(limit_pages=20)
+            return service.sync_from_paperless(limit_pages=20)
         except PaperlessError:
             _logger.exception("Paperless incremental synchronization failed")
             return False

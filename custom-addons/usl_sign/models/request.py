@@ -6,11 +6,12 @@ from datetime import timedelta
 from io import BytesIO
 from urllib.parse import quote
 
+from cryptography import x509
 from markupsafe import escape
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request as http_request
 from odoo.tools.pdf import PdfReader, PdfWriter
@@ -28,6 +29,15 @@ from .constants import (
     TRUST_LEVELS,
 )
 from .document import _add_page
+from .template import (
+    EDITOR_ROLE_COLORS,
+    FIELD_PRESENTATION,
+    _field_info,
+    _field_kind,
+    _validate_complete_editor_geometry,
+    _validate_editor_geometry,
+    _validate_editor_uuid,
+)
 
 TRANSITIONS = {
     "draft": {"ready", "cancelled"},
@@ -62,6 +72,24 @@ TRANSITIONS = {
 class SignRequest(models.Model):
     _inherit = "sign.oca.request"
     _order = "create_date desc, id desc"
+
+    @api.depends("signer_ids", "signer_ids.is_allow_signature")
+    @api.depends_context("uid")
+    def _compute_signer_id(self):
+        """Resolve only the signer assigned to this exact Odoo identity.
+
+        OCA Sign intentionally groups contacts by commercial partner.  That is
+        useful for ordinary business relationships, but it is too broad for a
+        personal signing authorization because sibling contacts must never be
+        interchangeable.
+        """
+        partner = self.env.user.partner_id
+        for request in self:
+            assigned = request.signer_ids.filtered(
+                lambda signer: signer.partner_id == partner,
+            )
+            allowed = assigned.filtered("is_allow_signature")
+            request.signer_id = allowed[:1] if allowed else assigned[:1]
 
     record_ref = fields.Reference(
         selection="_sign_business_record_models",
@@ -122,6 +150,8 @@ class SignRequest(models.Model):
     page_map = fields.Json(readonly=True, copy=False)
     template_version = fields.Integer(readonly=True, copy=False)
     frozen_layout = fields.Json(readonly=True, copy=False)
+    editor_revision = fields.Integer(default=1, required=True, copy=False, readonly=True)
+    editor_operation_log = fields.Json(default=dict, copy=False, readonly=True)
     original_data = fields.Binary(readonly=True, copy=False, attachment=True)
     original_filename = fields.Char(readonly=True, copy=False)
     original_sha256 = fields.Char(readonly=True, copy=False, index=True)
@@ -176,6 +206,33 @@ class SignRequest(models.Model):
     signing_order = fields.Boolean()
     responsible_message = fields.Text()
     next_step = fields.Char(compute="_compute_next_step")
+    coordinator_ids = fields.Many2many(
+        "res.users",
+        "usl_sign_request_coordinator_rel",
+        "request_id",
+        "user_id",
+        string="Coordinators",
+        domain="[('share', '=', False), ('company_ids', 'in', company_id)]",
+        help="Named colleagues who may prepare, monitor, remind, and retry this request.",
+    )
+    lifecycle_stage = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("ready", "Ready"),
+            ("sent", "Sent"),
+            ("progress", "In progress"),
+            ("checks", "Final checks"),
+            ("closed", "Completed or closed"),
+        ],
+        compute="_compute_workspace_presentation",
+    )
+    lifecycle_stage_label = fields.Char(compute="_compute_workspace_presentation")
+    signer_progress = fields.Char(compute="_compute_workspace_presentation")
+    requested_trust_short = fields.Char(compute="_compute_workspace_presentation")
+    achieved_trust_short = fields.Char(compute="_compute_workspace_presentation")
+    blocking_summary = fields.Char(compute="_compute_workspace_presentation")
+    can_coordinate = fields.Boolean(compute="_compute_user_capabilities")
+    can_send = fields.Boolean(compute="_compute_user_capabilities")
     last_error = fields.Text(readonly=True, copy=False)
     recovery_action = fields.Char(readonly=True, copy=False)
 
@@ -248,15 +305,17 @@ class SignRequest(models.Model):
             "request_id": sign_request.id,
             "request_name": sign_request.name,
             "state": sign_request.state,
-            "state_label": dict(REQUEST_STATES).get(sign_request.state, sign_request.state),
+            "state_label": dict(
+                sign_request._fields["state"]._description_selection(self.env),
+            ).get(sign_request.state, sign_request.state),
             "next_step": sign_request.next_step,
             "requested_trust": trust_labels.get(sign_request.requested_trust),
             "achieved_trust": trust_labels.get(sign_request.achieved_trust)
             if sign_request.achieved_trust
             else False,
-            "archive_state": dict(sign_request._fields["archive_status"].selection).get(
-                sign_request.archive_status,
-            ),
+            "archive_state": dict(
+                sign_request._fields["archive_status"]._description_selection(self.env),
+            ).get(sign_request.archive_status),
             "final_url": content_url("final_data", sign_request.final_filename),
             "certificate_url": content_url(
                 "completion_certificate", sign_request.completion_filename,
@@ -283,7 +342,7 @@ class SignRequest(models.Model):
                     },
                 )
             record._append_event("request_created", payload={"name": record.name})
-            record.action_compute_recommendation()
+            record.action_compute_recommendation(apply_timing_defaults=True)
         return records
 
     @api.depends("evidence_ids")
@@ -291,37 +350,165 @@ class SignRequest(models.Model):
         for request in self:
             request.evidence_count = len(request.evidence_ids)
 
-    @api.depends("state", "archive_status", "last_error")
+    @api.depends(
+        "state",
+        "archive_status",
+        "last_error",
+        "signing_order",
+        "signer_ids.state",
+        "signer_ids.sequence",
+        "signer_ids.partner_id.name",
+    )
+    @api.depends_context("lang")
     def _compute_next_step(self):
         messages = {
-            "draft": "Complete the request and inspect the trust recommendation.",
-            "ready": "Send the frozen request.",
-            "sent": "Waiting for the first signer.",
-            "viewed": "The document was viewed; a signature is still expected.",
-            "partial": "Waiting for the remaining signers.",
-            "waiting_enrollment": "Complete strong-signer enrolment.",
-            "waiting_external": "Complete the qualified journey and import the result.",
-            "signed_to_import": "Validate the imported signed document.",
-            "validating": "Independent signature validation is running.",
-            "evidence_incomplete": "Finish or retry durable Paperless archival.",
-            "validation_failed": "Inspect validation evidence and create a replacement request.",
-            "completed": "No further action is required.",
-            "declined": "The signer declined; decide whether to create a replacement.",
-            "expired": "Create a replacement request if signatures are still needed.",
-            "cancelled": "This request is closed.",
-            "action_required": "Resolve the recorded recovery action.",
+            "draft": _("Complete the request and inspect the trust recommendation."),
+            "ready": _("Send the frozen request."),
+            "waiting_enrollment": _("Complete strong-signer enrolment."),
+            "waiting_external": _("Complete the qualified journey and import the result."),
+            "signed_to_import": _("Validate the imported signed document."),
+            "validating": _("Independent signature validation is running."),
+            "evidence_incomplete": _("Finish or retry durable Paperless archival."),
+            "validation_failed": _(
+                "Inspect validation evidence and create a replacement request.",
+            ),
+            "completed": _("No further action is required."),
+            "declined": _(
+                "The signer declined; decide whether to create a replacement.",
+            ),
+            "expired": _(
+                "Create a replacement request if signatures are still needed.",
+            ),
+            "cancelled": _("This request is closed."),
+            "action_required": _("Resolve the recorded recovery action."),
         }
         for request in self:
+            if request.state in {"sent", "viewed", "partial"}:
+                waiting = request.signer_ids.filtered(
+                    lambda signer: signer.state not in {"signed", "declined"},
+                ).sorted(lambda signer: (signer.sequence, signer.id))
+                if len(waiting) == 1 or (request.signing_order and waiting):
+                    request.next_step = _(
+                        "Waiting for %(signer)s.",
+                        signer=waiting[0].partner_id.name,
+                    )
+                elif waiting:
+                    request.next_step = _(
+                        "Waiting for %(count)s signers.",
+                        count=len(waiting),
+                    )
+                else:
+                    request.next_step = _("Run the final checks.")
+                continue
             request.next_step = messages.get(request.state, request.last_error or "")
+
+    @api.depends(
+        "state",
+        "requested_trust",
+        "achieved_trust",
+        "signer_ids.state",
+        "signer_ids.signed_on",
+        "last_error",
+        "recovery_action",
+    )
+    @api.depends_context("lang")
+    def _compute_workspace_presentation(self):
+        stage_by_state = {
+            "draft": "draft",
+            "ready": "ready",
+            "sent": "sent",
+            "viewed": "progress",
+            "partial": "progress",
+            "waiting_enrollment": "progress",
+            "waiting_external": "progress",
+            "signed_to_import": "checks",
+            "validating": "checks",
+            "evidence_incomplete": "checks",
+            "action_required": "checks",
+            "validation_failed": "closed",
+            "completed": "closed",
+            "declined": "closed",
+            "expired": "closed",
+            "cancelled": "closed",
+        }
+        stage_labels = {
+            "draft": _("Draft"),
+            "ready": _("Ready"),
+            "sent": _("Sent"),
+            "progress": _("In progress"),
+            "checks": _("Final checks"),
+            "closed": _("Completed or closed"),
+        }
+        trust_labels = {
+            "standard": _("Standard"),
+            "strong_personal": _("Strong personal"),
+            "qualified_external": _("Qualified external"),
+        }
+        for request in self:
+            stage = stage_by_state.get(request.state, "progress")
+            request.lifecycle_stage = stage
+            request.lifecycle_stage_label = stage_labels[stage]
+            total = len(request.signer_ids)
+            signed = len(request.signer_ids.filtered(lambda signer: signer.state == "signed"))
+            request.signer_progress = (
+                _("%(signed)s of %(total)s signed", signed=signed, total=total)
+                if total
+                else _("No signers")
+            )
+            request.requested_trust_short = trust_labels.get(request.requested_trust, "")
+            request.achieved_trust_short = trust_labels.get(request.achieved_trust, "")
+            request.blocking_summary = (
+                request.recovery_action
+                or request.last_error
+                or request.next_step
+                or ""
+            )
+
+    def _user_can_coordinate(self):
+        self.ensure_one()
+        return bool(
+            self.env.su
+            or self.env.user.has_group("usl_sign.group_sign_admin")
+            or self.user_id == self.env.user
+            or self.env.user in self.coordinator_ids,
+        )
+
+    @api.depends("user_id", "coordinator_ids")
+    @api.depends_context("uid")
+    def _compute_user_capabilities(self):
+        is_admin = self.env.su or self.env.user.has_group("usl_sign.group_sign_admin")
+        for request in self:
+            request.can_coordinate = bool(
+                is_admin
+                or request.user_id == self.env.user
+                or self.env.user in request.coordinator_ids,
+            )
+            request.can_send = bool(is_admin or request.user_id == self.env.user)
+
+    def _check_prepare_access(self):
+        for request in self:
+            if not request._user_can_coordinate():
+                msg = "Only the requester or a named coordinator may prepare this request."
+                raise AccessError(msg)
+
+    def _check_owner_access(self):
+        for request in self:
+            if not (
+                self.env.su
+                or self.env.user.has_group("usl_sign.group_sign_admin")
+                or request.user_id == self.env.user
+            ):
+                msg = "Only the requester or a Sign administrator may do this."
+                raise AccessError(msg)
 
     @api.onchange(
         "document_category", "signer_type", "risk_level", "formal_qes_required",
     )
     def _onchange_recommendation_inputs(self):
         for request in self:
-            request.action_compute_recommendation()
+            request.action_compute_recommendation(apply_timing_defaults=True)
 
-    def action_compute_recommendation(self):
+    def action_compute_recommendation(self, apply_timing_defaults=True):
         for request in self:
             request.approval_recommended = bool(
                 request.document_category == "internal_decision"
@@ -346,16 +533,20 @@ class SignRequest(models.Model):
                     },
                 )
                 continue
-            request.update(
-                {
-                    "policy_id": policy.id,
-                    "recommended_trust": policy.recommendation,
-                    "recommendation_reason": policy.reason,
-                    "recommendation_consequence": policy.consequence,
-                    "reminder_days": policy.reminder_days,
-                    "max_reminders": policy.max_reminders,
-                },
-            )
+            values = {
+                "policy_id": policy.id,
+                "recommended_trust": policy.recommendation,
+                "recommendation_reason": policy.reason,
+                "recommendation_consequence": policy.consequence,
+            }
+            if apply_timing_defaults:
+                values.update(
+                    {
+                        "reminder_days": policy.reminder_days,
+                        "max_reminders": policy.max_reminders,
+                    },
+                )
+            request.update(values)
         return True
 
     def action_create_approval(self):
@@ -439,7 +630,7 @@ class SignRequest(models.Model):
     def _validate_preparation(self):
         self.ensure_one()
         if self.approval_recommended:
-            msg = "This internal decision does not require a signed PDF. Use Approve in Odoo."
+            msg = "This internal decision does not require a signed PDF. Request a business decision instead."
             raise ValidationError(
                 msg,
             )
@@ -498,7 +689,7 @@ class SignRequest(models.Model):
         )
         if planned_authentication in {"portal", "pocket_id"}:
             for signer in self.signer_ids:
-                users = signer.partner_id.commercial_partner_id.user_ids.filtered("active")
+                users = signer.partner_id.user_ids.filtered("active")
                 if planned_authentication == "portal" and not users:
                     raise ValidationError(
                         f"{signer.partner_id.name} needs an active Odoo account for portal authentication.",
@@ -563,17 +754,21 @@ class SignRequest(models.Model):
                 raise ValidationError(msg)
 
     def action_mark_ready(self):
+        self._check_prepare_access()
         for request in self:
             if request.state != "draft":
                 msg = "Only a draft request can be marked ready."
                 raise ValidationError(msg)
-            request.action_compute_recommendation()
+            # Recheck trust inputs without silently replacing timing the
+            # requester already reviewed and customized on the draft.
+            request.action_compute_recommendation(apply_timing_defaults=False)
             request._validate_preparation()
             request._transition("ready", "request_ready")
         return True
 
     def _ensure_draft(self):
         self.ensure_one()
+        self._check_prepare_access()
         if not self.signer_ids:
             msg = "Add at least one signer before placing fields."
             raise ValidationError(msg)
@@ -585,6 +780,199 @@ class SignRequest(models.Model):
         action = super().configure()
         action["tag"] = "usl_sign_request_configure"
         return action
+
+    def _editor_roles_info(self):
+        self.ensure_one()
+        template_colors = {
+            mapping.role_id.id: mapping.color
+            for mapping in self.template_id.editor_role_ids
+        }
+        result = []
+        seen = set()
+        for index, signer in enumerate(self.signer_ids.sorted("sequence")):
+            if signer.role_id.id in seen:
+                continue
+            seen.add(signer.role_id.id)
+            result.append(
+                {
+                    "id": signer.role_id.id,
+                    "name": signer.role_id.name,
+                    "signer_name": signer.partner_id.name,
+                    "color": template_colors.get(
+                        signer.role_id.id,
+                        EDITOR_ROLE_COLORS[index % len(EDITOR_ROLE_COLORS)],
+                    ),
+                    "sequence": signer.sequence or (index + 1) * 10,
+                },
+            )
+        return result
+
+    def get_info(self):
+        self.ensure_one()
+        info = super().get_info()
+        fields_info = {
+            field.id: _field_info(field)
+            for field in self.env["sign.oca.field"].search([])
+        }
+        items = {}
+        for key, item in (self.signatory_data or {}).items():
+            field = fields_info.get(int(item["field_id"]))
+            items[str(key)] = {
+                **item,
+                "kind": field["kind"] if field else "text",
+                "field_type": field["field_type"] if field else item.get("field_type", "text"),
+                "technical_type": (
+                    field["technical_type"]
+                    if field
+                    else item.get("technical_type", item.get("field_type", "text"))
+                ),
+            }
+        info.update(
+            {
+                "items": items,
+                "roles": self._editor_roles_info(),
+                "fields": list(fields_info.values()),
+                "revision": self.editor_revision,
+                "readonly": self.state != "draft",
+                "editor_mode": "request",
+            },
+        )
+        return info
+
+    def _editor_store_result(self, operation_uuid, result, signatory_data):
+        self.ensure_one()
+        operation_log = dict(self.editor_operation_log or {})
+        operation_log[operation_uuid] = result
+        if len(operation_log) > 100:
+            operation_log = dict(list(operation_log.items())[-100:])
+        self.with_context(usl_sign_editor_internal=INTERNAL_OPERATION).write(
+            {
+                "signatory_data": signatory_data,
+                "editor_revision": result["revision"],
+                "editor_operation_log": operation_log,
+            },
+        )
+
+    def _validate_editor_page(self, page):
+        self.ensure_one()
+        try:
+            page_count = len(
+                PdfReader(BytesIO(base64.b64decode(self.with_context(bin_size=False).data))).pages,
+            )
+        except Exception as error:
+            msg = "Attach a readable PDF before editing its fields."
+            raise ValidationError(msg) from error
+        if int(page) < 1 or int(page) > page_count:
+            msg = "The selected PDF page does not exist."
+            raise ValidationError(msg)
+
+    def editor_apply_command(self, operation_uuid, expected_revision, command):
+        self.ensure_one()
+        self._ensure_draft()
+        operation_uuid = _validate_editor_uuid(operation_uuid)
+        previous = (self.editor_operation_log or {}).get(operation_uuid)
+        if previous:
+            return previous
+        if int(expected_revision) != self.editor_revision:
+            return {
+                "status": "conflict",
+                "revision": self.editor_revision,
+                "message": "This request changed in another editor. Reload before continuing.",
+            }
+        action = command.get("action")
+        values = dict(command.get("values") or {})
+        allowed = {
+            "field_id", "role_id", "required", "placeholder", "page",
+            "position_x", "position_y", "width", "height",
+        }
+        if set(values) - allowed:
+            msg = "The editor command contains unsupported field values."
+            raise ValidationError(msg)
+        _validate_editor_geometry(values)
+        data = {str(key): dict(value) for key, value in (self.signatory_data or {}).items()}
+        item = False
+        deleted_id = False
+        if action == "create":
+            if not values.get("field_id") or not values.get("role_id"):
+                msg = "Choose both a field type and a signer before placing it."
+                raise ValidationError(msg)
+            field = self.env["sign.oca.field"].browse(values["field_id"]).exists()
+            allowed_roles = self.signer_ids.mapped("role_id")
+            role = allowed_roles.filtered(lambda row: row.id == int(values["role_id"]))
+            if not field or len(role) != 1:
+                msg = "The selected field type or signer is unavailable."
+                raise ValidationError(msg)
+            item_id = max([int(key) for key in data] or [0]) + 1
+            tabindex = max(
+                [int(value.get("tabindex") or 0) for value in data.values()] or [0],
+            ) + 1
+            presentation = FIELD_PRESENTATION[_field_kind(field)]
+            item = {
+                "id": item_id,
+                "tabindex": tabindex,
+                "field_id": field.id,
+                "field_type": field.field_type,
+                "kind": _field_kind(field),
+                "required": field.field_type == "signature",
+                "name": field.name,
+                "role_id": role.id,
+                "page": 1,
+                "position_x": 0,
+                "position_y": 0,
+                "width": presentation["width"],
+                "height": presentation["height"],
+                "value": False,
+                "default_value": field.default_value,
+                "placeholder": "",
+                **values,
+            }
+            self._validate_editor_page(item["page"])
+            data[str(item_id)] = item
+            _validate_complete_editor_geometry(item)
+        elif action == "update":
+            item_id = str(int(command.get("item_id", 0)))
+            if item_id not in data:
+                msg = "The field no longer exists in this request."
+                raise ValidationError(msg)
+            if "field_id" in values:
+                field = self.env["sign.oca.field"].browse(values["field_id"]).exists()
+                if not field:
+                    msg = "The selected field type is unavailable."
+                    raise ValidationError(msg)
+                values.update(
+                    {
+                        "name": field.name,
+                        "kind": _field_kind(field),
+                        "field_type": field.field_type,
+                        "default_value": field.default_value,
+                    },
+                )
+            if "role_id" in values and int(values["role_id"]) not in self.signer_ids.role_id.ids:
+                msg = "The selected signer is unavailable."
+                raise ValidationError(msg)
+            data[item_id].update(values)
+            item = data[item_id]
+            self._validate_editor_page(item["page"])
+            _validate_complete_editor_geometry(item)
+        elif action == "delete":
+            item_id = str(int(command.get("item_id", 0)))
+            if item_id not in data:
+                msg = "The field no longer exists in this request."
+                raise ValidationError(msg)
+            deleted_id = int(item_id)
+            data.pop(item_id)
+        else:
+            msg = "The editor command action is unsupported."
+            raise ValidationError(msg)
+        new_revision = self.editor_revision + 1
+        result = {
+            "status": "ok",
+            "revision": new_revision,
+            "item": item,
+            "deleted_id": deleted_id,
+        }
+        self._editor_store_result(operation_uuid, result, data)
+        return result
 
     def _freeze_document(self):
         self.ensure_one()
@@ -669,6 +1057,7 @@ class SignRequest(models.Model):
 
     def action_send(self, sign_now=False, message=""):
         del sign_now
+        self._check_owner_access()
         for request in self:
             if request.state != "ready":
                 msg = "Only a ready request can be sent."
@@ -766,6 +1155,26 @@ class SignRequest(models.Model):
             raise ValidationError(msg)
         signed_data = base64.b64decode(journey.imported_pdf)
         frozen_data = base64.b64decode(self.original_data)
+        self._create_evidence(
+            "external",
+            journey.imported_filename or f"{self.name}-external-signed.pdf",
+            signed_data,
+            mimetype="application/pdf",
+            metadata={
+                "artifact": "external_signed_pdf_submission",
+                "trust": "unverified_input",
+            },
+        )
+        self._create_evidence(
+            "external",
+            journey.proof_filename or "external-proof-package.bin",
+            base64.b64decode(journey.proof_package),
+            mimetype="application/octet-stream",
+            metadata={
+                "artifact": "external_provider_proof_submission",
+                "trust": "unverified_input",
+            },
+        )
         self._transition("validating", "external_validation_started")
         try:
             match = self._sign_dss_client().revision_matches(frozen_data, signed_data)
@@ -775,13 +1184,6 @@ class SignRequest(models.Model):
                 json.dumps(match, sort_keys=True, indent=2).encode(),
                 mimetype="application/json",
                 metadata={"engine": "EU DSS", "check": "first pre-signature revision"},
-            )
-            self._create_evidence(
-                "external",
-                journey.proof_filename or "external-proof-package.bin",
-                base64.b64decode(journey.proof_package),
-                mimetype="application/octet-stream",
-                metadata={"status": "untrusted_input_until_validation"},
             )
             if not match.get("matches"):
                 explanation = "The signed revision does not match the frozen export."
@@ -877,6 +1279,101 @@ class SignRequest(models.Model):
             "validation_failed", "validation_failed", payload={"reason": explanation},
         )
 
+    def action_create_replacement(self):
+        self.ensure_one()
+        self._check_owner_access()
+        if self.state != "validation_failed":
+            msg = "A replacement is available only after validation has failed."
+            raise ValidationError(msg)
+        documents = self.document_ids.sorted(lambda row: (row.sequence, row.id))
+        if not documents:
+            msg = "The source documents are unavailable; an administrator must inspect the proof."
+            raise ValidationError(msg)
+        layout = json.loads(json.dumps(self.frozen_layout or self.signatory_data or {}))
+        for field in layout.values():
+            field["value"] = False
+        primary = documents[0]
+        record_ref = (
+            f"{self.record_ref._name},{self.record_ref.id}" if self.record_ref else False
+        )
+        replacement = self.create(
+            {
+                "name": f"Replacement — {self.name}",
+                "data": primary.data,
+                "filename": primary.filename,
+                "company_id": self.company_id.id,
+                "user_id": self.user_id.id,
+                "coordinator_ids": [(6, 0, self.coordinator_ids.ids)],
+                "record_ref": record_ref,
+                "template_id": self.template_id.id,
+                "document_category": self.document_category,
+                "signer_type": self.signer_type,
+                "risk_level": self.risk_level,
+                "requires_signed_pdf": self.requires_signed_pdf,
+                "formal_qes_required": self.formal_qes_required,
+                "policy_id": self.policy_id.id,
+                "requested_trust": self.requested_trust,
+                "override_reason": self.override_reason,
+                "external_provider_id": self.external_provider_id.id,
+                "reminder_days": self.reminder_days,
+                "max_reminders": self.max_reminders,
+                "signing_order": self.signing_order,
+                "responsible_message": self.responsible_message,
+                "signatory_data": layout,
+                "signer_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "partner_id": signer.partner_id.id,
+                            "role_id": signer.role_id.id,
+                            "sequence": signer.sequence,
+                        },
+                    )
+                    for signer in self.signer_ids.sorted(
+                        lambda row: (row.sequence, row.id),
+                    )
+                ],
+            },
+        )
+        generated_primary = replacement.document_ids[:1]
+        generated_primary.write(
+            {
+                "name": primary.name,
+                "filename": primary.filename,
+                "sequence": primary.sequence,
+                "is_annex": primary.is_annex,
+            },
+        )
+        for document in documents[1:]:
+            self.env["usl.sign.request.document"].create(
+                {
+                    "request_id": replacement.id,
+                    "name": document.name,
+                    "filename": document.filename,
+                    "sequence": document.sequence,
+                    "is_annex": document.is_annex,
+                    "data": document.data,
+                    "mimetype": document.mimetype,
+                },
+            )
+        self._append_event(
+            "replacement_created",
+            payload={"replacement_request_id": replacement.id},
+        )
+        replacement._append_event(
+            "created_as_replacement",
+            payload={"source_request_id": self.id},
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": replacement.display_name,
+            "res_model": self._name,
+            "res_id": replacement.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
     def _start_final_validation(self):
         self.ensure_one()
         if self.state not in {"sent", "viewed", "partial", "validating"}:
@@ -952,6 +1449,76 @@ class SignRequest(models.Model):
             )
         return summary_evidence
 
+    def _store_pdf_certificate_chains(self, cross_validation):
+        """Preserve the exact certificates embedded in every PDF signature.
+
+        pyHanko only extracts the CMS certificate bytes here. EU DSS remains
+        authoritative for trust, qualification, timestamps and revocation.
+        """
+        self.ensure_one()
+        signatures = cross_validation.get("signatures") or []
+        if not signatures:
+            msg = "The completed PDF contains no extractable signature certificate."
+            raise DSSServiceError(msg)
+        payload = {
+            "format": "usl-sign-pdf-certificate-chains-v1",
+            "extracted_by": cross_validation.get("engine") or "pyHanko",
+            "engine_version": cross_validation.get("engine_version") or "0.36.2",
+            "trust_authority": "EU DSS validation reports",
+            "signatures": [],
+        }
+        try:
+            for signature in signatures:
+                encoded_chain = signature.get("certificate_chain") or []
+                if not encoded_chain:
+                    msg = "A completed PDF signature has no embedded certificate chain."
+                    raise DSSServiceError(msg)
+                chain = []
+                for encoded in encoded_chain:
+                    der = base64.b64decode(encoded, validate=True)
+                    certificate = x509.load_der_x509_certificate(der)
+                    not_before = (
+                        certificate.not_valid_before_utc
+                        if hasattr(certificate, "not_valid_before_utc")
+                        else certificate.not_valid_before
+                    )
+                    not_after = (
+                        certificate.not_valid_after_utc
+                        if hasattr(certificate, "not_valid_after_utc")
+                        else certificate.not_valid_after
+                    )
+                    chain.append(
+                        {
+                            "der": encoded,
+                            "sha256": hashlib.sha256(der).hexdigest(),
+                            "subject": certificate.subject.rfc4514_string(),
+                            "issuer": certificate.issuer.rfc4514_string(),
+                            "serial_number": format(certificate.serial_number, "x"),
+                            "not_before": not_before.isoformat(),
+                            "not_after": not_after.isoformat(),
+                        },
+                    )
+                payload["signatures"].append(
+                    {
+                        "field_name": signature.get("field_name"),
+                        "certificate_chain": chain,
+                    },
+                )
+        except (TypeError, ValueError) as error:
+            msg = "The completed PDF contains malformed certificate evidence."
+            raise DSSServiceError(msg) from error
+        return self._create_evidence(
+            "certificate",
+            f"{self.name}-embedded-pdf-certificate-chains.json",
+            json.dumps(payload, sort_keys=True, indent=2).encode(),
+            mimetype="application/json",
+            metadata={
+                "operation": "CMS certificate extraction",
+                "trust_authority": "EU DSS",
+                "signature_count": len(payload["signatures"]),
+            },
+        )
+
     def _complete_validated_document(self, final_data, validation, *, report_evidence=None):
         self.ensure_one()
         achieved = validation.get("achievedTrust")
@@ -1000,6 +1567,22 @@ class SignRequest(models.Model):
                     "pyhanko_signature_count": cross_validation.get("signature_count"),
                     "pyhanko_status": cross_validation.get("status"),
                 },
+            )
+            return False
+        try:
+            self._store_pdf_certificate_chains(cross_validation)
+        except DSSServiceError as error:
+            self.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+                {
+                    "validation_status": "indeterminate",
+                    "last_error": str(error),
+                    "recovery_action": "Have an evidence reviewer inspect the embedded PDF certificates.",
+                },
+            )
+            self._transition(
+                "action_required",
+                "certificate_evidence_incomplete",
+                payload={"reason": str(error)},
             )
             return False
         report_evidence = report_evidence or self._store_dss_reports(validation)
@@ -1395,8 +1978,15 @@ class SignRequest(models.Model):
             if request.archive_status in {"pending", "processing", "archived"} and not force:
                 continue
             try:
+                # Final evidence is generated by the Sign service, not uploaded by
+                # whichever signer happened to complete the last field.  Keep the
+                # archive operation under Odoo's system identity so Paperless
+                # reconciliation can create and link the canonical document even
+                # when that signer has no Documents permissions.
+                archive_actor = self.env.ref("base.user_root")
                 result = (
                     self.env["usl.document"]
+                    .with_user(archive_actor)
                     .sudo()
                     .with_company(request.company_id)
                     .upload_from_odoo(
@@ -1417,11 +2007,16 @@ class SignRequest(models.Model):
                 }:
                     msg = "Unexpected Paperless archival response."
                     raise ValueError(msg)  # noqa: TRY301 - handled as a recoverable archive failure below
-                values = {"archive_last_error": False}
+                values = {
+                    "archive_last_error": False,
+                    "last_error": False,
+                    "recovery_action": False,
+                }
                 if result["state"] == "duplicate" and result.get("document_id"):
                     values.update(
                         {
                             "archive_status": "archived",
+                            "archive_operation_id": False,
                             "archive_document_id": result["document_id"],
                             "evidence_status": "complete",
                         },
@@ -1488,6 +2083,8 @@ class SignRequest(models.Model):
                         "archive_status": "archived",
                         "archive_document_id": operation.document_id.id,
                         "archive_last_error": False,
+                        "last_error": False,
+                        "recovery_action": False,
                         "evidence_status": "complete",
                     },
                 )
@@ -1520,9 +2117,61 @@ class SignRequest(models.Model):
                     request._transition("action_required", "completion_gate_failed")
                     continue
                 request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
-                    {"completed_at": fields.Datetime.now()},
+                    {
+                        "completed_at": fields.Datetime.now(),
+                        "last_error": False,
+                        "recovery_action": False,
+                    },
                 )
                 request._transition("completed", "request_completed")
+                request._send_completed_dossier()
+
+    def _send_completed_dossier(self):
+        """Queue the final archived dossier once, using OCA's delivery setting."""
+        for request in self:
+            if (
+                request.state != "completed"
+                or not request.company_id.sign_oca_send_sign_request_copy
+                or request.event_ids.filtered(
+                    lambda event: event.event_type == "completed_dossier_queued",
+                )
+            ):
+                continue
+            attachment = self.env["ir.attachment"].sudo().search(
+                [
+                    ("res_model", "=", request._name),
+                    ("res_id", "=", request.id),
+                    ("res_field", "=", "dossier_data"),
+                ],
+                limit=1,
+            )
+            if not attachment:
+                msg = "The completed evidence dossier attachment is missing."
+                raise ValidationError(msg)
+            partners = request.signer_ids.mapped("partner_id")
+            body = self.env["ir.qweb"]._render(
+                "usl_sign.sign_completion_delivery_body",
+                {"record": request},
+                engine="ir.qweb",
+                minimal_qcontext=True,
+            )
+            self.env["mail.thread"].message_notify(
+                body=body,
+                partner_ids=partners.ids,
+                subject=self.env._("Completed signature dossier: %(name)s", name=request.name),
+                subtype_id=self.env.ref("mail.mt_comment").id,
+                mail_auto_delete=False,
+                email_layout_xmlid="mail.mail_notification_light",
+                attachment_ids=attachment.ids,
+            )
+            request._append_event(
+                "completed_dossier_queued",
+                payload={
+                    "partner_ids": partners.ids,
+                    "filename": request.dossier_filename,
+                    "sha256": hashlib.sha256(base64.b64decode(request.dossier_data)).hexdigest(),
+                },
+            )
 
     def action_send_reminder(self):
         return self._send_due_reminders(force=True)
@@ -1670,6 +2319,7 @@ class SignRequest(models.Model):
         self._cron_reconcile_archives()
 
     def cancel(self):
+        self._check_owner_access()
         for request in self:
             if request.state in TERMINAL_REQUEST_STATES:
                 continue
@@ -1745,6 +2395,43 @@ class SignRequest(models.Model):
         return True
 
     def write(self, values):
+        internal = any(
+            self.env.context.get(key) is INTERNAL_OPERATION
+            for key in (
+                "usl_sign_transition",
+                "usl_sign_freeze",
+                "usl_sign_working_pdf",
+                "usl_sign_editor_internal",
+            )
+        )
+        if values and not internal and not self.env.su:
+            chatter_fields = {"message_follower_ids", "activity_ids"}
+            trust_fields = {"requested_trust", "override_reason"}
+            owner_fields = {"user_id", "coordinator_ids"}
+            for request in self:
+                is_admin = self.env.user.has_group("usl_sign.group_sign_admin")
+                is_owner = request.user_id == self.env.user
+                is_coordinator = self.env.user in request.coordinator_ids
+                is_trust_reviewer = self.env.user.has_group(
+                    "usl_sign.group_sign_trust_override",
+                )
+                if is_admin or is_owner:
+                    continue
+                if is_coordinator:
+                    if owner_fields.intersection(values) or trust_fields.intersection(values):
+                        msg = "Only the requester may change sharing or the requested trust level."
+                        raise AccessError(
+                            msg,
+                        )
+                    continue
+                if is_trust_reviewer and set(values) <= trust_fields:
+                    continue
+                if set(values) <= chatter_fields:
+                    continue
+                msg = "Only the requester or a named coordinator may change this request."
+                raise AccessError(
+                    msg,
+                )
         if "state" in values and self.env.context.get("usl_sign_transition") is not INTERNAL_OPERATION:
             msg = "Use a signature lifecycle action to change state."
             raise ValidationError(msg)
@@ -1826,6 +2513,7 @@ class SignRequest(models.Model):
         return super().write(values)
 
     def unlink(self):
+        self._check_owner_access()
         if self.filtered(lambda request: request.state != "draft"):
             msg = "Only draft requests can be deleted."
             raise ValidationError(msg)
@@ -1838,6 +2526,54 @@ class SignRequestSigner(models.Model):
 
     state = fields.Selection(SIGNER_STATES, default="draft", required=True, copy=False)
     sequence = fields.Integer(string="Signing order", default=10)
+    sender_id = fields.Many2one(
+        related="request_id.user_id",
+        string="Sender",
+        readonly=True,
+    )
+    request_state = fields.Selection(
+        related="request_id.state",
+        string="Request status",
+        readonly=True,
+    )
+    overall_status = fields.Char(
+        related="request_id.lifecycle_stage_label",
+        string="Overall status",
+        readonly=True,
+    )
+    request_due_at = fields.Datetime(
+        related="request_id.expires_at",
+        string="Due",
+        readonly=True,
+    )
+    requested_trust_short = fields.Char(
+        related="request_id.requested_trust_short",
+        string="Trust",
+        readonly=True,
+    )
+
+    def action_open_request(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.request_id.name,
+            "res_model": "sign.oca.request",
+            "res_id": self.request_id.id,
+            "views": [(False, "form")],
+            "target": "current",
+        }
+
+    def sign(self):
+        self.ensure_one()
+        if not self.is_allow_signature:
+            msg = "You are not allowed to sign this document."
+            raise ValidationError(msg)
+        return {
+            "type": "ir.actions.act_url",
+            "url": self.access_url,
+            "target": "self",
+        }
+
     access_token_sha256 = fields.Char(readonly=True, copy=False, index=True)
     access_expires_at = fields.Datetime(readonly=True, copy=False)
     session_token_sha256 = fields.Char(readonly=True, copy=False, index=True)
@@ -1899,15 +2635,19 @@ class SignRequestSigner(models.Model):
             if signer.signed_on:
                 signer.invitation_delivery_state = "resolved"
                 continue
+            # Requesters may inspect delivery, but they must not gain access to the
+            # internal outgoing-mail record.  Resolve it under sudo and expose only
+            # the bounded product status below.
+            mail_state = signer.sudo().invitation_mail_id.state
             signer.invitation_delivery_state = mapping.get(
-                signer.invitation_mail_id.state,
+                mail_state,
                 "sent" if signer.invitation_sent_at else "not_queued",
             )
 
     @api.depends("signed_on", "partner_id", "state", "request_id.state")
     @api.depends_context("uid")
     def _compute_is_allow_signature(self):
-        current_partner = self.env.user.partner_id.commercial_partner_id
+        current_partner = self.env.user.partner_id
         for signer in self:
             order_ready = not signer.request_id.signer_ids.filtered(
                 lambda other: signer.request_id.signing_order
@@ -1917,7 +2657,7 @@ class SignRequestSigner(models.Model):
             signer.is_allow_signature = bool(
                 signer.state in {"notified", "viewed", "authorized"}
                 and not signer.access_revoked
-                and signer.partner_id.commercial_partner_id == current_partner
+                and signer.partner_id == current_partner
                 and signer.request_id.state in {"sent", "viewed", "partial"}
                 and order_ready,
             )
@@ -1929,6 +2669,14 @@ class SignRequestSigner(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        request_ids = {
+            values.get("request_id") for values in vals_list if values.get("request_id")
+        }
+        if not self.env.su:
+            for request in self.env["sign.oca.request"].browse(request_ids):
+                if not request._user_can_coordinate():
+                    msg = "Only the requester or a named coordinator may add signers."
+                    raise AccessError(msg)
         for values in vals_list:
             values["access_token"] = False
         return super().create(vals_list)
@@ -1937,7 +2685,7 @@ class SignRequestSigner(models.Model):
         self.ensure_one()
         return self.env["usl.sign.enrollment"].search(
             [
-                ("partner_id", "=", self.partner_id.commercial_partner_id.id),
+                ("partner_id", "=", self.partner_id.id),
                 ("company_id", "=", self.request_id.company_id.id),
                 ("state", "=", "active"),
                 ("passkey_ids.state", "=", "active"),
@@ -2245,8 +2993,27 @@ class SignRequestSigner(models.Model):
             if signer.request_id.state == "sent":
                 signer.request_id._transition("viewed", "document_viewed", signer=signer)
 
-    def action_sign(self, items, access_token=False, latitude=False, longitude=False, consent=False):
+    def action_sign(
+        self,
+        items,
+        access_token=False,
+        document_sha256=False,
+        latitude=False,
+        longitude=False,
+        consent=False,
+    ):
         self.ensure_one()
+        # Serialize Standard submissions on the request. Without this lock, two
+        # unordered signers can both render from the same revision and the last
+        # transaction to commit can erase the first signer's fields.
+        self.env.cr.execute(
+            "SELECT id FROM sign_oca_request WHERE id = %s FOR UPDATE",
+            [self.request_id.id],
+        )
+        self.request_id.invalidate_recordset(["data", "current_hash", "state"])
+        self.invalidate_recordset(
+            ["access_revoked", "session_token_sha256", "session_expires_at", "state"],
+        )
         self._check_token(access_token, session=True)
         if self.request_id.requested_trust != "standard":
             msg = "This request requires the strong personal ceremony."
@@ -2254,9 +3021,32 @@ class SignRequestSigner(models.Model):
         if not consent:
             msg = "Explicit electronic-signature consent is required."
             raise ValidationError(msg)
-        return self._apply_standard_signature(items, latitude=latitude, longitude=longitude)
+        current_sha256 = hashlib.sha256(base64.b64decode(self.request_id.data)).hexdigest()
+        if (
+            not isinstance(document_sha256, str)
+            or len(document_sha256) != 64
+            or not secrets.compare_digest(document_sha256, current_sha256)
+        ):
+            msg = _(
+                "The document changed after you reviewed it. Reload it, review the "
+                "latest revision, and sign again.",
+            )
+            raise ValidationError(msg)
+        return self._apply_standard_signature(
+            items,
+            reviewed_document_sha256=current_sha256,
+            latitude=latitude,
+            longitude=longitude,
+        )
 
-    def _apply_standard_signature(self, items, *, latitude=False, longitude=False):
+    def _apply_standard_signature(
+        self,
+        items,
+        *,
+        reviewed_document_sha256,
+        latitude=False,
+        longitude=False,
+    ):
         request = self.request_id
         frozen_layout = json.loads(json.dumps(request.frozen_layout or {}))
         completed_layout = json.loads(
@@ -2342,8 +3132,21 @@ class SignRequestSigner(models.Model):
             "consent": consent_text,
             "version": "1",
             "consented_at": fields.Datetime.to_string(now),
-            "document_sha256": digest,
+            "reviewed_document_sha256": reviewed_document_sha256,
+            "signed_document_sha256": digest,
             "authentication_method": self.authentication_method,
+            "field_values_sha256": hashlib.sha256(
+                json.dumps(
+                    {
+                        key: value
+                        for key, value in completed_layout.items()
+                        if int(value.get("role_id") or 0) == self.role_id.id
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=False,
+                ).encode(),
+            ).hexdigest(),
         }
         request._create_evidence(
             "consent",
@@ -2356,7 +3159,11 @@ class SignRequestSigner(models.Model):
             "standard_signature_applied",
             signer=self,
             authentication_method=self.authentication_method,
-            payload={"document_sha256": digest, "consent_version": "1"},
+            payload={
+                "reviewed_document_sha256": reviewed_document_sha256,
+                "signed_document_sha256": digest,
+                "consent_version": "1",
+            },
         )
         self._activate_next_signer_or_finish()
         return {"type": "ir.actions.act_url", "url": "/sign/result/success"}
@@ -2375,8 +3182,9 @@ class SignRequestSigner(models.Model):
             return
         request._start_final_validation()
 
-    def action_decline(self, reason):
+    def action_decline(self, reason, access_token=False):
         self.ensure_one()
+        self._check_token(access_token, session=True)
         if not reason:
             msg = "Record why the document is declined."
             raise ValidationError(msg)
@@ -2412,10 +3220,37 @@ class SignRequestSigner(models.Model):
         self.ensure_one()
         if access_token:
             self._check_token(access_token, session=True)
+        layout = json.loads(json.dumps(self.request_id.frozen_layout or {}))
+        field_ids = {
+            int(item["field_id"])
+            for item in layout.values()
+            if isinstance(item, dict) and item.get("field_id")
+        }
+        fields_by_id = {
+            field.id: field
+            for field in self.env["sign.oca.field"].sudo().browse(field_ids).exists()
+        }
+        for item in layout.values():
+            if not isinstance(item, dict):
+                continue
+            field = fields_by_id.get(int(item.get("field_id") or 0))
+            if not field:
+                item.setdefault("kind", "text")
+                item.setdefault("technical_type", item.get("field_type", "text"))
+                continue
+            item.update(
+                {
+                    "name": item.get("name") or field.name,
+                    "kind": _field_kind(field),
+                    "field_type": field.field_type,
+                    "technical_type": field.field_type,
+                    "default_value": item.get("default_value") or field.default_value or False,
+                },
+            )
         return {
             "role_id": self.role_id.id if not self.signed_on else False,
             "name": self.request_id.name,
-            "items": self.request_id.frozen_layout or {},
+            "items": layout,
             "to_sign": not self.signed_on and not self.access_revoked,
             "ask_location": self.request_id.ask_location,
             "partner": {
@@ -2426,6 +3261,9 @@ class SignRequestSigner(models.Model):
             },
             "trust_label": dict(TRUST_LEVELS)[self.request_id.requested_trust],
             "consent_text": self.request_id.consent_text_snapshot,
+            "document_sha256": hashlib.sha256(
+                base64.b64decode(self.request_id.data),
+            ).hexdigest(),
         }
 
     def write(self, values):
@@ -2471,6 +3309,20 @@ class SignRequestSigner(models.Model):
         ) is not INTERNAL_OPERATION:
             msg = "Use a controlled signer action to change signing evidence."
             raise ValidationError(msg)
+        if (
+            values
+            and self.env.context.get("usl_sign_signer_transition") is not INTERNAL_OPERATION
+            and not self.env.su
+        ):
+            for signer in self:
+                if not signer.request_id._user_can_coordinate():
+                    msg = "Only the requester or a named coordinator may edit signers."
+                    raise AccessError(
+                        msg,
+                    )
+                if signer.request_id.state != "draft":
+                    msg = "Signers can only be edited while the request is a draft."
+                    raise ValidationError(msg)
         if self.filtered(lambda signer: signer.signed_on) and set(values) - {
             "message_follower_ids",
             "activity_ids",
@@ -2483,3 +3335,14 @@ class SignRequestSigner(models.Model):
             msg = "Signer identities, roles and order are frozen after sending."
             raise ValidationError(msg)
         return super().write(values)
+
+    def unlink(self):
+        if not self.env.su:
+            for signer in self:
+                if not signer.request_id._user_can_coordinate():
+                    msg = "Only the requester or a named coordinator may remove signers."
+                    raise AccessError(msg)
+        if self.filtered(lambda signer: signer.request_id.state != "draft"):
+            msg = "Signers can only be removed while the request is a draft."
+            raise ValidationError(msg)
+        return super().unlink()

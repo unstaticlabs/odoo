@@ -36,6 +36,23 @@ FORBIDDEN_PATHS = (
     ROOT / "custom-addons" / "usl_sign" / "controllers" / "webhook.py",
     ROOT / "custom-addons" / "usl_sign" / "services" / "yousign.py",
 )
+REQUIRED_PURPOSE_SEPARATION = {
+    ROOT / "compose.yaml": (
+        "USL_DSS_PLATFORM_KEYSTORE: /run/usl-sign-dss/platform.p12",
+        "USL_DSS_MANIFEST_KEYSTORE: /run/usl-sign-dss/manifest.p12",
+    ),
+    ROOT / "scripts" / "sign-services-bootstrap": (
+        'issue_leaf platform "USL Sign Platform Seal"',
+        'issue_leaf manifest "USL Sign Evidence Manifest"',
+        '"$dss_secret_dir/manifest.p12"',
+    ),
+    ROOT / "services" / "usl-sign-dss" / "src" / "main" / "java"
+    / "com" / "unstaticlabs" / "sign" / "dss" / "Application.java": (
+        'requiredEnv("USL_DSS_PLATFORM_KEYSTORE")',
+        'requiredEnv("USL_DSS_MANIFEST_KEYSTORE")',
+        "enforceSigningKeySeparation();",
+    ),
+}
 TEXT_SUFFIXES = {"", ".csv", ".env", ".html", ".js", ".json", ".md", ".po", ".py", ".scss", ".xml", ".yaml", ".yml"}
 
 
@@ -43,6 +60,14 @@ errors = []
 for path in FORBIDDEN_PATHS:
     if path.exists():
         errors.append(f"Forbidden obsolete Sign path remains: {path.relative_to(ROOT)}")
+
+for path, snippets in REQUIRED_PURPOSE_SEPARATION.items():
+    content = path.read_text(errors="ignore") if path.is_file() else ""
+    for snippet in snippets:
+        if snippet not in content:
+            errors.append(
+                f"{path.relative_to(ROOT)} is missing Sign key-separation boundary {snippet!r}",
+            )
 
 for root in SCANNED:
     paths = root.rglob("*") if root.is_dir() else [root]

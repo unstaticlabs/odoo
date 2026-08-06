@@ -3,39 +3,70 @@
     <record id="res_config_settings_view_form_sign" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.sign</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="inherit_id" ref="sign_oca.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="inside">
-                <app string="USL Sign" name="usl_sign" groups="usl_sign.group_sign_admin">
-                    <block title="Trust and evidence" name="sign_trust">
-                        <setting string="Default recommendation policy">
-                            <field name="sign_default_policy_id"/>
-                        </setting>
-                        <setting string="Completed dossier delivery">
-                            <field name="sign_deliver_completed_to_signers"/>
-                        </setting>
-                        <setting string="Evidence retention">
-                            <field name="sign_evidence_retention_years"/> years
-                        </setting>
-                        <setting string="Independent RFC 3161 timestamps" help="Enable only after a reviewed TSA endpoint is configured in the server environment.">
-                            <field name="sign_rfc3161_enabled"/>
-                        </setting>
-                    </block>
-                    <block title="Strong personal signature" name="sign_strong">
-                        <setting string="Passkey relying-party ID">
-                            <field name="sign_webauthn_rp_id" placeholder="odoo.example.com"/>
-                        </setting>
-                        <setting string="Allowed passkey origins">
-                            <field name="sign_webauthn_origins" placeholder="https://odoo.example.com"/>
-                        </setting>
-                        <setting string="Local services" help="DSS and CA secrets remain mounted server-side and are not stored in Odoo.">
-                            <field name="sign_services_ready" readonly="1"/>
-                            <field name="sign_services_message" readonly="1"/>
-                            <button name="action_test_sign_services" type="object" string="Test DSS" class="btn-link"/>
-                        </setting>
-                    </block>
-                </app>
+            <xpath expr="//app[@name='sign_oca']" position="attributes">
+                <attribute name="string">Sign</attribute>
+                <attribute name="data-string">Sign</attribute>
             </xpath>
+            <xpath expr="//app[@name='sign_oca']//setting[field[@name='sign_oca_send_sign_request_copy']]" position="attributes">
+                <attribute name="help">After validation and Paperless archival, send every signer the final PDF/A-3 evidence dossier. It contains the signed PDF and completion evidence.</attribute>
+            </xpath>
+            <xpath expr="//app[@name='sign_oca']" position="inside">
+                <block title="Trust and evidence" name="sign_trust">
+                    <setting string="Default recommendation policy">
+                        <field name="sign_default_policy_id"/>
+                    </setting>
+                    <setting string="Evidence retention">
+                        <field name="sign_evidence_retention_years"/> years
+                    </setting>
+                    <setting string="Independent RFC 3161 timestamps" help="Enable only after a reviewed TSA endpoint is configured in the server environment.">
+                        <field name="sign_rfc3161_enabled"/>
+                    </setting>
+                </block>
+                <block title="Strong personal signature" name="sign_strong">
+                    <setting string="Passkey relying-party ID">
+                        <field name="sign_webauthn_rp_id" placeholder="odoo.example.com"/>
+                    </setting>
+                    <setting string="Allowed passkey origins">
+                        <field name="sign_webauthn_origins" placeholder="https://odoo.example.com"/>
+                    </setting>
+                    <setting string="Local services" help="DSS and CA secrets remain mounted server-side and are not stored in Odoo.">
+                        <field name="sign_services_ready" readonly="1"/>
+                        <field name="sign_services_message" readonly="1"/>
+                        <button name="action_test_sign_services" type="object" string="Test DSS" class="btn-link"/>
+                        <button name="action_test_sign_certificate_service" type="object" string="Test certificate service" class="btn-link"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sign_service_status_form" model="ir.ui.view">
+        <field name="name">res.config.settings.form.sign.service.status</field>
+        <field name="model">res.config.settings</field>
+        <field name="arch" type="xml">
+            <form string="Sign Service Status" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Service status</h1>
+                        <p class="text-muted">Check the services required to validate signatures and archive their proof.</p>
+                    </div>
+                    <group>
+                        <group string="Signing engine">
+                            <field name="sign_services_ready" string="Ready" readonly="1"/>
+                            <field name="sign_services_message" string="Readiness" readonly="1"/>
+                            <button name="action_test_sign_services" type="object" string="Test DSS" class="btn-secondary"/>
+                            <button name="action_test_sign_certificate_service" type="object" string="Test certificate service" class="btn-secondary"/>
+                        </group>
+                        <group string="Evidence archive">
+                            <field name="paperless_health" string="Paperless" readonly="1"/>
+                            <field name="paperless_last_sync" string="Last successful synchronization" readonly="1"/>
+                            <button name="action_test_paperless" type="object" string="Test Paperless" class="btn-secondary"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 </odoo>

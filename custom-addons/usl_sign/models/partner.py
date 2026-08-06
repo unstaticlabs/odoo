@@ -28,7 +28,7 @@ class ResPartner(models.Model):
         return [
             "|",
             ("record_ref", "=", f"res.partner,{self.id}"),
-            ("signer_ids.partner_id", "child_of", self.commercial_partner_id.id),
+            ("signer_ids.partner_id", "=", self.id),
         ]
 
     def _compute_signature_summary(self):
@@ -75,7 +75,7 @@ class ResPartner(models.Model):
             "view_mode": "form",
             "target": "current",
             "context": {
-                "default_partner_id": self.commercial_partner_id.id,
+                "default_partner_id": self.id,
                 "default_company_id": self.env.company.id,
             },
         }

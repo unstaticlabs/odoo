@@ -13,4 +13,5 @@ from . import (
     request,
     template,
     wizard,
+    workspace,
 )

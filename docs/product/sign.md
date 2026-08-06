@@ -79,15 +79,50 @@ The linked Odoo record shows current state, next action, requested/achieved
 trust, completed PDF, completion certificate and archival state without
 requiring a chatter reconstruction.
 
+## Journey-led workspaces
+
+Opening **Sign** goes directly to a personal landing page. It separates work
+that needs the current user's signature, an approval decision, requester
+preparation, recovery, waiting, or retrieval. **Start** asks one business
+question: request a decision without a signed PDF, or request document
+signatures.
+
+The only top-level workspaces are:
+
+- **Library**, with ready/draft Templates and strictly completed Documents;
+- **Open Requests**, limited to non-terminal requests owned by the user or
+  shared with them as a named coordinator;
+- **My Signatures**, limited to documents the user must sign, has signed, or
+  completed with their signature;
+- **Configuration**, containing identities, reviews, policies, qualified
+  providers, service status, evidence manifests and settings according to the
+  user's role.
+
+A named coordinator can prepare, monitor, remind and retry a request. They
+cannot change ownership or sharing, change trust, send, or perform restricted
+cancellation unless another assigned role independently grants that authority.
+The request form progressively discloses technical detail through Overview,
+Signers, Documents, Proof & Validation and Timeline rather than presenting the
+evidence model as the primary interface.
+
 ## Standard journey
 
 Users can prepare reusable templates or one-off requests, place supported
-fields by role, preview roles, use multiple documents and signers, require
+fields by role, use multiple documents and signers, require
 signing order, set reminders and expiration, and handle refusal or
-cancellation. The OCA editor is extended with an Odoo-native palette,
-drag/drop placement, role colors, page navigation, zoom, move, resize, delete,
-required/optional configuration, keyboard access and explicit loading/error
-states.
+cancellation. The OCA storage and PDF foundation is extended with a
+three-pane Odoo-native editor. A user chooses a typed field and signer, then
+clicks the PDF; drag/drop and right-click call the same explicit placement
+command. Per-template signer colors remain stable across reloads and are
+shared by the palette, PDF fields and inspector. Required
+state uses a separate marker and never replaces the signer color. The editor
+also provides page navigation, zoom, move, resize, delete, keyboard access,
+undo/redo, autosave status, conflict detection and explicit loading,
+read-only and failure states.
+
+The signer renderer keeps OCA's public PDF components but normalizes its role
+metadata in the USL extension, including text and checkbox fields. This keeps
+field visibility aligned with the assigned signer while leaving OCA unmodified.
 
 Each invitation contains 256 bits of entropy. Only its SHA-256 is stored. The
 first use is rate-limited and exchanges the bearer secret for a short-lived,
@@ -95,6 +130,14 @@ revocable session bound to the request, signer and expiry. The policy can use
 the secure invitation, a portal account or Pocket ID. The signer page works on
 mobile, captures field values and explicit consent, and records the
 authentication method, timestamp, IP address and user agent.
+
+Every Standard submission also carries the SHA-256 of the exact PDF revision
+shown to that signer. Odoo serializes submissions with a request-level database
+lock and rejects a stale revision instead of merging against unseen bytes or
+allowing one concurrent signer to overwrite another. The signer must reload
+and review the latest revision before retrying. Consent evidence records the
+reviewed revision, the resulting signed revision and a canonical digest of the
+signer's completed fields.
 
 After the last signer, Odoo renders the final PDF, asks the internal DSS
 service to apply the USL platform seal, re-reads the persisted bytes and runs
@@ -131,6 +174,13 @@ and no analytics. During each signing ceremony:
    only the certificate and signature value. DSS embeds the signature.
 7. Odoo invalidates the ceremony, terminates the worker and independently
    validates the persisted PDF.
+
+The request and signer rows are locked for every begin, authorize and finalize
+step. Starting a fresh challenge supersedes an unused challenge, while an
+already authorized ceremony must finish or expire. A partial unique database
+index permits only one live challenge or authorization per signer. This keeps
+the document-specific browser key and short-lived certificate ceremony
+single-flight across duplicate tabs, retries and concurrent submissions.
 
 The document private key is never exported or submitted to Odoo. Strong
 multi-signer requests are sequential so each personal signature covers the
@@ -177,6 +227,10 @@ credentials are mounted secrets and never stored in Git or editable Odoo
 fields. pyHanko is a pinned independent cross-validator, never the authority;
 a disagreement causes `Action required`.
 
+PDF platform seals and canonical evidence manifests use separate leaf keys and
+certificates. The DSS service verifies that the public keys differ at startup,
+so a deployment cannot accidentally collapse those two trust purposes.
+
 Every meaningful operation appends an immutable event containing its sequence,
 previous hash, canonical payload hash, actor/authentication, IP, user agent,
 transition and timestamp. Request completion and daily signed head manifests
@@ -192,9 +246,18 @@ cover, passes veraPDF, receives a platform seal and is sent through the
 checksum-idempotent `usl_documents` Paperless operation. Failed archival is
 visible and safely retryable; it blocks completion.
 
+The single OCA Sign option **Send signers a copy of the final signed document**
+defaults to enabled. USL Sign deliberately defers delivery until independent
+validation and Paperless archival are confirmed. It then queues the final
+PDF/A-3 evidence dossier, which embeds the signed PDF, completion certificate
+and validation evidence. There is no separate USL delivery option.
+
 ## Permissions and company isolation
 
-- **Sign User** creates and follows their company requests.
+- **Sign User** starts signing or approval journeys, follows their requests,
+  and signs documents assigned to their identity.
+- **Named Coordinator** is a per-request responsibility, not a global group;
+  it grants safe preparation and recovery without owner-only controls.
 - **Template Manager** publishes versioned templates and layouts.
 - **Identity Reviewer** reviews relationships, enrolments and passkey
   revocation.
@@ -206,6 +269,10 @@ visible and safely retryable; it blocks completion.
 Global company rules isolate all operational and proof records. Controlled
 actions use narrowly scoped elevation while preserving the true actor in the
 event payload. Cryptographic evidence stays out of routine chatter.
+Signer access is matched to the exact Odoo partner identity, never the broader
+commercial partner, so sibling contacts at one organisation cannot see or act
+on each other's requests. Signer visibility is read-only outside the controlled
+signing ceremony and never grants draft preparation rights.
 
 ## Release boundary
 

@@ -40,7 +40,7 @@
     </record>
 
     <record id="policy_routine_standard" model="usl.sign.policy">
-        <field name="name">Routine documents</field>
+        <field name="name">Routine signing policy</field>
         <field name="sequence">10</field>
         <field name="version">2026.1</field>
         <field name="risk_level">low</field>

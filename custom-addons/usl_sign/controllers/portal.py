@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError
 from odoo.http import request
 from odoo.http.stream import Stream
 
+from ..models.constants import TRUST_LEVELS
 from odoo.addons.sign_oca.controllers.main import PortalSign
 
 STRONG_CSP = (
@@ -49,8 +50,7 @@ class SignPortalController(PortalSign):
         current_user = request.env.user
         if (
             current_user._is_public()
-            or current_user.partner_id.commercial_partner_id
-            != signer.partner_id.commercial_partner_id
+            or current_user.partner_id != signer.partner_id
         ):
             raise NotFound()
         if method == "pocket_id" and not current_user.oauth_provider_id.usl_pocketid:
@@ -130,12 +130,24 @@ class SignPortalController(PortalSign):
         website=True,
         sitemap=False,
     )
-    def signing_session(self, signer_id, access_token):
+    def signing_session(self, signer_id, access_token, review=None, **kwargs):
+        del kwargs
         try:
             signer = self._secure_signer(signer_id, access_token)
         except NotFound:
             return request.render("usl_sign.portal_sign_unavailable")
         signer._mark_viewed()
+        if not review:
+            return request.render(
+                "usl_sign.portal_sign_start",
+                {
+                    "signer": signer,
+                    "access_token": access_token,
+                    "requested_trust_display": dict(TRUST_LEVELS).get(
+                        signer.request_id.requested_trust,
+                    ),
+                },
+            )
         if signer.request_id.requested_trust == "strong_personal":
             return _secure_strong_response(
                 request.render(
@@ -169,8 +181,7 @@ class SignPortalController(PortalSign):
         signer = request.env["sign.oca.request.signer"].browse(signer_id).exists()
         if (
             not signer
-            or signer.partner_id.commercial_partner_id
-            != request.env.user.partner_id.commercial_partner_id
+            or signer.partner_id != request.env.user.partner_id
         ):
             return request.not_found()
         token = signer._issue_access_token()
@@ -212,6 +223,7 @@ class SignPortalController(PortalSign):
         signer_id,
         access_token,
         items,
+        document_sha256,
         latitude=False,
         longitude=False,
         consent=False,
@@ -220,6 +232,7 @@ class SignPortalController(PortalSign):
         return signer.action_sign(
             items,
             access_token=access_token,
+            document_sha256=document_sha256,
             latitude=latitude,
             longitude=longitude,
             consent=consent,
@@ -233,7 +246,7 @@ class SignPortalController(PortalSign):
     )
     def decline(self, signer_id, access_token, reason):
         signer = self._secure_signer(signer_id, access_token)
-        return signer.action_decline(reason)
+        return signer.action_decline(reason, access_token=access_token)
 
     @http.route(
         "/sign/result/<string:status>",
@@ -272,8 +285,8 @@ class SignPortalController(PortalSign):
             ),
             (
                 "partner_id",
-                "child_of",
-                [http_request.env.user.partner_id.commercial_partner_id.id],
+                "=",
+                http_request.env.user.partner_id.id,
             ),
         ]
 
@@ -297,12 +310,12 @@ class SignPortalController(PortalSign):
     def portal_download_signed(self, request_id, **kwargs):
         del kwargs
         sign_request = request.env["sign.oca.request"].browse(request_id).exists()
-        partner = request.env.user.partner_id.commercial_partner_id
+        partner = request.env.user.partner_id
         if (
             not sign_request
             or sign_request.state != "completed"
             or not sign_request.signer_ids.filtered(
-                lambda signer: signer.partner_id.commercial_partner_id == partner,
+                lambda signer: signer.partner_id == partner,
             )
         ):
             return request.not_found()

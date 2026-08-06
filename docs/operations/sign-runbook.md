@@ -33,6 +33,11 @@ docker compose up -d usl-sign-step-ca usl-sign-dss
 docker compose exec -T odoo usl-sign-services-smoke
 ```
 
+For a development secret set created before manifest-key separation was
+introduced, run `scripts/sign-services-manifest-key-bootstrap` once, rebuild
+and recreate `usl-sign-dss`, then rerun the smoke test. The additive helper
+refuses to replace an existing manifest keystore or any CA/platform material.
+
 The bootstrap creates the offline/online CA material, restricted provisioner,
 platform seal, manifest key and mutually authenticated service certificates.
 It writes generated environment material beneath `.secrets/sign/`; the whole
@@ -52,6 +57,11 @@ USL_SIGN_STEP_CA_PROVISIONER=usl-sign
 USL_SIGN_STEP_CA_JWK_FILE=/run/usl-sign/provisioner.jwk
 USL_SIGN_STEP_CA_CA_BUNDLE=/run/usl-sign/root_ca.crt
 ```
+
+The DSS deployment additionally requires separate mounted PKCS#12 credentials
+for `USL_DSS_PLATFORM_KEYSTORE` and `USL_DSS_MANIFEST_KEYSTORE`, with their
+passwords supplied through the secret environment. The service refuses to
+start if both purposes resolve to the same public key.
 
 Never enable `USL_SIGN_DSS_ALLOW_PLAINTEXT` outside a tightly isolated unit
 test. Configure an RFC 3161 TSA only after its trust, retention, privacy,
@@ -85,12 +95,49 @@ In each company:
 An empty provider catalog is safer than an unreviewed recommendation. Provider
 names are ordinary catalog data; adding one does not enable an integration.
 
+## Routine-agreement QA walkthrough
+
+Use synthetic names and a non-confidential PDF.
+
+Running `scripts/odoo-dev bootstrap-sign-qa` assigns the required Sign roles to
+the existing `valentin`, `roger@unstaticlabs.com`, and `prosper` Pocket ID
+accounts and creates the synthetic ready template. Switch users through Pocket
+ID with each account's registered passkey. Odoo-local passwords and Odoo-local
+passkeys remain disabled for Pocket ID-managed users, including in QA.
+
+1. Open **Sign**. Confirm the landing page groups Sign now, Decide, Prepare and
+   send, Resolve issues, Waiting on others and Recently completed.
+2. Click **Start → Request document signatures**. Choose a ready Routine
+   Agreement template or upload a one-off PDF.
+3. Add the signer or signers and their order. Confirm Standard is recommended,
+   read the business reason, then review and send.
+4. As the requester, open **Open Requests**. Confirm progress, next action, due
+   date and requested trust are visible without opening Proof & Validation.
+5. As the invited user, open **My Signatures → To sign**, or use the secure
+   invitation in a private browser. Review the sender, role, signing level and
+   deadline; complete the assigned fields, consent and confirm.
+6. Return as the requester. Completion must wait for DSS validation, evidence
+   construction and Paperless archival. If archival is deliberately stopped,
+   confirm Resolve issues shows the request and retry succeeds after recovery.
+7. Open **Library → Completed Documents**. Retrieve the final PDF, completion
+   certificate and evidence dossier. Confirm the request does not appear there
+   before validation and archival succeed.
+
+For a coordinator check, add a named coordinator before sending. Confirm they
+can prepare, remind and safely retry, but cannot change sharing or trust, send,
+or perform owner-only cancellation. Confirm an ordinary signer does not appear
+in Open Requests unless also named as coordinator or owner.
+
 ## Standard acceptance
 
-Use a synthetic, non-confidential PDF. Verify template creation, all supported
-field types, multiple pages, drag/drop, role colors, resize/move/delete,
-required fields, page navigation, zoom and keyboard use. Exercise a one-off
-request and a reusable template on desktop and mobile.
+Use a synthetic, non-confidential PDF. Select the signer and a typed field,
+then click the PDF to place it. Repeat with drag/drop and right-click; every
+path must show or retain the signer explicitly. Verify all supported field
+types, multiple pages, stable role colors, live recoloring after a role change,
+resize/move/delete, undo/redo, autosave and retry states, required markers,
+page navigation, zoom and keyboard use. Exercise a one-off
+request and a reusable template on desktop, and confirm that narrow screens
+show the deliberate non-authoring state while mobile signing remains usable.
 
 Verify multiple signers both unordered and ordered, secure-link exchange,
 portal/Pocket ID policy where configured, explicit consent, reminders,
@@ -101,14 +148,35 @@ expiration, refusal and cancellation. Confirm that:
 - repeated actions/events are idempotent;
 - the platform seal validates under the local trust policy;
 - altering persisted PDF bytes fails validation;
+- two unordered signers cannot overwrite each other: a signer submitting an
+  older reviewed revision is asked to reload, and the earlier signature remains
+  intact;
+- consent evidence identifies both the exact reviewed revision and the
+  resulting signed revision;
 - the completion certificate uses cautious Standard wording;
 - archive failure leaves the request incomplete and retry recovers safely.
+
+The automated public-browser acceptance uses the actual PDF.js signer page and
+production submission route. It fills assigned typed fields, records explicit
+consent, applies the platform PAdES seal, validates with DSS and pyHanko, and
+builds the completion certificate and dossier. Because a newly created isolated
+test database has no Paperless API credential, that one test substitutes only a
+checksum-identical final transport response. Use `odoo_dev` for the separate
+real Paperless connectivity and recovery check; do not describe the isolated
+browser test as a live Paperless upload.
 
 ## Strong-personal acceptance
 
 Use a real platform authenticator in a supported browser. Record the browser,
 OS and authenticator actually tested; do not advertise an untested platform.
 The RP ID and allowed HTTPS origin must exactly match the production host.
+
+The clean `scripts/odoo-dev test usl_sign NAME` run starts the local DSS and
+CA services and exercises enrolment and signing through Chromium with a virtual
+platform authenticator. It covers the real WebAuthn verification, browser
+worker, non-exportable document key, certificate issuance, personal PAdES,
+DSS validation and network-payload boundary. This is repeatable integration
+evidence, but it does not replace the real-device checks below.
 
 1. Create an enrolment for a synthetic known partner and record the relationship
    basis, reviewer and identity policy.
@@ -127,6 +195,11 @@ The RP ID and allowed HTTPS origin must exactly match the production host.
    certificate token; each must fail closed.
 9. Re-enrol after revocation and confirm earlier completed signatures are
    unchanged.
+10. Open the same signer journey in two tabs. A new unused challenge may
+    replace the earlier challenge, but a second authorization or finalization
+    must not issue or persist another result. Confirm the
+    `usl_sign_ceremony_active_signer_unique` index is installed and no signer
+    has more than one `challenge`/`authorized` ceremony.
 
 If DSS, CA or TSA is unavailable, never bypass the ceremony. Keep the request
 in an actionable failure/waiting state and retry only after service health is
@@ -146,9 +219,18 @@ correct, the chain and timestamps validate, the trust provider and qualified
 certificate/device indications are trusted, and QES was actually achieved.
 Exercise modified PDF, signer mismatch, invalid/untrusted chain and
 insufficient-level samples; all must become `Validation failed` without a
-downgrade or manual completion option.
+downgrade or manual completion option. The rejected PDF and provider proof are
+retained as explicitly unverified evidence. The requester then uses **Create
+replacement** to receive a clean draft containing only the reviewed source
+documents, layout, signers and policy choices; failed validation records,
+external transactions and proof are never copied into the replacement.
 
 ## Evidence and archival operations
+
+In **Sign → Configuration → Settings**, keep **Send signers a copy of the final
+signed document** enabled unless company policy explicitly forbids signer
+delivery. USL Sign queues the final PDF/A-3 dossier once, and only after
+validation and Paperless archival have completed.
 
 For every completed request, inspect the source documents, frozen snapshots,
 signer/consent evidence, original/final hashes, complete event chain,

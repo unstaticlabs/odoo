@@ -1,6 +1,7 @@
 #!/opt/pyhanko/bin/python
 """Bounded offline cross-validation invoked only by the mTLS DSS service."""
 
+import base64
 import json
 import sys
 
@@ -23,6 +24,10 @@ def main():
                 signer_validation_context=context,
                 ts_validation_context=context,
             )
+            embedded_certificates = [
+                signature.signer_cert,
+                *signature.other_embedded_certs,
+            ]
             rows.append(
                 {
                     "field_name": signature.field_name,
@@ -32,6 +37,12 @@ def main():
                     "docmdp_ok": status.docmdp_ok is not False,
                     "coverage": getattr(status.coverage, "name", str(status.coverage)),
                     "summary": status.summary(),
+                    # Certificate extraction is evidence collection only. EU DSS
+                    # remains authoritative for trust and qualification.
+                    "certificate_chain": [
+                        base64.b64encode(certificate.dump()).decode()
+                        for certificate in embedded_certificates
+                    ],
                 }
             )
     valid = bool(rows) and all(

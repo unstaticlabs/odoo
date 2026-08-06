@@ -46,12 +46,31 @@
             </main>
         </t>
     </template>
+    <template id="portal_sign_start" name="Review signature request">
+        <t t-call="portal.frontend_layout">
+            <main class="container py-5" style="max-width: 46rem;">
+                <p class="text-uppercase text-muted fw-semibold small mb-1">USL Sign</p>
+                <h1 class="h2" t-out="signer.request_id.name"/>
+                <p class="lead">Review the document before completing the fields assigned to <strong t-out="signer.role_id.name"/>.</p>
+                <div class="card my-4"><div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Sent by</dt><dd class="col-sm-8" t-out="signer.request_id.user_id.name"/>
+                        <dt class="col-sm-4 text-muted">Your role</dt><dd class="col-sm-8" t-out="signer.role_id.name"/>
+                        <dt class="col-sm-4 text-muted">Signing level</dt><dd class="col-sm-8" t-out="requested_trust_display"/>
+                        <dt class="col-sm-4 text-muted" t-if="signer.request_id.expires_at">Complete by</dt><dd class="col-sm-8" t-if="signer.request_id.expires_at" t-out="signer.request_id.expires_at"/>
+                    </dl>
+                </div></div>
+                <div class="alert alert-light border" role="note">Your signature is not submitted until you review the document, complete the required fields, give consent, and confirm.</div>
+                <a class="btn btn-primary btn-lg w-100" t-att-href="'/sign/session/%s/%s?review=1' % (signer.id, access_token)">Review document</a>
+            </main>
+        </t>
+    </template>
     <template id="portal_sign_result" name="Signature result">
         <t t-call="portal.frontend_layout">
             <main class="container py-5" style="max-width: 42rem;">
                 <div t-if="successful" class="alert alert-success" role="status">
                     <h1 class="h4">Your signature was recorded</h1>
-                    <p class="mb-0">Odoo is validating the completed document and building its evidence package.</p>
+                    <p class="mb-0">Your part is complete. USL Sign will collect any remaining signatures, validate the final document, and prepare its evidence dossier.</p>
                 </div>
                 <div t-elif="declined" class="alert alert-info" role="status">
                     <h1 class="h4">Your refusal was recorded</h1>
@@ -100,8 +119,8 @@
                         <input id="usl_strong_consent" type="checkbox"/>
                         <span>I reviewed this exact document and authorize my strong personal electronic signature using my passkey.</span>
                     </label>
-                    <button id="usl_strong_sign_button" class="usl-sign-button">Authorize with my passkey and sign</button>
-                    <div id="usl_strong_status" class="usl-sign-status" role="status" aria-live="polite"/>
+                    <button id="usl_strong_sign_button" class="usl-sign-button" disabled="disabled">Authorize with my passkey and sign</button>
+                    <div id="usl_strong_status" class="usl-sign-status" role="status" aria-live="polite">Loading secure signing…</div>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
             </body>
@@ -124,8 +143,8 @@
                         <span>Passkey name</span>
                         <input id="usl_passkey_name" value="Primary passkey"/>
                     </label>
-                    <button id="usl_enroll_button" class="usl-sign-button">Register passkey</button>
-                    <div id="usl_enroll_status" class="usl-sign-status" role="status" aria-live="polite"/>
+                    <button id="usl_enroll_button" class="usl-sign-button" disabled="disabled">Register passkey</button>
+                    <div id="usl_enroll_status" class="usl-sign-status" role="status" aria-live="polite">Loading secure enrolment…</div>
                     <div class="usl-sign-note">Register a second recovery passkey after the first one. Revocation never changes signatures already completed.</div>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>

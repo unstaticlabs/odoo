@@ -30,6 +30,33 @@ class StepCAClient:
         self.ca_bundle = os.getenv("USL_SIGN_STEP_CA_CA_BUNDLE", "")
         self.timeout = timeout
 
+    def _check_connection_configuration(self):
+        if not self.base_url:
+            msg = "The local certificate authority is not configured."
+            raise StepCAError(msg)
+        if not self.base_url.startswith("https://") or not self.ca_bundle:
+            msg = "The local certificate authority requires a trusted HTTPS connection."
+            raise StepCAError(msg)
+
+    def health(self):
+        """Verify the configured CA over its trusted HTTPS connection."""
+        self._check_connection_configuration()
+        try:
+            response = requests.get(
+                f"{self.base_url}/health",
+                timeout=self.timeout,
+                verify=self.ca_bundle,
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except (requests.RequestException, ValueError) as error:
+            msg = "The local certificate authority is unavailable."
+            raise StepCAError(msg) from error
+        if not isinstance(payload, dict) or payload.get("status") != "ok":
+            msg = "The local certificate authority returned an unhealthy response."
+            raise StepCAError(msg)
+        return payload
+
     def _private_jwk(self):
         if not self.jwk_file:
             msg = "The certificate provisioner is not configured."
@@ -105,14 +132,7 @@ class StepCAClient:
         }
 
     def issue(self, csr_pem, *, subject, binding):
-        if not self.base_url:
-            msg = "The local certificate authority is not configured."
-            raise StepCAError(msg)
-        if not self.base_url.startswith("https://") or not self.ca_bundle:
-            msg = "The local certificate authority requires a trusted HTTPS connection."
-            raise StepCAError(
-                msg,
-            )
+        self._check_connection_configuration()
         token, receipt = self._token(csr_pem, subject, binding)
         try:
             response = requests.post(

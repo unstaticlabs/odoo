@@ -6,12 +6,12 @@
         <field name="arch" type="xml">
             <list>
                 <field name="recommendation_priority" widget="handle"/>
-                <field name="name"/>
+                <field name="name" string="Provider"/>
                 <field name="company_id" groups="base.group_multi_company"/>
-                <field name="territory"/>
-                <field name="supported_levels"/>
-                <field name="reviewed_on"/>
-                <field name="active"/>
+                <field name="territory" string="Provider territory"/>
+                <field name="supported_levels" string="Signature levels"/>
+                <field name="reviewed_on" string="Reviewed on"/>
+                <field name="active" string="Enabled"/>
             </list>
         </field>
     </record>
@@ -23,17 +23,17 @@
                 <sheet>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
-                        <group>
-                            <field name="active"/>
+                        <group string="Provider scope">
+                            <field name="active" string="Enabled"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="territory"/>
+                            <field name="territory" string="Provider territory"/>
                             <field name="supported_levels" string="Supported signature levels"/>
                             <field name="mobile_url" string="Mobile signing URL" widget="url"/>
                         </group>
-                        <group>
-                            <field name="recommendation_priority"/>
+                        <group string="Catalog review">
+                            <field name="recommendation_priority" string="Recommendation priority"/>
                             <field name="reviewed_on" string="Reviewed on"/>
-                            <field name="reviewed_by_id"/>
+                            <field name="reviewed_by_id" string="Reviewed by"/>
                         </group>
                     </group>
                     <group string="Signer and operator instructions">
@@ -47,9 +47,13 @@
         </field>
     </record>
     <record id="sign_external_provider_action" model="ir.actions.act_window">
-        <field name="name">External QES Providers</field>
+        <field name="name">Qualified Providers</field>
         <field name="res_model">usl.sign.external.provider</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No qualified providers reviewed</p>
+            <p>Add a provider only after its territory, qualified services, mobile journey and commercial terms have been reviewed.</p>
+        </field>
     </record>
     <record id="sign_external_import_wizard_form" model="ir.ui.view">
         <field name="name">usl.sign.external.import.wizard.form</field>

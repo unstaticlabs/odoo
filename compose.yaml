@@ -321,6 +321,7 @@ services:
     environment:
       USL_DSS_PORT: 8443
       USL_DSS_PLATFORM_KEYSTORE: /run/usl-sign-dss/platform.p12
+      USL_DSS_MANIFEST_KEYSTORE: /run/usl-sign-dss/manifest.p12
       USL_DSS_TLS_KEYSTORE: /run/usl-sign-dss/server.p12
       USL_DSS_CLIENT_TRUSTSTORE: /run/usl-sign-dss/client-trust.p12
       USL_DSS_LOCAL_TRUSTSTORE: /run/usl-sign-dss/local-trust.p12

@@ -25,6 +25,7 @@ openssl rand -base64 36 > "$step_dir/password"
 openssl rand -base64 36 > "$sign_dir/bootstrap-provisioner-password"
 openssl rand -base64 36 > "$sign_dir/jwk-password-unused"
 openssl rand -base64 36 > "$sign_dir/dss-keystore-password"
+openssl rand -base64 36 > "$sign_dir/manifest-keystore-password"
 
 docker run --rm \
     -v "$step_dir:/home/step" \
@@ -80,6 +81,7 @@ intermediate_key="$step_dir/secrets/intermediate_ca_key"
 intermediate_crt="$step_dir/certs/intermediate_ca.crt"
 root_crt="$step_dir/certs/root_ca.crt"
 dss_password_file="$sign_dir/dss-keystore-password"
+manifest_password_file="$sign_dir/manifest-keystore-password"
 serial_file="$step_dir/certs/usl-sign-ca.srl"
 
 issue_leaf() {
@@ -119,6 +121,7 @@ issue_leaf() {
 }
 
 issue_leaf platform "USL Sign Platform Seal" emailProtection "" "$dss_secret_dir"
+issue_leaf manifest "USL Sign Evidence Manifest" "" "" "$dss_secret_dir"
 issue_leaf server "usl-sign-dss" serverAuth \
     "DNS:usl-sign-dss,DNS:localhost,IP:127.0.0.1" "$dss_secret_dir"
 issue_leaf client "USL Odoo Sign DSS Client" clientAuth "" "$odoo_secret_dir"
@@ -142,6 +145,13 @@ openssl pkcs12 -export \
     -certfile "$sign_dir/chain.pem" \
     -passout "file:$dss_password_file" \
     -out "$dss_secret_dir/platform.p12"
+openssl pkcs12 -export \
+    -name usl-sign-evidence-manifest \
+    -inkey "$dss_secret_dir/manifest.key" \
+    -in "$dss_secret_dir/manifest.crt" \
+    -certfile "$sign_dir/chain.pem" \
+    -passout "file:$manifest_password_file" \
+    -out "$dss_secret_dir/manifest.p12"
 openssl pkcs12 -export \
     -name usl-sign-dss \
     -inkey "$dss_secret_dir/server.key" \
@@ -169,8 +179,10 @@ docker run --rm \
     -storepass:file /run/sign/dss-keystore-password
 
 dss_password=$(tr -d '\r\n' < "$dss_password_file")
+manifest_password=$(tr -d '\r\n' < "$manifest_password_file")
 {
     printf 'USL_DSS_PLATFORM_KEYSTORE_PASSWORD=%s\n' "$dss_password"
+    printf 'USL_DSS_MANIFEST_KEYSTORE_PASSWORD=%s\n' "$manifest_password"
     printf 'USL_DSS_TLS_KEYSTORE_PASSWORD=%s\n' "$dss_password"
     printf 'USL_DSS_CLIENT_TRUSTSTORE_PASSWORD=%s\n' "$dss_password"
     printf 'USL_DSS_LOCAL_TRUSTSTORE_PASSWORD=%s\n' "$dss_password"
@@ -187,10 +199,10 @@ dss_password=$(tr -d '\r\n' < "$dss_password_file")
 } > "$sign_dir/odoo.env"
 printf '%s\n' 'STEPDEBUG=0' > "$sign_dir/step-ca.env"
 
-rm "$sign_dir/chain.pem" "$dss_password_file"
+rm "$sign_dir/chain.pem" "$dss_password_file" "$manifest_password_file"
 chmod 600 "$odoo_secret_dir"/* "$dss_secret_dir"/* "$sign_dir"/*.env
 chmod 600 "$step_dir/password" "$step_dir/secrets/intermediate_ca_key"
 chmod 644 "$step_dir/certs"/*.crt "$odoo_secret_dir"/*.crt
 
-echo "USL Sign CA, DSS mTLS, platform seal, and Odoo client material initialized."
+echo "USL Sign CA, DSS mTLS, separate platform/manifest keys, and Odoo client material initialized."
 echo "The root private key is offline at $offline_root_dir and is not mounted by Compose."

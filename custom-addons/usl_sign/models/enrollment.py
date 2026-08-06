@@ -12,6 +12,7 @@ class SignEnrollment(models.Model):
     _name = "usl.sign.enrollment"
     _description = "Strong Signer Identity Enrolment"
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    _rec_name = "partner_id"
     _order = "create_date desc, id desc"
 
     partner_id = fields.Many2one(
@@ -439,6 +440,16 @@ class SignCeremony(models.Model):
     data_to_sign_sha256 = fields.Char(readonly=True)
     dss_signing_context = fields.Char(readonly=True)
     failure_code = fields.Char(readonly=True)
+
+    def init(self):
+        """Keep one live document-key ceremony per signer at the database boundary."""
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS usl_sign_ceremony_active_signer_unique
+                ON usl_sign_ceremony (signer_id)
+             WHERE state IN ('challenge', 'authorized')
+            """,
+        )
 
     def write(self, values):
         if self.env.context.get("usl_sign_ceremony_transition") is not INTERNAL_OPERATION:

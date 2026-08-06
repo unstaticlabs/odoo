@@ -6,13 +6,11 @@ from datetime import UTC, timedelta
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 from webauthn import (
     generate_authentication_options,
     generate_registration_options,
     options_to_json,
-    verify_authentication_response,
     verify_registration_response,
 )
 from webauthn.helpers import base64url_to_bytes, bytes_to_base64url
@@ -28,7 +26,17 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request
 
 from ..models.constants import INTERNAL_OPERATION
-from ..services import DSSClient, DSSServiceError, StepCAClient, StepCAError
+from ..services import (
+    DSSClient,
+    DSSServiceError,
+    StepCAClient,
+    StepCAError,
+    build_strong_binding,
+    personal_certificate_subject,
+    strong_challenge,
+    validate_personal_csr,
+    verify_strong_assertion,
+)
 
 
 def _json_options(options):
@@ -36,7 +44,7 @@ def _json_options(options):
 
 
 def _personal_certificate_subject(signer):
-    return f"USL Sign Personal: {signer.partner_id.name}".replace(",", " ")
+    return personal_certificate_subject(signer.partner_id.name)
 
 
 class StrongSignController(http.Controller):
@@ -95,6 +103,32 @@ class StrongSignController(http.Controller):
             msg = "The signer does not exist."
             raise AccessError(msg)
         signer._check_token(token, session=True)
+        return signer
+
+    def _lock_signer(self, signer, token, *, allowed_states):
+        """Serialize a personal-signature operation on its PDF and signer."""
+        request.env.cr.execute(
+            "SELECT id FROM sign_oca_request WHERE id = %s FOR UPDATE",
+            [signer.request_id.id],
+        )
+        request.env.cr.execute(
+            "SELECT id FROM sign_oca_request_signer WHERE id = %s FOR UPDATE",
+            [signer.id],
+        )
+        signer.request_id.invalidate_recordset(["data", "current_hash", "state"])
+        signer.invalidate_recordset(
+            [
+                "access_revoked",
+                "session_token_sha256",
+                "session_expires_at",
+                "signed_on",
+                "state",
+            ],
+        )
+        signer._check_token(token, session=True)
+        if signer.state not in allowed_states:
+            msg = "This personal-signature step is no longer available."
+            raise ValidationError(msg)
         return signer
 
     @http.route(
@@ -220,37 +254,51 @@ class StrongSignController(http.Controller):
         if not consent:
             msg = "Explicit electronic-signature consent is required."
             raise ValidationError(msg)
-        try:
-            csr = x509.load_pem_x509_csr(csr_pem.encode())
-            common_names = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
-        except (TypeError, ValueError) as error:
-            msg = "The browser produced an invalid certificate request."
-            raise ValidationError(msg) from error
-        public_key = csr.public_key()
-        if (
-            not csr.is_signature_valid
-            or not isinstance(public_key, ec.EllipticCurvePublicKey)
-            or not isinstance(public_key.curve, ec.SECP256R1)
-            or len(common_names) != 1
-            or common_names[0].value != _personal_certificate_subject(signer)
-        ):
-            msg = "The certificate request is not the expected signer-bound P-256 request."
-            raise ValidationError(
-                msg,
-            )
+        csr_details = validate_personal_csr(
+            csr_pem,
+            _personal_certificate_subject(signer),
+        )
         enrollment = signer._active_enrollment()
         if not enrollment:
             msg = "Complete strong-signer enrolment first."
             raise ValidationError(msg)
+        signer = self._lock_signer(
+            signer,
+            token,
+            allowed_states={"notified", "viewed"},
+        )
+        active_ceremonies = request.env["usl.sign.ceremony"].sudo().search(
+            [
+                ("signer_id", "=", signer.id),
+                ("state", "in", ["challenge", "authorized"]),
+            ],
+        )
+        if active_ceremonies.filtered(lambda ceremony: ceremony.state == "authorized"):
+            msg = "A personal-signature authorization is already in progress."
+            raise ValidationError(msg)
+        for ceremony in active_ceremonies:
+            ceremony.with_context(
+                usl_sign_ceremony_transition=INTERNAL_OPERATION,
+            ).write(
+                {
+                    "state": "failed",
+                    "failure_code": "superseded_by_new_challenge",
+                    "dss_signing_context": False,
+                },
+            )
+            signer.request_id._append_event(
+                "strong_ceremony_superseded",
+                signer=signer,
+                authentication_method="passkey",
+                payload={"ceremony_id": ceremony.id},
+            )
+        active_ceremonies.flush_recordset(
+            ["state", "failure_code", "dss_signing_context"],
+        )
         document = base64.b64decode(signer.request_id.data)
         document_sha256 = hashlib.sha256(document).hexdigest()
-        csr_sha256 = hashlib.sha256(csr_pem.encode()).hexdigest()
-        public_key_sha256 = hashlib.sha256(
-            public_key.public_bytes(
-                serialization.Encoding.DER,
-                serialization.PublicFormat.SubjectPublicKeyInfo,
-            ),
-        ).hexdigest()
+        csr_sha256 = csr_details["csr_sha256"]
+        public_key_sha256 = csr_details["public_key_sha256"]
         consent_text = signer.request_id.consent_text_snapshot
         consent_sha256 = hashlib.sha256(consent_text.encode()).hexdigest()
         policy_sha256 = hashlib.sha256(
@@ -264,27 +312,24 @@ class StrongSignController(http.Controller):
                 ensure_ascii=False,
             ).encode(),
         ).hexdigest()
-        binding = {
-            "format": "usl-strong-challenge-v1",
-            "request_id": signer.request_id.id,
-            "signer_id": signer.id,
-            "enrollment_id": enrollment.id,
-            "role_id": signer.role_id.id,
-            "original_sha256": signer.request_id.original_sha256,
-            "document_sha256": document_sha256,
-            "consent_sha256": consent_sha256,
-            "csr_sha256": csr_sha256,
-            "public_key_sha256": public_key_sha256,
-            "policy_sha256": policy_sha256,
-            "policy_version": signer.request_id.policy_version,
-            "nonce": secrets.token_urlsafe(24),
-            "expires_at": fields.Datetime.to_string(
+        binding = build_strong_binding(
+            request_id=signer.request_id.id,
+            signer_id=signer.id,
+            enrollment_id=enrollment.id,
+            role_id=signer.role_id.id,
+            original_sha256=signer.request_id.original_sha256,
+            document_sha256=document_sha256,
+            consent_sha256=consent_sha256,
+            csr_sha256=csr_sha256,
+            public_key_sha256=public_key_sha256,
+            policy_sha256=policy_sha256,
+            policy_version=signer.request_id.policy_version,
+            nonce=secrets.token_urlsafe(24),
+            expires_at=fields.Datetime.to_string(
                 fields.Datetime.now() + timedelta(minutes=5),
             ),
-        }
-        challenge = hashlib.sha256(
-            json.dumps(binding, sort_keys=True, separators=(",", ":")).encode(),
-        ).digest()
+        )
+        challenge = strong_challenge(binding)
         options = generate_authentication_options(
             rp_id=signer.request_id.company_id.sign_webauthn_rp_id,
             challenge=challenge,
@@ -322,6 +367,11 @@ class StrongSignController(http.Controller):
     )
     def strong_authorize(self, signer_id, token, ceremony_id, credential):
         signer = self._signer(signer_id, token)
+        signer = self._lock_signer(
+            signer,
+            token,
+            allowed_states={"notified", "viewed"},
+        )
         ceremony = self._lock_ceremony(ceremony_id, "challenge").exists()
         if (
             not ceremony
@@ -340,14 +390,13 @@ class StrongSignController(http.Controller):
         if not passkey:
             msg = "The passkey is not active for this signer."
             raise AccessError(msg)
-        verification = verify_authentication_response(
+        verification = verify_strong_assertion(
             credential=credential,
-            expected_challenge=base64.b64decode(ceremony.challenge),
-            expected_rp_id=signer.request_id.company_id.sign_webauthn_rp_id,
-            expected_origin=self._origin(signer.request_id.company_id),
+            challenge=base64.b64decode(ceremony.challenge),
+            rp_id=signer.request_id.company_id.sign_webauthn_rp_id,
+            origin=self._origin(signer.request_id.company_id),
             credential_public_key=base64.b64decode(passkey.public_key),
-            credential_current_sign_count=passkey.sign_count,
-            require_user_verification=True,
+            current_sign_count=passkey.sign_count,
         )
         passkey.with_context(usl_sign_passkey_use=INTERNAL_OPERATION).write(
             {
@@ -419,6 +468,7 @@ class StrongSignController(http.Controller):
             data_to_sign = DSSClient().data_to_sign(
                 base64.b64decode(signer.request_id.data),
                 issued["certificate"],
+                certificate_chain=issued["chain"],
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
                 timestamp=signer.request_id.company_id.sign_rfc3161_enabled,
             )
@@ -479,6 +529,11 @@ class StrongSignController(http.Controller):
     )
     def strong_finalize(self, signer_id, token, ceremony_id, signature):
         signer = self._signer(signer_id, token)
+        signer = self._lock_signer(
+            signer,
+            token,
+            allowed_states={"authorized"},
+        )
         ceremony = self._lock_ceremony(ceremony_id, "authorized").exists()
         if (
             not ceremony

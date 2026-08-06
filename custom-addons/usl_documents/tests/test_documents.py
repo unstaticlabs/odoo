@@ -584,6 +584,24 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.review_state, "classified")
         self.assertEqual(document.company_id, self.company_a)
 
+    def test_incremental_sync_cron_uses_the_system_service_identity(self):
+        with patch.object(
+            UslDocument,
+            "sync_from_paperless",
+            autospec=True,
+            return_value={"synchronized": 0},
+        ) as sync:
+            result = (
+                self.env["usl.document"]
+                .with_user(self.user)
+                .cron_sync_from_paperless()
+            )
+        self.assertEqual(result, {"synchronized": 0})
+        self.assertEqual(
+            sync.call_args.args[0].env.uid,
+            self.env.ref("base.user_root").id,
+        )
+
     def test_full_sync_confirms_recent_odoo_upload_before_marking_it_missing(self):
         document = self._document(
             178,
@@ -2377,6 +2395,26 @@ class TestDocuments(TransactionCase):
                 ],
             },
         )
+
+    def test_noop_group_write_does_not_enqueue_permission_refresh(self):
+        self._document(990413)
+        self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 33,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            self.user.write(
+                {"group_ids": [Command.link(self.env.ref("base.group_user").id)]},
+            )
+        permission_call.assert_not_called()
 
     def test_manager_role_loss_revokes_paperless_change_permission(self):
         document = self._document(414)

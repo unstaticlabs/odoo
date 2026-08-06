@@ -15,6 +15,7 @@
             </xpath>
             <xpath expr="//group/field[@name='name']" position="after">
                 <field name="description"/>
+                <field name="default_document_category"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="version"/>
                 <field name="previous_version_id" invisible="not previous_version_id"/>
@@ -22,6 +23,7 @@
                 <field name="preparation_note" invisible="not preparation_note"/>
                 <field name="document_sha256" readonly="1" groups="usl_sign.group_sign_evidence_reviewer"/>
                 <field name="policy_id"/>
+                <field name="default_trust" readonly="1"/>
                 <field name="signing_order"/>
                 <field name="expiration_days"/>
                 <field name="reminder_days"/>

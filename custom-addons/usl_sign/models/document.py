@@ -5,7 +5,7 @@ from io import BytesIO
 from PyPDF2.generic import NameObject
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.pdf import PdfReader, PdfWriter
 
 from .constants import MUTABLE_REQUEST_STATES
@@ -75,6 +75,11 @@ class SignRequestDocument(models.Model):
         requests = self.env["sign.oca.request"].browse(
             [values.get("request_id") for values in vals_list if values.get("request_id")],
         )
+        if not self.env.su:
+            for request in requests:
+                if not request._user_can_coordinate():
+                    msg = "Only the requester or a named coordinator may add documents."
+                    raise AccessError(msg)
         if requests.filtered(lambda request: request.state not in MUTABLE_REQUEST_STATES):
             msg = "Documents are frozen once a request is sent."
             raise ValidationError(msg)
@@ -85,6 +90,11 @@ class SignRequestDocument(models.Model):
         return super().create(vals_list)
 
     def write(self, values):
+        if not self.env.su:
+            for document in self:
+                if not document.request_id._user_can_coordinate():
+                    msg = "Only the requester or a named coordinator may edit documents."
+                    raise AccessError(msg)
         if self.filtered(lambda document: document.request_id.state not in MUTABLE_REQUEST_STATES):
             msg = "Documents are frozen once a request is sent."
             raise ValidationError(msg)
@@ -95,6 +105,11 @@ class SignRequestDocument(models.Model):
         return super().write(values)
 
     def unlink(self):
+        if not self.env.su:
+            for document in self:
+                if not document.request_id._user_can_coordinate():
+                    msg = "Only the requester or a named coordinator may remove documents."
+                    raise AccessError(msg)
         if self.filtered(lambda document: document.request_id.state not in MUTABLE_REQUEST_STATES):
             msg = "Documents are frozen once a request is sent."
             raise ValidationError(msg)

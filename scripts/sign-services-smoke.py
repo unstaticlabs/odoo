@@ -75,6 +75,21 @@ def main():
     health = dss.health()
     assert health["engineVersion"] == "6.4"
 
+    manifest = b'{"format":"usl-sign-smoke-manifest-v1"}'
+    manifest_signature = dss.sign_manifest(manifest)
+    manifest_certificate = x509.load_der_x509_certificate(
+        base64.b64decode(manifest_signature["certificateChain"][0])
+    )
+    assert "USL Sign Evidence Manifest" in manifest_certificate.subject.rfc4514_string()
+    manifest_certificate.public_key().verify(
+        base64.b64decode(manifest_signature["signature"]),
+        manifest,
+        ec.ECDSA(hashes.SHA256()),
+    )
+    assert manifest_signature["manifestSha256"] == __import__("hashlib").sha256(
+        manifest
+    ).hexdigest()
+
     key, csr_pem = csr_and_key()
     ca = StepCAClient()
     binding = certificate_binding(key)
@@ -179,7 +194,7 @@ def main():
         sealed_dossier_validation["report"], indent=2
     )[:12000]
 
-    print("USL Sign CA, DSS, pyHanko, deterministic PDF/A-3 dossier, veraPDF, sealing, replay, and alteration checks passed.")
+    print("USL Sign CA, DSS, separate manifest signing, pyHanko, deterministic PDF/A-3 dossier, veraPDF, sealing, replay, and alteration checks passed.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.Landing">
+        <div class="o_action_manager overflow-auto usl_sign_workspace">
+            <div class="container-xxl py-4 px-3 px-lg-4">
+                <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+                    <div>
+                        <p class="text-uppercase text-muted fw-semibold small mb-1">USL Sign</p>
+                        <h1 class="h2 mb-1">What needs your attention?</h1>
+                        <p class="text-muted mb-0">Sign, decide, prepare, or retrieve trusted documents.</p>
+                    </div>
+                    <button t-if="state.data.can_start" type="button" class="btn btn-primary" t-on-click="start">
+                        <i class="fa fa-plus me-2"/>Start
+                    </button>
+                </header>
+                <div t-if="state.loading" class="usl_sign_workspace_state" aria-busy="true">
+                    <i class="fa fa-spinner fa-spin me-2"/>Loading your work…
+                </div>
+                <div t-elif="state.error" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+                    <span>Your Sign workspace could not be loaded.</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" t-on-click="load">Retry</button>
+                </div>
+                <div t-else="" class="row g-4">
+                    <t t-foreach="sections" t-as="section" t-key="section[0]">
+                        <t t-set="content" t-value="getSection(section[0])"/>
+                        <section class="col-12 col-xl-6">
+                            <div class="card h-100 usl_sign_work_card">
+                                <div class="card-header bg-transparent d-flex align-items-start justify-content-between gap-3">
+                                    <div class="d-flex gap-3">
+                                        <span class="usl_sign_section_icon"><i t-att-class="'fa ' + section[3]"/></span>
+                                        <div>
+                                            <h2 class="h5 mb-1" t-out="section[1]"/>
+                                            <p class="text-muted small mb-0" t-out="section[2]"/>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill text-bg-secondary" t-out="content.count"/>
+                                </div>
+                                <div class="list-group list-group-flush">
+                                    <button t-foreach="content.items" t-as="item" t-key="item.model + '-' + item.id"
+                                            type="button" class="list-group-item list-group-item-action py-3"
+                                            t-on-click="() => this.openItem(item)">
+                                        <div class="d-flex justify-content-between gap-3">
+                                            <div class="min-w-0 text-start">
+                                                <div class="fw-semibold text-truncate" t-out="item.title"/>
+                                                <div t-if="item.subtitle" class="small text-muted text-truncate" t-out="item.subtitle"/>
+                                            </div>
+                                            <span class="badge text-bg-light align-self-start" t-out="item.trust"/>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2 mt-2 small text-muted text-start">
+                                            <span t-out="item.status"/>
+                                            <span aria-hidden="true">·</span>
+                                            <span t-out="item.progress"/>
+                                            <span t-if="item.due"><span aria-hidden="true">·</span> Due <t t-out="item.due"/></span>
+                                        </div>
+                                        <div t-if="item.next_step" class="small mt-1 text-start"><strong>Next:</strong> <t t-out="item.next_step"/></div>
+                                    </button>
+                                    <div t-if="!content.items.length" class="p-4 text-center text-muted small">
+                                        Nothing needs attention here.
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="usl_sign.Library">
+        <div class="o_action_manager overflow-auto usl_sign_workspace usl_sign_library">
+            <div class="container-xxl py-4 px-3 px-lg-4">
+                <header class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+                    <div>
+                        <h1 class="h2 mb-1">Library</h1>
+                        <p class="text-muted mb-0">Reusable templates and trusted completed documents.</p>
+                    </div>
+                    <form class="input-group usl_sign_library_search" t-on-submit="submitSearch">
+                        <input type="search" class="form-control" placeholder="Search the library" t-att-value="state.search" t-on-input="updateSearch"/>
+                        <button class="btn btn-outline-secondary" type="submit" aria-label="Search"><i class="fa fa-search"/></button>
+                    </form>
+                </header>
+                <nav class="nav nav-tabs mb-4" aria-label="Library sections">
+                    <button type="button" t-att-class="'nav-link ' + (state.section === 'templates' ? 'active' : '')" t-on-click="() => this.chooseSection('templates')">Templates</button>
+                    <button type="button" t-att-class="'nav-link ' + (state.section === 'completed' ? 'active' : '')" t-on-click="() => this.chooseSection('completed')">Completed Documents</button>
+                </nav>
+                <div t-if="state.loading" class="usl_sign_workspace_state" aria-busy="true"><i class="fa fa-spinner fa-spin me-2"/>Loading Library…</div>
+                <div t-elif="state.error" class="alert alert-danger d-flex justify-content-between align-items-center">
+                    <span>The Library could not be loaded.</span><button type="button" class="btn btn-sm btn-outline-danger" t-on-click="load">Retry</button>
+                </div>
+                <div t-elif="!state.items.length" class="usl_sign_empty_state">
+                    <i class="fa fa-folder-open-o fa-2x mb-3"/>
+                    <h2 class="h5">Nothing here yet</h2>
+                    <p class="text-muted mb-0" t-if="state.section === 'templates'">Create and publish a template to use it here.</p>
+                    <p class="text-muted mb-0" t-else="">Completed, validated, and archived documents will appear here.</p>
+                </div>
+                <div t-elif="state.section === 'templates'" class="row g-3">
+                    <article t-foreach="state.items" t-as="item" t-key="item.id" class="col-12 col-md-6 col-xl-4">
+                        <div class="card h-100 usl_sign_library_card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between gap-2 mb-3">
+                                    <span t-att-class="'badge ' + (item.ready ? 'text-bg-success' : 'text-bg-warning')" t-out="item.status"/>
+                                    <span class="small text-muted">v<t t-out="item.version"/></span>
+                                </div>
+                                <h2 class="h5" t-out="item.title"/>
+                                <p class="text-muted small usl_sign_clamp" t-out="item.description || item.category"/>
+                                <dl class="row small mb-0">
+                                    <dt class="col-5 text-muted">Trust</dt><dd class="col-7" t-out="item.trust"/>
+                                    <dt class="col-5 text-muted">Owner</dt><dd class="col-7" t-out="item.owner"/>
+                                    <dt class="col-5 text-muted">Used</dt><dd class="col-7"><t t-out="item.usage"/> requests</dd>
+                                </dl>
+                            </div>
+                            <div class="card-footer bg-transparent d-flex gap-2">
+                                <button type="button" class="btn btn-primary flex-grow-1" t-on-click="() => this.useTemplate(item)" t-out="templateActionLabel(item)"/>
+                                <button type="button" class="btn btn-outline-secondary" t-on-click="() => this.openTemplate(item)" aria-label="Open template"><i class="fa fa-cog"/></button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <div t-else="" class="card overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead><tr><th>Document</th><th>Completed</th><th>Signers</th><th>Trust</th><th>Proof</th><th>Archive status</th><th/></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.items" t-as="item" t-key="item.id">
+                                    <td><button type="button" class="btn btn-link p-0 fw-semibold text-start" t-on-click="() => this.openCompleted(item)" t-out="item.title"/><div class="small text-muted" t-out="item.record"/></td>
+                                    <td t-out="item.completed"/>
+                                    <td t-out="item.signers"/>
+                                    <td><span class="badge text-bg-light" t-out="item.trust"/></td>
+                                    <td t-out="item.proof"/>
+                                    <td t-out="item.archive"/>
+                                    <td class="text-end text-nowrap">
+                                        <a t-if="item.final_url" class="btn btn-sm btn-outline-secondary" t-att-href="item.final_url" title="Download final PDF" aria-label="Download final PDF"><i class="fa fa-file-pdf-o"/></a>
+                                        <a t-if="item.certificate_url" class="btn btn-sm btn-outline-secondary ms-1" t-att-href="item.certificate_url" title="Download certificate" aria-label="Download certificate"><i class="fa fa-check-circle"/></a>
+                                        <a t-if="item.dossier_url" class="btn btn-sm btn-outline-secondary ms-1" t-att-href="item.dossier_url" title="Download evidence dossier" aria-label="Download evidence dossier"><i class="fa fa-archive"/></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <footer t-if="state.total &gt; state.limit" class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="small text-muted"><t t-out="state.offset + 1"/>–<t t-out="Math.min(state.offset + state.limit, state.total)"/> of <t t-out="state.total"/></span>
+                    <div class="btn-group"><button type="button" class="btn btn-outline-secondary" t-att-disabled="state.offset === 0" t-on-click="previous">Previous</button><button type="button" class="btn btn-outline-secondary" t-att-disabled="state.offset + state.limit &gt;= state.total" t-on-click="next">Next</button></div>
+                </footer>
+            </div>
+        </div>
+    </t>
+</templates>

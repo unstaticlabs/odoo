@@ -1,18 +1,26 @@
 import os
 from urllib.parse import urlparse
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+from ..services import StepCAClient
 
 
 class ResCompany(models.Model):
     _inherit = "res.company"
 
+    sign_oca_send_sign_request_copy = fields.Boolean(
+        string="Send signers a copy of the final signed document",
+        help=(
+            "Once USL Sign has validated and archived the request, send each "
+            "signer the final evidence dossier."
+        ),
+        default=True,
+    )
+
     sign_default_policy_id = fields.Many2one(
         "usl.sign.policy", string="Default signing policy", ondelete="restrict",
-    )
-    sign_deliver_completed_to_signers = fields.Boolean(
-        string="Send completed dossier to signers", default=True,
     )
     sign_evidence_retention_years = fields.Integer(
         string="Evidence retention (years)", default=10,
@@ -72,9 +80,9 @@ class ResCompany(models.Model):
                 missing.append("passkey origin")
             company.sign_services_ready = not missing
             company.sign_services_message = (
-                "Signing services are ready."
+                _("Signing services are ready.")
                 if not missing
-                else "Configure " + ", ".join(missing) + "."
+                else _("Configure: %(services)s", services=", ".join(missing))
             )
 
 
@@ -83,9 +91,6 @@ class ResConfigSettings(models.TransientModel):
 
     sign_default_policy_id = fields.Many2one(
         related="company_id.sign_default_policy_id", readonly=False,
-    )
-    sign_deliver_completed_to_signers = fields.Boolean(
-        related="company_id.sign_deliver_completed_to_signers", readonly=False,
     )
     sign_evidence_retention_years = fields.Integer(
         related="company_id.sign_evidence_retention_years", readonly=False,
@@ -110,7 +115,20 @@ class ResConfigSettings(models.TransientModel):
             "tag": "display_notification",
             "params": {
                 "title": "USL Sign",
-                "message": "The DSS service is reachable.",
+                "message": _("The DSS service is reachable."),
+                "type": "success",
+            },
+        }
+
+    def action_test_sign_certificate_service(self):
+        self.ensure_one()
+        StepCAClient().health()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "USL Sign",
+                "message": _("The certificate service is reachable."),
                 "type": "success",
             },
         }

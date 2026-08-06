@@ -7,10 +7,29 @@ from .constants import TRUST_LEVELS
 class SignTemplateGenerate(models.TransientModel):
     _inherit = "sign.oca.template.generate"
 
+    def _default_request_name(self):
+        return self.env.context.get("default_request_name") or self.env[
+            "sign.oca.template"
+        ].browse(self.env.context.get("default_template_id")).name
+
+    def _default_document_category(self):
+        template = self.env["sign.oca.template"].browse(
+            self.env.context.get("default_template_id"),
+        )
+        return template.default_document_category or "routine_agreement"
+
     company_id = fields.Many2one(
         "res.company",
         related="template_id.company_id",
         readonly=True,
+    )
+    request_name = fields.Char(
+        string="Request name",
+        default=_default_request_name,
+    )
+    record_ref = fields.Reference(
+        selection="_record_models",
+        string="Linked record",
     )
     document_category = fields.Selection(
         [
@@ -23,7 +42,7 @@ class SignTemplateGenerate(models.TransientModel):
             ("mandate", "Mandate"),
             ("other", "Other"),
         ],
-        default="routine_agreement",
+        default=_default_document_category,
         required=True,
     )
     signer_type = fields.Selection(
@@ -54,6 +73,20 @@ class SignTemplateGenerate(models.TransientModel):
         "usl.sign.external.provider",
         domain="[('active', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
     )
+
+    @api.model
+    def _record_models(self):
+        return self.env["sign.oca.request"]._sign_business_record_models()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            if values.get("request_name") or not values.get("template_id"):
+                continue
+            values["request_name"] = self.env["sign.oca.template"].browse(
+                values["template_id"],
+            ).name
+        return super().create(vals_list)
 
     @api.onchange(
         "template_id",
@@ -113,7 +146,7 @@ class SignTemplateGenerate(models.TransientModel):
         self.ensure_one()
         if self.approval_recommended:
             return (
-                "An attributable Odoo approval is proportionate; use Approve in Odoo "
+                "An attributable business decision is proportionate; request a decision "
                 "instead of creating a signed PDF."
             )
         if self.requested_trust == "strong_personal":
@@ -122,7 +155,7 @@ class SignTemplateGenerate(models.TransientModel):
             missing = partners.filtered(
                 lambda partner: not enrollment_model.search_count(
                     [
-                        ("partner_id", "=", partner.commercial_partner_id.id),
+                        ("partner_id", "=", partner.id),
                         ("company_id", "=", self.company_id.id),
                         ("state", "=", "active"),
                     ],
@@ -148,6 +181,9 @@ class SignTemplateGenerate(models.TransientModel):
 
     def _generate_vals(self):
         self.ensure_one()
+        if not self.request_name:
+            msg = "Give this request a clear name."
+            raise ValidationError(msg)
         self._refresh_usl_journey()
         values = super()._generate_vals()
         signer_commands = values.get("signer_ids", [])
@@ -156,6 +192,12 @@ class SignTemplateGenerate(models.TransientModel):
         template = self.template_id
         values.update(
             {
+                "name": self.request_name,
+                "record_ref": (
+                    f"{self.record_ref._name},{self.record_ref.id}"
+                    if self.record_ref
+                    else False
+                ),
                 "company_id": template.company_id.id,
                 "data": template.with_context(bin_size=False).data,
                 "filename": template.filename or f"{template.name}.pdf",
@@ -196,7 +238,7 @@ class SignTemplateGenerate(models.TransientModel):
         self.ensure_one()
         self._refresh_usl_journey()
         if self.approval_recommended:
-            msg = "This decision does not need a signed PDF. Use Approve in Odoo."
+            msg = "This decision does not need a signed PDF. Request a business decision instead."
             raise ValidationError(
                 msg,
             )
@@ -219,3 +261,13 @@ class SignTemplateGenerate(models.TransientModel):
             "view_mode": "form",
             "target": "current",
         }
+
+    def action_request_approval(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("usl_sign.sign_start_action")
+        action["context"] = {
+            "default_request_type": "decision",
+            "default_name": self.template_id.name,
+            "default_company_id": self.company_id.id,
+        }
+        return action

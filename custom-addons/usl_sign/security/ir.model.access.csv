@@ -3,6 +3,7 @@ access_sign_policy_user,sign.policy.user,model_usl_sign_policy,group_sign_user,1
 access_sign_policy_admin,sign.policy.admin,model_usl_sign_policy,group_sign_admin,1,1,1,1
 access_sign_template_manager,sign.template.manager,sign_oca.model_sign_oca_template,group_sign_template_manager,1,1,1,0
 access_sign_template_item_manager,sign.template.item.manager,sign_oca.model_sign_oca_template_item,group_sign_template_manager,1,1,1,1
+access_usl_sign_template_role_manager,usl.sign.template.role.manager,model_usl_sign_template_role,group_sign_template_manager,1,1,1,1
 access_sign_request_user,sign.request.user,sign_oca.model_sign_oca_request,group_sign_user,1,1,1,1
 access_sign_request_signer_user,sign.request.signer.user,sign_oca.model_sign_oca_request_signer,group_sign_user,1,1,1,1
 access_sign_request_document_user,sign.request.document.user,model_usl_sign_request_document,group_sign_user,1,1,1,1
@@ -16,8 +17,14 @@ access_sign_event_reviewer,sign.event.reviewer,model_usl_sign_event,group_sign_e
 access_sign_validation_reviewer,sign.validation.reviewer,model_usl_sign_validation,group_sign_evidence_reviewer,1,0,0,0
 access_sign_request_evidence_reviewer,sign.request.evidence.reviewer,sign_oca.model_sign_oca_request,group_sign_evidence_reviewer,1,0,0,0
 access_sign_request_signer_evidence_reviewer,sign.request.signer.evidence.reviewer,sign_oca.model_sign_oca_request_signer,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_evidence_reviewer,sign.template.evidence.reviewer,sign_oca.model_sign_oca_template,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_item_evidence_reviewer,sign.template.item.evidence.reviewer,sign_oca.model_sign_oca_template_item,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_document_evidence_reviewer,sign.template.document.evidence.reviewer,model_usl_sign_template_document,group_sign_evidence_reviewer,1,0,0,0
+access_sign_template_role_evidence_reviewer,sign.template.role.evidence.reviewer,model_usl_sign_template_role,group_sign_evidence_reviewer,1,0,0,0
 access_sign_enrollment_reviewer,sign.enrollment.reviewer,model_usl_sign_enrollment,group_sign_identity_reviewer,1,1,1,0
+access_sign_enrollment_user,sign.enrollment.user,model_usl_sign_enrollment,group_sign_user,1,0,0,0
 access_sign_passkey_reviewer,sign.passkey.reviewer,model_usl_sign_passkey,group_sign_identity_reviewer,1,1,0,0
+access_sign_passkey_user,sign.passkey.user,model_usl_sign_passkey,group_sign_user,1,0,0,0
 access_sign_passkey_status_wizard_reviewer,sign.passkey.status.wizard.reviewer,model_usl_sign_passkey_status_wizard,group_sign_identity_reviewer,1,1,1,1
 access_sign_enrollment_revoke_wizard_reviewer,sign.enrollment.revoke.wizard.reviewer,model_usl_sign_enrollment_revoke_wizard,group_sign_identity_reviewer,1,1,1,1
 access_sign_ceremony_reviewer,sign.ceremony.reviewer,model_usl_sign_ceremony,group_sign_evidence_reviewer,1,0,0,0
@@ -31,3 +38,4 @@ access_usl_sign_approval_event_user,usl.sign.approval.event user,model_usl_sign_
 access_usl_sign_approval_decision_wizard_user,usl.sign.approval.decision.wizard user,model_usl_sign_approval_decision_wizard,base.group_user,1,1,1,1
 access_usl_sign_daily_manifest_reviewer,usl.sign.daily.manifest reviewer,model_usl_sign_daily_manifest,group_sign_evidence_reviewer,1,0,0,0
 access_usl_sign_daily_manifest_admin,usl.sign.daily.manifest admin,model_usl_sign_daily_manifest,group_sign_admin,1,0,0,0
+access_usl_sign_start_user,usl.sign.start user,model_usl_sign_start,group_sign_user,1,1,1,1

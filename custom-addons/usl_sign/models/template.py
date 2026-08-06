@@ -1,16 +1,124 @@
 import base64
 import hashlib
+import re
+import uuid
 from io import BytesIO
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.pdf import PdfReader
+
+from .constants import INTERNAL_OPERATION
+
+EDITOR_ROLE_COLORS = (
+    "#E86A8D",
+    "#FCD12A",
+    "#56AE64",
+    "#3EA8F9",
+    "#9E8DF9",
+    "#D7794D",
+    "#00B591",
+    "#E53935",
+    "#CF75CB",
+    "#000000",
+)
+
+FIELD_PRESENTATION = {
+    "signature": {"icon": "fa-pencil", "width": 28.0, "height": 7.0},
+    "initials": {"icon": "fa-pencil-square-o", "width": 14.0, "height": 5.0},
+    "signer_name": {"icon": "fa-user", "width": 24.0, "height": 4.5},
+    "email": {"icon": "fa-envelope", "width": 28.0, "height": 4.5},
+    "phone": {"icon": "fa-phone", "width": 22.0, "height": 4.5},
+    "date": {"icon": "fa-calendar", "width": 18.0, "height": 4.5},
+    "company": {"icon": "fa-building", "width": 24.0, "height": 4.5},
+    "role": {"icon": "fa-id-badge", "width": 22.0, "height": 4.5},
+    "checkbox": {"icon": "fa-check-square", "width": 4.5, "height": 4.5},
+    "text": {"icon": "fa-font", "width": 28.0, "height": 5.0},
+}
+
+
+def _field_kind(field):
+    """Return a stable semantic kind, including the OCA email/phone fields."""
+    if field.usl_kind != "text":
+        return field.usl_kind
+    xml_id = field.get_external_id().get(field.id, "")
+    if xml_id == "sign_oca.sign_field_email":
+        return "email"
+    if xml_id == "sign_oca.sign_field_phone":
+        return "phone"
+    return "text"
+
+
+def _field_info(field):
+    kind = _field_kind(field)
+    presentation = FIELD_PRESENTATION[kind]
+    return {
+        "id": field.id,
+        "name": field.name,
+        "field_type": field.field_type,
+        "technical_type": field.field_type,
+        "kind": kind,
+        "icon": presentation["icon"],
+        "default_width": presentation["width"],
+        "default_height": presentation["height"],
+        "default_value": field.default_value or False,
+        "supports_placeholder": field.field_type == "text",
+    }
+
+
+def _validate_editor_uuid(operation_uuid):
+    try:
+        return str(uuid.UUID(operation_uuid))
+    except (AttributeError, TypeError, ValueError) as error:
+        msg = "The editor operation identifier is invalid."
+        raise ValidationError(msg) from error
+
+
+def _validate_editor_geometry(values):
+    geometry = {
+        key: float(values[key])
+        for key in ("position_x", "position_y", "width", "height")
+        if key in values
+    }
+    if any(value != value for value in geometry.values()):
+        msg = "Field geometry must contain finite numbers."
+        raise ValidationError(msg)
+    return geometry
+
+
+def _validate_complete_editor_geometry(values):
+    geometry = {key: float(values[key]) for key in ("position_x", "position_y", "width", "height")}
+    if (
+        geometry["position_x"] < 0
+        or geometry["position_y"] < 0
+        or geometry["width"] < 2
+        or geometry["height"] < 2
+        or geometry["position_x"] + geometry["width"] > 100
+        or geometry["position_y"] + geometry["height"] > 100
+    ):
+        msg = "The signing field must stay completely inside its PDF page."
+        raise ValidationError(msg)
 
 
 class SignTemplate(models.Model):
     _inherit = "sign.oca.template"
 
     description = fields.Text(translate=True)
+    default_document_category = fields.Selection(
+        [
+            ("internal_decision", "Internal decision"),
+            ("routine_agreement", "Routine agreement"),
+            ("employment", "Employment document"),
+            ("intellectual_property", "Intellectual property"),
+            ("commercial", "Commercial agreement"),
+            ("finance_guarantee", "Financing or guarantee"),
+            ("mandate", "Mandate"),
+            ("other", "Other"),
+        ],
+        string="Category",
+        default="routine_agreement",
+        required=True,
+    )
     company_id = fields.Many2one(
         "res.company", required=True, default=lambda self: self.env.company, index=True,
     )
@@ -39,6 +147,24 @@ class SignTemplate(models.Model):
         "usl.sign.template.document", "template_id", string="Documents and annexes",
     )
     has_requests = fields.Boolean(compute="_compute_has_requests")
+    editor_revision = fields.Integer(default=1, required=True, copy=False, readonly=True)
+    editor_operation_log = fields.Json(default=dict, copy=False, readonly=True)
+    editor_role_ids = fields.One2many(
+        "usl.sign.template.role", "template_id", string="Editor role colors", copy=True,
+    )
+    default_trust = fields.Selection(
+        [
+            ("standard", "Standard"),
+            ("strong_personal", "Strong personal"),
+            ("qualified_external", "Qualified external"),
+        ],
+        compute="_compute_default_trust",
+    )
+
+    @api.depends("policy_id", "policy_id.recommendation")
+    def _compute_default_trust(self):
+        for template in self:
+            template.default_trust = template.policy_id.recommendation or "standard"
 
     @api.depends("request_count")
     def _compute_has_requests(self):
@@ -87,6 +213,280 @@ class SignTemplate(models.Model):
         action = super().configure()
         action["tag"] = "usl_sign_template_configure"
         return action
+
+    def _ensure_editor_roles(self):
+        """Bootstrap template-local role choices without re-adding removed roles."""
+        self.ensure_one()
+        if self.editor_role_ids:
+            return {mapping.role_id.id: mapping for mapping in self.editor_role_ids}
+        roles = self.item_ids.mapped("role_id") or self.env["sign.oca.role"].search([])
+        mappings = {mapping.role_id.id: mapping for mapping in self.editor_role_ids}
+        used_colors = set(self.editor_role_ids.mapped("color"))
+        for sequence, role in enumerate(roles, start=1):
+            if role.id in mappings:
+                continue
+            color = next(
+                (candidate for candidate in EDITOR_ROLE_COLORS if candidate not in used_colors),
+                EDITOR_ROLE_COLORS[(sequence - 1) % len(EDITOR_ROLE_COLORS)],
+            )
+            mapping = self.env["usl.sign.template.role"].create(
+                {
+                    "template_id": self.id,
+                    "role_id": role.id,
+                    "sequence": sequence * 10,
+                    "color": color,
+                },
+            )
+            mappings[role.id] = mapping
+            used_colors.add(color)
+        return mappings
+
+    def _editor_roles_info(self):
+        self.ensure_one()
+        self._ensure_editor_roles()
+        return [
+            {
+                "id": mapping.role_id.id,
+                "name": mapping.role_id.name,
+                "color": mapping.color,
+                "sequence": mapping.sequence,
+            }
+            for mapping in self.editor_role_ids.sorted(lambda row: (row.sequence, row.id))
+        ]
+
+    def _next_editor_role_values(self, role):
+        self.ensure_one()
+        used_colors = set(self.editor_role_ids.mapped("color"))
+        color = next(
+            (candidate for candidate in EDITOR_ROLE_COLORS if candidate not in used_colors),
+            EDITOR_ROLE_COLORS[len(self.editor_role_ids) % len(EDITOR_ROLE_COLORS)],
+        )
+        return {
+            "template_id": self.id,
+            "role_id": role.id,
+            "sequence": (max(self.editor_role_ids.mapped("sequence") or [0]) + 10),
+            "color": color,
+        }
+
+    def get_info(self):
+        self.ensure_one()
+        info = super().get_info()
+        fields_info = {
+            field.id: _field_info(field)
+            for field in self.env["sign.oca.field"].search([])
+        }
+        info.update(
+            {
+                "items": {
+                    item.id: {
+                        **item.get_info(),
+                        "kind": fields_info[item.field_id.id]["kind"],
+                        "field_type": item.field_id.field_type,
+                        "technical_type": item.field_id.field_type,
+                    }
+                    for item in self.item_ids
+                },
+                "roles": self._editor_roles_info(),
+                "fields": list(fields_info.values()),
+                "revision": self.editor_revision,
+                "readonly": bool(self.request_count or self.preparation_status == "ready"),
+                "editor_mode": "template",
+                "can_manage_roles": self.env.user.has_group(
+                    "usl_sign.group_sign_template_manager",
+                ),
+            },
+        )
+        return info
+
+    def _get_signatory_data(self):
+        """Freeze USL semantic field types into requests generated from templates."""
+        self.ensure_one()
+        data = super()._get_signatory_data()
+        fields_by_id = {
+            item.field_id.id: item.field_id
+            for item in self.item_ids
+        }
+        for item in data.values():
+            field = fields_by_id.get(int(item["field_id"]))
+            if field:
+                item.update(
+                    {
+                        "kind": _field_kind(field),
+                        "field_type": field.field_type,
+                        "technical_type": field.field_type,
+                    },
+                )
+        return data
+
+    def _editor_store_result(self, operation_uuid, result):
+        self.ensure_one()
+        operation_log = dict(self.editor_operation_log or {})
+        operation_log[operation_uuid] = result
+        if len(operation_log) > 100:
+            operation_log = dict(list(operation_log.items())[-100:])
+        self.with_context(usl_sign_editor_internal=INTERNAL_OPERATION).write(
+            {
+                "editor_revision": result["revision"],
+                "editor_operation_log": operation_log,
+                "preparation_status": "draft",
+                "preparation_note": "Review this version after its field layout changed.",
+            },
+        )
+
+    def _validate_editor_page(self, page):
+        self.ensure_one()
+        try:
+            page_count = len(
+                PdfReader(BytesIO(base64.b64decode(self.with_context(bin_size=False).data))).pages,
+            )
+        except Exception as error:
+            msg = "Upload a readable PDF before editing its fields."
+            raise ValidationError(msg) from error
+        if int(page) < 1 or int(page) > page_count:
+            msg = "The selected PDF page does not exist."
+            raise ValidationError(msg)
+
+    def editor_apply_command(self, operation_uuid, expected_revision, command):
+        """Apply one idempotent, revision-checked editor command."""
+        self.ensure_one()
+        self._ensure_draft()
+        operation_uuid = _validate_editor_uuid(operation_uuid)
+        previous = (self.editor_operation_log or {}).get(operation_uuid)
+        if previous:
+            return previous
+        if int(expected_revision) != self.editor_revision:
+            return {
+                "status": "conflict",
+                "revision": self.editor_revision,
+                "message": "This template changed in another editor. Reload before continuing.",
+            }
+        action = command.get("action")
+        values = dict(command.get("values") or {})
+        self._ensure_editor_roles()
+        if action in {"role_add", "role_remove"}:
+            if not self.env.user.has_group("usl_sign.group_sign_template_manager"):
+                msg = "Only a Sign template manager can change signer roles."
+                raise AccessError(msg)
+            if action == "role_add":
+                name = (values.get("name") or "").strip()
+                if not name or len(name) > 100:
+                    msg = "Enter a signer role name of at most 100 characters."
+                    raise ValidationError(msg)
+                role_model = self.env["sign.oca.role"].sudo()
+                role = role_model.search(
+                    [("name", "=ilike", name)], limit=1,
+                ) or role_model.create({"name": name})
+                if role in self.editor_role_ids.mapped("role_id"):
+                    msg = "This signer role is already available on the template."
+                    raise ValidationError(msg)
+                self.env["usl.sign.template.role"].create(
+                    self._next_editor_role_values(role),
+                )
+                role_id = role.id
+            else:
+                role_id = int(command.get("role_id") or 0)
+                mapping = self.editor_role_ids.filtered(
+                    lambda row: row.role_id.id == role_id,
+                )
+                if len(mapping) != 1:
+                    msg = "This signer role is not available on the template."
+                    raise ValidationError(msg)
+                if self.item_ids.filtered(lambda item: item.role_id.id == role_id):
+                    msg = "Reassign or delete this role's fields before removing the role."
+                    raise ValidationError(
+                        msg,
+                    )
+                if len(self.editor_role_ids) == 1:
+                    msg = "A template must keep at least one signer role."
+                    raise ValidationError(msg)
+                mapping.unlink()
+            result = {
+                "status": "ok",
+                "revision": self.editor_revision + 1,
+                "roles": self._editor_roles_info(),
+                "role_id": role_id,
+            }
+            self._editor_store_result(operation_uuid, result)
+            return result
+        allowed = {
+            "field_id", "role_id", "required", "placeholder", "page",
+            "position_x", "position_y", "width", "height",
+        }
+        if set(values) - allowed:
+            msg = "The editor command contains unsupported field values."
+            raise ValidationError(msg)
+        _validate_editor_geometry(values)
+        item = False
+        deleted_id = False
+        if action == "create":
+            if not values.get("field_id") or not values.get("role_id"):
+                msg = "Choose both a field type and a signer before placing it."
+                raise ValidationError(msg)
+            field = self.env["sign.oca.field"].browse(values["field_id"]).exists()
+            role = self.editor_role_ids.mapped("role_id").filtered(
+                lambda row: row.id == int(values["role_id"]),
+            )
+            if not field or not role:
+                msg = "The selected field type or signer role is unavailable."
+                raise ValidationError(msg)
+            defaults = FIELD_PRESENTATION[_field_kind(field)]
+            values.setdefault("width", defaults["width"])
+            values.setdefault("height", defaults["height"])
+            values.setdefault("required", field.field_type == "signature")
+            values.setdefault("page", 1)
+            self._validate_editor_page(values["page"])
+            item = self.env["sign.oca.template.item"].create(
+                {"template_id": self.id, **values},
+            )
+            _validate_complete_editor_geometry(item.get_info())
+        elif action == "update":
+            item = self.item_ids.filtered(lambda row: row.id == int(command.get("item_id", 0)))
+            if len(item) != 1:
+                msg = "The field no longer exists in this template."
+                raise ValidationError(msg)
+            if "field_id" in values:
+                field = self.env["sign.oca.field"].browse(values["field_id"]).exists()
+                if not field:
+                    msg = "The selected field type is unavailable."
+                    raise ValidationError(msg)
+            if (
+                "role_id" in values
+                and not self.editor_role_ids.mapped("role_id").filtered(
+                    lambda row: row.id == int(values["role_id"]),
+                )
+            ):
+                msg = "The selected signer role is unavailable."
+                raise ValidationError(msg)
+            item.write(values)
+            self._validate_editor_page(item.page)
+            _validate_complete_editor_geometry(item.get_info())
+        elif action == "delete":
+            item = self.item_ids.filtered(lambda row: row.id == int(command.get("item_id", 0)))
+            if len(item) != 1:
+                msg = "The field no longer exists in this template."
+                raise ValidationError(msg)
+            deleted_id = item.id
+            item.unlink()
+            item = False
+        else:
+            msg = "The editor command action is unsupported."
+            raise ValidationError(msg)
+        new_revision = self.editor_revision + 1
+        result = {
+            "status": "ok",
+            "revision": new_revision,
+            "item": (
+                {
+                    **item.get_info(),
+                    "kind": _field_kind(item.field_id),
+                    "field_type": item.field_id.field_type,
+                }
+                if item else False
+            ),
+            "deleted_id": deleted_id,
+        }
+        self._editor_store_result(operation_uuid, result)
+        return result
 
     def _copy_new_version(self):
         self.ensure_one()
@@ -220,7 +620,11 @@ class SignTemplate(models.Model):
         ):
             msg = "Published or used templates are immutable; create a new version."
             raise ValidationError(msg)
-        if material.intersection(values) and "preparation_status" not in values:
+        if (
+            material.intersection(values)
+            and "preparation_status" not in values
+            and self.env.context.get("usl_sign_editor_internal") is not INTERNAL_OPERATION
+        ):
             values.update(
                 {
                     "preparation_status": "draft",
@@ -272,7 +676,44 @@ class SignTemplate(models.Model):
                 )
                 for document in template.document_ids
             ]
+            record_values["editor_role_ids"] = [
+                (
+                    0,
+                    0,
+                    {
+                        "role_id": mapping.role_id.id,
+                        "sequence": mapping.sequence,
+                        "color": mapping.color,
+                    },
+                )
+                for mapping in template.editor_role_ids
+            ]
         return values
+
+
+class SignTemplateRole(models.Model):
+    _name = "usl.sign.template.role"
+    _description = "USL Sign template role presentation"
+    _order = "sequence, id"
+
+    template_id = fields.Many2one(
+        "sign.oca.template", required=True, ondelete="cascade", index=True,
+    )
+    role_id = fields.Many2one("sign.oca.role", required=True, ondelete="restrict")
+    sequence = fields.Integer(default=10, required=True)
+    color = fields.Char(required=True)
+
+    _template_role_unique = models.Constraint(
+        "UNIQUE(template_id, role_id)",
+        "A signer role can have only one color in a template.",
+    )
+
+    @api.constrains("color")
+    def _check_color(self):
+        for mapping in self:
+            if not re.fullmatch(r"#[0-9A-F]{6}", mapping.color or ""):
+                msg = "Role colors must use the #RRGGBB format."
+                raise ValidationError(msg)
 
 
 class SignTemplateItem(models.Model):
