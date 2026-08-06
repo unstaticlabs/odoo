@@ -4,6 +4,10 @@ import json
 import os
 
 
+authenticator = os.environ.get("USL_SIGN_ACCEPTANCE_AUTHENTICATOR", "virtual")
+if authenticator not in {"virtual", "real_platform"}:
+    raise RuntimeError("Strong acceptance authenticator must be virtual or real_platform")
+
 partner = env["res.partner"].search(
     [("email", "=", "roger@unstaticlabs.com")],
     limit=1,
@@ -36,8 +40,13 @@ enrollment = enrollments.create(
         "relationship_reference": "Isolated Pocket ID Strong acceptance",
         "policy_version": "2026.1",
         "review_note": (
-            "Synthetic browser acceptance using a virtual platform authenticator; "
-            "not a production identity review."
+            "Synthetic browser acceptance using "
+            + (
+                "a real platform authenticator"
+                if authenticator == "real_platform"
+                else "a virtual platform authenticator"
+            )
+            + "; not a production identity review."
         ),
     },
 )
@@ -47,6 +56,7 @@ payload = {
     "enrollment_id": enrollment.id,
     "invitation_url": invitation["url"],
     "partner_id": partner.id,
+    "authenticator": authenticator,
     "run_id": os.environ.get("USL_SIGN_ACCEPTANCE_RUN_ID", ""),
 }
 print("USL_SIGN_STRONG_ACCEPTANCE=" + json.dumps(payload, sort_keys=True))

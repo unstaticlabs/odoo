@@ -258,8 +258,13 @@ strong_acceptance_shell() {
 }
 
 strong_acceptance_prepare() {
+  if [[ "${3:-virtual}" != "virtual" && "${3:-virtual}" != "real_platform" ]]; then
+    printf 'Authenticator mode must be virtual or real_platform.\n' >&2
+    return 2
+  fi
   strong_acceptance_shell sign_strong_acceptance_prepare.py \
-    -e "USL_SIGN_ACCEPTANCE_RUN_ID=${2:-qa}"
+    -e "USL_SIGN_ACCEPTANCE_RUN_ID=${2:-qa}" \
+    -e "USL_SIGN_ACCEPTANCE_AUTHENTICATOR=${3:-virtual}"
 }
 
 strong_acceptance_review() {
@@ -308,6 +313,9 @@ case "${1:-help}" in
   help|*)
     printf '%s\n' \
       'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
+      '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
+      '       scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID [RUN_ID]' \
+      '       scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID' \
       'This helper owns only project usl-sign-pocketid-6605 and its isolated volumes.'
     ;;
 esac

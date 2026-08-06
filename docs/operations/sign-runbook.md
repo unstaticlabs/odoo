@@ -155,6 +155,37 @@ OS and authenticator actually tested; do not advertise an untested platform.
 The dedicated Pocket ID Sign client and callback must exactly match the
 production Odoo host. Strict discovery capability is mandatory.
 
+For the isolated worktree tenant, start the stack and create a short-lived
+account-settings link for the synthetic Roger user:
+
+```bash
+scripts/sign-pocketid-stack start
+python3 scripts/pocket_id_dev.py --env-file .sign-pocketid-6605.env \
+  one-time-link roger --ttl 16m
+```
+
+Pocket ID uses six-character login codes at lifetimes of fifteen minutes or
+less. This QA tenant disables code-based Strong authorization, so the manual
+onboarding link deliberately uses sixteen minutes and redirects directly to
+account settings. Open it in the browser being tested and add the real
+platform passkey. The credential is scoped to the isolated
+`pocket-id-sign-6605.localhost` relying party.
+
+Prepare the reviewed browser journey and copy the IDs and URLs printed after
+each command:
+
+```bash
+scripts/sign-pocketid-stack strong-acceptance-prepare touchid-qa real_platform
+# Open invitation_url and connect the same Pocket ID account.
+scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID touchid-qa
+# Open signing_url, consent, and complete the fresh passkey signature.
+scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID
+```
+
+The prepare command records whether the run used a virtual or real platform
+authenticator. Never label a virtual-credential result as Touch ID, Face ID,
+Windows Hello or another platform product.
+
 1. Create an enrolment for a synthetic known partner and record the relationship
    basis, reviewer and identity policy.
 2. Connect the correct Pocket ID subject and have an identity reviewer confirm
