@@ -8,6 +8,7 @@ from . import (
     analytic_reporting,
     bank_partner_suggestion,
     expense_bank_matching,
+    expense_batch_reporting,
     fiscal_year,
     payment_suggestion,
     immediate_settlement,
