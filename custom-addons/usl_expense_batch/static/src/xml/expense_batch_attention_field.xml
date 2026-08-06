@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_expense_batch.ExpenseBatchAttentionField">
+        <span t-if="level"
+              class="o_usl_batch_attention d-inline-flex align-items-center justify-content-center"
+              role="img"
+              tabindex="0"
+              t-att-title="message"
+              t-att-aria-label="message">
+            <i t-att-class="iconClass" aria-hidden="true"/>
+        </span>
+    </t>
+</templates>

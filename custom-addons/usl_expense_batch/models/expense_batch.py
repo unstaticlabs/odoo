@@ -607,26 +607,38 @@ class UslExpenseBatch(models.Model):
             forced = expense.id in force_ids
             actions = []
             if self.account_override_id:
-                if expense.account_context_source == "explicit" and not forced:
+                account_differs = expense.account_id != self.account_override_id
+                if (
+                    expense.account_context_source == "explicit"
+                    and account_differs
+                    and not forced
+                ):
                     line["account"] = "exception"
                     actions.append("exception")
                 elif (
-                    expense.account_id != self.account_override_id
+                    account_differs
                     or expense.account_context_source != "batch"
                     or expense.batch_context_revision != self.context_revision
-                ):
+                ) and (expense.account_context_source != "explicit" or forced):
                     line["account"] = "replace" if forced else "inherit"
                     actions.append("change")
             if self.analytic_distribution:
-                if expense.analytic_context_source == "explicit" and not forced:
+                analytics_differ = not expense._analytic_distributions_equal(
+                    expense.analytic_distribution,
+                    self.analytic_distribution,
+                )
+                if (
+                    expense.analytic_context_source == "explicit"
+                    and analytics_differ
+                    and not forced
+                ):
                     line["analytics"] = "exception"
                     actions.append("exception")
                 elif (
-                    (expense.analytic_distribution or {})
-                    != (self.analytic_distribution or {})
+                    analytics_differ
                     or expense.analytic_context_source != "batch"
                     or expense.batch_context_revision != self.context_revision
-                ):
+                ) and (expense.analytic_context_source != "explicit" or forced):
                     line["analytics"] = "replace" if forced else "inherit"
                     actions.append("change")
 
@@ -703,8 +715,10 @@ class UslExpenseBatch(models.Model):
             apply_analytics = self.analytic_distribution and (
                 expense.analytic_context_source != "explicit" or forced
             ) and (
-                (expense.analytic_distribution or {})
-                != (self.analytic_distribution or {})
+                not expense._analytic_distributions_equal(
+                    expense.analytic_distribution,
+                    self.analytic_distribution,
+                )
                 or expense.analytic_context_source != "batch"
                 or expense.batch_context_revision != self.context_revision
             )
@@ -728,7 +742,7 @@ class UslExpenseBatch(models.Model):
                 values["batch_context_revision"] = self.context_revision
                 expense.with_context(usl_batch_context_internal=True).write(values)
                 changed |= expense
-        if changed:
+        if changed and not self.env.context.get("usl_batch_context_defer_audit"):
             self.message_post(
                 body=_(
                     "Shared context revision %(revision)s applied to %(changed)s "
@@ -781,6 +795,15 @@ class UslExpenseBatch(models.Model):
             "exception_count": self.exception_count,
             "stale_context_count": self.stale_context_count,
             "warning_count": self.warning_count,
+            "attention": [
+                {
+                    "expense_id": expense.id,
+                    "level": expense.batch_attention_level,
+                    "message": expense.batch_attention_message,
+                }
+                for expense in self.expense_ids
+                if expense.batch_attention_message
+            ],
             "analytics": dict(analytics),
             "products": dict(products),
             "account_override": (
