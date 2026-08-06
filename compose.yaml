@@ -36,16 +36,16 @@ services:
 
   paperless-preflight:
     profiles: ["paperless"]
-    image: alpine:3.22.1
+    image: alpine:3.24.1
     restart: "no"
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:8.1.3-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}
-      PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}
+      PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
       PAPERLESS_PUBLIC_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
@@ -160,7 +160,7 @@ services:
 
   paperless-trash-init:
     profiles: ["paperless"]
-    image: alpine:3.22.1
+    image: alpine:3.24.1
     restart: "no"
     command: ["chown", "1000:1000", "/trash"]
     volumes:
@@ -168,7 +168,7 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
     restart: unless-stopped
     depends_on:
       paperless-preflight:
@@ -228,7 +228,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -249,7 +249,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -287,7 +287,7 @@ services:
 
   paperless-tika:
     profiles: ["paperless"]
-    image: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}
+    image: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:9998/tika"]
