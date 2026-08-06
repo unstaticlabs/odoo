@@ -14,6 +14,8 @@
                 <field name="partner_id" filter_domain="[('partner_id', 'child_of', self)]"/>
                 <field name="product_id"/>
                 <field name="journal_id"/>
+                <field name="expense_batch_id"/>
+                <field name="expense_payment_mode"/>
                 <field name="rebuild_document_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <separator/>
@@ -32,6 +34,8 @@
                     <filter name="group_partner" string="Partenaire" context="{'group_by': 'partner_id'}"/>
                     <filter name="group_product" string="Produit" context="{'group_by': 'product_id'}"/>
                     <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
+                    <filter name="group_expense_batch" string="Lot de dépenses" context="{'group_by': 'expense_batch_id'}"/>
+                    <filter name="group_expense_payer" string="Payeur" context="{'group_by': 'expense_payment_mode'}"/>
                     <filter name="group_company" string="Société" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
                 </group>
             </search>
@@ -44,6 +48,7 @@
         <field name="arch" type="xml">
             <pivot string="Analyse analytique" sample="1" js_class="analytic_pivot">
                 <field name="account_id" type="row"/>
+                <field name="expense_batch_id" type="row"/>
                 <field name="date" interval="month" type="col"/>
                 <field name="rebuild_net_contribution" type="measure"/>
                 <field name="rebuild_revenue" type="measure"/>
@@ -83,6 +88,8 @@
                 <field name="partner_id" optional="show"/>
                 <field name="product_id" optional="hide"/>
                 <field name="journal_id" optional="hide"/>
+                <field name="expense_batch_id" optional="show"/>
+                <field name="expense_payment_mode" optional="hide"/>
                 <field name="rebuild_document_id" optional="hide"/>
                 <field name="move_line_id" widget="line_open_move_widget" optional="show"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
