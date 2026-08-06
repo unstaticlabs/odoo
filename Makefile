@@ -27,7 +27,7 @@ CONFIRM ?=
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
-.PHONY: user-docs-deps user-docs-serve user-docs-build french-translations
+.PHONY: user-docs-deps user-docs-serve user-docs-build french-translations expense-batch-qa-bootstrap
 
 help:
 	@printf '%s\n' \
@@ -74,6 +74,7 @@ help-advanced:
 	  'QA and documentation' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make documents-qa-test              Run Documents QA tests' \
+	  '  make expense-batch-qa-bootstrap      Seed mixed-payer Expense Batch QA data' \
 	  '  make user-docs-build                Render and validate user documentation' \
 	  '' \
 	  'All historical target names remain available; inspect Makefile for exact stages.'
@@ -130,6 +131,9 @@ paperless-users:
 
 disable-tours:
 	$(ODOO_DEV) disable-tours
+
+expense-batch-qa-bootstrap:
+	$(ODOO_DEV) bootstrap-expense-batch-qa
 
 target-finalize:
 	scripts/target-finalize

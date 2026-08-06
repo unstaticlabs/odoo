@@ -205,6 +205,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(result["reclassified_expense_count"], 3)
         self.assertEqual(result["created_batch_count"], 1)
         self.assertEqual(result["batched_expense_count"], 4)
+        self.assertEqual(result["newly_batched_expense_count"], 4)
+        self.assertEqual(result["normalized_inherited_count"], 0)
+        self.assertEqual(result["exception_expense_count"], 0)
+        self.assertEqual(result["cleaned_context_message_count"], 0)
+        self.assertEqual(result["migration_summary_message_count"], 1)
         self.assertEqual(result["ambiguous_count"], 1)
         self.assertTrue(result["historical_unchanged"])
         self.assertEqual(uber.product_id, transport)
@@ -222,6 +227,24 @@ class TestRebuildAccountMigration(TransactionCase):
             {f"{project.id},{epic.id}": 100.0},
         )
         self.assertEqual(
+            set(batch.expense_ids.mapped("account_context_source")),
+            {"batch"},
+        )
+        self.assertEqual(
+            set(batch.expense_ids.mapped("analytic_context_source")),
+            {"batch"},
+        )
+        self.assertEqual(batch.exception_count, 0)
+        migration_messages = batch.message_ids.filtered(
+            lambda message: "Canada draft transition prepared" in (message.body or ""),
+        )
+        self.assertEqual(len(migration_messages), 1)
+        self.assertFalse(
+            batch.message_ids.filtered(
+                lambda message: "Shared context revision" in (message.body or ""),
+            ),
+        )
+        self.assertEqual(
             historical_signature,
             (
                 historical.product_id,
@@ -232,13 +255,36 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertFalse(any(trip_products.product_tmpl_id.mapped("active")))
 
+        uber.with_context(usl_batch_context_internal=True).write({
+            "account_context_source": "explicit",
+            "analytic_context_source": "explicit",
+        })
+        self.assertEqual(uber.batch_context_status, "inherited")
         rerun = run.run_expense_batch_transition()
         self.assertEqual(rerun["candidate_draft_count"], 0)
         self.assertEqual(rerun["reclassified_expense_count"], 0)
         self.assertEqual(rerun["created_batch_count"], 0)
         self.assertEqual(rerun["archived_trip_product_count"], 0)
         self.assertEqual(rerun["ambiguous_count"], 0)
+        self.assertEqual(rerun["normalized_inherited_count"], 1)
+        self.assertEqual(rerun["migration_summary_message_count"], 0)
         self.assertTrue(rerun["historical_unchanged"])
+        self.assertEqual(uber.account_context_source, "batch")
+        self.assertEqual(uber.analytic_context_source, "batch")
+        self.assertEqual(len(migration_messages.exists()), 1)
+
+        for _index in range(2):
+            batch.message_post(
+                body=(
+                    "Shared context revision 1 applied to 1 expense(s); "
+                    "0 explicit exception(s) were preserved and 0 later-stage "
+                    "expense(s) were skipped."
+                ),
+            )
+        cleanup = run.run_expense_batch_transition()
+        self.assertEqual(cleanup["cleaned_context_message_count"], 2)
+        self.assertEqual(cleanup["migration_summary_message_count"], 0)
+        self.assertEqual(len(migration_messages.exists()), 1)
 
     def test_historical_no_entry_payment_is_native_and_immutable(self):
         journal = self._journal("bank")

@@ -9,6 +9,10 @@ TRUTHY_VALUES = {"1", "true", "yes", "on"}
 MISSING_OPT_IN = "Set USL_EXPENSE_BATCH_QA_BOOTSTRAP=1 explicitly."
 LIVE_GUARD_ENABLED = "QA bootstrap refuses to run with a live guard enabled."
 NON_EMPTY_LEDGER = "QA bootstrap refuses a database that already has posted entries."
+TARGET_DATABASE_REQUIRED = "Target QA bootstrap requires the odoo_dev database."
+TARGET_ACCOUNT_REQUIRED = "Target QA bootstrap requires account 625600."
+LATER_STAGE_QA_DATA = "Refusing to replace later-stage mixed-payer QA data."
+QA_DATA_ELSEWHERE = "Mixed-payer QA expenses already belong elsewhere."
 
 
 def _is_enabled(name):
@@ -28,7 +32,19 @@ def _user(env, *, login, name, groups, company):
         "active": True,
     }
     if user:
-        user.write(values)
+        updates = {}
+        for key, value in values.items():
+            if key in ("password", "company_ids", "group_ids"):
+                continue
+            current = user[key].id if key == "company_id" else user[key]
+            if current != value:
+                updates[key] = value
+        if set(user.company_ids.ids) != set(company.ids):
+            updates["company_ids"] = values["company_ids"]
+        if not set(groups.ids).issubset(user.group_ids.ids):
+            updates["group_ids"] = [Command.set((user.group_ids | groups).ids)]
+        if updates:
+            user.write(updates)
     else:
         user = env["res.users"].with_context(
             no_reset_password=True,
@@ -62,7 +78,21 @@ def _product(env, *, name, code, account):
         "active": True,
     }
     if product:
-        product.write(values)
+        updates = {}
+        for key, value in values.items():
+            if key == "supplier_taxes_id":
+                continue
+            current = (
+                product[key].id
+                if key == "property_account_expense_id"
+                else product[key]
+            )
+            if current != value:
+                updates[key] = value
+        if product.supplier_taxes_id:
+            updates["supplier_taxes_id"] = values["supplier_taxes_id"]
+        if updates:
+            product.write(updates)
     else:
         product = env["product.product"].sudo().create(values)
     return product
@@ -103,6 +133,12 @@ def _expense(
     else:
         values["analytic_context_source"] = "product"
     if expense:
+        if expense.state != "draft":
+            message = (
+                "Refusing to replace later-stage QA expense "
+                f"{expense.display_name}."
+            )
+            raise RuntimeError(message)
         expense.write(values)
     else:
         expense = env["hr.expense"].sudo().create(values)
@@ -119,7 +155,8 @@ def _expense(
 
 
 def bootstrap(env):
-    if not _is_enabled("USL_EXPENSE_BATCH_QA_BOOTSTRAP"):
+    target_mode = _is_enabled("USL_EXPENSE_BATCH_TARGET_QA_BOOTSTRAP")
+    if not (_is_enabled("USL_EXPENSE_BATCH_QA_BOOTSTRAP") or target_mode):
         raise RuntimeError(MISSING_OPT_IN)
     if (
         _is_enabled("USL_EINVOICE_LIVE_ENABLED")
@@ -128,12 +165,14 @@ def bootstrap(env):
         raise RuntimeError(LIVE_GUARD_ENABLED)
 
     company = env.company.sudo()
-    if env["account.move"].sudo().search_count([
+    if target_mode and env.cr.dbname != "odoo_dev":
+        raise RuntimeError(TARGET_DATABASE_REQUIRED)
+    if not target_mode and env["account.move"].sudo().search_count([
         ("company_id", "=", company.id),
         ("state", "=", "posted"),
     ]):
         raise RuntimeError(NON_EMPTY_LEDGER)
-    if company.chart_template != "fr_comp":
+    if not target_mode and company.chart_template != "fr_comp":
         env["account.chart.template"].try_loading(
             "fr_comp",
             company=company,
@@ -144,6 +183,8 @@ def bootstrap(env):
         ("code", "=", "625600"),
         ("company_ids", "in", company.id),
     ], limit=1)
+    if not mission_account and target_mode:
+        raise RuntimeError(TARGET_ACCOUNT_REQUIRED)
     if not mission_account:
         mission_account = env["account.account"].sudo().create({
             "code": "625600",
@@ -223,12 +264,12 @@ def bootstrap(env):
 
     distribution = {f"{project.id},{epic.id}": 100.0}
     batch = env["usl.expense.batch"].sudo().search([
-        ("name", "=", "SBFH — Canada 2026 QA"),
+        ("name", "=", "QA — Mixed payment Batch"),
         ("employee_id", "=", employee.id),
     ], limit=1)
     values = {
-        "name": "SBFH — Canada 2026 QA",
-        "purpose": "Customer and partner meetings in Canada",
+        "name": "QA — Mixed payment Batch",
+        "purpose": "Synthetic mixed employee and company payment review",
         "context_type": "travel",
         "context_date_from": fields.Date.from_string("2026-07-01"),
         "context_date_to": fields.Date.from_string("2026-07-31"),
@@ -238,9 +279,35 @@ def bootstrap(env):
         "analytic_distribution": distribution,
     }
     if batch:
-        batch.write(values)
+        updates = {}
+        for key, value in values.items():
+            current = batch[key]
+            if key in ("employee_id", "company_id", "account_override_id"):
+                current = current.id
+            if current != value:
+                updates[key] = value
+        if updates:
+            batch.write(updates)
     else:
         batch = env["usl.expense.batch"].sudo().create(values)
+
+    expense_names = (
+        "QA Toronto hotel",
+        "QA Toronto taxi company card",
+        "QA Toronto team meal exception",
+        "QA Toronto missing receipt",
+    )
+    existing_expenses = env["hr.expense"].sudo().search([
+        ("employee_id", "=", employee.id),
+        ("name", "in", expense_names),
+    ])
+    if target_mode and len(existing_expenses) == len(expense_names):
+        if any(existing_expenses.filtered(lambda expense: expense.state != "draft")):
+            raise RuntimeError(LATER_STAGE_QA_DATA)
+        if existing_expenses.filtered(lambda expense: expense.expense_batch_id != batch):
+            raise RuntimeError(QA_DATA_ELSEWHERE)
+        env.cr.commit()
+        return
 
     expenses = env["hr.expense"]
     expenses |= _expense(
@@ -284,7 +351,17 @@ def bootstrap(env):
         payment_mode="company_account",
         receipt=False,
     )
-    expenses.filtered("expense_batch_id").write({"expense_batch_id": False})
+    if target_mode:
+        if expenses.filtered(
+            lambda expense: expense.expense_batch_id
+            and expense.expense_batch_id != batch,
+        ):
+            raise RuntimeError(QA_DATA_ELSEWHERE)
+        expenses.filtered(lambda expense: not expense.expense_batch_id).write({
+            "expense_batch_id": batch.id,
+        })
+    else:
+        expenses.filtered("expense_batch_id").write({"expense_batch_id": False})
     env.cr.commit()
 
 
