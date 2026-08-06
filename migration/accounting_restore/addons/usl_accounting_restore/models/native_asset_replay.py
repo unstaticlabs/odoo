@@ -512,13 +512,13 @@ class RebuildAccountImportRun(models.Model):
                 options,
                 countries,
             )
-            accounts, _accounts_to_archive = self._account_map(
+            accounts, accounts_to_archive = self._account_map(
                 conn,
                 options,
                 companies,
                 currencies,
             )
-            journals = self._journal_map(
+            journals, journals_to_archive = self._journal_map(
                 conn,
                 options,
                 companies,
@@ -775,6 +775,11 @@ class RebuildAccountImportRun(models.Model):
                 and passed_move_count == len(source_posted_rows)
                 else "failed"
             )
+            for source_account_id in accounts_to_archive:
+                accounts[source_account_id].active = False
+            for source_journal_id in journals_to_archive:
+                journals[source_journal_id].active = False
+
             stats = {
                 "classification": (
                     "SOURCE_FAITHFUL_NATIVE_ASSET_MATERIALIZATION"

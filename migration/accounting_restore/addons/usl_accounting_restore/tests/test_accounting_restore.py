@@ -5494,7 +5494,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "_sync_company_einvoice_configuration",
             ),
         ):
-            mapped = import_run._journal_map(
+            mapped, archive_after_post = import_run._journal_map(
                 object(),
                 options,
                 {990001: self.company},
@@ -5503,6 +5503,7 @@ class TestRebuildAccountMigration(TransactionCase):
             )
 
         self.assertEqual(mapped[990013], journal)
+        self.assertFalse(archive_after_post)
         self.assertEqual(
             (journal.inbound_payment_method_line_ids | journal.outbound_payment_method_line_ids).ids,
             method_line_ids,
@@ -5545,7 +5546,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "_sync_company_einvoice_configuration",
             ),
         ):
-            mapped = import_run._journal_map(
+            mapped, archive_after_post = import_run._journal_map(
                 object(),
                 {
                     "source_company_ids": [990001],
@@ -5559,7 +5560,8 @@ class TestRebuildAccountMigration(TransactionCase):
             )
 
         self.assertEqual(mapped[990014], journal)
-        self.assertFalse(journal.active)
+        self.assertTrue(journal.active)
+        self.assertEqual(archive_after_post, [990014])
 
     def test_company_configuration_parity_is_source_traced_and_company_scoped(self):
         snapshot = "unit-company-configuration-parity"
@@ -6532,6 +6534,34 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(updated_companies, company)
         self.assertTrue(company.tax_exigibility)
         self.assertIn("Tax definitions were not changed", company.rebuild_import_note)
+
+    def test_cash_basis_transition_account_is_reconcilable_on_replay(self):
+        account = self.env["account.account"].create({
+            "code": "TMCB01",
+            "name": "Unit cash-basis transition",
+            "account_type": "asset_current",
+            "reconcile": False,
+            "company_ids": [Command.set([self.company.id])],
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Cash-basis account replay",
+        })
+
+        self.assertTrue(
+            import_run._ensure_cash_basis_transition_account_reconcile(
+                account,
+            ),
+        )
+        self.assertTrue(account.reconcile)
+        self.assertIn(
+            "cash-basis tax transition account",
+            account.rebuild_import_note,
+        )
+        self.assertFalse(
+            import_run._ensure_cash_basis_transition_account_reconcile(
+                account,
+            ),
+        )
 
     def test_import_currency_rates_preserves_native_source_rate_and_trace(self):
         eur = self.env.ref("base.EUR")

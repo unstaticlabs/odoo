@@ -8,8 +8,8 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, _, fields, models
-
 from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
+from odoo.exceptions import ValidationError
 
 
 # The Online source contains six misleading account names.  Account codes and
@@ -2325,6 +2325,19 @@ class RebuildAccountImportRun(models.Model):
             groups[row["id"]] = group
         return groups
 
+    def _ensure_cash_basis_transition_account_reconcile(self, account):
+        if not account or account.reconcile:
+            return False
+        account.write({
+            "reconcile": True,
+            "rebuild_import_note": (
+                (account.rebuild_import_note or "")
+                + "\nEnabled reconciliation because this account is used "
+                "as a cash-basis tax transition account."
+            ).strip(),
+        })
+        return True
+
     def _tax_map(self, conn, options, companies, accounts, tax_groups, tax_tags, countries):
         tax_rows = self._fetchall(
             conn,
@@ -2374,11 +2387,25 @@ class RebuildAccountImportRun(models.Model):
                 tags_by_repartition[row["repartition_line_id"]].append(tax_tags[row["tag_id"]].id)
 
         taxes = {}
-        Tax = self.env["account.tax"].with_context(active_test=False, tracking_disable=True)
+        Tax = self.env["account.tax"].with_context(
+            active_test=False,
+            tracking_disable=True,
+        )
         for row in tax_rows:
             company = companies[row["company_id"]]
             country = countries.get(row["country_id"])
             name = self._source_text(row["name"]) or f"Source tax {row['id']}"
+            cash_basis_transition_account = accounts.get(
+                row["cash_basis_transition_account_id"],
+            )
+            if cash_basis_transition_account:
+                # Odoo validates this invariant again whenever a tax is
+                # updated. Keep idempotent configuration replays valid even
+                # when a preceding historical stage temporarily left the
+                # account without its source reconciliation flag.
+                self._ensure_cash_basis_transition_account_reconcile(
+                    cash_basis_transition_account,
+                )
             tax = Tax.search([
                 ("rebuild_source_model", "=", "account.tax"),
                 ("rebuild_source_id", "=", row["id"]),
@@ -2412,17 +2439,39 @@ class RebuildAccountImportRun(models.Model):
                 "tax_group_id": tax_groups[row["tax_group_id"]].id,
                 "country_id": country.id if country else False,
                 "cash_basis_transition_account_id": (
-                    accounts[row["cash_basis_transition_account_id"]].id
-                    if row["cash_basis_transition_account_id"] in accounts else False
+                    cash_basis_transition_account.id
+                    if cash_basis_transition_account else False
                 ),
                 "ubl_cii_tax_category_code": row["ubl_cii_tax_category_code"],
                 "ubl_cii_tax_exemption_reason_code": row["ubl_cii_tax_exemption_reason_code"],
                 **self._trace_values("account.tax", row["id"], options),
             }
+            # This is the same temporary setup context used by Odoo's chart
+            # loader. It permits taxes and their transition accounts to be
+            # restored in either source order; the explicit invariant below
+            # still fails the import if the final native configuration is not
+            # valid.
             if tax:
-                tax.write(vals)
+                tax.with_context(chart_template_load=True).write(vals)
             else:
-                tax = Tax.create(vals)
+                tax = Tax.with_context(chart_template_load=True).create(vals)
+            tax.invalidate_recordset([
+                "tax_exigibility",
+                "cash_basis_transition_account_id",
+            ])
+            if (
+                tax.tax_exigibility == "on_payment"
+                and not tax.cash_basis_transition_account_id.reconcile
+            ):
+                raise ValidationError(
+                    _(
+                        "Cash-basis tax %(tax)s (source %(source)s) was "
+                        "restored with a transition account that does not "
+                        "allow reconciliation.",
+                        tax=tax.display_name,
+                        source=row["id"],
+                    ),
+                )
             taxes[row["id"]] = tax
 
             existing_repartition_by_source = {
@@ -2698,6 +2747,7 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
         journals = {}
+        archive_after_post = []
         Journal = self.env["account.journal"].with_context(active_test=False, import_file=True)
         for row in rows:
             company = companies[row["company_id"]]
@@ -2717,7 +2767,9 @@ class RebuildAccountImportRun(models.Model):
                 "type": row["type"],
                 "company_id": company.id,
                 "sequence": row["sequence"] or 10,
-                "active": bool(row["active"]),
+                # Historical moves can only be posted while their journal is
+                # active. Restore the source archive state after replay.
+                "active": True,
                 "refund_sequence": bool(row["refund_sequence"]),
                 "restrict_mode_hash_table": bool(row["restrict_mode_hash_table"]),
                 **self._trace_values("account.journal", row["id"], options),
@@ -2737,13 +2789,15 @@ class RebuildAccountImportRun(models.Model):
             else:
                 journal = Journal.create(vals)
             journals[row["id"]] = journal
+            if not row["active"]:
+                archive_after_post.append(row["id"])
         self._sync_company_einvoice_configuration(
             conn,
             options,
             companies,
             journals,
         )
-        return journals
+        return journals, archive_after_post
 
     def _company_configuration_parity(self, conn, options, companies):
         """Prove complete per-company chart and journal reconstruction.
@@ -6807,7 +6861,7 @@ class RebuildAccountImportRun(models.Model):
                 tax_tags,
                 countries,
             )
-            journals = self._journal_map(
+            journals, journal_ids_to_archive = self._journal_map(
                 conn,
                 options,
                 companies,
@@ -7156,6 +7210,8 @@ class RebuildAccountImportRun(models.Model):
             )
             for source_account_id in account_ids_to_archive:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive:
+                journals[source_journal_id].active = False
 
             passed_count = 0
             mismatch_cases = []
@@ -7560,7 +7616,13 @@ class RebuildAccountImportRun(models.Model):
                 accounts,
                 fiscal_positions,
             )
-            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            journals, journal_ids_to_archive_after_post = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
             method_lines = self._payment_method_line_map(conn, journals, accounts)
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(
@@ -8175,6 +8237,8 @@ class RebuildAccountImportRun(models.Model):
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive_after_post:
+                journals[source_journal_id].active = False
 
             status = (
                 "passed"
@@ -8344,7 +8408,13 @@ class RebuildAccountImportRun(models.Model):
                 accounts,
                 fiscal_positions,
             )
-            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            journals, journal_ids_to_archive_after_post = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(
                 conn,
@@ -8581,6 +8651,8 @@ class RebuildAccountImportRun(models.Model):
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive_after_post:
+                journals[source_journal_id].active = False
 
             document_attachment_stats = self._import_attachments(
                 conn,
@@ -8728,7 +8800,13 @@ class RebuildAccountImportRun(models.Model):
                 accounts,
                 fiscal_positions,
             )
-            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            journals, journal_ids_to_archive_after_post = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(conn, options, companies, partners, analytic_plans)
             _reconciliation_models, reconciliation_model_stats = (
@@ -9021,6 +9099,8 @@ class RebuildAccountImportRun(models.Model):
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive_after_post:
+                journals[source_journal_id].active = False
 
             company_configuration_parity = (
                 self._company_configuration_parity(
