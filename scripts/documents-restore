@@ -46,6 +46,14 @@ source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_2}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 canonical_reset="${DOCUMENTS_CANONICAL_RESET:-0}"
 require_checkpoint="${DOCUMENTS_REQUIRE_CHECKPOINT:-0}"
+restore_profile="${DOCUMENTS_RESTORE_PROFILE:-full}"
+case "$restore_profile" in
+    full|accounting|hr|smoke) ;;
+    *)
+        echo "Documents restore profile must be full, accounting, hr, or smoke." >&2
+        exit 2
+        ;;
+esac
 case "$canonical_reset:$require_checkpoint" in
     0:0|0:1|1:0) ;;
     1:1)
@@ -61,8 +69,9 @@ if [[ "$require_checkpoint" == 1 && "$canonical_target" != 1 ]]; then
     echo "Checkpoint reuse is reserved for the guarded canonical target." >&2
     exit 2
 fi
-if [[ "$require_checkpoint" == 1 && "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
-    echo "Checkpoint reuse cannot run a limited Documents restore." >&2
+if [[ "$require_checkpoint" == 1 \
+    && ( "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 || "$restore_profile" != full ) ]]; then
+    echo "Checkpoint reuse requires the complete Documents source profile." >&2
     exit 2
 fi
 case "$compose_project" in
@@ -249,6 +258,29 @@ read_archive_state() {
 }
 
 checkpoint_args() {
+    local compose_config paperless_image postgres_image gotenberg_image tika_image
+    local ocr_language barcodes ocr_user_args
+    compose_config="$("${compose[@]}" --profile paperless config --format json)"
+    IFS=$'\t' read -r paperless_image postgres_image gotenberg_image tika_image \
+        ocr_language barcodes ocr_user_args < <(
+        python3 -c '
+import json, sys
+config = json.load(sys.stdin)
+services = config["services"]
+web = services["paperless-webserver"]
+environment = web.get("environment") or {}
+values = (
+    web["image"],
+    services["paperless-db"]["image"],
+    services["paperless-gotenberg"]["image"],
+    services["paperless-tika"]["image"],
+    str(environment.get("PAPERLESS_OCR_LANGUAGE", "")),
+    str(environment.get("PAPERLESS_CONSUMER_ENABLE_BARCODES", "")),
+    str(environment.get("PAPERLESS_OCR_USER_ARGS", "")),
+)
+print("\t".join(values))
+' <<<"$compose_config"
+    )
     checkpoint_arguments=(
         --root "$ROOT"
         --checkpoint "$checkpoint_path"
@@ -256,13 +288,13 @@ checkpoint_args() {
         --archive-sha256 "$archive_roots_sha256"
         --document-count "$archive_document_count"
         --trash-count "$archive_trash_count"
-        --runtime "paperless=${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}"
-        --runtime "postgres=${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}"
-        --runtime "gotenberg=${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.34}"
-        --runtime "tika=${PAPERLESS_TIKA_IMAGE:-apache/tika:3.2.3.0-full}"
-        --runtime "ocr_language=${PAPERLESS_OCR_LANGUAGE:-fra+eng}"
-        --runtime "barcodes=${PAPERLESS_CONSUMER_ENABLE_BARCODES:-true}"
-        --runtime 'ocr_user_args={"invalidate_digital_signatures": false}'
+        --runtime "paperless=$paperless_image"
+        --runtime "postgres=$postgres_image"
+        --runtime "gotenberg=$gotenberg_image"
+        --runtime "tika=$tika_image"
+        --runtime "ocr_language=$ocr_language"
+        --runtime "barcodes=$barcodes"
+        --runtime "ocr_user_args=$ocr_user_args"
         --runtime "api=v10"
     )
 }
@@ -370,7 +402,7 @@ run_restore() {
     local evidence_dir evidence_label restore_log restore_result restore_status
     provision_archive_identity
     evidence_dir="accounting_compat/private/snapshots/$source_snapshot/evidence"
-    evidence_label="full-${command_name}"
+    evidence_label="${restore_profile}-${command_name}"
     if [[ "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
         evidence_label="limit-${DOCUMENTS_RESTORE_LIMIT}-${command_name}"
     fi
@@ -388,6 +420,7 @@ run_restore() {
         -e DOCUMENTS_SOURCE_SNAPSHOT="$source_snapshot" \
         -e DOCUMENTS_SOURCE_DUMP_SHA256="$source_sha256" \
         -e DOCUMENTS_RESTORE_LIMIT="${DOCUMENTS_RESTORE_LIMIT:-0}" \
+        -e DOCUMENTS_RESTORE_PROFILE="$restore_profile" \
         -e DOCUMENTS_RESTORE_MAX_IN_FLIGHT="${DOCUMENTS_RESTORE_MAX_IN_FLIGHT:-16}" \
         -e DOCUMENTS_RESTORE_TIMEOUT="${DOCUMENTS_RESTORE_TIMEOUT:-7200}" \
         -e DOCUMENTS_PAPERLESS_URL=http://paperless-webserver:8000 \

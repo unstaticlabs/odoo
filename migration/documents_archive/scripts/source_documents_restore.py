@@ -1,4 +1,4 @@
-# ruff: noqa: F821, T201
+# ruff: noqa: EM101, F821, T201
 """Restore the complete Odoo Online Documents binary perimeter to Paperless.
 
 This script runs in an Odoo shell started by ``scripts/documents-restore``.
@@ -35,6 +35,7 @@ from classification import (  # noqa: E402
 from classification import (
     TAG_COLORS as CLASSIFICATION_TAG_COLORS,
 )
+from selection import select_groups  # noqa: E402
 
 SOURCE_FILESTORE = Path(
     os.getenv("DOCUMENTS_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
@@ -44,6 +45,12 @@ SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]
 MAX_IN_FLIGHT = max(1, int(os.getenv("DOCUMENTS_RESTORE_MAX_IN_FLIGHT", "16")))
 PROCESSING_TIMEOUT = max(60, int(os.getenv("DOCUMENTS_RESTORE_TIMEOUT", "7200")))
 SOURCE_LIMIT = max(0, int(os.getenv("DOCUMENTS_RESTORE_LIMIT", "0")))
+SOURCE_PROFILE = os.getenv("DOCUMENTS_RESTORE_PROFILE", "full").strip().lower()
+if SOURCE_PROFILE not in {"full", "accounting", "hr", "smoke"}:
+    raise RuntimeError(
+        "Documents restore: DOCUMENTS_RESTORE_PROFILE must be one of "
+        "full, accounting, hr, or smoke",
+    )
 PAPERLESS_URL = os.environ["DOCUMENTS_PAPERLESS_URL"].rstrip("/")
 PAPERLESS_PUBLIC_URL = os.getenv(
     "DOCUMENTS_PAPERLESS_PUBLIC_URL",
@@ -417,14 +424,13 @@ def group_source(source):
                 "kind": "unassigned_evidence",
             },
         )
-    ordered = sorted(
+    return sorted(
         grouped.values(),
         key=lambda group: min(
             item["document_id"] or (1_000_000_000 + item["attachment_id"])
             for item in group
         ),
     )
-    return ordered[:SOURCE_LIMIT] if SOURCE_LIMIT else ordered
 
 
 def representative(group):
@@ -715,12 +721,15 @@ parameters.set_int("usl_documents.paperless_timeout", PROCESSING_TIMEOUT)
 parameters.set_int("usl_documents.paperless_trash_retention_days", 36500)
 
 source = read_source()
-groups = group_source(source)
-if not SOURCE_LIMIT and len(groups) != QUALIFIED_SOURCE["checksum_groups"]:
+all_groups = group_source(source)
+if len(all_groups) != QUALIFIED_SOURCE["checksum_groups"]:
     fail(
         "qualified source checksum groups changed: expected "
-        f"{QUALIFIED_SOURCE['checksum_groups']}, got {len(groups)}",
+        f"{QUALIFIED_SOURCE['checksum_groups']}, got {len(all_groups)}",
     )
+groups = select_groups(all_groups, SOURCE_PROFILE, SOURCE_LIMIT)
+if not groups:
+    fail(f"source profile {SOURCE_PROFILE} selected no document groups")
 admin = env.ref("base.user_admin")
 documents_model = env["usl.document"]
 manager_group = env.ref("usl_documents.group_documents_manager")
@@ -957,6 +966,9 @@ baseline_attachment_count = all_attachments.search_count([])
 pending = []
 completed = []
 failed = []
+submitted_group_count = 0
+submitted_bytes = 0
+reused_group_count = 0
 cleaned_quarantine_ids = []
 cleaned_operational_duplicate_ids = []
 retained_operational_attachment_ids = []
@@ -1091,6 +1103,7 @@ for index, group in enumerate(groups, start=1):
         "state": "reused" if existing else "processing",
     }
     if existing:
+        reused_group_count += 1
         task["document"] = existing
         completed.append(task)
         if index % 25 == 0 or index == len(groups):
@@ -1120,6 +1133,8 @@ for index, group in enumerate(groups, start=1):
         else "hr" if classification["hr_restricted"]
         else "accounting" if classification["accounting_evidence"] else "internal"
     )
+    submitted_group_count += 1
+    submitted_bytes += len(paperless_content)
     upload = documents_model.with_user(submitter).upload_from_odoo(
         paperless_filename,
         base64.b64encode(paperless_content).decode(),
@@ -1759,6 +1774,8 @@ result = {
     "paperless_version": compatibility["server_version"],
     "paperless_api_version": compatibility["api_version"],
     "limited_run": bool(SOURCE_LIMIT),
+    "source_profile": SOURCE_PROFILE,
+    "source_profile_is_full": SOURCE_PROFILE == "full" and not SOURCE_LIMIT,
     "source_document_identities": expected_source_documents,
     "source_unassigned_evidence": sum(
         entry["kind"] == "unassigned_evidence"
@@ -1780,6 +1797,9 @@ result = {
     "source_access_relationship_count": len(source["accesses"]),
     "checksum_groups": len(groups),
     "archived_groups": len(completed),
+    "ocr_submissions": submitted_group_count,
+    "reused_roots": reused_group_count,
+    "submitted_bytes": submitted_bytes,
     "failed_groups": len(failed),
     "odoo_attachment_count_before": baseline_attachment_count,
     "odoo_attachment_count_after": after_attachment_count,
