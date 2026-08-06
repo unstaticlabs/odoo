@@ -30,7 +30,8 @@ Documents application.
 - Optional Expense Batches for trips, productions, projects and periodic
   claims. Products retain expense nature while the Batch applies shared
   purpose, SBFH/Epic analytics and controlled account context with visible
-  exceptions, mixed-payer progress and journal traceability.
+  exceptions, mixed-payer progress and journal traceability. The focused form
+  keeps interactive analytics and specific line attention in the main journey.
 - Transactions, Bank Matching, General Reconciliation and Matched Items/Undo
   as distinct, role-aware journeys.
 - Assets, depreciation, deferrals, historical currencies and multi-plan

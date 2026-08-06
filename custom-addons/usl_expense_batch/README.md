@@ -15,8 +15,9 @@ the native **Reporting** and **Configuration** sections; it does not add a
 redundant **My Expenses** submenu.
 
 The create-or-select preview ranks compatible Batches and explains changed,
-preserved and skipped lines before mutation. The Batch review summarizes
-expense nature, mixed payer work, warnings and linked accounting. Access-
+preserved and skipped lines before mutation. The focused Batch form keeps
+interactive shared analytics, expense nature and mixed-payer work together;
+specific line attention is available through a compact indicator. Access-
 checked ORM services expose the same rules to future MCP consumers.
 
 `usl_accounting` depends on this module to expose Batch and payer reporting

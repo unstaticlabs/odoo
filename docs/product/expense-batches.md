@@ -2,11 +2,11 @@
 
 Status: shipped
 
-End-user workflow: [Notes de frais](../users/guides/expense-batches.md)
+End-user workflow: [Lots de dépenses](../users/guides/expense-batches.md)
 
 ## Product decision
 
-USL uses `usl.expense.batch`, shown in French as **Note de frais**, as the
+USL uses `usl.expense.batch`, shown in French as **Lot de dépenses**, as the
 optional context and review unit for related expenses. Native `hr.expense`
 records remain the evidence, category, amount, tax, payer, analytic and
 accounting authority.
@@ -67,7 +67,8 @@ effective precedence is:
 4. an unconfirmed inferred suggestion.
 
 Initial assignment changes only missing or Product-derived draft values.
-Explicit line values survive and appear as exceptions. Approved and posted
+Explicit line values survive. Only effective values that differ from the Batch
+appear as exceptions; equivalent values do not inflate the review count. Approved and posted
 lines can retain a Batch link for review, but their accounting context is
 never rewritten.
 
@@ -103,8 +104,9 @@ the native duplicate-candidate signal with matching receipt checksums. Missing
 receipts, required fields, out-of-window dates, stale context and explicit
 exceptions remain visible on the Batch.
 
-The Batch form leads with purpose, totals, expense-date coverage, payer split,
-readiness and remaining work. Product/nature and analytic-plan summaries make
+The Batch form leads with purpose, one compact summary, payer split, readiness,
+interactive shared analytics and the expense list. A narrow attention indicator
+explains the exact line exception without a permanent status column. Product/nature summaries make
 both “how much did the context cost?” and “what kinds of expenses made it up?”
 answerable. Ledger reconciliation and the account override are progressively
 disclosed to accounting roles.
@@ -125,7 +127,7 @@ is completed, the Batch stays visibly unfinished.
 Generated entries carry the Batch reference and direct Batch link. Expense
 lines retain native `expense_id` links and attachments. The navigation path is:
 
-`Notes de frais entry → Batch → expense → receipt`.
+`Notes de frais entry → Lot de dépenses → expense → receipt`.
 
 The Batch accounting control compares its active expense total with the debit
 side of linked posted expense entries. A pending side is not presented as

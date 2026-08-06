@@ -43,7 +43,7 @@ does not show a permanent readiness column: use **Ready to submit** or
 creation preview.
 
 Select explicit, related Draft, Approved or Posted expenses and choose
-**Add to a Batch**. The preview proposes compatible existing Batches before a
+**Add to a Batch** (**Ajouter à un lot de dépenses** in French). The preview proposes compatible existing Batches before a
 new one, shows the mixed-payer split and explains which draft values inherit
 shared analytics or accounting context. Explicit line exceptions are
 preserved. Adding alone does not submit, post or pay anything; the explicit
