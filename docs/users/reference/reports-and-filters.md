@@ -48,6 +48,7 @@ The available subset depends on the report:
 - previous period, previous year or custom comparison dates;
 - journals, accounts and partners;
 - analytic plan and account;
+- Expense Batch and expense payer type on journal items and analytic lines;
 - posted entries only or drafts included;
 - resolved report variant and display unit;
 - zero-valued detail lines and accounts shown or hidden where applicable;

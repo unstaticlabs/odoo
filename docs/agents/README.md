@@ -2,4 +2,6 @@
 
 Reserved for evergreen mandates, permissions and action policies governing AI agents that operate on top of the final Odoo deployment.
 
-No agent mandate is approved yet. Agent specifications must be added only when the corresponding operational role, authority, evidence requirements and human approval policy are defined.
+No autonomous posting or payment mandate is approved. The bounded preparation
+contract for a future Accounting Agent is documented in
+[Expense classification and Batch context](expense-batch-context.md).

@@ -1,4 +1,4 @@
-# Lightweight expense batches
+# Expense batches and contextual accounting
 
 Status: shipped
 
@@ -6,216 +6,175 @@ End-user workflow: [Notes de frais](../users/guides/expense-batches.md)
 
 ## Product decision
 
-USL uses a lightweight `usl.expense.batch` context, shown in French as
-**Note de frais**. Individual `hr.expense` records remain the evidence,
-correction, tax, analytic and journal-line units. The batch supplies the
-shared name, purpose, submission, review and accounting reference.
+USL uses `usl.expense.batch`, shown in French as **Note de frais**, as the
+optional context and review unit for related expenses. Native `hr.expense`
+records remain the evidence, category, amount, tax, payer, analytic and
+accounting authority.
 
-A batch is optional and deliberately narrower than the former heavy expense
-report:
+The concepts have distinct jobs:
 
-- one employee and one company per batch;
-- any meaningful period, trip, mission, project or purpose;
-- employee-paid and company-paid expenses can share the review context;
-- native Odoo expense states and permissions remain authoritative;
-- one problematic expense can be removed and returned to draft without
-  returning the other expenses;
-- native posting still creates one employee receipt for compatible
-  employee-paid expenses and one dedicated entry per company-paid expense;
-- every resulting move retains the batch name and a direct batch link.
+- the Expense Product says what was bought and supplies stable category,
+  policy, tax and account defaults;
+- the Batch says why expenses belong together and supplies shared business,
+  analytic and, when deliberately configured, account context;
+- the individual expense keeps the receipt and every deliberate exception.
 
-The one-employee boundary is intentional. A note de frais is a personal claim,
-and Odoo's access rules and reimbursement liability are employee-specific.
-Cross-employee selections are rejected before a batch is created.
+A Batch is encouraged for trips, productions, events, projects and periodic
+claims, but an isolated expense can use the native unbatched workflow. A Batch
+is always limited to one employee and one company. It may contain both
+employee-paid and company-paid expenses.
+
+An SBFH travel is an Epic, not a new Trip record. For example,
+`SBFH — Canada 2026` combines the native `Projet: SBFH prod` and
+`Epic: Canada 2026` analytic accounts. Travel Batches may deliberately apply
+`625600 Missions` while Products continue to distinguish transport, meals and
+gifts.
 
 ## Alternatives considered
 
-### Standard Odoo 19 bulk selection
+Native Odoo multi-record submission remains the execution engine, but it does
+not persist a business grouping or shared context. Reintroducing the removed
+expense sheet would add a second state machine and make optional grouping
+heavier. The maintained OCA expense add-ons do not provide an Odoo 19
+persistent contextual Batch. Extending the shipped lightweight Batch therefore
+adds the missing context without replacing Products or native accounting.
 
-Odoo 19 already submits, approves and posts selected expense records in bulk.
-It groups employee-paid expenses by employee during posting and retains each
-expense as a distinct journal line. This is reused as the execution engine,
-but it does not persist a meaningful business grouping or shared purpose.
+Storing separate Activity and Epic foreign keys was also rejected. Native
+analytic distributions already express multiple plans, drive analytic lines
+and reporting, and let a line vary from the Batch. The Batch stores one native
+`analytic_distribution` and presents it grouped by plan.
 
-### Maintained OCA expense add-ons
+## Context and precedence
 
-The maintained OCA `hr-expense` repository was reviewed on its 18.0 branch,
-the latest published branch relevant to the removed report model. Its modules
-cover advances, cancellation, exceptions, invoices, payments, petty cash,
-sequences, tier validation and vendor receipts. It does not provide a
-lightweight persistent batch context compatible with Odoo 19's record-based
-workflow.
+A draft Batch can define:
 
-### Restore the former expense report
+- context type, purpose, intended date window and shared notes;
+- a native analytic distribution;
+- an optional shared expense-account override;
+- the employee, company and visible reference.
 
-Restoring `hr.expense.sheet` would provide grouping, but would also restore a
-parallel state machine, heavier navigation and migration surface. That
-conflicts with the requirement that individual expenses remain the correction
-unit and that batching stay optional.
+Actual first and last expense dates remain separately computed. This makes an
+out-of-window receipt visible without silently changing the intended trip
+window.
 
-The isolated add-on was selected because it adds only the missing context and
-orchestration while keeping upstream accounting behavior intact.
+Every expense records account and analytic provenance as Product/default,
+Batch-inherited, explicit exception, inferred suggestion or legacy. The
+effective precedence is:
 
-### Link only Draft records or permit later eligible states
+1. an explicit expense-specific decision;
+2. a configured Batch value;
+3. Product/native defaults;
+4. an unconfirmed inferred suggestion.
 
-Limiting creation to writable Draft records would preserve native employee
-write rules without any special handling, but would fail the requirement to
-group already-Approved expenses and would make the toolbar promise differ by
-role. Allowing arbitrary workflow states would risk changing an expense that
-is already under review, payment or settlement.
+Initial assignment changes only missing or Product-derived draft values.
+Explicit line values survive and appear as exceptions. Approved and posted
+lines can retain a Batch link for review, but their accounting context is
+never rewritten.
 
-The selected boundary is unbatched Draft, Approved and Posted expenses.
-Submitted, In payment, Paid and Returned expenses are rejected. Approved and
-Posted expenses are normally read-only to their employee, so the server first
-checks that the caller can read every selected record, that the new batch
-passes its own access rule, and that employee, company, state and existing
-batch constraints all match. It then elevates only the technical
-`expense_batch_id` link; expense evidence, accounting data and workflow state
-remain unchanged.
+Changing Batch context increments a tracked revision. Previously inherited
+lines become stale until a user previews and applies the new revision. The
+preview counts changed, unchanged, exceptional and skipped lines. Expense or
+Accounting Managers may deliberately select exceptions to replace; ordinary
+submitters cannot. Reapplying the same revision is idempotent.
 
-## User experience contract
+Before first inheritance, the line stores its Product/default baseline.
+Removing a line restores that baseline only when its current value still
+matches the last value applied by the Batch. A later explicit edit always
+survives removal.
 
-Selecting the **Expenses** app title opens **My Expenses** directly and keeps
-that list focused on the expense records. It shows **Attachment status**, the
-optional **Expense Batch** link and the native expense status, but it does not
-add a permanent **Batch readiness** column. The navbar exposes **Expenses to
-Process** and **Expense Batches** directly; a redundant **My Expenses** menu
-group is intentionally absent.
+## Capture, grouping and review
 
-The **Not in a batch** filter is selected by default on **My Expenses**, so
-the working list contains only expenses that can still be grouped. Users can
-remove the filter to review historical expenses that already belong to a
-batch.
+The expense list keeps native Upload, New and single-expense submission.
+Selecting related records exposes **Add to a Batch**; for a multi-selection it
+is the primary grouping action while native actions remain available.
 
-Readiness is progressive information:
+The create-or-select preview:
 
-- **Ready to submit**, **Needs information** and **Already in a batch** are
-  available as list filters for preparing draft expenses;
-- **Create expense batch** accepts one or more selected, unbatched expenses
-  in Draft, Approved or Posted status;
-- Submitted, In payment, Paid, Returned and already-batched expenses are not
-  eligible;
-- the creation preview shows aggregate readiness, line-level attachment and
-  expense statuses, optional missing information, common analytic context,
-  dates and employee/company-paid totals before anything is saved or
-  submitted;
-- closing the creation flow reloads and re-renders the underlying expense
-  list so newly assigned batch links are visible immediately.
+- ranks compatible draft Batches using employee, company, overlapping dates
+  and analytic affinity;
+- warns before creating an overlapping or likely duplicate Batch;
+- shows total, payer split, readiness and context impact;
+- preserves explicit exceptions and skips later-stage accounting values;
+- adds records without changing their native state, unless the user chooses
+  the explicit create-and-submit action.
 
-**Create expense batch** is the only batch action in the expense-list toolbar
-and appears only when every selected expense is eligible. The former
-automatic **Submit ready expenses** shortcut is intentionally absent: the
-system must never infer a claim from every ready draft without an explicit
-selection. On desktop, the one action must remain on the same toolbar row as
-the native expense actions. Adding the batch feature must not increase the
-toolbar's vertical height.
+Duplicate evidence is a warning, never an automatic rejection. It combines
+the native duplicate-candidate signal with matching receipt checksums. Missing
+receipts, required fields, out-of-window dates, stale context and explicit
+exceptions remain visible on the Batch.
 
-## Action semantics
+The Batch form leads with purpose, totals, expense-date coverage, payer split,
+readiness and remaining work. Product/nature and analytic-plan summaries make
+both “how much did the context cost?” and “what kinds of expenses made it up?”
+answerable. Ledger reconciliation and the account override are progressively
+disclosed to accounting roles.
 
-**Create expense batch** opens a preview for the explicit selection. The
-secondary **Create batch** action saves the grouping without changing any
-expense workflow status. It then closes the preview and refreshes the My
-Expenses list. With the default **Not in a batch** filter, the newly grouped
-expenses disappear from the working list immediately.
+## Native workflow and mixed payers
 
-**Submit batch** creates the grouping when necessary and submits only its
-Draft expenses for manager review. Approved and Posted expenses keep their
-current status; the action does not post journal entries and does not create
-payments. It also closes the preview and refreshes the list. This distinction
-is stated in the button helper.
+Submit, approve and post operate on only the actionable native subset and
+never regress later lines. Incomplete draft lines block submission atomically.
+A problematic draft, submitted or approved line can be removed and returned
+for correction without rejecting the rest of the Batch.
 
-Mixed-status batches advance by native stage without regressing later lines:
+Native Odoo may group compatible employee-paid expenses in one reimbursement
+receipt and creates the required company-paid entries separately. The Batch
+therefore has independent employee-paid and company-paid remaining counts. If
+company-paid posting succeeds before the employee reimbursement posting wizard
+is completed, the Batch stays visibly unfinished.
 
-- Submit acts on Draft expenses;
-- Approve acts on Submitted expenses;
-- Post acts on Approved expenses;
-- expenses already beyond the current stage remain unchanged.
+Generated entries carry the Batch reference and direct Batch link. Expense
+lines retain native `expense_id` links and attachments. The navigation path is:
 
-The batch status is the least advanced status among its active expenses. It
-therefore describes the next batch-level action without replacing the
-individual expense statuses.
+`Notes de frais entry → Batch → expense → receipt`.
 
-## Completeness and accounting invariants
+The Batch accounting control compares its active expense total with the debit
+side of linked posted expense entries. A pending side is not presented as
+reconciled.
 
-The batch preview identifies missing description, category, non-zero amount
-and required receipt. The aggregate **Batch readiness** is **Ready** only when
-every line is complete; otherwise it is **Needs information**. Each line keeps
-an **Attachment status** of **Attached**, **Missing** or **Not required**, plus
-its native expense status. **Missing information** is an optional line detail,
-not a second line-level readiness column.
+## Reporting and service contract
 
-Only incomplete Draft expenses block **Submit batch**, because Approved and
-Posted lines are not submitted again. The preview still warns about incomplete
-later-stage lines so reviewers can see the exception. The installed USL
-receipt policy is honored when present. Native analytic validation still runs
-during approval.
+Stored Batch and payer dimensions are available on journal items and analytic
+lines. Expense, journal-item and analytic reporting retain Product, account,
+employee, payer, period and native analytic-plan dimensions, so Batch and Epic
+totals reconcile to the underlying ledger.
 
-The implementation must preserve these invariants:
+Normal Odoo services expose the same rules used by the UI:
 
-1. No batch can cross a company or employee boundary.
-2. Only unbatched Draft, Approved or Posted expenses can enter a new batch.
-3. Ineligible and already-batched expenses are rejected in both the UI and
-   server-side model rules.
-4. Submission is atomic for the Draft subset: an incomplete Draft line blocks
-   every Draft transition and no partial submission occurs.
-5. Refused lines are retained as review history but do not block the remaining
-   active lines from progressing.
-6. Posted moves retain `expense_batch_id`, use the batch name as `ref`, and
-   retain native `expense_id` journal-line links and copied attachments.
-   A pre-existing posted move is linked only when all of its expense records
-   belong to the same batch.
-7. Read-only accountants can inspect batches but cannot mutate or trigger
-   workflow actions.
+- `hr.expense.get_expense_batch_candidates(expense_ids)`;
+- `usl.expense.batch.preview_context_application(...)`;
+- `usl.expense.batch.apply_context(..., expected_revision=...)`;
+- `usl.expense.batch.get_review_summary()`.
 
-## Employee reimbursement account and canonical contact
+They return structured changed, unchanged, exception and skipped results,
+check access and company/employee boundaries, and reject stale revisions
+before mutation. Future MCP or AI preparation must use these services rather
+than reproducing precedence in browser code.
 
-For an employee-paid expense, standard Odoo takes the payable account from the
-employee's **Work Contact**. The Notes de frais journal and expense category
-control the journal and expense side of the entry; they do not select the
-employee liability account.
+## Security and compatibility invariants
 
-USL's source configuration uses one canonical Valentin contact for all three
-roles:
+1. A Batch cannot cross employee or company boundaries.
+2. Submitters manage their permitted draft expenses and Batch business or
+   analytic context.
+3. Only Expense or Accounting Managers set a ledger-account override or force
+   replacement of an explicit exception.
+4. Read-only accountants can inspect the Batch, entries, analytics and
+   evidence but cannot mutate or advance it.
+5. Approved, posted, paid, refused and historical accounting is never
+   reclassified by context application.
+6. Product tax, mileage, allowance and receipt-policy behavior remains native.
+7. Refreshes and retries cannot duplicate distributions, links or entries.
 
-- the related partner of the `valentin` login;
-- the employee's Work Contact;
-- the partner on account `455100`, **Associés - Comptes courants - Valentin**.
+## Historical transition
 
-That contact has `455100` as its company-specific payable account, and the
-account is reconcilable. This lets a newly posted employee-paid expense credit
-the same account and partner as existing CCA debits. Native Odoo can then show
-those debits as outstanding items and reconcile or partially reconcile them.
+The reconstruction step creates `SBFH — Canada 2026` for eligible Canada
+drafts, applies `625600 Missions`, `Projet: SBFH prod` and
+`Epic: Canada 2026`, and maps only unambiguous descriptions to reusable
+Transport/Accommodation, Foreign Meals or non-recoverable-VAT Gifts Products.
+Ambiguous drafts stay on their original Product for review. Missing-receipt
+lines remain incomplete and nothing is submitted.
 
-Two repair options were considered:
-
-1. change the company-wide payable default or the Notes de frais journal;
-2. preserve the source contact identity and its partner-specific payable
-   account.
-
-The second is required. A company-wide `455100` default would incorrectly send
-ordinary supplier liabilities to Valentin's shareholder account, while the
-journal default does not control the employee payable line.
-
-The reconstruction therefore provisions the manager login on the imported
-source-traced Work Contact before assigning the user to the employee. Both the
-import and final validation gates compare the employee, contact, payable
-account, reconciliation flag, CCA line count and open CCA debit count against
-the read-only source. A split identity or fallback to `401100` fails the
-reconstruction instead of producing a superficially valid demo.
-
-This configuration affects future postings. Correcting it does not rewrite an
-already posted expense receipt; historical corrections require a controlled
-reset/repost in disposable QA or an accountant-approved reclassification.
-
-## Validation and deployment
-
-Expense batches use the repository's standard deployment paths. Normal
-development and product QA update `odoo_dev`; module-install tests create and
-remove their own disposable database through `scripts/odoo-dev test`. The
-canonical source-dump reconstruction remains `scripts/accounting-compat
-dev-reset`, `dev-import` and `dev-validate`.
-
-The reconstruction binds the manager login, imported employee Work Contact,
-partner-specific payable account and configured Overview CCA projection to
-the same source-traced identity. It fails when that identity is ambiguous or
-split rather than creating a fallback employee or a second payable path.
+The four proven trip Products (`AUS26`, `CA26`, `LPASUM26`, `BCN2602`) are
+archived after the transition. Existing history keeps displaying them. The
+step emits external evidence, verifies non-draft signatures and verifies that
+a second run changes nothing; migration provenance does not enter the product
+registry.
