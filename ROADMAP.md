@@ -6,7 +6,7 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Accounting v1
 
-Status date: 4 August 2026
+Status date: 6 August 2026
 
 - Branch: `19-usl`
 - Upstream baseline: `6b54f539d80af8958990fa66f65d5bf8f420d3f4`
@@ -27,6 +27,10 @@ Documents application.
   priorities.
 - Native customer invoices, credit notes, supplier bills, refunds, expenses,
   payments, bank transactions and journal entries.
+- Optional Expense Batches for trips, productions, projects and periodic
+  claims. Products retain expense nature while the Batch applies shared
+  purpose, SBFH/Epic analytics and controlled account context with visible
+  exceptions, mixed-payer progress and journal traceability.
 - Transactions, Bank Matching, General Reconciliation and Matched Items/Undo
   as distinct, role-aware journeys.
 - Assets, depreciation, deferrals, historical currencies and multi-plan

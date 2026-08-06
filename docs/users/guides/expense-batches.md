@@ -1,116 +1,101 @@
 # Notes de frais
 
-Une **note de frais** regroupe des dépenses liées sans remplacer leurs
-justificatifs ni leurs détails individuels. Utilisez-la pour un déplacement,
-une mission, un projet ou une période cohérente.
+Une **note de frais** regroupe des dépenses liées et leur applique un contexte
+commun. Utilisez-la pour un voyage, une production, un événement, un projet ou
+une période cohérente. Une dépense isolée peut toujours suivre le circuit Odoo
+normal sans note.
 
-## Comprendre la liste des dépenses
+La **catégorie** décrit la nature de la dépense : repas, transport et
+hébergement, cadeau, fournitures, kilométrage, stationnement, communication ou
+forfait. La **note de frais** décrit son motif. Pour un voyage SBFH, la note est
+liée à l’activité `SBFH prod` et à l’Epic du voyage ; il n’est plus nécessaire
+de créer une catégorie propre au voyage.
 
-La liste **Dépenses > Mes dépenses** reste centrée sur chaque dépense. Elle
-affiche le **Statut du justificatif** (**Joint**, **Manquant** ou **Non
-requis**), la **Note de frais** associée, lorsqu'elle existe, et le statut
-normal de la dépense. Elle n'affiche pas de colonne permanente **Préparation
-de la note**.
+## Ajouter des dépenses à une note
 
-Le filtre **Hors note de frais** est activé par défaut. La liste de travail
-affiche ainsi uniquement les dépenses qui peuvent encore être regroupées.
-Retirez ce filtre pour retrouver les dépenses déjà incluses dans une note.
+1. Ouvrez **Dépenses > Mes dépenses** et préparez chaque justificatif : date,
+   description, montant, catégorie, mode de paiement et pièce jointe.
+2. Sélectionnez les dépenses liées. Pour plusieurs lignes, **Ajouter à une
+   note de frais** est l’action principale ; les actions Odoo normales restent
+   disponibles.
+3. Dans l’aperçu, choisissez une note proposée ou créez-en une. Les propositions
+   tiennent compte de l’employé, de la société, des dates et de l’analytique.
+   Un avertissement signale une note proche afin d’éviter les doublons.
+4. Vérifiez le motif, les dates prévues, les totaux payés par l’employé et par
+   la société, la préparation et l’impact du contexte partagé.
+5. Choisissez **Ajouter à la note** pour regrouper sans soumettre, ou
+   **Créer et soumettre** lorsque toutes les dépenses en brouillon sont prêtes.
 
-Utilisez plutôt les filtres **Prête à soumettre**, **Informations requises**
-et **Déjà dans une note de frais**. Le contrôle détaillé de préparation
-apparaît ensuite dans l'aperçu de création, avant tout enregistrement ou
-soumission.
+Une note ne peut concerner qu’un employé et une société. Elle peut mélanger les
+dépenses payées personnellement et celles payées par la société.
 
-## Préparer et soumettre une note
+## Comprendre les valeurs partagées et les exceptions
 
-1. Ouvrez **Dépenses > Mes dépenses**.
-2. Utilisez les filtres **Prête à soumettre**, **Informations requises** et
-   **Déjà dans une note de frais** pour vérifier vos dépenses.
-3. Sélectionnez les dépenses liées puis cliquez sur
-   **Créer une note de frais**. Ce bouton apparaît lorsque vous avez
-   sélectionné une ou plusieurs dépenses admissibles qui ne figurent encore
-   dans aucune note : **Brouillon**, **Approuvée** ou **Comptabilisée**.
-4. Vérifiez le nom, l’objet, la période, les totaux payés par l’employé et par
-   la société, l’activité analytique et la préparation globale. Pour chaque
-   ligne, vérifiez le statut du justificatif, le statut de la dépense et, si
-   nécessaire, les **Informations manquantes**.
-5. Retirez une ligne si elle n’appartient pas à cette demande.
-6. Choisissez l’action adaptée :
+La note peut fournir l’analytique, une justification commune et, lorsqu’un
+responsable le configure, un compte de charge commun. À l’ajout d’une dépense,
+ces valeurs remplacent seulement une valeur manquante ou issue de la catégorie.
 
-   - **Créer la note** enregistre seulement le regroupement et ne change aucun
-     statut de dépense ;
-   - **Soumettre la note de frais** crée le regroupement puis soumet uniquement
-     ses dépenses en brouillon au responsable.
+Une valeur choisie volontairement sur la dépense reste prioritaire et apparaît
+comme **Exception explicite**. Elle n’est jamais normalisée en silence. Si le
+contexte de la note change, les lignes déjà héritées sont signalées comme
+**Contexte à actualiser**. Utilisez **Aperçu de l’application du contexte** :
+l’écran annonce les lignes modifiées, inchangées, conservées comme exceptions
+et ignorées parce qu’elles sont déjà à un stade ultérieur.
 
-Après l’une ou l’autre action, l’aperçu se ferme et la liste se met à jour.
-Avec le filtre **Hors note de frais**, les dépenses qui viennent d’être
-regroupées disparaissent immédiatement de la liste de travail.
+Seul un responsable Dépenses ou Comptabilité peut remplacer volontairement
+une exception ou définir le compte général commun. Réappliquer le même contexte
+ne duplique pas l’analytique. Retirer une ligne restaure son ancienne valeur
+seulement si elle n’a pas été modifiée depuis ; une correction explicite est
+conservée.
 
-**Prête à soumettre** signifie que la description, la catégorie, le montant et
-le justificatif éventuellement requis sont présents. **Informations
-requises** indique ce qu'il faut corriger sur la dépense avant de pouvoir
-soumettre la note.
+## Contrôler la note
 
-Une dépense déjà **Approuvée** ou **Comptabilisée** conserve son statut lorsque
-vous soumettez la note. Cette action ne comptabilise aucune écriture et ne crée
-aucun paiement. Une dépense **Soumise**, **En cours de paiement**, **Payée**,
-**Refusée** ou déjà présente dans une autre note ne peut pas être ajoutée.
+La fiche présente d’abord le motif, le total, la période réelle, la répartition
+par payeur, la préparation, les exceptions et le travail restant. L’onglet de
+contrôle ajoute :
 
-L’ancien raccourci **Soumettre les dépenses prêtes** n’existe plus. Vous devez
-toujours choisir explicitement les dépenses puis utiliser **Créer une note de
-frais** ; Odoo ne sélectionne pas automatiquement tous vos brouillons prêts.
+- la répartition par catégorie de dépense ;
+- l’activité et l’Epic, regroupées par plan analytique ;
+- les justificatifs manquants et les doublons possibles ;
+- les dépenses hors de la période prévue ;
+- le rapprochement entre les dépenses et les écritures générées.
 
-Une note ne peut contenir que les dépenses d’un seul employé et d’une seule
-société. Elle peut combiner des dépenses payées par l’employé et par la
-société : Odoo conservera leurs traitements comptables distincts.
+Un doublon possible est un avertissement, pas un blocage automatique. Ouvrez
+les deux dépenses et leurs justificatifs pour décider. Une ligne incorrecte
+peut être ouverte, corrigée ou retirée sans refuser toute la note.
 
-## Contrôler une note
+## Soumettre, approuver et comptabiliser
 
-Le responsable ouvre **Dépenses > Notes de frais** pour
-contrôler l’objet commun, le total, la période, l’analytique et les
-justificatifs. La préparation globale apparaît en haut de la note ; les lignes
-affichent le **Statut de la dépense** et le **Statut du justificatif**, sans
-colonne de préparation redondante.
+Les actions de la note utilisent les étapes Odoo natives :
 
-**Approuver la note de frais** approuve uniquement les dépenses encore
-**Soumises**. Les dépenses déjà approuvées ou comptabilisées ne reviennent
-jamais à un statut antérieur.
+- **Soumettre** agit uniquement sur les brouillons prêts ;
+- **Approuver** agit uniquement sur les lignes soumises ;
+- **Comptabiliser** agit uniquement sur les lignes approuvées.
 
-Une ligne incorrecte peut être ouverte ou retirée avec **Retirer**. Elle
-revient alors en brouillon pour correction, tandis que les autres lignes
-restent dans la note et poursuivent le circuit.
+Une information ou un justificatif requis manquant bloque atomiquement les
+brouillons : aucune partie n’est soumise à moitié. Les dépenses déjà approuvées
+ou comptabilisées ne reviennent pas en arrière et leur comptabilité n’est pas
+réécrite par le contexte de la note.
 
-## Retrouver la note en comptabilité
+Pour une note mixte, Odoo conserve les traitements nécessaires : les dépenses
+payées par l’employé suivent le remboursement et celles payées par la société
+suivent la comptabilisation et le rapprochement bancaire. Les deux compteurs
+restent visibles. La fin du traitement société ne masque donc pas un
+remboursement encore attendu, notamment si l’assistant de comptabilisation de
+l’employé a été annulé.
 
-La comptabilisation utilise le nom de la note comme référence visible dans le
-journal **Notes de frais**. Chaque dépense reste une ligne distincte. Les liens
-permettent de parcourir :
+## Retrouver la comptabilité et analyser
 
-**écriture comptable → note de frais → dépense → justificatif**.
+Dans le journal **Notes de frais**, la référence reprend le nom de la note.
+Les liens permettent de parcourir :
 
-Odoo regroupe les dépenses remboursables compatibles et conserve une écriture
-distincte pour chaque dépense payée par la société.
+**écriture → note de frais → dépense → justificatif**.
 
-## Rapprocher une dépense avec le compte courant d'associé
+Les écritures et lignes analytiques peuvent être filtrées ou regroupées par
+note et par payeur, en plus du Produit, du compte, de l’employé, de la période,
+de l’activité et de l’Epic. Cela permet de connaître à la fois le coût total
+de `Canada 2026` et sa composition par repas, transport ou cadeaux.
 
-Pour une dépense payée personnellement par Valentin, Odoo utilise le
-**Compte fournisseur** de sa **Coordonnée professionnelle**. Cette coordonnée
-doit être le même contact que celui du compte utilisateur Valentin et des
-écritures du compte `455100 — Associés - Comptes courants - Valentin`.
-
-Après comptabilisation, les débits CCA non rapprochés peuvent alors apparaître
-dans **Débits en circulation** sur l'écriture de la note de frais. Choisissez
-un débit pour compenser tout ou partie de la somme due.
-
-Si aucun débit CCA n'est proposé, demandez à un responsable comptable de
-vérifier :
-
-1. que l'écriture de la note utilise le compte `455100`;
-2. que l'écriture et le débit CCA utilisent exactement le même contact
-   Valentin ;
-3. que le débit CCA est comptabilisé, non rapproché et positif.
-
-Le paramètre se trouve sur le contact Valentin, onglet
-**Comptabilité/Facturation**, et non sur le journal Notes de frais. Une
-correction de configuration ne modifie pas rétroactivement une écriture déjà
-comptabilisée.
+Les anciennes catégories propres aux voyages restent visibles sur l’historique
+mais sont archivées pour les nouvelles dépenses. Utilisez désormais une
+catégorie réutilisable pour la nature et une note de frais pour le voyage.

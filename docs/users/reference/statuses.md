@@ -35,6 +35,19 @@ information** identifies one or more exceptions. Only an incomplete Draft
 line blocks submission; an Approved or Posted exception stays visible for
 review without being resubmitted.
 
+Context status is also independent:
+
+- **Inherited from Batch** — the current shared revision supplied the value;
+- **Explicit exception** — a deliberate expense value takes priority;
+- **Context to update** — the Batch changed since inheritance and awaits an
+  explicit preview/apply action;
+- **Fixed accounting** — the expense is beyond Draft and its accounting
+  context will not be rewritten.
+
+Employee-paid and company-paid remaining counts are separate. A Batch can be
+Posted while still showing reimbursement or bank-matching work; one payer
+side never implies that the other is settled.
+
 ## Reconciliation
 
 - **Unreconciled** — no qualifying debit/credit match.

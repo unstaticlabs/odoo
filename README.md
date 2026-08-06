@@ -26,6 +26,8 @@ activation procedure is approved.
 Primary entry points:
 
 - **Accounting > Overview** for daily operational state;
+- **Expenses > Expense Batches** for contextual trip, project, event and
+  periodic claims with mixed payer review;
 - **Accounting > Reporting > Analyse analytique** for exploratory pivot analysis;
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
   and E-Invoicing;
@@ -245,7 +247,8 @@ The production custom-module boundaries are:
   localization;
 - `usl_accounting`: dependency-light extensions of native and pinned OCA
   Accounting models;
-- `usl_expense_batch`: the independent Expenses claim-batch feature;
+- `usl_expense_batch`: optional contextual Expense Batches with native
+  analytic inheritance, visible line exceptions and mixed-payer review;
 - `usl_project`: the ongoing Projects product extensions;
 - `usl_tese_payroll`: external-provider payroll evidence, Accounting and HR
   workflow without legal payroll calculation;

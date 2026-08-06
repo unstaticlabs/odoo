@@ -11,6 +11,7 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [Source-truth migration](source-truth-migration.md)
 - [Identity restoration](identity-restoration.md)
 - [Product master restoration](product-master-restoration.md)
+- [Expense Batch transition](expense-batch-transition.md)
 - [Restore Paie TESE from Odoo Online](tese-restoration.md)
 - [Activate French electronic-invoice reception](activate-french-electronic-invoicing.md)
 - [Restore historical platform billing](platform-billing-migration.md)
