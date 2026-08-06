@@ -211,6 +211,31 @@ If DSS, CA or TSA is unavailable, never bypass the ceremony. Keep the request
 in an actionable failure/waiting state and retry only after service health is
 restored.
 
+### Recorded real-platform acceptance
+
+The isolated worktree acceptance completed on 2026-08-06 with Chrome
+150.0.7871.187 on macOS 26.6 arm64 and the Pocket ID credential named
+`Chrome on Mac Passkey`. Touch ID was approved for both identity connection
+and the document-bound signing authorization. Disposable QA request 23 and
+ceremony 10 completed with:
+
+- `amr=["phr"]` and an authentication time after ceremony creation;
+- canonical binding SHA-256
+  `ffc64126f505816441a353d68cd9cd8539ec0065ff0be6b7b714aeb7213f95a5`;
+- exact document SHA-256
+  `7ab6576a1338e000eb465b8d5f36f4d5a5fd951ba58dc15266893f05c1212c64`;
+- a 600-second personal certificate and achieved `PAdES_BASELINE_B`;
+- final PDF SHA-256
+  `9ebaed38328baf401ffce9ff9b714762997d47f6d905590699f942a84856ecfd`;
+- valid EU DSS 6.4 validation, complete evidence, a valid event chain and
+  Paperless dossier 17 archived.
+
+The automated CDP acceptance separately proves that no private JWK, PKCS#8,
+seed or private `CryptoKey` appears in browser traffic while exercising the
+same worker and ceremony code. The real-platform run proves Touch ID and the
+platform credential path; do not misdescribe the virtual traffic capture as a
+manual DevTools recording of the real Touch ID session.
+
 ## Qualified-external acceptance
 
 Choose a reviewed provider from the catalog and export the DSS-prepared frozen
