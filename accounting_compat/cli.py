@@ -3909,6 +3909,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             f"    'date_to': {source_date_to!r},",
             "    'source_company_ids': [1],",
             "})",
+            "expense_batch_transition = expense_run.run_expense_batch_transition()",
+            "expense_batch_transition_rerun = expense_run.run_expense_batch_transition()",
             "asset_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native assets',",
             "    'mode': 'exact_ledger_replay',",
@@ -4052,6 +4054,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'expense_run_id': expense_run.id,",
             "    'expense_run_status': expense_run.status,",
             "    'expense_stats': expense_stats,",
+            "    'expense_batch_transition': expense_batch_transition,",
+            "    'expense_batch_transition_rerun': expense_batch_transition_rerun,",
             "    'asset_run_id': asset_run.id,",
             "    'asset_run_status': asset_run.status,",
             "    'asset_stats': asset_stats,",
@@ -4229,6 +4233,25 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "legacy_target_schema"
         ]["absent"]
     )
+    transition = payload["expense_batch_transition"]
+    transition_rerun = payload["expense_batch_transition_rerun"]
+    checks["expense_batch_transition_matches"] = (
+        transition["candidate_draft_count"] == 20
+        and transition["reclassified_expense_count"] == 20
+        and transition["created_batch_count"] == 1
+        and transition["batched_expense_count"] == 20
+        and transition["incomplete_expense_count"] == 4
+        and transition["ambiguous_count"] == 0
+        and transition["archived_trip_product_count"] == 4
+        and transition["archived_trip_product_codes"]
+        == ["AUS26", "BCN2602", "CA26", "LPASUM26"]
+        and transition["historical_unchanged"] is True
+        and transition_rerun["candidate_draft_count"] == 0
+        and transition_rerun["reclassified_expense_count"] == 0
+        and transition_rerun["created_batch_count"] == 0
+        and transition_rerun["archived_trip_product_count"] == 0
+        and transition_rerun["historical_unchanged"] is True
+    )
     checks["native_expense_url_evidence_matches"] = (
         query_json(
             DEV_QA_DB,
@@ -4300,6 +4323,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "checks": checks,
         "statistics": stats,
         "expense_statistics": payload["expense_stats"],
+        "expense_batch_transition": transition,
+        "expense_batch_transition_rerun": transition_rerun,
         "asset_statistics": payload["asset_stats"],
         "users": payload["users"],
     }

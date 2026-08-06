@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import unicodedata
 from collections import Counter, defaultdict
 from datetime import date
 
@@ -8,6 +9,7 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, _, fields, models
+from odoo.exceptions import UserError
 
 from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
 
@@ -6214,12 +6216,18 @@ class RebuildAccountImportRun(models.Model):
                 LIMIT 1
             ) uom_xmlid ON TRUE
             WHERE product.id IN (
-                SELECT DISTINCT expense.product_id
-                FROM hr_expense expense
-                WHERE expense.company_id = ANY(%(source_company_ids)s)
-                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
-                  AND expense.product_id IS NOT NULL
-            )
+                    SELECT DISTINCT expense.product_id
+                    FROM hr_expense expense
+                    WHERE expense.company_id = ANY(%(source_company_ids)s)
+                      AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                      AND expense.product_id IS NOT NULL
+                  )
+               OR (
+                    product.active
+                    AND template.active
+                    AND template.can_be_expensed
+                    AND product.default_code IN ('TRANS', 'FOOD', 'GIFT_NOVAT')
+                  )
             ORDER BY product.id
             """,
             options,
@@ -7488,6 +7496,231 @@ class RebuildAccountImportRun(models.Model):
             raise
         finally:
             conn.close()
+
+    @staticmethod
+    def _expense_transition_normalize(value):
+        value = unicodedata.normalize("NFKD", value or "")
+        return "".join(
+            character
+            for character in value
+            if not unicodedata.combining(character)
+        ).lower()
+
+    def run_expense_batch_transition(self):
+        """Move eligible Canada drafts to the product Batch workflow.
+
+        This is deliberately a post-import reconstruction step. It never edits
+        later-stage expenses or their journal entries and returns all ambiguous
+        cases as external evidence instead of storing migration provenance on
+        operational records.
+        """
+        self.ensure_one()
+        Product = self.env["product.product"].sudo().with_context(active_test=False)
+        Expense = self.env["hr.expense"].sudo().with_context(
+            tracking_disable=True,
+            mail_create_nolog=True,
+        )
+        Batch = self.env["usl.expense.batch"].sudo().with_context(
+            tracking_disable=True,
+            mail_create_nolog=True,
+        )
+        trip_codes = ("AUS26", "CA26", "LPASUM26", "BCN2602")
+        trip_products = Product.search([("default_code", "in", trip_codes)])
+        canada_products = trip_products.filtered(
+            lambda product: product.default_code == "CA26",
+        )
+        canada_drafts = Expense.search([
+            ("state", "=", "draft"),
+            ("product_id", "in", canada_products.ids or [0]),
+            ("expense_batch_id", "=", False),
+        ])
+
+        historical = Expense.search([
+            ("product_id", "in", trip_products.ids or [0]),
+            ("state", "!=", "draft"),
+        ])
+        historical_signature = [
+            (
+                expense.id,
+                expense.product_id.id,
+                expense.account_id.id,
+                json.dumps(expense.analytic_distribution or {}, sort_keys=True),
+                expense.account_move_id.id,
+                expense.state,
+            )
+            for expense in historical.sorted("id")
+        ]
+
+        def reusable_product(code, name_fragments=()):
+            candidates = Product.search([
+                ("default_code", "=", code),
+                ("can_be_expensed", "=", True),
+                ("active", "=", True),
+            ])
+            if len(candidates) == 1:
+                return candidates
+            named = candidates.filtered(
+                lambda product: any(
+                    fragment in self._expense_transition_normalize(product.name)
+                    for fragment in name_fragments
+                ),
+            )
+            return named if len(named) == 1 else Product.browse()
+
+        reusable_products = {
+            "transport": reusable_product("TRANS"),
+            "meal": reusable_product(
+                "FOOD",
+                ("foreign", "abroad", "etranger", "international"),
+            ),
+            "gift": reusable_product("GIFT_NOVAT"),
+        }
+        missing_products = [
+            category for category, product in reusable_products.items() if not product
+        ]
+        if canada_drafts and missing_products:
+            raise UserError(
+                _(
+                    "The Canada draft transition is missing unambiguous reusable "
+                    "categories: %s.",
+                    ", ".join(missing_products),
+                ),
+            )
+
+        transitioned = Expense.browse()
+        ambiguous = []
+        created_batches = Batch.browse()
+        batch_ids = set()
+        grouped_expense_ids = defaultdict(list)
+        for expense in canada_drafts:
+            grouped_expense_ids[expense.company_id.id, expense.employee_id.id].append(
+                expense.id,
+            )
+        for (company_id, employee_id), expense_ids in grouped_expense_ids.items():
+            company = self.env["res.company"].browse(company_id)
+            employee = self.env["hr.employee"].browse(employee_id)
+            grouped_expenses = Expense.browse(expense_ids)
+            account = self.env["account.account"].sudo().search([
+                ("code", "=", "625600"),
+                ("company_ids", "in", company.id),
+            ], limit=2)
+            project = self.env["account.analytic.account"].sudo().search([
+                ("name", "=", "SBFH prod"),
+                ("plan_id.name", "=", "Projet"),
+                "|",
+                ("company_id", "=", False),
+                ("company_id", "=", company.id),
+            ], limit=2)
+            epic = self.env["account.analytic.account"].sudo().search([
+                ("name", "=", "Canada 2026"),
+                ("plan_id.name", "=", "Epic"),
+                "|",
+                ("company_id", "=", False),
+                ("company_id", "=", company.id),
+            ], limit=2)
+            if len(account) != 1 or len(project) != 1 or len(epic) != 1:
+                raise UserError(
+                    _(
+                        "The Canada Batch requires one 625600 account, one "
+                        "Projet / SBFH prod analytic account and one Epic / "
+                        "Canada 2026 analytic account for %(company)s.",
+                        company=company.display_name,
+                    ),
+                )
+            distribution_key = f"{project.id},{epic.id}"
+            batch = Batch.search([
+                ("name", "=", "SBFH — Canada 2026"),
+                ("employee_id", "=", employee.id),
+                ("company_id", "=", company.id),
+            ], limit=1)
+            if not batch:
+                dates = grouped_expenses.mapped("date")
+                batch = Batch.create({
+                    "name": "SBFH — Canada 2026",
+                    "purpose": _("SBFH travel — Canada 2026"),
+                    "context_type": "travel",
+                    "context_date_from": min(dates) if dates else False,
+                    "context_date_to": max(dates) if dates else False,
+                    "employee_id": employee.id,
+                    "company_id": company.id,
+                    "account_override_id": account.id,
+                    "analytic_distribution": {distribution_key: 100.0},
+                })
+                created_batches |= batch
+            batch_ids.add(batch.id)
+
+            for expense in grouped_expenses.sorted("id"):
+                normalized = self._expense_transition_normalize(
+                    " ".join(filter(None, (expense.name, expense.description))),
+                )
+                if any(token in normalized for token in ("uber", "taxi")):
+                    target = reusable_products["transport"]
+                elif any(
+                    token in normalized
+                    for token in ("repas", "meal", "snack", "restaurant", "food")
+                ):
+                    target = reusable_products["meal"]
+                elif any(token in normalized for token in ("gift", "cadeau")):
+                    target = reusable_products["gift"]
+                else:
+                    target = Product.browse()
+                if target and expense.product_id != target:
+                    expense.write({
+                        "product_id": target.id,
+                        "product_uom_id": target.uom_id.id,
+                    })
+                    transitioned |= expense
+                elif not target:
+                    ambiguous.append({
+                        "expense_id": expense.id,
+                        "name": expense.name,
+                        "reason": "description_not_confidently_mapped",
+                    })
+                if expense.expense_batch_id and expense.expense_batch_id != batch:
+                    ambiguous.append({
+                        "expense_id": expense.id,
+                        "name": expense.name,
+                        "reason": "already_in_another_batch",
+                    })
+                    continue
+                if not expense.expense_batch_id:
+                    expense.write({"expense_batch_id": batch.id})
+
+        archived_templates = trip_products.product_tmpl_id.filtered("active")
+        if archived_templates:
+            archived_templates.write({"active": False})
+        historical.invalidate_recordset()
+        historical_signature_after = [
+            (
+                expense.id,
+                expense.product_id.id,
+                expense.account_id.id,
+                json.dumps(expense.analytic_distribution or {}, sort_keys=True),
+                expense.account_move_id.id,
+                expense.state,
+            )
+            for expense in historical.sorted("id")
+        ]
+        batches = Batch.browse(batch_ids).exists()
+        return {
+            "classification": "EXPENSE_BATCH_CONTEXT_TRANSITION",
+            "candidate_draft_count": len(canada_drafts),
+            "reclassified_expense_count": len(transitioned),
+            "created_batch_count": len(created_batches),
+            "batch_ids": batches.ids,
+            "batched_expense_count": sum(batches.mapped("expense_count")),
+            "incomplete_expense_count": sum(batches.mapped("incomplete_count")),
+            "ambiguous_count": len(ambiguous),
+            "ambiguous_examples": ambiguous[:50],
+            "archived_trip_product_count": len(archived_templates),
+            "archived_trip_product_codes": sorted(
+                trip_products.mapped("default_code"),
+            ),
+            "historical_expense_count": len(historical),
+            "historical_unchanged": (
+                historical_signature == historical_signature_after
+            ),
+        }
 
     def run_native_expense_replay_from_source(self, options):
         """Rebuild source expenses through the standard Odoo expense engine.
