@@ -52,8 +52,8 @@ checks. `archive-acceptance` proves real Paperless archive, checksum reuse,
 failure gating and recovery. `passkey-acceptance` creates a disposable Chrome
 profile and virtual platform passkey, then proves that two back-to-back Sign
 authorizations each require a WebAuthn assertion and produce a fresh
-`amr=["phr"]` ID token without a refresh token. For the ordinary local Sign
-`strong-acceptance` drives the complete isolated journey with a virtual
+`amr=["phr"]` ID token without a refresh token. `strong-acceptance` drives the
+complete isolated journey with a virtual
 platform authenticator: Pocket-backed enrolment, reviewer confirmation,
 document-bound browser key, fresh authorization, step-ca issuance, personal
 PAdES, DSS validation, network key-material inspection, evidence dossier,
