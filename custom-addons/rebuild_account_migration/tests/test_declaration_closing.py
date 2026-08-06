@@ -4,6 +4,7 @@ import io
 import json
 import zipfile
 from datetime import date
+from decimal import Decimal
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -1256,6 +1257,50 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         self.assertEqual(cash["closing_balance"], "125.00")
         self.assertEqual(revenue["closing_balance"], "-125.00")
         self.assertEqual(len(cash["company_contributions"]), 2)
+
+        individual_balances = {}
+        for company in (self.first_company, self.second_company):
+            individual = self._wizard(
+                company_id=company.id,
+                company_ids=[Command.set([company.id])],
+            )._raw_report_rows(
+                fields.Date.from_string("2026-01-01"),
+                fields.Date.from_string("2026-12-31"),
+            )
+            individual_balances[company.id] = next(
+                row for row in individual if row["account_code"] == "512991"
+            )["closing_balance"]
+        self.assertEqual(
+            Decimal(cash["closing_balance"]),
+            sum(map(Decimal, individual_balances.values())),
+        )
+
+    def test_combined_xlsx_and_pdf_preserve_company_scope(self):
+        self._post_revenue(self.first_company, 100)
+        self._post_revenue(self.second_company, 25)
+        wizard = self._wizard(export_format="xlsx")
+
+        wizard.action_generate_export()
+        xlsx_payload = base64.b64decode(wizard.export_file)
+        self.assertTrue(xlsx_payload.startswith(b"PK"))
+        with zipfile.ZipFile(io.BytesIO(xlsx_payload)) as workbook_archive:
+            shared_strings = workbook_archive.read("xl/sharedStrings.xml")
+        self.assertIn(self.first_company.name.encode(), shared_strings)
+        self.assertIn(self.second_company.name.encode(), shared_strings)
+        xlsx_metadata = json.loads(wizard.export_metadata)
+        self.assertEqual(
+            {company["id"] for company in xlsx_metadata["companies"]},
+            {self.first_company.id, self.second_company.id},
+        )
+
+        wizard.export_format = "pdf"
+        wizard.action_generate_export()
+        self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"%PDF"))
+        pdf_metadata = json.loads(wizard.export_metadata)
+        self.assertEqual(
+            {company["id"] for company in pdf_metadata["companies"]},
+            {self.first_company.id, self.second_company.id},
+        )
 
     def test_combined_report_rejects_different_company_currencies(self):
         usd = self.env.ref("base.USD")

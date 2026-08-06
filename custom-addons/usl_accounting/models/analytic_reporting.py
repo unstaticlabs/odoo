@@ -90,18 +90,22 @@ class AccountAnalyticLine(models.Model):
             )
 
     def _search_current_fiscal_year(self, operator, value):
-        if operator not in {"=", "!="} or not isinstance(value, bool):
+        if operator in {"in", "not in"}:
+            requested = True in value
+            positive = requested if operator == "in" else not requested
+        elif operator in {"=", "==", "!="} and isinstance(value, bool):
+            positive = value if operator in {"=", "=="} else not value
+        else:
             return NotImplemented
-        fiscal_year = self.env.company.compute_fiscalyear_dates(
-            fields.Date.context_today(self),
-        )
-        domain = [
-            ("date", ">=", fiscal_year["date_from"]),
-            ("date", "<=", fiscal_year["date_to"]),
-        ]
-        matches = (operator == "=" and value) or (operator == "!=" and not value)
-        return domain if matches else [
-            "|",
-            ("date", "<", fiscal_year["date_from"]),
-            ("date", ">", fiscal_year["date_to"]),
-        ]
+        company_domains = []
+        for company in self.env.companies:
+            fiscal_year = company.compute_fiscalyear_dates(
+                fields.Date.context_today(self.with_company(company)),
+            )
+            company_domains.append(fields.Domain.AND([
+                fields.Domain("company_id", "=", company.id),
+                fields.Domain("date", ">=", fiscal_year["date_from"]),
+                fields.Domain("date", "<=", fiscal_year["date_to"]),
+            ]))
+        domain = fields.Domain.OR(company_domains)
+        return list(domain if positive else ~domain)

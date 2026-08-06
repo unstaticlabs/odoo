@@ -3,20 +3,14 @@
     <record id="account_immediate_settlement_company_rule" model="ir.rule">
         <field name="name">Immediate settlements by company</field>
         <field name="model_id" ref="model_account_immediate_settlement"/>
+        <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[
-            (4, ref('account.group_account_user')),
-            (4, ref('account.group_account_readonly')),
-        ]"/>
     </record>
 
     <record id="account_immediate_settlement_allocation_company_rule" model="ir.rule">
         <field name="name">Immediate settlement allocations by company</field>
         <field name="model_id" ref="model_account_immediate_settlement_allocation"/>
+        <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[
-            (4, ref('account.group_account_user')),
-            (4, ref('account.group_account_readonly')),
-        ]"/>
     </record>
 </odoo>

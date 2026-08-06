@@ -59,14 +59,19 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
             self.assertNotIn(model_name, self.env.registry)
 
     def test_company_scoped_custom_models_have_record_rules(self):
-        """A public custom model must never rely on UI company domains."""
+        """A public product model must never rely on UI company domains."""
         Model = self.env["ir.model"].sudo()
         Access = self.env["ir.model.access"].sudo()
         Rule = self.env["ir.rule"].sudo().with_context(active_test=False)
+        product_modules = {
+            module.name
+            for module in self.env["ir.module.module"].sudo().search([
+                ("name", "=like", "usl_%"),
+                ("state", "=", "installed"),
+            ])
+        } | {"rebuild_account_migration"}
         missing = []
         for model_name, model_class in sorted(self.env.registry.models.items()):
-            if not model_name.startswith(("rebuild.", "usl.")):
-                continue
             company_field = model_class._fields.get("company_id")
             if (
                 model_class._transient
@@ -75,6 +80,8 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
             ):
                 continue
             model = Model._get(model_name)
+            if model_class._original_module not in product_modules:
+                continue
             if not Access.search_count([
                 ("model_id", "=", model.id),
                 ("active", "=", True),
@@ -86,13 +93,14 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
                 ("active", "=", True),
             ])
             if not any(
-                "company_ids" in (rule.domain_force or "")
+                getattr(rule, "global")
+                and "company_ids" in (rule.domain_force or "")
                 for rule in rules
             ):
                 missing.append(model_name)
         self.assertFalse(
             missing,
-            "Company-scoped custom models with read access require an "
+            "Company-scoped custom models with read access require a global "
             f"allowed-company record rule: {', '.join(missing)}",
         )
 
