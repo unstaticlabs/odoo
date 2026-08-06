@@ -21,7 +21,9 @@ The pinned components are:
 - `step-ca` 0.30.2;
 - Pocket ID 2.12.0 from exact commit
   `b3fb8de5bc55aa813a27b4e15c1d761026fcceaa`, with the tracked strict
-  fresh-passkey patch in `services/usl-pocket-id`;
+  fresh-passkey patch in `services/usl-pocket-id`; the generic upstream design
+  is tracked in Pocket ID issue
+  [#1654](https://github.com/pocket-id/pocket-id/issues/1654);
 - `@peculiar/x509` 2.0.0 in the dedicated browser worker;
 - pyHanko 0.36.2 in the DSS container for independent cross-validation;
 - veraPDF in the DSS container for PDF/A dossier validation.
@@ -44,8 +46,11 @@ This creates project `usl-sign-pocketid-6605`, its own `odoo_dev` database,
 volumes, OIDC clients and ignored secret root. It exposes Odoo on port 16669,
 Pocket ID on 16411 and Paperless on 16810; it never shares the canonical
 tenant. The Sign authorization client is restricted to its own `usl-signers`
-group rather than inheriting ordinary Odoo access. The dedicated Sign client
-disables refresh-token issuance. `test-pocket` verifies the strict Pocket
+group rather than inheriting ordinary Odoo access. Its generic
+`requiresFreshPasskey` policy is enabled and Pocket ID advertises the matching
+discovery capability; no USL-specific authorization parameter controls the
+security decision. The dedicated Sign client also disables refresh-token
+issuance. `test-pocket` verifies the strict Pocket
 patch, `test` runs the Odoo and browser suites in a disposable database, and
 `smoke` exercises the local CA, DSS, pyHanko, veraPDF, replay and alteration
 checks. `archive-acceptance` proves real Paperless archive, checksum reuse,

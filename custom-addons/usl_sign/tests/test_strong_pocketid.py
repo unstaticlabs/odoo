@@ -69,7 +69,6 @@ class TestPocketIDStrongAuthorization(TransactionCase):
             self.assertEqual(parameters["max_age"], ["0"])
             self.assertEqual(parameters["nonce"], ["document-binding-digest"])
             self.assertEqual(parameters["code_challenge_method"], ["S256"])
-            self.assertEqual(parameters["usl_fresh_passkey"], ["1"])
             self.assertNotIn("code_verifier", parameters)
 
             transaction = controller._consume_oidc_transaction(state)

@@ -327,7 +327,6 @@ async function authorizeFreshPasskey(client, sessionId, discovery, env, asserted
         code_challenge_method: "S256",
         prompt: "login",
         max_age: "0",
-        usl_fresh_passkey: "1",
     })) {
         authorize.searchParams.set(key, value);
     }
@@ -628,7 +627,7 @@ async function main() {
     const discovery = await (
         await fetch(`${env.POCKET_ID_APP_URL}/.well-known/openid-configuration`)
     ).json();
-    if (!discovery.usl_fresh_passkey_reauthentication_supported) {
+    if (!discovery.fresh_passkey_reauthentication_supported) {
         throw new Error("Pocket ID does not advertise strict fresh-passkey support");
     }
     const onboardingOutput = execFileSync(

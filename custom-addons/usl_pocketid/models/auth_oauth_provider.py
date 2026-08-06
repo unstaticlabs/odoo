@@ -248,7 +248,7 @@ class AuthOauthProvider(models.Model):
             "issuer": discovered_issuer,
             "prompt_values_supported": discovery.get("prompt_values_supported", []),
             "fresh_passkey_reauthentication_supported": bool(
-                discovery.get("usl_fresh_passkey_reauthentication_supported"),
+                discovery.get("fresh_passkey_reauthentication_supported"),
             ),
             "token_endpoint_auth_methods_supported": discovery.get(
                 "token_endpoint_auth_methods_supported",

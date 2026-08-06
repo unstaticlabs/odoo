@@ -481,6 +481,7 @@ def _sign_client_payload(values: dict[str, str]) -> dict[str, object]:
         "pkceEnabled": True,
         "pkceSupported": True,
         "requiresReauthentication": True,
+        "requiresFreshPasskey": True,
         "requiresPushedAuthorizationRequests": False,
         "disableRefreshTokens": True,
         "skipConsent": True,

@@ -164,7 +164,6 @@ class StrongSignController(http.Controller):
             "response_type": "code",
             "scope": configuration.scopes,
             "state": state,
-            "usl_fresh_passkey": "1",
         }
         return state, f"{configuration.authorization_endpoint}?{urlencode(parameters)}"
 
