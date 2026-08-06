@@ -2282,8 +2282,10 @@ class RebuildAccountImportRun(models.Model):
                    preceding_subtotal, tax_payable_account_id, tax_receivable_account_id,
                    advance_tax_payment_account_id
             FROM account_tax_group
+            WHERE company_id = ANY(%(source_company_ids)s)
             ORDER BY company_id, sequence, id
             """,
+            options,
         )
         groups = {}
         TaxGroup = self.env["account.tax.group"]
@@ -2349,34 +2351,65 @@ class RebuildAccountImportRun(models.Model):
                    tax_group_id, country_id, cash_basis_transition_account_id,
                    ubl_cii_tax_category_code, ubl_cii_tax_exemption_reason_code
             FROM account_tax
+            WHERE company_id = ANY(%(source_company_ids)s)
             ORDER BY company_id, sequence, id
             """,
+            options,
         )
         repartition_rows = self._fetchall(
             conn,
             """
-            SELECT id, tax_id, account_id, sequence, repartition_type, document_type,
-                   factor_percent, use_in_tax_closing
-            FROM account_tax_repartition_line
-            ORDER BY tax_id, document_type, repartition_type, sequence, id
+            SELECT line.id, line.tax_id, line.account_id, line.sequence,
+                   line.repartition_type, line.document_type,
+                   line.factor_percent, line.use_in_tax_closing
+            FROM account_tax_repartition_line line
+            JOIN account_tax tax ON tax.id = line.tax_id
+            WHERE tax.company_id = ANY(%(source_company_ids)s)
+            ORDER BY line.tax_id, line.document_type, line.repartition_type,
+                     line.sequence, line.id
             """,
+            options,
         )
         repartition_tag_rows = self._fetchall(
             conn,
             """
             SELECT account_tax_repartition_line_id AS repartition_line_id,
                    account_account_tag_id AS tag_id
-            FROM account_account_tag_account_tax_repartition_line_rel
-            ORDER BY account_tax_repartition_line_id, account_account_tag_id
+            FROM account_account_tag_account_tax_repartition_line_rel relation
+            JOIN account_tax_repartition_line line
+              ON line.id = relation.account_tax_repartition_line_id
+            JOIN account_tax tax ON tax.id = line.tax_id
+            WHERE tax.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.account_tax_repartition_line_id,
+                     relation.account_account_tag_id
             """,
+            options,
         )
         child_rows = self._fetchall(
             conn,
-            "SELECT parent_tax, child_tax FROM account_tax_filiation_rel ORDER BY parent_tax, child_tax",
+            """
+            SELECT relation.parent_tax, relation.child_tax
+            FROM account_tax_filiation_rel relation
+            JOIN account_tax parent ON parent.id = relation.parent_tax
+            JOIN account_tax child ON child.id = relation.child_tax
+            WHERE parent.company_id = ANY(%(source_company_ids)s)
+              AND child.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.parent_tax, relation.child_tax
+            """,
+            options,
         )
         alternative_rows = self._fetchall(
             conn,
-            "SELECT dest_tax_id, src_tax_id FROM account_tax_alternatives ORDER BY dest_tax_id, src_tax_id",
+            """
+            SELECT relation.dest_tax_id, relation.src_tax_id
+            FROM account_tax_alternatives relation
+            JOIN account_tax destination ON destination.id = relation.dest_tax_id
+            JOIN account_tax source ON source.id = relation.src_tax_id
+            WHERE destination.company_id = ANY(%(source_company_ids)s)
+              AND source.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.dest_tax_id, relation.src_tax_id
+            """,
+            options,
         )
         repartitions_by_tax = defaultdict(list)
         for row in repartition_rows:
@@ -2455,6 +2488,13 @@ class RebuildAccountImportRun(models.Model):
                 tax.with_context(chart_template_load=True).write(vals)
             else:
                 tax = Tax.with_context(chart_template_load=True).create(vals)
+            # Creating/updating the tax can invalidate and recompute the
+            # account's stored ``reconcile`` value after the earlier account
+            # import. Enforce the invariant on the account actually linked by
+            # the resulting tax, then read it back for the final assertion.
+            self._ensure_cash_basis_transition_account_reconcile(
+                tax.cash_basis_transition_account_id,
+            )
             tax.invalidate_recordset([
                 "tax_exigibility",
                 "cash_basis_transition_account_id",
@@ -2524,6 +2564,7 @@ class RebuildAccountImportRun(models.Model):
             for line in self.env["account.tax.repartition.line"].search([
                 ("rebuild_source_model", "=", "account.tax.repartition.line"),
                 ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
+                ("tax_id", "in", [tax.id for tax in taxes.values()]),
             ])
         }
 

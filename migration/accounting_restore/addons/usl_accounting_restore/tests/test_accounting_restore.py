@@ -6563,6 +6563,52 @@ class TestRebuildAccountMigration(TransactionCase):
             ),
         )
 
+    def test_tax_replay_queries_are_limited_to_selected_companies(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company-scoped tax replay",
+        })
+        options = {
+            "source_company_ids": [101],
+            "source_snapshot_id": "unit-company-tax-scope",
+        }
+        queries = []
+
+        def capture_query(_run, _connection, query, params=None):
+            queries.append((query, params))
+            return []
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            new=capture_query,
+        ):
+            import_run._tax_group_map(
+                object(),
+                options,
+                {},
+                {},
+                {},
+            )
+            import_run._tax_map(
+                object(),
+                options,
+                {},
+                {},
+                {},
+                {},
+                {},
+            )
+
+        company_owned_queries = [
+            (query, params)
+            for query, params in queries
+            if "account_tax" in query
+        ]
+        self.assertTrue(company_owned_queries)
+        for query, params in company_owned_queries:
+            self.assertIn("source_company_ids", query)
+            self.assertIs(params, options)
+
     def test_import_currency_rates_preserves_native_source_rate_and_trace(self):
         eur = self.env.ref("base.EUR")
         usd = self.env.ref("base.USD")
