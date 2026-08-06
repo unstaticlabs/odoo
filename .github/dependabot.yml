@@ -56,6 +56,11 @@ updates:
       compatible-python-lock-updates:
         patterns:
           - "*"
+        # Odoo's Python 3.12/Noble runtime still pins lxml 5.2.1. Newer
+        # lxml-html-clean releases requiring lxml 6 must be qualified with an
+        # upstream runtime update instead of entering the routine lock group.
+        exclude-patterns:
+          - "lxml-html-clean"
         update-types:
           - "minor"
           - "patch"
