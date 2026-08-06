@@ -1,101 +1,84 @@
-# Notes de frais
+# Lots de dépenses
 
-Une **note de frais** regroupe des dépenses liées et leur applique un contexte
-commun. Utilisez-la pour un voyage, une production, un événement, un projet ou
+Un **lot de dépenses** regroupe des dépenses liées et leur applique un contexte
+commun. Utilisez-le pour un voyage, une production, un événement, un projet ou
 une période cohérente. Une dépense isolée peut toujours suivre le circuit Odoo
-normal sans note.
+normal sans lot.
 
-La **catégorie** décrit la nature de la dépense : repas, transport et
-hébergement, cadeau, fournitures, kilométrage, stationnement, communication ou
-forfait. La **note de frais** décrit son motif. Pour un voyage SBFH, la note est
-liée à l’activité `SBFH prod` et à l’Epic du voyage ; il n’est plus nécessaire
-de créer une catégorie propre au voyage.
+La **catégorie** décrit ce qui a été acheté : repas, transport, cadeau,
+fournitures, kilométrage ou autre nature stable. Le **lot** décrit pourquoi les
+dépenses vont ensemble. Pour un voyage SBFH, le lot porte l’activité `SBFH
+prod` et l’Epic du voyage ; ne créez plus de catégorie propre au voyage.
 
-## Ajouter des dépenses à une note
+## Créer ou choisir un lot
 
-1. Ouvrez **Dépenses > Mes dépenses** et préparez chaque justificatif : date,
-   description, montant, catégorie, mode de paiement et pièce jointe.
-2. Sélectionnez les dépenses liées. Pour plusieurs lignes, **Ajouter à une
-   note de frais** est l’action principale ; les actions Odoo normales restent
-   disponibles.
-3. Dans l’aperçu, choisissez une note proposée ou créez-en une. Les propositions
-   tiennent compte de l’employé, de la société, des dates et de l’analytique.
-   Un avertissement signale une note proche afin d’éviter les doublons.
-4. Vérifiez le motif, les dates prévues, les totaux payés par l’employé et par
-   la société, la préparation et l’impact du contexte partagé.
-5. Choisissez **Ajouter à la note** pour regrouper sans soumettre, ou
-   **Créer et soumettre** lorsque toutes les dépenses en brouillon sont prêtes.
+1. Ouvrez **Dépenses > Mes dépenses** et préparez les justificatifs.
+2. Sélectionnez les dépenses liées, puis **Ajouter à un lot de dépenses**.
+3. Choisissez un lot proposé ou créez-en un. Les propositions tiennent compte
+   de l’employé, de la société, des dates et de l’analytique.
+4. Vérifiez le motif, la période prévue, le total et les deux modes de paiement.
+5. Ajoutez les dépenses au lot. La soumission reste une action séparée et
+   explicite.
 
-Une note ne peut concerner qu’un employé et une société. Elle peut mélanger les
-dépenses payées personnellement et celles payées par la société.
+Un lot concerne toujours un employé et une société. Il peut mélanger les
+dépenses payées par l’employé et celles payées par la société.
 
-## Comprendre les valeurs partagées et les exceptions
+## Appliquer le contexte commun
 
-La note peut fournir l’analytique, une justification commune et, lorsqu’un
-responsable le configure, un compte de charge commun. À l’ajout d’une dépense,
-ces valeurs remplacent seulement une valeur manquante ou issue de la catégorie.
+L’analytique du lot est modifiable directement dans **Contexte commun** tant que
+le lot est en brouillon. Un responsable peut aussi définir un compte de charge
+commun. Sélectionnez **Appliquer le contexte commun** pour prévisualiser les
+changements avant de les confirmer.
 
-Une valeur choisie volontairement sur la dépense reste prioritaire et apparaît
-comme **Exception explicite**. Elle n’est jamais normalisée en silence. Si le
-contexte de la note change, les lignes déjà héritées sont signalées comme
-**Contexte à actualiser**. Utilisez **Aperçu de l’application du contexte** :
-l’écran annonce les lignes modifiées, inchangées, conservées comme exceptions
-et ignorées parce qu’elles sont déjà à un stade ultérieur.
+L’ordre de priorité est le suivant :
 
-Seul un responsable Dépenses ou Comptabilité peut remplacer volontairement
-une exception ou définir le compte général commun. Réappliquer le même contexte
-ne duplique pas l’analytique. Retirer une ligne restaure son ancienne valeur
-seulement si elle n’a pas été modifiée depuis ; une correction explicite est
-conservée.
+1. choix explicite sur la dépense ;
+2. contexte configuré sur le lot ;
+3. valeur par défaut de la catégorie ;
+4. suggestion non confirmée.
 
-## Contrôler la note
+Une valeur identique au lot n’est pas une exception. Une vraie différence est
+signalée par un petit triangle. Survolez-le ou placez-y le focus au clavier pour
+voir le compte, l’analytique ou l’information qui diffère. Un cadenas indique
+qu’une dépense approuvée ou comptabilisée reste volontairement inchangée.
 
-La fiche présente d’abord le motif, le total, la période réelle, la répartition
-par payeur, la préparation, les exceptions et le travail restant. L’onglet de
-contrôle ajoute :
+Changer le contexte ne réécrit pas immédiatement les lignes : elles sont
+signalées comme à actualiser. Réappliquer le même contexte est sans effet
+supplémentaire. Retirer un brouillon du lot ne supprime jamais la dépense et ne
+supprime pas une correction explicite.
 
-- la répartition par catégorie de dépense ;
-- l’activité et l’Epic, regroupées par plan analytique ;
-- les justificatifs manquants et les doublons possibles ;
-- les dépenses hors de la période prévue ;
-- le rapprochement entre les dépenses et les écritures générées.
+## Contrôler et corriger
 
-Un doublon possible est un avertissement, pas un blocage automatique. Ouvrez
-les deux dépenses et leurs justificatifs pour décider. Une ligne incorrecte
-peut être ouverte, corrigée ou retirée sans refuser toute la note.
+La fiche montre d’abord le motif, le total, le nombre de dépenses et de
+justificatifs, les dates réelles, la répartition par payeur et la préparation.
+La liste conserve la catégorie, le payeur, le statut, le montant et l’accès à
+chaque dépense.
 
-## Soumettre, approuver et comptabiliser
+- **Retirer du lot** détache seulement un brouillon ;
+- **Renvoyer pour correction** remet une dépense soumise ou approuvée en
+  brouillon et la détache ;
+- un justificatif manquant ou un doublon possible apparaît dans l’aide de la
+  ligne ;
+- les détails de rapprochement et l’historique sont dans **Comptabilité et
+  historique**.
 
-Les actions de la note utilisent les étapes Odoo natives :
+## Soumettre et comptabiliser
 
-- **Soumettre** agit uniquement sur les brouillons prêts ;
-- **Approuver** agit uniquement sur les lignes soumises ;
-- **Comptabiliser** agit uniquement sur les lignes approuvées.
+Les actions du lot utilisent les étapes Odoo natives : **Soumettre** agit sur
+les brouillons, **Approuver** sur les lignes soumises et **Comptabiliser** sur
+les lignes approuvées. Une information requise manquante bloque la soumission
+avant toute modification partielle.
 
-Une information ou un justificatif requis manquant bloque atomiquement les
-brouillons : aucune partie n’est soumise à moitié. Les dépenses déjà approuvées
-ou comptabilisées ne reviennent pas en arrière et leur comptabilité n’est pas
-réécrite par le contexte de la note.
+Dans un lot mixte, les dépenses personnelles suivent le remboursement et les
+dépenses société suivent la comptabilisation puis le rapprochement bancaire.
+La fin d’un côté ne masque pas le travail restant de l’autre.
 
-Pour une note mixte, Odoo conserve les traitements nécessaires : les dépenses
-payées par l’employé suivent le remboursement et celles payées par la société
-suivent la comptabilisation et le rapprochement bancaire. Les deux compteurs
-restent visibles. La fin du traitement société ne masque donc pas un
-remboursement encore attendu, notamment si l’assistant de comptabilisation de
-l’employé a été annulé.
+Dans le journal **Notes de frais**, la référence reprend le nom du lot. Les
+liens permettent de parcourir :
 
-## Retrouver la comptabilité et analyser
+**écriture → lot de dépenses → dépense → justificatif**.
 
-Dans le journal **Notes de frais**, la référence reprend le nom de la note.
-Les liens permettent de parcourir :
-
-**écriture → note de frais → dépense → justificatif**.
-
-Les écritures et lignes analytiques peuvent être filtrées ou regroupées par
-note et par payeur, en plus du Produit, du compte, de l’employé, de la période,
-de l’activité et de l’Epic. Cela permet de connaître à la fois le coût total
-de `Canada 2026` et sa composition par repas, transport ou cadeaux.
-
-Les anciennes catégories propres aux voyages restent visibles sur l’historique
-mais sont archivées pour les nouvelles dépenses. Utilisez désormais une
-catégorie réutilisable pour la nature et une note de frais pour le voyage.
+Les écritures et lignes analytiques restent analysables par lot, Epic,
+catégorie, compte, employé, payeur et période. Les anciennes catégories propres
+aux voyages restent visibles dans l’historique, mais sont archivées pour les
+nouvelles dépenses.

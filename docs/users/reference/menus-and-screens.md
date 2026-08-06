@@ -85,7 +85,7 @@ Employee expense claims remain in the separate **Expenses** application.
 
 Select the **Expenses** app title for **My Expenses**, the individual expense
 evidence and workflow list. The navbar links directly to **Expenses to
-Process** and **Expense Batches**, followed by **Reporting** and
+Process** and **Expense Batches** (**Lots de dépenses** in French), followed by **Reporting** and
 **Configuration**. It deliberately has no redundant **My Expenses** menu
 group. The list shows **Attachment status**, each expense's normal status and
 its optional **Expense Batch** link without a permanent **Batch readiness**
@@ -101,10 +101,11 @@ create-or-select preview ranks compatible Batches, shows readiness, payer
 split, warnings and context impact before anything is saved. Both completion
 actions close the preview and refresh the list.
 
-Managers use **Expense Batches** to review shared purpose, intended and actual
-periods, totals, payer-specific remaining work, analytic plans, Product
-breakdown, explicit exceptions and individual evidence. Accounting entries
-retain a direct link back to the Batch and its expenses.
+Managers use **Expense Batches** to review purpose, totals, dates, payer split,
+interactive shared analytics, Product breakdown and individual evidence. A
+small line indicator explains the exact missing information, warning or real
+context difference. Accounting entries retain a direct link back to the Batch
+and its expenses.
 
 ## Action explanations
 

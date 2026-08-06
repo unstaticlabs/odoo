@@ -26,7 +26,7 @@ activation procedure is approved.
 Primary entry points:
 
 - **Accounting > Overview** for daily operational state;
-- **Expenses > Expense Batches** for contextual trip, project, event and
+- **Expenses > Expense Batches** (**Lots de dépenses** in French) for contextual trip, project, event and
   periodic claims with mixed payer review;
 - **Accounting > Reporting > Analyse analytique** for exploratory pivot analysis;
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
