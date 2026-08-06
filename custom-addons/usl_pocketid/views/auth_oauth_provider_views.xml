@@ -10,6 +10,7 @@
                 <field name="usl_oidc_issuer" readonly="usl_pocketid"/>
                 <field name="usl_public_base_url" readonly="usl_pocketid"/>
                 <field name="usl_required_group" readonly="usl_pocketid"/>
+                <field name="usl_end_session_endpoint" readonly="1"/>
                 <field name="usl_allow_unique_email_link" readonly="usl_pocketid"/>
                 <field name="usl_token_auth_method" readonly="usl_pocketid"/>
             </field>

@@ -1,8 +1,12 @@
+import datetime
+from unittest.mock import patch
+
 from odoo import Command
 from odoo.exceptions import AccessDenied, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 from ..exceptions import PocketIDAccessDenied
+from ..policy import LOGIN_POLICY_PARAMETER, LOGIN_POLICY_SSO_ONLY
 
 
 @tagged("post_install", "-at_install", "usl_pocketid")
@@ -344,6 +348,104 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                     "usl_pocketid_access": True,
                 },
             )
+
+    def test_portal_user_can_use_an_explicit_governed_identity(self):
+        portal_user = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create(
+            {
+                "login": "portal.pocketid@example.test",
+                "name": "Portal Pocket ID User",
+                "email": "portal.pocketid@example.test",
+                "password": "portal-password-must-not-work",
+                "company_id": self.env.company.id,
+                "company_ids": [Command.set(self.env.company.ids)],
+                "group_ids": [
+                    Command.set(self.env.ref("base.group_portal").ids),
+                ],
+                "usl_pocketid_access": True,
+                "usl_identity_classification": "portal",
+            },
+        )
+        identity = self._identity(
+            user=portal_user,
+            subject="portal-subject",
+        )
+        user, resolved = self.env["res.users"]._usl_pocketid_resolve_user(
+            self.provider,
+            self._claims(
+                subject="portal-subject",
+                email=portal_user.email,
+            ),
+        )
+        self.assertEqual(user, portal_user)
+        self.assertEqual(resolved, identity)
+
+    def test_sso_only_rejects_password_but_accepts_api_key(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            LOGIN_POLICY_PARAMETER,
+            LOGIN_POLICY_SSO_ONLY,
+        )
+        with self.assertRaises(AccessDenied):
+            self.user.with_user(self.user)._check_credentials(
+                {
+                    "type": "password",
+                    "password": "local-password-must-not-work",
+                },
+                {"interactive": True},
+            )
+        expiration = datetime.datetime.now() + datetime.timedelta(days=1)
+        api_key = self.env["res.users.apikeys"].with_user(self.user).sudo()._generate(
+            None,
+            "Pocket ID test integration",
+            expiration,
+        )
+        result = self.user.with_user(self.user)._check_credentials(
+            {"type": "password", "password": api_key},
+            {"interactive": False},
+        )
+        self.assertEqual(result["auth_method"], "apikey")
+
+    def test_policy_activation_is_idempotent_and_rotates_once(self):
+        configuration = self._governed_user_configuration()
+        self.env["res.users"]._usl_pocketid_apply_user_configuration(
+            configuration,
+            break_glass_password="safe-local-password-12345",
+            strict=False,
+        )
+        exempt = self.env["res.users"]._usl_pocketid_policy_exempt_users()
+        unconfigured = self.env["res.users"].sudo().search(
+            [
+                ("active", "=", True),
+                ("id", "not in", (self.user | exempt).ids),
+                ("usl_local_break_glass", "=", False),
+            ],
+        )
+        unconfigured.write({"active": False})
+        with patch.dict(
+            "os.environ",
+            {"USL_POCKET_ID_LOGIN_POLICY": "sso_only"},
+            clear=False,
+        ):
+            first = self.env["res.users"]._usl_pocketid_apply_login_policy()
+            self.env.cr.execute(
+                "SELECT password FROM res_users WHERE id = %s",
+                [self.user.id],
+            )
+            password_after_first = self.env.cr.fetchone()[0]
+            second = self.env["res.users"]._usl_pocketid_apply_login_policy()
+        self.assertEqual(first, LOGIN_POLICY_SSO_ONLY)
+        self.assertEqual(second, LOGIN_POLICY_SSO_ONLY)
+        self.env.cr.execute(
+            "SELECT password FROM res_users WHERE id = %s",
+            [self.user.id],
+        )
+        self.assertEqual(self.env.cr.fetchone()[0], password_after_first)
+        self.assertFalse(
+            self.env["ir.config_parameter"].sudo().get_bool(
+                "auth_signup.reset_password",
+            ),
+        )
 
     def _governed_user_configuration(self):
         return [

@@ -1,6 +1,6 @@
 # Pocket ID SSO runbook
 
-This runbook configures Pocket ID passkey login without making Pocket ID an
+This runbook configures Pocket ID as the sole human login without making it an
 authorization source. Local integration QA uses canonical `odoo_dev`, the
 disposable production-shaped target reconstructed from the Online dump. The
 helper never touches the read-only source database.
@@ -23,8 +23,8 @@ Before changing a database:
   immutable subjects and Prosper identity details from the identity owner;
 - choose one maintenance window because the helper stops and recreates the
   selected Odoo service;
-- generate one break-glass password of at least 20 characters and store it in
-  the approved password manager.
+- generate one emergency password of at least 20 characters, store it in the
+  approved secret manager, and leave emergency access sealed.
 
 Never paste tokens, client secrets, passkeys or raw Pocket ID subjects into a
 commit, ticket, screenshot or validation artifact.
@@ -148,8 +148,8 @@ Create a confidential OIDC client in Pocket ID:
 For Paperless, create a second confidential client with callback
 `https://<paperless-host>/accounts/oidc/pocket-id/login/callback/`. Never reuse
 the Odoo client ID or secret. Configure Paperless through its supported
-OpenID Connect provider, disable interactive password login outside QA, and
-keep `PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS=false`; Odoo continues to calculate
+OpenID Connect provider, disable interactive password login in every target,
+and keep `PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS=false`; Odoo continues to calculate
 the actual document-object permissions. Set
 `PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL=https` in production-like
 environments. Paperless/django-allauth uses this value when it constructs the
@@ -175,6 +175,10 @@ USL_POCKET_ID_REQUIRED_GROUP=<exact-pocket-id-group>
 USL_POCKET_ID_SCOPES=openid profile email groups
 USL_POCKET_ID_TOKEN_AUTH_METHOD=
 USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK=0
+USL_POCKET_ID_LOGIN_POLICY=sso_only
+USL_POCKET_ID_BREAK_GLASS_ENABLED=0
+USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT=
+ODOO_LIST_DB=False
 ```
 
 Issuer and public base URLs must not have a trailing application path. The
@@ -186,7 +190,8 @@ advertised safe default.
 
 `USL_POCKET_ID_USERS_JSON` must contain every non-framework Odoo user. The
 framework OdooBot, Public user and Portal User Template are protected
-automatically. No wildcard users are accepted.
+automatically. Every other active internal or portal user must be classified;
+no wildcard users are accepted.
 
 The expected candidate policy has this shape; replace every angle-bracket
 value with owner-confirmed data:
@@ -282,14 +287,15 @@ unset USL_POCKET_ID_BREAK_GLASS_PASSWORD
 unset USL_POCKET_ID_APPLY
 ```
 
-Keep the provider secret in the runtime secret store. Remove the one-shot user
-JSON and break-glass plaintext from the shell and deployment environment after
-application.
+Keep the provider and emergency secrets in the runtime secret store. Remove
+the one-shot user JSON and emergency plaintext from the shell after
+application. Activation randomizes governed human password hashes once,
+preserves API keys, disables signup/reset and closes the database manager.
 
 In Odoo, verify under **Settings → Users & Companies**:
 
 - Pocket ID provider is enabled and has no database-stored client secret;
-- there is exactly one active local break-glass user;
+- there is exactly one sealed emergency user;
 - each active SSO user has the expected profile, company list and exact groups;
 - every explicit link has the expected subject fingerprint;
 - Pocket ID audit events exist for links and policy application.
@@ -314,9 +320,8 @@ record passkey screens, secrets, tokens or raw subjects.
    are denied.
 4. A Pocket ID user with the required group but no identity link is denied;
    the Odoo user count remains unchanged.
-5. Confirm the default Odoo.com login button is absent after activation. The
-   native Odoo passkey option remains available to eligible non-SSO identities,
-   but a Pocket ID-managed user cannot use or register an Odoo-local passkey.
+5. Confirm the login page shows only **Continue with Pocket ID**. Password,
+   signup, reset, Odoo-local passkey and alternate OAuth attempts are rejected.
 6. An incorrect issuer, audience, nonce, expired token, unsigned/wrong
    algorithm token, missing group and replayed state are denied and audited.
 7. Archive a disposable SSO user or disable its identity. Its active session
@@ -325,10 +330,13 @@ record passkey screens, secrets, tokens or raw subjects.
    denied. Disable the Odoo identity immediately and confirm the existing
    session is invalidated.
 9. Stop or firewall the Pocket ID preproduction service. New SSO login shows
-   the safe provider-unavailable error. The break-glass user can still sign in
-   locally and inspect the configuration. Restore Pocket ID and confirm SSO
-   recovery.
-10. Change a disposable Pocket ID email/display name. The same issuer/subject
+   the safe provider-unavailable error. Confirm ordinary local passwords still
+   fail. Exercise the sealed emergency procedure only in a dedicated incident
+   test, then restore Pocket ID and confirm SSO recovery.
+10. Invite a portal user. The message links to Pocket ID, the immutable identity
+    resolves the existing portal user, and no reset token or opportunistic Odoo
+    user is created.
+11. Change a disposable Pocket ID email/display name. The same issuer/subject
    returns to the same Odoo user without changing Odoo authorization or profile
    fields.
 
@@ -356,9 +364,8 @@ The isolated preproduction candidate was validated in the running application on
   from the allowed group, then recovered after each control was restored;
 - changing Roger's Pocket ID email left the immutable subject link, Odoo user,
   Odoo email, authorization and seven-user count unchanged;
-- with Pocket ID stopped, new SSO failed closed while the sole local
-  break-glass administrator entered Odoo and reached Settings; after restart,
-  Valentin SSO recovered.
+- with Pocket ID stopped, new SSO failed closed; the sealed emergency policy
+  is covered by focused tests and must be exercised only in an incident window.
 
 Protocol error, replay, conflict, archive, authorization and read-only
 accountant boundaries are covered by the module's focused automated tests.
@@ -381,8 +388,21 @@ perform an explicit administrator relink. The relink is audited.
 
 ## 11. Outage, rollback and recovery
 
-During a Pocket ID outage, do not enable local passwords for SSO-managed
-users. Use only the tested break-glass account for necessary administration.
+During a Pocket ID outage, do not enable local passwords for governed users.
+Prefer recovery through the identity provider. If emergency Odoo access is
+strictly necessary, set both deployment values, restart Odoo, and use only
+`/usl/emergency-login`:
+
+```dotenv
+USL_POCKET_ID_BREAK_GLASS_ENABLED=1
+USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT=2026-08-06T15:30:00Z
+```
+
+The expiry must be in the future and no more than one hour from Odoo process
+start. The normal login route still refuses the emergency password. Every
+attempt is audited. As soon as the task is complete, set the enabled flag to
+`0`, restart, verify the route returns 404 and rotate the emergency password
+through the configuration helper.
 
 To stop new SSO while preserving evidence:
 

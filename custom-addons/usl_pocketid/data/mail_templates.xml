@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="portal_sso_invitation" model="mail.template">
+        <field name="name">Portal: Pocket ID access</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="subject">Your USL portal access</field>
+        <field name="email_from">{{ object.company_id.email_formatted or user.email_formatted }}</field>
+        <field name="email_to">{{ object.email_formatted }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Hello <t t-out="object.name or ''"/>,</p>
+                <p t-if="ctx.get('welcome_message')"><t t-out="ctx.get('welcome_message')"/></p>
+                <p>Your USL portal uses Pocket ID. No Odoo password is required.</p>
+                <p>
+                    <a t-att-href="object.get_base_url() + '/web/login'" style="background:#714b67;color:#fff;padding:10px 16px;text-decoration:none;border-radius:4px;display:inline-block;">
+                        Continue with Pocket ID
+                    </a>
+                </p>
+                <p>If Pocket ID does not recognize this email, contact your USL administrator.</p>
+            </div>
+        </field>
+        <field name="lang">{{ object.lang }}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

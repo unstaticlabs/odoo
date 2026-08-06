@@ -10,7 +10,9 @@ The module owns:
 - RS256/JWKS, exact issuer and audience validation;
 - immutable `(issuer, subject)` identity links;
 - environment-managed provider configuration and audit events;
-- fail-closed login and one independent local break-glass administrator.
+- SSO-only login for internal and portal users, including sensitive-action
+  reauthentication;
+- one sealed, time-limited emergency administrator and API-key-safe RPC.
 
 It does not hard-reference roles owned by downstream modules. Product modules
 extend `res.users._usl_pocketid_profile_definitions()` for those roles. The
@@ -18,7 +20,9 @@ transitional Accounting compatibility module currently registers the scoped
 accountant-reviewer profile because it still owns that stable group XML ID.
 
 Pocket ID is inert unless `USL_POCKET_ID_ENABLED=1` and the complete provider
-environment is deliberately applied. Client secrets never enter the database.
+environment is deliberately applied. `USL_POCKET_ID_LOGIN_POLICY=sso_only`
+removes every normal local credential path only after provider, user and
+identity validation succeeds. Client secrets never enter the database.
 
 Local validation uses canonical `odoo_dev`, the disposable production-shaped
 target:

@@ -1,9 +1,21 @@
 import secrets
+import time
 
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import AccessDenied, ValidationError
+from odoo.exceptions import AccessDenied, UserError, ValidationError
+from odoo.http import request
 
 from ..exceptions import PocketIDAccessDenied, PocketIDReason
+from ..policy import (
+    EMERGENCY_SESSION_KEY,
+    LOGIN_POLICY_PARAMETER,
+    LOGIN_POLICY_SSO_ONLY,
+    REAUTH_SESSION_KEY,
+    SUPPORTED_LOGIN_POLICIES,
+    desired_login_policy,
+    emergency_window_active,
+    is_sso_only,
+)
 
 _BASE_PROFILE_DEFINITIONS = {
     "administrator": {
@@ -37,7 +49,7 @@ _BASE_PROFILE_DEFINITIONS = {
         "classification": "portal",
         "active": True,
         "groups": ("base.group_portal",),
-        "pocketid": False,
+        "pocketid": True,
     },
     "historical": {
         "classification": "historical",
@@ -77,7 +89,7 @@ class ResUsers(models.Model):
         copy=False,
         help=(
             "Allow first-login linking only when the verified Pocket ID email "
-            "uniquely and exactly matches this active internal user."
+            "uniquely and exactly matches this active governed user."
         ),
     )
     usl_identity_classification = fields.Selection(
@@ -86,21 +98,33 @@ class ResUsers(models.Model):
             ("historical", "Historical identity; login disabled"),
             ("portal", "Portal or external identity"),
             ("decision", "Obsolete or duplicate; decision required"),
-            ("break_glass", "Local break-glass administrator"),
+            ("break_glass", "Sealed emergency administrator"),
         ],
         string="Identity classification",
         copy=False,
     )
     usl_local_break_glass = fields.Boolean(
-        string="Local break-glass administrator",
+        string="Sealed emergency administrator",
         copy=False,
-        help="Emergency local administrator independent of Pocket ID.",
+        help=(
+            "Independent administrator accepted only on the audited emergency "
+            "route during a short deployment-approved incident window."
+        ),
     )
     usl_oidc_identity_ids = fields.One2many(
         "usl.oidc.identity",
         "user_id",
         string="OIDC identities",
     )
+    usl_sso_only_login = fields.Boolean(
+        string="SSO-only login",
+        compute="_compute_usl_sso_only_login",
+    )
+
+    def _compute_usl_sso_only_login(self):
+        enabled = is_sso_only(self.env)
+        for user in self:
+            user.usl_sso_only_login = enabled
 
     @api.model
     def _usl_pocketid_profile_definitions(self):
@@ -132,11 +156,11 @@ class ResUsers(models.Model):
     )
     def _check_pocketid_user_policy(self):
         for user in self:
-            if user.share and (
-                user.usl_pocketid_access or user.usl_pocketid_email_link
+            if user.share and user.usl_pocketid_access and (
+                user.usl_identity_classification != "portal"
             ):
                 raise ValidationError(
-                    _("Pocket ID internal SSO cannot be enabled for portal users."),
+                    _("Pocket ID portal users require the portal identity classification."),
                 )
             if user.usl_local_break_glass and (
                 user.usl_pocketid_access or user.usl_pocketid_email_link
@@ -150,7 +174,7 @@ class ResUsers(models.Model):
                 )
             if (
                 user.usl_pocketid_access
-                and user.usl_identity_classification != "active"
+                and user.usl_identity_classification not in ("active", "portal")
             ):
                 raise ValidationError(
                     _("Pocket ID login requires an active identity classification."),
@@ -643,6 +667,91 @@ class ResUsers(models.Model):
         }
 
     @api.model
+    def _usl_pocketid_policy_exempt_users(self):
+        users = self.browse()
+        for xmlid in (
+            "base.user_root",
+            "base.public_user",
+            "base.template_portal_user_id",
+        ):
+            user = self.env.ref(xmlid, raise_if_not_found=False)
+            if user:
+                users |= user
+        return users
+
+    @api.model
+    def _usl_pocketid_validate_sso_only(self):
+        provider = self.env.ref("usl_pocketid.provider_pocketid").sudo()
+        if not provider.enabled or not provider.usl_oidc_issuer:
+            raise ValidationError(
+                _("Pocket ID must be completely configured before SSO-only login."),
+            )
+        other_providers = self.env["auth.oauth.provider"].sudo().search(
+            [
+                ("id", "!=", provider.id),
+                ("enabled", "=", True),
+            ],
+        )
+        if other_providers:
+            raise ValidationError(
+                _("Pocket ID must be the only enabled interactive login provider."),
+            )
+        exempt = self._usl_pocketid_policy_exempt_users()
+        users = self.sudo().with_context(active_test=False).search(
+            [
+                ("active", "=", True),
+                ("id", "not in", exempt.ids),
+            ],
+        )
+        break_glass = users.filtered("usl_local_break_glass")
+        if len(break_glass) != 1:
+            raise ValidationError(
+                _("SSO-only login requires exactly one sealed emergency administrator."),
+            )
+        ungoverned = users - break_glass
+        invalid = ungoverned.filtered(
+            lambda user: not user.usl_pocketid_access
+            or user.usl_identity_classification not in ("active", "portal")
+            or (
+                not user.usl_pocketid_email_link
+                and not user.usl_oidc_identity_ids.filtered("active")
+            ),
+        )
+        if invalid:
+            raise ValidationError(
+                _("Every active interactive user must have governed Pocket ID access: %s")
+                % ", ".join(sorted(invalid.mapped("login"))),
+            )
+        return users, break_glass
+
+    @api.model
+    def _usl_pocketid_apply_login_policy(self):
+        policy = desired_login_policy()
+        if policy not in SUPPORTED_LOGIN_POLICIES:
+            raise ValidationError(
+                _("Unsupported Pocket ID login policy: %s") % policy,
+            )
+        parameters = self.env["ir.config_parameter"].sudo()
+        previous = parameters.get_str(LOGIN_POLICY_PARAMETER, "standard")
+        if policy == LOGIN_POLICY_SSO_ONLY:
+            users, break_glass = self._usl_pocketid_validate_sso_only()
+            if previous != policy:
+                for user in users - break_glass:
+                    user.with_context(no_reset_password=True).write(
+                        {"password": secrets.token_urlsafe(48)},
+                    )
+            parameters.set_bool("auth_signup.reset_password", False)
+            parameters.set_str(LOGIN_POLICY_PARAMETER, policy)
+        else:
+            parameters.set_str(LOGIN_POLICY_PARAMETER, policy)
+        if previous != policy:
+            self.env["usl.oidc.audit.event"]._record(
+                event_type="configuration",
+                reason_code=f"login_policy_{policy}",
+            )
+        return policy
+
+    @api.model
     def _usl_pocketid_resolve_user(self, provider, claims):
         issuer = claims["iss"]
         subject = claims["sub"]
@@ -667,9 +776,12 @@ class ResUsers(models.Model):
         user = identity.user_id.sudo()
         if (
             not user.active
-            or user.share
             or not user.usl_pocketid_access
             or user.usl_local_break_glass
+            or (
+                user.share
+                and user.usl_identity_classification != "portal"
+            )
         ):
             raise PocketIDAccessDenied(PocketIDReason.USER_DISABLED)
         return user, identity
@@ -690,9 +802,9 @@ class ResUsers(models.Model):
         candidates = self.sudo().search(
             [
                 ("active", "=", True),
-                ("share", "=", False),
                 ("usl_pocketid_access", "=", True),
                 ("usl_pocketid_email_link", "=", True),
+                ("usl_identity_classification", "in", ("active", "portal")),
                 ("email", "=ilike", email),
             ],
         ).filtered(lambda user: (user.email or "").strip().casefold() == email.casefold())
@@ -753,6 +865,7 @@ class ResUsers(models.Model):
             "usl_pocketid.provider_pocketid",
             raise_if_not_found=False,
         ).sudo()
+        sso_only = is_sso_only(self.env)
         is_pocketid_governed = (
             self.usl_pocketid_access
             or self.usl_identity_classification == "active"
@@ -764,16 +877,86 @@ class ResUsers(models.Model):
             and pocketid_provider.enabled
             and self.oauth_provider_id == pocketid_provider
         )
-        if is_pocketid_governed and not is_pocketid_oauth:
+        if sso_only and credential.get("type") == "usl_pocketid":
+            proof = request and request.session.get(REAUTH_SESSION_KEY)
+            if (
+                not proof
+                or proof.get("uid") != self.id
+                or proof.get("expires_at", 0) < time.time()
+            ):
+                raise AccessDenied()
+            request.session.pop(REAUTH_SESSION_KEY, None)
+            return {
+                "uid": self.id,
+                "auth_method": "usl_pocketid",
+                "mfa": "skip",
+            }
+        noninteractive_api_attempt = (
+            sso_only
+            and credential.get("type") == "password"
+            and not env.get("interactive", True)
+        )
+        if (
+            sso_only
+            and credential.get("type") == "oauth_token"
+            and not is_pocketid_oauth
+        ):
             raise AccessDenied()
-        return super()._check_credentials(credential, env)
+        if sso_only and credential.get("type") not in (
+            "oauth_token",
+            "password",
+            "usl_pocketid",
+        ):
+            raise AccessDenied()
+        if (
+            sso_only
+            and credential.get("type") == "password"
+            and not noninteractive_api_attempt
+        ):
+            emergency = request and request.session.get(EMERGENCY_SESSION_KEY)
+            if not (
+                env.get("interactive", True)
+                and self.usl_local_break_glass
+                and emergency
+                and emergency.get("uid") == self.id
+                and emergency_window_active()
+            ):
+                raise AccessDenied()
+        if (
+            is_pocketid_governed
+            and not is_pocketid_oauth
+            and not noninteractive_api_attempt
+        ):
+            raise AccessDenied()
+        result = super()._check_credentials(credential, env)
+        if sso_only and not env.get("interactive", True):
+            if result.get("auth_method") != "apikey":
+                raise AccessDenied()
+        return result
+
+    def _rpc_api_keys_only(self):
+        return is_sso_only(self.env) or super()._rpc_api_keys_only()
+
+    def _get_auth_methods(self):
+        self.ensure_one()
+        if not is_sso_only(self.env):
+            return super()._get_auth_methods()
+        if self.usl_local_break_glass:
+            if (
+                request
+                and request.session.get(EMERGENCY_SESSION_KEY)
+                and emergency_window_active()
+            ):
+                return ["password"]
+            return []
+        return ["usl_pocketid"] if self.usl_pocketid_access else []
 
     def action_create_passkey(self):
         pocketid_provider = self.env.ref(
             "usl_pocketid.provider_pocketid",
             raise_if_not_found=False,
         ).sudo()
-        if any(
+        if is_sso_only(self.env) or any(
             user.usl_pocketid_access
             or user.usl_identity_classification == "active"
             or user.oauth_provider_id == pocketid_provider
@@ -786,3 +969,20 @@ class ResUsers(models.Model):
                 ),
             )
         return super().action_create_passkey()
+
+    def action_reset_password(self):
+        if is_sso_only(self.env):
+            raise UserError(
+                _("Passwords are disabled. Manage this user's Pocket ID access instead."),
+            )
+        return super().action_reset_password()
+
+    def preference_change_password(self):
+        if is_sso_only(self.env):
+            raise UserError(_("Passwords are disabled by the SSO-only login policy."))
+        return super().preference_change_password()
+
+    def action_change_password_wizard(self):
+        if is_sso_only(self.env):
+            raise UserError(_("Passwords are disabled by the SSO-only login policy."))
+        return super().action_change_password_wizard()

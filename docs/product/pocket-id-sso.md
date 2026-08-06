@@ -4,7 +4,7 @@ Status: implemented and locally validated
 
 Decision date: 2026-07-29
 
-Scope: Odoo Community `saas~19.2`, Pocket ID OIDC, internal USL users
+Scope: Odoo Community `saas~19.2`, Pocket ID OIDC, every human user
 
 ## Decision
 
@@ -16,7 +16,7 @@ authorization authority. The implementation combines:
 2. the isolated `usl_pocketid` add-on for issuer, state, nonce, per-request
    PKCE, key-selection, identity-linking and authorization-policy hardening;
 3. environment-only provider credentials and explicit named-user policy;
-4. one local Odoo break-glass administrator that is never linked to Pocket ID.
+4. one sealed Odoo emergency administrator that is never linked to Pocket ID.
 
 The governed provider record rejects direct field changes and deletion.
 Enablement, issuer, endpoints, client metadata and group gates are refreshed
@@ -34,10 +34,16 @@ Every successful login still resolves an existing, active, explicitly
 governed Odoo user and uses that user's Odoo groups and allowed companies.
 Installing the integration disables the bundled Odoo.com OAuth provider even
 while Pocket ID is inert; activation enables only the governed Pocket ID
-provider. Pocket ID-managed users cannot use an Odoo password, Odoo-local
-passkey or another local primary credential; their passkeys remain registered
-and verified only in Pocket ID. Existing portal authentication remains
-outside the internal Pocket ID perimeter.
+provider. With `USL_POCKET_ID_LOGIN_POLICY=sso_only`, Pocket ID is the only
+normal interactive provider for internal and portal users. Odoo passwords,
+local passkeys, signup, reset and alternate OAuth providers are rejected at
+the backend. Bearer API keys remain available for governed integrations and
+never fall back to a user password. Passkeys remain registered and verified
+only in Pocket ID.
+
+This separation follows Odoo's external API guidance: non-human clients use
+revocable, expiring bearer API keys rather than a human account password:
+[External API](https://www.odoo.com/documentation/19.0/developer/reference/external_api.html).
 
 ## Alternatives considered
 
@@ -111,8 +117,8 @@ Odoo's native group graph.
 | `administrator` | Settings, Accounting, HR, Expenses and Project administrator | Explicit list or `all` | Randomized and denied while SSO-managed |
 | `collaborator` | Internal user and Project user | Explicit list | Randomized and denied while SSO-managed |
 | `accountant_reviewer` | Internal user and existing `USL Accountant Review` role | Explicit list, normally Unstatic Labs only | Randomized and denied while SSO-managed |
-| `break_glass` | Settings administrator only | Explicit list or `all` | Required local secret; never SSO-linked |
-| `portal` | Portal only | Explicit list | Not eligible for internal Pocket ID SSO |
+| `break_glass` | Settings administrator only | Explicit list or `all` | Sealed secret; accepted only through the time-limited emergency route |
+| `portal` | Portal only | Explicit list | Pocket ID identity link or approved one-time verified-email link |
 | `historical` | Existing groups retained for attribution | Existing scope retained | User archived; identity disabled |
 | `decision` | Existing groups retained pending owner decision | Existing scope retained | User archived; identity disabled |
 
@@ -157,8 +163,14 @@ make authentication tests pass.
   but never rewrites the Odoo user or changes the durable link.
 - Conflict: denies login and requires an explicit administrator decision.
 - Pocket ID outage: existing Odoo sessions continue until normal expiry or
-  revocation; new SSO login fails closed; the local break-glass account remains
-  available.
+  revocation and new SSO login fails closed. Emergency access requires an
+  incident-approved deployment flag and an expiry of at most one hour; the
+  account never appears on the normal login page.
+
+Sensitive Odoo actions reauthenticate against the same immutable Pocket ID
+identity. A different Pocket person cannot approve the action. Logout clears
+the Odoo session and uses Pocket ID's advertised logout endpoint when present,
+then returns to the explicit SSO page without an automatic login loop.
 
 Pocket ID client group membership is an authentication gate, not an Odoo role.
 Pocket ID documents that a new client has no allowed groups by default and

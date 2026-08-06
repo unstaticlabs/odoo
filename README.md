@@ -547,6 +547,10 @@ ignored mode-0600 `.pocket-id.env`. Follow the
 [Pocket ID SSO runbook](docs/operations/pocket-id-sso-runbook.md); never place
 the client secret, break-glass password or raw subjects in Git. Production
 uses its own HTTPS issuer, approved secrets and owner-confirmed subjects.
+Pocket ID is the sole human login in finalized targets. Local QA uses
+`make login-link USER=<username>`; the emergency administrator is unavailable
+unless a short, explicitly expired incident window is enabled. API keys remain
+the supported non-human authentication method.
 The Documents wrapper also registers a separate Paperless OIDC client and
 never reuses Odoo's client secret. Canonical local credentials stay in the
 ignored mode-0600 `.pocket-id.env`; the isolated Documents QA wrapper uses

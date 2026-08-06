@@ -36,6 +36,7 @@ services:
     extra_hosts:
       - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
     environment:
+      ODOO_LIST_DB: "False"
       NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost},${POCKET_ID_HOSTNAME:-pocket-id.localhost}
       USL_POCKET_ID_ENABLED: "1"
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
@@ -44,14 +45,17 @@ services:
       USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
       USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
       USL_POCKET_ID_SCOPES: openid profile email groups
-      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: "0"
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-1}
+      USL_POCKET_ID_LOGIN_POLICY: ${USL_POCKET_ID_LOGIN_POLICY:-sso_only}
+      USL_POCKET_ID_BREAK_GLASS_ENABLED: ${USL_POCKET_ID_BREAK_GLASS_ENABLED:-0}
+      USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT: ${USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT:-}
       POCKET_ID_EXTRA_USERS_JSON: ${POCKET_ID_EXTRA_USERS_JSON:-[]}
 
   paperless-preflight:
     environment:
       PAPERLESS_OIDC_ENABLED: "1"
       PAPERLESS_PUBLIC_BASE_URL: ${PAPERLESS_PUBLIC_BASE_URL:-${PAPERLESS_PUBLIC_URL:-}}
-      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-false}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-true}
       PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
       POCKET_ID_APP_URL: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
       POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
@@ -76,8 +80,8 @@ services:
       # authorization authority, so identity-provider groups are never copied
       # into Paperless permissions.
       PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
-      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-false}
-      PAPERLESS_REDIRECT_LOGIN_TO_SSO: ${PAPERLESS_REDIRECT_LOGIN_TO_SSO:-false}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-true}
+      PAPERLESS_REDIRECT_LOGIN_TO_SSO: ${PAPERLESS_REDIRECT_LOGIN_TO_SSO:-true}
       # django-allauth defaults callback URLs to HTTPS independently of
       # PAPERLESS_URL. Local QA is deliberately HTTP; production-like targets
       # must set and validate HTTPS.
@@ -96,6 +100,7 @@ services:
     extra_hosts:
       - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
     environment:
+      ODOO_LIST_DB: "False"
       NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost},${POCKET_ID_HOSTNAME:-pocket-id.localhost}
       USL_POCKET_ID_ENABLED: "1"
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
@@ -104,7 +109,10 @@ services:
       USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
       USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
       USL_POCKET_ID_SCOPES: openid profile email groups
-      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: "0"
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-1}
+      USL_POCKET_ID_LOGIN_POLICY: ${USL_POCKET_ID_LOGIN_POLICY:-sso_only}
+      USL_POCKET_ID_BREAK_GLASS_ENABLED: ${USL_POCKET_ID_BREAK_GLASS_ENABLED:-0}
+      USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT: ${USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT:-}
       POCKET_ID_EXTRA_USERS_JSON: ${POCKET_ID_EXTRA_USERS_JSON:-[]}
 
   test:

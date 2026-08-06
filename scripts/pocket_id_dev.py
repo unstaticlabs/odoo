@@ -232,7 +232,9 @@ def _write_new_env(path: Path) -> None:
         "PAPERLESS_CORS_ALLOWED_HOSTS": paperless_public_url,
         "PAPERLESS_CSRF_TRUSTED_ORIGINS": paperless_public_url,
         "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
+        "PAPERLESS_DISABLE_REGULAR_LOGIN": "true",
         "PAPERLESS_HTTP_PORT": paperless_port,
+        "PAPERLESS_REDIRECT_LOGIN_TO_SSO": "true",
         "PAPERLESS_SECRET_KEY": secrets.token_urlsafe(64),
         "POCKET_ID_APP_URL": f"http://{pocket_hostname}:{pocket_port}",
         "POCKET_ID_CLIENT_ID": "usl-odoo-preproduction",
@@ -256,6 +258,9 @@ def _write_new_env(path: Path) -> None:
         "USL_EINVOICE_LIVE_ENABLED": "0",
         "USL_EREPORTING_LIVE_ENABLED": "0",
         "USL_POCKET_ID_BREAK_GLASS_PASSWORD": secrets.token_urlsafe(36),
+        "USL_POCKET_ID_LOGIN_POLICY": "sso_only",
+        "USL_POCKET_ID_BREAK_GLASS_ENABLED": "0",
+        "USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT": "",
     }
     if os.getenv("USL_POCKET_ID_DEV_STRONG_DATABASE_SECRETS") == "1":
         database_password = secrets.token_urlsafe(36)
@@ -428,7 +433,9 @@ def _odoo_client_payload(values: dict[str, str]) -> dict[str, object]:
         "callbackURLs": [
             f"{values['ODOO_PUBLIC_BASE_URL'].rstrip('/')}/auth_oauth/signin",
         ],
-        "logoutCallbackURLs": [],
+        "logoutCallbackURLs": [
+            f"{values['ODOO_PUBLIC_BASE_URL'].rstrip('/')}/web/login",
+        ],
         "isPublic": False,
         "pkceEnabled": True,
         "pkceSupported": True,

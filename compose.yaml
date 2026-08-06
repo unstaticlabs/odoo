@@ -322,6 +322,7 @@ services:
       ODOO_HTTP_PORT: 8069
       ODOO_GEVENT_PORT: 8072
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
@@ -371,6 +372,7 @@ services:
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_MAX_CRON_THREADS: 0
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
@@ -421,6 +423,7 @@ services:
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_MAX_CRON_THREADS: 0
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: 0
@@ -458,6 +461,7 @@ services:
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_MAX_CRON_THREADS: 0
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: 0

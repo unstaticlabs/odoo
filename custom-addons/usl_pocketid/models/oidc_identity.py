@@ -92,9 +92,13 @@ class OidcIdentity(models.Model):
     @api.constrains("user_id", "active")
     def _check_user_type(self):
         for identity in self:
-            if identity.active and identity.user_id.share:
+            if (
+                identity.active
+                and identity.user_id.share
+                and identity.user_id.usl_identity_classification != "portal"
+            ):
                 raise ValidationError(
-                    _("Pocket ID internal SSO cannot be linked to a portal user."),
+                    _("Pocket ID portal identities require the portal classification."),
                 )
 
     def _sync_oauth_binding(self):

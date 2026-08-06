@@ -33,6 +33,9 @@ def configure(env):
             break_glass_password=break_glass_password,
             strict=True,
         )
+        summary["login_policy"] = env[
+            "res.users"
+        ]._usl_pocketid_apply_login_policy()
         if apply_changes:
             env.cr.commit()
         else:

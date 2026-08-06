@@ -36,6 +36,7 @@ _ENVIRONMENT_MANAGED_FIELDS = {
     "scope",
     "token_endpoint",
     "token_map",
+    "usl_end_session_endpoint",
     "usl_allow_unique_email_link",
     "usl_oidc_issuer",
     "usl_pocketid",
@@ -80,6 +81,11 @@ class AuthOauthProvider(models.Model):
         string="Required Pocket ID Group",
         copy=False,
         help="Pocket ID group required to authenticate. It never grants Odoo groups.",
+    )
+    usl_end_session_endpoint = fields.Char(
+        string="OIDC Logout Endpoint",
+        copy=False,
+        help="Validated Pocket ID endpoint used for provider-aware logout.",
     )
     usl_allow_unique_email_link = fields.Boolean(
         string="Allow pre-approved unique email linking",
@@ -214,6 +220,16 @@ class AuthOauthProvider(models.Model):
                 raise ValidationError(
                     _("%(label)s must use the Pocket ID issuer origin.", label=label),
                 )
+        end_session_endpoint = discovery.get("end_session_endpoint")
+        if end_session_endpoint:
+            end_session_endpoint = self._usl_validate_url(
+                end_session_endpoint,
+                label=_("Pocket ID logout endpoint"),
+            )
+            if _origin(end_session_endpoint) != _origin(issuer):
+                raise ValidationError(
+                    _("Pocket ID logout endpoint must use the issuer origin."),
+                )
         if "code" not in discovery.get("response_types_supported", []):
             raise ValidationError(
                 _("Pocket ID discovery does not advertise the authorization-code flow."),
@@ -229,6 +245,7 @@ class AuthOauthProvider(models.Model):
         return {
             **endpoints,
             "issuer": discovered_issuer,
+            "end_session_endpoint": end_session_endpoint or False,
             "token_endpoint_auth_methods_supported": discovery.get(
                 "token_endpoint_auth_methods_supported",
                 ["client_secret_basic"],
@@ -338,6 +355,7 @@ class AuthOauthProvider(models.Model):
                 "usl_oidc_issuer": discovery["issuer"],
                 "usl_public_base_url": public_base_url,
                 "usl_required_group": required_group,
+                "usl_end_session_endpoint": discovery["end_session_endpoint"],
                 "usl_allow_unique_email_link": _env_enabled(
                     "USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK",
                 ),

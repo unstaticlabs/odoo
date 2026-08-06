@@ -169,6 +169,7 @@ class TestPocketIDOidcSecurity(TransactionCase):
             "authorization_endpoint": "https://id.example.test/authorize",
             "token_endpoint": "https://id.example.test/token",
             "jwks_uri": "https://id.example.test/jwks",
+            "end_session_endpoint": "https://id.example.test/logout",
             "response_types_supported": ["code"],
             "id_token_signing_alg_values_supported": ["RS256"],
             "token_endpoint_auth_methods_supported": ["client_secret_post"],
@@ -196,6 +197,10 @@ class TestPocketIDOidcSecurity(TransactionCase):
         self.assertTrue(self.provider.enabled)
         self.assertEqual(self.provider.client_id, "configured-client")
         self.assertFalse(self.provider.client_secret)
+        self.assertEqual(
+            self.provider.usl_end_session_endpoint,
+            "https://id.example.test/logout",
+        )
         self.assertEqual(
             self.provider.usl_token_auth_method,
             "client_secret_post",

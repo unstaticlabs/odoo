@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sso_only_login" inherit_id="web.login" name="Pocket ID SSO-only login">
+        <xpath expr="//form[@data-captcha='login']" position="attributes">
+            <attribute name="t-if">not usl_sso_only</attribute>
+        </xpath>
+        <xpath expr="//form[@data-captcha='login']" position="after">
+            <div t-if="usl_sso_only" class="oe_login_form text-center">
+                <p class="mb-3">Use your USL identity to continue.</p>
+                <p class="alert alert-danger text-start" t-if="error" role="alert">
+                    <t t-out="error"/>
+                </p>
+                <a
+                    t-if="usl_pocketid_provider"
+                    t-att-href="usl_pocketid_provider['auth_link']"
+                    class="btn btn-primary w-100">
+                    Continue with Pocket ID
+                </a>
+                <p t-else="" class="alert alert-warning text-start" role="alert">
+                    Pocket ID is not ready. Contact an administrator.
+                </p>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="emergency_login" name="Sealed emergency login">
+        <t t-call="web.login_layout">
+            <div class="oe_login_form">
+                <h1 class="h4 mb-2">Emergency administrator</h1>
+                <p class="text-muted small mb-3">
+                    This time-limited recovery route is audited.
+                </p>
+                <form action="/usl/emergency-login" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="redirect" t-att-value="redirect"/>
+                    <div class="mb-3">
+                        <label for="emergency_login" class="form-label">Login</label>
+                        <input id="emergency_login" name="login" class="form-control" required="required" autocomplete="username"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="emergency_password" class="form-label">Emergency password</label>
+                        <input id="emergency_password" name="password" type="password" class="form-control" required="required" autocomplete="current-password"/>
+                    </div>
+                    <p t-if="error" class="alert alert-danger" role="alert"><t t-out="error"/></p>
+                    <button type="submit" class="btn btn-danger w-100">Sign in for recovery</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="reauth_complete" name="Pocket ID reauthentication complete">
+        <t t-call="web.login_layout">
+            <div class="text-center">
+                <p t-if="error" class="alert alert-danger" role="alert"><t t-out="error"/></p>
+                <p t-else="" class="alert alert-success" role="status">Identity confirmed. This window can close.</p>
+            </div>
+        </t>
+    </template>
+</odoo>

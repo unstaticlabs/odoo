@@ -1091,3 +1091,76 @@ msgstr "jwks_uri"
 #: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
 msgid "token_endpoint"
 msgstr "token_endpoint"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Continue with Pocket ID"
+msgstr "Continuer avec Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Use your USL identity to continue."
+msgstr "Utilisez votre identité USL pour continuer."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Pocket ID is not ready. Contact an administrator."
+msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__break_glass
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_local_break_glass
+msgid "Sealed emergency administrator"
+msgstr "Administrateur d’urgence scellé"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Emergency administrator"
+msgstr "Administrateur d’urgence"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "This time-limited recovery route is audited."
+msgstr "Cet accès de secours temporaire est audité."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Emergency password"
+msgstr "Mot de passe d’urgence"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Sign in for recovery"
+msgstr "Se connecter pour le dépannage"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.reauth_complete
+msgid "Identity confirmed. This window can close."
+msgstr "Identité confirmée. Cette fenêtre peut être fermée."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityForm
+msgid "Confirm this sensitive action with Pocket ID."
+msgstr "Confirmez cette action sensible avec Pocket ID."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityForm
+msgid "Confirm with Pocket ID"
+msgstr "Confirmer avec Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityLink
+msgid "Use Pocket ID"
+msgstr "Utiliser Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-javascript
+#: code:addons/usl_pocketid/static/src/js/check_identity.js:0
+msgid "Allow the Pocket ID confirmation window and try again."
+msgstr "Autorisez la fenêtre de confirmation Pocket ID, puis réessayez."
+
+#. module: usl_pocketid
+#. odoo-javascript
+#: code:addons/usl_pocketid/static/src/js/check_identity.js:0
+msgid "Pocket ID confirmation was not completed."
+msgstr "La confirmation Pocket ID n’a pas abouti."
