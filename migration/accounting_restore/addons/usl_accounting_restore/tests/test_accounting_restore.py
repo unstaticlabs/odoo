@@ -4900,6 +4900,69 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(mapping[901], expected_line)
 
+    def test_payment_method_compatibility_classifies_only_unused_enterprise_methods(self):
+        method_line = self._journal("bank").outbound_payment_method_line_ids[:1]
+        source_company_id = 990001
+        source_rows = [
+            {
+                "id": 901,
+                "company_id": source_company_id,
+                "code": "manual",
+                "payment_type": "outbound",
+                "payment_usage_count": 3,
+                "expense_usage_count": 4,
+            },
+            {
+                "id": 902,
+                "company_id": source_company_id,
+                "code": "sepa_ct",
+                "payment_type": "outbound",
+                "payment_usage_count": 0,
+                "expense_usage_count": 0,
+            },
+            {
+                "id": 903,
+                "company_id": source_company_id,
+                "code": "batch_payment",
+                "payment_type": "inbound",
+                "payment_usage_count": 1,
+                "expense_usage_count": 0,
+            },
+            {
+                "id": 904,
+                "company_id": source_company_id,
+                "code": "unexpected_method",
+                "payment_type": "outbound",
+                "payment_usage_count": 0,
+                "expense_usage_count": 0,
+            },
+        ]
+        import_run = self.env["rebuild.account.import.run"]
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            return_value=source_rows,
+        ):
+            result = import_run._payment_method_line_compatibility(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {901: method_line},
+            )[source_company_id]
+
+        self.assertEqual(result["source_count"], 4)
+        self.assertEqual(result["mapped_count"], 1)
+        self.assertEqual(result["unavailable_unused_count"], 1)
+        self.assertEqual(result["classified_count"], 2)
+        self.assertEqual(
+            result["unavailable_unused"][0]["classification"],
+            "unused_enterprise_only",
+        )
+        self.assertEqual(
+            {item["classification"] for item in result["blocking"]},
+            {"used_unavailable", "unknown_unavailable"},
+        )
+
     def test_accountant_reviewer_can_read_native_expenses_but_not_change_them(self):
         reviewer = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -5632,6 +5695,70 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(
             failed["companies"][0]["checks"]["active_journal_count"],
         )
+
+    def test_company_without_source_expense_journal_gets_idempotent_native_default(self):
+        company = self.env["res.company"].create({
+            "name": "Operational expense company",
+            "currency_id": self.company.currency_id.id,
+        })
+        expense_account = self.env["account.account"].with_company(
+            company,
+        ).create({
+            "name": "Travel expenses",
+            "code": "625100",
+            "account_type": "expense",
+            "company_ids": [Command.set([company.id])],
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Operational expense configuration",
+            "source_snapshot_id": "unit-operational-expense-company",
+        })
+        source_company_id = 990008
+        source_rows = [{
+            "id": source_company_id,
+            "expense_journal_id": False,
+            "allowed_payment_method_line_ids": [],
+        }]
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[source_rows, source_rows],
+        ):
+            first = import_run._native_expense_configure_companies(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {source_company_id: company},
+                {},
+                {},
+                {990625: expense_account},
+                [],
+            )
+            first_journal = company.expense_journal_id
+            second = import_run._native_expense_configure_companies(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {source_company_id: company},
+                {},
+                {},
+                {990625: expense_account},
+                [],
+            )
+
+        self.assertTrue(first_journal)
+        self.assertEqual(first_journal.code, "NDF")
+        self.assertEqual(first_journal.type, "purchase")
+        self.assertEqual(first_journal.default_account_id, expense_account)
+        self.assertEqual(company.expense_journal_id, first_journal)
+        self.assertEqual(
+            self.env["account.journal"].search_count([
+                ("company_id", "=", company.id),
+                ("code", "=", "NDF"),
+            ]),
+            1,
+        )
+        self.assertEqual(first["operational_default_expense_journal_count"], 1)
+        self.assertEqual(second["operational_default_expense_journal_count"], 1)
 
     def test_reconciliation_model_replay_preserves_native_oca_rule_semantics(self):
         snapshot = "unit-reconciliation-models"
