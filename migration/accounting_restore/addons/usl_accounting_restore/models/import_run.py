@@ -8322,9 +8322,14 @@ class RebuildAccountImportRun(models.Model):
             )
 
         transitioned = Expense.browse()
+        newly_batched = Expense.browse()
         ambiguous = []
         created_batches = Batch.browse()
-        batch_ids = set()
+        existing_batches = Batch.search([
+            ("name", "=", "SBFH — Canada 2026"),
+            ("state", "=", "draft"),
+        ])
+        batch_ids = set(existing_batches.ids)
         grouped_expense_ids = defaultdict(list)
         for expense in canada_drafts:
             grouped_expense_ids[expense.company_id.id, expense.employee_id.id].append(
@@ -8383,6 +8388,7 @@ class RebuildAccountImportRun(models.Model):
                 created_batches |= batch
             batch_ids.add(batch.id)
 
+            expenses_to_link = Expense.browse()
             for expense in grouped_expenses.sorted("id"):
                 normalized = self._expense_transition_normalize(
                     " ".join(filter(None, (expense.name, expense.description))),
@@ -8418,7 +8424,111 @@ class RebuildAccountImportRun(models.Model):
                     })
                     continue
                 if not expense.expense_batch_id:
-                    expense.write({"expense_batch_id": batch.id})
+                    expenses_to_link |= expense
+            if expenses_to_link:
+                expenses_to_link.with_context(
+                    usl_batch_context_defer_audit=True,
+                ).write({"expense_batch_id": batch.id})
+                newly_batched |= expenses_to_link
+
+        normalized = Expense.browse()
+        cleaned_context_messages = self.env["mail.message"]
+        migration_summary_count = 0
+        batches = Batch.browse(batch_ids).exists()
+        for batch in batches:
+            existing_migration_summaries = batch.message_ids.filtered(
+                lambda message: (
+                    "Canada draft transition prepared" in (message.body or "")
+                ),
+            )
+            for expense in batch.expense_ids.filtered(
+                lambda item: item.state == "draft",
+            ):
+                values = {}
+                if (
+                    batch.account_override_id
+                    and expense.account_id == batch.account_override_id
+                    and expense.account_context_source != "batch"
+                ):
+                    if not expense.batch_account_baseline_captured:
+                        values.update({
+                            "pre_batch_account_id": expense.account_id.id,
+                            "pre_batch_account_context_source": (
+                                expense.account_context_source
+                            ),
+                            "batch_account_baseline_captured": True,
+                        })
+                    values.update({
+                        "account_context_source": "batch",
+                        "batch_applied_account_id": batch.account_override_id.id,
+                    })
+                if (
+                    batch.analytic_distribution
+                    and expense._analytic_distributions_equal(
+                        expense.analytic_distribution,
+                        batch.analytic_distribution,
+                    )
+                    and expense.analytic_context_source != "batch"
+                ):
+                    if not expense.batch_analytic_baseline_captured:
+                        values.update({
+                            "pre_batch_analytic_distribution": (
+                                expense.analytic_distribution or {}
+                            ),
+                            "pre_batch_analytic_context_source": (
+                                expense.analytic_context_source
+                            ),
+                            "batch_analytic_baseline_captured": True,
+                        })
+                    values.update({
+                        "analytic_context_source": "batch",
+                        "batch_applied_analytic_distribution": (
+                            batch.analytic_distribution
+                        ),
+                    })
+                if values:
+                    values["batch_context_revision"] = batch.context_revision
+                    expense.with_context(usl_batch_context_internal=True).write(values)
+                    normalized |= expense
+
+            generated_context_messages = batch.message_ids.filtered(
+                lambda message: (
+                    "Shared context revision" in (message.body or "")
+                    and "explicit exception(s) were preserved" in (message.body or "")
+                ),
+            )
+            if generated_context_messages:
+                cleaned_context_messages |= generated_context_messages
+                generated_context_messages.unlink()
+
+            batch_changed = bool(
+                (newly_batched & batch.expense_ids)
+                or (transitioned & batch.expense_ids)
+                or (normalized & batch.expense_ids)
+                or generated_context_messages,
+            )
+            if batch_changed and not existing_migration_summaries:
+                inherited_count = len(
+                    batch.expense_ids.filtered(
+                        lambda expense: (
+                            expense.account_context_source == "batch"
+                            or expense.analytic_context_source == "batch"
+                        ),
+                    ),
+                )
+                batch.message_post(
+                    body=_(
+                        "Canada draft transition prepared %(count)s expense(s): "
+                        "%(inherited)s use shared context, %(exceptions)s keep "
+                        "line exceptions and %(incomplete)s need information. "
+                        "Nothing was submitted or posted.",
+                        count=batch.expense_count,
+                        inherited=inherited_count,
+                        exceptions=batch.exception_count,
+                        incomplete=batch.incomplete_count,
+                    ),
+                )
+                migration_summary_count += 1
 
         archived_templates = trip_products.product_tmpl_id.filtered("active")
         if archived_templates:
@@ -8435,7 +8545,6 @@ class RebuildAccountImportRun(models.Model):
             )
             for expense in historical.sorted("id")
         ]
-        batches = Batch.browse(batch_ids).exists()
         return {
             "classification": "EXPENSE_BATCH_CONTEXT_TRANSITION",
             "candidate_draft_count": len(canada_drafts),
@@ -8443,7 +8552,12 @@ class RebuildAccountImportRun(models.Model):
             "created_batch_count": len(created_batches),
             "batch_ids": batches.ids,
             "batched_expense_count": sum(batches.mapped("expense_count")),
+            "newly_batched_expense_count": len(newly_batched),
+            "normalized_inherited_count": len(normalized),
             "incomplete_expense_count": sum(batches.mapped("incomplete_count")),
+            "exception_expense_count": sum(batches.mapped("exception_count")),
+            "cleaned_context_message_count": len(cleaned_context_messages),
+            "migration_summary_message_count": migration_summary_count,
             "ambiguous_count": len(ambiguous),
             "ambiguous_examples": ambiguous[:50],
             "archived_trip_product_count": len(archived_templates),
