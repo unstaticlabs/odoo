@@ -57,6 +57,10 @@ consolidation toolset.
   for new accounting records and company-dependent configuration.
 - Selecting several companies broadens permitted reading; it does not make a
   write operation cross-company.
+- List views hide the Company column by default when only one company is
+  selected and show it by default when several are selected. This rule applies
+  to native and custom company fields; a user's explicit optional-column choice
+  remains authoritative for that view.
 - Accounting Manager and read-only accountant permissions remain identical in
   each allowed company. The reviewer can inspect combined reports but cannot
   post, reconcile, configure or close.

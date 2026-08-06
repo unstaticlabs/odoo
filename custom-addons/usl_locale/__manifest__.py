@@ -1,7 +1,7 @@
 {
     "name": "USL Locale",
-    "summary": "Shared day-first dates and European number presentation",
-    "version": "saas~19.2.1.0.0",
+    "summary": "Shared locale and company-scope presentation defaults",
+    "version": "saas~19.2.1.1.0",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -12,9 +12,11 @@
     "assets": {
         "web.assets_backend": [
             "usl_locale/static/src/js/european_date_format.js",
+            "usl_locale/static/src/js/multi_company_list_columns.js",
         ],
         "web.assets_unit_tests": [
             "usl_locale/static/tests/european_date_format.test.js",
+            "usl_locale/static/tests/multi_company_list_columns.test.js",
         ],
     },
     "auto_install": True,
