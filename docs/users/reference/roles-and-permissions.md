@@ -31,6 +31,18 @@ allow arbitrary Python, SQL or JavaScript execution.
 
 ## Company access
 
-The company switcher controls the active company context. A user sees only companies granted on their user record. Multi-company reports include only selected companies the user is allowed to access.
+The company switcher controls the active company context. A user sees only
+companies granted on their user record. The highlighted company is where new
+accounting records are created; selecting several companies is for combined
+reading and does not turn a write into a cross-company operation.
+
+Interactive Accounting reports have a visible **Companies** selector. Summary
+statements combine same-currency companies and show each company's
+contribution. Detailed ledgers keep company-specific rows. FEC, French tax and
+closing packages are always generated one company at a time. Different company
+currencies must also be reported separately.
+
+Changing the global company selector never grants access: Allowed Companies on
+the user record remains authoritative.
 
 Roles and responsible users are configured; personal names are not embedded in the product.

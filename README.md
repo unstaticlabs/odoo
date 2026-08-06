@@ -39,6 +39,9 @@ Primary entry points:
   for reconstruction and parity evidence.
 - [Accounting restoration boundary](migration/accounting_restore/README.md)
   for the one-off importer lifecycle and finalization contract.
+- [Multi-company Accounting](docs/accounting/multi-company-accounting.md) for
+  company isolation, combined management reporting and the explicit legal
+  consolidation boundary.
 - [Projects restoration runbook](docs/operations/project-restoration.md) for
   repeatable Odoo Online project and task recovery.
 - [Product and migration boundary](docs/agents/product-migration-boundary.md)
