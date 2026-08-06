@@ -57,6 +57,14 @@ load_environment() {
       && "$COMPOSE_PROJECT_NAME" != "$requested_compose_project" ]]; then
     printf 'Pocket ID environment targets %s, not requested project %s.\n' \
       "$COMPOSE_PROJECT_NAME" "$requested_compose_project" >&2
+    if [[ -n "${POCKET_ID_LOGIN_HINT_USER:-}" ]]; then
+      printf '\nUse the configured QA environment with:\n' >&2
+      printf '  make COMPOSE_PROJECT=%s login-link USER=%s\n' \
+        "$COMPOSE_PROJECT_NAME" "$POCKET_ID_LOGIN_HINT_USER" >&2
+    else
+      printf '\nSelect it explicitly with COMPOSE_PROJECT_NAME=%s.\n' \
+        "$COMPOSE_PROJECT_NAME" >&2
+    fi
     return 2
   fi
   [[ -z "$requested_odoo_http_port" ]] \
@@ -363,6 +371,7 @@ start_odoo_runtime() {
 
 one_time_link() {
   local username="${1:?Usage: scripts/pocket-id-dev one-time-link USER}"
+  POCKET_ID_LOGIN_HINT_USER="$username"
   start_idp
   python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" one-time-link "$username"
 }

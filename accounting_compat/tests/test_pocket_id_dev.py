@@ -254,6 +254,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "Linked-worktree Pocket ID bootstrap requires",
             script,
         )
+        self.assertIn("Use the configured QA environment with:", script)
+        self.assertIn(
+            "make COMPOSE_PROJECT=%s login-link USER=%s",
+            script,
+        )
+        self.assertIn('POCKET_ID_LOGIN_HINT_USER="$username"', script)
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
         self.assertIn('module_args+=("--init=', script)
