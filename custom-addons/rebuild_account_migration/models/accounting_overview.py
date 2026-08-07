@@ -155,6 +155,13 @@ class RebuildAccountOverview(models.Model):
         ],
         readonly=True,
     )
+    evidence_status = fields.Selection(
+        [
+            ("ready", "Ready"),
+            ("attention", "Attention Required"),
+        ],
+        compute="_compute_evidence_status",
+    )
     review_decision_count = fields.Integer(readonly=True)
     pending_review_decision_count = fields.Integer(readonly=True)
     recorded_review_decision_count = fields.Integer(readonly=True)
@@ -176,6 +183,14 @@ class RebuildAccountOverview(models.Model):
                 ("company_id", "=", summary.company_id.id),
                 ("status", "=", "open"),
             ])
+
+    def _compute_evidence_status(self):
+        for summary in self:
+            summary.evidence_status = (
+                "attention"
+                if summary.missing_vendor_attachment_count
+                else "ready"
+            )
 
     @api.model
     def action_open_accounting_home(self):

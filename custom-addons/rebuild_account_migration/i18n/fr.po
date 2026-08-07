@@ -1781,6 +1781,7 @@ msgid "Attention"
 msgstr "Attention"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__evidence_status__attention
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__hygiene_status__attention
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_search
 msgid "Attention Required"
@@ -4682,6 +4683,11 @@ msgstr "Synthèse des justificatifs"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Evidence follow-up"
 msgstr "Suivi des justificatifs"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__evidence_status
+msgid "Evidence Status"
+msgstr "Statut des justificatifs"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_issue_form
@@ -8924,6 +8930,7 @@ msgstr "Effet de préparation"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_health_state__ready
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_closing_period__readiness_status__ready
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__validation_status__ready
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__evidence_status__ready
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__hygiene_status__ready
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__latest_closing_readiness__ready
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_search

@@ -2101,6 +2101,12 @@
                                     <div class="o_usl_overview_card">
                                         <div class="o_usl_overview_status">
                                             <h4 class="o_usl_overview_card_title">Evidence follow-up</h4>
+                                            <field
+                                                name="evidence_status"
+                                                nolabel="1"
+                                                widget="badge"
+                                                invisible="missing_vendor_attachment_count == 0"
+                                                decoration-warning="evidence_status == 'attention'"/>
                                             <span
                                                 class="badge rounded-pill o_usl_ready_status_chip"
                                                 invisible="missing_vendor_attachment_count != 0">
