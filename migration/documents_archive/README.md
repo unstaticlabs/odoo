@@ -152,10 +152,11 @@ links and governed identity mappings for the isolated environment.
 This stage deliberately uses only the non-human archive service identity. It
 does not copy Online users, tokens, passwords, SSO links or connection state.
 After all source-data stages and migration finalization pass,
-`make target-finalize` provisions governed Pocket identities in Paperless,
-maps them to their existing Odoo users by immutable subject, and synchronizes
-the Odoo-authorized document set. That separation keeps user access reproducible
-without pretending target SSO is source data.
+`make target-finalize` switches the archive to the runtime `odoo-integration`
+owner, provisions governed Pocket identities in Paperless, maps them to their
+existing Odoo users by immutable subject, and synchronizes the Odoo-authorized
+document set. That separation keeps user access reproducible without pretending
+target SSO is source data.
 
 ## Qualified dump evidence
 

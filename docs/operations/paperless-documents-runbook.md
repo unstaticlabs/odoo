@@ -148,12 +148,13 @@ gate login and never become document authorization.
 
 Each direct user is one Odoo user, one immutable Pocket identity, and one
 individual numeric Paperless user; shared administrators are not a valid
-production mapping. `make target-finalize` provisions these accounts and their
-Pocket social links, verifies the Odoo mappings, and synchronizes exact
-document-object permissions. Run `make paperless-users` after a governed
-identity, Documents role, or company assignment changes. Both commands are
-idempotent and fail closed on an ambiguous subject, username, email, role, or
-remote identity.
+production mapping. Archive restore uses the disposable `odoo-migration`
+Paperless owner; target finalization and `make paperless-users` provision the
+runtime `odoo-integration` owner, claim any remaining migration-owned roots,
+map governed Pocket identities, and synchronize exact document-object
+permissions. Run `make paperless-users` after a governed identity, Documents
+role, or company assignment changes. Both commands are idempotent and fail
+closed on an ambiguous subject, username, email, role, or remote identity.
 
 **Documents > Configuration > User access** remains the inspection and
 exception-maintenance surface. **Verify identity** is available for an

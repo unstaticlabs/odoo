@@ -336,6 +336,9 @@ sync_paperless_users() {
   provision
   start_paperless_runtime
   "${COMPOSE[@]}" up -d --wait db
+  # Rebuild the runtime service identity and claim any archive roots still
+  # owned by the one-shot migration user before forcing permission sync.
+  configure_documents_runtime
   sync_paperless_identities 1
 }
 

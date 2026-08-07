@@ -353,6 +353,26 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             pocket_helper.index("\nsync_paperless_users() {")
         ]
         self.assertIn("sync_paperless_identities", configure_body)
+        self.assertIn("configure_documents_runtime", configure_body)
+        sync_users_body = pocket_helper[
+            pocket_helper.index("\nsync_paperless_users() {") :
+            pocket_helper.index("\nstart_runtime() {")
+        ]
+        self.assertIn("configure_documents_runtime", sync_users_body)
+        self.assertLess(
+            sync_users_body.index("configure_documents_runtime"),
+            sync_users_body.index("sync_paperless_identities"),
+        )
+        integration_access = (
+            ROOT / "deploy" / "documents" / "paperless_integration_access.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn('username = "odoo-integration"', integration_access)
+        self.assertIn('migration_username = "odoo-migration"', integration_access)
+        self.assertIn(
+            "Document.objects.filter(owner=migration_user).update(owner=user)",
+            integration_access,
+        )
+        self.assertIn("USL_PAPERLESS_OWNERS_CLAIMED=", integration_access)
 
     def test_target_finalization_reconciles_paperless_people(self):
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
