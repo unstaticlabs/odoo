@@ -20,6 +20,8 @@ from ..exceptions import PocketIDAccessDenied, PocketIDReason
 from ..models.oidc_identity import identity_fingerprint
 from ..policy import (
     EMERGENCY_SESSION_KEY,
+    END_SESSION_URL_SESSION_KEY,
+    ID_TOKEN_SESSION_KEY,
     REAUTH_SESSION_KEY,
     emergency_window_active,
     is_sso_only,
@@ -36,6 +38,37 @@ _STATE_PREFIX = "usl_pocketid_"
 _TRANSACTIONS_KEY = "usl_pocketid_transactions"
 _TRANSACTION_MAX_AGE = 300
 _TRANSACTION_LIMIT = 5
+_SSO_LOGOUT_BRIDGE_PATH = "/usl/pocketid/sso-logout"
+
+
+def _allowed_end_session_url(url, provider):
+    """Accept only the configured Pocket ID end-session endpoint."""
+    if not url or not provider or not provider.usl_end_session_endpoint:
+        return False
+    target = urlsplit(url)
+    expected = urlsplit(provider.usl_end_session_endpoint)
+    return (
+        target.scheme == expected.scheme
+        and target.netloc == expected.netloc
+        and target.path == expected.path
+        and not target.fragment
+    )
+
+
+def _build_end_session_url(provider, *, id_token=None):
+    parameters = {
+        "post_logout_redirect_uri": (
+            provider.usl_public_base_url.rstrip("/") + "/web/login"
+        ),
+        "client_id": provider.client_id,
+    }
+    if id_token:
+        parameters["id_token_hint"] = id_token
+    return (
+        provider.usl_end_session_endpoint
+        + "?"
+        + urlencode(parameters)
+    )
 
 
 def _error_message(error_code):
@@ -221,6 +254,7 @@ class PocketIDLogin(OpenIDLogin):
             return request.redirect("/web/login?sso_error=sso_required", 303)
         response = super().web_login(*args, **kwargs)
         if response.is_qweb:
+            request.session.pop(END_SESSION_URL_SESSION_KEY, None)
             sso_only = is_sso_only(request.env)
             response.qcontext["usl_sso_only"] = sso_only
             if sso_only:
@@ -416,6 +450,7 @@ class PocketIDController(OAuthController):
 
             credential = {"login": login, "token": key, "type": "oauth_token"}
             auth_info = authenticate(request.session, request.env, credential)
+            request.session[ID_TOKEN_SESSION_KEY] = id_token
             request.env["usl.oidc.audit.event"]._record(
                 event_type="login_success",
                 reason_code="validated_oidc",
@@ -488,23 +523,57 @@ class PocketIDSession(WebSession):
         sso_only = bool(provider and is_sso_only(request.env))
         end_session_endpoint = provider.usl_end_session_endpoint if provider else False
         public_base_url = provider.usl_public_base_url if provider else False
+        id_token = request.session.get(ID_TOKEN_SESSION_KEY)
         session_logout(request.session, keep_db=True)
-        if sso_only and end_session_endpoint and public_base_url:
-            return request.redirect(
-                end_session_endpoint
-                + "?"
-                + urlencode(
-                    {
-                        "post_logout_redirect_uri": (
-                            public_base_url.rstrip("/") + "/web/login"
-                        ),
-                        "client_id": provider.client_id,
-                    },
-                ),
-                303,
-                local=False,
-            )
+        # The webclient fetch()-follows this 303, then location.assign()s the
+        # final same-origin URL. A direct cross-origin Location breaks CORS and
+        # Odoo's same-origin redirect() guard, so bridge through a local page.
+        if (
+            sso_only
+            and end_session_endpoint
+            and public_base_url
+            and id_token
+        ):
+            request.session[END_SESSION_URL_SESSION_KEY] = {
+                "url": _build_end_session_url(provider, id_token=id_token),
+                "created_at": time.time(),
+            }
+            return request.redirect(_SSO_LOGOUT_BRIDGE_PATH, 303)
+        request.session.pop(END_SESSION_URL_SESSION_KEY, None)
         return request.redirect("/web/login" if sso_only else redirect, 303)
+
+    @route(
+        _SSO_LOGOUT_BRIDGE_PATH,
+        type="http",
+        auth="none",
+        methods=["GET"],
+        readonly=True,
+        sitemap=False,
+    )
+    def sso_logout_bridge(self):
+        provider = False
+        if request.db:
+            provider = request.env.ref(
+                "usl_pocketid.provider_pocketid",
+                raise_if_not_found=False,
+            )
+            if provider:
+                provider = provider.sudo()
+        payload = request.session.get(END_SESSION_URL_SESSION_KEY) or {}
+        end_session_url = payload.get("url") if isinstance(payload, dict) else None
+        created_at = payload.get("created_at", 0) if isinstance(payload, dict) else 0
+        # The webclient fetch()-follows this page once, then location.assign()s
+        # it again. Keep the URL until TTL so both hits can render the bridge.
+        if (
+            not _allowed_end_session_url(end_session_url, provider)
+            or time.time() - created_at > 120
+        ):
+            request.session.pop(END_SESSION_URL_SESSION_KEY, None)
+            return request.redirect("/web/login", 303)
+        return request.render(
+            "usl_pocketid.sso_logout_redirect",
+            {"url": end_session_url},
+        )
 
 
 class PocketIDDatabase(Database):

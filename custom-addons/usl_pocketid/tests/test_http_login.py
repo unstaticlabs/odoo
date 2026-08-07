@@ -15,7 +15,11 @@ from odoo import Command
 from odoo.tests import HttpCase, tagged
 from odoo.tools import config
 
-from ..policy import LOGIN_POLICY_PARAMETER, LOGIN_POLICY_SSO_ONLY
+from ..policy import (
+    ID_TOKEN_SESSION_KEY,
+    LOGIN_POLICY_PARAMETER,
+    LOGIN_POLICY_SSO_ONLY,
+)
 
 
 @tagged("post_install", "-at_install", "usl_pocketid_http")
@@ -125,6 +129,9 @@ class TestPocketIDHttpLogin(HttpCase):
             document = html.fromstring(response.content)
             self.assertFalse(document.xpath("//input[@name='password']"))
             self.assertFalse(document.xpath("//input[@name='login']"))
+            self.assertFalse(
+                document.xpath("//owl-component[@name='web.user_switch']"),
+            )
             buttons = document.xpath(
                 "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
             )
@@ -162,6 +169,43 @@ class TestPocketIDHttpLogin(HttpCase):
 
     def test_logout_uses_the_external_provider_endpoint(self):
         self.authenticate(None, None)
+        # Simulate a completed Pocket ID login that stored the ID token.
+        self.update_session(**{ID_TOKEN_SESSION_KEY: "test-id-token"})
+        with self._sso_only():
+            csrf_token = self.csrf_token()
+            response = self.url_open(
+                "/web/session/logout",
+                data={
+                    "csrf_token": csrf_token,
+                    "redirect": "/web/login",
+                },
+                allow_redirects=False,
+            )
+            self.assertEqual(response.status_code, 303)
+            bridge_path = urlsplit(response.headers["Location"]).path
+            self.assertEqual(bridge_path, "/usl/pocketid/sso-logout")
+            bridge = self.url_open(
+                response.headers["Location"],
+                allow_redirects=False,
+            )
+        self.assertEqual(bridge.status_code, 200)
+        document = html.fromstring(bridge.content)
+        targets = document.xpath("//a[@id='usl_pocketid_logout_target']/@href")
+        self.assertEqual(len(targets), 1)
+        location = urlsplit(targets[0])
+        self.assertEqual(location.scheme, "https")
+        self.assertEqual(location.netloc, "id.example.test")
+        self.assertEqual(location.path, "/logout")
+        parameters = parse_qs(location.query)
+        self.assertEqual(
+            parameters["post_logout_redirect_uri"],
+            [self.base_url() + "/web/login"],
+        )
+        self.assertEqual(parameters["client_id"], [self.provider.client_id])
+        self.assertEqual(parameters["id_token_hint"], ["test-id-token"])
+
+    def test_logout_without_id_token_stays_on_odoo_login(self):
+        self.authenticate(None, None)
         with self._sso_only():
             csrf_token = self.csrf_token()
             response = self.url_open(
@@ -174,13 +218,8 @@ class TestPocketIDHttpLogin(HttpCase):
             )
         self.assertEqual(response.status_code, 303)
         location = urlsplit(response.headers["Location"])
-        self.assertEqual(location.scheme, "https")
-        self.assertEqual(location.netloc, "id.example.test")
-        self.assertEqual(location.path, "/logout")
-        self.assertEqual(
-            parse_qs(location.query)["post_logout_redirect_uri"],
-            [self.base_url() + "/web/login"],
-        )
+        self.assertEqual(location.path, "/web/login")
+        self.assertNotEqual(location.netloc, "id.example.test")
 
     def test_emergency_login_is_time_limited_classified_and_audited(self):
         emergency_user = self.env["res.users"].with_context(

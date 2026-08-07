@@ -169,8 +169,11 @@ make authentication tests pass.
 
 Sensitive Odoo actions reauthenticate against the same immutable Pocket ID
 identity. A different Pocket person cannot approve the action. Logout clears
-the Odoo session and uses Pocket ID's advertised logout endpoint when present,
-then returns to the explicit SSO page without an automatic login loop.
+the Odoo session, then bridges through a same-origin page that sends the
+browser to Pocket ID's end-session endpoint with the session-bound
+`id_token_hint`. Pocket ID returns to the explicit SSO login page. Without a
+stored ID token, logout stays on `/web/login` and does not open a broken
+cross-origin fetch redirect.
 
 Pocket ID client group membership is an authentication gate, not an Odoo role.
 Pocket ID documents that a new client has no allowed groups by default and

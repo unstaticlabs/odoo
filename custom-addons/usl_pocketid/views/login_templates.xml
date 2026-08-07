@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sso_only_login" inherit_id="web.login" name="Pocket ID SSO-only login">
+        <!-- Avoid mounting web.user_switch: it requires form.oe_login_form. -->
+        <xpath expr="//owl-component[@name='web.user_switch']" position="attributes">
+            <attribute name="t-if">not login and not usl_sso_only</attribute>
+        </xpath>
         <xpath expr="//form[@data-captcha='login']" position="attributes">
             <attribute name="t-if">not usl_sso_only</attribute>
         </xpath>
@@ -21,6 +25,27 @@
                 </p>
             </div>
         </xpath>
+    </template>
+
+    <template id="sso_logout_redirect" name="Pocket ID logout redirect">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta http-equiv="refresh" t-att-content="'0;url=%s' % url"/>
+                <title>Signing out</title>
+                <script type="text/javascript">
+                    window.location.replace(
+                        document.getElementById("usl_pocketid_logout_target").href
+                    );
+                </script>
+            </head>
+            <body>
+                <p>Signing out…</p>
+                <p>
+                    <a id="usl_pocketid_logout_target" t-att-href="url">Continue</a>
+                </p>
+            </body>
+        </html>
     </template>
 
     <template id="emergency_login" name="Sealed emergency login">

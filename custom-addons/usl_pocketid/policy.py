@@ -12,6 +12,8 @@ SUPPORTED_LOGIN_POLICIES = {LOGIN_POLICY_STANDARD, LOGIN_POLICY_SSO_ONLY}
 
 REAUTH_SESSION_KEY = "usl_pocketid_reauth"
 EMERGENCY_SESSION_KEY = "usl_pocketid_emergency"
+ID_TOKEN_SESSION_KEY = "usl_pocketid_id_token"
+END_SESSION_URL_SESSION_KEY = "usl_pocketid_end_session_url"
 
 _TRUTHY_VALUES = {"1", "true", "yes", "on"}
 _PROCESS_STARTED_AT = datetime.now(UTC)
