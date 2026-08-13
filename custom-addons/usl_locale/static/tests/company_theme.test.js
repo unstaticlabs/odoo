@@ -8,6 +8,7 @@ import { MobileSwitchCompanyMenu } from "@web/webclient/burger_menu/mobile_switc
 import { SwitchCompanyMenu } from "@web/webclient/switch_company_menu/switch_company_menu";
 import {
     applyCompanyTheme,
+    clearCompanyTheme,
     companyThemeForeground,
     normalizeCompanyColor,
 } from "../src/js/company_theme";
@@ -57,6 +58,20 @@ test("the theme writes only company-scoped CSS variables", () => {
     expect(root.style.getPropertyValue("--usl-company-foreground")).toBe("#111827");
 });
 
+test("multi-company scope restores native Odoo theming", () => {
+    const root = document.createElement("div");
+    applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" });
+
+    expect(applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" }, 2)).toBe(null);
+    expect(root).not.toHaveAttribute("data-usl-company-theme");
+    expect(root.style.getPropertyValue("--usl-company-color")).toBe("");
+    expect(root.style.getPropertyValue("--usl-company-foreground")).toBe("");
+
+    applyCompanyTheme(root, { usl_ui_theme_color: "#2D7D68" });
+    clearCompanyTheme(root);
+    expect(root).not.toHaveAttribute("data-usl-company-theme");
+});
+
 test("the company selector shows colors and the broader company scope", async () => {
     await mountWithCleanup(SwitchCompanyMenu);
 
@@ -66,10 +81,7 @@ test("the company selector shows colors and the broader company scope", async ()
         "title",
         "Unstatic Labs is primary for new records. 2 companies are selected for viewing."
     );
-    expect("button.o_switch_company_menu .usl_company_color_dot").toHaveAttribute(
-        "style",
-        "--usl-company-indicator:#2D7D68"
-    );
+    expect("button.o_switch_company_menu .usl_company_color_dot").toHaveCount(0);
 
     queryOne("button.o_switch_company_menu").click();
     await animationFrame();
@@ -81,10 +93,7 @@ test("the company selector shows colors and the broader company scope", async ()
 test("the mobile company selector keeps the active company and scope visible", async () => {
     await mountWithCleanup(MobileSwitchCompanyMenu);
 
-    expect(".o_burger_menu_companies > .w-100 .usl_company_color_dot").toHaveAttribute(
-        "style",
-        "--usl-company-indicator:#2D7D68"
-    );
+    expect(".o_burger_menu_companies > .w-100 .usl_company_color_dot").toHaveCount(0);
     expect(".o_burger_menu_companies > .w-100 .text-truncate").toHaveText("Unstatic Labs");
     expect(".o_burger_menu_companies > .w-100 .badge").toHaveText("+1");
     expect(".o_burger_menu_companies > .w-100").toHaveAttribute(

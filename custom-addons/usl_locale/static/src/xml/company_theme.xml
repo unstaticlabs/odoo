@@ -7,13 +7,9 @@
             <attribute name="t-att-title">uslCompanyScopeTitle</attribute>
             <attribute name="t-att-aria-label">uslCompanyScopeTitle</attribute>
         </xpath>
-        <xpath expr="//button[contains(@class, 'o_switch_company_menu')]/i" position="before">
-            <span class="usl_company_color_dot flex-shrink-0"
-                  t-att-style="'--usl-company-indicator:' + user.activeCompany.usl_ui_theme_color"/>
-        </xpath>
         <xpath expr="//button[contains(@class, 'o_switch_company_menu')]/span[contains(@class, 'oe_topbar_name')]" position="after">
             <span t-if="uslAdditionalCompanyCount"
-                  class="usl_company_scope_count badge rounded-pill ms-1"
+                  class="usl_company_scope_count badge rounded-pill text-bg-secondary ms-1"
                   t-out="'+' + uslAdditionalCompanyCount"/>
         </xpath>
     </t>
@@ -37,10 +33,6 @@
     <t t-name="usl_locale.MobileSwitchCompanyMenuTheme"
        t-inherit="web.MobileSwitchCompanyMenu"
        t-inherit-mode="extension">
-        <xpath expr="//span[normalize-space()='Companies']" position="before">
-            <span class="usl_company_color_dot d-inline-block me-2"
-                  t-att-style="'--usl-company-indicator:' + user.activeCompany.usl_ui_theme_color"/>
-        </xpath>
         <xpath expr="//span[normalize-space()='Companies']" position="after">
             <span class="ms-2 text-truncate" t-out="user.activeCompany.name"/>
             <span t-if="uslAdditionalCompanyCount"

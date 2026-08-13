@@ -32,7 +32,17 @@ export function companyThemeForeground(color) {
     return whiteContrast >= darkContrast ? "#FFFFFF" : "#111827";
 }
 
-export function applyCompanyTheme(root, company) {
+export function clearCompanyTheme(root) {
+    delete root.dataset.uslCompanyTheme;
+    root.style.removeProperty("--usl-company-color");
+    root.style.removeProperty("--usl-company-foreground");
+}
+
+export function applyCompanyTheme(root, company, activeCompanyCount = 1) {
+    if (activeCompanyCount > 1) {
+        clearCompanyTheme(root);
+        return null;
+    }
     const color = normalizeCompanyColor(company?.usl_ui_theme_color);
     const foreground = companyThemeForeground(color);
     root.dataset.uslCompanyTheme = "active";
@@ -53,7 +63,11 @@ export function companyScopeTitle(activeCompany, activeCompanyCount) {
 
 export const companyThemeService = {
     start() {
-        applyCompanyTheme(document.documentElement, user.activeCompany);
+        applyCompanyTheme(
+            document.documentElement,
+            user.activeCompany,
+            user.activeCompanies.length
+        );
     },
 };
 

@@ -58,10 +58,10 @@ consolidation toolset.
 - Selecting several companies broadens permitted reading; it does not make a
   write operation cross-company.
 - Each company has a dedicated **Interface color** under **Settings > Users &
-  Companies > Companies**. The primary company's color is applied to the top
-  navigation bar and appears beside its name. When several companies are
-  selected, a `+N` indicator keeps the broader reading scope visible while the
-  primary company's color continues to identify where new records belong.
+  Companies > Companies**. With one company selected, its color is applied to
+  the top navigation bar and remains visible inside the company selector.
+  When several companies are selected, a `+N` indicator shows the broader
+  reading scope and the navigation returns to Odoo's neutral default theme.
   Leaving the field empty uses a deterministic automatic color. Interface
   colors do not change invoices, reports, emails or other company branding.
 - List views hide the Company column by default when only one company is

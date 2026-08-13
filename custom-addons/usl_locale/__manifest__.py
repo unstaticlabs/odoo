@@ -1,7 +1,7 @@
 {
     "name": "USL Locale",
     "summary": "Shared locale and company-context presentation defaults",
-    "version": "saas~19.2.1.2.0",
+    "version": "saas~19.2.1.2.1",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
