@@ -51,6 +51,22 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
                 "analytic_context_source": "product",
             },
         ])
+        cls.exception_expense = cls.env["hr.expense"].with_user(
+            cls.expense_user_employee,
+        ).create({
+            "name": "Browser Canada executive exception",
+            "date": fields.Date.from_string("2026-07-12"),
+            "employee_id": cls.expense_employee.id,
+            "product_id": cls.product_c.id,
+            "company_id": cls.env.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 30,
+            "analytic_distribution": {
+                str(cls.analytic_account_2.id): 100.0,
+            },
+            "analytic_context_source": "explicit",
+            "expense_batch_id": cls.batch.id,
+        })
 
     def test_create_or_select_batch_tour(self):
         action = self.env.ref("hr_expense.hr_expense_actions_my_all")
@@ -68,4 +84,12 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
         self.assertEqual(
             self.expenses.mapped("payment_mode"),
             ["own_account", "company_account"],
+        )
+
+    def test_focused_batch_review_tour(self):
+        action = self.env.ref("usl_expense_batch.action_expense_batches")
+        self.start_tour(
+            f"/odoo/action-{action.id}/{self.batch.id}",
+            "usl_expense_batch_focused_review",
+            login=self.expense_user_employee.login,
         )

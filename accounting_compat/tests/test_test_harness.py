@@ -261,6 +261,15 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn("USL_EINVOICE_LIVE_ENABLED", disable_helper)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED", disable_helper)
 
+    def test_expense_batch_qa_bootstrap_uses_defined_target_guard(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn('if [[ "$DEV_DB" != "odoo_dev" ]]', helper)
+        self.assertIn('"${COMPOSE[@]}" up -d --wait db', helper)
+        self.assertNotIn("require_target_database", helper)
+
 
 if __name__ == "__main__":
     unittest.main()

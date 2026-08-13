@@ -429,7 +429,12 @@ bootstrap_platform_billing_qa() {
 
 bootstrap_expense_batch_qa() {
   local status=0
-  require_target_database
+  if [[ "$DEV_DB" != "odoo_dev" ]]; then
+    printf 'Expense Batch target QA requires database odoo_dev, got %s.\n' \
+      "$DEV_DB" >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
   "${COMPOSE[@]}" --profile init run --rm -T \
     -e ODOO_INIT_DB="$DEV_DB" \
