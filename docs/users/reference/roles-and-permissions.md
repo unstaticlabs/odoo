@@ -36,6 +36,13 @@ companies granted on their user record. The highlighted company is where new
 accounting records are created; selecting several companies is for combined
 reading and does not turn a write into a cross-company operation.
 
+The top navigation uses the primary company's configured interface color. A
+colored dot identifies each company in the switcher, and `+N` beside the
+primary company means that additional companies are selected for viewing.
+Administrators configure the color from **Settings > Users & Companies >
+Companies**; leaving it empty assigns a stable automatic color. This interface
+color does not change financial statements or external documents.
+
 Interactive Accounting reports have a visible **Companies** selector. Summary
 statements combine same-currency companies and show each company's
 contribution. Detailed ledgers keep company-specific rows. FEC, French tax and

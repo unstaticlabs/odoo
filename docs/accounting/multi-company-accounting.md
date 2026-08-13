@@ -57,6 +57,13 @@ consolidation toolset.
   for new accounting records and company-dependent configuration.
 - Selecting several companies broadens permitted reading; it does not make a
   write operation cross-company.
+- Each company has a dedicated **Interface color** under **Settings > Users &
+  Companies > Companies**. The primary company's color is applied to the top
+  navigation bar and appears beside its name. When several companies are
+  selected, a `+N` indicator keeps the broader reading scope visible while the
+  primary company's color continues to identify where new records belong.
+  Leaving the field empty uses a deterministic automatic color. Interface
+  colors do not change invoices, reports, emails or other company branding.
 - List views hide the Company column by default when only one company is
   selected and show it by default when several are selected. This rule applies
   to native and custom company fields; a user's explicit optional-column choice

@@ -1,22 +1,27 @@
 {
     "name": "USL Locale",
-    "summary": "Shared locale and company-scope presentation defaults",
-    "version": "saas~19.2.1.1.0",
+    "summary": "Shared locale and company-context presentation defaults",
+    "version": "saas~19.2.1.2.0",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": ["web"],
     "data": [
         "data/european_date_format.xml",
+        "views/res_company_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "usl_locale/static/src/js/european_date_format.js",
             "usl_locale/static/src/js/multi_company_list_columns.js",
+            "usl_locale/static/src/js/company_theme.js",
+            "usl_locale/static/src/xml/company_theme.xml",
+            "usl_locale/static/src/scss/company_theme.scss",
         ],
         "web.assets_unit_tests": [
             "usl_locale/static/tests/european_date_format.test.js",
             "usl_locale/static/tests/multi_company_list_columns.test.js",
+            "usl_locale/static/tests/company_theme.test.js",
         ],
     },
     "auto_install": True,

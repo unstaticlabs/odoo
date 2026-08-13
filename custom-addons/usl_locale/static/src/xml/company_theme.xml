@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_locale.SwitchCompanyMenuTheme"
+       t-inherit="web.SwitchCompanyMenu"
+       t-inherit-mode="extension">
+        <xpath expr="//button[contains(@class, 'o_switch_company_menu')]" position="attributes">
+            <attribute name="t-att-title">uslCompanyScopeTitle</attribute>
+            <attribute name="t-att-aria-label">uslCompanyScopeTitle</attribute>
+        </xpath>
+        <xpath expr="//button[contains(@class, 'o_switch_company_menu')]/i" position="before">
+            <span class="usl_company_color_dot flex-shrink-0"
+                  t-att-style="'--usl-company-indicator:' + user.activeCompany.usl_ui_theme_color"/>
+        </xpath>
+        <xpath expr="//button[contains(@class, 'o_switch_company_menu')]/span[contains(@class, 'oe_topbar_name')]" position="after">
+            <span t-if="uslAdditionalCompanyCount"
+                  class="usl_company_scope_count badge rounded-pill ms-1"
+                  t-out="'+' + uslAdditionalCompanyCount"/>
+        </xpath>
+    </t>
+
+    <t t-name="usl_locale.SwitchCompanyMenuItemsTheme"
+       t-inherit="web.SwitchCompanyMenu.Items"
+       t-inherit-mode="extension">
+        <xpath expr="//div[contains(@class, 'o_switch_company_menu_items')]" position="before">
+            <div class="usl_company_scope_summary d-flex align-items-center gap-2 px-2 pb-2 small"
+                 t-att-title="uslCompanyScopeTitle">
+                <span class="usl_company_color_dot flex-shrink-0"
+                      t-att-style="'--usl-company-indicator:' + user.activeCompany.usl_ui_theme_color"/>
+                <span class="text-truncate" t-out="user.activeCompany.name"/>
+                <span t-if="uslAdditionalCompanyCount"
+                      class="badge rounded-pill text-bg-secondary"
+                      t-out="'+' + uslAdditionalCompanyCount"/>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="usl_locale.MobileSwitchCompanyMenuTheme"
+       t-inherit="web.MobileSwitchCompanyMenu"
+       t-inherit-mode="extension">
+        <xpath expr="//span[normalize-space()='Companies']" position="before">
+            <span class="usl_company_color_dot d-inline-block me-2"
+                  t-att-style="'--usl-company-indicator:' + user.activeCompany.usl_ui_theme_color"/>
+        </xpath>
+        <xpath expr="//span[normalize-space()='Companies']" position="after">
+            <span class="ms-2 text-truncate" t-out="user.activeCompany.name"/>
+            <span t-if="uslAdditionalCompanyCount"
+                  class="badge rounded-pill text-bg-secondary ms-2"
+                  t-out="'+' + uslAdditionalCompanyCount"/>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'w-100')]" position="attributes">
+            <attribute name="t-att-title">uslCompanyScopeTitle</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="usl_locale.SwitchCompanyItemTheme"
+       t-inherit="web.SwitchCompanyItem"
+       t-inherit-mode="extension">
+        <xpath expr="//span[contains(@class, 'company_label')]/t" position="before">
+            <span class="usl_company_color_dot d-inline-block me-2"
+                  t-att-style="'--usl-company-indicator:' + props.company.usl_ui_theme_color"/>
+        </xpath>
+    </t>
+</templates>

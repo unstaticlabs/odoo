@@ -1,0 +1,54 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_locale
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"PO-Revision-Date: 2026-08-13 00:00+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_locale
+#: model:ir.model.fields,field_description:usl_locale.field_res_company__usl_ui_theme_color
+msgid "Interface color"
+msgstr "Couleur de l’interface"
+
+#. module: usl_locale
+#: model:ir.model.fields,help:usl_locale.field_res_company__usl_ui_theme_color
+msgid "Colors the Odoo navigation bar while this company is primary. Leave empty to use an automatically assigned company color."
+msgstr "Colore la barre de navigation Odoo lorsque cette société est principale. Laissez ce champ vide pour utiliser une couleur attribuée automatiquement."
+
+#. module: usl_locale
+#: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
+msgid "Use automatic color"
+msgstr "Utiliser la couleur automatique"
+
+#. module: usl_locale
+#: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
+msgid "Assigned automatically"
+msgstr "Attribuée automatiquement"
+
+#. module: usl_locale
+#. odoo-javascript
+#: code:addons/usl_locale/static/src/js/company_theme.js:0
+#, python-format
+msgid "%(company)s is primary for new records. %(count)s companies are selected for viewing."
+msgstr "%(company)s est la société principale pour les nouveaux enregistrements. %(count)s sociétés sont sélectionnées pour la consultation."
+
+#. module: usl_locale
+#. odoo-javascript
+#: code:addons/usl_locale/static/src/js/company_theme.js:0
+#, python-format
+msgid "%(company)s is the active company."
+msgstr "%(company)s est la société active."
+
+#. module: usl_locale
+#: code:addons/usl_locale/models/res_company.py:0
+#, python-format
+msgid "Interface color must use the #RRGGBB format."
+msgstr "La couleur de l’interface doit utiliser le format #RRGGBB."
