@@ -133,13 +133,25 @@ server allowlist of synchronized stored fields.
 
 ## Write path
 
-Uploads calculate SHA-256 locally, search both current and historical version
-checksums, and reuse an accessible root before submitting new bytes. A visible
-operation is created, Paperless receives the file, and the durable Odoo link is
-created only after its asynchronous task succeeds. A retry is safe across an
-interrupted Odoo transaction because reconciliation imports the Paperless
-commit before fixture or operation reuse. Failed operations stay visible until
-the user retries or acknowledges them.
+Native Odoo attachments are the operational write path. Creation, final-record
+reparenting and content replacement enqueue a local operation after the Odoo
+file is durable; no Paperless request runs in the user's transaction. Temporary
+composer files, inline images, binary fields, URLs, web assets and unsupported
+models are excluded. Supported evidence stays immediately previewable from its
+ordinary Odoo record while a bounded worker archives it.
+
+The worker calculates SHA-256, searches current and historical version
+checksums, and reuses an accessible root before submitting new bytes. The same
+binary on another record adds a relationship; changed content on the same
+attachment becomes a Paperless version. Retry identity is the native attachment
+and checksum. Failed operations stay visible until retry or acknowledgement.
+
+`usl.document.link.mixin` is the stable extension contract. Product models
+provide archive policy, additive business context, related records and fields
+that may change access. Contextual tags and types are sent with the initial
+Paperless upload. Existing manual metadata wins; conflicting non-empty defaults
+produce a review item. Stable project/platform mappings update one nested tag
+through entity renames and prevent per-record tag growth.
 
 Historical Odoo binaries cross a separate migration boundary. The canonical
 tool under `migration/documents_archive/` verifies the approved dump and every
@@ -155,6 +167,13 @@ The ingestion operation captures company and confidentiality at submission
 time. Successful asynchronous completion applies that exact policy before
 permission synchronization; it must not silently fall back to `Internal` while
 Paperless is processing.
+
+Automatic archives use `linked_record` access. Odoo evaluates real read access
+to any active linked record, stores the resulting permitted internal users for
+search rules, and applies the same identities as Paperless object permissions.
+Controllers recheck linked-record access before every file response. Access
+reductions are fail-closed; portal users are deliberately outside the direct
+Documents/Paperless permission set.
 
 Title, date, tags, correspondent, type, catalog values, matching rules, Saved
 Views, versions, and Trash mutations call a supported Paperless endpoint first
