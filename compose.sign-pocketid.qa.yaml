@@ -37,6 +37,11 @@ services:
       USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"
 
   test:
+    depends_on:
+      usl-sign-dss:
+        condition: service_healthy
+      usl-sign-step-ca:
+        condition: service_healthy
     environment:
       USL_POCKET_ID_SIGN_CLIENT_ID: ${POCKET_ID_SIGN_CLIENT_ID:?Missing dedicated Sign client ID}
       USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}

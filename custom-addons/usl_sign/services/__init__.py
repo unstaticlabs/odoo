@@ -4,6 +4,12 @@ from .dss import (
     DSSServiceError,
     DSSUnavailableError,
 )
+from .opentimestamps import (
+    OpenTimestampsClient,
+    OpenTimestampsError,
+    OpenTimestampsRejectedError,
+    OpenTimestampsUnavailableError,
+)
 from .step_ca import StepCAClient, StepCAError
 
 __all__ = [
@@ -11,6 +17,10 @@ __all__ = [
     "DSSRejectedError",
     "DSSServiceError",
     "DSSUnavailableError",
+    "OpenTimestampsClient",
+    "OpenTimestampsError",
+    "OpenTimestampsRejectedError",
+    "OpenTimestampsUnavailableError",
     "StepCAClient",
     "StepCAError",
 ]

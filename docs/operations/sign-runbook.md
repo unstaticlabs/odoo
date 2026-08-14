@@ -25,6 +25,8 @@ The pinned components are:
   is tracked in Pocket ID issue
   [#1654](https://github.com/pocket-id/pocket-id/issues/1654);
 - `@peculiar/x509` 2.0.0 in the dedicated browser worker;
+- `opentimestamps` 0.4.5 with `python-bitcoinlib` 0.12.2 and
+  `pycryptodomex` 3.23.0 in Odoo for portable Bitcoin existence proofs;
 - pyHanko 0.36.2 in the DSS container for independent cross-validation;
 - veraPDF in the DSS container for PDF/A dossier validation.
 
@@ -37,6 +39,7 @@ scripts/sign-pocketid-stack status
 scripts/sign-pocketid-stack test-pocket
 scripts/sign-pocketid-stack test
 scripts/sign-pocketid-stack smoke
+USL_SIGN_OTS_LIVE_SMOKE=1 scripts/sign-pocketid-stack opentimestamps-live-smoke
 scripts/sign-pocketid-stack archive-acceptance
 scripts/sign-pocketid-stack passkey-acceptance
 scripts/sign-pocketid-stack strong-acceptance
@@ -95,9 +98,27 @@ USL_SIGN_STEP_CA_CA_BUNDLE=/run/usl-sign/root_ca.crt
 
 Never enable `USL_SIGN_DSS_ALLOW_PLAINTEXT` outside a tightly isolated unit
 test. Configure an RFC 3161 TSA only after its trust, retention, privacy,
-availability and commercial terms have been reviewed. An OpenTimestamps anchor
-is optional independent tamper evidence and must not be labelled as an RFC
-3161 or qualified timestamp.
+availability and commercial terms have been reviewed.
+
+Daily OpenTimestamps proof is enabled by default per company and can be
+disabled by a Sign administrator. Its network destinations are deliberately
+environment-managed and HTTPS-only; do not turn them into editable Odoo URLs.
+The defaults are the four official calendar pools, with Blockstream and
+mempool.space as the two public explorer APIs. Optional overrides are:
+
+```text
+USL_SIGN_OTS_CALENDARS=https://a.pool.opentimestamps.org,https://b.pool.opentimestamps.org,https://a.pool.eternitywall.com,https://ots.btc.catallaxy.com
+USL_SIGN_OTS_EXPLORERS=https://blockstream.info/api,https://mempool.space/api
+USL_SIGN_OTS_TIMEOUT=5
+```
+
+Keep at least two distinct official calendars and exactly two distinct
+Esplora-compatible explorer endpoints. No document, signer, consent or
+unhashed evidence is sent to a calendar: only a nonce-protected digest of the
+DSS-signed manifest leaves Odoo. The opt-in live smoke uses a synthetic digest
+only. `Awaiting confirmation` is the normal immediate result because calendar
+aggregation usually takes several hours. Automated tests use deterministic
+fake calendars and explorers and never depend on these public services.
 
 Qualified-external validation is disabled until `USL_DSS_LOTL_KEYSTORE`, its
 password, `USL_DSS_LOTL_URL`, and `USL_DSS_OJ_URL` are supplied through the
@@ -117,9 +138,11 @@ In each company:
    and Sign Administrator roles by least privilege;
 3. test DSS connectivity and the CA health check from Sign settings;
 4. configure the company platform-seal and timestamp policy;
-5. configure a Paperless correspondent/document type and verify the
+5. keep **Daily Bitcoin existence proof** enabled unless the company has a
+   documented opt-out;
+6. configure a Paperless correspondent/document type and verify the
    checksum-idempotent `usl_documents` operation;
-6. add only reviewed, current qualified providers to the external catalog,
+7. add only reviewed, current qualified providers to the external catalog,
    including territory, mobile instructions, priority and review date.
 
 An empty provider catalog is safer than an unreviewed recommendation. Provider
@@ -283,16 +306,46 @@ correct the infrastructure problem and use the explicit retry action. Never
 change the checksum, create a second truth record or mark the request complete
 manually.
 
-The signed daily event-head manifest covers the post-dossier archive events
-that cannot be embedded without creating a circular checksum. Monitor failed
-manifest runs and archive their signed output according to the evidence
-policy.
+The daily job closes UTC days and automatically catches up missed days. Each
+company manifest is DSS-signed and chained to the preceding signed envelope.
+It records every covered request's event head, final PDF and request-dossier
+SHA-256 values, completion event and completion date. A separate 30-minute job
+submits new manifests, upgrades pending receipts, verifies Bitcoin evidence
+and recovers transient failures with bounded backoff and row locking. A
+persisted 16-byte nonce makes a retried submission use the same private
+commitment.
+
+The reviewer UI uses four timestamp states:
+
+- **Scheduled for daily proof**: the request completed or the closed manifest
+  is waiting for its first submission;
+- **Awaiting Bitcoin confirmation**: at least two calendars accepted the
+  commitment, but no six-confirmation Bitcoin proof is available yet;
+- **Confirmed — existed no later than …**: two public explorers agreed on the
+  block and raw header, local verification succeeded and six confirmations
+  exist;
+- **Action required**: the receipt, binding, calendars or Bitcoin data failed
+  closed and an evidence reviewer must inspect and retry after correction.
+
+`Confirmed` is an existence upper bound, not the document's signing time. It
+is not signer identification, RFC 3161, a qualified timestamp or QES. Public
+explorer agreement is weaker than verification with a fully synced local
+Bitcoin Core node. Keep the confirmed `.ots` file: it is portable and can be
+verified later with `ots verify` against Bitcoin Core.
+
+After confirmation, DSS builds and seals a separate PDF/A-3 daily proof
+dossier containing the signed manifest, both receipt stages, verification
+report and instructions. Paperless receives it as a distinct, linked daily
+evidence record. A failed daily archive never rewrites request dossiers and
+never reverses request completion or Bitcoin confirmation. Restore DSS,
+veraPDF or Paperless as appropriate, then use **Retry Paperless archive**.
 
 ## Monitoring and incident response
 
 Monitor DSS, CA and Paperless health, validation failures, `Action required`,
-`Evidence incomplete`, archive retries, expired challenges/certificates and
-failed daily manifests. Logs may contain request identifiers and sanitized
+`Evidence incomplete`, archive retries, expired challenges/certificates,
+failed daily manifests, calendar quorum failures, explorer disagreement and
+Bitcoin reorg status. Logs may contain request identifiers and sanitized
 error codes, but not PDFs, consent data, signing links, assertions, CSR bodies,
 key material, certificates with unnecessary personal data or raw provider
 proof.

@@ -35,4 +35,8 @@ access_usl_sign_approval_event_user,usl.sign.approval.event user,model_usl_sign_
 access_usl_sign_approval_decision_wizard_user,usl.sign.approval.decision.wizard user,model_usl_sign_approval_decision_wizard,base.group_user,1,1,1,1
 access_usl_sign_daily_manifest_reviewer,usl.sign.daily.manifest reviewer,model_usl_sign_daily_manifest,group_sign_evidence_reviewer,1,0,0,0
 access_usl_sign_daily_manifest_admin,usl.sign.daily.manifest admin,model_usl_sign_daily_manifest,group_sign_admin,1,0,0,0
+access_usl_sign_daily_manifest_entry_reviewer,usl.sign.daily.manifest.entry reviewer,model_usl_sign_daily_manifest_entry,group_sign_evidence_reviewer,1,0,0,0
+access_usl_sign_daily_manifest_entry_admin,usl.sign.daily.manifest.entry admin,model_usl_sign_daily_manifest_entry,group_sign_admin,1,0,0,0
+access_usl_sign_daily_manifest_receipt_reviewer,usl.sign.daily.manifest.receipt reviewer,model_usl_sign_daily_manifest_receipt,group_sign_evidence_reviewer,1,0,0,0
+access_usl_sign_daily_manifest_receipt_admin,usl.sign.daily.manifest.receipt admin,model_usl_sign_daily_manifest_receipt,group_sign_admin,1,0,0,0
 access_usl_sign_start_user,usl.sign.start user,model_usl_sign_start,group_sign_user,1,1,1,1

@@ -25,6 +25,15 @@ class ResCompany(models.Model):
         string="Evidence retention (years)", default=10,
     )
     sign_rfc3161_enabled = fields.Boolean(string="Use independent RFC 3161 timestamping")
+    sign_opentimestamps_enabled = fields.Boolean(
+        string="Daily Bitcoin existence proof",
+        default=True,
+        help=(
+            "Submit each closed UTC day's signed evidence manifest to "
+            "OpenTimestamps. Confirmation is asynchronous and never delays a "
+            "signature request's completion."
+        ),
+    )
     sign_services_ready = fields.Boolean(compute="_compute_sign_services_ready")
     sign_services_message = fields.Char(compute="_compute_sign_services_ready")
 
@@ -78,6 +87,9 @@ class ResConfigSettings(models.TransientModel):
     )
     sign_rfc3161_enabled = fields.Boolean(
         related="company_id.sign_rfc3161_enabled", readonly=False,
+    )
+    sign_opentimestamps_enabled = fields.Boolean(
+        related="company_id.sign_opentimestamps_enabled", readonly=False,
     )
     sign_services_ready = fields.Boolean(related="company_id.sign_services_ready")
     sign_services_message = fields.Char(related="company_id.sign_services_message")

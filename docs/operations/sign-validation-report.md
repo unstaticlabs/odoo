@@ -1,6 +1,6 @@
 # USL Sign validation and release-readiness report
 
-Status date: 2026-08-06
+Status date: 2026-08-14
 
 ## Outcome
 
@@ -42,6 +42,12 @@ Changed:
   refuses startup if the leaf certificates are the same.
 - The reusable isolated QA stack uses stable `usl-sign-pocketid-qa` naming,
   not an archived worktree identifier.
+- Daily manifests now cover closed UTC days, catch up missed days, chain to the
+  preceding signed envelope and list each request's event head, final PDF,
+  dossier and completion hashes explicitly.
+- OpenTimestamps submission and Bitcoin verification are automatic,
+  asynchronous and company-configurable. Request completion remains
+  independent from delayed Bitcoin confirmation.
 
 Removed:
 
@@ -99,14 +105,53 @@ visible and retryable. A request cannot become completed until the expected
 signatures, independent validation, complete evidence and Paperless checksum
 confirmation all exist.
 
-Daily evidence manifests sign the current heads of append-only event chains.
-They use a purpose-specific key distinct from the PDF platform-seal key.
-Optional OpenTimestamps submission is independent tamper evidence, not an RFC
-3161 or qualified timestamp.
+Daily evidence manifests use a purpose-specific key distinct from the PDF
+platform-seal key. They are submitted to at least two official OpenTimestamps
+calendars using a persisted privacy nonce. Odoo keeps the original and upgraded
+portable receipts, then accepts confirmation only when Blockstream and
+mempool.space agree on the block and raw header, the block hash and OTS
+attestation verify locally, and six confirmations exist. The confirmed daily
+proof receives a separate sealed PDF/A-3 dossier and checksum-idempotent
+Paperless archive. This is independent existence evidence, not signer
+identification, RFC 3161, a qualified timestamp or QES.
 
 ## Current merged-tree validation
 
 Passed:
+
+- Final full isolated-stack run:
+  - 87 post-install tests; zero failures and zero errors.
+  - Odoo reported 65 `usl_sign`, 34 `usl_pocketid` and 6 `web` tests.
+  - Desktop and mobile frontend suites each passed 12 tests with 59
+    assertions, including the Completed Library timestamp files and status.
+  - The Standard signer browser journey completed with local DSS available.
+    It used headless test state only and invoked no biometric authenticator.
+- Focused OpenTimestamps/Odoo suite on the isolated QA test database:
+  - 12 selected post-install tests; Odoo reported 16 `usl_sign` tests.
+  - Zero failures and zero errors.
+  - Covered closed-day catch-up, manifest chaining/immutability, two-calendar
+    quorum, stable retry nonce, exact signed-envelope binding, receipt
+    upgrade/immutability, malformed and substituted receipts, explorer outage,
+    disagreement, reorg and invalid/oversized header data, five-versus-six
+    confirmations, and checksum-identical Paperless dossier recovery.
+  - All calendar and explorer traffic was deterministic and fake; no public
+    service was contacted.
+- Targeted post-fix regression:
+  - The RFC 3339 Bitcoin block time returned by public explorers is converted
+    to Odoo's UTC-naive database representation before persistence.
+  - One selected test passed with zero failures and zero errors.
+- Dependency verification:
+  - `pip check`: no broken requirements.
+  - Exact runtime versions: `opentimestamps` 0.4.5,
+    `python-bitcoinlib` 0.12.2 and `pycryptodomex` 3.23.0.
+  - `pip-audit` 2.9.0: no known vulnerabilities in those three pins.
+  - License metadata/classifiers report LGPL-3 for OpenTimestamps,
+    LGPL-3-or-later for `python-bitcoinlib`, and BSD/Public Domain for
+    `pycryptodomex`.
+- `make french-translations`: all ten product catalogues passed after the new
+  proof states and reviewer actions were translated.
+- Ruff, XML parsing, shell syntax, `git diff --check`, `pip check` and the
+  deterministic frontend workspace unit fixture passed for the changed files.
 
 - `scripts/odoo-dev test usl_sign odoo_sign_journey_release`
   - 49 loaded Python test methods.
@@ -138,7 +183,25 @@ the harness still expected the removed “Pocket ID verified” text. A subseque
 harness-only attempt could not start local Chrome because Chrome did not create
 its DevTools port. One bounded retry failed identically before opening a page.
 No product failure or biometric interaction occurred. The isolated stack was
-then stopped. This run is not claimed as a new complete browser acceptance.
+then stopped. This run is not claimed as a new complete browser acceptance. No
+new browser or signer journey was run for the OpenTimestamps change.
+
+One earlier broader attempt reported two failures. The first exposed a test-
+transaction issue around the persisted submission nonce and was fixed; both
+the focused and full final suites prove nonce reuse. The second was the Standard
+browser journey running without DSS because the stack test service depended
+only on the database and Pocket ID. The Compose test service now waits for DSS
+and step-ca, and the final full rerun passed that journey.
+
+The normal QA cron—not the opt-in synthetic smoke—also exercised the real
+asynchronous path while the stack was running. Two official calendars accepted
+the nonce-protected manifest digest, and Odoo retained the initial receipt plus
+two immutable upgrades. Explorer data then exposed an RFC 3339/Odoo datetime
+conversion mismatch; the regression above fixes it. A controlled retry with
+the final image remained safely `pending` when one explorer was temporarily
+unavailable. It retained the portable receipts and Bitcoin attestation, logged
+the transient failure without marking confirmation, and scheduled normal
+recovery. No live confirmation is claimed.
 
 ## Prior real-device evidence retained from the merged branch
 
@@ -157,16 +220,20 @@ this finalization because the workstation was unattended.
 The disposable developer target is `odoo_dev`. Install or upgrade
 `usl_pocketid` and `usl_sign`, build the pinned Pocket ID image and tracked
 fresh-passkey patch, and provision a dedicated confidential Sign OIDC client.
-The current `odoo_dev` target was upgraded successfully and the synthetic
-“Routine Agreement - QA” template, requester and signer profiles were rebuilt
-from the final modules. Odoo, Pocket ID, Paperless, DSS and step-ca report
-healthy locally.
+The isolated `usl-sign-pocketid-qa` project uses its own `odoo_dev` database,
+ports, containers and volumes. It was upgraded from the current worktree and is
+left running at `http://odoo-sign-qa.localhost:16669`. Odoo, Pocket ID,
+Paperless, DSS and step-ca report healthy. The company-level daily proof and
+final-signer-copy settings are enabled, and both daily-proof crons are active.
 Required external configuration includes:
 
 - `USL_POCKET_ID_SIGN_CLIENT_ID`
 - `USL_POCKET_ID_SIGN_CLIENT_SECRET`
 - `USL_POCKET_ID_SIGN_REQUIRED_GROUP`
 - `USL_POCKET_ID_SIGN_FRESH_REQUIRED=1`
+- `USL_SIGN_OTS_CALENDARS` (optional reviewed official-pool subset)
+- `USL_SIGN_OTS_EXPLORERS` (optional two fixed HTTPS Esplora APIs)
+- `USL_SIGN_OTS_TIMEOUT` (optional bounded network timeout)
 
 Configure `/sign/pocketid/callback`, PKCE S256, `prompt=login`, `max_age=0`,
 scopes `openid profile email groups`, no refresh/offline access and an allowed
@@ -190,5 +257,14 @@ Sign data is rebuilt; no compatibility migration is delivered.
 - Browser-worker termination cannot prove physical memory zeroization.
 - Fresh passkey enforcement remains a tracked Pocket ID patch until an official
   release incorporates the upstream work (`pocket-id/pocket-id#1654`).
+- OpenTimestamps calendar aggregation normally takes several hours; no live
+  Bitcoin confirmation was produced in this validation. The opt-in synthetic
+  live smoke was deliberately not run; the normal QA cron produced a real
+  pending receipt and later encountered one temporarily unavailable explorer.
+- Confirmation is verified through two public explorers, not a local Bitcoin
+  Core node. The retained `.ots` proof supports later node-based verification.
+- A Bitcoin block time establishes that the manifest and listed hashes existed
+  no later than that time; it is not the exact signing time. For signature-time
+  semantics or PAdES-T/LT, configure and assess an independent RFC 3161 TSA.
 - Odoo logs an expected registry warning because the product deliberately
   replaces OCA's coarse request lifecycle with the exact final lifecycle.

@@ -215,6 +215,15 @@ test("Library search, completed retrieval, and pagination use bounded queries", 
                         signers: "Roger, Prosper",
                         trust: "Standard",
                         proof: "Complete",
+                        timestamp: "Confirmed",
+                        timestamp_message:
+                            "Confirmed — existed no later than 2026-08-07 00:12:00",
+                        timestamp_manifest_id: 7,
+                        timestamp_manifest_url: "/sign/daily/7/manifest",
+                        timestamp_pending_receipt_url: "/sign/daily/7/pending",
+                        timestamp_receipt_url: "/sign/daily/7/confirmed",
+                        timestamp_report_url: "/sign/daily/7/report",
+                        timestamp_dossier_url: "/sign/daily/7/dossier",
                         archive: "Archived",
                         final_url: "/sign/request/31/final",
                         certificate_url: "/sign/request/31/certificate",
@@ -238,6 +247,13 @@ test("Library search, completed retrieval, and pagination use bounded queries", 
     );
     expect("a[aria-label='Download certificate']").toHaveCount(1);
     expect("a[aria-label='Download evidence dossier']").toHaveCount(1);
+    expect("tbody tr").toHaveText(/Confirmed — existed no later than/);
+    expect(".dropdown-menu a[href='/sign/daily/7/confirmed']").toHaveText(
+        /Confirmed .ots proof/
+    );
+    expect(".dropdown-menu a[href='/sign/daily/7/dossier']").toHaveText(
+        /Daily proof dossier/
+    );
     expect("footer").toHaveText(/1–24 of 30/);
 
     await contains("footer button:last-child").click();

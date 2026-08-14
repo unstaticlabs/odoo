@@ -10,12 +10,21 @@
         <field name="active" eval="True"/>
     </record>
     <record id="ir_cron_sign_daily_event_heads" model="ir.cron">
-        <field name="name">USL Sign: sign daily event-head manifests</field>
+        <field name="name">USL Sign: build daily evidence manifests</field>
         <field name="model_id" ref="model_usl_sign_daily_manifest"/>
         <field name="state">code</field>
         <field name="code">model._cron_build_daily_manifests()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="ir_cron_sign_opentimestamps" model="ir.cron">
+        <field name="name">USL Sign: submit and confirm daily timestamp proofs</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_opentimestamps()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
 </odoo>

@@ -178,6 +178,7 @@ logs() {
 test_stack() {
   bootstrap
   local database="odoo_sign_pocketid_test"
+  local test_tags="${2:-/usl_pocketid,/usl_sign}"
   local status=0
   "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
@@ -188,7 +189,7 @@ test_stack() {
     -e ODOO_DB_FILTER="^${database}$" \
     test odoo --config=/etc/odoo/odoo.conf --database="$database" \
     --init=usl_sign --without-demo=true --test-enable \
-    --test-tags=/usl_pocketid,/usl_sign --stop-after-init \
+    --test-tags="$test_tags" --stop-after-init \
     --log-level=test || status=$?
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
     'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
@@ -215,6 +216,22 @@ test_pocket_patch() {
 smoke_services() {
   load_environment
   "${COMPOSE[@]}" exec -T odoo usl-sign-services-smoke
+}
+
+opentimestamps_live_smoke() {
+  load_environment
+  if [[ "${USL_SIGN_OTS_LIVE_SMOKE:-0}" != "1" ]]; then
+    printf 'Set USL_SIGN_OTS_LIVE_SMOKE=1 to contact public calendars and explorers.\n' >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" up -d --wait db odoo
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    -e USL_SIGN_OTS_LIVE_SMOKE=1 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    < "$ROOT/scripts/odoo/sign_opentimestamps_live_smoke.py"
 }
 
 configure_paperless_only() {
@@ -300,9 +317,10 @@ case "${1:-help}" in
   stop) stop ;;
   status) status ;;
   logs) logs "$@" ;;
-  test) test_stack ;;
+  test) test_stack "$@" ;;
   test-pocket) test_pocket_patch ;;
   smoke) smoke_services ;;
+  opentimestamps-live-smoke) opentimestamps_live_smoke ;;
   configure-paperless) configure_paperless_only ;;
   archive-acceptance) archive_acceptance ;;
   passkey-acceptance) passkey_acceptance ;;
@@ -312,8 +330,9 @@ case "${1:-help}" in
   strong-acceptance) strong_acceptance ;;
   help|*)
     printf '%s\n' \
-      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
+      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|opentimestamps-live-smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
       '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
+      '       scripts/sign-pocketid-stack test [ODOO_TEST_TAGS]' \
       '       scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID [RUN_ID]' \
       '       scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID' \
       'This helper owns only project usl-sign-pocketid-qa and its isolated volumes.'

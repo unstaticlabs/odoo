@@ -1382,24 +1382,19 @@ msgid "Signing failed"
 msgstr "Échec de signature"
 
 #. module: usl_sign
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__not_configured
-msgid "Independent anchoring not configured"
-msgstr "Ancrage indépendant non configuré"
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__scheduled
+msgid "Scheduled"
+msgstr "Planifiée"
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__pending
-msgid "Anchoring pending"
-msgstr "Ancrage en attente"
+msgid "Awaiting confirmation"
+msgstr "En attente de confirmation"
 
 #. module: usl_sign
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__anchored
-msgid "Anchored"
-msgstr "Ancré"
-
-#. module: usl_sign
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__failed
-msgid "Anchoring failed"
-msgstr "Échec de l’ancrage"
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__confirmed
+msgid "Confirmed"
+msgstr "Confirmée"
 
 #. module: usl_sign
 #: model_terms:ir.actions.act_window,help:usl_sign.sign_daily_manifest_action
@@ -1585,3 +1580,227 @@ msgstr "Le service de certificats est accessible."
 #: code:addons/usl_sign/models/request.py:0
 msgid "The document changed after you reviewed it. Reload it, review the latest revision, and sign again."
 msgstr "Le document a changé après votre vérification. Rechargez-le, vérifiez la dernière version, puis signez à nouveau."
+
+#. module: usl_sign
+msgid "Daily Bitcoin existence proof"
+msgstr "Preuve quotidienne d’existence Bitcoin"
+
+#. module: usl_sign
+msgid "Timestamp proof"
+msgstr "Preuve d’existence horodatée"
+
+#. module: usl_sign
+msgid "Scheduled for daily proof"
+msgstr "Preuve quotidienne planifiée"
+
+#. module: usl_sign
+msgid "Awaiting Bitcoin confirmation"
+msgstr "En attente de confirmation Bitcoin"
+
+#. module: usl_sign
+msgid "Confirmed — existed no later than %(time)s"
+msgstr "Confirmée — existait au plus tard le %(time)s"
+
+#. module: usl_sign
+msgid "Timestamp proof requires review"
+msgstr "La preuve d’existence doit être vérifiée"
+
+#. module: usl_sign
+msgid "%(proof)s · Daily proof archive needs attention"
+msgstr "%(proof)s · L’archive de la preuve quotidienne doit être vérifiée"
+
+#. module: usl_sign
+msgid "Daily evidence manifest"
+msgstr "Manifeste quotidien de preuves"
+
+#. module: usl_sign
+msgid "Daily manifest"
+msgstr "Manifeste quotidien"
+
+#. module: usl_sign
+msgid "Daily proof"
+msgstr "Preuve quotidienne"
+
+#. module: usl_sign
+msgid "Daily proof dossier"
+msgstr "Dossier de preuve quotidien"
+
+#. module: usl_sign
+msgid "No daily proofs yet"
+msgstr "Aucune preuve quotidienne pour le moment"
+
+#. module: usl_sign
+msgid "UTC day"
+msgstr "Jour UTC"
+
+#. module: usl_sign
+msgid "Closed UTC day"
+msgstr "Jour UTC clôturé"
+
+#. module: usl_sign
+msgid "Manifest"
+msgstr "Manifeste"
+
+#. module: usl_sign
+msgid "Covered Requests"
+msgstr "Demandes couvertes"
+
+#. module: usl_sign
+msgid "Proof Files"
+msgstr "Fichiers de preuve"
+
+#. module: usl_sign
+msgid "Technical Details"
+msgstr "Détails techniques"
+
+#. module: usl_sign
+msgid "Manifest integrity"
+msgstr "Intégrité du manifeste"
+
+#. module: usl_sign
+msgid "Original manifest payload"
+msgstr "Contenu canonique du manifeste"
+
+#. module: usl_sign
+msgid "Canonical payload"
+msgstr "Contenu canonique"
+
+#. module: usl_sign
+msgid "Confirmation"
+msgstr "Confirmation"
+
+#. module: usl_sign
+msgid "Confirmations"
+msgstr "Confirmations"
+
+#. module: usl_sign
+msgid "Bitcoin confirmations"
+msgstr "Confirmations Bitcoin"
+
+#. module: usl_sign
+msgid "Existence established by"
+msgstr "Existence établie au plus tard le"
+
+#. module: usl_sign
+msgid "Signed manifest"
+msgstr "Manifeste signé"
+
+#. module: usl_sign
+msgid "Pending receipt"
+msgstr "Reçu en attente"
+
+#. module: usl_sign
+msgid "Confirmed .ots proof"
+msgstr "Preuve .ots confirmée"
+
+#. module: usl_sign
+msgid "Explorer verification report"
+msgstr "Rapport de vérification des explorateurs"
+
+#. module: usl_sign
+msgid "Verification report"
+msgstr "Rapport de vérification"
+
+#. module: usl_sign
+msgid "OpenTimestamps receipts"
+msgstr "Reçus OpenTimestamps"
+
+#. module: usl_sign
+msgid "Original submission"
+msgstr "Soumission initiale"
+
+#. module: usl_sign
+msgid "Upgraded proof"
+msgstr "Preuve mise à niveau"
+
+#. module: usl_sign
+msgid "Receipt SHA-256"
+msgstr "SHA-256 du reçu"
+
+#. module: usl_sign
+msgid "Final PDF SHA-256"
+msgstr "SHA-256 du PDF final"
+
+#. module: usl_sign
+msgid "Dossier SHA-256"
+msgstr "SHA-256 du dossier"
+
+#. module: usl_sign
+msgid "Event head"
+msgstr "Tête de chaîne d’événements"
+
+#. module: usl_sign
+msgid "Event-head SHA-256"
+msgstr "SHA-256 de la tête d’événements"
+
+#. module: usl_sign
+msgid "Completion event"
+msgstr "Événement de finalisation"
+
+#. module: usl_sign
+msgid "Retry manifest signing"
+msgstr "Relancer la signature du manifeste"
+
+#. module: usl_sign
+msgid "Retry signing"
+msgstr "Relancer la signature"
+
+#. module: usl_sign
+msgid "Retry timestamp proof"
+msgstr "Relancer la preuve d’existence"
+
+#. module: usl_sign
+msgid "Retry proof"
+msgstr "Relancer la preuve"
+
+#. module: usl_sign
+msgid "Retry Paperless archive"
+msgstr "Relancer l’archivage Paperless"
+
+#. module: usl_sign
+msgid "Retry archive"
+msgstr "Relancer l’archivage"
+
+#. module: usl_sign
+msgid "Archive failed"
+msgstr "Échec de l’archivage"
+
+#. module: usl_sign
+msgid "Archiving"
+msgstr "Archivage en cours"
+
+#. module: usl_sign
+msgid "Not archived"
+msgstr "Non archivé"
+
+#. module: usl_sign
+msgid "Open proof record"
+msgstr "Ouvrir la preuve"
+
+#. module: usl_sign
+msgid "Download"
+msgstr "Télécharger"
+
+#. module: usl_sign
+msgid "The manifest was accepted by multiple OpenTimestamps calendars. Bitcoin confirmation normally takes several hours."
+msgstr "Le manifeste a été accepté par plusieurs calendriers OpenTimestamps. La confirmation Bitcoin prend généralement plusieurs heures."
+
+#. module: usl_sign
+msgid "This closed UTC day is signed and scheduled for OpenTimestamps submission."
+msgstr "Ce jour UTC clôturé est signé et sa soumission à OpenTimestamps est planifiée."
+
+#. module: usl_sign
+msgid "OpenTimestamps proves existence no later than a Bitcoin block time. It is not an RFC 3161 or qualified timestamp, does not identify a signer, and does not prove that signing happened at that exact time."
+msgstr "OpenTimestamps prouve une existence au plus tard à l’heure d’un bloc Bitcoin. Ce n’est ni un horodatage RFC 3161 ni un horodatage qualifié, n’identifie pas le signataire et ne prouve pas que la signature a eu lieu à cet instant précis."
+
+#. module: usl_sign
+msgid "Each closed UTC day is signed, submitted to OpenTimestamps, independently checked through two public Bitcoin explorers, and archived in Paperless."
+msgstr "Chaque jour UTC clôturé est signé, soumis à OpenTimestamps, vérifié indépendamment par deux explorateurs Bitcoin publics, puis archivé dans Paperless."
+
+#. module: usl_sign
+msgid "The verified Bitcoin block time is malformed."
+msgstr "L’heure du bloc Bitcoin vérifié est mal formée."
+
+#. module: usl_sign
+msgid "The verified Bitcoin block time has no UTC offset."
+msgstr "L’heure du bloc Bitcoin vérifié n’indique pas de décalage UTC."

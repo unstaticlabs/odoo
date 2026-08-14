@@ -23,6 +23,12 @@
                     <setting string="Independent RFC 3161 timestamps" help="Enable only after a reviewed TSA endpoint is configured in the server environment.">
                         <field name="sign_rfc3161_enabled"/>
                     </setting>
+                    <setting string="Daily Bitcoin existence proof" help="Submit each closed UTC day's signed evidence manifest to OpenTimestamps. Confirmation normally takes hours and never delays a completed signature request.">
+                        <field name="sign_opentimestamps_enabled"/>
+                        <div class="text-muted mt-2">
+                            OpenTimestamps proves existence no later than a Bitcoin block time. It is not an RFC 3161 or qualified timestamp and does not identify a signer.
+                        </div>
+                    </setting>
                 </block>
                 <block title="Strong personal signature" name="sign_strong">
                     <setting string="Pocket ID passkey authorization" help="The dedicated Pocket ID Sign client, signer group and fresh-passkey requirement are environment-managed. Pocket ID owns credentials; Odoo owns consent and document binding.">

@@ -210,8 +210,27 @@ a disagreement causes `Action required`.
 Every meaningful operation appends an immutable event containing its sequence,
 previous hash, canonical payload hash, actor/authentication, IP, user agent,
 transition and timestamp. Request completion and daily signed head manifests
-verify the complete chain. Daily heads may optionally be submitted to
-OpenTimestamps; that anchoring is not described as RFC 3161 or qualified.
+verify the complete chain. For every enabled company, each closed UTC day is
+frozen into a canonical manifest chained to the preceding signed manifest. Its
+request entries include the day event-chain head, final PDF and dossier
+SHA-256 values, completion event and completion date.
+
+Every company enables daily OpenTimestamps proof by default and an
+administrator may opt out. The official `opentimestamps` 0.4.5 protocol
+library submits only a nonce-protected digest of the DSS-signed manifest to at
+least two official calendars. Odoo retains the original receipt and every
+upgraded receipt. It accepts Bitcoin confirmation only after Blockstream and
+mempool.space return the same block hash and raw 80-byte header, the header
+hash and OpenTimestamps attestation verify locally, and the block has six
+confirmations. This is accurately presented as verification through two
+public explorers; the portable `.ots` proof can later be checked against a
+local Bitcoin Core node.
+
+The confirmed time means that the signed daily manifest and the document
+hashes listed in it existed no later than the verified Bitcoin block time. It
+does not prove that a document was signed at that exact time, identify a
+signer, or provide an RFC 3161, qualified timestamp or QES. Confirmation is
+asynchronous and never delays an otherwise complete request.
 
 The retained evidence includes source and annex PDFs, the frozen PDF and page
 map, fields/roles/policy/signers, consent, hashes, events, personal/platform
@@ -221,6 +240,15 @@ PDF. A deterministic PDF/A-3 dossier embeds the artifacts behind a readable
 cover, passes veraPDF, receives a platform seal and is sent through the
 checksum-idempotent `usl_documents` Paperless operation. Failed archival is
 visible and safely retryable; it blocks completion.
+
+After Bitcoin confirmation, a separate deterministic PDF/A-3 daily proof
+dossier embeds the signed manifest, original and upgraded `.ots` receipts,
+two-explorer verification report and independent verification instructions.
+It is validated, platform-sealed and archived checksum-idempotently in
+Paperless as a distinct daily evidence record. Existing request dossiers are
+never rewritten. A daily-proof archive failure is visible and retryable but
+does not undo the already established Bitcoin confirmation or request
+completion.
 
 The single OCA Sign option **Send signers a copy of the final signed document**
 defaults to enabled. USL Sign deliberately defers delivery until independent

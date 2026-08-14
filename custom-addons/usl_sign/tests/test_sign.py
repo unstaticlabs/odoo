@@ -27,6 +27,7 @@ from ..services import (
     DSSRejectedError,
     DSSServiceError,
     DSSUnavailableError,
+    OpenTimestampsUnavailableError,
 )
 
 
@@ -1187,12 +1188,38 @@ class TestCleanUslSign(TransactionCase):
         )
         self.assertTrue(request.completed_at)
         self.assertEqual(request.evidence_status, "complete")
+        self.assertEqual(request.daily_timestamp_status, "scheduled")
+        self.assertEqual(request.state, "completed")
         self.assertEqual(
             len(request.event_ids.filtered(
                 lambda event: event.event_type == "completed_dossier_queued",
             )),
             1,
         )
+
+        class Tomorrow(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                tomorrow = datetime.now(UTC) + timedelta(days=1)
+                return tomorrow if tz else tomorrow.replace(tzinfo=None)
+
+        with (
+            patch("odoo.addons.usl_sign.models.daily_manifest.datetime", Tomorrow),
+            patch(
+                "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+                return_value=FakeDSS(),
+            ),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                fields.Date.today(),
+            )
+        entry = manifest.entry_ids.filtered(lambda item: item.request_id == request)
+        self.assertEqual(entry.final_sha256, request.final_sha256)
+        self.assertTrue(entry.dossier_sha256)
+        self.assertTrue(entry.completion_event_hash)
+        self.assertEqual(request.daily_timestamp_status, "scheduled")
+        self.assertEqual(request.state, "completed")
 
     def test_oca_final_document_delivery_defaults_to_enabled(self):
         defaults = self.env["res.company"].default_get(
@@ -1333,22 +1360,263 @@ class TestCleanUslSign(TransactionCase):
 
     def test_daily_event_head_manifest_is_signed_and_immutable(self):
         request = self._request()
-        request._append_event("daily_manifest_test", payload={"case": "clean"})
+        first_day = fields.Date.today() - timedelta(days=2)
+        second_day = fields.Date.today() - timedelta(days=1)
+        request._append_event(
+            "daily_manifest_test",
+            payload={"case": "first"},
+            occurred_at=datetime.combine(first_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
         with patch(
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"].build_for_day(
-                self.company, fields.Date.today(),
+                self.company,
+                first_day,
             )
         self.assertEqual(manifest.state, "signed")
-        self.assertGreaterEqual(manifest.event_count, 2)
+        self.assertEqual(manifest.event_count, 1)
+        self.assertEqual(manifest.entry_ids.request_id, request)
+        self.assertEqual(
+            manifest.entry_ids.chain_head_hash,
+            manifest.entry_ids.event_hash,
+        )
         raw = base64.b64decode(manifest.payload)
         self.assertEqual(manifest.payload_sha256, hashlib.sha256(raw).hexdigest())
+
+        request._append_event(
+            "daily_manifest_test",
+            payload={"case": "second"},
+            occurred_at=datetime.combine(second_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            next_manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                second_day,
+            )
+        self.assertEqual(next_manifest.previous_manifest_id, manifest)
+        self.assertEqual(
+            next_manifest.previous_manifest_sha256,
+            manifest.signed_envelope_sha256,
+        )
         with self.assertRaises(AccessError):
             manifest.write({"event_count": 0})
         with self.assertRaises(AccessError):
+            manifest.entry_ids.write({"event_hash": "tampered"})
+        with self.assertRaises(AccessError):
             manifest.unlink()
+
+    def test_daily_manifest_cron_catches_up_closed_utc_days_without_gaps(self):
+        request = self._request()
+        first_day = fields.Date.today() - timedelta(days=3)
+        closed_day = fields.Date.today() - timedelta(days=1)
+        request._append_event(
+            "daily_manifest_catchup",
+            occurred_at=datetime.combine(first_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            self.env["usl.sign.daily.manifest"]._cron_build_daily_manifests()
+        manifests = self.env["usl.sign.daily.manifest"].search(
+            [
+                ("company_id", "=", self.company.id),
+                ("manifest_date", ">=", first_day),
+                ("manifest_date", "<=", closed_day),
+            ],
+            order="manifest_date",
+        )
+        self.assertEqual(manifests.mapped("manifest_date"), [
+            first_day,
+            first_day + timedelta(days=1),
+            closed_day,
+        ])
+        self.assertFalse(manifests[1].event_count)
+        self.assertEqual(manifests[1].previous_manifest_id, manifests[0])
+        self.assertEqual(manifests[2].previous_manifest_id, manifests[1])
+        with self.assertRaises(ValidationError):
+            self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                fields.Date.today(),
+            )
+
+    def test_opentimestamps_submission_retry_reuses_persisted_nonce(self):
+        first_day = fields.Date.today() - timedelta(days=1)
+        request = self._request()
+        request._append_event(
+            "timestamp_retry_test",
+            occurred_at=datetime.combine(first_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                first_day,
+            )
+
+        class IntermittentClient:
+            def __init__(self):
+                self.nonces = []
+
+            def submit(self, document, *, nonce):
+                del document
+                self.nonces.append(nonce)
+                if len(self.nonces) == 1:
+                    msg = "Synthetic calendar outage"
+                    raise OpenTimestampsUnavailableError(msg)
+                return {"receipt": b"pending-ots-receipt"}
+
+        client = IntermittentClient()
+        try:
+            manifest._process_opentimestamps(client)
+        except OpenTimestampsUnavailableError:
+            pass
+        else:
+            self.fail("The synthetic calendar outage must escape for cron handling.")
+        manifest.invalidate_recordset(["submission_nonce"])
+        self.assertTrue(manifest.submission_nonce)
+        manifest._process_opentimestamps(client)
+        self.assertEqual(client.nonces[0], client.nonces[1])
+        self.assertEqual(manifest.anchoring_status, "pending")
+        self.assertTrue(manifest.initial_receipt_id)
+        with self.assertRaises(AccessError):
+            manifest.initial_receipt_id.write({"sha256": "tampered"})
+
+    def test_opentimestamps_poll_persists_rfc3339_block_time_as_odoo_utc(self):
+        first_day = fields.Date.today() - timedelta(days=1)
+        request = self._request()
+        request._append_event(
+            "timestamp_block_time_test",
+            occurred_at=datetime.combine(first_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                first_day,
+            )
+
+        class PollingClient:
+            @staticmethod
+            def submit(document, *, nonce):
+                del document, nonce
+                return {"receipt": b"initial-receipt"}
+
+            @staticmethod
+            def upgrade(receipt, document):
+                del receipt, document
+                return {
+                    "receipt": b"upgraded-receipt",
+                    "bitcoin_attestations": [{"height": 962_325}],
+                }
+
+            @staticmethod
+            def verify(receipt, document):
+                del receipt, document
+                return {
+                    "status": "pending",
+                    "bitcoin_block_height": 962_325,
+                    "bitcoin_block_hash": "00" * 32,
+                    "bitcoin_block_time": "2026-08-13T19:31:19+00:00",
+                    "confirmations": 2,
+                }
+
+        manifest._process_opentimestamps(PollingClient())
+        manifest._process_opentimestamps(PollingClient())
+        self.assertEqual(manifest.anchoring_status, "pending")
+        self.assertEqual(manifest.bitcoin_confirmations, 2)
+        self.assertEqual(
+            manifest.bitcoin_block_time,
+            datetime(2026, 8, 13, 19, 31, 19),
+        )
+        self.assertFalse(manifest.failure_code)
+
+    def test_daily_timestamp_dossier_archive_reuses_checksum_identical_document(self):
+        first_day = fields.Date.today() - timedelta(days=1)
+        request = self._request()
+        request._append_event(
+            "timestamp_archive_test",
+            occurred_at=datetime.combine(first_day, datetime.min.time())
+            + timedelta(hours=12),
+        )
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                first_day,
+            )
+        archived = self.env["usl.document"].sudo().create(
+            {
+                "name": "Daily timestamp proof dossier",
+                "paperless_id": 990002,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_generated",
+            },
+        )
+        dossier = _pdf()
+        manifest._operational_write(
+            {
+                "proof_dossier": base64.b64encode(dossier),
+                "proof_dossier_sha256": hashlib.sha256(dossier).hexdigest(),
+            },
+        )
+        with patch.object(
+            type(self.env["usl.document"]),
+            "upload_from_odoo",
+            return_value={
+                "state": "duplicate",
+                "document_id": archived.id,
+                "message": "Checksum-identical dossier reused.",
+            },
+        ):
+            self.assertTrue(manifest._archive_timestamp_dossier())
+        self.assertEqual(manifest.archive_status, "archived")
+        self.assertEqual(manifest.archive_document_id, archived)
+
+    def test_confirmed_archived_daily_proof_leaves_the_cron_queue(self):
+        first_day = fields.Date.today() - timedelta(days=1)
+        with patch(
+            "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+            return_value=FakeDSS(),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                first_day,
+            )
+        manifest._operational_write(
+            {
+                "anchoring_status": "confirmed",
+                "confirmed_at": fields.Datetime.now(),
+                "verification_report": base64.b64encode(b"{}"),
+                "verification_report_sha256": hashlib.sha256(b"{}").hexdigest(),
+                "archive_status": "archived",
+            },
+        )
+        with patch.object(
+            type(manifest),
+            "_process_opentimestamps",
+            autospec=True,
+        ) as process:
+            self.env["usl.sign.daily.manifest"]._cron_process_opentimestamps()
+        process.assert_not_called()
 
     def test_service_failure_is_actionable_and_does_not_complete(self):
         request = self._ready(self._request())

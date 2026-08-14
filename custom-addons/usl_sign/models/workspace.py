@@ -260,36 +260,8 @@ class SignWorkspace(models.AbstractModel):
                 offset=offset,
                 limit=limit,
             )
-            proof_labels = dict(
-                model._fields["evidence_status"]._description_selection(self.env),
-            )
-            archive_labels = dict(
-                model._fields["archive_status"]._description_selection(self.env),
-            )
             items = [
-                {
-                    "id": request.id,
-                    "title": request.name,
-                    "record": request.record_ref.display_name if request.record_ref else "",
-                    "completed": fields.Datetime.to_string(request.completed_at)
-                    if request.completed_at
-                    else False,
-                    "signers": ", ".join(request.signer_ids.mapped("partner_id.name")),
-                    "trust": request.achieved_trust_short,
-                    "proof": proof_labels.get(request.evidence_status),
-                    "archive": archive_labels.get(request.archive_status),
-                    "final_url": self._download_url(
-                        request, "final_data", request.final_filename,
-                    ),
-                    "certificate_url": self._download_url(
-                        request,
-                        "completion_certificate",
-                        request.completion_filename,
-                    ),
-                    "dossier_url": self._download_url(
-                        request, "dossier_data", request.dossier_filename,
-                    ),
-                }
+                self._completed_library_item(request)
                 for request in requests
             ]
         return {
@@ -298,6 +270,83 @@ class SignWorkspace(models.AbstractModel):
             "total": total,
             "offset": offset,
             "limit": limit,
+        }
+
+    @api.model
+    def _completed_library_item(self, request):
+        proof_labels = dict(
+            request._fields["evidence_status"]._description_selection(self.env),
+        )
+        archive_labels = dict(
+            request._fields["archive_status"]._description_selection(self.env),
+        )
+        timestamp_labels = dict(
+            request._fields["daily_timestamp_status"]._description_selection(self.env),
+        )
+        can_review = self.env.user.has_group("usl_sign.group_sign_evidence_reviewer")
+        manifest = request.daily_timestamp_manifest_id if can_review else False
+        confirmed_receipt = manifest.confirmed_receipt_id if manifest else False
+        return {
+            "id": request.id,
+            "title": request.name,
+            "record": request.record_ref.display_name if request.record_ref else "",
+            "completed": fields.Datetime.to_string(request.completed_at)
+            if request.completed_at
+            else False,
+            "signers": ", ".join(request.signer_ids.mapped("partner_id.name")),
+            "trust": request.achieved_trust_short,
+            "proof": proof_labels.get(request.evidence_status),
+            "archive": archive_labels.get(request.archive_status),
+            "timestamp": timestamp_labels.get(request.daily_timestamp_status)
+            or "Not scheduled",
+            "timestamp_message": request.daily_timestamp_message or "",
+            "timestamp_manifest_id": manifest.id if manifest else False,
+            "timestamp_manifest_url": self._download_url(
+                manifest,
+                "signed_envelope",
+                manifest.signed_envelope_filename,
+            )
+            if manifest
+            else False,
+            "timestamp_pending_receipt_url": self._download_url(
+                manifest.initial_receipt_id,
+                "data",
+                manifest.initial_receipt_id.name,
+            )
+            if manifest and manifest.initial_receipt_id
+            else False,
+            "timestamp_receipt_url": self._download_url(
+                confirmed_receipt,
+                "data",
+                confirmed_receipt.name,
+            )
+            if confirmed_receipt
+            else False,
+            "timestamp_report_url": self._download_url(
+                manifest,
+                "verification_report",
+                manifest.verification_report_filename,
+            )
+            if manifest
+            else False,
+            "timestamp_dossier_url": self._download_url(
+                manifest,
+                "proof_dossier",
+                manifest.proof_dossier_filename,
+            )
+            if manifest
+            else False,
+            "final_url": self._download_url(
+                request, "final_data", request.final_filename,
+            ),
+            "certificate_url": self._download_url(
+                request,
+                "completion_certificate",
+                request.completion_filename,
+            ),
+            "dossier_url": self._download_url(
+                request, "dossier_data", request.dossier_filename,
+            ),
         }
 
 

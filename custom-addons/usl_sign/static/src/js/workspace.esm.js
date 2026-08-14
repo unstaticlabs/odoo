@@ -179,6 +179,16 @@ export class SignLibrary extends Component {
             target: "current",
         });
     }
+
+    openTimestamp(item) {
+        return this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "usl.sign.daily.manifest",
+            res_id: item.timestamp_manifest_id,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
 }
 
 registry.category("actions").add("usl_sign.landing", SignLanding);

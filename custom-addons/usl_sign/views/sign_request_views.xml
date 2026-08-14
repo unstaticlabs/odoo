@@ -132,6 +132,28 @@
                                     <field name="dossier_data" filename="dossier_filename" string="Evidence dossier" readonly="1" invisible="not dossier_data"/>
                                 </group>
                             </group>
+                            <group string="Daily timestamp proof" invisible="state != 'completed'">
+                                <group>
+                                    <field name="daily_timestamp_status" readonly="1" widget="badge"/>
+                                    <field name="daily_timestamp_message" readonly="1" nolabel="1"/>
+                                </group>
+                                <group groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
+                                    <field name="daily_timestamp_manifest_id" readonly="1" invisible="not daily_timestamp_manifest_id"/>
+                                    <button name="action_open_daily_timestamp_proof" type="object" string="Open daily proof" class="btn-secondary" invisible="not daily_timestamp_manifest_id"/>
+                                    <field name="daily_timestamp_has_pending_receipt" invisible="1"/>
+                                    <field name="daily_timestamp_has_confirmed_receipt" invisible="1"/>
+                                    <field name="daily_timestamp_has_report" invisible="1"/>
+                                    <field name="daily_timestamp_has_dossier" invisible="1"/>
+                                    <button name="action_download_daily_signed_manifest" type="object" string="Signed manifest" class="btn-link" invisible="not daily_timestamp_manifest_id"/>
+                                    <button name="action_download_daily_pending_receipt" type="object" string="Pending receipt" class="btn-link" invisible="not daily_timestamp_has_pending_receipt"/>
+                                    <button name="action_download_daily_confirmed_receipt" type="object" string="Confirmed .ots proof" class="btn-link" invisible="not daily_timestamp_has_confirmed_receipt"/>
+                                    <button name="action_download_daily_verification_report" type="object" string="Verification report" class="btn-link" invisible="not daily_timestamp_has_report"/>
+                                    <button name="action_download_daily_proof_dossier" type="object" string="Daily proof dossier" class="btn-link" invisible="not daily_timestamp_has_dossier"/>
+                                </group>
+                                <div class="text-muted small" colspan="2">
+                                    OpenTimestamps provides independent Bitcoin-backed existence evidence after completion. It is not an RFC 3161 or qualified timestamp.
+                                </div>
+                            </group>
                             <group string="Technical proof" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin" invisible="state in ['draft', 'ready']">
                                 <field name="original_sha256" readonly="1"/>
                                 <field name="final_sha256" readonly="1" invisible="not final_sha256"/>

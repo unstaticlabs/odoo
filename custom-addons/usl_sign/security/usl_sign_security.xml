@@ -250,6 +250,16 @@
         <field name="model_id" ref="model_usl_sign_daily_manifest"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="daily_manifest_entry_company" model="ir.rule">
+        <field name="name">Daily Sign manifest entries: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest_entry"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="daily_manifest_receipt_company" model="ir.rule">
+        <field name="name">OpenTimestamps receipts: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest_receipt"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="approval_participants" model="ir.rule">
         <field name="name">Odoo approvals: requester or approver</field>
         <field name="model_id" ref="model_usl_sign_approval"/>

@@ -14,6 +14,9 @@
         "usl_pocketid",
         "usl_documents",
     ],
+    "external_dependencies": {
+        "python": ["opentimestamps"],
+    },
     "data": [
         "security/usl_sign_security.xml",
         "security/ir.model.access.csv",
