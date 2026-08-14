@@ -270,6 +270,31 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"${COMPOSE[@]}" up -d --wait db', helper)
         self.assertNotIn("require_target_database", helper)
 
+    def test_reconstruction_repairs_trip_products_after_product_restore(self):
+        reconstruction = (REPOSITORY_ROOT / "scripts" / "target-reconstruct").read_text(
+            encoding="utf-8",
+        )
+        accounting_restore = (
+            REPOSITORY_ROOT / "scripts" / "accounting-restore"
+        ).read_text(encoding="utf-8")
+        repair_script = (
+            REPOSITORY_ROOT
+            / "migration/accounting_restore/addons/usl_accounting_restore/scripts"
+            / "reapply_expense_batch_transition.py"
+        ).read_text(encoding="utf-8")
+        product_restore = reconstruction.index("scripts/product-restore all")
+        transition = reconstruction.index(
+            "scripts/accounting-restore expense-batch-transition",
+        )
+        hr_restore = reconstruction.index("scripts/hr-restore all")
+
+        self.assertLess(product_restore, transition)
+        self.assertLess(transition, hr_restore)
+        self.assertIn("expense-batch-transition)", accounting_restore)
+        self.assertEqual(repair_script.count("run_expense_batch_transition()"), 2)
+        self.assertIn('"rerun_is_noop"', repair_script)
+        self.assertIn('"trip_products_archived"', repair_script)
+
 
 if __name__ == "__main__":
     unittest.main()

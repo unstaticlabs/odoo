@@ -140,6 +140,29 @@ for product_module_name in (
 posted_lines = env["account.move.line"].sudo().search([
     ("move_id.state", "=", "posted"),
 ])
+trip_product_codes = ["AUS26", "BCN2602", "CA26", "LPASUM26"]
+trip_products = env["product.product"].sudo().with_context(active_test=False).search([
+    ("default_code", "in", trip_product_codes),
+])
+if sorted(trip_products.mapped("default_code")) != trip_product_codes:
+    raise RuntimeError("The four historical trip Products are not all present.")
+if any(trip_products.product_tmpl_id.mapped("active")):
+    raise RuntimeError("Historical trip Products remain active after transition.")
+
+canada_batch = env["usl.expense.batch"].sudo().search([
+    ("name", "=", "SBFH — Canada 2026"),
+], limit=1)
+if not canada_batch or canada_batch.expense_count != 20:
+    raise RuntimeError("The final Canada Expense Batch does not contain 20 expenses.")
+if canada_batch.exception_count:
+    raise RuntimeError("The final Canada Expense Batch has false context exceptions.")
+if any(
+    expense.account_context_source != "batch"
+    or expense.analytic_context_source != "batch"
+    for expense in canada_batch.expense_ids
+):
+    raise RuntimeError("The final Canada expenses are not Batch-inherited.")
+
 summary = {
     "migration_module_state": module.state if module else "absent",
     "migration_models_loaded": 0,
@@ -156,5 +179,10 @@ summary = {
     "payments": env["account.payment"].sudo().search_count([]),
     "expenses": env["hr.expense"].sudo().search_count([]),
     "attachments": env["ir.attachment"].sudo().search_count([]),
+    "expense_batch_transition": {
+        "canada_expenses": canada_batch.expense_count,
+        "canada_exceptions": canada_batch.exception_count,
+        "trip_products_archived": len(trip_products),
+    },
 }
 print(json.dumps(summary, indent=2, sort_keys=True))
