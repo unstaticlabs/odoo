@@ -210,6 +210,18 @@ reset_canonical_archive() {
     printf 'Reset disposable canonical Paperless archive for dump reconstruction.\n'
 }
 
+reset_canonical_cache() {
+    if [[ "$canonical_target" != 1 || "$canonical_reset" != 1 ]]; then
+        return
+    fi
+    "${compose[@]}" --profile project-migration run --rm -T \
+        -e DOCUMENTS_CANONICAL_CACHE_RESET=1 \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/reset_target_cache.py
+}
+
 read_archive_state() {
     local archive_json archive_totals
     archive_json="$(
@@ -433,6 +445,7 @@ case "$command_name" in
         start_archive
         verify_checkpoint
         install_module
+        reset_canonical_cache
         run_restore
         scripts/check-product-migration-boundary
         seal_checkpoint

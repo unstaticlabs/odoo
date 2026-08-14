@@ -29,6 +29,10 @@ before and checked after the operation. Finally `AUS26`, `CA26`, `LPASUM26`
 and `BCN2602` are archived. A rerun repairs provenance on an already-created
 draft Canada Batch, consolidates only exact transition-generated context
 messages and then becomes a no-op. User-authored chatter is never removed.
+The canonical reconstruction reruns this transition after Product restoration
+so imported Product activity cannot reactivate the archived trip categories.
+The final product-boundary check verifies the four archives, all 20 inherited
+Canada lines and the absence of false exceptions.
 
 For local acceptance, `make expense-batch-qa-bootstrap` creates the separate,
 synthetic **QA — Mixed payment Batch** in `odoo_dev`. It never changes the

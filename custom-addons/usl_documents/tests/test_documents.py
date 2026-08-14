@@ -805,6 +805,54 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(document.tag_ids, child)
 
+    def test_catalog_sync_reactivates_an_inactive_remote_id(self):
+        tag = self._tag(305, "Previous archive tag", active=False)
+        client = PaperlessClient(self.env)
+        client.owner_user_id = 3
+        payload = {
+            "id": 305,
+            "name": "Restored archive tag",
+            "owner": None,
+            "color": "#112233",
+            "text_color": "#ffffff",
+            "matching_algorithm": 0,
+            "document_count": 0,
+            "parent": None,
+        }
+
+        with patch.object(client, "list_metadata", return_value=[payload]):
+            self.env["usl.paperless.tag"].synchronize_catalog(client=client)
+
+        restored = self.env["usl.paperless.tag"].with_context(
+            active_test=False,
+        ).search([("paperless_id", "=", 305)])
+        self.assertEqual(restored, tag)
+        self.assertTrue(restored.active)
+        self.assertEqual(restored.name, "Restored archive tag")
+
+    def test_metadata_create_reuses_an_inactive_cached_remote_id(self):
+        tag = self._tag(306, "Previous generated tag", active=False)
+        remote = {
+            "id": 306,
+            "name": "Restored generated tag",
+            "owner": None,
+            "color": "#445566",
+            "text_color": "#ffffff",
+            "matching_algorithm": 0,
+            "document_count": 0,
+            "parent": None,
+        }
+
+        with patch.object(PaperlessClient, "create_metadata", return_value=remote):
+            restored = self.env["usl.paperless.tag"].create({
+                "name": "Restored generated tag",
+                "color": "#445566",
+            })
+
+        self.assertEqual(restored, tag)
+        self.assertTrue(restored.active)
+        self.assertEqual(restored.name, "Restored generated tag")
+
     def test_document_users_manage_metadata_but_cannot_delete_it(self):
         response = {
             "id": 304,

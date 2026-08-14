@@ -128,7 +128,10 @@ whole-source gate separately prevents this product claim from being mistaken
 for delivery of every Online application.
 
 The fresh command deliberately resets Paperless and is the authoritative
-final-migration proof. Development may instead run
+final-migration proof. That guarded reset also clears the disposable Odoo
+Paperless mirror, links and ingestion operations before replay, preventing a
+retry from binding fresh archive IDs to stale cache rows. Native attachments
+and business records are not removed. Development may instead run
 `make target-reconstruct-reuse-documents`: it rebuilds `odoo_dev` but retains
 the already qualified Paperless archive when its private checkpoint proves the
 runtime compatibility contract and archive-root state are unchanged. A newer

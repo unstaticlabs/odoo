@@ -63,6 +63,8 @@ scripts/identity-restore all
 stop_product
 scripts/product-restore all
 stop_product
+scripts/accounting-restore expense-batch-transition
+stop_product
 scripts/hr-restore all
 stop_product
 PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all
