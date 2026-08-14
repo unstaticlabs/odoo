@@ -389,7 +389,7 @@ install_module() {
         # Revalidate the accounting parent before its Documents extension.
         # Existing reconstructed databases can still contain an older stored
         # parent view even though the checked-out Python model is current.
-        operation="--update=rebuild_account_migration,usl_documents,usl_documents_accounting"
+        operation="--update=rebuild_account_migration,usl_documents,usl_expense_batch,usl_platform_billing,usl_tese_payroll,usl_documents_accounting"
     fi
     "${compose[@]}" --profile project-migration run --rm \
         -e ODOO_INIT_DB="$target_database" project-migration \
@@ -439,6 +439,41 @@ run_restore() {
     python3 migration/documents_archive/evidence.py "$restore_log" "$restore_result"
 }
 
+run_native_attachment_bridge() {
+    local evidence_dir bridge_log bridge_result bridge_status
+    if [[ "$restore_profile" != full || "${DOCUMENTS_RESTORE_LIMIT:-0}" != 0 ]]; then
+        printf 'Native attachment bridge: skipped for partial Documents profile.\n'
+        return
+    fi
+    evidence_dir="accounting_compat/private/snapshots/$source_snapshot/evidence"
+    bridge_log="$evidence_dir/documents-native-attachment-bridge-$command_name.log"
+    bridge_result="$evidence_dir/documents-native-attachment-bridge-$command_name.json"
+    bridge_status=0
+    "${compose[@]}" --profile project-migration run --rm -T \
+        project-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python \
+        < migration/documents_archive/scripts/reconcile_native_attachments.py \
+        | tee "$bridge_log" \
+        || bridge_status=${PIPESTATUS[0]}
+    if ((bridge_status != 0)); then
+        return "$bridge_status"
+    fi
+    python3 - "$bridge_log" "$bridge_result" <<'PY'
+import json
+import pathlib
+import sys
+
+prefix = "USL_NATIVE_ATTACHMENT_BRIDGE="
+lines = pathlib.Path(sys.argv[1]).read_text().splitlines()
+payloads = [json.loads(line[len(prefix):]) for line in lines if line.startswith(prefix)]
+if len(payloads) != 1:
+    raise SystemExit("Native attachment bridge did not emit exactly one result.")
+path = pathlib.Path(sys.argv[2])
+path.write_text(json.dumps(payloads[0], indent=2, sort_keys=True) + "\n")
+PY
+}
+
 case "$command_name" in
     prepare-target)
         # Install the product models and security before identity restoration so
@@ -458,6 +493,7 @@ case "$command_name" in
         start_archive
         verify_checkpoint
         run_restore
+        run_native_attachment_bridge
         seal_checkpoint
         ;;
     all)
@@ -467,6 +503,7 @@ case "$command_name" in
         verify_checkpoint
         install_module
         run_restore
+        run_native_attachment_bridge
         scripts/check-product-migration-boundary
         seal_checkpoint
         ;;
