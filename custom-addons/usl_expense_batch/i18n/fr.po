@@ -909,3 +909,18 @@ msgstr "Retire cette dépense de la note pour permettre sa correction individuel
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid "Group the selected expenses without submitting, posting, or paying them."
 msgstr "Regroupe les dépenses sélectionnées sans les soumettre, les comptabiliser ni les payer."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_usl_expense_batch_form
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_usl_expense_batch_form
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_usl_expense_batch_form
+msgid "processing"
+msgstr "en cours"

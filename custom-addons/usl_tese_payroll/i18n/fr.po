@@ -917,6 +917,16 @@ msgid "Documents"
 msgstr "Documents"
 
 #. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_usl_tese_payslip_form
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_usl_tese_payslip_form
+msgid "processing"
+msgstr "en cours"
+
+#. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__state__draft
 msgid "Draft"
 msgstr "Brouillon"

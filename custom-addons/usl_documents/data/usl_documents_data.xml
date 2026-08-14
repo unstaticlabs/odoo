@@ -18,6 +18,15 @@
         <field name="interval_type">minutes</field>
         <field name="active" eval="True"/>
     </record>
+    <record id="ir_cron_usl_documents_attachment_queue" model="ir.cron">
+        <field name="name">Documents: archive Odoo attachments</field>
+        <field name="model_id" ref="model_usl_document_operation"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_process_attachment_queue()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
 
     <record id="ir_filter_quick_my_uploads" model="ir.filters">
         <field name="name">My uploads</field>

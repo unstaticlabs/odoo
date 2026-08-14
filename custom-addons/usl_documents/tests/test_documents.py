@@ -1,6 +1,7 @@
 import base64
+import json
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -106,6 +107,203 @@ class TestDocuments(TransactionCase):
             .create({"paperless_id": paperless_id, "name": name, **values})
         )
 
+    @staticmethod
+    def _remote_metadata_factory():
+        sequence = iter(range(8000, 9000))
+
+        def create(_client, _kind, values):
+            return {
+                "id": next(sequence),
+                "matching_algorithm": values.get("matching_algorithm", 0),
+                "is_insensitive": values.get("is_insensitive", False),
+                "document_count": 0,
+                **values,
+            }
+
+        return create
+
+    def test_native_task_attachment_queues_without_calling_paperless(self):
+        project = self.env["project.project"].create({"name": "Launch"})
+        task = self.env["project.task"].create(
+            {"name": "Supplier briefing", "project_id": project.id},
+        )
+
+        with patch.object(PaperlessClient, "_request") as request:
+            attachment = self.env["ir.attachment"].create(
+                {
+                    "name": "briefing.pdf",
+                    "raw": b"native task evidence",
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+            )
+
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+        self.assertEqual(len(operation), 1)
+        self.assertEqual(operation.state, "pending")
+        self.assertEqual(operation.source_attachment_checksum, attachment.checksum)
+        self.assertEqual(operation.context_json["tags"], ["Projects"])
+        self.assertEqual(
+            operation.context_json["related_records"],
+            [
+                {"model": "project.task", "id": task.id},
+                {"model": "project.project", "id": project.id},
+            ],
+        )
+        self.assertEqual(attachment.raw, b"native task evidence")
+        request.assert_not_called()
+
+    def test_attachment_reparent_and_repeat_queue_are_idempotent(self):
+        task = self.env["project.task"].create({"name": "Final owner"})
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "composer-note.txt",
+                "raw": b"wait for final record",
+                "mimetype": "text/plain",
+            },
+        )
+        self.assertFalse(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
+        )
+
+        attachment.write({"res_model": "project.task", "res_id": task.id})
+        attachment._queue_usl_documents_archive()
+        attachment._post_add_create()
+
+        self.assertEqual(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
+            1,
+        )
+
+    def test_changed_native_attachment_creates_archive_version_operation(self):
+        task = self.env["project.task"].create({"name": "Versioned evidence"})
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "evidence.txt",
+                "raw": b"first version",
+                "mimetype": "text/plain",
+                "res_model": "project.task",
+                "res_id": task.id,
+            },
+        )
+        first = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+        document = self._document(7800, source="odoo_attachment")
+        first.sudo().write({"state": "archived", "document_id": document.id})
+
+        attachment.write({"raw": b"second version"})
+
+        operations = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+            order="id",
+        )
+        self.assertEqual(len(operations), 2)
+        self.assertEqual(operations[1].state, "pending")
+        self.assertEqual(operations[1].target_document_id, document)
+        self.assertNotEqual(
+            operations[0].source_attachment_checksum,
+            operations[1].source_attachment_checksum,
+        )
+
+    def test_archive_outage_keeps_native_attachment_and_schedules_retry(self):
+        task = self.env["project.task"].create({"name": "Offline archive"})
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "offline.pdf",
+                "raw": b"still usable in Odoo",
+                "mimetype": "application/pdf",
+                "res_model": "project.task",
+                "res_id": task.id,
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+        with patch.object(
+            type(self.env["usl.document"]),
+            "_prepare_archive_context",
+            side_effect=PaperlessUnavailable("Archive unavailable"),
+        ):
+            result = operation._process_native_attachment()
+
+        self.assertFalse(result)
+        self.assertEqual(operation.state, "pending")
+        self.assertEqual(operation.attempt_count, 1)
+        self.assertTrue(operation.next_attempt_at)
+        self.assertEqual(attachment.raw, b"still usable in Odoo")
+
+    def test_project_context_uses_one_stable_tag_for_every_task(self):
+        project = self.env["project.project"].create({"name": "Studio Launch"})
+        first = self.env["project.task"].create(
+            {"name": "Storyboard", "project_id": project.id},
+        )
+        second = self.env["project.task"].create(
+            {"name": "Production", "project_id": project.id},
+        )
+        metadata_factory = self._remote_metadata_factory()
+        with patch.object(
+            PaperlessClient,
+            "create_metadata",
+            autospec=True,
+            side_effect=metadata_factory,
+        ):
+            first_context = self.env["usl.document"]._prepare_archive_context(first)
+            second_context = self.env["usl.document"]._prepare_archive_context(second)
+
+        mappings = self.env["usl.document.context.tag"].sudo().search(
+            [("namespace", "=", "project"), ("res_id", "=", project.id)],
+        )
+        self.assertEqual(len(mappings), 1)
+        self.assertEqual(
+            set(first_context["tag_record_ids"]),
+            set(second_context["tag_record_ids"]),
+        )
+        self.assertEqual(mappings.tag_name, "Project · Studio Launch")
+
+    def test_existing_attachment_backfill_is_bounded_and_resumable(self):
+        task = self.env["project.task"].create({"name": "Backfill"})
+        attachments = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            [
+                {
+                    "name": f"backfill-{index}.txt",
+                    "raw": f"content-{index}".encode(),
+                    "mimetype": "text/plain",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                }
+                for index in range(3)
+            ],
+        )
+        first = self.env["usl.document.operation"].queue_existing_attachments(
+            after_id=attachments[0].id - 1,
+            limit=2,
+        )
+        second = self.env["usl.document.operation"].queue_existing_attachments(
+            after_id=first["last_id"],
+            limit=2,
+        )
+
+        self.assertEqual(first["scanned"], 2)
+        self.assertFalse(first["complete"])
+        self.assertEqual(second["scanned"], 1)
+        self.assertTrue(second["complete"])
+        self.assertEqual(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "in", attachments.ids)],
+            ),
+            3,
+        )
+
     def test_one_archive_document_links_to_multiple_records(self):
         document = self._document(101, checksum="a" * 64)
         first = document.link_to_record("res.partner", self.partner_a.id)
@@ -138,6 +336,28 @@ class TestDocuments(TransactionCase):
 
         self.assertEqual(link.company_id, self.company_b)
         self.assertEqual(link.document_id.company_id, self.company_b)
+
+    def test_unchanged_linked_access_does_not_resynchronize_paperless(self):
+        paperless_id = max(
+            self.env["usl.document"].sudo().search([]).mapped("paperless_id") or [0],
+        ) + 1000
+        document = self._document(
+            paperless_id,
+            access_scope="linked_record",
+            permitted_user_ids=[Command.set(self.user.ids)],
+        )
+        document.with_context(
+            usl_documents_defer_access_sync=True,
+        ).link_to_record("res.partner", self.partner_a.id)
+        document._recompute_linked_record_access(sync_permissions=False)
+        document.sudo().with_context(
+            usl_documents_cache_write=True,
+        ).write({"permission_sync_state": "synchronized"})
+
+        with patch.object(UslDocument, "action_sync_permissions") as synchronize:
+            document._recompute_linked_record_access(sync_permissions=True)
+
+        synchronize.assert_not_called()
 
     def test_added_date_prefers_attributed_submission_history(self):
         document = self._document(
@@ -2907,6 +3127,38 @@ class TestPaperlessClientContract(TransactionCase):
             PaperlessClient._multipart_content_type("application/pdf"),
             "application/pdf",
         )
+        self.assertEqual(
+            PaperlessClient._multipart_text("Invoice\r\nX-Evil: yes"),
+            "Invoice  X-Evil: yes",
+        )
+
+    def test_multipart_upload_includes_context_metadata(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_str("usl_documents.paperless_url", "https://paperless.test")
+        params.set_str("usl_documents.paperless_token", "test-token")
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = json.dumps("task-42").encode()
+        with patch(
+            "odoo.addons.usl_documents.models.paperless_client.urllib.request.urlopen",
+            return_value=response,
+        ) as urlopen:
+            task_id = PaperlessClient(self.env).upload_multipart(
+                b"invoice",
+                "invoice.pdf",
+                "application/pdf",
+                title="Supplier invoice",
+                created="2026-08-13",
+                correspondent_id=12,
+                document_type_id=34,
+                tag_ids=[8, 7, 8],
+            )
+        self.assertEqual(task_id, "task-42")
+        body = urlopen.call_args.args[0].data
+        self.assertIn(b'name="created"\r\n\r\n2026-08-13', body)
+        self.assertIn(b'name="correspondent"\r\n\r\n12', body)
+        self.assertIn(b'name="document_type"\r\n\r\n34', body)
+        self.assertEqual(body.count(b'name="tags"'), 2)
 
     def test_invalid_json_response_fails_as_api_compatibility_error(self):
         with self.assertRaises(PaperlessCompatibilityError):

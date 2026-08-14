@@ -41,6 +41,16 @@ msgid "Documents"
 msgstr "Documents"
 
 #. module: usl_documents_accounting
+#: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_declaration_documents
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_documents_accounting
+#: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_declaration_documents
+msgid "processing"
+msgstr "en cours"
+
+#. module: usl_documents_accounting
 #: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_closing_period__id
 #: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_declaration__id
 #: model:ir.model.fields,field_description:usl_documents_accounting.field_usl_document_link__id

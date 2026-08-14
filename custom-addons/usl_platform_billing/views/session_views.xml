@@ -86,6 +86,17 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents_workspace" type="object"
+                                class="oe_stat_button" icon="fa-folder-open-o"
+                                title="Open the statements and evidence linked to this billing session."
+                                groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="archived_document_count"/></span>
+                                <span class="o_stat_text">Documents</span>
+                                <span class="badge rounded-pill text-bg-warning" invisible="document_archive_failure_count == 0"><field name="document_archive_failure_count"/> to review</span>
+                                <span class="text-muted small" invisible="document_archive_pending_count == 0"><field name="document_archive_pending_count"/> processing</span>
+                            </div>
+                        </button>
                         <button name="action_open_generated_moves" type="object"
                                 class="oe_stat_button" icon="fa-book"
                                 invisible="generated_move_count == 0">

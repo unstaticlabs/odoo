@@ -82,6 +82,29 @@ class UslDocument(models.Model):
         tracking=True,
     )
     accounting_evidence = fields.Boolean(index=True, tracking=True)
+    access_scope = fields.Selection(
+        [
+            ("company", "Company policy"),
+            ("linked_record", "Linked record access"),
+        ],
+        required=True,
+        default="company",
+        index=True,
+        tracking=True,
+        help=(
+            "Linked-record documents are visible only to Documents users who can "
+            "read at least one active related Odoo record."
+        ),
+    )
+    permitted_user_ids = fields.Many2many(
+        "res.users",
+        "usl_document_permitted_user_rel",
+        "document_id",
+        "user_id",
+        string="Users allowed by linked records",
+        readonly=True,
+        copy=False,
+    )
     review_state = fields.Selection(
         [
             ("needs_attention", "Needs attention"),
@@ -636,6 +659,16 @@ class UslDocument(models.Model):
         """
         self.ensure_one()
         self.check_access("read")
+        if (
+            self.access_scope == "linked_record"
+            and not self.env.user.has_group(
+                "usl_documents.group_documents_manager",
+            )
+            and not self._accessible_active_links()
+        ):
+            raise AccessError(
+                _("You no longer have access to this document's related record."),
+            )
         if self.availability_state not in ("available", "permission_error"):
             return False
         if self.permission_sync_state != "synchronized":
@@ -652,6 +685,8 @@ class UslDocument(models.Model):
             "company_id",
             "confidentiality",
             "accounting_evidence",
+            "access_scope",
+            "permitted_user_ids",
             "retention_hold",
             "deletion_reason",
         }
@@ -722,6 +757,98 @@ class UslDocument(models.Model):
                 "permission_sync_error": False,
             }
         return super().write(values)
+
+    def _recompute_linked_record_access(self, *, sync_permissions=False):
+        """Mirror native linked-record visibility into one searchable policy."""
+        documents = self.sudo().filtered(
+            lambda document: document.access_scope == "linked_record",
+        )
+        if not documents:
+            return True
+        groups = self.env.ref("usl_documents.group_documents_user")
+        groups |= self.env.ref("usl_documents.group_documents_accountant")
+        groups |= self.env.ref("usl_documents.group_documents_hr")
+        candidates = self.env["res.users"].sudo().search(
+            [
+                ("active", "=", True),
+                ("share", "=", False),
+                ("group_ids", "in", groups.ids),
+            ],
+        )
+        active_links = documents.mapped("link_ids").filtered("active")
+        linked_ids_by_model = {}
+        for link in active_links:
+            if link.res_model in self.env:
+                linked_ids_by_model.setdefault(link.res_model, set()).add(link.res_id)
+        readable_ids = {}
+        for user in candidates:
+            for model_name, record_ids in linked_ids_by_model.items():
+                try:
+                    readable_ids[user.id, model_name] = set(
+                        self.env[model_name]
+                        .with_user(user)
+                        .search([("id", "in", list(record_ids))])
+                        .ids,
+                    )
+                except AccessError:
+                    readable_ids[user.id, model_name] = set()
+        changed_documents = self.browse()
+        removed_by_document = {}
+        for document in documents:
+            before = set(document.permitted_user_ids.ids)
+            permitted = self.env["res.users"].sudo().browse()
+            document_links = document.link_ids.filtered("active")
+            for user in candidates:
+                if document.company_id and document.company_id not in user.company_ids:
+                    continue
+                for link in document_links:
+                    if link.res_id not in readable_ids.get(
+                        (user.id, link.res_model),
+                        set(),
+                    ):
+                        continue
+                    permitted |= user
+                    break
+            if not document_links and document.submitted_by_id in candidates:
+                permitted |= document.submitted_by_id
+            after = set(permitted.ids)
+            if before != after:
+                document.with_context(
+                    usl_documents_policy_write=True,
+                    skip_permission_invalidation=True,
+                ).write({"permitted_user_ids": [Command.set(permitted.ids)]})
+                changed_documents |= document
+                removed_by_document[document.id] = before - after
+        if sync_permissions:
+            # A repeated policy application is a no-op. Only permissions whose
+            # Odoo access changed, or whose last Paperless synchronization is
+            # incomplete, need an external API call.
+            pending = documents.filtered(
+                lambda document: document.permission_sync_state != "synchronized",
+            )
+            live = (changed_documents | pending).filtered(
+                lambda document: document.paperless_id
+                and document.availability_state in ("available", "permission_error"),
+            )
+            has_verified_mapping = bool(
+                self.env["usl.paperless.user.mapping"].sudo().search_count(
+                    [("active", "=", True), ("sync_state", "=", "synchronized")],
+                ),
+            )
+            if live and has_verified_mapping:
+                live.with_user(self.env.ref("base.user_root")).action_sync_permissions()
+                unsafe = live.filtered(
+                    lambda document: removed_by_document.get(document.id)
+                    and document.permission_sync_state == "failed",
+                )
+                if unsafe:
+                    raise UserError(
+                        _(
+                            "Access was not changed because Paperless could not "
+                            "safely revoke one or more document permissions.",
+                        ),
+                    )
+        return True
 
     @api.model
     def _version_values(self, payload, *, current_id=None):
@@ -2288,6 +2415,12 @@ class UslDocument(models.Model):
             if not source_record:
                 raise ValidationError(_("The source Odoo record no longer exists."))
             source_record.check_access("read")
+        operation = self.env["usl.document.operation"]
+        operation_id = self.env.context.get("usl_documents_operation_id")
+        if operation_id and self.env.su:
+            operation = operation.sudo().browse(int(operation_id)).exists()
+            if not operation or operation.state != "pending":
+                raise ValidationError(_("The attachment archive request is no longer pending."))
         record_company = False
         if source_record:
             record_company = (
@@ -2307,8 +2440,26 @@ class UslDocument(models.Model):
             raise ValidationError(
                 _("The upload company must match the source record's legal company."),
             )
-        if company not in self.env.user.company_ids:
+        if not self.env.su and company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
+        archive_context = (
+            source_record._document_archive_context(
+                operation.source_attachment_id if operation else None,
+            )
+            if source_record
+            else {
+                "company_id": company.id,
+                "confidentiality": confidentiality,
+                "accounting_evidence": False,
+                "access_scope": "company",
+                "tags": [],
+                "entity_tags": [],
+                "tag_record_ids": [],
+                "tag_paperless_ids": [],
+                "related_records": [],
+            }
+        )
+        confidentiality = archive_context.get("confidentiality") or confidentiality
         checksum = hashlib.sha256(content).hexdigest()
         retry_operation = self.env["usl.document.operation"].search(
             [
@@ -2324,6 +2475,9 @@ class UslDocument(models.Model):
             [
                 ("availability_state", "=", "available"),
                 "|",
+                ("company_id", "=", company.id),
+                ("company_id", "=", False),
+                "|",
                 ("checksum", "=", checksum),
                 ("version_ids.checksum", "=", checksum),
             ],
@@ -2331,14 +2485,39 @@ class UslDocument(models.Model):
         )
         if existing:
             retry_operation.acknowledge()
-            if res_model and res_id:
-                matching_version = existing.version_ids.filtered(
-                    lambda version: version.checksum == checksum,
-                )[:1]
-                existing.link_to_record(
-                    res_model,
-                    int(res_id),
-                    version_id=matching_version.paperless_version_id or None,
+            if source_record and self._paperless().configured:
+                archive_context = self._prepare_archive_context(
+                    source_record,
+                    operation.source_attachment_id if operation else None,
+                )
+            matching_version = existing.version_ids.filtered(
+                lambda version: version.checksum == checksum,
+            )[:1]
+            if matching_version:
+                archive_context = {
+                    **archive_context,
+                    "related_records": [
+                        {
+                            **target,
+                            "version_id": matching_version.paperless_version_id,
+                        }
+                        for target in archive_context.get("related_records") or []
+                    ],
+                }
+            existing._apply_archive_context(
+                archive_context,
+                submitted_by=operation.user_id if operation else self.env.user,
+            )
+            if operation:
+                operation.sudo().write(
+                    {
+                        "state": "archived",
+                        "checksum": checksum,
+                        "document_id": existing.id,
+                        "context_json": archive_context,
+                        "error_message": False,
+                        "next_attempt_at": False,
+                    },
                 )
             return {
                 "state": "duplicate",
@@ -2353,6 +2532,9 @@ class UslDocument(models.Model):
             [
                 ("availability_state", "=", "trashed"),
                 "|",
+                ("company_id", "=", company.id),
+                ("company_id", "=", False),
+                "|",
                 ("checksum", "=", checksum),
                 ("version_ids.checksum", "=", checksum),
             ],
@@ -2364,6 +2546,11 @@ class UslDocument(models.Model):
                     "Identical content is already in Trash. Restore that document "
                     "before linking or uploading it again.",
                 ),
+            )
+        if source_record:
+            archive_context = self._prepare_archive_context(
+                source_record,
+                operation.source_attachment_id if operation else None,
             )
         remote_candidates = self._paperless().search(
             "", page=1, page_size=2, filters={"checksum": checksum},
@@ -2385,14 +2572,20 @@ class UslDocument(models.Model):
             mirrored = self.search([("paperless_id", "=", remote_id)], limit=1)
             if mirrored:
                 retry_operation.acknowledge()
-                if res_model and res_id:
-                    matching_version = mirrored.version_ids.filtered(
-                        lambda version: version.checksum == checksum,
-                    )[:1]
-                    mirrored.link_to_record(
-                        res_model,
-                        int(res_id),
-                        version_id=matching_version.paperless_version_id or None,
+                mirrored._apply_archive_context(
+                    archive_context,
+                    submitted_by=operation.user_id if operation else self.env.user,
+                )
+                if operation:
+                    operation.sudo().write(
+                        {
+                            "state": "archived",
+                            "checksum": checksum,
+                            "document_id": mirrored.id,
+                            "context_json": archive_context,
+                            "error_message": False,
+                            "next_attempt_at": False,
+                        },
                     )
                 return {
                     "state": "duplicate",
@@ -2403,7 +2596,7 @@ class UslDocument(models.Model):
                     )
                     % {"document": mirrored.name},
                 }
-            operation = self.env["usl.document.operation"].sudo().create({
+            operation_values = {
                 "name": filename,
                 "state": "duplicate",
                 "checksum": checksum,
@@ -2413,6 +2606,11 @@ class UslDocument(models.Model):
                 "res_model": res_model,
                 "res_id": int(res_id) if res_id else 0,
                 "source": source,
+                "accounting_evidence": bool(
+                    archive_context.get("accounting_evidence"),
+                ),
+                "access_scope": archive_context.get("access_scope") or "linked_record",
+                "context_json": archive_context,
                 "error_message": _(
                     "Identical content exists outside your authorized Odoo archive view. "
                     "A Documents administrator must classify it before reuse.",
@@ -2421,13 +2619,19 @@ class UslDocument(models.Model):
                 "retry_count": (retry_operation.retry_count + 1)
                 if retry_operation
                 else 0,
-            })
+            }
+            if operation:
+                operation.sudo().write(operation_values)
+            else:
+                operation = self.env["usl.document.operation"].sudo().create(
+                    operation_values,
+                )
             return {
                 "state": "duplicate",
                 "operation_id": operation.id,
                 "message": operation.error_message,
             }
-        operation = self.env["usl.document.operation"].sudo().create({
+        operation_values = {
             "name": filename,
             "state": "uploading",
             "checksum": checksum,
@@ -2437,14 +2641,30 @@ class UslDocument(models.Model):
             "res_model": res_model,
             "res_id": int(res_id) if res_id else 0,
             "source": source,
+            "accounting_evidence": bool(archive_context.get("accounting_evidence")),
+            "access_scope": archive_context.get("access_scope") or "linked_record",
+            "context_json": archive_context,
             "retry_of_id": retry_operation.id,
             "retry_count": (retry_operation.retry_count + 1)
             if retry_operation
             else 0,
-        })
+        }
+        if operation:
+            operation.sudo().write(operation_values)
+        else:
+            operation = self.env["usl.document.operation"].sudo().create(
+                operation_values,
+            )
         try:
             task_id = self._paperless().upload_multipart(
-                content, filename, content_type, title=filename,
+                content,
+                filename,
+                content_type,
+                title=filename,
+                created=archive_context.get("document_date"),
+                correspondent_id=archive_context.get("correspondent_paperless_id"),
+                document_type_id=archive_context.get("document_type_paperless_id"),
+                tag_ids=archive_context.get("tag_paperless_ids"),
             )
             operation.sudo().write(
                 {"state": "processing", "paperless_task_id": task_id},
@@ -3057,6 +3277,7 @@ class UslDocumentLink(models.Model):
     def _allowed_models(self):
         return {
             "account.move",
+            "account.payment",
             "hr.expense",
             "res.partner",
             "res.company",
@@ -3108,6 +3329,8 @@ class UslDocumentLink(models.Model):
                 existing.sudo().write({"active": True})
             if version_id and not existing.version_id:
                 existing.sudo().write({"version_id": str(version_id)})
+            if not self.env.context.get("usl_documents_defer_access_sync"):
+                document._recompute_linked_record_access(sync_permissions=True)
             return existing
         if not document.company_id:
             document.sudo().with_context(usl_documents_policy_write=True).write(
@@ -3123,7 +3346,12 @@ class UslDocumentLink(models.Model):
                 "res_id": res_id,
                 "record_name": record.display_name,
                 "company_id": company.id,
-                "linked_by_id": self.env.user.id,
+                "linked_by_id": (
+                    int(self.env.context.get("usl_documents_linked_by_id"))
+                    if self.env.su
+                    and self.env.context.get("usl_documents_linked_by_id")
+                    else self.env.user.id
+                ),
                 "version_id": (
                     str(version_id)
                     if version_id
@@ -3134,8 +3362,8 @@ class UslDocumentLink(models.Model):
                 ),
             },
         )
-        if document.permission_sync_state != "synchronized":
-            document.with_user(self.env.ref("base.user_root")).action_sync_permissions()
+        if not self.env.context.get("usl_documents_defer_access_sync"):
+            document._recompute_linked_record_access(sync_permissions=True)
         return link
 
     def action_open_record(self):
@@ -3170,7 +3398,19 @@ class UslDocumentLink(models.Model):
             )
             if record:
                 record.check_access("read")
-        return super().unlink()
+        documents = self.mapped("document_id")
+        result = super().unlink()
+        documents._recompute_linked_record_access(sync_permissions=True)
+        return result
+
+    def write(self, values):
+        documents = self.mapped("document_id") if "active" in values else self.env[
+            "usl.document"
+        ]
+        result = super().write(values)
+        if documents:
+            documents._recompute_linked_record_access(sync_permissions=True)
+        return result
 
 
 class UslDocumentOperation(models.Model):
@@ -3372,6 +3612,13 @@ class UslDocumentOperation(models.Model):
                         {
                             "company_id": operation.company_id.id,
                             "confidentiality": operation.confidentiality,
+                            "accounting_evidence": bool(
+                                getattr(operation, "accounting_evidence", False),
+                            ),
+                            "access_scope": (
+                                getattr(operation, "access_scope", False)
+                                or "company"
+                            ),
                             "review_state": "classified",
                             "submitted_by_id": operation.user_id.id,
                             "submitted_at": operation.create_date,
@@ -3389,11 +3636,28 @@ class UslDocumentOperation(models.Model):
                             "source": operation.source,
                         },
                     )
-                if operation.res_model and operation.res_id:
-                    document.with_user(operation.user_id).link_to_record(
-                        operation.res_model, operation.res_id,
+                archive_context = getattr(operation, "context_json", False) or {}
+                if archive_context:
+                    document._apply_archive_context(
+                        archive_context,
+                        submitted_by=operation.user_id,
                     )
-                if document.permission_sync_state != "synchronized":
+                elif operation.res_model and operation.res_id:
+                    record = self.env[operation.res_model].with_user(
+                        operation.user_id,
+                    ).browse(operation.res_id).exists()
+                    if not record:
+                        raise UserError(_("The source Odoo record no longer exists."))
+                    record.check_access("read")
+                    document.sudo().with_context(
+                        usl_documents_linked_by_id=operation.user_id.id,
+                        usl_documents_defer_access_sync=True,
+                    ).link_to_record(operation.res_model, operation.res_id)
+                    document._recompute_linked_record_access(sync_permissions=True)
+                if (
+                    document.permission_sync_state != "synchronized"
+                    and not archive_context
+                ):
                     document.with_user(
                         self.env.ref("base.user_root"),
                     ).action_sync_permissions()

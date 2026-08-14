@@ -28,14 +28,19 @@ def configure(env):
     apply_changes = _is_enabled("USL_POCKET_ID_APPLY")
     try:
         env["auth.oauth.provider"]._usl_pocketid_apply_environment()
-        summary = env["res.users"]._usl_pocketid_apply_user_configuration(
+        users = env["res.users"].with_context(
+            usl_documents_defer_user_access_sync=True,
+        )
+        summary = users._usl_pocketid_apply_user_configuration(
             user_configuration,
             break_glass_password=break_glass_password,
             strict=True,
         )
-        summary["login_policy"] = env[
-            "res.users"
-        ]._usl_pocketid_apply_login_policy()
+        summary["login_policy"] = users._usl_pocketid_apply_login_policy()
+        if apply_changes and "usl.document" in env:
+            env["usl.document"].sudo().search(
+                [("access_scope", "=", "linked_record")],
+            )._recompute_linked_record_access(sync_permissions=True)
         if apply_changes:
             env.cr.commit()
         else:

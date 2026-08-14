@@ -191,6 +191,34 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         wizard._populate_candidates()
         return wizard
 
+    def test_documents_context_is_stable_and_relationship_complete(self):
+        session = self._session()
+        payout = self._payout(session)
+
+        platform_context = self.platform._document_archive_context()
+        self.assertEqual(
+            platform_context["document_type"],
+            "Platform agreement or statement",
+        )
+        self.assertEqual(
+            platform_context["entity_tags"][0],
+            {
+                "namespace": "platform",
+                "model": "usl.platform.billing.platform",
+                "id": self.platform.id,
+                "name": "CreatorHub",
+                "parent": "Platform billing",
+            },
+        )
+
+        payout_context = payout._document_archive_context()
+        self.assertEqual(payout_context["document_type"], "Platform payout evidence")
+        self.assertEqual(payout_context["tags"], ["Accounting", "Platform billing"])
+        self.assertIn(
+            {"model": "usl.platform.billing.session", "id": session.id},
+            payout._document_related_records(),
+        )
+
     def test_session_list_defaults_to_all_records(self):
         action = self.env.ref(
             "usl_platform_billing.action_platform_billing_sessions",
