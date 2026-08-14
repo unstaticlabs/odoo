@@ -139,12 +139,20 @@ file is durable; no Paperless request runs in the user's transaction. Temporary
 composer files, inline images, binary fields, URLs, web assets and unsupported
 models are excluded. Supported evidence stays immediately previewable from its
 ordinary Odoo record while a bounded worker archives it.
+Authoritative formats Paperless cannot consume remain attached to their native
+business records. Reconstruction classifies those exclusions explicitly; it
+does not discard them or misrepresent a failed conversion as missing evidence.
 
 The worker calculates SHA-256, searches current and historical version
 checksums, and reuses an accessible root before submitting new bytes. The same
 binary on another record adds a relationship; changed content on the same
 attachment becomes a Paperless version. Retry identity is the native attachment
 and checksum. Failed operations stay visible until retry or acknowledgement.
+When an operational attachment matches a root already in Paperless Trash, the
+bridge preserves Trash intent, adds the Odoo relationship, and records a review
+issue on both the source record and archived root. Restoring that root lets the
+same idempotent operation finish; it never creates duplicate bytes or silently
+restores a discarded document.
 
 `usl.document.link.mixin` is the stable extension contract. Product models
 provide archive policy, additive business context, related records and fields

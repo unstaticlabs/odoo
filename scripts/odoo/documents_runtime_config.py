@@ -32,4 +32,8 @@ if any((internal_url, token, service_user_id)):
     params.set_str("usl_documents.paperless_url", internal_url)
     params.set_str("usl_documents.paperless_token", token)
     params.set_int("usl_documents.paperless_service_user_id", int(service_user_id))
+# Reconcile the fail-closed workflow whenever environment-specific runtime
+# ownership is applied. Migration temporarily uses a sealed administrator;
+# ordinary ingestion must always return to the durable integration identity.
+env["usl.document"]._paperless().ensure_fail_closed_ingestion_policy()
 env.cr.commit()

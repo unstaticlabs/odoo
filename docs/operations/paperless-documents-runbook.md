@@ -152,7 +152,9 @@ production mapping. Archive restore uses the disposable `odoo-migration`
 Paperless owner; target finalization and `make paperless-users` provision the
 runtime `odoo-integration` owner, claim any remaining migration-owned roots,
 map governed Pocket identities, and synchronize exact document-object
-permissions. Run `make paperless-users` after a governed identity, Documents
+permissions. Its temporary administrator token has no password login and is
+revoked and deactivated automatically when restoration succeeds or fails. Run
+`make paperless-users` after a governed identity, Documents
 role, or company assignment changes. Both commands are idempotent and fail
 closed on an ambiguous subject, username, email, role, or remote identity.
 

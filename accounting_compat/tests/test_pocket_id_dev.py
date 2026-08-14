@@ -435,6 +435,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn('qa_paperless_port" = "18010"', stack)
         self.assertEqual(stack.count("sync_odoo_runtime_config"), 3)
         self.assertIn("usl_documents.paperless_public_url", runtime_config)
+        self.assertIn("ensure_fail_closed_ingestion_policy", runtime_config)
 
     def test_documents_recovery_restores_the_source_callback_environment(self):
         recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(

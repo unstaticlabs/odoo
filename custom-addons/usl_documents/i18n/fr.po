@@ -4557,3 +4557,46 @@ msgid ""
 msgstr ""
 "« %(document)s » a été restauré. Ses liens Odoo et son identité d'archive "
 "ont été préservés."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__review_reason
+msgid "Review Reason"
+msgstr "Motif du contrôle"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__review_reason__paperless_trash
+msgid "Matching archive document is in Trash"
+msgstr "Le document correspondant est dans la corbeille"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Paperless finished processing, but the archived file is not accessible. "
+"Check its archive owner and permissions, then retry."
+msgstr ""
+"Paperless a terminé le traitement, mais le fichier archivé n'est pas "
+"accessible. Vérifiez son propriétaire et ses autorisations d'archive, puis "
+"réessayez."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"This file is still attached to an Odoo record, but its matching archive "
+"document is in Trash. Restore it to apply the current classification and "
+"archive access."
+msgstr ""
+"Ce fichier est toujours joint à un enregistrement Odoo, mais le document "
+"d'archive correspondant est dans la corbeille. Restaurez-le pour appliquer "
+"le classement et les accès actuels."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"The matching archive document is in Trash. Restore it to complete archival; "
+"the native Odoo file remains available."
+msgstr ""
+"Le document d'archive correspondant est dans la corbeille. Restaurez-le "
+"pour terminer l'archivage ; le fichier Odoo reste disponible."

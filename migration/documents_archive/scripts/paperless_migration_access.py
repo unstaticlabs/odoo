@@ -1,16 +1,21 @@
+# ruff: noqa: T201 - parsed by the isolated restoration runner
 """Provision the scoped Paperless identity used only by archive migration."""
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from documents.models import Document
 from rest_framework.authtoken.models import Token
-
 
 username = "odoo-migration"
 User = get_user_model()
 user, _created = User.objects.get_or_create(username=username)
 user.is_active = True
-user.is_staff = False
-user.is_superuser = False
+# Paperless deliberately returns 404 for object-scoped documents and protects
+# Trash/owner transitions beyond model permissions. This identity exists only
+# inside the one-shot runner, has an unusable password, and is sealed by the
+# paired cleanup script on success or failure.
+user.is_staff = True
+user.is_superuser = True
 user.set_unusable_password()
 
 mutable_models = {
@@ -43,9 +48,13 @@ permissions |= Permission.objects.filter(
     codename="view_user",
 )
 if permissions.count() != len(codenames) + 1:
-    raise RuntimeError("Paperless 3.0.4 migration permissions are incompatible")
+    message = "Paperless 3.0.4 migration permissions are incompatible"
+    raise RuntimeError(message)
 user.save()
 user.user_permissions.set(permissions)
+# Evaluate the authority boundary while provisioning so an incompatible model
+# registry fails before a source archive is touched.
+_document_count = Document.objects.count()
 token, _created = Token.objects.get_or_create(user=user)
 print(f"DOCUMENTS_PAPERLESS_TOKEN={token.key}")
 print(f"DOCUMENTS_PAPERLESS_SERVICE_USER_ID={user.id}")

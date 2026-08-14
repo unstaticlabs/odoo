@@ -346,6 +346,7 @@
                 <field name="user_id"/>
                 <field name="company_id"/>
                 <field name="document_id"/>
+                <field name="review_reason" optional="show"/>
                 <field name="retry_count" optional="hide"/>
                 <field name="error_message" optional="show"/>
             </list>

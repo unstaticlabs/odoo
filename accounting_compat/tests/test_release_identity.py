@@ -28,7 +28,7 @@ class ReleaseIdentityTest(unittest.TestCase):
     def test_distribution_image_embeds_runtime_inputs(self):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
         distribution = dockerfile.split(
-            "FROM base AS distribution",
+            "FROM base AS product",
             1,
         )[1].split("FROM base AS test", 1)[0]
         dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
@@ -36,9 +36,9 @@ class ReleaseIdentityTest(unittest.TestCase):
 
         self.assertIn("org.opencontainers.image.revision", distribution)
         self.assertIn("USL_OCA_BUNDLE_SHA256", distribution)
-        self.assertIn("custom-addons /opt/usl/custom-addons", distribution)
-        self.assertIn("oca-src /opt/usl/oca-src", distribution)
-        self.assertIn("docs/users /opt/usl/user-docs", distribution)
+        self.assertIn("custom-addons ./custom-addons", distribution)
+        self.assertIn("/srv/resolved ./oca-addons", distribution)
+        self.assertIn("docs/users ./docs/users", distribution)
         self.assertIn('VOLUME ["/var/lib/odoo"]', dockerfile)
         self.assertNotIn(
             'VOLUME ["/var/lib/odoo", "/mnt/custom-addons"]',

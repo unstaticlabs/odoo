@@ -8,6 +8,16 @@ SCRIPT = ROOT / "scripts/documents-restore"
 QA_SCRIPT = ROOT / "scripts/qa-environment"
 SEED_SCRIPT = ROOT / "scripts/qa-seed"
 TARGET_SCRIPT = ROOT / "scripts/target-reconstruct"
+NATIVE_BRIDGE_SCRIPT = (
+    ROOT / "migration/documents_archive/scripts/reconcile_native_attachments.py"
+)
+PAPERLESS_MIGRATION_ACCESS = (
+    ROOT / "migration/documents_archive/scripts/paperless_migration_access.py"
+)
+PAPERLESS_MIGRATION_ACCESS_CLEANUP = (
+    ROOT
+    / "migration/documents_archive/scripts/paperless_migration_access_cleanup.py"
+)
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -57,9 +67,44 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         script = SCRIPT.read_text(encoding="utf-8")
 
         self.assertIn(
-            "--update=rebuild_account_migration,usl_documents,usl_documents_accounting",
+            "--update=rebuild_account_migration,usl_documents,usl_expense_batch,"
+            "usl_platform_billing,usl_tese_payroll,usl_documents_accounting",
             script,
         )
+
+    def test_native_bridge_checkpoints_progress_before_final_gate(self):
+        script = NATIVE_BRIDGE_SCRIPT.read_text(encoding="utf-8")
+
+        guard = script.index("if blocking_operations or unaccounted:")
+        failure = script.index("raise RuntimeError", guard)
+        final_commit = script.index("env.cr.commit()", failure)
+        self.assertLess(guard, failure)
+        self.assertLess(failure, final_commit)
+        self.assertIn(
+            "Document.sync_from_paperless(full=True, client=migration_client)",
+            script,
+        )
+        self.assertIn("bounded resumable queue checkpoint", script)
+        self.assertIn("Commit every bounded worker pass", script)
+        runner = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            '-e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token"',
+            runner,
+        )
+
+    def test_archive_migration_identity_is_temporary_and_fail_closed(self):
+        access = PAPERLESS_MIGRATION_ACCESS.read_text(encoding="utf-8")
+        cleanup = PAPERLESS_MIGRATION_ACCESS_CLEANUP.read_text(encoding="utf-8")
+        runner = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("user.is_superuser = True", access)
+        self.assertIn("Token.objects.filter(user=user).delete()", cleanup)
+        self.assertIn("UserObjectPermission.objects.filter(user=user).delete()", cleanup)
+        self.assertIn("assign_owner=runtime_user", cleanup)
+        self.assertIn("workflows.update(enabled=False)", cleanup)
+        self.assertIn("user.is_active = False", cleanup)
+        self.assertIn("user.is_superuser = False", cleanup)
+        self.assertIn("trap deprovision_archive_identity EXIT", runner)
 
     def test_checkpoint_reuse_is_explicit_and_fail_closed(self):
         script = SCRIPT.read_text(encoding="utf-8")

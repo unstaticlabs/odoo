@@ -1,3 +1,4 @@
+import hashlib
 import re
 from datetime import timedelta
 
@@ -247,9 +248,50 @@ class UslDocument(models.Model):
             document._recompute_linked_record_access(sync_permissions=True)
         return True
 
+    def _register_trashed_archive_context(self, context, *, submitted_by=None):
+        """Keep source Trash intent while retaining the Odoo business links."""
+        for document in self:
+            actor = submitted_by or self.env.user
+            for target in context.get("related_records") or []:
+                record = self.env[target["model"]].with_user(actor).browse(
+                    int(target["id"]),
+                ).exists()
+                if not record:
+                    raise UserError(_("A related business record no longer exists."))
+                record.check_access("read")
+                document.sudo().with_context(
+                    usl_documents_linked_by_id=actor.id,
+                    usl_documents_defer_access_sync=True,
+                    usl_documents_allow_trashed_link=True,
+                ).link_to_record(
+                    target["model"],
+                    int(target["id"]),
+                    version_id=target.get("version_id"),
+                )
+            document.sudo().with_context(
+                usl_documents_cache_write=True,
+            ).write(
+                {
+                    "review_state": "needs_attention",
+                    "last_error": _(
+                        "This file is still attached to an Odoo record, but its "
+                        "matching archive document is in Trash. Restore it to apply "
+                        "the current classification and archive access.",
+                    ),
+                },
+            )
+            document._recompute_linked_record_access(sync_permissions=False)
+        return True
+
 
 class IrAttachment(models.Model):
     _inherit = "ir.attachment"
+
+    _usl_documents_unsupported_archive_suffixes = frozenset({".ics", ".xml", ".zip"})
+    _usl_documents_inline_image_name = re.compile(
+        r"^dbfamilycid\d+\.(?:gif|jpe?g|png|webp)$",
+        re.IGNORECASE,
+    )
 
     @api.model_create_multi
     def create(self, values_list):
@@ -267,6 +309,20 @@ class IrAttachment(models.Model):
             return False, "unsupported_business_model"
         if not self.file_size or not self.checksum:
             return False, "empty_or_unreadable"
+        name = str(self.name or "").strip()
+        normalized_name = name.casefold()
+        suffix = f".{normalized_name.rsplit('.', 1)[-1]}" if "." in normalized_name else ""
+        if suffix in self._usl_documents_unsupported_archive_suffixes:
+            # Paperless intentionally supports document formats it can consume.
+            # Keep other authoritative evidence on the native business record and
+            # classify it explicitly instead of feeding a permanent retry loop.
+            return False, "unsupported_archive_format"
+        if self._usl_documents_inline_image_name.fullmatch(name):
+            return False, "inline_message_image"
+        if str(self.mimetype or "").casefold().startswith("image/") and self.file_size <= 512:
+            # Real evidence cannot be meaningfully inspected at this size. These
+            # are mail-client tracking pixels and disposable placeholder images.
+            return False, "inline_or_placeholder_image"
         record = self.env[self.res_model].browse(self.res_id).exists()
         if not record:
             return False, "missing_business_record"
@@ -375,6 +431,11 @@ class UslDocumentOperation(models.Model):
     )
     next_attempt_at = fields.Datetime(readonly=True, index=True)
     attempt_count = fields.Integer(readonly=True)
+    review_reason = fields.Selection(
+        [("paperless_trash", "Matching archive document is in Trash")],
+        readonly=True,
+        index=True,
+    )
 
     _source_version_unique = models.Constraint(
         "UNIQUE(source_attachment_id, source_attachment_checksum)",
@@ -403,6 +464,7 @@ class UslDocumentOperation(models.Model):
                         "state": "pending",
                         "next_attempt_at": False,
                         "error_message": False,
+                        "review_reason": False,
                         "acknowledged": False,
                         "acknowledged_at": False,
                     },
@@ -459,6 +521,7 @@ class UslDocumentOperation(models.Model):
             return False
         try:
             content_base64 = attachment.with_context(bin_size=False).datas
+            content = attachment.raw
             if self.target_document_id:
                 source_record = self.env[attachment.res_model].browse(
                     attachment.res_id,
@@ -477,7 +540,6 @@ class UslDocumentOperation(models.Model):
                     source_record,
                     attachment,
                 )
-                content = attachment.raw
                 task_id = self.env["usl.document"]._paperless().update_version(
                     self.target_document_id.paperless_id,
                     content,
@@ -494,9 +556,65 @@ class UslDocumentOperation(models.Model):
                         "attempt_count": self.attempt_count + 1,
                         "next_attempt_at": False,
                         "error_message": False,
+                        "review_reason": False,
                     },
                 )
                 return True
+            checksum = hashlib.sha256(content).hexdigest()
+            trashed = self.env["usl.document"].sudo().search(
+                [
+                    ("availability_state", "=", "trashed"),
+                    "|",
+                    ("company_id", "=", self.company_id.id),
+                    ("company_id", "=", False),
+                    "|",
+                    ("checksum", "=", checksum),
+                    ("version_ids.checksum", "=", checksum),
+                ],
+                limit=1,
+            )
+            if trashed:
+                source_record = self.env[attachment.res_model].browse(
+                    attachment.res_id,
+                ).exists()
+                if not source_record:
+                    self.sudo().write(
+                        {
+                            "state": "failed",
+                            "attempt_count": self.attempt_count + 1,
+                            "next_attempt_at": False,
+                            "review_reason": False,
+                            "error_message": _(
+                                "The Odoo record was removed before archival.",
+                            ),
+                        },
+                    )
+                    return False
+                archive_context = self.env["usl.document"]._prepare_archive_context(
+                    source_record,
+                    attachment,
+                )
+                trashed._register_trashed_archive_context(
+                    archive_context,
+                    submitted_by=self.user_id,
+                )
+                self.sudo().write(
+                    {
+                        "state": "failed",
+                        "checksum": checksum,
+                        "document_id": trashed.id,
+                        "context_json": archive_context,
+                        "attempt_count": self.attempt_count + 1,
+                        "next_attempt_at": False,
+                        "review_reason": "paperless_trash",
+                        "error_message": _(
+                            "The matching archive document is in Trash. Restore it "
+                            "to complete archival; the native Odoo file remains "
+                            "available.",
+                        ),
+                    },
+                )
+                return False
             self.env["usl.document"].sudo().with_context(
                 usl_documents_operation_id=self.id,
             ).upload_from_odoo(
@@ -518,6 +636,7 @@ class UslDocumentOperation(models.Model):
                     "attempt_count": self.attempt_count + 1,
                     "next_attempt_at": fields.Datetime.now() + timedelta(minutes=delay),
                     "error_message": str(error),
+                    "review_reason": False,
                 },
             )
             return False
@@ -526,6 +645,18 @@ class UslDocumentOperation(models.Model):
                 {
                     "state": "failed",
                     "attempt_count": self.attempt_count + 1,
+                    "error_message": str(error),
+                    "review_reason": False,
+                },
+            )
+            return False
+        except UserError as error:
+            self.sudo().write(
+                {
+                    "state": "failed",
+                    "attempt_count": self.attempt_count + 1,
+                    "next_attempt_at": False,
+                    "review_reason": False,
                     "error_message": str(error),
                 },
             )
