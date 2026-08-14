@@ -240,6 +240,119 @@ class TestDocuments(TransactionCase):
         self.assertTrue(operation.next_attempt_at)
         self.assertEqual(attachment.raw, b"still usable in Odoo")
 
+    def test_native_attachment_links_trashed_match_without_restoring_it(self):
+        task = self.env["project.task"].create({"name": "Preserved Trash intent"})
+        content = b"native evidence whose archive root is in Trash"
+        checksum = __import__("hashlib").sha256(content).hexdigest()
+        document = self._document(
+            7900,
+            checksum=checksum,
+            availability_state="trashed",
+        )
+        attachment = self.env["ir.attachment"].create(
+            {
+                "name": "preserved-trash.pdf",
+                "raw": content,
+                "mimetype": "application/pdf",
+                "res_model": "project.task",
+                "res_id": task.id,
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+        metadata_factory = self._remote_metadata_factory()
+
+        with (
+            patch.object(
+                PaperlessClient,
+                "create_metadata",
+                autospec=True,
+                side_effect=metadata_factory,
+            ),
+            patch.object(PaperlessClient, "upload_multipart") as upload,
+        ):
+            result = operation._process_native_attachment()
+
+        self.assertFalse(result)
+        self.assertEqual(operation.state, "failed")
+        self.assertEqual(operation.review_reason, "paperless_trash")
+        self.assertEqual(operation.document_id, document)
+        self.assertEqual(document.availability_state, "trashed")
+        self.assertEqual(document.review_state, "needs_attention")
+        self.assertEqual(
+            document.link_ids.filtered(
+                lambda link: link.res_model == "project.task" and link.res_id == task.id,
+            ).document_id,
+            document,
+        )
+        self.assertEqual(attachment.raw, content)
+        upload.assert_not_called()
+
+    def test_trash_conflict_does_not_abort_next_attachment(self):
+        first_task = self.env["project.task"].create({"name": "Trash conflict"})
+        second_task = self.env["project.task"].create({"name": "Reusable evidence"})
+        first_content = b"conflicting trashed binary"
+        second_content = b"already archived binary"
+        self._document(
+            7901,
+            checksum=__import__("hashlib").sha256(first_content).hexdigest(),
+            availability_state="trashed",
+        )
+        available = self._document(
+            7902,
+            checksum=__import__("hashlib").sha256(second_content).hexdigest(),
+        )
+        attachments = self.env["ir.attachment"].create(
+            [
+                {
+                    "name": "trash-conflict.pdf",
+                    "raw": first_content,
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": first_task.id,
+                },
+                {
+                    "name": "reused.pdf",
+                    "raw": second_content,
+                    "mimetype": "application/pdf",
+                    "res_model": "project.task",
+                    "res_id": second_task.id,
+                },
+            ],
+        )
+        metadata_factory = self._remote_metadata_factory()
+        with (
+            patch.object(
+                PaperlessClient,
+                "create_metadata",
+                autospec=True,
+                side_effect=metadata_factory,
+            ),
+            patch.object(PaperlessClient, "update_document_metadata") as update,
+        ):
+            update.return_value = {
+                "id": available.paperless_id,
+                "title": available.name,
+                "checksum": available.checksum,
+                "tags": [],
+            }
+            processed = self.env["usl.document.operation"].cron_process_attachment_queue()
+
+        operations = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "in", attachments.ids)],
+        )
+        operation_by_attachment = {
+            operation.source_attachment_id.id: operation for operation in operations
+        }
+        conflicted = operation_by_attachment[attachments[0].id]
+        reused = operation_by_attachment[attachments[1].id]
+        self.assertGreaterEqual(processed, 2)
+        self.assertEqual(conflicted.state, "failed")
+        self.assertEqual(conflicted.review_reason, "paperless_trash")
+        self.assertEqual(reused.state, "archived")
+        self.assertEqual(reused.document_id, available)
+
     def test_project_context_uses_one_stable_tag_for_every_task(self):
         project = self.env["project.project"].create({"name": "Studio Launch"})
         first = self.env["project.task"].create(
@@ -303,6 +416,89 @@ class TestDocuments(TransactionCase):
             ),
             3,
         )
+
+    def test_non_archivable_native_evidence_is_explicitly_excluded(self):
+        task = self.env["project.task"].create({"name": "Native evidence"})
+        attachments = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            [
+                {
+                    "name": "calendar.ics",
+                    "raw": b"BEGIN:VCALENDAR\nEND:VCALENDAR",
+                    "mimetype": "text/calendar",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+                {
+                    "name": "invoice.xml",
+                    "raw": b"<Invoice/>",
+                    # Odoo may conservatively identify uploaded XML as text.
+                    "mimetype": "text/plain",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+                {
+                    "name": "closing-package.zip",
+                    "raw": b"PK\x03\x04not-a-real-archive",
+                    "mimetype": "application/zip",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+            ],
+        )
+
+        for attachment in attachments:
+            self.assertEqual(
+                attachment._usl_documents_archive_eligibility(),
+                (False, "unsupported_archive_format"),
+            )
+            self.assertTrue(attachment.exists())
+        self.assertFalse(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "in", attachments.ids)],
+            ),
+        )
+
+    def test_inline_and_tiny_placeholder_images_are_not_archived(self):
+        task = self.env["project.task"].create({"name": "Mail evidence"})
+        inline, placeholder, evidence = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            [
+                {
+                    "name": "dbFamilyCID4.jpeg",
+                    "raw": b"x" * 2048,
+                    "mimetype": "image/jpeg",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+                {
+                    "name": "tracking.png",
+                    "raw": b"x" * 67,
+                    "mimetype": "image/png",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+                {
+                    "name": "site-photo.jpg",
+                    "raw": b"x" * 513,
+                    "mimetype": "image/jpeg",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+            ],
+        )
+
+        self.assertEqual(
+            inline._usl_documents_archive_eligibility(),
+            (False, "inline_message_image"),
+        )
+        self.assertEqual(
+            placeholder._usl_documents_archive_eligibility(),
+            (False, "inline_or_placeholder_image"),
+        )
+        self.assertEqual(evidence._usl_documents_archive_eligibility(), (True, False))
 
     def test_one_archive_document_links_to_multiple_records(self):
         document = self._document(101, checksum="a" * 64)
@@ -1810,6 +2006,29 @@ class TestDocuments(TransactionCase):
                 self.user,
             ).synchronize_archive_views(client=PaperlessClient(self.env))
 
+    def test_archive_sync_can_use_a_migration_scoped_client(self):
+        client = MagicMock(spec=PaperlessClient)
+        client.compatibility.return_value = {"ok": True}
+        client.list_documents.return_value = {"next": None, "results": []}
+        client.list_trashed_documents.return_value = []
+
+        with (
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(
+                UslDocument,
+                "_paperless",
+                side_effect=AssertionError("runtime client must not be used"),
+            ),
+        ):
+            result = (
+                self.env["usl.document"]
+                .with_user(self.manager)
+                .sync_from_paperless(full=True, client=client)
+            )
+
+        self.assertTrue(result["complete"])
+        client.list_trashed_documents.assert_called_once_with()
+
     def test_trash_reconciliation_and_restore_preserve_identity_and_links(self):
         document = self._document(333, name="Signed contract")
         document.link_to_record("res.partner", self.partner_a.id)
@@ -2283,6 +2502,35 @@ class TestDocuments(TransactionCase):
         self.assertEqual(operation.document_id.confidentiality, "accounting")
         self.assertEqual(operation.document_id.link_count, 1)
         self.assertEqual(operation.document_id.checksum, "c" * 64)
+
+    def test_async_success_with_inaccessible_document_needs_review(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "inaccessible.pdf",
+                "state": "processing",
+                "checksum": "d" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-inaccessible",
+                "user_id": self.user.id,
+            },
+        )
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={"status": "success", "related_document_ids": [110]},
+            ),
+            patch.object(
+                PaperlessClient,
+                "get_document",
+                side_effect=PaperlessNotFound("hidden"),
+            ),
+        ):
+            operation.poll()
+
+        self.assertEqual(operation.state, "failed")
+        self.assertIn("archive owner and permissions", operation.error_message)
 
     def test_workspace_restores_active_and_failed_operations_by_role(self):
         active = self.env["usl.document.operation"].sudo().create(

@@ -1135,9 +1135,9 @@ class UslDocument(models.Model):
         smart_views.synchronize_archive_views(client=client)
 
     @api.model
-    def sync_from_paperless(self, *, full=False, limit_pages=None):
+    def sync_from_paperless(self, *, full=False, limit_pages=None, client=None):
         self._require_manager()
-        client = self._paperless()
+        client = client or self._paperless()
         params = self.env["ir.config_parameter"].sudo()
         # Keep microseconds in the Paperless checkpoint. Odoo's database
         # datetime representation is second-granular; truncating here can omit
@@ -3290,7 +3290,12 @@ class UslDocumentLink(models.Model):
     def create_for_record(self, document, res_model, res_id, version_id=None):
         document.ensure_one()
         document.check_access("write")
-        if document.availability_state != "available":
+        allow_trashed_link = (
+            self.env.su
+            and self.env.context.get("usl_documents_allow_trashed_link")
+            and document.availability_state == "trashed"
+        )
+        if document.availability_state != "available" and not allow_trashed_link:
             raise UserError(
                 _("Only an available archived document can receive a new Odoo link."),
             )
@@ -3579,7 +3584,20 @@ class UslDocumentOperation(models.Model):
                     # root from the endpoint that created this task.
                     paperless_id = operation.target_document_id.paperless_id
                 client = self.env["usl.document"]._paperless()
-                payload = client.get_document(paperless_id)
+                try:
+                    payload = client.get_document(paperless_id)
+                except PaperlessNotFound:
+                    operation.sudo().write(
+                        {
+                            "state": "failed",
+                            "error_message": _(
+                                "Paperless finished processing, but the archived "
+                                "file is not accessible. Check its archive owner and "
+                                "permissions, then retry.",
+                            ),
+                        },
+                    )
+                    continue
                 metadata_catalog = None
                 if (
                     isinstance(payload.get("correspondent"), int)

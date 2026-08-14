@@ -17,6 +17,9 @@ creates versions when an Odoo attachment changes, applies contextual metadata,
 and mirrors actual linked-record read access to Paperless object permissions.
 Projects and platforms use stable entity-tag mappings; renames update the
 existing tag instead of creating a tag per task, payout or name change.
+Formats Paperless cannot consume (XML, calendar and ZIP files) and inline mail
+images remain on their native records. Reconstruction classifies those files
+explicitly instead of feeding a permanent archive retry loop.
 
 API v10 document payloads carry correspondent, document-type, and tag IDs.
 `usl.paperless.tag`, `usl.paperless.correspondent`, and
@@ -52,6 +55,9 @@ bounded run, resumes after interruption, and uses full reconciliation to
 refresh catalogs/Saved Views/Trash and mark missing roots without deleting
 relationships. A trashed Paperless root remains the same `usl.document` and
 retains its Odoo links; Restore calls the supported Trash endpoint.
+An automatic native-attachment match to that root preserves Trash, links the
+business record, and remains an explicit review issue until a manager restores
+the archive document.
 
 File versions are persisted as `usl.document.version`: the API current marker
 identifies the current file and `is_root` identifies the received original.

@@ -23,6 +23,7 @@ REUSE_CONTRACT = "paperless-archive-exact-input-v1"
 TRANSFORMATION_INPUTS = (
     "migration/documents_archive/classification.py",
     "migration/documents_archive/scripts/paperless_migration_access.py",
+    "migration/documents_archive/scripts/paperless_migration_access_cleanup.py",
     "migration/documents_archive/scripts/source_documents_restore.py",
     "custom-addons/usl_documents/__manifest__.py",
     "custom-addons/usl_documents/data",
