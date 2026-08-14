@@ -25,6 +25,12 @@ than being described as archived. Failed uploads survive a reload and offer
 **Choose file to retry** or **Dismiss**; retrying the same content remains
 checksum-idempotent.
 
+A user normally attaches the file on the bill, task, expense, payroll record
+or other business record where it belongs. That native attachment is usable at
+once. Odoo archives it in the background, adds safe business tags and defaults,
+and updates the record's one **Documents** button. Paperless downtime therefore
+never blocks the business transaction.
+
 ## Authority boundary
 
 Odoo owns legal company, confidentiality, review state, accounting meaning,
@@ -177,17 +183,24 @@ An archive correspondent may optionally map to an Odoo Contact:
 
 ## Business records
 
-Supported bills, invoices, journal entries, expenses, partners, companies,
-projects, tasks, and employees expose one Documents smart button:
-
-- with no linked archive items it is **Upload**;
-- with links it is **N Documents**.
+Supported bills, invoices, journal entries, payments, assets, expenses and
+batches, partners, companies, projects, tasks, employees, TESE payroll,
+Platform Billing, declarations and closing workspaces expose one **Documents**
+smart button. It shows the archived count plus a lightweight processing or
+attention state when useful.
 
 The button opens the full Documents workspace in record context. Existing links
 start with a removable **Linked record** facet. Removing it lets the user search
-and **Link to this record**; upload remains available in the same context.
-There is no competing Archive button. Removing a relationship never trashes or
-deletes the archived root.
+and **Link to this record**. Native chatter and attachment controls remain the
+normal upload surface; there is no competing **Archive in Paperless** action.
+Removing a relationship never trashes or deletes the archived root.
+
+Context is additive. Projects receive **Projects** and one stable
+**Project · Name** tag, Platform Billing receives one stable platform tag,
+expenses use the canonical **Expenses** taxonomy, and accounting, HR, payroll,
+tax and closing evidence receive their relevant business type. Existing manual
+tags, correspondent and document type are never silently erased. A conflicting
+non-empty classification enters **Needs review**.
 
 For a mapped Contact, the same workspace composes archive correspondent mapping
 and explicit Odoo relationships without duplicating results.
@@ -249,6 +262,12 @@ Documents roles, active/Pocket state, Pocket link, or Paperless mapping
 immediately resynchronize affected permissions. An access reduction fails
 closed and rolls the Odoo change back when Paperless cannot revoke the old
 permission safely.
+
+Automatically archived documents are record-scoped: an internal user must be
+able to read at least one active linked Odoo record. Project privacy,
+assignees, collaborators, followers, company selection and product roles are
+re-evaluated when they change. Portal uploaders keep their authorized Odoo
+attachment workflow but do not receive Documents or direct Paperless access.
 
 Canonical target finalization creates the individual Paperless social account,
 links it to the existing Odoo user through that immutable subject, and applies

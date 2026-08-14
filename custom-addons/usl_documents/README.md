@@ -10,6 +10,14 @@ before proxying server-side. `usl.document` is the synchronized metadata cache;
 `usl.document.link` is the generic business relationship; operations track
 asynchronous ingestion. Synchronization is stable on `paperless_id`.
 
+Native `ir.attachment` remains the operational upload surface. Durable files
+on supported records are queued only after their final owner is known, so an
+upload never waits for Paperless. The worker reuses archive roots by checksum,
+creates versions when an Odoo attachment changes, applies contextual metadata,
+and mirrors actual linked-record read access to Paperless object permissions.
+Projects and platforms use stable entity-tag mappings; renames update the
+existing tag instead of creating a tag per task, payout or name change.
+
 API v10 document payloads carry correspondent, document-type, and tag IDs.
 `usl.paperless.tag`, `usl.paperless.correspondent`, and
 `usl.paperless.document.type` cache those catalogs by stable Paperless ID.
@@ -75,8 +83,9 @@ Checksums, archive IDs, and last access checks are manager diagnostics.
 Configuration keys use the `usl_documents.*` namespace. The service URL and
 token are server-only; the public URL is used solely for permission-synchronized
 individual deep links. Extend supported business models through
-`usl.document.link._allowed_models()` and the link mixin, with explicit company
-and confidentiality tests.
+`usl.document.link._allowed_models()` and `usl.document.link.mixin` archive
+policy, context, relationship and access-trigger hooks, with explicit company
+and confidentiality tests. Do not add a second attachment ingestion path.
 
 `usl_documents` depends on `usl_pocketid` for the canonical Odoo identity
 link. Interactive Odoo and Paperless sessions use distinct confidential Pocket

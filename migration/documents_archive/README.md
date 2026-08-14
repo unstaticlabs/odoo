@@ -218,3 +218,10 @@ above; arbitrary unsupported files remain rejected.
 
 The canonical full migration is the only supported source-document path.
 Qualification experiments are not shipped as alternate runners.
+
+The full runner finishes with `reconcile_native_attachments.py`. This uses the
+delivered asynchronous attachment bridge after every business-record restore,
+reuses archive roots by checksum, applies current product context and records a
+private classification result. A full run fails on any eligible attachment
+that is not archived, or on any unaccounted source attachment. Partial semantic
+profiles deliberately skip this final gate and cannot qualify a release.

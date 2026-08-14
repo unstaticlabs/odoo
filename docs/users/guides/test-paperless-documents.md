@@ -204,29 +204,38 @@ Mapping should never create an Odoo Contact automatically, link a document, or
 grant access. A user in another company must not see an inaccessible Contact
 mapping.
 
-## 5. Upload or link from a vendor bill
+## 5. Attach a file from normal business work
 
 1. Open the draft vendor bill with reference
    `USL-DOCS-CEO-QA-BILL`.
-2. Its one smart button should show the current authorized document count.
-3. Click it. Documents opens with a removable **Linked record** facet and the
-   seeded supplier invoice.
-4. Remove that facet. The rest of the authorized archive becomes searchable and
-   an unlinked document offers **Link to this record**.
-5. Upload a harmless PDF or text file with a distinctive sentence.
+2. Add a harmless PDF or text file through the normal attachment/chatter area.
+3. Open it immediately from the bill to prove the Odoo workflow does not wait
+   for Paperless.
+4. Its one **Documents** button briefly shows **processing**, then its archived
+   count increases.
+5. Click **Documents**. The workspace opens with a removable **Linked record**
+   facet and the file has the Accounting/Vendor Bills context, supplier and
+   document type where those defaults were available.
+6. Remove the facet to search the rest of the authorized archive or link an
+   already archived document.
 
-During upload, the same page shows pending/processing state. Odoo says archived
-only after Paperless succeeds. The durable bill relationship then appears, and
-no extra `ir.attachment` binary is created.
+The native attachment remains available because it is the operational Odoo
+copy. Paperless keeps the archive original, OCR and archive versions. Uploading
+the same bytes elsewhere reuses one Paperless root and adds another record
+link.
 
 To review failure UX without using a real business file, switch to **Needs
 review** and use the seeded failed operation. It remains after reload and
 offers **Choose file to retry** or **Dismiss**. A retry of the same bytes is
 idempotent.
 
-On any supported record with no archived links, the same smart button is
-**Upload**. It still opens Documents with both upload and link-existing
-available; there is no second Archive button.
+Repeat the journey from a project task, expense, TESE payroll record and
+Platform Billing payout. The project file receives one project-level tag—not a
+tag for every task. There is no separate **Archive in Paperless** action.
+
+Stop Paperless briefly and attach another harmless task file. Odoo must accept
+and open it; the **Documents** button shows attention or processing until the
+archive returns and the retry succeeds.
 
 ## 6. Reuse a duplicate
 

@@ -15,7 +15,9 @@ configuring or locking records.
 Documents provides a native Odoo workspace backed by Paperless-ngx for
 search, OCR, previews, metadata, versions and originals. Odoo remains the
 authority for companies, business links and access; every file operation is
-authorized through Odoo.
+authorized through Odoo. Files attached to supported business records remain
+immediately usable in Odoo and are archived asynchronously with their record,
+company and safe classification context.
 
 French electronic-invoice reception is implemented and validated offline for
 UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
