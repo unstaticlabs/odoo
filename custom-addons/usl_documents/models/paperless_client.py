@@ -89,6 +89,11 @@ class PaperlessClient:
             return value
         return "application/octet-stream"
 
+    @staticmethod
+    def _multipart_text(value):
+        """Keep scalar metadata inside one multipart form value."""
+        return str(value or "").replace("\r", " ").replace("\n", " ")
+
     def _request(
         self,
         method,
@@ -502,21 +507,44 @@ class PaperlessClient:
             "GET", f"/api/documents/{int(document_id)}/thumb/", raw=True,
         )
 
-    def upload_multipart(self, content, filename, content_type, *, title=None):
+    def upload_multipart(
+        self,
+        content,
+        filename,
+        content_type,
+        *,
+        title=None,
+        created=None,
+        correspondent_id=None,
+        document_type_id=None,
+        tag_ids=None,
+    ):
         if not self.configured:
             raise PaperlessUnavailable(
                 _("Paperless is not configured. Ask a Documents administrator."),
             )
         boundary = f"----usl-{uuid.uuid4().hex}"
         chunks = []
-        if title:
+
+        def append_field(name, value):
             chunks.append(
                 (
                     f"--{boundary}\r\n"
-                    'Content-Disposition: form-data; name="title"\r\n\r\n'
-                    f"{title}\r\n"
+                    f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                    f"{self._multipart_text(value)}\r\n"
                 ).encode(),
             )
+
+        if title:
+            append_field("title", title)
+        if created:
+            append_field("created", created)
+        if correspondent_id:
+            append_field("correspondent", int(correspondent_id))
+        if document_type_id:
+            append_field("document_type", int(document_type_id))
+        for tag_id in sorted({int(tag_id) for tag_id in (tag_ids or [])}):
+            append_field("tags", tag_id)
         safe_filename = self._multipart_filename(filename)
         safe_content_type = self._multipart_content_type(content_type)
         chunks.extend([

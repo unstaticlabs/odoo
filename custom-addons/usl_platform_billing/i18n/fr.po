@@ -2758,3 +2758,18 @@ msgstr "Vous ne pouvez pas traiter une session d’une autre société."
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "id"
 msgstr "id"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_usl_platform_billing_platform_form
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_usl_platform_billing_platform_form
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_usl_platform_billing_platform_form
+msgid "processing"
+msgstr "en cours"

@@ -893,3 +893,18 @@ msgstr "montant non nul"
 #: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "receipt"
 msgstr "justificatif"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_usl_expense_batch_form
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_usl_expense_batch_form
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_usl_expense_batch_form
+msgid "processing"
+msgstr "en cours"

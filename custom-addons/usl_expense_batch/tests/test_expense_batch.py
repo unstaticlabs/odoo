@@ -60,6 +60,24 @@ class TestExpenseBatch(TestExpenseCommon):
             "expense_ids": [Command.set(expenses.ids)],
         })
 
+    def test_expense_and_batch_expose_canonical_document_context(self):
+        expense = self._expense("Toronto hotel")
+        attachment = expense.message_main_attachment_id
+        expense_context = expense._document_archive_context(attachment)
+
+        self.assertEqual(expense_context["document_type"], "Expense receipt")
+        self.assertEqual(expense_context["tags"], ["Accounting", "Expenses"])
+        self.assertEqual(expense_context["document_date"], "2026-07-10")
+
+        batch = self._batch(expense)
+        batch_context = batch._document_archive_context()
+        self.assertEqual(
+            batch_context["document_type"],
+            "Expense batch evidence",
+        )
+        self.assertEqual(batch_context["tags"], ["Accounting", "Expenses"])
+        self.assertIn("usl.expense.batch", self.env["usl.document.link"]._allowed_models())
+
     def test_readiness_and_preview_wizard_are_deterministic(self):
         complete = self._expense("Toronto hotel")
         incomplete = self._expense("Toronto taxi", with_receipt=False)

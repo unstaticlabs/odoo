@@ -211,6 +211,19 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         payslip.action_post()
         return payslip
 
+    def test_payroll_evidence_uses_hr_context_and_links_accounting_entry(self):
+        payslip = self._posted_payslip()
+        context = payslip._document_archive_context(payslip.attachment_id)
+
+        self.assertEqual(context["document_type"], "Payroll record")
+        self.assertEqual(context["tags"], ["HR", "Payroll"])
+        self.assertEqual(context["confidentiality"], "hr")
+        self.assertTrue(context["accounting_evidence"])
+        self.assertIn(
+            {"model": "account.move", "id": payslip.move_id.id},
+            payslip._document_related_records(payslip.attachment_id),
+        )
+
     def test_prepare_snapshots_profile_and_handles_leap_year(self):
         payslip = self._new_payslip(
             month=2,
@@ -806,7 +819,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(
             payroll_form.count('name="action_open_documents_workspace"'),
-            2,
+            1,
         )
 
         configuration_menu = self.env.ref(

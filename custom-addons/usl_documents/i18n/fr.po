@@ -405,6 +405,41 @@ msgid "Archive in Paperless"
 msgstr "Archiver dans Paperless"
 
 #. module: usl_documents
+#: model:ir.actions.server,name:usl_documents.action_archive_attachments_in_paperless
+msgid "Retry Documents archiving"
+msgstr "Relancer l’archivage dans Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__document_archive_pending_count
+msgid "Documents processing"
+msgstr "Documents en cours de traitement"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__document_archive_failure_count
+msgid "Document archive issues"
+msgstr "Documents à vérifier"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__access_scope__linked_record
+msgid "Linked record access"
+msgstr "Accès selon les enregistrements liés"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__access_scope__company
+msgid "Company policy"
+msgstr "Politique de la société"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+msgid "to review"
+msgstr "à vérifier"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+msgid "processing"
+msgstr "en cours"
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
 msgid "Archive request created"

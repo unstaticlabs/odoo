@@ -22,13 +22,34 @@ class ResUsers(models.Model):
                 visible[user.id] = set()
         return visible
 
+    def _documents_access_fingerprint(self):
+        return {
+            user.id: (
+                user.active,
+                user.share,
+                user.company_id.id,
+                tuple(sorted(user.company_ids.ids)),
+                tuple(sorted(user.group_ids.ids)),
+            )
+            for user in self
+        }
+
     def write(self, values):
         if (
             self.env.context.get("usl_documents_user_access_no_sync")
             and self.env.su
         ):
             return super().write(values)
-        access_fields = {"company_ids", "company_id", "group_ids", "active"}
+        defer_access_sync = self.env.context.get(
+            "usl_documents_defer_user_access_sync",
+        )
+        access_fields = {"company_ids", "company_id", "group_ids", "active", "share"}
+        access_change_requested = bool(
+            access_fields.intersection(values) and not defer_access_sync,
+        )
+        access_before = (
+            self._documents_access_fingerprint() if access_change_requested else {}
+        )
         tracked = self.filtered(
             lambda user: self.env["usl.paperless.user.mapping"].sudo().search_count(
                 [
@@ -40,7 +61,7 @@ class ResUsers(models.Model):
         )
         before = (
             tracked._documents_visible_for_permission_sync()
-            if access_fields.intersection(values)
+            if access_change_requested
             else {}
         )
         before_manager = {
@@ -48,13 +69,25 @@ class ResUsers(models.Model):
             for user in tracked
         }
         result = super().write(values)
+        access_after = (
+            self._documents_access_fingerprint() if access_change_requested else {}
+        )
+        access_changed = access_change_requested and any(
+            access_before.get(user.id)
+            != access_after.get(user.id)
+            for user in self
+        )
+        if access_changed:
+            self.env["usl.document"].sudo().search(
+                [("access_scope", "=", "linked_record")],
+            )._recompute_linked_record_access(sync_permissions=False)
         if {
             "active",
             "usl_pocketid_access",
             "usl_identity_classification",
         }.intersection(values):
             self._invalidate_unsafe_paperless_mappings()
-        if not before:
+        if not before or not access_changed:
             return result
         after = tracked._documents_visible_for_permission_sync()
         changed_ids = set().union(

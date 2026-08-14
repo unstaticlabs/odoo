@@ -1,7 +1,7 @@
 {
     "name": "USL Documents — Accounting Contexts",
     "summary": "Paperless evidence on USL tax declarations and closing workspaces",
-    "version": "saas~19.2.1.0.2",
+    "version": "saas~19.2.1.1.0",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

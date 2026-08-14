@@ -1,2 +1,1 @@
-from . import accounting_record
-from . import pocketid
+from . import accounting_record, pocketid

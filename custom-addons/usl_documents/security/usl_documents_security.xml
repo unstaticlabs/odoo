@@ -63,10 +63,16 @@
         <field name="domain_force">[
             ('company_id', '!=', False),
             '|',
-            ('confidentiality', 'in', ('internal', 'accounting')),
-            '&amp;',
-            ('confidentiality', '=', 'private'),
-            ('create_uid', '=', user.id)
+                '&amp;',
+                    ('access_scope', '=', 'company'),
+                    '|',
+                        ('confidentiality', 'in', ('internal', 'accounting')),
+                        '&amp;',
+                            ('confidentiality', '=', 'private'),
+                            ('create_uid', '=', user.id),
+                '&amp;',
+                    ('access_scope', '=', 'linked_record'),
+                    ('permitted_user_ids', 'in', [user.id])
         ]</field>
     </record>
 
@@ -77,7 +83,12 @@
         <field name="domain_force">[
             ('company_id', '!=', False),
             ('accounting_evidence', '=', True),
-            ('confidentiality', '=', 'accounting')
+            ('confidentiality', '=', 'accounting'),
+            '|',
+                ('access_scope', '=', 'company'),
+                '&amp;',
+                    ('access_scope', '=', 'linked_record'),
+                    ('permitted_user_ids', 'in', [user.id])
         ]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -89,7 +100,15 @@
         <field name="name">Archived documents: HR access</field>
         <field name="model_id" ref="model_usl_document"/>
         <field name="groups" eval="[Command.link(ref('group_documents_hr'))]"/>
-        <field name="domain_force">[('company_id', '!=', False), ('confidentiality', '=', 'hr')]</field>
+        <field name="domain_force">[
+            ('company_id', '!=', False),
+            ('confidentiality', '=', 'hr'),
+            '|',
+                ('access_scope', '=', 'company'),
+                '&amp;',
+                    ('access_scope', '=', 'linked_record'),
+                    ('permitted_user_ids', 'in', [user.id])
+        ]</field>
     </record>
 
     <record id="rule_document_manager_policy" model="ir.rule">
@@ -127,10 +146,16 @@
         <field name="domain_force">[
             ('document_id.company_id', '!=', False),
             '|',
-            ('document_id.confidentiality', 'in', ('internal', 'accounting')),
-            '&amp;',
-            ('document_id.confidentiality', '=', 'private'),
-            ('document_id.create_uid', '=', user.id)
+                '&amp;',
+                    ('document_id.access_scope', '=', 'company'),
+                    '|',
+                        ('document_id.confidentiality', 'in', ('internal', 'accounting')),
+                        '&amp;',
+                            ('document_id.confidentiality', '=', 'private'),
+                            ('document_id.create_uid', '=', user.id),
+                '&amp;',
+                    ('document_id.access_scope', '=', 'linked_record'),
+                    ('document_id.permitted_user_ids', 'in', [user.id])
         ]</field>
     </record>
 
@@ -140,7 +165,12 @@
         <field name="groups" eval="[Command.link(ref('group_documents_accountant'))]"/>
         <field name="domain_force">[
             ('document_id.accounting_evidence', '=', True),
-            ('document_id.confidentiality', '=', 'accounting')
+            ('document_id.confidentiality', '=', 'accounting'),
+            '|',
+                ('document_id.access_scope', '=', 'company'),
+                '&amp;',
+                    ('document_id.access_scope', '=', 'linked_record'),
+                    ('document_id.permitted_user_ids', 'in', [user.id])
         ]</field>
     </record>
 
@@ -148,7 +178,14 @@
         <field name="name">Document versions: HR access</field>
         <field name="model_id" ref="model_usl_document_version"/>
         <field name="groups" eval="[Command.link(ref('group_documents_hr'))]"/>
-        <field name="domain_force">[('document_id.confidentiality', '=', 'hr')]</field>
+        <field name="domain_force">[
+            ('document_id.confidentiality', '=', 'hr'),
+            '|',
+                ('document_id.access_scope', '=', 'company'),
+                '&amp;',
+                    ('document_id.access_scope', '=', 'linked_record'),
+                    ('document_id.permitted_user_ids', 'in', [user.id])
+        ]</field>
     </record>
 
     <record id="rule_document_version_manager_policy" model="ir.rule">
@@ -170,6 +207,13 @@
         <field name="model_id" ref="model_usl_document_operation"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[Command.link(ref('group_documents_manager'))]"/>
+    </record>
+
+    <record id="rule_document_context_tag_company" model="ir.rule">
+        <field name="name">Document entity tags: selected companies</field>
+        <field name="model_id" ref="model_usl_document_context_tag"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
 
     <record id="rule_document_smart_view_scope" model="ir.rule">
