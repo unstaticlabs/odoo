@@ -429,7 +429,7 @@ make tese-qa-bootstrap                # synthetic end-to-end Paie TESE journeys
 make tese-qa-bootstrap TESE_QA_GENERATION=02
                                       # fresh generation after using generation 01
 make disable-tours                    # disable automatic tours for internal QA users
-scripts/odoo-dev configure-pocket-id  # apply Pocket ID to canonical odoo_dev
+make repair-pocket-id                 # repair and verify this project's SSO
 scripts/pocket-id-dev bootstrap       # generate ignored local target secrets
 make login-link USER=valentin  # local passwordless login for any Pocket user
 make paperless-users           # reconcile governed users and document access
@@ -518,9 +518,33 @@ USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
 make target-reconstruct
 ```
 
+That first reconstruction writes a project-bound `.pocket-id.env`. Use the
+same project name for every later command in that worktree:
+
+```bash
+make COMPOSE_PROJECT=usl-odoo-preprod-9642 doctor
+make COMPOSE_PROJECT=usl-odoo-preprod-9642 deploy
+make COMPOSE_PROJECT=usl-odoo-preprod-9642 login-link USER=valentin
+```
+
+`make doctor` now checks three things together: Compose ownership, the
+`odoo_dev` database, and agreement between the running Odoo process and its
+database Pocket ID provider. If SSO is missing or stale, it prints the exact
+project and ports for `make ... repair-pocket-id`. `make login-link` runs
+the same check and refuses to generate a misleading link until the runtime is
+repaired. Module and frontend tests restore the worktree's Pocket ID overlay
+when they restart Odoo. Worktree deploys update modules through that overlay
+without reclassifying synthetic QA users; the canonical target retains its
+strict full-policy deploy.
+
+Runtime repair changes only environment-owned provider settings and recreates
+Odoo with the correct overlay. It does not alter users or permissions. The
+stricter `make configure-pocket-id` remains available when the complete named
+identity policy must be reapplied.
+
 Pocket ID secrets and immutable test subjects are checkout-local by default.
-Set `POCKET_ID_ENV_FILE` only when deliberately reusing the same file for the
-same explicit Compose project.
+Never copy `.pocket-id.env` between worktrees. Set `POCKET_ID_ENV_FILE` only
+when deliberately reusing the same file for the same explicit Compose project.
 
 These helpers serve canonical `odoo_dev` by default. It is the disposable,
 production-shaped product target: reconstructed Online business data plus

@@ -47,6 +47,15 @@ the code, database, filestore, identity state and destructive lifecycle
 unambiguous. The dedicated-project model is selected; the main checkout alone
 may use the canonical default.
 
+Every linked-worktree `odoo_dev` is an SSO-governed runtime. Its ignored
+`.pocket-id.env`, Compose project name and four published ports form one
+configuration unit. Ordinary deploy, test and QA helpers may stop Odoo, but
+must restore it through that same Pocket ID overlay. `make doctor` verifies
+both the running process environment and the database provider; `make
+login-link` refuses to issue a link when they differ. This prevents a healthy
+identity provider from masking an Odoo container restarted without its SSO
+credentials.
+
 ## Operational evidence
 
 Each production release records:

@@ -270,6 +270,81 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"${COMPOSE[@]}" up -d --wait db', helper)
         self.assertNotIn("require_target_database", helper)
 
+    def test_worktree_odoo_dev_restores_its_pocket_id_runtime(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
+            encoding="utf-8",
+        )
+        runtime_guard = helper.split(
+            "\nuses_pocket_id_runtime() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        restore = helper.split(
+            "\nrestore_development_runtime() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+
+        self.assertIn('[[ "$DEV_DB" == "odoo_dev" ]]', runtime_guard)
+        self.assertIn('[[ -f "$ROOT/.git" ]]', runtime_guard)
+        self.assertIn("pocket_id_env_project", runtime_guard)
+        self.assertIn("uses_pocket_id_runtime", restore)
+        self.assertIn('"$ROOT/scripts/pocket-id-dev" start-runtime', restore)
+        self.assertGreaterEqual(helper.count("if uses_pocket_id_runtime"), 8)
+        self.assertIn('"$ROOT/scripts/pocket-id-dev" update-odoo', helper)
+
+        pocket_helper = (
+            REPOSITORY_ROOT / "scripts" / "pocket-id-dev"
+        ).read_text(encoding="utf-8")
+        self.assertIn('local apply_identity_policy="${2:-1}"', pocket_helper)
+        self.assertIn('[[ "$apply_identity_policy" == "0" ]]', pocket_helper)
+        verify_runtime = pocket_helper.split(
+            "\nverify_odoo_runtime() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        self.assertIn("load_environment 0", verify_runtime)
+
+    def test_login_link_refuses_a_broken_odoo_pocket_runtime(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "pocket-id-dev").read_text(
+            encoding="utf-8",
+        )
+        makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
+        one_time_link = helper.split("\none_time_link() {\n", 1)[1].split(
+            "\n}\n",
+            1,
+        )[0]
+        doctor = (
+            REPOSITORY_ROOT / "scripts" / "odoo-dev"
+        ).read_text(encoding="utf-8").split("\ndoctor() {\n", 1)[1].split(
+            "\n}\n",
+            1,
+        )[0]
+
+        self.assertLess(
+            one_time_link.index("verify_odoo_runtime"),
+            one_time_link.index('one-time-link "$username"'),
+        )
+        self.assertIn("make COMPOSE_PROJECT=%s repair-pocket-id", one_time_link)
+        self.assertIn("Pocket ID: %s", doctor)
+        self.assertIn("Pocket ID repair", doctor)
+        self.assertIn("repair-pocket-id:", makefile)
+
+    def test_pocket_id_runtime_check_compares_process_and_database(self):
+        runtime_check = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "pocket_id_runtime_check.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('env.ref("usl_pocketid.provider_pocketid"', runtime_check)
+        self.assertIn('"USL_POCKET_ID_CLIENT_SECRET"', runtime_check)
+        self.assertIn('"usl_public_base_url"', runtime_check)
+        self.assertIn('"usl_required_group"', runtime_check)
+        self.assertIn("POCKET_ID_RUNTIME_CHECK=", runtime_check)
+        self.assertIn('"secret_present": True', runtime_check)
+
+        repair = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "pocket_id_runtime_repair.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_usl_pocketid_apply_environment", repair)
+        self.assertNotIn("_usl_pocketid_apply_user_configuration", repair)
+
     def test_reconstruction_repairs_trip_products_after_product_restore(self):
         reconstruction = (REPOSITORY_ROOT / "scripts" / "target-reconstruct").read_text(
             encoding="utf-8",
