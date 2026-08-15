@@ -31,7 +31,7 @@ commit, ticket, screenshot or validation artifact.
 
 ## 2. Canonical local target
 
-The repository provides a pinned Pocket ID v2.12.0 Compose overlay and an
+The repository provides a pinned Pocket ID v2.13.0 Compose overlay and an
 idempotent helper. It:
 
 - binds Pocket ID to `127.0.0.1:1411`;

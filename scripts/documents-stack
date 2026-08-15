@@ -123,8 +123,8 @@ validate_config() {
     printf 'Paperless 3.0.4 is not exactly pinned.\n' >&2
     return 1
   }
-  grep -Fq "ghcr.io/pocket-id/pocket-id:v2.12.0@sha256:4a277d141d6069fd9a7b321a9aca80f4b9812b8fa122ee566d2f15900e3d8448" <<<"$config" || {
-    printf 'Pocket ID v2.12.0 is not pinned by digest.\n' >&2
+  grep -Fq "ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1" <<<"$config" || {
+    printf 'Pocket ID v2.13.0 is not pinned by digest.\n' >&2
     return 1
   }
   grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect" <<<"$config" || {
