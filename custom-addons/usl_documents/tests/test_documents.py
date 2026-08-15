@@ -713,6 +713,73 @@ class TestDocuments(TransactionCase):
         self.assertEqual(existing.link_ids.version_id, "received-139")
         upload.assert_not_called()
 
+    def test_duplicate_context_keeps_additive_and_restrictive_policy(self):
+        accounting_document = self._document(
+            140,
+            confidentiality="accounting",
+            accounting_evidence=True,
+            access_scope="linked_record",
+        )
+        accounting_document._apply_archive_context(
+            {
+                "company_id": self.company_a.id,
+                "confidentiality": "internal",
+                "accounting_evidence": False,
+                "access_scope": "company",
+                "related_records": [],
+            },
+        )
+        self.assertEqual(accounting_document.confidentiality, "accounting")
+        self.assertTrue(accounting_document.accounting_evidence)
+        self.assertEqual(accounting_document.access_scope, "linked_record")
+        self.assertEqual(accounting_document.review_state, "needs_attention")
+        self.assertIn("confidentiality", accounting_document.last_error)
+
+        hr_document = self._document(
+            141,
+            confidentiality="hr",
+            access_scope="linked_record",
+        )
+        hr_document._apply_archive_context(
+            {
+                "company_id": self.company_a.id,
+                "confidentiality": "accounting",
+                "accounting_evidence": True,
+                "access_scope": "linked_record",
+                "related_records": [],
+            },
+        )
+        self.assertEqual(hr_document.confidentiality, "hr")
+        self.assertTrue(hr_document.accounting_evidence)
+        self.assertEqual(hr_document.review_state, "needs_attention")
+
+    def test_portal_submitter_never_receives_documents_access(self):
+        portal_user = mail_new_test_user(
+            self.env,
+            login="documents-portal-submitter",
+            name="Documents Portal Submitter",
+            groups="base.group_portal",
+        )
+        document = self._document(142, access_scope="linked_record")
+
+        document._apply_archive_context(
+            {
+                "company_id": self.company_a.id,
+                "confidentiality": "internal",
+                "accounting_evidence": False,
+                "access_scope": "linked_record",
+                "related_records": [
+                    {"model": "res.partner", "id": portal_user.partner_id.id},
+                ],
+            },
+            submitted_by=portal_user,
+        )
+
+        self.assertEqual(document.link_ids.linked_by_id, portal_user)
+        self.assertNotIn(portal_user, document.permitted_user_ids)
+        with self.assertRaises(AccessError):
+            document.with_user(portal_user).check_access("read")
+
     def _verified_mapping(self, values):
         return (
             self.env["usl.paperless.user.mapping"]
