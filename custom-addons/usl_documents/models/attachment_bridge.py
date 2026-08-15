@@ -214,6 +214,28 @@ class UslDocument(models.Model):
                 document.sudo().with_context(
                     usl_documents_cache_write=True,
                 ).write(cache_values)
+            incoming_confidentiality = context.get("confidentiality")
+            confidentiality_order = {
+                "internal": 0,
+                "accounting": 1,
+                "hr": 2,
+                "private": 3,
+            }
+            confidentiality = document.confidentiality or incoming_confidentiality
+            if (
+                confidentiality
+                and incoming_confidentiality
+                and confidentiality != incoming_confidentiality
+            ):
+                conflicts.append(_("confidentiality"))
+                confidentiality = max(
+                    (confidentiality, incoming_confidentiality),
+                    key=confidentiality_order.get,
+                )
+            access_scopes = {
+                document.access_scope,
+                context.get("access_scope"),
+            }
             if conflicts:
                 document.sudo().with_context(
                     usl_documents_cache_write=True,
@@ -228,10 +250,21 @@ class UslDocument(models.Model):
                     },
                 )
             policy = {
-                "company_id": context.get("company_id") or document.company_id.id,
-                "confidentiality": context.get("confidentiality") or "internal",
-                "accounting_evidence": bool(context.get("accounting_evidence")),
-                "access_scope": context.get("access_scope") or "linked_record",
+                "company_id": document.company_id.id or context.get("company_id"),
+                "confidentiality": confidentiality or "internal",
+                "accounting_evidence": (
+                    document.accounting_evidence
+                    or bool(context.get("accounting_evidence"))
+                ),
+                "access_scope": (
+                    "linked_record"
+                    if "linked_record" in access_scopes
+                    else (
+                        context.get("access_scope")
+                        or document.access_scope
+                        or "company"
+                    )
+                ),
             }
             document.sudo().with_context(
                 usl_documents_policy_write=True,

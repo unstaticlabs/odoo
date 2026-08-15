@@ -4600,3 +4600,9 @@ msgid ""
 msgstr ""
 "Le document d'archive correspondant est dans la corbeille. Restaurez-le "
 "pour terminer l'archivage ; le fichier Odoo reste disponible."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "confidentiality"
+msgstr "confidentialité"
