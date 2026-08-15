@@ -18,7 +18,7 @@ PROFILE ?= full
 SOURCE_SHA ?=
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
@@ -47,6 +47,7 @@ help:
 	  '' \
 	  'Access and recovery' \
 	  '  make login-link USER=username       Create a local one-time sign-in link' \
+	  '  make repair-pocket-id                Repair and verify local SSO runtime' \
 	  '  make paperless-users                Reconcile governed document access' \
 	  '  make dev-reclaim CONFIRM=$(COMPOSE_PROJECT)' \
 	  '                                      Reclaim canonical containers; preserve volumes' \
@@ -141,6 +142,12 @@ login-link:
 	else \
 		scripts/pocket-id-dev one-time-link "$(USER)"; \
 	fi
+
+configure-pocket-id:
+	@$(ODOO_DEV) configure-pocket-id
+
+repair-pocket-id:
+	@$(ODOO_DEV) repair-pocket-id
 
 paperless-users:
 	scripts/pocket-id-dev sync-paperless-users
