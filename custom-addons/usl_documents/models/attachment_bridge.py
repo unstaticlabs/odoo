@@ -475,6 +475,31 @@ class UslDocumentOperation(models.Model):
         "This attachment version is already queued for archival.",
     )
 
+    def write(self, values):
+        result = super().write(values)
+        if values.get("state") == "archived":
+            for operation in self.filtered("source_attachment_id"):
+                superseded = self.sudo().search(
+                    [
+                        ("id", "<", operation.id),
+                        (
+                            "source_attachment_id",
+                            "=",
+                            operation.source_attachment_id.id,
+                        ),
+                        ("state", "in", ("failed", "duplicate")),
+                        ("acknowledged", "=", False),
+                    ],
+                )
+                if superseded:
+                    superseded.sudo().write(
+                        {
+                            "acknowledged": True,
+                            "acknowledged_at": fields.Datetime.now(),
+                        },
+                    )
+        return result
+
     @api.model
     def queue_attachment(self, attachment, *, source="odoo_attachment"):
         attachment.ensure_one()

@@ -198,6 +198,17 @@ class TestDocuments(TransactionCase):
         )
         document = self._document(7800, source="odoo_attachment")
         first.sudo().write({"state": "archived", "document_id": document.id})
+        obsolete = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "obsolete attempt",
+                "state": "failed",
+                "checksum": "0" * 64,
+                "company_id": first.company_id.id,
+                "source_attachment_id": attachment.id,
+                "source_attachment_checksum": "0" * 40,
+                "error_message": "The earlier binary could not be archived.",
+            },
+        )
 
         attachment.write({"raw": b"second version"})
 
@@ -205,13 +216,17 @@ class TestDocuments(TransactionCase):
             [("source_attachment_id", "=", attachment.id)],
             order="id",
         )
-        self.assertEqual(len(operations), 2)
-        self.assertEqual(operations[1].state, "pending")
-        self.assertEqual(operations[1].target_document_id, document)
+        self.assertEqual(len(operations), 3)
+        current = operations[-1]
+        self.assertEqual(current.state, "pending")
+        self.assertEqual(current.target_document_id, document)
         self.assertNotEqual(
             operations[0].source_attachment_checksum,
-            operations[1].source_attachment_checksum,
+            current.source_attachment_checksum,
         )
+        current.sudo().write({"state": "archived", "document_id": document.id})
+        self.assertTrue(obsolete.acknowledged)
+        self.assertTrue(obsolete.acknowledged_at)
 
     def test_archive_outage_keeps_native_attachment_and_schedules_retry(self):
         task = self.env["project.task"].create({"name": "Offline archive"})
