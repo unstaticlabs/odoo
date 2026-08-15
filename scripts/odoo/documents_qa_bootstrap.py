@@ -133,7 +133,11 @@ def upload_document(spec):
             "document_date": spec["date"],
             "correspondent_id": spec["correspondent"].id,
             "document_type_id": spec["document_type"].id,
-            "tag_ids": [tag.id for tag in spec["tags"]],
+            "tag_ids": list(
+                dict.fromkeys(
+                    [*document.tag_ids.ids, *[tag.id for tag in spec["tags"]]],
+                ),
+            ),
         }
     )
     document.with_context(usl_documents_policy_write=True).write(
