@@ -6,7 +6,7 @@ import requests
 from lxml import etree
 from requests.exceptions import RequestException
 
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare
 
@@ -41,6 +41,16 @@ class ResCompany(models.Model):
     rebuild_currency_rate_auto_update = fields.Boolean(
         string="Automatic Reference Rates",
         default=True,
+    )
+    rebuild_currency_rate_share_same_base = fields.Boolean(
+        string="Share ECB Rates with Same-Currency Companies",
+        default=True,
+        help=(
+            "Keep provider-controlled reference rates aligned across allowed "
+            "companies that use the same base currency. Restored, manual and "
+            "transaction-specific non-ECB rates remain company-specific and "
+            "are never overwritten."
+        ),
     )
     rebuild_currency_rate_last_sync_at = fields.Datetime(
         string="Last Rate Retrieval",
@@ -215,6 +225,7 @@ class ResCompany(models.Model):
         *,
         backfill=False,
         provider_url=None,
+        coverage_start=None,
     ):
         self.ensure_one()
         if self.rebuild_currency_rate_provider != "ecb":
@@ -257,10 +268,12 @@ class ResCompany(models.Model):
             ("active", "=", True),
             ("id", "!=", self.currency_id.id),
         ])
-        coverage_start = self._rebuild_currency_rate_start_date(
+        coverage_start = coverage_start or self._rebuild_currency_rate_start_date(
             currencies,
             reference_date,
         )
+        if self.rebuild_currency_rate_coverage_start != coverage_start:
+            self.sudo().rebuild_currency_rate_coverage_start = coverage_start
         observations = [
             observation
             for observation in observations
@@ -375,6 +388,171 @@ class ResCompany(models.Model):
         })
         return result
 
+    def _rebuild_shared_rate_companies(self, *, automatic_only=False):
+        self.ensure_one()
+        if not self.rebuild_currency_rate_share_same_base:
+            return self
+        domain = [
+            ("currency_id", "=", self.currency_id.id),
+            ("rebuild_currency_rate_provider", "=", "ecb"),
+            ("rebuild_currency_rate_share_same_base", "=", True),
+        ]
+        if automatic_only:
+            domain.append(("rebuild_currency_rate_auto_update", "=", True))
+        return self.env["res.company"].search(domain, order="id") or self
+
+    def _rebuild_shared_currency_rate_start_date(
+        self,
+        companies,
+        latest_reference_date,
+    ):
+        self.ensure_one()
+        Currency = self.env["res.currency"].with_context(active_test=False)
+        currencies = Currency.search([
+            ("active", "=", True),
+            ("id", "!=", self.currency_id.id),
+        ])
+        Rate = self.env["res.currency.rate"].sudo()
+        configured_starts = companies.mapped(
+            "rebuild_currency_rate_coverage_start",
+        )
+        automated_rate = Rate.search([
+            ("company_id", "in", companies.ids),
+            ("currency_id", "in", currencies.ids),
+            ("rebuild_rate_provider", "=", "ecb"),
+        ], order="name asc", limit=1)
+        candidates = [date for date in configured_starts if date]
+        if automated_rate:
+            candidates.append(automated_rate.name)
+        if candidates:
+            return min(candidates)
+
+        protected_rate = Rate.search([
+            ("company_id", "in", companies.ids),
+            ("currency_id", "in", currencies.ids),
+            ("rebuild_rate_provider", "!=", "ecb"),
+        ], order="name desc", limit=1)
+        return (
+            fields.Date.add(protected_rate.name, days=1)
+            if protected_rate
+            else latest_reference_date
+        )
+
+    def _rebuild_update_shared_ecb_currency_rates(
+        self,
+        payload=None,
+        retrieved_at=None,
+        *,
+        backfill=False,
+        provider_url=None,
+        automatic_only=False,
+    ):
+        self.ensure_one()
+        companies = self._rebuild_shared_rate_companies(
+            automatic_only=automatic_only,
+        )
+        if payload is None:
+            payload, fetched_at, provider_url = self._rebuild_fetch_ecb_xml(
+                backfill=backfill,
+            )
+            retrieved_at = retrieved_at or fetched_at
+        observations = self._rebuild_parse_ecb_xml(payload)
+        coverage_start = self._rebuild_shared_currency_rate_start_date(
+            companies,
+            observations[-1][0],
+        )
+        results = []
+        for company in companies:
+            results.append(company._rebuild_update_ecb_currency_rates(
+                payload=payload,
+                retrieved_at=retrieved_at,
+                backfill=backfill,
+                provider_url=provider_url,
+                coverage_start=coverage_start,
+            ))
+        totals = {
+            key: sum(result[key] for result in results)
+            for key in (
+                "created_count",
+                "updated_count",
+                "unchanged_count",
+                "preserved_manual_count",
+            )
+        }
+        return {
+            "status": "passed",
+            "provider": "ecb",
+            "provider_url": provider_url,
+            "reference_date": results[0]["reference_date"],
+            "coverage_start_date": fields.Date.to_string(coverage_start),
+            "company_ids": companies.ids,
+            "company_names": companies.mapped("display_name"),
+            "company_results": results,
+            **totals,
+            "message": _(
+                "ECB rates were synchronized through %(date)s for "
+                "%(companies)s.",
+                date=results[0]["reference_date"],
+                companies=", ".join(companies.mapped("display_name")),
+            ),
+        }
+
+    def _rebuild_synchronize_existing_shared_ecb_rates(self):
+        """Align already retrieved provider rows without touching manual truth."""
+        processed = set()
+        Rate = self.env["res.currency.rate"].sudo()
+        for company in self:
+            if company.id in processed:
+                continue
+            companies = company._rebuild_shared_rate_companies()
+            processed.update(companies.ids)
+            if len(companies) < 2:
+                continue
+            source_rates = Rate.search([
+                ("company_id", "in", companies.ids),
+                ("rebuild_rate_provider", "=", "ecb"),
+            ], order="rebuild_rate_retrieved_at, id")
+            canonical_by_key = {
+                (rate.currency_id.id, rate.name): rate
+                for rate in source_rates
+            }
+            for (currency_id, rate_date), source in canonical_by_key.items():
+                for target_company in companies:
+                    target = Rate.search([
+                        ("company_id", "=", target_company.id),
+                        ("currency_id", "=", currency_id),
+                        ("name", "=", rate_date),
+                    ], limit=1)
+                    if target and target.rebuild_rate_provider != "ecb":
+                        continue
+                    values = {
+                        "currency_id": currency_id,
+                        "company_id": target_company.id,
+                        "name": rate_date,
+                        "rate": source.rate,
+                        "rebuild_rate_provider": "ecb",
+                        "rebuild_rate_retrieved_at": (
+                            source.rebuild_rate_retrieved_at
+                        ),
+                    }
+                    if target:
+                        target.write(values)
+                    else:
+                        Rate.create(values)
+            starts = [
+                start
+                for start in companies.mapped(
+                    "rebuild_currency_rate_coverage_start",
+                )
+                if start
+            ]
+            starts += source_rates.mapped("name")
+            if starts:
+                companies.sudo().write({
+                    "rebuild_currency_rate_coverage_start": min(starts),
+                })
+        return True
+
     def _rebuild_currency_rate_start_date(
         self,
         currencies,
@@ -425,13 +603,18 @@ class ResCompany(models.Model):
                 company._rebuild_record_currency_rate_failure(message)
             _logger.exception("ECB currency-rate retrieval failed")
             return True
+        processed_company_ids = set()
         for company in companies:
+            if company.id in processed_company_ids:
+                continue
             try:
-                company._rebuild_update_ecb_currency_rates(
+                result = company._rebuild_update_shared_ecb_currency_rates(
                     payload=payload,
                     retrieved_at=retrieved_at,
                     provider_url=provider_url,
+                    automatic_only=True,
                 )
+                processed_company_ids.update(result["company_ids"])
             except Exception as error:  # noqa: BLE001
                 message = str(error)
                 company._rebuild_record_currency_rate_failure(message)
@@ -462,6 +645,15 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
     automatic_update = fields.Boolean(
         string="Retrieve Daily",
         default=True,
+    )
+    share_same_base = fields.Boolean(
+        string="Share across same-currency companies",
+        default=True,
+    )
+    shared_company_ids = fields.Many2many(
+        "res.company",
+        string="Companies kept in sync",
+        readonly=True,
     )
     provider_url = fields.Char(
         string="Official Provider URL",
@@ -501,6 +693,12 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
             "automatic_update": (
                 company.rebuild_currency_rate_auto_update
             ),
+            "share_same_base": (
+                company.rebuild_currency_rate_share_same_base
+            ),
+            "shared_company_ids": [Command.set(
+                company._rebuild_shared_rate_companies().ids,
+            )],
             "last_sync_at": company.rebuild_currency_rate_last_sync_at,
             "last_reference_date": (
                 company.rebuild_currency_rate_last_reference_date
@@ -541,6 +739,7 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
         self.company_id.sudo().write({
             "rebuild_currency_rate_provider": self.provider,
             "rebuild_currency_rate_auto_update": self.automatic_update,
+            "rebuild_currency_rate_share_same_base": self.share_same_base,
         })
 
     def _rebuild_reload_action(self):
@@ -562,10 +761,8 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
         self.ensure_one()
         self._rebuild_save_configuration()
         try:
-            result = (
-                self.company_id._rebuild_update_ecb_currency_rates(
-                    backfill=True,
-                )
+            result = self.company_id._rebuild_update_shared_ecb_currency_rates(
+                backfill=True,
             )
         except UserError as error:
             self.company_id._rebuild_record_currency_rate_failure(
@@ -592,12 +789,13 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
     def action_open_currency_rates(self):
         self.ensure_one()
         self._rebuild_check_manager()
+        companies = self.company_id._rebuild_shared_rate_companies()
         return {
             "type": "ir.actions.act_window",
             "name": _("Currency Rates"),
             "res_model": "res.currency.rate",
             "view_mode": "list,form",
-            "domain": [("company_id", "=", self.company_id.id)],
+            "domain": [("company_id", "in", companies.ids)],
             "context": {
                 "default_company_id": self.company_id.id,
                 "create": True,

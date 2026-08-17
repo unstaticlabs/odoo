@@ -34,6 +34,8 @@ if not main_company or not media_company:
 summary = {
     "companies": [],
     "combined": {},
+    "shared_currency_rates": {},
+    "multi_company_expenses": {},
     "journeys": {},
     "reviewer_isolation": {},
 }
@@ -97,6 +99,99 @@ if companies and len(set(companies.currency_id.mapped("name"))) == 1:
     }
 else:
     errors.append("Combined management reporting requires one shared currency")
+
+if companies and len(set(companies.currency_id.ids)) == 1:
+    shared_companies = companies.filtered(
+        "rebuild_currency_rate_share_same_base",
+    )
+    all_rates = env["res.currency.rate"].sudo().search([
+        ("company_id", "in", shared_companies.ids),
+    ])
+    provider_rates_by_company = {
+        company.id: {
+            (rate.currency_id.name, str(rate.name)): round(rate.rate, 12)
+            for rate in all_rates.filtered(
+                lambda candidate: (
+                    candidate.company_id == company
+                    and candidate.rebuild_rate_provider == "ecb"
+                ),
+            )
+        }
+        for company in shared_companies
+    }
+    protected_keys_by_company = {
+        company.id: {
+            (rate.currency_id.name, str(rate.name))
+            for rate in all_rates.filtered(
+                lambda candidate: (
+                    candidate.company_id == company
+                    and candidate.rebuild_rate_provider != "ecb"
+                ),
+            )
+        }
+        for company in shared_companies
+    }
+    provider_keys = set().union(*provider_rates_by_company.values())
+    differences = []
+    manual_exceptions = 0
+    for key in provider_keys:
+        values = {
+            rates[key]
+            for rates in provider_rates_by_company.values()
+            if key in rates
+        }
+        if len(values) > 1:
+            differences.append(key)
+            continue
+        for company in shared_companies:
+            if key in provider_rates_by_company[company.id]:
+                continue
+            if key in protected_keys_by_company[company.id]:
+                manual_exceptions += 1
+            else:
+                differences.append(key)
+                break
+    aligned = bool(provider_keys) and not differences
+    summary["shared_currency_rates"] = {
+        "companies": shared_companies.mapped("name"),
+        "provider_rate_count_per_company": {
+            company.name: len(provider_rates_by_company[company.id])
+            for company in shared_companies
+        },
+        "protected_manual_exceptions": manual_exceptions,
+        "aligned": aligned,
+    }
+    if len(shared_companies) > 1 and not aligned:
+        errors.append("Same-currency ECB rate histories are not aligned")
+
+expense_users = env["res.users"].sudo().with_context(active_test=False).search([
+    ("usl_expense_multi_company", "=", True),
+    ("active", "=", True),
+    ("share", "=", False),
+])
+expense_profiles = {}
+for user in expense_users:
+    profile_companies = env["hr.employee"].sudo().with_context(
+        active_test=False,
+    ).search([
+        ("user_id", "=", user.id),
+        ("active", "=", True),
+        ("company_id", "in", user.company_ids.ids),
+    ]).company_id
+    missing = user.company_ids - profile_companies
+    expense_profiles[user.login] = {
+        "allowed_companies": user.company_ids.mapped("name"),
+        "employee_companies": profile_companies.mapped("name"),
+        "missing_companies": missing.mapped("name"),
+    }
+    if missing:
+        errors.append(
+            f"{user.login} lacks expense profiles for: "
+            + ", ".join(missing.mapped("name")),
+        )
+summary["multi_company_expenses"] = expense_profiles
+if len(companies) > 1 and not expense_users:
+    errors.append("No governed multi-company expense user is configured")
 
 reviewer = env["res.users"].sudo().search([("login", "=", "prosper")], limit=1)
 if reviewer and main_company and media_company:

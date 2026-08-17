@@ -139,15 +139,20 @@
                 <div class="alert alert-info" role="alert">
                     ECB rates are published on euro-area business days. Fill Missing Rates
                     imports every missing published day from the coverage boundary through
-                    the latest available date. EUR is the company currency and remains
-                    implicitly fixed at 1.0; generated rows are only needed for active
-                    foreign currencies.
+                    the latest available date. Provider-controlled ECB rates stay aligned
+                    across companies with the same base currency. Manual and
+                    transaction-specific rates remain company-specific.
                 </div>
                 <group>
                     <group string="Configuration">
                         <field name="company_id"/>
                         <field name="provider"/>
                         <field name="automatic_update" invisible="provider != 'ecb'"/>
+                        <field name="share_same_base" invisible="provider != 'ecb'"/>
+                        <field
+                            name="shared_company_ids"
+                            widget="many2many_tags"
+                            invisible="provider != 'ecb' or not share_same_base"/>
                         <field name="provider_url" widget="url"/>
                     </group>
                     <group string="Latest Retrieval">
