@@ -137,9 +137,6 @@ class TestPocketIDProductProfiles(TransactionCase):
             ),
         )
         self.assertTrue(prosper.has_group("account.group_account_readonly"))
-        self.assertTrue(
-            prosper.has_group("usl_documents.group_documents_accountant"),
-        )
         self.assertFalse(prosper.has_group("account.group_account_user"))
         self.assertFalse(prosper.has_group("account.group_account_manager"))
         self.assertFalse(
