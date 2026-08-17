@@ -22,8 +22,8 @@ An active upload remains visible while it is pending or processing. Success
 opens the archived document and gives a short confirmation. Duplicate, failed,
 or ambiguous work stays actionable in **Needs review** or diagnostics rather
 than being described as archived. Failed uploads survive a reload and offer
-**Choose file to retry** or **Dismiss**; retrying the same content remains
-checksum-idempotent.
+**Choose file to retry** or **Dismiss**; retrying the same content and business
+classification remains composite-hash idempotent.
 
 A user normally attaches the file on the bill, task, expense, payroll record
 or other business record where it belongs. That native attachment is usable at

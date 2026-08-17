@@ -143,11 +143,23 @@ Authoritative formats Paperless cannot consume remain attached to their native
 business records. Reconstruction classifies those exclusions explicitly; it
 does not discard them or misrepresent a failed conversion as missing evidence.
 
-The worker calculates SHA-256, searches current and historical version
-checksums, and reuses an accessible root before submitting new bytes. The same
-binary on another record adds a relationship; changed content on the same
-attachment becomes a Paperless version. Retry identity is the native attachment
-and checksum. Failed operations stay visible until retry or acknowledgement.
+The worker calculates a content SHA-256 and a second SHA-256 over canonical
+business classification: company, confidentiality, accounting-evidence policy,
+access scope, stable tags/entity identities, type, correspondent and document
+date. It searches current and historical versions for that composite identity
+and reuses an accessible root before submitting new bytes. Odoo relationship
+targets are excluded from the metadata hash, so the same binary with the same
+classification on another record adds a relationship; changed content on the
+same attachment becomes a Paperless version. Retry identity is the native
+attachment, content hash and metadata hash. Failed operations stay visible until
+retry or acknowledgement.
+
+Content-only reuse was rejected because the same bytes can carry different
+company, HR or accounting meaning. Including target record IDs in the metadata
+hash was also rejected because it would force a redundant archive upload for
+every task or bill link. Paperless automatic duplicate handling remains a final
+safety signal for an unmirrored remote file, but it is not treated as proof that
+Odoo classification matches.
 When an operational attachment matches a root already in Paperless Trash, the
 bridge preserves Trash intent, adds the Odoo relationship, and records a review
 issue on both the source record and archived root. Restoring that root lets the
