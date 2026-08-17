@@ -1164,3 +1164,136 @@ msgstr "Autorisez la fenêtre de confirmation Pocket ID, puis réessayez."
 #: code:addons/usl_pocketid/static/src/js/check_identity.js:0
 msgid "Pocket ID confirmation was not completed."
 msgstr "La confirmation Pocket ID n’a pas abouti."
+
+#. module: usl_pocketid
+#: model:mail.template,body_html:usl_pocketid.portal_sso_invitation
+msgid "<div>\n                <p>Hello <t t-out=\"object.name or ''\"/>,</p>\n                <p t-if=\"ctx.get('welcome_message')\"><t t-out=\"ctx.get('welcome_message')\"/></p>\n                <p>Your USL portal uses Pocket ID. No Odoo password is required.</p>\n                <p>\n                    <a t-att-href=\"object.get_base_url() + '/web/login'\" style=\"background:#714b67;color:#fff;padding:10px 16px;text-decoration:none;border-radius:4px;display:inline-block;\">\n                        Continue with Pocket ID\n                    </a>\n                </p>\n                <p>If Pocket ID does not recognize this email, contact your USL administrator.</p>\n            </div>\n        "
+msgstr "<div>\n                <p>Bonjour <t t-out=\"object.name or ''\"/>,</p>\n                <p t-if=\"ctx.get('welcome_message')\"><t t-out=\"ctx.get('welcome_message')\"/></p>\n                <p>Votre portail USL utilise Pocket ID. Aucun mot de passe Odoo n’est nécessaire.</p>\n                <p>\n                    <a t-att-href=\"object.get_base_url() + '/web/login'\" style=\"background:#714b67;color:#fff;padding:10px 16px;text-decoration:none;border-radius:4px;display:inline-block;\">\n                        Continuer avec Pocket ID\n                    </a>\n                </p>\n                <p>Si Pocket ID ne reconnaît pas cette adresse e-mail, contactez votre administrateur USL.</p>\n            </div>\n        "
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_pocketid_email_link
+msgid "Allow first-login linking only when the verified Pocket ID email uniquely and exactly matches this active governed user."
+msgstr "Autoriser l’association à la première connexion uniquement lorsque l’adresse e-mail vérifiée par Pocket ID correspond exactement et sans ambiguïté à cet utilisateur actif et administré."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Emergency credentials were not accepted."
+msgstr "Les identifiants d’urgence n’ont pas été acceptés."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Every active interactive user must have governed Pocket ID access: %s"
+msgstr "Chaque utilisateur interactif actif doit disposer d’un accès Pocket ID administré : %s"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_local_break_glass
+msgid "Independent administrator accepted only on the audited emergency route during a short deployment-approved incident window."
+msgstr "Administrateur indépendant accepté uniquement par l’accès d’urgence audité, pendant une courte période d’incident autorisée au niveau du déploiement."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Login"
+msgstr "Identifiant"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_end_session_endpoint
+msgid "OIDC Logout Endpoint"
+msgstr "Point de terminaison de déconnexion OIDC"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Passwords are disabled by the SSO-only login policy."
+msgstr "Les mots de passe sont désactivés par la politique de connexion exclusivement par SSO."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Passwords are disabled. Manage this user's Pocket ID access instead."
+msgstr "Les mots de passe sont désactivés. Gérez plutôt l’accès Pocket ID de cet utilisateur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID logout endpoint"
+msgstr "Point de terminaison de déconnexion Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID logout endpoint must use the issuer origin."
+msgstr "Le point de terminaison de déconnexion Pocket ID doit utiliser l’origine de l’émetteur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID must be completely configured before SSO-only login."
+msgstr "Pocket ID doit être entièrement configuré avant d’activer la connexion exclusivement par SSO."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID must be the only enabled interactive login provider."
+msgstr "Pocket ID doit être le seul fournisseur de connexion interactive activé."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "Pocket ID portal identities require the portal classification."
+msgstr "Les identités de portail Pocket ID doivent être classées comme utilisateurs du portail."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID portal users require the portal identity classification."
+msgstr "Les utilisateurs du portail Pocket ID doivent disposer de la classification d’identité « Portail »."
+
+#. module: usl_pocketid
+#: model:ir.model,name:usl_pocketid.model_portal_wizard_user
+msgid "Portal User Config"
+msgstr "Configuration de l’utilisateur du portail"
+
+#. module: usl_pocketid
+#: model:mail.template,name:usl_pocketid.portal_sso_invitation
+msgid "Portal: Pocket ID access"
+msgstr "Portail : accès Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_sso_only_login
+msgid "SSO-only login"
+msgstr "Connexion exclusivement par SSO"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "SSO-only login requires exactly one sealed emergency administrator."
+msgstr "La connexion exclusivement par SSO exige exactement un administrateur d’urgence scellé."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_logout_redirect
+msgid "Signing out…"
+msgstr "Déconnexion…"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "This Odoo Distribution accepts Pocket ID sign-in only."
+msgstr "Cette distribution Odoo accepte uniquement la connexion avec Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Unsupported Pocket ID login policy: %s"
+msgstr "Politique de connexion Pocket ID non prise en charge : %s"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_end_session_endpoint
+msgid "Validated Pocket ID endpoint used for provider-aware logout."
+msgstr "Point de terminaison Pocket ID validé, utilisé pour déconnecter également la session chez le fournisseur."
+
+#. module: usl_pocketid
+#: model:mail.template,subject:usl_pocketid.portal_sso_invitation
+msgid "Your USL portal access"
+msgstr "Votre accès au portail USL"

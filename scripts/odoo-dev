@@ -253,6 +253,25 @@ disable_dev_tours() {
     --database="$DEV_DB" < "$ROOT/scripts/odoo/disable_dev_tours.py"
 }
 
+sync_product_french_translations() {
+  local catalogue relative
+  local -a catalogues=()
+  while IFS= read -r catalogue; do
+    relative="${catalogue#"$ROOT/custom-addons/"}"
+    catalogues+=("/mnt/custom-addons/$relative")
+  done < <(find "$ROOT/custom-addons" -mindepth 3 -maxdepth 3 -path '*/i18n/fr.po' -type f | sort)
+  if ((${#catalogues[@]} == 0)); then
+    printf 'No maintained French catalogues were found.\n' >&2
+    return 1
+  fi
+  "${COMPOSE[@]}" exec -T odoo odoo i18n import \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" \
+    --language=fr \
+    --overwrite \
+    "${catalogues[@]}"
+}
+
 deploy() {
   local module="${1:-$DEV_MODULE}"
   local update_step="${2:-1/2}"
@@ -264,7 +283,8 @@ deploy() {
   usl_cli_step "$update_step" "Update Odoo modules: $update_modules"
   if is_canonical_target; then
     "$ROOT/scripts/pocket-id-dev" configure-odoo "$update_modules"
-    usl_cli_step "$settings_step" "Apply local QA preferences"
+    usl_cli_step "$settings_step" "Apply local QA preferences and maintained French translations"
+    sync_product_french_translations
     disable_dev_tours
     usl_cli_success "modules updated and the development runtime is healthy."
     return
@@ -281,7 +301,8 @@ deploy() {
     --stop-after-init \
     --log-level=warn
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
-  usl_cli_step "$settings_step" "Apply local QA preferences"
+  usl_cli_step "$settings_step" "Apply local QA preferences and maintained French translations"
+  sync_product_french_translations
   disable_dev_tours
   print_url
   usl_cli_success "modules updated and the development runtime is healthy."

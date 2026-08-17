@@ -23,9 +23,8 @@ msgid ""
 "%(count)s TESE settings profiles cover this month; exactly one is required. "
 "Next: correct their validity dates in Payroll Profiles."
 msgstr ""
-"Les profils de paramètres %(count)s TESE couvrent ce mois-ci; exactement un "
-"est requis. Suivant : corrigez leurs dates de validité dans les profils de "
-"paye."
+"%(count)s profils de paramètres TESE couvrent ce mois ; un seul est requis. "
+"Étape suivante : corrigez leurs dates de validité dans les profils de paie."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -34,8 +33,8 @@ msgid ""
 "%(count)s contract versions cover this month; exactly one is required. Next:"
 " correct the employee contract version dates."
 msgstr ""
-"Les versions du contrat %(count)s couvrent ce mois; exactement une est "
-"requise. Suivant : corriger les dates de la version du contrat de l'employé."
+"%(count)s versions du contrat couvrent ce mois ; une seule est requise. "
+"Étape suivante : corrigez les dates des versions du contrat du salarié."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -385,7 +384,7 @@ msgstr "Archivé"
 #. module: usl_tese_payroll
 #: model:ir.model,name:usl_tese_payroll.model_usl_document_link
 msgid "Archived Document Business Relationship"
-msgstr "Document archivé Relations d'affaires"
+msgstr "Lien métier du document archivé"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__archived_document_count
@@ -512,8 +511,8 @@ msgid ""
 "Cancel this unposted payroll and its draft entry. Posted accounting cannot "
 "be cancelled here."
 msgstr ""
-"Annulez cette paie non postée et son avant-projet. La comptabilité "
-"comptabilisée ne peut pas être annulée ici."
+"Annulez cette paie non comptabilisée et son écriture brouillon. Une écriture "
+"déjà comptabilisée ne peut pas être annulée ici."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__cancelled
@@ -580,8 +579,8 @@ msgid ""
 "Next: open the payroll or profile that you want to revise and start again."
 msgstr ""
 "Choisissez un employé et les paramètres TESE actuels avant de créer une "
-"révision. Suivant : ouvrez la paie ou le profil que vous voulez réviser et "
-"recommencer."
+"nouvelle version. Étape suivante : ouvrez la paie ou le profil à modifier, "
+"puis recommencez."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -590,7 +589,7 @@ msgid ""
 "Choose an employee and payroll month. Next: confirm the recurring TESE "
 "settings proposed by Odoo."
 msgstr ""
-"Choisissez un employé et le mois de paie. Suivant: confirmer les paramètres "
+"Choisissez un salarié et le mois de paie. Étape suivante : confirmez les paramètres "
 "récurrents TESE proposés par Odoo."
 
 #. module: usl_tese_payroll
@@ -636,7 +635,7 @@ msgstr "Configuration"
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Configure a general TESE Payroll Journal on the company first."
-msgstr "Configurez d'abord un journal de paie TESE général sur l'société."
+msgstr "Configurez d’abord un journal d’opérations diverses pour la paie TESE dans la société."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -701,8 +700,8 @@ msgid ""
 "Create a balanced draft journal entry from the frozen payroll figures. You "
 "can still revise settings before posting."
 msgstr ""
-"Créer un projet de journal équilibré à partir des chiffres gelés de la paie."
-" Vous pouvez toujours réviser les paramètres avant d'afficher."
+"Créez une écriture comptable brouillon équilibrée à partir des montants figés"
+" de la paie. Vous pouvez encore modifier les paramètres avant de comptabiliser."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -744,8 +743,8 @@ msgid ""
 "Create the dated TESE version, optionally create an HR contract version, and"
 " refresh the payroll before posting."
 msgstr ""
-"Créez la version TESE datée, créez en option une version du contrat RH et "
-"rafraîchissez la paie avant l'affichage."
+"Créez la version TESE datée et, si nécessaire, une version du contrat RH, "
+"puis actualisez la paie avant de la comptabiliser."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1084,8 +1083,8 @@ msgid ""
 "Freeze the selected TESE and HR settings into this payroll. Next, review the"
 " figures and create the draft journal entry."
 msgstr ""
-"Congelez les paramètres TESE et HR sélectionnés dans cette paie. Ensuite, "
-"revoyez les chiffres et créez le projet de journal."
+"Figez les paramètres TESE et RH sélectionnés dans cette paie. Vérifiez "
+"ensuite les montants et créez l’écriture comptable brouillon."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1498,8 +1497,8 @@ msgid ""
 "posting."
 msgstr ""
 "Nouveaux paramètres récurrents appliqués. La version précédente a été "
-"archivée et non supprimée. Suivant : examinez cette liste de paie et son "
-"avant-projet de journal avant d'afficher."
+"archivée, et non supprimée. Étape suivante : vérifiez cette paie et son "
+"écriture comptable brouillon avant de la comptabiliser."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1509,7 +1508,7 @@ msgid ""
 "deleted. Next: review the new version before using it for payroll."
 msgstr ""
 "Nouveaux paramètres récurrents créés. La version précédente a été archivée "
-"et non supprimée. Suivant : examinez la nouvelle version avant de l'utiliser"
+"et non supprimée. Étape suivante : vérifiez la nouvelle version avant de l’utiliser"
 " pour la paie."
 
 #. module: usl_tese_payroll
@@ -1544,7 +1543,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Next: match the remaining open payment."
-msgstr "Suivant : correspondez au paiement ouvert restant."
+msgstr "Étape suivante : rapprochez le paiement restant."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1559,8 +1558,8 @@ msgid ""
 "No candidate found. Next: check the expected date and amount, or open Bank "
 "Matching."
 msgstr ""
-"Aucun candidat trouvé. Suivant: vérifier la date et le montant attendus, ou "
-"ouvrir le jumelage bancaire."
+"Aucune transaction proposée. Étape suivante : vérifiez la date et le montant"
+" attendus, ou ouvrez le Rapprochement bancaire."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1569,8 +1568,8 @@ msgid ""
 "No contract version covers the selected payroll month. Next: enable "
 "Employment terms changed to create one."
 msgstr ""
-"Aucune version du contrat ne couvre le mois de paie sélectionné. Suivant : "
-"permettre aux termes d'emploi changés de créer un."
+"Aucune version du contrat ne couvre le mois de paie sélectionné. Étape "
+"suivante : cochez « Conditions d’emploi modifiées » pour en créer une."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1591,8 +1590,8 @@ msgid ""
 "No provider PDF is attached. Next: attach the official TESE PDF before "
 "posting."
 msgstr ""
-"Aucun fournisseur PDF n'est joint. Suivant : joignez l'TESE PDF officiel "
-"avant de poster."
+"Aucun PDF officiel n’est joint. Étape suivante : joignez le PDF TESE officiel "
+"avant de comptabiliser."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__payment_status__not_posted
@@ -1661,8 +1660,8 @@ msgid ""
 "One unique exact safe candidate is available. Next: check it, then use the "
 "matching button above."
 msgstr ""
-"Un seul candidat sûr est disponible. Suivant : vérifiez-le, puis utilisez le"
-" bouton correspondant ci-dessus."
+"Une seule transaction fiable correspond exactement. Étape suivante : "
+"vérifiez-la, puis utilisez le bouton de rapprochement ci-dessus."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
@@ -1851,8 +1850,8 @@ msgstr ""
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Payroll cancelled. Next: use Reset if you want to prepare it again."
 msgstr ""
-"La paie est annulée. Suivant : utilisez Reset si vous voulez le préparer à "
-"nouveau."
+"La paie est annulée. Étape suivante : utilisez Réinitialiser pour la préparer"
+" de nouveau."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1895,9 +1894,9 @@ msgid ""
 "Payroll remains open: salary residual %(salary).2f; TESE residual "
 "%(tese).2f. Next: match a unique safe candidate or open Bank Matching."
 msgstr ""
-"La paie reste ouverte: salaire résiduel %(salary).2f; TESE résiduel "
-"%(tese).2f. Suivant: correspondent à un candidat sûr unique ou open "
-"rapprochement bancaire."
+"La paie reste ouverte : solde du salaire %(salary).2f ; solde TESE "
+"%(tese).2f. Étape suivante : rapprochez une transaction fiable et unique, "
+"ou ouvrez le Rapprochement bancaire."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1905,8 +1904,8 @@ msgstr ""
 msgid ""
 "Payroll reset to Prepared. Next: review or refresh the draft journal entry."
 msgstr ""
-"Réinitialisation de la paie à Préparé. Suivant : revoyez ou rafraîchissez "
-"l'entrée du projet de journal."
+"La paie a été réinitialisée à l’état Préparée. Étape suivante : vérifiez ou "
+"actualisez l’écriture comptable brouillon."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -1979,7 +1978,7 @@ msgstr "Comptabiliser la pièce"
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Post the payroll journal entry first."
-msgstr "Enregistrez d’abord l’entrée du journal de paie."
+msgstr "Comptabilisez d’abord l’écriture de paie."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -1987,8 +1986,8 @@ msgid ""
 "Post the payroll journal entry. The payroll figures and official PDF then "
 "become immutable."
 msgstr ""
-"Affichez l'entrée du journal de paie. Les chiffres des salaires et PDF "
-"officiels deviennent alors immuables."
+"Comptabilisez l’écriture de paie. Les montants de paie et le PDF officiel "
+"deviennent alors immuables."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2150,8 +2149,8 @@ msgstr ""
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Provider payroll PDF ready. Next: no document action is required."
 msgstr ""
-"Salaire du fournisseur PDF prêt. Suivant : aucune action documentaire n'est "
-"requise."
+"Le PDF de paie fourni par TESE est prêt. Aucune autre action documentaire "
+"n’est requise."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2160,8 +2159,8 @@ msgid ""
 "Provider payroll PDF ready. Next: review the figures and continue the "
 "payroll workflow."
 msgstr ""
-"Salaire du fournisseur PDF prêt. Ensuite, revoyez les chiffres et poursuivez"
-" le flux de paie."
+"Le PDF de paie fourni par TESE est prêt. Vérifiez les montants, puis "
+"poursuivez le traitement de la paie."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__rating_ids
@@ -2204,8 +2203,8 @@ msgstr ""
 msgid ""
 "Reconcile the one safe salary transaction with the open salary liability."
 msgstr ""
-"Réconcilier la seule transaction salariale sécuritaire avec le passif "
-"salarial ouvert."
+"Rapprochez l’unique transaction de salaire fiable avec la dette salariale "
+"ouverte."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
@@ -2213,8 +2212,8 @@ msgid ""
 "Record only what changed. Odoo creates a dated\n"
 "                            version and keeps the previous version in history."
 msgstr ""
-"Enregistrez seulement ce qui a changé. Odoo crée une date\n"
-"version et conserve la version précédente dans l'historique."
+"Enregistrez uniquement les modifications. Odoo crée une version datée\n"
+"                            et conserve la version précédente dans l’historique."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
@@ -2248,8 +2247,8 @@ msgid ""
 "Regenerate the linked draft journal entry from the current payroll figures. "
 "A posted entry is never changed."
 msgstr ""
-"Régénérer l'entrée du projet de journal à partir des chiffres actuels des "
-"états de paie. Une entrée postée n'est jamais changée."
+"Régénérez l’écriture comptable brouillon à partir des montants actuels de la "
+"paie. Une écriture comptabilisée n’est jamais modifiée."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -2463,8 +2462,8 @@ msgid ""
 "Select TESE figures, employment terms, or both. Next: tick at least one "
 "change type above."
 msgstr ""
-"Sélectionnez TESE chiffres, conditions d'emploi, ou les deux. Suivant : "
-"cochez au moins un type de changement ci-dessus."
+"Sélectionnez les montants TESE, les conditions d’emploi ou les deux. Étape "
+"suivante : cochez au moins un type de modification ci-dessus."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2809,7 +2808,7 @@ msgid ""
 "TESE company configuration requires both HR Administrator and Accounting "
 "Administrator access."
 msgstr ""
-"La configuration de l'société TESE nécessite à la fois un accès "
+"La configuration TESE de la société exige à la fois les droits "
 "administrateur RH et administrateur comptable."
 
 #. module: usl_tese_payroll
@@ -2961,8 +2960,8 @@ msgid ""
 "The TESE accounting detail must contain exactly eleven lines. Next: cancel "
 "and reopen the wizard from a complete profile."
 msgstr ""
-"Le détail comptable TESE doit contenir exactement onze lignes. Suivant : "
-"annuler et rouvrir l'assistant à partir d'un profil complet."
+"Le détail comptable TESE doit contenir exactement onze lignes. Étape "
+"suivante : annulez et rouvrez l’assistant depuis un profil complet."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -3034,8 +3033,8 @@ msgid ""
 "The draft payroll journal entry was created. Next: review the entry and "
 "official PDF, then post it."
 msgstr ""
-"L'ébauche du journal de paie a été créée. Suivant: examiner l'entrée et "
-"officiel PDF, puis poster."
+"L’écriture comptable brouillon de la paie a été créée. Étape suivante : "
+"vérifiez l’écriture et le PDF officiel, puis comptabilisez-la."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -3044,8 +3043,8 @@ msgid ""
 "The draft payroll journal entry was refreshed. Next: review the entry and "
 "official PDF, then post it."
 msgstr ""
-"L'ébauche du journal de paie a été mise à jour. Suivant: examiner l'entrée "
-"et officiel PDF, puis poster."
+"L’écriture comptable brouillon de la paie a été actualisée. Étape suivante :"
+" vérifiez l’écriture et le PDF officiel, puis comptabilisez-la."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -3176,9 +3175,9 @@ msgid ""
 "                        If this wizard was opened from a payroll, that payroll\n"
 "                        will be refreshed with the new versions."
 msgstr ""
-"La version TESE précédente sera archivée, non supprimée.\n"
-"Si ce magicien a été ouvert à partir d'une paie, cette paie\n"
-"sera rafraîchi avec les nouvelles versions."
+"La version TESE précédente sera archivée, et non supprimée.\n"
+"                        Si cet assistant a été ouvert depuis une paie, celle-ci\n"
+"                        sera actualisée avec les nouvelles versions."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -3217,7 +3216,7 @@ msgid ""
 "The revision month must match the payroll month. Next: use the payroll month"
 " shown on this record."
 msgstr ""
-"Le mois de révision doit correspondre au mois de paie. Suivant : utilisez le"
+"Le mois de modification doit correspondre au mois de paie. Étape suivante : utilisez le"
 " mois de paie indiqué sur ce dossier."
 
 #. module: usl_tese_payroll
@@ -3233,8 +3232,8 @@ msgid ""
 "The selected TESE settings do not cover this month. Next: choose a version "
 "that covers the month or revise the recurring settings."
 msgstr ""
-"Les paramètres TESE sélectionnés ne couvrent pas ce mois-ci. Suivant : "
-"choisissez une version qui couvre le mois ou révisez les paramètres "
+"Les paramètres TESE sélectionnés ne couvrent pas ce mois. Étape suivante : "
+"choisissez une version couvrant le mois ou modifiez les paramètres "
 "récurrents."
 
 #. module: usl_tese_payroll
@@ -3609,4 +3608,4 @@ msgstr "le contact de travail de l'employé est manquant"
 msgid ""
 "the journal entry is not balanced (%(debit).2f debit / %(credit).2f credit)"
 msgstr ""
-"l'pièce comptable n'est pas soldée (débit %(debit).2f / crédit %(credit).2f)"
+"la pièce comptable n’est pas équilibrée (débit %(debit).2f / crédit %(credit).2f)"

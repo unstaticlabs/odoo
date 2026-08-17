@@ -23,8 +23,20 @@ GLOSSARY = {
     "Matched Items and Undo": "Écritures lettrées / Annuler le lettrage",
     "Odoo Approved Platform": "Plateforme agréée Odoo",
     "Post": "Comptabiliser",
+    "Ready for production": "Prêt pour la production",
     "Receipt": "Justificatif",
+    "Review": "Vérifier",
+    "Reviewed": "Vérifié",
     "Tax Package Line": "Ligne de liasse fiscale",
+}
+BAD_TRANSLATION_PATTERNS = {
+    re.compile(r"\bl['’]société\b", re.IGNORECASE): "use 'la société'",
+    re.compile(r"\bl['’]test\b", re.IGNORECASE): "use 'le test'",
+    re.compile(r"\bmagicien\b", re.IGNORECASE): "translate 'wizard' as 'assistant'",
+    re.compile(r"\bjumelage bancaire\b", re.IGNORECASE): "use 'rapprochement bancaire'",
+    re.compile(r"\bsécuritaire\b", re.IGNORECASE): "prefer 'sûr' or 'fiable'",
+    re.compile(r"\bprêt pour la fabrication\b", re.IGNORECASE): "use 'prêt pour la production'",
+    re.compile(r"\bsuivant\s*:", re.IGNORECASE): "use 'étape suivante :'",
 }
 REQUIRED_OCCURRENCES = {
     "Accounting": "model:ir.ui.menu,name:account.menu_finance",
@@ -34,20 +46,30 @@ REQUIRED_OCCURRENCES = {
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("addons", nargs="?", default="custom-addons", type=Path)
+    parser.add_argument(
+        "--reference-po",
+        type=Path,
+        help="optional clean-registry export used to detect missing catalogue entries",
+    )
     args = parser.parse_args()
 
     errors: list[str] = []
     entries_by_source: dict[str, list[tuple[Path, str]]] = {}
+    entries_by_module: dict[str, set[str]] = {}
     occurrences_by_source: dict[str, set[str]] = {}
     catalogues = sorted(args.addons.glob("*/i18n/fr.po"))
     if not catalogues:
         errors.append(f"no French catalogues found below {args.addons}")
 
     for path in catalogues:
+        module_name = path.parent.parent.name
+        entries_by_module[module_name] = set()
         catalogue = polib.pofile(path)
         for entry in catalogue:
             if not entry.msgid:
                 continue
+            if "fuzzy" in entry.flags:
+                errors.append(f"{path}: fuzzy translation for {entry.msgid!r}")
             translations = list(entry.msgstr_plural.values()) if entry.msgstr_plural else [entry.msgstr]
             occurrences_by_source.setdefault(entry.msgid, set()).update(
                 occurrence for occurrence, _line in entry.occurrences
@@ -64,7 +86,35 @@ def main() -> int:
                     HTML_TAG.findall(translation),
                 ):
                     errors.append(f"{path}: HTML structure changed for {entry.msgid!r}")
+                for pattern, guidance in BAD_TRANSLATION_PATTERNS.items():
+                    if pattern.search(translation):
+                        errors.append(
+                            f"{path}: poor French for {entry.msgid!r}: {guidance}",
+                        )
                 entries_by_source.setdefault(entry.msgid, []).append((path, translation))
+                entries_by_module[module_name].add(entry.msgid)
+
+    if args.reference_po:
+        if not args.reference_po.is_file():
+            errors.append(f"reference PO does not exist: {args.reference_po}")
+            reference = []
+        else:
+            reference = polib.pofile(str(args.reference_po))
+        for entry in reference:
+            if entry.obsolete or not entry.msgid:
+                continue
+            modules = set(re.findall(r"(?:^|\n)module:\s*([^\s]+)", entry.comment or ""))
+            if modules:
+                for module_name in modules:
+                    if entry.msgid not in entries_by_module.get(module_name, set()):
+                        errors.append(
+                            f"{args.reference_po}: {module_name} has no maintained "
+                            f"French translation for {entry.msgid!r}",
+                        )
+            elif entry.msgid not in entries_by_source:
+                errors.append(
+                    f"{args.reference_po}: no maintained French translation for {entry.msgid!r}",
+                )
 
     for source, expected in GLOSSARY.items():
         for path, translation in entries_by_source.get(source, []):

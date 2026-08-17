@@ -47,8 +47,8 @@ msgid ""
 "The date and time when work is planned to start. Together with the deadline,"
 " it defines the task's planned range."
 msgstr ""
-"Date et heure du début des travaux. Avec la date limite, il définit "
-"l'étendue prévue de la tâche."
+"Date et heure prévues pour le début du travail. Avec l’échéance, cette date "
+"définit la période planifiée de la tâche."
 
 #. module: usl_project
 #. odoo-python

@@ -156,7 +156,7 @@ msgstr "Nombre de pièces jointes"
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_attachment_status
 msgid "Attachment status"
-msgstr "Statut du justificatif"
+msgstr "État du justificatif"
 
 #. module: usl_expense_batch
 #. odoo-python
@@ -169,7 +169,7 @@ msgstr "Note de frais approuvée avec %(count)s dépenses."
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__readiness_state
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__readiness_state
 msgid "Batch readiness"
-msgstr "Préparation de la note"
+msgstr "État de préparation"
 
 #. module: usl_expense_batch
 #. odoo-python
@@ -549,17 +549,17 @@ msgstr "Informations requises"
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Date limite de l'activité à venir"
+msgstr "Échéance de la prochaine activité"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_summary
 msgid "Next Activity Summary"
-msgstr "synthèse de l'activité suivante"
+msgstr "Résumé de la prochaine activité"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_type_id
 msgid "Next Activity Type"
-msgstr "Type d'activités à venir"
+msgstr "Type de la prochaine activité"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
@@ -720,7 +720,7 @@ msgstr "Retournée"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Review"
-msgstr "Contrôle"
+msgstr "Vérifier"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_has_sms_error

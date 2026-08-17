@@ -355,7 +355,7 @@ msgstr "Analytique"
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__analytic_distribution
 msgid "Analytic Distribution"
-msgstr "Répartition Analytique"
+msgstr "Répartition analytique"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__analytic_precision
@@ -458,7 +458,7 @@ msgstr "Motif de détection bancaire"
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__bank_journal_id
 msgid "Bank Journal"
-msgstr "Journal de banque"
+msgstr "Journal bancaire"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_import_wizard_line__bank_label
@@ -1522,7 +1522,7 @@ msgstr "Règle de rapprochement"
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__medium
 msgid "Medium"
-msgstr "Médium"
+msgstr "Moyenne"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_bank_allocation__message_has_error
@@ -1587,21 +1587,21 @@ msgstr "Prochaine action"
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_date_deadline
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Date limite de l'activité à venir"
+msgstr "Échéance de la prochaine activité"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_summary
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_summary
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_summary
 msgid "Next Activity Summary"
-msgstr "synthèse de l'activité suivante"
+msgstr "Résumé de la prochaine activité"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_payout__activity_type_id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_platform__activity_type_id
 #: model:ir.model.fields,field_description:usl_platform_billing.field_usl_platform_billing_session__activity_type_id
 msgid "Next Activity Type"
-msgstr "Type d'activités à venir"
+msgstr "Type de la prochaine activité"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__account_move__platform_billing_payment_state__not_applicable
@@ -1835,7 +1835,7 @@ msgstr "Versement ouvert de plateforme candidat"
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
 msgid "Open incoming bank transactions"
-msgstr "Transactions bancaires entrantes ouvertes"
+msgstr "Encaissements bancaires non rapprochés"
 
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
@@ -1977,7 +1977,7 @@ msgstr "Transactions bancaires des plateformes"
 #: model:res.groups.privilege,name:usl_platform_billing.res_groups_privilege_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_move_form_platform_billing
 msgid "Platform Billing"
-msgstr "Facturation plateformes"
+msgstr "Facturation des plateformes"
 
 #. module: usl_platform_billing
 #: model:ir.actions.act_window,name:usl_platform_billing.action_platform_billing_moves
@@ -2104,7 +2104,7 @@ msgstr "Comptabilisez les pièces générées avant le rapprochement bancaire."
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_payout__state__posted
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_session__state__posted
 msgid "Posted"
-msgstr "comptabilisé"
+msgstr "Comptabilisé"
 
 #. module: usl_platform_billing
 #. odoo-python
@@ -2169,7 +2169,7 @@ msgstr "Recommandé"
 #: code:addons/usl_platform_billing/models/session.py:0
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
 msgid "Reconcile bank"
-msgstr "Rapprocher la banque"
+msgstr "Rapprocher les transactions bancaires"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_allocation__state__reconciled
@@ -2232,7 +2232,7 @@ msgstr "Compte du produit de chiffre d’affaires"
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__account_move__platform_billing_payment_state__reversed
 msgid "Reversed"
-msgstr "Inversé"
+msgstr "Extourné"
 
 #. module: usl_platform_billing
 #: model_terms:ir.actions.act_window,help:usl_platform_billing.action_platform_billing_sessions

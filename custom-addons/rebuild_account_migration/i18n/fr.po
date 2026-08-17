@@ -167,7 +167,7 @@ msgid ""
 "identity"
 msgstr ""
 "<span class=\"badge rounded-pill text-bg-light me-2\">1</span>Identité de "
-"l'société"
+"la société"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
@@ -429,7 +429,7 @@ msgid ""
 "                    The accounting is posted or paid. Use the linked journal entry and bank transaction for any further review."
 msgstr ""
 "<strong>Processus des dépenses terminé.</strong>\n"
-"                    La comptabilité est comptabilisée ou payée. Utilisez l’écriture comptable et la transaction bancaire liées pour tout examen plus approfondi."
+"                    La dépense est comptabilisée ou payée. Utilisez l’écriture comptable et la transaction bancaire liées pour toute vérification complémentaire."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance
@@ -438,7 +438,7 @@ msgid ""
 "                    Evidence is required before submission, approval or posting so the reviewer can verify the expense. If this category legitimately needs no receipt, an Expense Manager must update the category policy."
 msgstr ""
 "<strong>Étape suivante : joindre le justificatif.</strong>\n"
-"                    Des justificatifs sont requises avant la soumission, l'approbation ou la comptabilisation afin que l'examinateur puisse vérifier la dépense. Si cette catégorie n'a légitimement besoin d'aucun justificatif, un gestionnaire de dépenses doit mettre à jour la politique de la catégorie."
+"                    Un justificatif est requis avant la soumission, l’approbation ou la comptabilisation afin que le responsable puisse vérifier la dépense. Si cette catégorie n’exige légitimement aucun justificatif, un responsable des dépenses doit mettre à jour la politique de la catégorie."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance
@@ -687,8 +687,8 @@ msgid ""
 "Account 455 used by the Accounting Overview to estimate the position with "
 "one shareholder. The delivered USL configuration uses 455100."
 msgstr ""
-"Compte 455 utilisé par l'Aperçu Comptable pour estimer la position avec un "
-"actionnaire. La configuration USL livrée utilise 455100."
+"Compte 455 utilisé par la vue d’ensemble de la Comptabilité pour estimer la "
+"situation avec un associé. La configuration USL fournie utilise le compte 455100."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_analytic_distribution_line__account_code
@@ -772,7 +772,7 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_export_wizard_form
 msgid "Account, partner, entry, label…"
-msgstr "Compte, partenaire, inscription, label…"
+msgstr "Compte, partenaire, écriture, libellé…"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__accountant_information
@@ -820,7 +820,7 @@ msgstr "Comptable fourni"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_control__accountant_visible
 msgid "Accountant Visible"
-msgstr "Comptable Visible"
+msgstr "Visible par le comptable"
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -829,8 +829,8 @@ msgid ""
 "Accountant reviewers and finance operators must generate a complete posted-"
 "entries FEC in test mode."
 msgstr ""
-"Les réviseurs comptables et les opérateurs financiers doivent générer une "
-"écriture comptable complète FEC en mode test."
+"Les comptables chargés de la revue et les opérateurs financiers doivent "
+"générer en mode test un FEC complet limité aux écritures comptabilisées."
 
 #. module: rebuild_account_migration
 #: model:ir.ui.menu,name:account.menu_finance
@@ -854,7 +854,7 @@ msgstr "Conséquence comptable"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_hygiene_issue__definition_id
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_issue_search
 msgid "Accounting Control"
-msgstr "Contrôle Comptable"
+msgstr "Contrôle comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_closing_control_definition
@@ -982,19 +982,19 @@ msgstr "Résultat comptable"
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_einvoice_reception__failure_kind__accounting
 msgid "Accounting Review"
-msgstr "Révision comptable"
+msgstr "Revue comptable"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_form
 msgid "Accounting Review Decision"
-msgstr "Décision de révision comptable"
+msgstr "Décision de revue comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.actions.act_window,name:rebuild_account_migration.action_rebuild_account_assurance_decision
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_list
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_search
 msgid "Accounting Review Decisions"
-msgstr "Décisions de révision comptable"
+msgstr "Décisions de revue comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.actions.act_window,name:rebuild_account_migration.action_rebuild_account_tags
@@ -1050,12 +1050,12 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 msgid "Actionable Issues"
-msgstr "Problèmes pouvant donner lieu à une action"
+msgstr "Points à traiter"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Actionable issues"
-msgstr "Problèmes pouvant donner lieu à une action"
+msgstr "Points à traiter"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__actions_awaiting_valentin
@@ -1561,8 +1561,8 @@ msgid ""
 "Apply the prepared match, reconcile this bank transaction, and keep it "
 "flagged for follow-up review."
 msgstr ""
-"Appliquez la rapprochement préparée, rapprochez cette transaction bancaire "
-"et conservez-la marquée pour un examen de suivi."
+"Appliquez le rapprochement préparé, rapprochez cette transaction bancaire "
+"et maintenez son marquage pour une vérification ultérieure."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_list
@@ -1570,8 +1570,8 @@ msgid ""
 "Apply this evidence-backed partner suggestion without reconciling the "
 "transaction."
 msgstr ""
-"Appliquez cette suggestion de partenaire fondée sur des justificatifs sans "
-"réconcilier la transaction."
+"Appliquez cette suggestion de partenaire étayée sans rapprocher la "
+"transaction."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__hr_expense__rebuild_next_step__approve
@@ -1635,7 +1635,7 @@ msgstr "Dépenses approuvées"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
 msgid "Archive Redundant Rule"
-msgstr "Règle de redondance d'archive"
+msgstr "Archiver la règle redondante"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
@@ -1692,7 +1692,7 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_aged_partner_balance_line__as_of_date
 msgid "As Of Date"
-msgstr "À compter de la date"
+msgstr "Date de situation"
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -2194,7 +2194,7 @@ msgstr "Objet commercial"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_control_definition_form_framework
 msgid "Business Version"
-msgstr "Version professionnelle"
+msgstr "Version métier"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
@@ -2765,7 +2765,7 @@ msgstr "Devise de la société"
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_origin__custom
 msgid "Company rule"
-msgstr "Règle de l'société"
+msgstr "Règle de la société"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_closing_control_definition__origin__company
@@ -2776,7 +2776,7 @@ msgstr "Règle de l'société"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_definition_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_definition_search
 msgid "Company-specific"
-msgstr "Spécifique à l'société"
+msgstr "Spécifique à la société"
 
 #. module: rebuild_account_migration
 #. odoo-javascript
@@ -2887,7 +2887,7 @@ msgstr "Inscription complète à la plateforme"
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Complete platform setup"
-msgstr "Configuration complète de la plateforme"
+msgstr "Terminer la configuration de la plateforme"
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -2903,7 +2903,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Complete reception setup"
-msgstr "Configuration complète de la réception"
+msgstr "Terminer la configuration de la réception"
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -3132,7 +3132,7 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration_field__source_kind__confirmed_fact
 msgid "Confirmed Company Fact"
-msgstr "Fait confirmé sur l'société"
+msgstr "Fait confirmé pour la société"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_connection_status__active
@@ -3264,7 +3264,7 @@ msgid ""
 "Create a company-specific copy that can be adapted without changing the "
 "localization definition."
 msgstr ""
-"Créez une copie spécifique à l'société qui peut être adaptée sans modifier "
+"Créez une copie propre à la société, adaptable sans modifier "
 "la définition de localisation."
 
 #. module: rebuild_account_migration
@@ -3273,7 +3273,7 @@ msgid ""
 "Create a company-specific copy that can be adapted without changing the "
 "upgrade-managed definition."
 msgstr ""
-"Créez une copie spécifique à l'société qui peut être adaptée sans modifier "
+"Créez une copie propre à la société, adaptable sans modifier "
 "la définition gérée par la mise à niveau."
 
 #. module: rebuild_account_migration
@@ -3281,7 +3281,7 @@ msgstr ""
 msgid ""
 "Create a company-specific copy without changing the localization definition."
 msgstr ""
-"Créez une copie spécifique à l'société sans modifier la définition de "
+"Créez une copie propre à la société sans modifier la définition de "
 "localisation."
 
 #. module: rebuild_account_migration
@@ -3290,7 +3290,7 @@ msgid ""
 "Create a company-specific copy without changing the upgrade-managed "
 "definition."
 msgstr ""
-"Créez une copie spécifique à l'société sans modifier la définition gérée par"
+"Créez une copie propre à la société sans modifier la définition gérée par"
 " la mise à niveau."
 
 #. module: rebuild_account_migration
@@ -3591,7 +3591,7 @@ msgstr "Personnaliser"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_rule_form_framework
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_definition_form
 msgid "Customize for Company"
-msgstr "Personnaliser pour l'société"
+msgstr "Personnaliser pour la société"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
@@ -4439,7 +4439,7 @@ msgid ""
 msgstr ""
 "Les taux de la BCE sont publiés les jours ouvrés de la zone euro. Remplir les tarifs manquants\n"
 "                    importe chaque jour publié manquant depuis la limite de couverture via\n"
-"                    la dernière date disponible. L'EUR est la devise de l'société et reste\n"
+"                    la dernière date disponible. L’EUR est la devise de la société et reste\n"
 "                    implicitement fixé à 1,0 ; les lignes générées ne sont nécessaires que pour les\n"
 "                    devises étrangères."
 
@@ -4596,12 +4596,12 @@ msgstr "Pièce"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__cash_projection_tax_reduced_rate_base
 msgid "Estimated 15% tax base"
-msgstr "Base estimée à 15% tax"
+msgstr "Assiette estimée imposée à 15 %"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__cash_projection_tax_standard_rate_base
 msgid "Estimated 25% tax base"
-msgstr "Base estimée à 25% tax"
+msgstr "Assiette estimée imposée à 25 %"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -5373,7 +5373,7 @@ msgid ""
 "profile is confirmed."
 msgstr ""
 "Générez des obligations déclaratives uniquement après confirmation du profil"
-" juridique et fiscal de l'société."
+" juridique et fiscal de la société."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_closing_action_guidance
@@ -5665,7 +5665,7 @@ msgid ""
 msgstr ""
 "Incluez cette banque ou ce compte de paiement dans les avoirs en banque. "
 "Désactivez-le pour les soldes restreints ou les comptes qui ne représentent "
-"pas les liquidités disponibles pour l'société."
+"pas les liquidités disponibles pour la société."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__accountant_visible
@@ -5726,8 +5726,8 @@ msgid ""
 "Incoming invoices are active. New documents become draft vendor\n"
 "                        bills in the selected journal."
 msgstr ""
-"Les factures entrantes sont actives. Les nouveaux documents deviennent des brouillons du fournisseur\n"
-"                        factures dans le journal sélectionné."
+"La réception est active. Les nouveaux documents deviennent des factures "
+"fournisseur brouillon dans le journal sélectionné."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -5812,7 +5812,7 @@ msgid ""
 "controls their purpose, presentation, filters, exports and navigation."
 msgstr ""
 "Les modules installés fournissent des moteurs de rapports gouvernés ; la "
-"configuration de l'société contrôle leur objectif, leur présentation, leurs "
+"configuration de la société détermine leur objectif, leur présentation, leurs "
 "filtres, leurs exportations et leur navigation."
 
 #. module: rebuild_account_migration
@@ -6247,8 +6247,8 @@ msgid ""
 "Leave empty for the shared presentation. A company-specific record takes "
 "precedence."
 msgstr ""
-"Laissez vide pour la présentation partagée. Un dossier spécifique à "
-"l’société est prioritaire."
+"Laissez vide pour la présentation partagée. Un enregistrement propre à la "
+"société est prioritaire."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_report_account_presentation__report_type
@@ -6707,7 +6707,7 @@ msgid ""
 "Move this closing workspace to optional accountant review without applying "
 "lock dates."
 msgstr ""
-"Déplacez cet espaces de clôture vers la révision comptable facultative sans "
+"Faites passer cet espace de clôture en revue comptable facultative sans "
 "appliquer de dates de verrouillage."
 
 #. module: rebuild_account_migration
@@ -7214,7 +7214,7 @@ msgstr "Ouvert"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__hygiene_issue_count
 msgid "Open Actionable Issues"
-msgstr "Problèmes ouverts pouvant donner lieu à une action"
+msgstr "Points ouverts à traiter"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -7331,7 +7331,7 @@ msgstr "Ouvert résiduel"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_field_form
 msgid "Open Source Entries"
-msgstr "Entrées open source"
+msgstr "Ouvrir les écritures sources"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_export_wizard_form
@@ -7535,7 +7535,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_update_action_guidance
 msgid "Open the company's dated currency-rate history and provider evidence."
 msgstr ""
-"Ouvrez l'historique daté des taux de change de l'société et les "
+"Ouvrez l’historique daté des taux de change de la société et les "
 "justificatifs du fournisseur."
 
 #. module: rebuild_account_migration
@@ -7797,7 +7797,7 @@ msgid ""
 msgstr ""
 "Fin facultative du premier exercice fiscal exceptionnel. Les rapports, "
 "déclarations et clôtures d'espaces de travail utilisent cette frontière "
-"avant le rythme récurrent des exercices fiscaux de l'société."
+"avant le rythme récurrent des exercices fiscaux de la société."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_res_company__rebuild_first_fiscalyear_start
@@ -7806,7 +7806,7 @@ msgid ""
 "year cadence."
 msgstr ""
 "Exception facultative de première année utilisée avant la cadence de "
-"l’exercice récurrent de l’société."
+"l’exercice fiscal récurrent de la société."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
@@ -8941,20 +8941,20 @@ msgstr "Prêt"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__accountant_review
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__accountant_review
 msgid "Ready for Accountant Review"
-msgstr "Prêt pour l'examen comptable"
+msgstr "Prêt pour la revue du comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__internal_review
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__internal_review
 msgid "Ready for Internal Review"
-msgstr "Prêt pour un examen interne"
+msgstr "Prêt pour la revue interne"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_move__rebuild_einvoice_reception_status__bill_created
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_einvoice_reception__status__bill_created
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_search
 msgid "Ready for Review"
-msgstr "Prêt pour l'examen"
+msgstr "Prêt à vérifier"
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -8962,13 +8962,13 @@ msgstr "Prêt pour l'examen"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_readiness_status__ready_inactive
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
 msgid "Ready for production"
-msgstr "Prêt pour la fabrication"
+msgstr "Prêt pour la production"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_closing_period__state__ready
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__latest_closing_state__ready
 msgid "Ready to Close"
-msgstr "Prêt à fermer"
+msgstr "Prêt à clôturer"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__ready_to_file
@@ -8984,7 +8984,7 @@ msgstr "Prêt à tester"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_currency_report_line_search
 msgid "Realized Exchange"
-msgstr "Échange réalisé"
+msgstr "Écart de change réalisé"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_l10n_fr_fec_export_wizard__rebuild_can_generate_official_fec
@@ -9152,19 +9152,19 @@ msgstr ""
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Reception self-check needs attention"
-msgstr "L'test de réception nécessite une attention particulière"
+msgstr "Le test de réception nécessite votre attention"
 
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Reception self-check needs attention."
-msgstr "L’test de réception nécessite une attention particulière."
+msgstr "Le test de réception nécessite votre attention."
 
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Reception self-check passed; no test bill was retained."
-msgstr "test de réception réussi ; aucune facture de test n'a été retenue."
+msgstr "Test de réception réussi ; aucune facture de test n’a été conservée."
 
 #. module: rebuild_account_migration
 #. odoo-javascript
@@ -9341,7 +9341,7 @@ msgstr "Enregistrez le numéro français VAT."
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Record the SIREN or SIRET company identifier."
-msgstr "Enregistrez l'identifiant de l'société SIREN ou SIRET."
+msgstr "Enregistrez le SIREN ou le SIRET de la société."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -9931,7 +9931,7 @@ msgid ""
 "Return this document to draft for correction. Review any payment or "
 "reconciliation links afterward."
 msgstr ""
-"Renvoyez ce document à l'ébauche pour correction. Examinez ensuite tous les "
+"Remettez ce document en brouillon pour le corriger. Vérifiez ensuite tous les "
 "liens de paiement ou de rapprochement."
 
 #. module: rebuild_account_migration
@@ -9939,8 +9939,8 @@ msgstr ""
 msgid ""
 "Return this expense to draft so its details or evidence can be corrected."
 msgstr ""
-"Renvoyez cette dépense à l'état de projet afin que ses détails ou ses "
-"justificatifs puissent être corrigés."
+"Remettez cette dépense en brouillon afin de corriger ses informations ou ses "
+"justificatifs."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_payment_action_guidance
@@ -9948,14 +9948,14 @@ msgid ""
 "Return this payment to draft for correction. Review any reconciliation links"
 " first."
 msgstr ""
-"Renvoyez ce paiement à la traite pour correction. Examinez d’abord tous les "
+"Remettez ce paiement en brouillon pour le corriger. Vérifiez d’abord tous les "
 "liens de rapprochement."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_revenue_spending_month__revenue
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_revenue_spending_month_list
 msgid "Revenue"
-msgstr "Revenu"
+msgstr "Produits"
 
 #. module: rebuild_account_migration
 #: model:ir.actions.act_window,name:rebuild_account_migration.action_rebuild_account_revenue_spending_month
@@ -9972,7 +9972,7 @@ msgstr "Produits et charges"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_external_report_value_list
 msgid "Review"
-msgstr "Révision"
+msgstr "Vérifier"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -9982,32 +9982,32 @@ msgstr "Examiner l’hygiène comptable"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_snapshot__review_decision_id
 msgid "Review Decision"
-msgstr "Décision de révision"
+msgstr "Décision de revue"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__review_decision_count
 msgid "Review Decision Count"
-msgstr "Examiner le nombre de décisions"
+msgstr "Nombre de décisions de revue"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 msgid "Review Decisions"
-msgstr "Examiner les décisions"
+msgstr "Décisions de revue"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__readiness_status__technical_evidence_available
 msgid "Review Evidence Available"
-msgstr "Examiner les justificatifs disponibles"
+msgstr "Justificatifs disponibles pour revue"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 msgid "Review Missing Expense Receipts"
-msgstr "Vérifier les reçus de dépenses manquants"
+msgstr "Vérifier les justificatifs de dépenses manquants"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 msgid "Review Missing Vendor Evidence"
-msgstr "Examiner les justificatifs manquantes du fournisseur"
+msgstr "Vérifier les justificatifs fournisseur manquants"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
@@ -10027,7 +10027,7 @@ msgstr "Vérifier les créances en cours"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_vat_regime__unknown
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_french_tax_package_line_search
 msgid "Review Required"
-msgstr "Examen requis"
+msgstr "Revue requise"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
@@ -10048,7 +10048,7 @@ msgstr "Examiner les dépenses périmées"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_external_report_value_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_french_tax_package_line_search
 msgid "Review Status"
-msgstr "Statut de l'examen"
+msgstr "Statut de la revue"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
@@ -10058,7 +10058,7 @@ msgstr "Examiner les soldes inhabituels"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
 msgid "Review and Filing"
-msgstr "Révision et dépôt"
+msgstr "Revue et dépôt"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
@@ -10067,12 +10067,12 @@ msgid ""
 "e-reporting is enabled."
 msgstr ""
 "Vérifiez et démarrez l’enregistrement natif de la plateforme agréée Odoo. "
-"Aucun rapport électronique n'est activé."
+"Aucune transmission de données n’est activée."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Review closing"
-msgstr "Clôture de l'examen"
+msgstr "Vérifier la clôture"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -10120,9 +10120,9 @@ msgid ""
 "Review the company setup, record management approval and start the native "
 "Odoo Approved Platform registration. E-reporting remains disabled."
 msgstr ""
-"Passez en revue la configuration de l’société, enregistrez l’approbation de "
-"la gestion et démarrez l’enregistrement natif de la plateforme agréée Odoo. "
-"Les rapports électroniques restent désactivés."
+"Vérifiez la configuration de la société, enregistrez l’approbation du "
+"responsable et lancez l’inscription native à la plateforme agréée Odoo. "
+"La transmission de données reste désactivée."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -10662,8 +10662,9 @@ msgid ""
 "Signed from the shareholder's perspective: positive means the company owes "
 "the shareholder; negative means the shareholder owes the company."
 msgstr ""
-"Signé du point de vue de l'actionnaire : positif signifie que l'société doit"
-" à l'actionnaire ; négatif signifie que l’actionnaire doit à l’société."
+"Signé du point de vue de l’associé : une valeur positive signifie que la "
+"société lui doit de l’argent ; une valeur négative signifie qu’il en doit à "
+"la société."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__snapshot_count
@@ -11154,7 +11155,7 @@ msgid ""
 "control catalogue."
 msgstr ""
 "Synchronisez une seule fois les déclarations et les clôtures des espaces de "
-"travail pour créer le catalogue de contrôle de l'société."
+"travail pour créer le catalogue de contrôles de la société."
 
 #. module: rebuild_account_migration
 #: model:ir.actions.client,name:rebuild_account_migration.action_rebuild_interactive_executive_summary
@@ -11446,7 +11447,7 @@ msgid ""
 "The ECB feed does not provide the company currency %(currency)s, so cross-"
 "rates cannot be calculated."
 msgstr ""
-"Le flux de la BCE ne fournit pas la devise de l'société %(currency)s, les "
+"Le flux de la BCE ne fournit pas la devise de la société %(currency)s ; les "
 "taux croisés ne peuvent donc pas être calculés."
 
 #. module: rebuild_account_migration
@@ -11622,10 +11623,10 @@ msgid ""
 "                                Advisory needs review; Blocking prevents Ready. A technical failure\n"
 "                                always prevents Ready because the check did not complete."
 msgstr ""
-"L'effet de préparation contrôle la façon dont un résultat échoué apparaît.\n"
-"                                Dynamic utilise la propre gravité du contrôle ; L'information ne bloque jamais ;\n"
-"                                Examen des besoins en matière de conseils ; Le blocage empêche Prêt. Une panne technique\n"
-"                                empêche toujours Prêt car la vérification n'est pas terminée."
+"L’effet sur la préparation détermine la conséquence d’un échec.\n"
+"                                Dynamique reprend la gravité du contrôle ; Informatif ne bloque jamais ;\n"
+"                                À vérifier demande une revue ; Bloquant empêche l’état Prêt. Un échec technique\n"
+"                                empêche toujours l’état Prêt, car le contrôle n’a pas pu aboutir."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -11649,7 +11650,7 @@ msgid ""
 "identity, journal and accounting setup, then try again."
 msgstr ""
 "La facture représentative n'a pas pu être validée. Vérifiez l'identité de "
-"l'société, le journal et la configuration comptable, puis réessayez."
+"la société, le journal et la configuration comptable, puis réessayez."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -11718,7 +11719,7 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_account_closing_period_unique_closing_period
 msgid "This closing workspace already exists for the company and period."
-msgstr "Cet espaces de clôture existe déjà pour l'société et la période."
+msgstr "Cet espace de clôture existe déjà pour cette société et cette période."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_issue_form
@@ -11733,7 +11734,7 @@ msgstr ""
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_account_declaration_unique_declaration_instance
 msgid "This declaration obligation already exists for the company and period."
 msgstr ""
-"Cette obligation de déclaration existe déjà pour l’société et la période."
+"Cette obligation déclarative existe déjà pour cette société et cette période."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -11776,7 +11777,7 @@ msgid ""
 "instead of editing it directly."
 msgstr ""
 "Cette définition de localisation est gérée par la mise à niveau. Utilisez "
-"Personnaliser pour l'société au lieu de le modifier directement."
+"Personnaliser pour la société au lieu de la modifier directement."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -11790,7 +11791,7 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_einvoice_reception_provider_message_company_uniq
 msgid "This platform message has already been received for the company."
-msgstr "Ce message de plateforme a déjà été reçu pour l'société."
+msgstr "Ce message de la plateforme a déjà été reçu pour cette société."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -11809,7 +11810,7 @@ msgid ""
 " of editing it directly."
 msgstr ""
 "Cette définition partagée est gérée par la mise à niveau. Utilisez "
-"Personnaliser pour l'société au lieu de le modifier directement."
+"Personnaliser pour la société au lieu de la modifier directement."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_hygiene_issue__title
@@ -11819,13 +11820,13 @@ msgstr "Titre"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "To Match"
-msgstr "Pour correspondre"
+msgstr "À rapprocher"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__to_prepare
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__to_prepare
 msgid "To Prepare"
-msgstr "Se préparer"
+msgstr "À préparer"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_aged_partner_balance_line__total
@@ -12268,7 +12269,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_health_state__proven
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_search
 msgid "Used"
-msgstr "Consommé"
+msgstr "Utilisée"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_control_definition_form
@@ -12283,12 +12284,12 @@ msgstr "Utilisé pour l’intégration de la plateforme et les avis de connexion
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
 msgid "Used to identify the company in the French directory."
-msgstr "Permet d'identifier l'société dans l'annuaire français."
+msgstr "Permet d’identifier la société dans l’annuaire français."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_activity_state__used_open
 msgid "Used with open matches"
-msgstr "Utilisé avec des matchs ouverts"
+msgstr "Utilisée avec des rapprochements ouverts"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_res_users
@@ -12529,8 +12530,8 @@ msgid ""
 "Verify that a representative electronic invoice can become a complete draft "
 "bill without contacting a provider."
 msgstr ""
-"Vérifiez qu'une facture électronique représentative peut devenir un factures"
-" brouillon complet sans contacter un fournisseur."
+"Vérifiez qu’une facture électronique représentative peut devenir une facture"
+" fournisseur brouillon complète sans contacter de prestataire."
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -12560,7 +12561,7 @@ msgstr "Afficher les entrées"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_form
 msgid "View matching"
-msgstr "Afficher la rapprochement"
+msgstr "Afficher le rapprochement"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
@@ -12867,3 +12868,18 @@ msgstr "État récapitulatif TVA UE"
 #: model:ir.ui.menu,name:rebuild_account_migration.menu_rebuild_account_report_french_annual_launcher
 msgid "États financiers français"
 msgstr "États financiers français"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_account_presentation_form
+msgid "Historique en lecture seule. Les libellés opérationnels sont désormais gérés directement dans le plan comptable et traduits par Odoo."
+msgstr "Historique en lecture seule. Les libellés opérationnels sont désormais gérés directement dans le plan comptable et traduits par Odoo."
+
+#. module: rebuild_account_migration
+#: model:ir.actions.act_window,name:rebuild_account_migration.action_rebuild_account_report_account_presentation
+msgid "Legacy Account Labels"
+msgstr "Anciens libellés de comptes"
+
+#. module: rebuild_account_migration
+#: model:ir.model,name:rebuild_account_migration.model_rebuild_account_report_account_presentation
+msgid "Legacy Accounting Report Account Presentation"
+msgstr "Ancienne présentation des comptes dans les rapports comptables"

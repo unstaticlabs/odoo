@@ -116,14 +116,14 @@ msgid ""
 "A document appears when it matches the configured Paperless\n"
 "                        metadata. Archive-native views are available in both applications."
 msgstr ""
-"Un document apparaît lorsqu'il correspond à l'Paperless configuré\n"
-"                        métadonnées. Les vues natives des archives sont disponibles dans les deux applications."
+"Un document apparaît lorsqu’il correspond aux métadonnées Paperless configurées.\n"
+"                        Les vues natives de l’archive sont disponibles dans les deux applications."
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "A document title is required."
-msgstr "Un titre du document est requis."
+msgstr "Le titre du document est obligatoire."
 
 #. module: usl_documents
 #. odoo-python
@@ -408,7 +408,7 @@ msgstr "Archiver dans Paperless"
 #. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
 msgid "Archive request created"
-msgstr "Demande d'archive créée"
+msgstr "Demande d’archivage créée"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -436,7 +436,7 @@ msgstr "Document archivé"
 #. module: usl_documents
 #: model:ir.model,name:usl_documents.model_usl_document_link
 msgid "Archived Document Business Relationship"
-msgstr "Relation commerciale avec un document archivé"
+msgstr "Lien métier du document archivé"
 
 #. module: usl_documents
 #: model:ir.model,name:usl_documents.model_usl_document_link_mixin
@@ -578,7 +578,7 @@ msgid ""
 "Check the company, classification, and linked records,\n"
 "                                    then confirm the review."
 msgstr ""
-"Vérifiez l'société, la classification et les enregistrements liés,\n"
+"Vérifiez la société, la classification et les enregistrements liés,\n"
 "                                    puis confirmez l'avis."
 
 #. module: usl_documents
@@ -2128,7 +2128,7 @@ msgstr "Page d'aperçu suivante"
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "No accessible documents match this view."
-msgstr "Aucun document accessible ne correspond à ce point de vue."
+msgstr "Aucun document accessible ne correspond à cette vue."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -2354,7 +2354,7 @@ msgstr "Seul un document dans la corbeille peut être supprimé."
 #: code:addons/usl_documents/models/document.py:0
 msgid "Only a document that needs review may be left without a company."
 msgstr ""
-"Seul un document nécessitant une révision peut être laissé sans société."
+"Seul un document à vérifier peut rester sans société."
 
 #. module: usl_documents
 #. odoo-python
@@ -2655,8 +2655,8 @@ msgid ""
 "Paperless document %(paperless_id)s was permanently deleted. Approval: "
 "%(reason)s"
 msgstr ""
-"Paperless Le document %(paperless_id)s a été définitivement supprimé. "
-"Approbation : %(reason)s"
+"Le document Paperless %(paperless_id)s a été définitivement supprimé. "
+"Autorisation : %(reason)s"
 
 #. module: usl_documents
 #. odoo-python
@@ -3224,12 +3224,12 @@ msgstr "Statut de l'examen"
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Review this document"
-msgstr "Examiner ce document"
+msgstr "Vérifier ce document"
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__review_state__reviewed
 msgid "Reviewed"
-msgstr "Révisé"
+msgstr "Vérifié"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__message_has_sms_error
@@ -3312,7 +3312,8 @@ msgstr "Rechercher des balises…"
 #: model:ir.model.fields,help:usl_documents.field_usl_document__archive_text
 msgid "Search title, OCR text, archive metadata, and Paperless identity."
 msgstr ""
-"Titre de recherche, texte OCR, métadonnées d'archive et identité Paperless."
+"Recherchez dans le titre, le texte OCR, les métadonnées d’archive et "
+"l’identifiant Paperless."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -3339,7 +3340,7 @@ msgstr "Utilisateur sécurisé URL"
 #: model:ir.model.fields,help:usl_documents.field_res_config_settings__paperless_public_url
 msgid "Secured user-facing URL used for Open in Paperless."
 msgstr ""
-"URL sécurisé destiné à l'utilisateur utilisé pour Open dans Paperless."
+"URL sécurisée destinée aux utilisateurs pour ouvrir le document dans Paperless."
 
 #. module: usl_documents
 #. odoo-python
@@ -4341,9 +4342,9 @@ msgid ""
 "attributed submission time; Paperless-native documents use the archive "
 "ingestion time."
 msgstr ""
-"Lorsque l'entreprise a reçu le document pour la première fois. Les "
-"soumissions Odoo utilisent l'heure de soumission qui leur est attribuée ; "
-"Les documents natifs Paperless utilisent le temps d'ingestion de l'archive."
+"Date de première réception du document par l’entreprise. Les dépôts Odoo "
+"utilisent leur date d’envoi attribuée ; les documents créés dans Paperless "
+"utilisent leur date d’entrée dans l’archive."
 
 #. module: usl_documents
 #. odoo-javascript

@@ -544,7 +544,7 @@ msgstr "Société"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_amount
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_amount
 msgid "Company Amount"
-msgstr "Montant de l'société"
+msgstr "Montant dans la devise de la société"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_currency_id
@@ -554,12 +554,12 @@ msgstr "Devise de la société"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_candidate_ids
 msgid "Company Payment Matches"
-msgstr "Correspondances de paiement de l’société"
+msgstr "Rapprochements de paiements de la société"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
 msgid "Company payment match"
-msgstr "rapprochement de paiement de l'société"
+msgstr "Rapprochement avec un paiement de la société"
 
 #. module: usl_accounting
 #: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__preview_settlement_difference
@@ -568,9 +568,9 @@ msgid ""
 "it as native FX; Use payment rate removes it by repricing the eligible "
 "document before reconciliation."
 msgstr ""
-"Différence entre la devise de l’société et prévue avant le rapprochement. "
-"Settle l'enregistre en tant qu'effet natif ; Utiliser le taux de paiement le"
-" supprime en retarifant le document éligible avant le rapprochement."
+"Écart prévu dans la devise de la société avant rapprochement. « Régler » "
+"le comptabilise comme un écart de change natif ; « Utiliser le taux du "
+"paiement » l’élimine en réévaluant le document éligible avant rapprochement."
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__competing_expense_count
@@ -583,7 +583,7 @@ msgstr "Nombre de dépenses concurrentes"
 msgid "Complete the expense amount and date before finding a match."
 msgstr ""
 "Complétez le montant et la date de la dépense avant de trouver une "
-"rapprochement."
+"correspondance."
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_partner_suggestion_confidence
@@ -946,7 +946,7 @@ msgstr "Rechercher des transactions bancaires"
 #: code:addons/usl_accounting/models/expense_bank_matching.py:0
 msgid "Find the company bank debit before posting this expense."
 msgstr ""
-"Recherchez le débit bancaire de l'société avant de comptabiliser cette "
+"Recherchez le débit bancaire de la société avant de comptabiliser cette "
 "dépense."
 
 #. module: usl_accounting
@@ -1201,9 +1201,9 @@ msgid ""
 "Look for unreconciled company bank debits with a close date and amount. This"
 " only prepares suggestions; it does not post or reconcile anything."
 msgstr ""
-"Recherchez les débits bancaires de l’société non rapprochés avec une date et"
-" un montant de clôture. Cela prépare uniquement des suggestions ; il ne "
-"publie ni ne rapproche rien."
+"Recherchez les débits bancaires non rapprochés de la société dont la date et"
+" le montant sont proches. Cette action prépare uniquement des suggestions ;"
+" elle ne comptabilise ni ne rapproche aucune écriture."
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
@@ -1213,7 +1213,7 @@ msgstr "Rapprocher"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__match_label
 msgid "Match Label"
-msgstr "rapprochement avec l'étiquette"
+msgstr "Qualité de la correspondance"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_matching_reference
@@ -1240,7 +1240,7 @@ msgstr ""
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
 msgid "Matched by"
-msgstr "Correspondant à"
+msgstr "Rapproché par"
 
 #. module: usl_accounting
 #. odoo-python
@@ -1249,20 +1249,20 @@ msgid ""
 "Matched company-paid expense %(expense)s to bank transaction %(transaction)s"
 " using %(evidence)s.%(vendor_change)s"
 msgstr ""
-"Rapprochement des dépenses payées par l'société %(expense)s et de la "
-"transaction bancaire %(transaction)s à l'aide de "
+"Dépense %(expense)s payée par la société rapprochée avec la transaction "
+"bancaire %(transaction)s à l’aide de "
 "%(evidence)s.%(vendor_change)s."
 
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/account_reconcile_compat.py:0
 msgid "Matched items"
-msgstr "Articles correspondants"
+msgstr "Écritures lettrées"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
 msgid "Matched on"
-msgstr "Correspondant à"
+msgstr "Rapproché le"
 
 #. module: usl_accounting
 #. odoo-python
@@ -1385,7 +1385,7 @@ msgid ""
 "Native reconciliation produced an unexpected settlement difference. No "
 "accounting changes were saved."
 msgstr ""
-"La réconciliation autochtone a produit une différence de règlement "
+"Le rapprochement natif a produit un écart de règlement "
 "inattendue. Aucune modification comptable n'a été enregistrée."
 
 #. module: usl_accounting
@@ -1403,7 +1403,7 @@ msgstr "Aucun contrôle de direction"
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "No FX"
-msgstr "Pas d'effets"
+msgstr "Sans écart de change"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
@@ -1515,8 +1515,8 @@ msgid ""
 "Odoo did not create the expected company payment for this expense. Review "
 "the expense and its journal entry."
 msgstr ""
-"Odoo n'a ​​pas créé le paiement attendu par l'société pour cette dépense. "
-"Passez en revue la dépense et son écriture comptable."
+"Odoo n’a pas créé le paiement attendu de la société pour cette dépense. "
+"Vérifiez la dépense et son écriture comptable."
 
 #. module: usl_accounting
 #. odoo-python
@@ -1587,7 +1587,7 @@ msgstr "Seul un utilisateur de Comptabilité peut confirmer cette exception."
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_document_company_amount
 msgid "Original Document Company Amount"
-msgstr "Document original Société Montant"
+msgstr "Montant initial du document dans la devise de la société"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__original_document_line_snapshot
@@ -1934,12 +1934,12 @@ msgstr "Reconstruire la couleur correspondante"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_review_will_reconcile
 msgid "Rebuild Review Will Reconcile"
-msgstr "L'examen de reconstruction réconciliera"
+msgstr "La mise en revue effectuera le rapprochement"
 
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__reconciled_label
 msgid "Reconciled transaction label"
-msgstr "Étiquette de transaction rapprochée"
+msgstr "Libellé d’une transaction rapprochée"
 
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__reconciled_pattern
@@ -2080,7 +2080,7 @@ msgid ""
 "expense and reconcile its native payment."
 msgstr ""
 "Vérifiez la transaction bancaire sélectionnée, puis enregistrez-la comme "
-"dépense payée par l'société et rapprochez son paiement d'origine."
+"dépense payée par la société et rapprochez son paiement natif."
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
@@ -2089,14 +2089,14 @@ msgid ""
 "generated company payment with this bank transaction."
 msgstr ""
 "Exécutez les étapes natives d'approbation et de comptabilisation des "
-"dépenses de Odoo, puis rapprochez le paiement de l'société généré avec cette"
+"dépenses d’Odoo, puis rapprochez le paiement de la société généré avec cette"
 " transaction bancaire."
 
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "Sales receipt"
-msgstr "justificatif de vente"
+msgstr "Ticket de caisse"
 
 #. module: usl_accounting
 #. odoo-python
@@ -2389,7 +2389,7 @@ msgid ""
 "Signed company-currency amount allocated to the original economic accounts "
 "by a preserved legacy payment-rate settlement."
 msgstr ""
-"Montant signé en devise de l'société alloué aux comptes économiques "
+"Montant signé dans la devise de la société, affecté aux comptes économiques "
 "d'origine par un règlement au taux de paiement hérité préservé."
 
 #. module: usl_accounting
@@ -2398,8 +2398,8 @@ msgid ""
 "Signed company-currency difference produced by OCA's native bank "
 "reconciliation. Positive uses the exchange-loss account."
 msgstr ""
-"Différence signée entre la devise de l'société et produite par le "
-"rapprochement bancaire natif d'OCA. Positive utilise le compte de pertes de "
+"Écart signé dans la devise de la société produit par le rapprochement "
+"bancaire natif d’OCA. Une valeur positive utilise le compte de pertes de "
 "change."
 
 #. module: usl_accounting
@@ -2407,7 +2407,7 @@ msgstr ""
 #: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
 msgid "Stable label pattern matched %(count)s time(s) to one partner"
 msgstr ""
-"Modèle d'étiquette stable correspondant aux heures %(count)s à un partenaire"
+"Libellé stable associé %(count)s fois au même partenaire"
 
 #. module: usl_accounting
 #: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__exchange_move_names
@@ -2535,7 +2535,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "The bank journal must use the company currency."
-msgstr "Le journal bancaire doit utiliser la devise de l'société."
+msgstr "Le journal bancaire doit utiliser la devise de la société."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2552,7 +2552,7 @@ msgid ""
 "it in Bank Matching."
 msgstr ""
 "Le montant bancaire ou étranger d’intégration est en conflit avec le "
-"document. Examinez-le dans rapprochement bancaire."
+"document. Vérifiez-le dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2562,7 +2562,7 @@ msgid ""
 "Review it in Bank Matching."
 msgstr ""
 "La transaction bancaire contient une autre allocation, des frais ou une "
-"retenue. Examinez-le dans rapprochement bancaire."
+"retenue. Vérifiez-la dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2571,8 +2571,8 @@ msgid ""
 "The bank transaction has already been categorized to another account. Review"
 " it in Bank Matching."
 msgstr ""
-"La transaction bancaire a déjà été classée sur un autre compte. Examinez-le "
-"dans rapprochement bancaire."
+"La transaction bancaire a déjà été classée dans un autre compte. Vérifiez-la"
+" dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2580,7 +2580,7 @@ msgstr ""
 msgid "The bank transaction has no remaining company-currency amount."
 msgstr ""
 "La transaction bancaire ne comporte aucun montant restant dans la devise de "
-"l'société."
+"la société."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2633,8 +2633,8 @@ msgid ""
 "The bank-reported foreign currency conflicts with the document. Review it in"
 " Bank Matching."
 msgstr ""
-"La devise étrangère déclarée par la banque est en conflit avec le document. "
-"Examinez-le dans rapprochement bancaire."
+"La transaction bancaire comprend des frais ou une retenue. Conservez-les "
+"séparément dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-javascript
@@ -2648,7 +2648,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_accounting/models/expense_bank_matching.py:0
 msgid "The company payment is already matched."
-msgstr "Le paiement de l’société est déjà égalé."
+msgstr "Le paiement de la société est déjà rapproché."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2671,7 +2671,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "The document must be posted and still open."
-msgstr "Le document doit être affiché et toujours ouvert."
+msgstr "Le document doit être comptabilisé et présenter encore un solde ouvert."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2686,8 +2686,8 @@ msgid ""
 "The document partner or receivable/payable account is no longer available. "
 "Refresh the document before matching."
 msgstr ""
-"Le partenaire de document ou le compte à recevoir/à payer n'est plus "
-"disponible. Actualisez le document avant la mise en rapprochement."
+"Le partenaire du document ou le compte client/fournisseur n’est plus "
+"disponible. Actualisez le document avant le rapprochement."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2706,8 +2706,8 @@ msgid ""
 "The expense payment does not contain one available outstanding line. Review "
 "its journal entry before matching."
 msgstr ""
-"Le règlement des dépenses ne contient aucune ligne impayée disponible. "
-"Vérifiez son écriture comptable avant de la rapprocher."
+"Le paiement de la dépense ne contient pas une unique écriture ouverte "
+"disponible. Vérifiez son écriture comptable avant le rapprochement."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2716,7 +2716,7 @@ msgid ""
 "The expense was not posted as a native company payment. No bank "
 "reconciliation was performed."
 msgstr ""
-"La dépense n'a pas été comptabilisée comme paiement par l'société locale. "
+"La dépense n’a pas été comptabilisée comme un paiement natif de la société. "
 "Aucun rapprochement bancaire n'a été effectué."
 
 #. module: usl_accounting
@@ -2904,7 +2904,7 @@ msgid ""
 msgstr ""
 "Cela modifie Payé par en Société, utilise le journal bancaire sélectionné, "
 "termine les étapes natives de soumission/approbation/comptabilisation "
-"autorisées pour vous et rapproche le paiement de l'société résultant avec "
+"autorisées pour vous et rapproche le paiement de la société obtenu avec "
 "cette transaction bancaire.%(vendor_note)s"
 
 #. module: usl_accounting
@@ -2959,14 +2959,14 @@ msgid ""
 "transaction."
 msgstr ""
 "Cette dépense était déjà comptabilisée comme payée par l'employé. "
-"Réinitialisez-le ou corrigez-le via le processus comptable natif avant de "
-"rapprocher une transaction bancaire de l'société."
+"Réinitialisez-la ou corrigez-la via le processus comptable natif avant de "
+"rapprocher une transaction bancaire de la société."
 
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/account_reconcile_compat.py:0
 msgid "This journal item has no matching reference."
-msgstr "Cet lignes d’écriture n'a pas de référence correspondante."
+msgstr "Cette écriture comptable n’a aucune référence de lettrage."
 
 #. module: usl_accounting
 #. odoo-python
@@ -3195,11 +3195,11 @@ msgid ""
 "and exchange-gain accounts 766 as normally credit. Native exchange "
 "adjustments, refunds and formal reversals remain allowed."
 msgstr ""
-"Avertir avant de poster un article de journal sur le côté exceptionnel de ce"
-" compte. Le mode automatique protège les comptes français de pertes de "
-"change 666 comme normalement débiteurs et les comptes de gains de change 766"
-" comme normalement créditeurs. Les ajustements de change natifs, les "
-"remboursements et les annulations formelles restent autorisés."
+"Avertir avant de comptabiliser une écriture dans le sens inhabituel de ce "
+"compte. Le mode automatique protège les comptes français de pertes de change"
+" 666, normalement débiteurs, et les comptes de gains de change 766, "
+"normalement créditeurs. Les ajustements de change natifs, remboursements et "
+"extournes formelles restent autorisés."
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__evidence_summary

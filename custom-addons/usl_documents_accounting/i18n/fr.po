@@ -19,7 +19,7 @@ msgstr ""
 #. module: usl_documents_accounting
 #: model:ir.model,name:usl_documents_accounting.model_usl_document_link
 msgid "Archived Document Business Relationship"
-msgstr "Relation commerciale avec un document archivé"
+msgstr "Lien métier du document archivé"
 
 #. module: usl_documents_accounting
 #: model:ir.model.fields,field_description:usl_documents_accounting.field_rebuild_account_closing_period__archived_document_count

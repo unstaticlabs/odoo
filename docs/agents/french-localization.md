@@ -23,3 +23,12 @@ Use familiar French accounting language consistently:
 Keep protocol names, identifiers and third-party product names unchanged when
 translation would reduce precision. Validate catalogues with
 `make french-translations` before committing changed user-facing strings.
+The supported `make deploy` and `make rebuild` workflows overwrite installed
+USL catalogue terms so corrected product translations also reach an existing
+development target. Upstream terms are untouched; manual overrides of these
+maintained USL terms are intentionally replaced.
+For a release-wide audit, export the installed product modules from a clean,
+disposable registry, then run
+`python3 scripts/check_fr_translations.py custom-addons --reference-po <export.po>`.
+This additional comparison detects new source terms that have not yet been
+added to any maintained catalogue.
