@@ -33,7 +33,9 @@ Documents application.
   analytical accounting.
 - Native multi-company operation with complete company accounting
   configuration, company-scoped roles and same-currency combined management
-  statements, verified against both companies in the canonical dump. Legal
+  statements, synchronized provider-controlled ECB rates and seamless
+  company-specific employee expense profiles, verified against both companies
+  in the canonical dump. Legal
   consolidation, eliminations, currency translation and unused Enterprise
   payment transports are explicitly outside Accounting v1.
 - Configurable, versioned Controls, Reports and Declarations under Accounting

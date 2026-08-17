@@ -53,4 +53,9 @@ currencies must also be reported separately.
 Changing the global company selector never grants access: Allowed Companies on
 the user record remains authoritative.
 
+For a multi-company expense user, an administrator enables **Expenses in all
+allowed companies** on the user record. Odoo keeps one employee profile per
+legal company and selects the right profile from the highlighted company;
+contracts, payroll, approvals and accounting are never merged.
+
 Roles and responsible users are configured; personal names are not embedded in the product.

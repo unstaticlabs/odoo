@@ -50,6 +50,50 @@ a separately approved group-consolidation design. This boundary follows Odoo's
 distinction between ordinary multi-company reporting and its full
 consolidation toolset.
 
+## Shared reference data without shared legal records
+
+### Currency rates
+
+Companies with the same base currency use one ECB retrieval and one automated
+coverage boundary. Odoo still stores a native rate row per company, because
+its conversion API is company-aware, but provider-controlled values and dates
+are synchronized. A new EUR company therefore benefits from the EUR group's
+existing automated coverage instead of starting with only the latest day.
+
+Restored rates identified as ECB reference rates join the shared history.
+Manager-entered rates and bank/platform transaction rates are not copied or
+overwritten; they remain company-specific accounting evidence. Companies with
+another base currency form a separate synchronization group.
+
+### People and expenses
+
+One Odoo user can submit expenses for every allowed company after an
+administrator enables **Expenses in all allowed companies** on the user. The
+Distribution maintains one minimal native employee profile per company and
+Odoo automatically selects the profile for the active company.
+
+The profiles share only the login, person and work contact. Contracts,
+departments, approvers, payroll, private HR data and expense accounting remain
+company-specific. Removing company access never deletes the employee or its
+history. An archived or ambiguous employee profile is reported for review
+rather than guessed or reactivated.
+
+This builds on Odoo's native one-user/one-employee-per-company constraint. A
+single cross-company employee record was rejected because it would weaken
+company checks around expenses, HR and payroll. OCA's
+`hr_employee_multi_company` was also reviewed; its 18.0 release is Beta and
+addresses employee visibility rather than this expense identity lifecycle, and
+no qualified saas~19.2 integration is available.
+
+### Operational accounting baseline
+
+An imported company that contains accounts or bank activity but lacks ordinary
+operational journals receives idempotent native journals for customer invoices,
+vendor bills, general entries and expenses, plus ordinary customer/supplier and
+funds-in-transit defaults when absent. Source configuration is never replaced.
+This closes a practical gap in sparse Online companies without inventing any
+historical move or sharing accounting records between legal entities.
+
 ## Access and operating rules
 
 - Allowed Companies on the user record is the hard access boundary.
@@ -73,13 +117,18 @@ consolidation toolset.
   post, reconcile, configure or close.
 - A report rejects an unauthorized company even if its identifier is supplied
   directly to the report API.
+- An administrator governs cross-company expense access under **Settings >
+  Users & Companies > Users**. Employees still switch the active company before
+  creating an expense; the resulting expense and employee profile belong only
+  to that company.
 
 ## Regression evidence
 
 Automated coverage protects company-scoped SQL report models, reviewer record
-rules, same-currency aggregation, contribution evidence, multi-company
-drill-down, different-currency rejection, complete source configuration replay
-and repeated migration idempotence.
+rules, same-currency aggregation and ECB synchronization, company-specific
+expense profiles, contribution evidence, multi-company drill-down,
+different-currency rejection, complete source configuration replay and
+repeated migration idempotence.
 
 The latest full-dump proof reconstructed 5,067 moves and 11,941 lines with no
 unbalanced posted move or configuration mismatch. Per-company acceptance also
@@ -101,4 +150,6 @@ payment-batch transports.
 
 Official reference:
 [Odoo 19 multi-company Accounting](https://www.odoo.com/documentation/19.0/applications/finance/accounting.html#multi-company)
-and [Odoo 19 consolidation](https://www.odoo.com/documentation/19.0/applications/finance/accounting/get_started/consolidation.html).
+and [Odoo 19 consolidation](https://www.odoo.com/documentation/19.0/applications/finance/accounting/get_started/consolidation.html),
+[multi-company ORM guidance](https://www.odoo.com/documentation/19.0/developer/howtos/company.html),
+and [OCA multi-company](https://github.com/OCA/multi-company/tree/18.0/hr_employee_multi_company).

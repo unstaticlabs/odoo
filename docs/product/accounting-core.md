@@ -42,6 +42,14 @@ Valentin and the accountant must be able to:
   30 September. Reports, exports, FEC defaults, cash/tax projections,
   analytics, spreadsheets, declarations, closings and fiscal sequence ranges
   must agree for the same reference date.
+- Multi-company convenience never merges legal records. Provider-controlled
+  ECB rates are synchronized across companies with the same base currency,
+  while restored/manual rates remain company-specific. A person may submit
+  expenses in several allowed companies through one company-specific employee
+  profile per company; HR, payroll, approval and accounting data stay isolated.
+  An imported bank-only company receives the minimal native operational
+  journals needed for invoices, bills, entries and expenses, without changing
+  source journals or historical accounting.
 - Financial statements and declaration-oriented reports open with whole-euro
   presentation; reconciliation-oriented ledgers retain cents by default. The
   user may change presentation rounding, but screen, PDF and readable XLSX
