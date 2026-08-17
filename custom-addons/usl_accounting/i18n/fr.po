@@ -3272,3 +3272,39 @@ msgstr "le"
 #: code:addons/usl_accounting/models/account_reconcile_compat.py:0
 msgid "selected matching"
 msgstr "rapprochement sélectionnée"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_users__usl_expense_multi_company
+msgid "Expenses in all allowed companies"
+msgstr "Notes de frais dans toutes les sociétés autorisées"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_users__usl_expense_company_profile_status
+msgid "Multi-company expense access"
+msgstr "Accès multi-sociétés aux notes de frais"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__res_users__usl_expense_company_profile_status__disabled
+msgid "Not enabled"
+msgstr "Non activé"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__res_users__usl_expense_company_profile_status__ready
+msgid "Ready"
+msgstr "Prêt"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__res_users__usl_expense_company_profile_status__attention
+msgid "Needs attention"
+msgstr "À vérifier"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_users_form_multi_company_expenses
+msgid "Refresh expense access"
+msgstr "Actualiser l’accès aux notes de frais"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/multi_company_expenses.py:0
+msgid "Multi-company expenses are ready"
+msgstr "Les notes de frais multi-sociétés sont prêtes"

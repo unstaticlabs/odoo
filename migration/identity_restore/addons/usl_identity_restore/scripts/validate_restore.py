@@ -250,6 +250,10 @@ for row in source["users"]:
                 "share": row["share"],
                 "company": row["company_id"],
                 "companies": sorted(source_user_companies.get(row["id"], [])),
+                "multi_company_expenses": (
+                    not row["share"]
+                    and len(source_user_companies.get(row["id"], [])) > 1
+                ),
                 "partner": row["partner_id"],
                 "signature": row["signature"],
             },
@@ -262,6 +266,7 @@ for row in source["users"]:
                 "share": user.share,
                 "company": user.company_id.rebuild_source_id,
                 "companies": sorted(user.company_ids.mapped("rebuild_source_id")),
+                "multi_company_expenses": user.usl_expense_multi_company,
                 "partner": user.partner_id.rebuild_source_id,
                 "signature": user.signature,
             },

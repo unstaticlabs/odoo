@@ -6890,6 +6890,9 @@ class RebuildAccountImportRun(models.Model):
                 vals["expense_journal_id"] = expense_journal.id
             company.write(vals)
             configured_method_line_ids.update(allowed_method_lines)
+        operational_default_journals |= self.env["res.company"].browse(
+            [company.id for company in companies.values()],
+        )._usl_ensure_operational_accounting_journals()
         return {
             "configured_company_count": len(company_rows),
             "configured_payment_method_line_count": len(configured_method_line_ids),

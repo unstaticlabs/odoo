@@ -5757,7 +5757,13 @@ class TestRebuildAccountMigration(TransactionCase):
             ]),
             1,
         )
-        self.assertEqual(first["operational_default_expense_journal_count"], 1)
+        self.assertEqual(
+            set(self.env["account.journal"].search([
+                ("company_id", "=", company.id),
+            ]).mapped("type")),
+            {"general", "purchase", "sale"},
+        )
+        self.assertEqual(first["operational_default_expense_journal_count"], 4)
         self.assertEqual(second["operational_default_expense_journal_count"], 1)
 
     def test_reconciliation_model_replay_preserves_native_oca_rule_semantics(self):
