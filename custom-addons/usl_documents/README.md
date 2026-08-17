@@ -12,9 +12,10 @@ asynchronous ingestion. Synchronization is stable on `paperless_id`.
 
 Native `ir.attachment` remains the operational upload surface. Durable files
 on supported records are queued only after their final owner is known, so an
-upload never waits for Paperless. The worker reuses archive roots by checksum,
-creates versions when an Odoo attachment changes, applies contextual metadata,
-and mirrors actual linked-record read access to Paperless object permissions.
+upload never waits for Paperless. The worker reuses archive roots only when the
+content checksum and stable classification-metadata hash both match, creates
+versions when an Odoo attachment changes, applies contextual metadata, and
+mirrors actual linked-record read access to Paperless object permissions.
 Projects and platforms use stable entity-tag mappings; renames update the
 existing tag instead of creating a tag per task, payout or name change.
 Formats Paperless cannot consume (XML, calendar and ZIP files) and inline mail
@@ -66,7 +67,9 @@ to the Odoo-authorized root before proxying bytes. Restore downloads an
 authorized old version server-side and submits it to Paperless's supported
 update-version API, creating a new current version instead of mutating history.
 Root duplicate detection searches both the current checksum and historical
-version checksums.
+version checksums and requires the matching version's classification-metadata
+hash. Link targets are deliberately excluded from that metadata hash, so the
+same evidence can be linked across records with the same business context.
 
 Paperless correspondents optionally map to `res.partner`. Archive matching and
 the Paperless name remain remote authority; Odoo owns the mapped business
@@ -126,7 +129,7 @@ isolated synthetic Paperless QA profile.
 
 Real-service validation uses `scripts/documents-acceptance` with an isolated
 Compose project/database. It verifies API compatibility, fail-closed workflow
-ownership, asynchronous upload, OCR search, full-history checksum reuse,
+ownership, asynchronous upload, OCR search, full-history composite-hash reuse,
 multi-link/unlink, version replacement, external ingestion, legal metadata
 hydration, Paperless automatic matching, shared Saved View identity,
 Odoo-generated output retention, permissions, outage/resume, and integrity

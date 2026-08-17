@@ -1,4 +1,5 @@
 import hashlib
+import json
 import re
 from datetime import timedelta
 
@@ -94,6 +95,89 @@ class DocumentContextTag(models.Model):
 
 class UslDocument(models.Model):
     _inherit = "usl.document"
+
+    @api.model
+    def _archive_metadata_hash(self, context):
+        """Fingerprint stable classification without making record links unique."""
+
+        def normalized_text(value):
+            return str(value or "").strip().casefold()
+
+        entity_tags = sorted(
+            (
+                normalized_text(descriptor.get("namespace")),
+                normalized_text(descriptor.get("model")),
+                int(descriptor.get("id") or 0),
+            )
+            for descriptor in (context.get("entity_tags") or [])
+        )
+        metadata = {
+            "company_id": int(context.get("company_id") or 0),
+            "confidentiality": normalized_text(context.get("confidentiality")),
+            "accounting_evidence": bool(context.get("accounting_evidence")),
+            "access_scope": normalized_text(context.get("access_scope")),
+            "tags": sorted(
+                normalized_text(tag) for tag in (context.get("tags") or [])
+            ),
+            "entity_tags": entity_tags,
+            "document_type": normalized_text(context.get("document_type")),
+            "correspondent_partner_id": int(
+                context.get("correspondent_partner_id") or 0,
+            ),
+            "document_date": str(context.get("document_date") or ""),
+        }
+        canonical = json.dumps(
+            metadata,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def _archive_fingerprint_version(self, checksum, metadata_hash):
+        """Return the exact matching version, or an empty recordset for current."""
+        self.ensure_one()
+        matching_version = self.version_ids.filtered(
+            lambda version: (
+                version.checksum == checksum
+                and version.metadata_hash == metadata_hash
+            ),
+        )[:1]
+        if matching_version:
+            return True, matching_version
+        return (
+            self.checksum == checksum and self.metadata_hash == metadata_hash,
+            self.env["usl.document.version"],
+        )
+
+    @api.model
+    def _find_archive_fingerprint(
+        self,
+        checksum,
+        metadata_hash,
+        *,
+        company,
+        availability_state,
+    ):
+        candidates = self.sudo().search(
+            [
+                ("availability_state", "=", availability_state),
+                "|",
+                ("company_id", "=", company.id),
+                ("company_id", "=", False),
+                "|",
+                ("checksum", "=", checksum),
+                ("version_ids.checksum", "=", checksum),
+            ],
+        )
+        for candidate in candidates:
+            matches, version = candidate._archive_fingerprint_version(
+                checksum,
+                metadata_hash,
+            )
+            if matches:
+                return candidate, version
+        return self.browse(), self.env["usl.document.version"]
 
     @api.model
     def _ensure_context_tag(self, name, *, parent=False):
@@ -455,6 +539,7 @@ class UslDocumentOperation(models.Model):
         "ir.attachment", readonly=True, index=True, ondelete="set null",
     )
     source_attachment_checksum = fields.Char(readonly=True, index=True)
+    metadata_hash = fields.Char(readonly=True, index=True)
     context_json = fields.Json(readonly=True)
     accounting_evidence = fields.Boolean(readonly=True)
     access_scope = fields.Selection(
@@ -530,6 +615,7 @@ class UslDocumentOperation(models.Model):
             return existing
         record = self.env[attachment.res_model].browse(attachment.res_id).exists()
         context = record._document_archive_context(attachment)
+        metadata_hash = self.env["usl.document"]._archive_metadata_hash(context)
         previous = self.sudo().search(
             [
                 ("source_attachment_id", "=", attachment.id),
@@ -554,6 +640,7 @@ class UslDocumentOperation(models.Model):
                 "source": source,
                 "source_attachment_id": attachment.id,
                 "source_attachment_checksum": attachment.checksum,
+                "metadata_hash": metadata_hash,
                 "context_json": context,
                 "target_document_id": previous.document_id.id or False,
                 "user_id": attachment.create_uid.id or self.env.user.id,
@@ -594,6 +681,10 @@ class UslDocumentOperation(models.Model):
                         },
                     )
                     return False
+                raw_context = source_record._document_archive_context(attachment)
+                metadata_hash = self.env["usl.document"]._archive_metadata_hash(
+                    raw_context,
+                )
                 archive_context = self.env["usl.document"]._prepare_archive_context(
                     source_record,
                     attachment,
@@ -609,6 +700,7 @@ class UslDocumentOperation(models.Model):
                     {
                         "state": "processing",
                         "checksum": attachment.checksum,
+                        "metadata_hash": metadata_hash,
                         "paperless_task_id": task_id,
                         "context_json": archive_context,
                         "attempt_count": self.attempt_count + 1,
@@ -619,35 +711,35 @@ class UslDocumentOperation(models.Model):
                 )
                 return True
             checksum = hashlib.sha256(content).hexdigest()
-            trashed = self.env["usl.document"].sudo().search(
-                [
-                    ("availability_state", "=", "trashed"),
-                    "|",
-                    ("company_id", "=", self.company_id.id),
-                    ("company_id", "=", False),
-                    "|",
-                    ("checksum", "=", checksum),
-                    ("version_ids.checksum", "=", checksum),
-                ],
-                limit=1,
+            source_record = self.env[attachment.res_model].browse(
+                attachment.res_id,
+            ).exists()
+            if not source_record:
+                self.sudo().write(
+                    {
+                        "state": "failed",
+                        "attempt_count": self.attempt_count + 1,
+                        "next_attempt_at": False,
+                        "review_reason": False,
+                        "error_message": _(
+                            "The Odoo record was removed before archival.",
+                        ),
+                    },
+                )
+                return False
+            raw_context = source_record._document_archive_context(attachment)
+            metadata_hash = self.env["usl.document"]._archive_metadata_hash(
+                raw_context,
+            )
+            trashed, _matching_version = self.env[
+                "usl.document"
+            ]._find_archive_fingerprint(
+                checksum,
+                metadata_hash,
+                company=self.company_id,
+                availability_state="trashed",
             )
             if trashed:
-                source_record = self.env[attachment.res_model].browse(
-                    attachment.res_id,
-                ).exists()
-                if not source_record:
-                    self.sudo().write(
-                        {
-                            "state": "failed",
-                            "attempt_count": self.attempt_count + 1,
-                            "next_attempt_at": False,
-                            "review_reason": False,
-                            "error_message": _(
-                                "The Odoo record was removed before archival.",
-                            ),
-                        },
-                    )
-                    return False
                 archive_context = self.env["usl.document"]._prepare_archive_context(
                     source_record,
                     attachment,
@@ -660,6 +752,7 @@ class UslDocumentOperation(models.Model):
                     {
                         "state": "failed",
                         "checksum": checksum,
+                        "metadata_hash": metadata_hash,
                         "document_id": trashed.id,
                         "context_json": archive_context,
                         "attempt_count": self.attempt_count + 1,

@@ -78,6 +78,11 @@ class TestDocuments(TransactionCase):
             **values,
         })
 
+    def _archive_metadata_hash(self, record):
+        return self.env["usl.document"]._archive_metadata_hash(
+            record._document_archive_context(),
+        )
+
     def _tag(self, paperless_id, name, **values):
         return (
             self.env["usl.paperless.tag"]
@@ -262,6 +267,7 @@ class TestDocuments(TransactionCase):
         document = self._document(
             7900,
             checksum=checksum,
+            metadata_hash=self._archive_metadata_hash(task),
             availability_state="trashed",
         )
         attachment = self.env["ir.attachment"].create(
@@ -312,11 +318,13 @@ class TestDocuments(TransactionCase):
         self._document(
             7901,
             checksum=__import__("hashlib").sha256(first_content).hexdigest(),
+            metadata_hash=self._archive_metadata_hash(first_task),
             availability_state="trashed",
         )
         available = self._document(
             7902,
             checksum=__import__("hashlib").sha256(second_content).hexdigest(),
+            metadata_hash=self._archive_metadata_hash(second_task),
         )
         attachments = self.env["ir.attachment"].create(
             [
@@ -649,7 +657,11 @@ class TestDocuments(TransactionCase):
     def test_duplicate_checksum_reuses_archive_without_upload(self):
         content = b"identical supplier evidence"
         checksum = __import__("hashlib").sha256(content).hexdigest()
-        existing = self._document(102, checksum=checksum)
+        existing = self._document(
+            102,
+            checksum=checksum,
+            metadata_hash=self._archive_metadata_hash(self.partner_a),
+        )
         operation_count = self.env["usl.document.operation"].search_count([])
         result = (
             self.env["usl.document"]
@@ -683,6 +695,7 @@ class TestDocuments(TransactionCase):
             "paperless_version_id": "received-139",
             "label": "Received original",
             "checksum": checksum,
+            "metadata_hash": self._archive_metadata_hash(self.partner_a),
             "is_received_original": True,
         })
 
@@ -705,6 +718,101 @@ class TestDocuments(TransactionCase):
         self.assertEqual(existing.link_count, 1)
         self.assertEqual(existing.link_ids.version_id, "received-139")
         upload.assert_not_called()
+
+    def test_same_content_and_project_metadata_links_across_tasks(self):
+        project = self.env["project.project"].create({"name": "Composite identity"})
+        first_task = self.env["project.task"].create(
+            {"name": "First", "project_id": project.id},
+        )
+        second_task = self.env["project.task"].create(
+            {"name": "Second", "project_id": project.id},
+        )
+        first_context = first_task._document_archive_context()
+        second_context = second_task._document_archive_context()
+        metadata_hash = self.env["usl.document"]._archive_metadata_hash(first_context)
+        self.assertEqual(
+            metadata_hash,
+            self.env["usl.document"]._archive_metadata_hash(second_context),
+        )
+        content = b"shared project evidence"
+        checksum = __import__("hashlib").sha256(content).hexdigest()
+        existing = self._document(
+            143,
+            checksum=checksum,
+            metadata_hash=metadata_hash,
+        )
+
+        with patch.object(PaperlessClient, "upload_multipart") as upload:
+            result = self.env["usl.document"].with_user(self.user).upload_from_odoo(
+                "shared.pdf",
+                base64.b64encode(content).decode(),
+                "application/pdf",
+                res_model="project.task",
+                res_id=second_task.id,
+                company_id=self.company_a.id,
+            )
+
+        self.assertEqual(result["state"], "duplicate")
+        self.assertEqual(result["document_id"], existing.id)
+        self.assertTrue(
+            existing.link_ids.filtered(
+                lambda link: (
+                    link.res_model == "project.task" and link.res_id == second_task.id
+                ),
+            ),
+        )
+        upload.assert_not_called()
+
+    def test_same_content_with_different_metadata_is_uploaded_separately(self):
+        content = b"same bytes but different classification"
+        checksum = __import__("hashlib").sha256(content).hexdigest()
+        internal_context = {
+            "company_id": self.company_a.id,
+            "confidentiality": "internal",
+            "accounting_evidence": False,
+            "access_scope": "company",
+            "tags": [],
+            "entity_tags": [],
+            "document_type": False,
+            "correspondent_partner_id": False,
+            "document_date": False,
+            "related_records": [],
+        }
+        existing = self._document(
+            144,
+            checksum=checksum,
+            metadata_hash=self.env["usl.document"]._archive_metadata_hash(
+                internal_context,
+            ),
+        )
+        with (
+            patch.object(
+                PaperlessClient,
+                "search",
+                return_value={
+                    "results": [{"id": existing.paperless_id, "checksum": checksum}],
+                },
+            ),
+            patch.object(
+                PaperlessClient,
+                "upload_multipart",
+                return_value="task-separate-metadata",
+            ) as upload,
+        ):
+            result = self.env["usl.document"].with_user(self.user).upload_from_odoo(
+                "accounting.pdf",
+                base64.b64encode(content).decode(),
+                "application/pdf",
+                company_id=self.company_a.id,
+                confidentiality="accounting",
+            )
+
+        self.assertEqual(result["state"], "processing")
+        operation = self.env["usl.document.operation"].browse(
+            result["operation_id"],
+        )
+        self.assertNotEqual(operation.metadata_hash, existing.metadata_hash)
+        upload.assert_called_once()
 
     def test_duplicate_context_keeps_additive_and_restrictive_policy(self):
         accounting_document = self._document(
@@ -820,7 +928,12 @@ class TestDocuments(TransactionCase):
     def test_duplicate_in_trash_requires_restore_instead_of_new_binary(self):
         content = b"trashed supplier evidence"
         checksum = __import__("hashlib").sha256(content).hexdigest()
-        self._document(140, checksum=checksum, availability_state="trashed")
+        self._document(
+            140,
+            checksum=checksum,
+            metadata_hash=self._archive_metadata_hash(self.partner_a),
+            availability_state="trashed",
+        )
         with (
             patch.object(PaperlessClient, "upload_multipart") as upload,
             self.assertRaisesRegex(UserError, "already in Trash"),
@@ -2527,6 +2640,54 @@ class TestDocuments(TransactionCase):
 
         self.assertEqual(operation.state, "failed")
         self.assertIn("archive owner and permissions", operation.error_message)
+
+    def test_async_remote_match_refuses_different_metadata_fingerprint(self):
+        document = self._document(
+            145,
+            checksum="e" * 64,
+            metadata_hash="a" * 64,
+        )
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "different-classification.pdf",
+                "state": "processing",
+                "checksum": "e" * 64,
+                "metadata_hash": "b" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-classification-collision",
+                "res_model": "res.partner",
+                "res_id": self.partner_a.id,
+                "source": "odoo_upload",
+                "user_id": self.user.id,
+            },
+        )
+        payload = {
+            "id": document.paperless_id,
+            "title": document.name,
+            "checksum": document.checksum,
+            "tags": [],
+            "custom_fields": [],
+            "versions": [],
+        }
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={
+                    "status": "success",
+                    "related_document_ids": [document.paperless_id],
+                },
+            ),
+            patch.object(PaperlessClient, "get_document", return_value=payload),
+        ):
+            operation.poll()
+
+        self.assertEqual(operation.state, "duplicate")
+        self.assertEqual(operation.document_id, document)
+        self.assertIn("classification fingerprint", operation.error_message)
+        self.assertEqual(document.metadata_hash, "a" * 64)
+        self.assertFalse(document.link_ids)
 
     def test_workspace_restores_active_and_failed_operations_by_role(self):
         active = self.env["usl.document.operation"].sudo().create(

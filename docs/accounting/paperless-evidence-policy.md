@@ -58,9 +58,10 @@ separate finalized output; it must not silently replace a legally significant
 archived file.
 
 Archiving an existing Odoo attachment does not delete it. Any future
-deduplication requires checksum verification, retention approval, successful
-restore rehearsal, and an explicit migration audit. Deleting an Odoo record or
-removing one relationship never deletes the Paperless original.
+deduplication requires both checksum and stable classification-metadata hash
+verification, retention approval, successful restore rehearsal, and an explicit
+migration audit. Deleting an Odoo record or removing one relationship never
+deletes the Paperless original.
 
 ## Trash and retention
 

@@ -134,6 +134,7 @@ class UslDocument(models.Model):
     original_filename = fields.Char(readonly=True)
     mime_type = fields.Char(readonly=True)
     checksum = fields.Char(index=True, readonly=True)
+    metadata_hash = fields.Char(index=True, readonly=True, copy=False)
     archive_checksum = fields.Char(readonly=True)
     correspondent_id = fields.Many2one(
         "usl.paperless.correspondent",
@@ -700,6 +701,7 @@ class UslDocument(models.Model):
             "original_filename",
             "mime_type",
             "checksum",
+            "metadata_hash",
             "archive_checksum",
             "correspondent_id",
             "document_type_id",
@@ -2461,9 +2463,11 @@ class UslDocument(models.Model):
         )
         confidentiality = archive_context.get("confidentiality") or confidentiality
         checksum = hashlib.sha256(content).hexdigest()
+        metadata_hash = self._archive_metadata_hash(archive_context)
         retry_operation = self.env["usl.document.operation"].search(
             [
                 ("checksum", "=", checksum),
+                ("metadata_hash", "=", metadata_hash),
                 ("user_id", "=", self.env.user.id),
                 ("state", "in", ("failed", "duplicate")),
                 ("acknowledged", "=", False),
@@ -2471,17 +2475,11 @@ class UslDocument(models.Model):
             order="create_date desc, id desc",
             limit=1,
         )
-        existing = self.search(
-            [
-                ("availability_state", "=", "available"),
-                "|",
-                ("company_id", "=", company.id),
-                ("company_id", "=", False),
-                "|",
-                ("checksum", "=", checksum),
-                ("version_ids.checksum", "=", checksum),
-            ],
-            limit=1,
+        existing, matching_version = self._find_archive_fingerprint(
+            checksum,
+            metadata_hash,
+            company=company,
+            availability_state="available",
         )
         if existing:
             retry_operation.acknowledge()
@@ -2490,9 +2488,6 @@ class UslDocument(models.Model):
                     source_record,
                     operation.source_attachment_id if operation else None,
                 )
-            matching_version = existing.version_ids.filtered(
-                lambda version: version.checksum == checksum,
-            )[:1]
             if matching_version:
                 archive_context = {
                     **archive_context,
@@ -2513,6 +2508,7 @@ class UslDocument(models.Model):
                     {
                         "state": "archived",
                         "checksum": checksum,
+                        "metadata_hash": metadata_hash,
                         "document_id": existing.id,
                         "context_json": archive_context,
                         "error_message": False,
@@ -2523,28 +2519,22 @@ class UslDocument(models.Model):
                 "state": "duplicate",
                 "document_id": existing.id,
                 "message": _(
-                    "“%(document)s” already contains this exact file; the existing "
-                    "archive document was reused.",
+                    "“%(document)s” already contains this exact file and "
+                    "classification; the existing archive document was reused.",
                 )
                 % {"document": existing.name},
             }
-        trashed = self.search(
-            [
-                ("availability_state", "=", "trashed"),
-                "|",
-                ("company_id", "=", company.id),
-                ("company_id", "=", False),
-                "|",
-                ("checksum", "=", checksum),
-                ("version_ids.checksum", "=", checksum),
-            ],
-            limit=1,
+        trashed, _trashed_version = self._find_archive_fingerprint(
+            checksum,
+            metadata_hash,
+            company=company,
+            availability_state="trashed",
         )
         if trashed:
             raise UserError(
                 _(
-                    "Identical content is already in Trash. Restore that document "
-                    "before linking or uploading it again.",
+                    "Identical content and classification are already in Trash. "
+                    "Restore that document before linking or uploading it again.",
                 ),
             )
         if source_record:
@@ -2567,39 +2557,68 @@ class UslDocument(models.Model):
                 ],
             }
         ]
-        if remote_matches:
-            remote_id = int(remote_matches[0]["id"])
+        unknown_remote_matches = []
+        mirrored_match = self.browse()
+        mirrored_version = self.env["usl.document.version"]
+        for remote_match in remote_matches:
+            remote_id = int(remote_match["id"])
             mirrored = self.search([("paperless_id", "=", remote_id)], limit=1)
-            if mirrored:
-                retry_operation.acknowledge()
-                mirrored._apply_archive_context(
-                    archive_context,
-                    submitted_by=operation.user_id if operation else self.env.user,
-                )
-                if operation:
-                    operation.sudo().write(
+            if not mirrored:
+                unknown_remote_matches.append(remote_match)
+                continue
+            matches, version = mirrored._archive_fingerprint_version(
+                checksum,
+                metadata_hash,
+            )
+            if matches:
+                mirrored_match = mirrored
+                mirrored_version = version
+                break
+        if mirrored_match:
+            mirrored = mirrored_match
+            if mirrored_version:
+                archive_context = {
+                    **archive_context,
+                    "related_records": [
                         {
-                            "state": "archived",
-                            "checksum": checksum,
-                            "document_id": mirrored.id,
-                            "context_json": archive_context,
-                            "error_message": False,
-                            "next_attempt_at": False,
-                        },
-                    )
-                return {
-                    "state": "duplicate",
-                    "document_id": mirrored.id,
-                    "message": _(
-                        "“%(document)s” already contains this exact file; the existing "
-                        "archive document was reused.",
-                    )
-                    % {"document": mirrored.name},
+                            **target,
+                            "version_id": mirrored_version.paperless_version_id,
+                        }
+                        for target in archive_context.get("related_records") or []
+                    ],
                 }
+            retry_operation.acknowledge()
+            mirrored._apply_archive_context(
+                archive_context,
+                submitted_by=operation.user_id if operation else self.env.user,
+            )
+            if operation:
+                operation.sudo().write(
+                    {
+                        "state": "archived",
+                        "checksum": checksum,
+                        "metadata_hash": metadata_hash,
+                        "document_id": mirrored.id,
+                        "context_json": archive_context,
+                        "error_message": False,
+                        "next_attempt_at": False,
+                    },
+                )
+            return {
+                "state": "duplicate",
+                "document_id": mirrored.id,
+                "message": _(
+                    "“%(document)s” already contains this exact file and "
+                    "classification; the existing archive document was reused.",
+                )
+                % {"document": mirrored.name},
+            }
+        if unknown_remote_matches:
             operation_values = {
                 "name": filename,
                 "state": "duplicate",
                 "checksum": checksum,
+                "metadata_hash": metadata_hash,
                 "mime_type": content_type,
                 "company_id": company.id,
                 "confidentiality": confidentiality,
@@ -2612,7 +2631,8 @@ class UslDocument(models.Model):
                 "access_scope": archive_context.get("access_scope") or "linked_record",
                 "context_json": archive_context,
                 "error_message": _(
-                    "Identical content exists outside your authorized Odoo archive view. "
+                    "Identical content exists outside your authorized Odoo archive "
+                    "view, but its classification fingerprint cannot be verified. "
                     "A Documents administrator must classify it before reuse.",
                 ),
                 "retry_of_id": retry_operation.id,
@@ -2635,6 +2655,7 @@ class UslDocument(models.Model):
             "name": filename,
             "state": "uploading",
             "checksum": checksum,
+            "metadata_hash": metadata_hash,
             "mime_type": content_type,
             "company_id": company.id,
             "confidentiality": confidentiality,
@@ -3179,6 +3200,7 @@ class UslDocumentVersion(models.Model):
     original_filename = fields.Char(readonly=True)
     mime_type = fields.Char(readonly=True)
     checksum = fields.Char(index=True, readonly=True)
+    metadata_hash = fields.Char(index=True, readonly=True, copy=False)
     archive_checksum = fields.Char(readonly=True)
     page_count = fields.Integer(readonly=True)
     is_current = fields.Boolean(index=True, readonly=True)
@@ -3612,6 +3634,37 @@ class UslDocumentOperation(models.Model):
                 document = operation.target_document_id.sudo() or document_cache.search(
                     [("paperless_id", "=", paperless_id)], limit=1,
                 )
+                if document and not operation.target_document_id:
+                    known_metadata_hashes = set(
+                        document.version_ids.filtered(
+                            lambda item: (
+                                item.checksum == operation.checksum
+                                and item.metadata_hash
+                            ),
+                        ).mapped("metadata_hash"),
+                    )
+                    if (
+                        document.checksum == operation.checksum
+                        and document.metadata_hash
+                    ):
+                        known_metadata_hashes.add(document.metadata_hash)
+                    if (
+                        known_metadata_hashes
+                        and operation.metadata_hash not in known_metadata_hashes
+                    ):
+                        operation.sudo().write(
+                            {
+                                "state": "duplicate",
+                                "document_id": document.id,
+                                "error_message": _(
+                                    "Paperless matched identical content to an "
+                                    "archive document with a different "
+                                    "classification fingerprint. Review the "
+                                    "classification before linking it.",
+                                ),
+                            },
+                        )
+                        continue
                 if document:
                     values.pop("source", None)
                     # A replacement operation carries the checksum of the new
@@ -3620,6 +3673,7 @@ class UslDocumentOperation(models.Model):
                     # original, remains on usl.document.version.
                     if not operation.target_document_id:
                         values["checksum"] = operation.checksum
+                    values["metadata_hash"] = operation.metadata_hash
                     document.with_context(usl_documents_cache_write=True).write(values)
                 else:
                     values.update(
@@ -3637,6 +3691,7 @@ class UslDocumentOperation(models.Model):
                             "submitted_by_id": operation.user_id.id,
                             "submitted_at": operation.create_date,
                             "checksum": operation.checksum,
+                            "metadata_hash": operation.metadata_hash,
                         },
                     )
                     document = document_cache.create(values)
@@ -3648,6 +3703,7 @@ class UslDocumentOperation(models.Model):
                             "submitted_by_id": operation.user_id.id,
                             "submitted_at": operation.create_date,
                             "source": operation.source,
+                            "metadata_hash": operation.metadata_hash,
                         },
                     )
                 archive_context = getattr(operation, "context_json", False) or {}

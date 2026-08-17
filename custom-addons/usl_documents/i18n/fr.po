@@ -1560,21 +1560,23 @@ msgstr "Icône pour indiquer une activité d'exception."
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"Identical content exists outside your authorized Odoo archive view. A "
-"Documents administrator must classify it before reuse."
+"Identical content exists outside your authorized Odoo archive view, but its "
+"classification fingerprint cannot be verified. A Documents administrator "
+"must classify it before reuse."
 msgstr ""
-"Un contenu identique existe en dehors de votre vue d'archive Odoo autorisée."
-" Un administrateur de documents doit le classer avant de le réutiliser."
+"Un contenu identique existe en dehors de votre vue d'archive Odoo autorisée, "
+"mais son empreinte de classification ne peut pas être vérifiée. Un "
+"administrateur de Documents doit le classer avant de le réutiliser."
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"Identical content is already in Trash. Restore that document before linking "
-"or uploading it again."
+"Identical content and classification are already in Trash. Restore that "
+"document before linking or uploading it again."
 msgstr ""
-"Un contenu identique est déjà dans la corbeille. Restaurez ce document avant"
-" de le lier ou de le télécharger à nouveau."
+"Un contenu et une classification identiques sont déjà dans la corbeille. "
+"Restaurez ce document avant de le lier ou de le téléverser à nouveau."
 
 #. module: usl_documents
 #. odoo-python
@@ -4518,11 +4520,11 @@ msgstr "« %(document)s » contient déjà exactement ce fichier."
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"“%(document)s” already contains this exact file; the existing archive "
-"document was reused."
+"“%(document)s” already contains this exact file and classification; the "
+"existing archive document was reused."
 msgstr ""
-"« %(document)s » contient déjà exactement ce fichier ; le document d'archive"
-" existant a été réutilisé."
+"« %(document)s » contient déjà exactement ce fichier et cette classification ; "
+"le document d'archive existant a été réutilisé."
 
 #. module: usl_documents
 #. odoo-python
@@ -4606,3 +4608,14 @@ msgstr ""
 #: code:addons/usl_documents/models/attachment_bridge.py:0
 msgid "confidentiality"
 msgstr "confidentialité"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Paperless matched identical content to an archive document with a different "
+"classification fingerprint. Review the classification before linking it."
+msgstr ""
+"Paperless a associé un contenu identique à un document d'archive dont "
+"l'empreinte de classification est différente. Vérifiez la classification "
+"avant de le lier."
