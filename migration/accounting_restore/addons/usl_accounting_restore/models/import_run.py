@@ -43,6 +43,48 @@ USL_ACCOUNT_NAME_TRANSLATIONS = {
 }
 
 
+# These profiles translate verified legal documents and tax-return settings
+# from the Online snapshot.  The SIREN is the durable company identity; source
+# database IDs are reconstruction details and must not decide tax behavior.
+FRENCH_DECLARATION_PROFILES_BY_SIREN = {
+    "983982950": {
+        "rebuild_legal_form": "sasu",
+        "rebuild_corporate_tax_regime": "is",
+        "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
+        "rebuild_profit_tax_regime": "bic_simplified",
+        "rebuild_first_fiscalyear_start": "2024-01-10",
+        "rebuild_first_fiscalyear_end": "2025-09-30",
+        "evidence": (
+            "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS "
+            "tax package: Unstatic Labs is a French SASU subject to IS, "
+            "using the simplified BIC/IS package."
+        ),
+    },
+    "106928831": {
+        "rebuild_legal_form": "sasu",
+        "rebuild_corporate_tax_regime": "is",
+        "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
+        "rebuild_profit_tax_regime": "bic_simplified",
+        "rebuild_first_fiscalyear_start": "2026-06-01",
+        "rebuild_first_fiscalyear_end": "2027-09-30",
+        "evidence": (
+            "The restored USL MEDIA Kbis identifies a French single-shareholder "
+            "SAS, activity from 1 June 2026 and a first fiscal close on "
+            "30 September 2027. The company is subject to IS; the simplified "
+            "BIC/IS package and French SME projection remain reviewable at the "
+            "annual 2065 preparation."
+        ),
+    },
+}
+
+VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY = {
+    "fiscalyear": "simplified",
+    "monthly": "normal",
+    "quarterly": "normal",
+    "trimester": "normal",
+}
+
+
 class RebuildAccountImportRun(models.Model):
     _name = "rebuild.account.import.run"
     _description = "USL Accounting Import Run"
@@ -1456,7 +1498,7 @@ class RebuildAccountImportRun(models.Model):
             SELECT c.id, c.name, c.fiscalyear_last_day, c.fiscalyear_last_month,
                    c.fiscalyear_lock_date, c.tax_lock_date, c.sale_lock_date,
                    c.purchase_lock_date, c.hard_lock_date, c.account_fiscal_country_id,
-                   c.tax_calculation_rounding_method,
+                   c.tax_calculation_rounding_method, c.account_return_periodicity,
                    rp.country_id AS partner_country_id, rp.vat, rp.company_registry,
                    rp.street, rp.street2, rp.zip, rp.city,
                    rc.name AS currency_name
@@ -1493,27 +1535,7 @@ class RebuildAccountImportRun(models.Model):
                 ),
                 **self._trace_values("res.company", row["id"], options),
             }
-            if row["id"] == 1:
-                vals.update({
-                    "rebuild_declaration_profile_active": True,
-                    "rebuild_legal_form": "sasu",
-                    "rebuild_corporate_tax_regime": "is",
-                    "rebuild_corporate_tax_projection_profile": (
-                        "fr_sme_15_25"
-                    ),
-                    "rebuild_profit_tax_regime": "bic_simplified",
-                    "rebuild_vat_regime": "simplified",
-                    "rebuild_first_fiscalyear_start": "2024-01-10",
-                    "rebuild_first_fiscalyear_end": "2025-09-30",
-                    "rebuild_declaration_profile_evidence": (
-                        "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS tax package: "
-                        "Unstatic Labs is a French SASU subject to IS, using the simplified BIC/IS "
-                        "package and CA12/CA12-E VAT workflow. Fiscal year ends 30 September. "
-                        "The cash projection uses the French SME IS profile because the reconstructed "
-                        "2025 accounting charge applies the 15% rate; current reduced-rate ownership, "
-                        "paid-capital and group-turnover conditions remain part of the 2065 review."
-                    ),
-                })
+            vals.update(self._french_declaration_profile_values(row))
             if row["account_fiscal_country_id"] in countries:
                 vals["account_fiscal_country_id"] = countries[row["account_fiscal_country_id"]].id
             if row["partner_country_id"] in countries:
@@ -1533,6 +1555,60 @@ class RebuildAccountImportRun(models.Model):
                 company = Company.create(vals)
             companies[row["id"]] = company
         return companies, rows
+
+    @staticmethod
+    def _source_company_siren(row):
+        registry_digits = "".join(
+            character
+            for character in (row.get("company_registry") or "")
+            if character.isdigit()
+        )
+        if len(registry_digits) >= 9:
+            return registry_digits[:9]
+        vat_digits = "".join(
+            character
+            for character in (row.get("vat") or "")
+            if character.isdigit()
+        )
+        return vat_digits[-9:] if len(vat_digits) >= 9 else ""
+
+    @classmethod
+    def _french_declaration_profile_values(cls, row):
+        siren = cls._source_company_siren(row)
+        profile = FRENCH_DECLARATION_PROFILES_BY_SIREN.get(siren)
+        if not profile:
+            return {}
+
+        periodicity = row.get("account_return_periodicity") or ""
+        vat_regime = VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY.get(
+            periodicity,
+            "unknown",
+        )
+        return {
+            "rebuild_declaration_profile_active": True,
+            "rebuild_legal_form": profile["rebuild_legal_form"],
+            "rebuild_corporate_tax_regime": profile[
+                "rebuild_corporate_tax_regime"
+            ],
+            "rebuild_corporate_tax_projection_profile": profile[
+                "rebuild_corporate_tax_projection_profile"
+            ],
+            "rebuild_profit_tax_regime": profile[
+                "rebuild_profit_tax_regime"
+            ],
+            "rebuild_vat_regime": vat_regime,
+            "rebuild_first_fiscalyear_start": profile[
+                "rebuild_first_fiscalyear_start"
+            ],
+            "rebuild_first_fiscalyear_end": profile[
+                "rebuild_first_fiscalyear_end"
+            ],
+            "rebuild_declaration_profile_evidence": (
+                f"{profile['evidence']} The Online source configures tax returns "
+                f"with {periodicity or 'an unclassified'} periodicity, translated "
+                f"to the {vat_regime} VAT profile."
+            ),
+        }
 
     def _company_report_layout_defaults(self, company=False):
         """Avoid diverting accounting report users into document-layout setup."""

@@ -5258,6 +5258,93 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(company.city, source_row["city"])
         self.assertEqual(company.country_id, france)
 
+    def test_company_import_configures_usl_media_declaration_profile(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "USL MEDIA declaration profile replay",
+            "source_snapshot_id": "unit-usl-media-declarations",
+        })
+        france = self.env.ref("base.fr")
+        source_row = {
+            "id": 990008,
+            "name": "USL MEDIA",
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "fiscalyear_lock_date": None,
+            "tax_lock_date": None,
+            "sale_lock_date": None,
+            "purchase_lock_date": None,
+            "hard_lock_date": None,
+            "account_fiscal_country_id": 75,
+            "tax_calculation_rounding_method": "round_per_line",
+            "account_return_periodicity": "monthly",
+            "partner_country_id": 75,
+            "vat": "FR36106928831",
+            "company_registry": "10692883100010",
+            "street": "10 rue de Penthièvre",
+            "street2": None,
+            "zip": "75008",
+            "city": "Paris",
+            "currency_name": self.company.currency_id.name,
+        }
+        options = {
+            "source_database": "unit_source",
+            "source_snapshot_id": "unit-usl-media-declarations",
+        }
+
+        with patch.object(type(import_run), "_fetchall", return_value=[source_row]):
+            companies, _rows = import_run._company_map(
+                object(),
+                options,
+                {75: france},
+            )
+            rerun_companies, _rerun_rows = import_run._company_map(
+                object(),
+                options,
+                {75: france},
+            )
+
+        company = companies[source_row["id"]]
+        self.assertEqual(rerun_companies[source_row["id"]], company)
+        self.assertEqual(
+            self.env["res.company"].search_count([
+                ("rebuild_source_model", "=", "res.company"),
+                ("rebuild_source_id", "=", source_row["id"]),
+                (
+                    "rebuild_source_snapshot",
+                    "=",
+                    options["source_snapshot_id"],
+                ),
+            ]),
+            1,
+        )
+        self.assertTrue(company.rebuild_declaration_profile_active)
+        self.assertEqual(company.rebuild_legal_form, "sasu")
+        self.assertEqual(company.rebuild_corporate_tax_regime, "is")
+        self.assertEqual(company.rebuild_profit_tax_regime, "bic_simplified")
+        self.assertEqual(company.rebuild_vat_regime, "normal")
+        self.assertEqual(
+            fields.Date.to_string(company.rebuild_first_fiscalyear_start),
+            "2026-06-01",
+        )
+        self.assertEqual(
+            fields.Date.to_string(company.rebuild_first_fiscalyear_end),
+            "2027-09-30",
+        )
+        self.assertIn("monthly periodicity", company.rebuild_declaration_profile_evidence)
+
+    def test_declaration_profile_mapping_does_not_depend_on_source_id(self):
+        import_run = self.env["rebuild.account.import.run"]
+        values = import_run._french_declaration_profile_values({
+            "id": 42,
+            "vat": "FR48983982950",
+            "company_registry": "98398295000021",
+            "account_return_periodicity": "fiscalyear",
+        })
+
+        self.assertTrue(values["rebuild_declaration_profile_active"])
+        self.assertEqual(values["rebuild_vat_regime"], "simplified")
+        self.assertEqual(values["rebuild_first_fiscalyear_start"], "2024-01-10")
+
     def test_account_import_syncs_source_company_accounting_defaults(self):
         import_run = self.env["rebuild.account.import.run"].create({
             "name": "Company accounting defaults replay",

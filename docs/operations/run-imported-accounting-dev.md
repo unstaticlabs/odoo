@@ -89,6 +89,16 @@ migration evidence; it is never treated as an active French Approved Platform
 connection. Repeated import must leave the company **Ready to test** or
 **Ready for production**, never **Receiving**.
 
+### French declaration profile mapping
+
+The importer configures declaration profiles by company SIREN, not by
+temporary source or target database IDs. It restores the verified legal form,
+IS and BIC regime, and first fiscal-year boundaries for Unstatic Labs and USL
+MEDIA. The VAT profile follows the Online tax-return cadence: fiscal-year
+returns map to CA12 and monthly or quarterly returns map to CA3. An unknown
+cadence remains **Review required** instead of being guessed. Repeated import
+updates the same company profiles and schedules without creating duplicates.
+
 ## Step 3 - Stop the Normal Odoo Web Service
 
 Still in the host shell:
