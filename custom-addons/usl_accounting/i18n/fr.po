@@ -3272,3 +3272,8 @@ msgstr "le"
 #: code:addons/usl_accounting/models/account_reconcile_compat.py:0
 msgid "selected matching"
 msgstr "rapprochement sélectionnée"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Undo this settlement and reopen its linked accounting items."
+msgstr "Annule ce règlement et rouvre les écritures comptables associées."

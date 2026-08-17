@@ -107,11 +107,11 @@ link back to the batch and its expenses.
 
 ## Action explanations
 
-Consequential or non-obvious Accounting buttons provide a concise explanation
+Consequential or non-obvious product buttons provide a concise explanation
 when you pause the pointer over them. The explanation states whether the action
-posts accounting, creates a draft, changes workflow state, opens supporting
-records, or contacts an external service. Confirmation dialogs remain reserved
-for actions that are difficult to reverse.
+posts accounting, creates or deletes drafts, changes workflow state, updates
+archive access, or contacts an external service. Confirmation dialogs remain
+reserved for actions that are difficult to reverse.
 
 The **Review status** chip on posted accounting documents records whether an
 entry is **To Review**, **Reviewed**, **Supervised**, or an **Anomaly**. An unset

@@ -135,18 +135,22 @@
             <form string="Archived Document">
                 <header>
                     <button name="action_mark_reviewed" type="object" string="Mark reviewed"
+                            title="Confirm that the document and its archive access have been reviewed."
                             class="oe_highlight" invisible="review_state == 'reviewed'"/>
                     <button name="action_open_paperless" type="object" string="Open in Paperless"
                             icon="fa-external-link"/>
                     <button name="action_sync_permissions" type="object" string="Synchronize permissions"
+                            title="Apply current Odoo access rights to this document in Paperless."
                             icon="fa-shield" groups="usl_documents.group_documents_manager"
                             invisible="permission_sync_state == 'synchronized'"/>
                     <button name="action_approve_permanent_deletion" type="object"
                             string="Approve deletion" icon="fa-check"
+                            title="Approve permanent deletion using the recorded reason. The file is not deleted yet."
                             groups="usl_documents.group_documents_manager"
                             invisible="availability_state != 'trashed' or deletion_approved_at"/>
                     <button name="action_permanently_delete_from_trash" type="object"
                             string="Permanently delete" icon="fa-trash"
+                            title="Delete the approved file from Paperless and keep an Odoo audit record."
                             groups="usl_documents.group_documents_manager"
                             confirm="Permanently delete this archived file? This cannot be undone."
                             invisible="availability_state != 'trashed' or not deletion_approved_at"/>
@@ -373,6 +377,7 @@
                 <field name="last_verified_at"/>
                 <field name="active"/>
                 <button name="action_mark_verified" type="object" string="Verify identity"
+                        title="Verify this Odoo user and Paperless identity mapping."
                         invisible="sync_state == 'synchronized'"/>
             </list>
         </field>
@@ -385,6 +390,7 @@
             <form string="Paperless Identity">
                 <header>
                     <button name="action_mark_verified" type="object" string="Verify identity"
+                            title="Verify this Odoo user and Paperless identity mapping."
                             class="oe_highlight" invisible="sync_state == 'synchronized'"/>
                     <field name="sync_state" widget="statusbar" readonly="1"/>
                 </header>

@@ -4523,3 +4523,97 @@ msgid ""
 msgstr ""
 "« %(document)s » a été restauré. Ses liens Odoo et son identité d'archive "
 "ont été préservés."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid "Check that Odoo can reach the configured Paperless service."
+msgstr "Vérifie qu’Odoo peut joindre le service Paperless configuré."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid "Apply the fail-closed Paperless workflow used to protect new documents."
+msgstr "Applique le flux Paperless à accès restreint qui protège les nouveaux documents."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
+msgid "Link this correspondent to the suggested Odoo contact."
+msgstr "Lie ce correspondant au contact Odoo suggéré."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
+msgid "Reject this suggestion and leave the correspondent unlinked."
+msgstr "Refuse cette suggestion et laisse le correspondant non lié."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Confirm that the document and its archive access have been reviewed."
+msgstr "Confirme que le document et ses accès d’archive ont été vérifiés."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Apply current Odoo access rights to this document in Paperless."
+msgstr "Applique à ce document dans Paperless les droits d’accès actuels d’Odoo."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Approve permanent deletion using the recorded reason. The file is not deleted yet."
+msgstr "Autorise la suppression définitive avec le motif enregistré. Le fichier n’est pas encore supprimé."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Delete the approved file from Paperless and keep an Odoo audit record."
+msgstr "Supprime le fichier autorisé de Paperless et conserve une trace d’audit dans Odoo."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_form
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_list
+msgid "Verify this Odoo user and Paperless identity mapping."
+msgstr "Vérifie l’association entre cet utilisateur Odoo et son identité Paperless."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Permanently delete this file from Paperless and keep an Odoo audit record."
+msgstr "Supprime définitivement ce fichier de Paperless et conserve une trace d’audit dans Odoo."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Save the current filters as a reusable shortcut."
+msgstr "Enregistre les filtres actuels comme raccourci réutilisable."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Hide this failed operation. The document is unchanged."
+msgstr "Masque cette opération en échec. Le document reste inchangé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Try to load this document from Paperless again."
+msgstr "Tente à nouveau de charger ce document depuis Paperless."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Restore this archived document and keep all Odoo links."
+msgstr "Restaure ce document archivé en conservant tous ses liens Odoo."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Move this document to Trash without removing its Odoo links."
+msgstr "Déplace ce document dans la corbeille sans supprimer ses liens Odoo."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Link this archived document to the current Odoo record."
+msgstr "Lie ce document archivé à l’enregistrement Odoo actuel."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Remove this Odoo link without deleting the archived document."
+msgstr "Supprime ce lien Odoo sans effacer le document archivé."

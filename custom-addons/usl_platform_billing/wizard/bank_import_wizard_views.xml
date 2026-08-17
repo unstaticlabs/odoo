@@ -92,10 +92,12 @@
                 <footer>
                     <button name="action_create_payouts"
                             string="Import selected as payouts"
+                            title="Create payout lines from the selected bank transactions."
                             type="object" class="btn-primary"
                             invisible="mode != 'create'"/>
                     <button name="action_link_payouts"
                             string="Link selected transactions"
+                            title="Link the selected bank transactions to the selected open payouts."
                             type="object" class="btn-primary"
                             invisible="mode != 'link'"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>

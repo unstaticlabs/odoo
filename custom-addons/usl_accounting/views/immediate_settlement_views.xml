@@ -85,6 +85,7 @@
                         name="action_reverse"
                         type="object"
                         string="Reverse Settlement"
+                        title="Undo this settlement and reopen its linked accounting items."
                         class="btn-primary"
                         groups="account.group_account_user"
                         invisible="state != 'settled'"/>

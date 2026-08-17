@@ -12883,3 +12883,18 @@ msgstr "Anciens libellés de comptes"
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_report_account_presentation
 msgid "Legacy Accounting Report Account Presentation"
 msgstr "Ancienne présentation des comptes dans les rapports comptables"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_form
+msgid "Freeze this review decision and apply its result to the related workflow."
+msgstr "Fige cette décision et applique son résultat au processus concerné."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_form
+msgid "Retire this decision while keeping it in the audit history."
+msgstr "Retire cette décision tout en la conservant dans l’historique d’audit."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_form_rebuild_declaration_profile
+msgid "Create or update the declaration and closing schedule from this company profile."
+msgstr "Crée ou met à jour le calendrier des déclarations et clôtures à partir de ce profil de société."

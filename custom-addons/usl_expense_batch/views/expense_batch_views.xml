@@ -66,18 +66,20 @@
                             string="Submit batch"
                             type="object"
                             class="oe_highlight"
-                            title="Submit only the draft expenses in this batch for manager review. Expenses already approved or posted keep their current status. This does not post accounting entries or create payments."
+                            title="Send the draft expenses in this batch for manager approval. Nothing is posted or paid."
                             invisible="state != 'draft'"/>
                     <button name="action_approve"
                             string="Approve batch"
                             type="object"
                             class="oe_highlight"
+                            title="Approve the submitted expenses in this batch. Nothing is posted or paid."
                             groups="hr_expense.group_hr_expense_team_approver"
                             invisible="state != 'submitted'"/>
                     <button name="action_post"
                             string="Post batch"
                             type="object"
                             class="oe_highlight"
+                            title="Post the approved expenses in this batch to Accounting."
                             groups="account.group_account_invoice"
                             invisible="state != 'approved'"/>
                     <field name="state"
@@ -159,6 +161,7 @@
                                             string="Remove"
                                             type="object"
                                             icon="fa-undo"
+                                            title="Remove this expense from the batch and return it for individual correction."
                                             invisible="state not in ('draft', 'submitted', 'approved')"/>
                                 </list>
                             </field>

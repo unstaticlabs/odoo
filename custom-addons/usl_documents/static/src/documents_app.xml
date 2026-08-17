@@ -67,6 +67,7 @@
                         t-att-disabled="state.busy"
                         t-on-click="props.close">Cancel</button>
                 <button type="button" class="btn btn-danger"
+                        title="Permanently delete this file from Paperless and keep an Odoo audit record."
                         t-att-disabled="state.busy || !state.reason.trim()"
                         t-on-click="confirm">
                     <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
@@ -130,6 +131,7 @@
                         t-att-disabled="state.saving"
                         t-on-click="props.close">Cancel</button>
                 <button type="button" class="btn btn-primary"
+                        title="Save the current filters as a reusable shortcut."
                         t-att-disabled="state.loading || state.saving || !state.name.trim()"
                         t-on-click="save">
                     <i t-if="state.saving"
@@ -340,6 +342,7 @@
                                        t-att-disabled="state.uploading"/>
                             </label>
                             <button type="button" class="btn btn-sm btn-link"
+                                    title="Hide this failed operation. The document is unchanged."
                                     t-on-click="() => this.dismissOperation(operation)">
                                 Dismiss
                             </button>
@@ -677,6 +680,7 @@
                             available. Odoo links and business records are unaffected.
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-dark"
+                                title="Try to load this document from Paperless again."
                                 t-on-click="retryDocumentDetail">
                             <i class="fa fa-refresh me-1"/>Try again
                         </button>
@@ -698,6 +702,7 @@
                         </p>
                         <button t-if="state.selected.can_restore"
                                 type="button" class="btn btn-sm btn-primary"
+                                title="Restore this archived document and keep all Odoo links."
                                 t-on-click="restoreFromTrash">
                             <i class="fa fa-undo me-1"/>Restore document
                         </button>
@@ -989,6 +994,7 @@
                                 <button t-if="state.selected.can_trash"
                                         type="button"
                                         class="dropdown-item text-danger"
+                                        title="Move this document to Trash without removing its Odoo links."
                                         t-on-click="moveToTrash">
                                     <i class="fa fa-trash-o me-2"/>Move to Trash
                                 </button>
@@ -1001,6 +1007,7 @@
                         </details>
                         <button t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_restore"
                                 type="button" class="btn btn-primary flex-grow-1"
+                                title="Restore this archived document and keep all Odoo links."
                                 t-on-click="restoreFromTrash">
                             <i class="fa fa-undo me-1"/>Restore document
                         </button>
@@ -1018,11 +1025,13 @@
                          t-esc="state.selected.permanent_delete_blocker"/>
                     <button t-if="recordContext &amp;&amp; state.selected.can_change_links &amp;&amp; state.selected.availability_state === 'available' &amp;&amp; !this.isLinkedToCurrent()"
                             type="button" class="btn btn-success w-100 mt-2"
+                            title="Link this archived document to the current Odoo record."
                             t-on-click="() => this.linkSelected()">
                         <i class="fa fa-link me-1"/>Link to this record
                     </button>
                     <button t-if="recordContext &amp;&amp; state.selected.can_change_links &amp;&amp; this.isLinkedToCurrent()"
                             type="button" class="btn btn-link text-danger w-100 mt-2"
+                            title="Remove this Odoo link without deleting the archived document."
                             t-on-click="() => this.unlinkCurrent()">
                         Remove link from this record
                     </button>

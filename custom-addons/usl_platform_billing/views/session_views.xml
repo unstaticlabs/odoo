@@ -54,24 +54,31 @@
             <form string="Platform Billing Session">
                 <header>
                     <button name="action_prefill" string="Prefill" type="object"
+                            title="Fill missing session defaults without creating accounting documents."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             invisible="state not in ('draft', 'ready')"/>
                     <button name="action_check" string="Check" type="object"
+                            title="Check the session and mark it ready when no issue remains."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_generate_documents" string="Generate drafts"
+                            title="Create draft customer invoices and commission bills from these payouts."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" class="oe_highlight" invisible="state != 'ready'"/>
                     <button name="action_post_documents" string="Post documents"
+                            title="Post the generated invoices and bills and apply configured compensation."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" class="oe_highlight" invisible="state != 'generated'"/>
                     <button name="action_reconcile_bank" string="Reconcile bank"
+                            title="Match linked bank transactions to the posted platform documents."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" class="oe_highlight" invisible="state != 'posted'"/>
                     <button name="action_reset_drafts" string="Reset drafts"
+                            title="Delete the generated drafts and keep the payout inputs for correction."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" invisible="state != 'generated'"/>
                     <button name="action_cancel" string="Cancel"
+                            title="Cancel this unposted session and its payouts."
                             groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                             type="object" invisible="state not in ('draft', 'ready')"/>
                     <field name="state" widget="statusbar"
@@ -120,6 +127,7 @@
                     <notebook>
                         <page name="payouts" string="Payouts">
                             <button name="action_open_bank_import" string="Import bank transactions"
+                                    title="Select bank receipts to create or link platform payouts."
                                     groups="usl_platform_billing.group_platform_billing_operator,usl_platform_billing.group_platform_billing_manager"
                                     type="object" class="oe_highlight"
                                     invisible="state not in ('draft', 'ready', 'generated', 'posted')"/>

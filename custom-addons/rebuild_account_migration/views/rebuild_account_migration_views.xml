@@ -2621,8 +2621,12 @@
             <form string="Accounting Review Decision" delete="0">
                 <sheet>
                     <header>
-                        <button name="action_record" type="object" string="Mark Recorded" groups="account.group_account_manager" invisible="state != 'draft'"/>
-                        <button name="action_supersede" type="object" string="Supersede" groups="account.group_account_manager" invisible="state == 'superseded'"/>
+                        <button name="action_record" type="object" string="Mark Recorded"
+                                title="Freeze this review decision and apply its result to the related workflow."
+                                groups="account.group_account_manager" invisible="state != 'draft'"/>
+                        <button name="action_supersede" type="object" string="Supersede"
+                                title="Retire this decision while keeping it in the audit history."
+                                groups="account.group_account_manager" invisible="state == 'superseded'"/>
                         <button name="action_open_external_value" type="object" string="External Value" invisible="not external_value_id"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,recorded,superseded"/>
                     </header>

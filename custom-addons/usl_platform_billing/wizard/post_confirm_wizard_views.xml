@@ -14,6 +14,7 @@
                 </group>
                 <footer>
                     <button name="action_confirm" string="Post Anyway"
+                            title="Post the generated documents despite the missing active platform."
                             type="object" class="btn-primary"/>
                     <button string="Go Back" special="cancel" class="btn-secondary"/>
                 </footer>

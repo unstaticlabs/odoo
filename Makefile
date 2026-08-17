@@ -28,7 +28,7 @@ PROFILE ?= full
 .PHONY: accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
-.PHONY: user-docs-deps user-docs-serve user-docs-build french-translations
+.PHONY: user-docs-deps user-docs-serve user-docs-build action-helpers french-translations
 
 help:
 	@printf '%s\n' \
@@ -81,6 +81,7 @@ help-advanced:
 	  'QA and documentation' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make documents-qa-test              Run Documents QA tests' \
+	  '  make action-helpers                  Check guidance on consequential actions' \
 	  '  make user-docs-build                Render and validate user documentation' \
 	  '  make qa-cache-prune CONFIRM=qa-seeds' \
 	  '                                      Remove superseded private QA seeds' \
@@ -497,6 +498,9 @@ user-docs-serve: user-docs-deps
 
 user-docs-build: user-docs-deps
 	$(USER_DOCS_PYTHON) -m mkdocs build --config-file mkdocs.yml
+
+action-helpers:
+	python3 scripts/check_action_helpers.py custom-addons
 
 french-translations:
 	docker compose -p $(COMPOSE_PROJECT) exec -T odoo \

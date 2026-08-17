@@ -250,13 +250,11 @@ msgstr "Créer une note de frais"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid ""
-"Create the batch and submit only its draft expenses for manager review. "
-"Expenses already approved or posted keep their current status. This does not"
-" post accounting entries or create payments."
+"Create the batch and send its draft expenses for manager approval. Nothing "
+"is posted or paid."
 msgstr ""
-"Crée la note et soumet uniquement ses dépenses en brouillon au responsable. "
-"Les dépenses déjà approuvées ou comptabilisées conservent leur statut. Cette"
-" action ne comptabilise aucune écriture et ne crée aucun paiement."
+"Crée la note et envoie ses dépenses en brouillon pour approbation. Rien n’est "
+"comptabilisé ni payé."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__create_uid
@@ -771,13 +769,11 @@ msgstr "Soumettre la note de frais"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid ""
-"Submit only the draft expenses in this batch for manager review. Expenses "
-"already approved or posted keep their current status. This does not post "
-"accounting entries or create payments."
+"Send the draft expenses in this batch for manager approval. Nothing is "
+"posted or paid."
 msgstr ""
-"Soumet uniquement les dépenses en brouillon de cette note au responsable. "
-"Les dépenses déjà approuvées ou comptabilisées conservent leur statut. Cette"
-" action ne comptabilise aucune écriture et ne crée aucun paiement."
+"Envoie les dépenses en brouillon de cette note pour approbation. Rien n’est "
+"comptabilisé ni payé."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__submitted
@@ -893,3 +889,23 @@ msgstr "montant non nul"
 #: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "receipt"
 msgstr "justificatif"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Approve the submitted expenses in this batch. Nothing is posted or paid."
+msgstr "Approuve les dépenses soumises de cette note. Rien n’est comptabilisé ni payé."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Post the approved expenses in this batch to Accounting."
+msgstr "Comptabilise les dépenses approuvées de cette note."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Remove this expense from the batch and return it for individual correction."
+msgstr "Retire cette dépense de la note pour permettre sa correction individuelle."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Group the selected expenses without submitting, posting, or paying them."
+msgstr "Regroupe les dépenses sélectionnées sans les soumettre, les comptabiliser ni les payer."

@@ -64,11 +64,12 @@
                             type="object"
                             class="btn-primary"
                             data-hotkey="q"
-                            title="Create the batch and submit only its draft expenses for manager review. Expenses already approved or posted keep their current status. This does not post accounting entries or create payments."
+                            title="Create the batch and send its draft expenses for manager approval. Nothing is posted or paid."
                             invisible="draft_incomplete_count != 0 or draft_count == 0"/>
                     <button name="action_create_batch"
                             string="Create batch"
                             type="object"
+                            title="Group the selected expenses without submitting, posting, or paying them."
                             class="btn-secondary"/>
                     <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
                 </footer>

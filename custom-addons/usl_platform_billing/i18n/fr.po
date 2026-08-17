@@ -2758,3 +2758,58 @@ msgstr "Vous ne pouvez pas traiter une session d’une autre société."
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "id"
 msgstr "id"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Fill missing session defaults without creating accounting documents."
+msgstr "Complète les valeurs manquantes sans créer de documents comptables."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Check the session and mark it ready when no issue remains."
+msgstr "Vérifie la session et la marque comme prête si aucun problème ne subsiste."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Create draft customer invoices and commission bills from these payouts."
+msgstr "Crée les factures client et les factures de commission en brouillon à partir de ces versements."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Post the generated invoices and bills and apply configured compensation."
+msgstr "Comptabilise les factures générées et applique la compensation configurée."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Match linked bank transactions to the posted platform documents."
+msgstr "Rapproche les transactions bancaires liées des documents de plateforme comptabilisés."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Delete the generated drafts and keep the payout inputs for correction."
+msgstr "Supprime les brouillons générés et conserve les versements pour correction."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Cancel this unposted session and its payouts."
+msgstr "Annule cette session non comptabilisée et ses versements."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_session_form
+msgid "Select bank receipts to create or link platform payouts."
+msgstr "Sélectionne des encaissements bancaires pour créer ou lier des versements de plateforme."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Create payout lines from the selected bank transactions."
+msgstr "Crée des lignes de versement à partir des transactions bancaires sélectionnées."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Link the selected bank transactions to the selected open payouts."
+msgstr "Lie les transactions bancaires sélectionnées aux versements ouverts sélectionnés."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_post_confirm_wizard_form
+msgid "Post the generated documents despite the missing active platform."
+msgstr "Comptabilise les documents générés malgré l’absence de la plateforme active."

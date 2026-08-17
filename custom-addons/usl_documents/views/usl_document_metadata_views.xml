@@ -99,9 +99,11 @@
                 <header>
                     <button name="action_accept_suggested_partner" type="object"
                             string="Use suggested Contact" class="btn-primary"
+                            title="Link this correspondent to the suggested Odoo contact."
                             invisible="not suggested_partner_id or partner_visible_id"/>
                     <button name="action_reject_suggested_partner" type="object"
                             string="Not this Contact"
+                            title="Reject this suggestion and leave the correspondent unlinked."
                             invisible="not suggested_partner_id or partner_visible_id"/>
                     <button name="action_open_partner" type="object"
                             string="Open Contact"

@@ -773,7 +773,10 @@
                             <field name="rebuild_first_fiscalyear_end"/>
                         </group>
                         <group>
-                            <button name="action_sync_accounting_obligations" type="object" string="Synchronize Declarations and Closing Workspaces" class="oe_highlight" groups="account.group_account_manager"/>
+                            <button name="action_sync_accounting_obligations" type="object"
+                                    string="Synchronize Declarations and Closing Workspaces"
+                                    title="Create or update the declaration and closing schedule from this company profile."
+                                    class="oe_highlight" groups="account.group_account_manager"/>
                         </group>
                     </group>
                     <group string="Profile Evidence"><field name="rebuild_declaration_profile_evidence" nolabel="1"/></group>
