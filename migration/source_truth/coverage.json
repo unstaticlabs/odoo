@@ -76,6 +76,11 @@
       "disposition": "translated",
       "evidence": "temporary product restore imports the complete service catalog, variants, original product images, categories, attributes, prices, taxes and pricelists with multilingual digest parity"
     },
+    "inventory_manufacturing": {
+      "status": "incomplete",
+      "disposition": "translate_or_recompute",
+      "evidence": "the current source has Inventory, Manufacturing and Quality configuration but no stock moves, pickings, quants, manufacturing orders, bills of materials or quality alerts; warehouse, route, location, valuation and quality setup is inventoried but is not yet delivered by the Distribution"
+    },
     "sales_marketing": {
       "status": "incomplete",
       "disposition": "translated",
@@ -123,6 +128,10 @@
     {"match": "base.automation", "scope": "ai_configuration"},
     {"match": "discuss.*", "scope": "collaboration"},
     {"match": "product.*", "scope": "product_master"},
+    {"match": "stock.*", "scope": "inventory_manufacturing"},
+    {"match": "mrp.*", "scope": "inventory_manufacturing"},
+    {"match": "quality.*", "scope": "inventory_manufacturing"},
+    {"match": "sms.*", "scope": "collaboration"},
     {"match": "crm.*", "scope": "sales_marketing"},
     {"match": "utm.*", "scope": "sales_marketing"},
     {"match": "sale.pdf.*", "scope": "sales_marketing"},
@@ -182,6 +191,10 @@
     {"match": "base_automation*", "scope": "ai_configuration"},
     {"match": "discuss_*", "scope": "collaboration"},
     {"match": "product_*", "scope": "product_master"},
+    {"match": "stock_*", "scope": "inventory_manufacturing"},
+    {"match": "mrp_*", "scope": "inventory_manufacturing"},
+    {"match": "quality_*", "scope": "inventory_manufacturing"},
+    {"match": "sms_*", "scope": "collaboration"},
     {"match": "crm_*", "scope": "sales_marketing"},
     {"match": "utm_*", "scope": "sales_marketing"},
     {"match": "sale_pdf_*", "scope": "sales_marketing"},

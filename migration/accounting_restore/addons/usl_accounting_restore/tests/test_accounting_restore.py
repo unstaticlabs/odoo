@@ -2929,8 +2929,15 @@ class TestRebuildAccountMigration(TransactionCase):
         hygiene_action = self.env.ref(
             "rebuild_account_migration.action_rebuild_account_hygiene",
         )
+        hygiene_client_action = self.env.ref(
+            "rebuild_account_migration.action_open_current_company_hygiene",
+        )
         self.assertEqual(hygiene_menu.name, "Accounting Hygiene")
-        self.assertEqual(hygiene_menu.action, hygiene_action)
+        self.assertEqual(hygiene_menu.action, hygiene_client_action)
+        self.assertEqual(
+            hygiene_client_action.tag,
+            "rebuild_accounting_hygiene",
+        )
         self.assertEqual(
             hygiene_menu.parent_id,
             self.env.ref("account.account_audit_control_menu"),
@@ -4896,6 +4903,71 @@ class TestRebuildAccountMigration(TransactionCase):
             )
 
         self.assertEqual(mapping[901], expected_line)
+
+    def test_source_payment_method_with_distinct_account_gets_distinct_line(self):
+        journal = self._journal("bank")
+        payment_method = self.env["account.payment.method"].search([
+            ("code", "=", "manual"),
+            ("payment_type", "=", "outbound"),
+        ], limit=1)
+        default_line = self.env["account.payment.method.line"].search([
+            ("journal_id", "=", journal.id),
+            ("payment_method_id", "=", payment_method.id),
+        ], order="id", limit=1)
+        self.assertTrue(default_line)
+        default_account = self._account(
+            "T512901",
+            "Default Payment Transit",
+            "asset_current",
+        )
+        distinct_account = self._account(
+            "T512902",
+            "Distinct Payment Transit",
+            "asset_current",
+        )
+        default_line.payment_account_id = default_account
+        source_rows = [
+            {
+                "id": 901,
+                "name": "Manual Payment",
+                "sequence": 10,
+                "journal_id": 42,
+                "payment_account_id": None,
+                "payment_method_code": "manual",
+                "payment_method_type": "outbound",
+            },
+            {
+                "id": 902,
+                "name": "Manual Payment — distinct transit",
+                "sequence": 20,
+                "journal_id": 42,
+                "payment_account_id": 77,
+                "payment_method_code": "manual",
+                "payment_method_type": "outbound",
+            },
+        ]
+        import_run_model = self.env["rebuild.account.import.run"]
+
+        with patch.object(
+            type(import_run_model),
+            "_fetchall",
+            return_value=source_rows,
+        ):
+            mapping = import_run_model._payment_method_line_map(
+                None,
+                {42: journal},
+                {77: distinct_account},
+            )
+            repeated_mapping = import_run_model._payment_method_line_map(
+                None,
+                {42: journal},
+                {77: distinct_account},
+            )
+
+        self.assertEqual(mapping[901], default_line)
+        self.assertNotEqual(mapping[902], default_line)
+        self.assertEqual(mapping[902].payment_account_id, distinct_account)
+        self.assertEqual(repeated_mapping[902], mapping[902])
 
     def test_accountant_reviewer_can_read_native_expenses_but_not_change_them(self):
         reviewer = self.env["res.users"].with_context(

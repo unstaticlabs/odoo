@@ -235,18 +235,19 @@ accounting_compat/private/snapshots/<snapshot-id>/
 
 ## Current validated replay scope
 
-As of the clean 4 August 2026 rehearsal against source dump `e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`, the importer materializes the complete scoped source-company population as native Odoo records:
+As of the clean 18 August 2026 rehearsal against source dump `395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f`, the importer materializes the complete scoped source-company population as native Odoo records:
 
-- `5,067` source `account.move` records: `4,885` posted, `180` draft and `2` cancelled;
-- `11,941` source move lines, including the source display/note line without an account;
-- `110` native payments: `97` move-backed and `13` historical workflow payments whose source `move_id` is null;
-- `3,062` bank statement lines;
-- `2,595` partial and `1,267` full reconciliations, with zero missing endpoints;
-- `1,907` historical currency rates;
-- `655` analytic lines;
+- `5,401` source `account.move` records: `5,190` posted, `209` draft and `2` cancelled;
+- `12,989` source move lines, including source display/note lines without an account;
+- `113` native payments, including historical workflow payments whose source `move_id` is null;
+- `3,087` bank statement lines;
+- `2,883` partial and `1,354` source full reconciliations, with zero missing endpoints;
+- `1,937` historical currency rates;
+- `982` analytic lines;
 - `3` assets and `91` depreciation schedule lines;
 - `110` deferred-schedule relations, all linked to native source-traced moves;
-- `414/414` Accounting-scope attachments in exact replay, with zero missing files, checksum mismatches, duplicate traces or unmapped targets.
+- every Accounting-scope attachment in exact replay, with zero missing files,
+  checksum mismatches, duplicate traces or unmapped targets.
 
 The target contains no move, move-line, payment, document-regeneration or reconciliation review models. Draft and cancelled documents remain native `account.move` records; no-entry payments remain native immutable `account.payment` records; reconciliation links point directly to native journal items. Posted benchmark totals and sequence identity remain exact.
 
@@ -394,15 +395,15 @@ unsupported across editions, while the bounded proof database intentionally
 does not contain the complete source. The selected clean replay keeps one
 canonical product flow and leaves Track B as isolated engine evidence.
 
-The current source snapshot contains `5,067` moves, `11,941` move lines, `363`
+The current source snapshot contains `5,401` moves, `12,989` move lines, `412`
 expenses and `3` assets. `make accounting-dev-import` preserves each source
 move identity, imports every expense as a native record, restores its direct
 evidence and creates no duplicate accounting representation. Historical
 sequence gaps and chronology decreases already present in the Online source are
 preserved and reported; the importer does not silently resequence history.
 
-The exact target validates the posted replay through the `2026-08-04` source
-snapshot. Source and target have the same `16` sequence gaps and `104`
+The exact target validates the posted replay through the `2026-08-18` source
+snapshot. Source and target have the same `13` sequence gaps and `128`
 sequence-ordered date decreases. This proves exact preservation; the
 accountant-owned P2 explanation/acceptance gate remains explicit.
 

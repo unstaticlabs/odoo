@@ -324,6 +324,7 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
             {
                 "ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e",
                 "e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9",
+                "395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f",
             },
         )
 

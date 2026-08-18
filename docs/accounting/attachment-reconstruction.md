@@ -40,24 +40,24 @@ company and attachment security.
 
 ## Current verified inventory
 
-The source dump `e1d95464d1ff…` contains:
+The source dump `395cc8b950b5…e69f` contains:
 
-- 2,312 binary attachment metadata rows;
-- 1,754 unique referenced blobs;
-- 1,774 physical files;
-- 710 material Accounting attachments:
-  - 669 directly attached to Accounting records;
-  - 41 attached only through Accounting chatter;
-- 338 groups where several metadata rows intentionally reference the same
+- 2,513 attachment metadata rows, including 2,503 stored-file references;
+- 1,930 unique referenced blobs;
+- 1,935 physical files;
+- 837 material Accounting and Expense attachment identities: 487 for
+  Accounting documents/assets and 350 for Expenses;
+- 340 groups where several metadata rows intentionally reference the same
   content-addressed blob;
-- 20 physical files with no `ir.attachment` metadata.
+- 5 physical files with no `ir.attachment` metadata.
 
-All 1,754 referenced source blobs are readable and match their recorded SHA-1
-and size. The 20 unreferenced physical files cannot be linked to a record,
+All 2,503 stored-file references are readable and match their recorded SHA-1
+and size. The 5 unreferenced physical files cannot be linked to a record,
 company or access rule and are classified as non-blocking source-package
 orphans. They are not copied into the target.
 
-On `odoo_dev`, all 710 material source attachment identities are present once,
+On `odoo_dev`, all 837 material Accounting and Expense attachment identities
+are present once,
 with no source/target checksum or size difference and no missing chatter link.
 The target binary read verifies every imported file through Odoo storage, not
 only database metadata.
@@ -75,6 +75,10 @@ make accounting-attachment-audit
 `accounting-dev-attachments` is a focused development refresh. It is
 idempotent and does not rebuild the ledger. A clean full reconstruction also
 uses the same importer as part of the exact and native replay stages.
+`accounting-attachment-audit` requires the temporary source-identity columns
+and therefore runs before migration finalization. On a finalized product-only
+database, use the retained import/validation evidence and the product database
+boundary; the absence of those columns is intentional.
 
 The audit writes private evidence to:
 

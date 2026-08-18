@@ -397,6 +397,13 @@ class UslHrRestoreRun(models.Model):
                     "company_id": company.id if company else False,
                     "active": row["active"],
                     "two_weeks_calendar": row["two_weeks_calendar"],
+                    # Establish the authoritative source averages before
+                    # attendance rows compute their stored day period. A
+                    # reused target-default calendar can otherwise retain its
+                    # former average until the attendance dependency queue is
+                    # flushed, making the first import differ from a rerun.
+                    "hours_per_day": row["hours_per_day"],
+                    "hours_per_week": row["hours_per_week"],
                     "full_time_required_hours": row["full_time_required_hours"],
                 },
                 [
@@ -436,6 +443,16 @@ class UslHrRestoreRun(models.Model):
         for calendar in calendars.values():
             stale = calendar.attendance_ids - seen_attendances[calendar.id]
             stale.unlink()
+        # Calendar averages are stored computed fields driven by the complete
+        # attendance population. Recompute dependent attendance labels only
+        # after that population has settled so a clean first import and an
+        # idempotent rerun produce the same native values.
+        self.env.flush_all()
+        if attendances:
+            all_attendances = self.env["resource.calendar.attendance"].union(
+                *attendances.values(),
+            )
+            all_attendances._compute_day_period()
 
         contract_types = {}
         for row in source["contract_types"]:

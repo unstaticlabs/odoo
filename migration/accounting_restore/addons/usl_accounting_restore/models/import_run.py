@@ -3549,6 +3549,9 @@ class RebuildAccountImportRun(models.Model):
             line_domain = [("payment_method_id", "=", method.id)]
             if journal:
                 line_domain.append(("journal_id", "=", journal.id))
+            payment_account = accounts.get(row["payment_account_id"])
+            if payment_account:
+                line_domain.append(("payment_account_id", "=", payment_account.id))
             line = PaymentMethodLine.search(line_domain, order="id", limit=1)
             if not line:
                 if not journal:
@@ -3559,8 +3562,8 @@ class RebuildAccountImportRun(models.Model):
                     "journal_id": journal.id,
                     "payment_method_id": method.id,
                 }
-                if row["payment_account_id"] in accounts:
-                    vals["payment_account_id"] = accounts[row["payment_account_id"]].id
+                if payment_account:
+                    vals["payment_account_id"] = payment_account.id
                 line = PaymentMethodLine.create(vals)
             method_lines[row["id"]] = line
         return method_lines

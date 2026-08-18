@@ -64,20 +64,20 @@ SOURCE_TAG_PALETTE = (
     "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab", "#2b8cbe", "#31a354",
 )
 QUALIFIED_SOURCE = {
-    "dump_sha256": "e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9",
-    "documents": 567,
-    "folders": 77,
-    "tags": 49,
-    "tag_relations": 380,
-    "accesses": 625,
+    "dump_sha256": "395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f",
+    "documents": 657,
+    "folders": 88,
+    "tags": 56,
+    "tag_relations": 437,
+    "accesses": 722,
     "unassigned": 9,
     "document_groups": 5,
     "url_references": 1,
-    "account_folder_settings": 38,
-    "account_folder_setting_tags": 37,
+    "account_folder_settings": 46,
+    "account_folder_setting_tags": 45,
     "hr_contract_tags": 1,
-    "checksum_groups": 548,
-    "employee_folder_mappings": 2,
+    "checksum_groups": 638,
+    "employee_folder_mappings": 3,
     "project_folder_mappings": 18,
     "classification_partners": 4,
 }
@@ -85,6 +85,10 @@ QUALIFIED_SEARCHABLE_DERIVATIVES = {
     388: {"mime_type": "application/zip", "kind": "FEC ZIP"},
     546: {"mime_type": "text/plain", "kind": "accounting XML"},
     607: {"mime_type": "text/calendar", "kind": "calendar evidence"},
+    857: {
+        "mime_type": "application/pdf",
+        "kind": "corrupt base64-wrapped supplier invoice",
+    },
 }
 
 

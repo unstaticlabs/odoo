@@ -160,30 +160,33 @@ target SSO is source data.
 
 ## Qualified dump evidence
 
-The complete 4 August 2026 qualification against source dump
-`e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`
+The complete 18 August 2026 qualification against source dump
+`395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f`
 proved:
 
-- 567 binary Documents identities plus 9 unassigned evidence files;
-- 548 exact-checksum archive roots, 0 failed groups, and no archive-binary
-  increase in Odoo;
-- 539 available roots, 9 roots retained in Trash, and 736 active Odoo
-  business-record relationships: 363 accounting entries, 359 Contacts, and 14
-  employees;
-- 548 preserved source-added timestamps and unchanged Odoo attachment counts
-  (`1544` before and after);
-- 29 useful live tags with no empty tag, 17 used document types, and 51
-  correspondents. The two correspondents whose Paperless live count is zero
-  belong to retained Trash roots and are deliberately preserved;
-- 41 unused source tag/rule names and the obsolete empty `KBis` type excluded
+- 657 binary Documents identities plus 9 unassigned evidence files;
+- 638 exact-checksum archive roots and 0 failed groups;
+- 636 available roots, 2 roots retained in Trash, and 863 active Odoo
+  business-record relationships: 427 accounting entries, 411 Contacts, 15
+  employees, and 10 Paie TESE records;
+- 638 preserved source-added timestamps and one missing native operational
+  attachment restored (`1602` before, `1603` after);
+- 29 useful source-derived tags with no empty tag, 17 used document types, and
+  69 correspondents in the qualified archive;
+- 47 unused source tag/rule names and the obsolete empty `KBis` type excluded
   from the final live catalog, with zero `Legacy Odoo` custom fields remaining;
-- 49 source tag definitions, 77 folder identities, 625 access-history rows, and every
+- 56 source tag definitions, 88 folder identities, 722 access-history rows, and every
   duplicate source identity retained in private evidence;
 - successful original checksum, preview, version, metadata, company,
   relationship, and full object-permission read-back for every root;
-- a second full validation run with the same archive/root/link counts and the
-  same sealed evidence SHA-256:
-  `07b41266218444060609c797c9665d4e63400603a88e8dc8edefc700fa156aa3`.
+- a sealed full-run evidence SHA-256 of
+  `159d2f6f9b9a49fd2dc95a6039ca05fea1579cf04bb342aaf8837ec95ec98a74`.
+
+One newly exported supplier-invoice attachment declares itself as PDF but
+contains corrupt base64-like source bytes. The exact original remains attached
+in Odoo; the migration produces a deterministic searchable Paperless
+representation and records the exception instead of silently discarding or
+rewriting the evidence.
 
 Paperless's own `document_sanity_checker` completed without an integrity
 error. It reported only five informational no-OCR items; those originals and

@@ -87,6 +87,18 @@ class SourceTruthAuditCase(unittest.TestCase):
             "platform_billing",
         )
         self.assertEqual(
+            classify("stock.location", contract["model_rules"]),
+            "inventory_manufacturing",
+        )
+        self.assertEqual(
+            classify("stock_route_warehouse", contract["table_rules"]),
+            "inventory_manufacturing",
+        )
+        self.assertEqual(
+            classify("sms.template", contract["model_rules"]),
+            "collaboration",
+        )
+        self.assertEqual(
             classify("res.users.apikeys", contract["model_rules"]),
             "credential_state",
         )

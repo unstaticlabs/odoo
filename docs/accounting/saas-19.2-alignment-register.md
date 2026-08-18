@@ -213,23 +213,23 @@ historical alignment evidence; they are not current deployment targets.
 The freshly validated source package is newer than the numeric checkpoint
 quoted in the initial execution request. Acceptance therefore uses the
 source-derived controls keyed by dump SHA-256, not stale lower counts. The
-current source contains 5,067 moves across both companies: 4,885 posted, 180
-draft and 2 cancelled. Exact replay imports all 5,067 moves and 11,941 native
+current source contains 5,401 moves across both companies: 5,190 posted, 209
+draft and 2 cancelled. Exact replay imports all 5,401 moves and 12,989 native
 move lines; the one posted display-only note remains a native `line_note`
 rather than being fabricated as an accounting line.
 
 The passed broad controls include:
 
-- 97 move-backed payments plus 13 native immutable no-entry payments;
-- 3,062 bank statement lines;
-- all 2,595 partial and 1,267 full reconciliations, with no source endpoint
+- 113 native payments, including the immutable no-entry payment history;
+- 3,087 bank statement lines;
+- all 2,883 partial and 1,354 source full reconciliations, with no source endpoint
   represented by a migration placeholder;
-- 1,907 historical currency rates;
-- 655 analytic lines;
+- 1,937 historical currency rates;
+- 982 analytic lines;
 - 3 assets, 91 depreciation schedule lines and 31 imported depreciation moves;
 - 110 deferred lines and 37 posted deferral entries;
-- 414 accounting attachments, including 265 source-designated main
-  attachments, all readable and checksum-matched.
+- all reconstructed Accounting attachments, including source-designated main
+  attachments, readable and checksum-matched.
 
 The closed benchmark slice currently present in this source dump is 2,046
 posted moves, 4,809 accounting lines, and EUR 1,064,045.02 debit and credit.

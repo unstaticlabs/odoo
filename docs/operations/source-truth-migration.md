@@ -65,6 +65,14 @@ Distribution, while still reporting populated future application scopes as
 deferred. The strict `gate` remains the acceptance test for any future claim
 that every source application has been delivered.
 
+The August 2026 source also contains configured Inventory, Manufacturing and
+Quality applications, but no stock moves, pickings, quants, manufacturing
+orders, bills of materials or quality alerts. Their warehouse, route, location,
+valuation and quality configuration is classified as the deferred
+`inventory_manufacturing` scope. Product and accounting records continue
+through their implemented stages; the Distribution must not claim operational
+Inventory parity until that scope has its own translation and validation.
+
 Restore the source first with the same isolated project when necessary:
 
 ```bash
@@ -151,18 +159,21 @@ and validation.
 
 ## Current audited perimeter
 
-For source dump `e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9`,
-the audit found 214 populated persistent models and 90 populated relation or
-unmapped tables. It verified 2,312 referenced filestore objects across 1,774
-files without an integrity error.
+For source dump `395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f`,
+exported on 18 August 2026, the audit found 228 populated persistent models and
+91 populated relation or unmapped tables. It verified 2,503 referenced
+filestore objects across 1,935 files without an integrity error.
 
 Accounting, global identity, Product Master, HR, Projects, Paie TESE, Platform
 Billing and the Paperless Documents archive have implemented translation
 stages. The current Distribution gate passes. The strict whole-source gate
 remains blocked—correctly—on collaboration history, unscoped attachments,
-Knowledge, Sign, user preferences, sales/marketing configuration, Studio data
-and source AI configuration. These are explicit future product scopes, not
-silently copied or represented as current product parity.
+Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
+source AI configuration and the newly populated Inventory, Manufacturing and
+Quality configuration. These are explicit future product scopes, not silently
+copied or represented as current product parity. The latter scope currently
+contains configuration only: the source has no stock moves, pickings, quants,
+manufacturing orders, bills of materials or quality alerts.
 
 ### Platform Billing stage
 
@@ -230,13 +241,16 @@ The checkpoint contains hashes and counts only, is ignored by Git, and is
 atomically replaced only after a complete successful Documents validation.
 It never bypasses the importer or becomes product database state.
 
-The qualified full import and validation baseline reconciled 567 source
-Documents identities and 9 unassigned evidence files into 548 checksum roots,
-with 0 failures and 9 roots in Trash. It restored 745 exact business
-relationships (363 accounting entries, 359 Contacts, 14 employees, and 9
-Paie TESE records), preserved all 548 source-added timestamps, and retained one
-unsupported authoritative original in Odoo alongside its searchable Paperless
-representation. The current run manifest reports exact
+The qualified 18 August 2026 full import and validation baseline reconciled
+657 source Documents identities and 9 unassigned evidence files into 638
+checksum roots, with 0 failures and 2 source roots in Trash. It restored 863 exact
+business relationships (427 accounting entries, 411 Contacts, 15 employees,
+and 10 Paie TESE records), preserved all 638 source-added timestamps, and
+restored one missing native operational attachment (1,602 before, 1,603
+after). One newly exported supplier
+invoice declares corrupt base64-like bytes as PDF; its exact original remains
+in Odoo and its deterministic searchable representation is explicitly
+classified in the archive evidence. The current run manifest reports exact
 relationship totals by model, derived classification totals, every excluded
 empty catalog value, preservation of every source-added timestamp, and removal
 of all earlier `Legacy Odoo` custom fields. A second full run must produce the

@@ -47,24 +47,24 @@ entry.
 
 The validator derives its expected perimeter from the restored, read-only
 source on every run. It does not carry a hardcoded business count from an
-older dump. The snapshot verified on 4 August 2026 contains:
+older dump. The snapshot verified on 18 August 2026 contains:
 
 | Perimeter | Expected |
 | --- | ---: |
-| Employees | 2 |
-| Employee versions | 3 |
+| Employees | 3 |
+| Employee versions | 4 |
 | TESE profiles | 4 |
 | Monthly payroll records | 10 |
-| Linked payroll entries | 10: 9 posted, 1 draft |
-| Employee-folder PDFs | 14 |
-| PDFs used by payroll | 9 |
-| HR chatter messages | 30 |
+| Linked payroll entries | 10: all posted |
+| Employee-folder PDFs | 15 |
+| PDFs used by payroll | 10 |
+| HR chatter messages | 33 |
 | Tracking values | 57 |
-| Followers | 3 |
-| Settled / To reconcile / To post | 5 / 4 / 1 |
+| Followers | 5 |
+| Settled / To reconcile / To post | 5 / 5 / 0 |
 
-The 14 employee-folder PDFs include five earlier payroll documents and the
-nine PDFs linked to the migrated payroll records. The nine accounting-linked
+The 15 employee-folder PDFs include five earlier payroll documents and the
+ten PDFs linked to the migrated payroll records. The ten accounting-linked
 attachments stay native to their posted moves and are referenced by the
 payroll records; the earlier documents become native employee attachments.
 Paperless also archives and links the official payroll evidence to its TESE
@@ -72,15 +72,14 @@ record, while the native operational attachment remains the posting evidence.
 Employee images are restored from the source `image_1920`, letting Odoo
 regenerate its standard image sizes.
 
-The tenth record is the source July 2026 payroll still in preparation. Its
-entry is draft and its official provider PDF is absent in Online, so the
-target preserves it as **To post** and clearly requires the PDF before
-posting. This is source truth, not a skipped record or a fabricated document.
-Missing evidence on a posted or otherwise completed payroll remains blocking.
+The source now contains the July 2026 provider PDF and all ten payroll entries
+are posted. The importer still derives **Settled** or **To reconcile** from the
+native residual rather than trusting a Studio status. Missing evidence on a
+posted or otherwise completed payroll remains blocking.
 
 The source contains one employee-less `hr.version`. It is preserved as the
 native contract-template-shaped employee version that it is, rather than
-being assigned speculatively to an employee. The two employees retain their
+being assigned speculatively to an employee. The three employees retain their
 actual current versions.
 
 Profiles and payroll snapshots preserve provider figures, validity dates,
@@ -147,7 +146,7 @@ Validation must prove all of the following:
 4. debit and credit remain equal in company currency;
 5. workflow states match source/native facts: settled and open posted records
    come from residuals, while source drafts remain **To post**;
-6. both employees point to their exact current version, all three HR versions
+6. all three employees point to their exact current version, all four HR versions
    exist (including the employee-less template), and every profile/payroll
    points to its exact employee and HR version;
 7. every profile is found with `active_test=False` and retains its source
