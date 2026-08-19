@@ -44,7 +44,7 @@ services:
       PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
-      PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.35}
+      PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.36}
       PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
@@ -272,7 +272,7 @@ services:
 
   paperless-gotenberg:
     profiles: ["paperless"]
-    image: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.35}
+    image: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.36}
     restart: unless-stopped
     command:
       - gotenberg
