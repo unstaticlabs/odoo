@@ -2,7 +2,7 @@ name: ${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}
 
 services:
   db:
-    image: ${POSTGRES_IMAGE:-postgres:16-bookworm}
+    image: ${POSTGRES_IMAGE:-postgres:18-bookworm}
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
@@ -40,9 +40,9 @@ services:
     restart: "no"
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
-      POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
+      POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:18-bookworm}
       PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
-      PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
+      PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:18-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.35}
       PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
@@ -130,7 +130,7 @@ services:
 
   paperless-db:
     profiles: ["paperless"]
-    image: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
+    image: ${PAPERLESS_POSTGRES_IMAGE:-postgres:18-bookworm}
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${PAPERLESS_DB_NAME:-paperless}
