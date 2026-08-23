@@ -183,7 +183,7 @@ usl_verify_compose_scope() {
     local project="$1"
     local repository_root="$2"
     local purpose="${3:-Docker operation}"
-    local canonical_project="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
+    local canonical_project="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-3}"
 
     case "$project" in
         ""|*[!a-zA-Z0-9_.-]*)

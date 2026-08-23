@@ -44,7 +44,7 @@ case "$ENVIRONMENT" in
 esac
 
 case "$PROJECT" in
-  ""|usl-odoo-saas-19-2|*[!A-Za-z0-9_.-]*)
+  ""|usl-odoo-saas-19-3|*[!A-Za-z0-9_.-]*)
     printf 'Refusing unsafe Documents Compose project: %s\n' "$PROJECT" >&2
     exit 2
     ;;

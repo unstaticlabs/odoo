@@ -8,13 +8,13 @@ electronic-invoice product and activation state, use
 `../operations/activate-french-electronic-invoicing.md`; their verified
 readiness terms supersede the snapshot wording in this record.
 
-Branch: `saas-19.2-usl-feat-accounting`
+Branch: `saas-19.3-usl-feat-accounting`
 
 Upstream baseline: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
 
 Product candidate database: `odoo_dev`
 
-Source database: `odoo_online_source_saas_19_2` (read-only)
+Source database: `odoo_online_source_saas_19_3` (read-only)
 
 Source snapshot: `source-ee6d9789224a`
 

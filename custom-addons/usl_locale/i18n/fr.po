@@ -3,7 +3,7 @@
 # 	* usl_locale
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server saas~19.2\n"
+"Project-Id-Version: Odoo Server saas~19.3\n"
 "PO-Revision-Date: 2026-08-13 00:00+0000\n"
 "Last-Translator: Unstatic Labs\n"
 "Language-Team: French\n"

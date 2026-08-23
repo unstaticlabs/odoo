@@ -1,7 +1,7 @@
 {
     "name": "USL HR Restoration",
     "summary": "Temporary Odoo Online HR migration machinery",
-    "version": "saas~19.2.1.0.0",
+    "version": "saas~19.3.1.0.0",
     "category": "Technical",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

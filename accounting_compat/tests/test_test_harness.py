@@ -257,7 +257,7 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('users.write({"tour_enabled": False})', disable_helper)
         self.assertNotIn("user_consumed_ids", disable_helper)
         self.assertNotIn("Command.link", disable_helper)
-        self.assertIn("odoo_online_source_saas_19_2", disable_helper)
+        self.assertIn("odoo_online_source_saas_19_3", disable_helper)
         self.assertIn("USL_EINVOICE_LIVE_ENABLED", disable_helper)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED", disable_helper)
 

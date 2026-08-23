@@ -1,7 +1,7 @@
-# Unstatic Labs Odoo Community fork
+# Unstatic Labs Odoo Distribution
 
-This repository is Unstatic Labs’ production-oriented Accounting product on
-Odoo Community `saas~19.2`. It extends upstream through isolated modules under
+This repository is Unstatic Labs’ production-oriented Odoo Distribution on
+Odoo Community `saas~19.3`. It extends upstream through isolated modules under
 `custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
 unchanged.
 
@@ -64,9 +64,9 @@ installation and developer documentation is available from
 
 ## Docker and Dev Container setup
 
-This fork includes two local workflows for Odoo `saas~19.2` Community. The
+This Distribution includes two local workflows for Odoo `saas~19.3` Community. The
 branch is pinned to upstream commit
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Local development uses one
+`efb98f932f3a568ce550a26ebde06da0e14e65d3`. Local development uses one
 disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
@@ -512,7 +512,7 @@ the separate browser acceptance uses `make login-link USER=<username>` for each
 persona on local HTTP QA. External HTTPS deployments require Pocket ID
 passkeys and must not retain the QA one-time-link exception.
 
-The main checkout owns the default `usl-odoo-saas-19-2` Compose project.
+The main checkout owns the default `usl-odoo-saas-19-3` Compose project.
 Linked worktrees must use a dedicated project and non-conflicting ports; every
 host helper verifies the Compose working-directory label before it mutates a
 container. If a previous command or worktree left the canonical project mixed,
@@ -521,7 +521,7 @@ only its containers from the main checkout:
 
 ```bash
 make doctor
-make dev-reclaim CONFIRM=usl-odoo-saas-19-2
+make dev-reclaim CONFIRM=usl-odoo-saas-19-3
 make deploy
 ```
 

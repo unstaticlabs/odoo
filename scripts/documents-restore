@@ -42,7 +42,7 @@ if [[ "$canonical_target" == 1 ]]; then
 fi
 compose_project="${COMPOSE_PROJECT_NAME:-codex-migration-full}"
 target_database="${DOCUMENTS_TARGET_DATABASE-odoo_dev}"
-source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_2}"
+source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_3}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 canonical_reset="${DOCUMENTS_CANONICAL_RESET:-0}"
 require_checkpoint="${DOCUMENTS_REQUIRE_CHECKPOINT:-0}"
@@ -108,7 +108,7 @@ else
 fi
 usl_verify_compose_scope "$compose_project" "$ROOT" "Documents restoration"
 case "$target_database" in
-    ""|odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native|*[!A-Za-z0-9_]*)
+    ""|odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native|*[!A-Za-z0-9_]*)
         echo "Refusing unsafe Documents migration target $target_database." >&2
         exit 2
         ;;

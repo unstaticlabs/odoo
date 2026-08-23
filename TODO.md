@@ -130,7 +130,7 @@ Final evidence and residual advisories are recorded in
 
 - [x] Confirm the exact upstream baseline:
   - [x] Repository: `odoo/odoo`
-  - [x] Branch: `saas-19.2`
+  - [x] Branch: `saas-19.3`
   - [x] Pinned commit: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
   - [x] Commit date: 25 July 2026
 - [x] Add the official Odoo repository as the canonical `upstream` remote.
@@ -2388,7 +2388,7 @@ The Odoo Rebuild reaches its intended target when:
 
 - [ ] Devcontainer
 - [ ] Docker compose
-- [ ] 
+- [ ]
 
 
 https://github.com/odoo/odoo/tree/19.0/odoo

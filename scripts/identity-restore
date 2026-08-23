@@ -7,14 +7,14 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 
 command_name="${1:-all}"
-compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}"
 target_database="${IDENTITY_TARGET_DATABASE:-odoo_dev}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons"
 usl_verify_compose_scope "$compose_project" "$ROOT" "Identity restoration"
 
 case "$target_database" in
-    odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)
+    odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native)
         echo "Refusing protected identity target $target_database." >&2
         exit 2
         ;;
@@ -51,7 +51,7 @@ run_shell() {
         -e IDENTITY_SOURCE_DB_PORT="${IDENTITY_SOURCE_DB_PORT:-5432}" \
         -e IDENTITY_SOURCE_DB_USER="${IDENTITY_SOURCE_DB_USER:-odoo}" \
         -e IDENTITY_SOURCE_DB_PASSWORD="${IDENTITY_SOURCE_DB_PASSWORD:-odoo}" \
-        -e IDENTITY_SOURCE_DATABASE="${IDENTITY_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e IDENTITY_SOURCE_DATABASE="${IDENTITY_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
         -e IDENTITY_SOURCE_SNAPSHOT="$source_snapshot" \
         -e IDENTITY_MANAGER_TARGET_LOGIN="${IDENTITY_MANAGER_TARGET_LOGIN:-valentin}" \
         project-migration \

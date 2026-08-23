@@ -240,7 +240,7 @@ def _report_seed_values(report_type, name):
             else "account_asset_management" if schedule
             else "rebuild_account_migration"
         ),
-        "definition_version": "saas~19.2.4",
+        "definition_version": "saas~19.3.4",
         "active": report_type != "french_profit_loss_2024",
         "lifecycle": (
             "deprecated"

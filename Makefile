@@ -1,6 +1,6 @@
 ACCOUNTING_COMPAT ?= scripts/accounting-compat
 .DEFAULT_GOAL := help
-COMPOSE_PROJECT ?= usl-odoo-saas-19-2
+COMPOSE_PROJECT ?= usl-odoo-saas-19-3
 export COMPOSE_PROJECT_NAME := $(COMPOSE_PROJECT)
 ACCOUNTING_TEST_DB ?= odoo_rebuild_accounting_unit_$(shell date -u +%Y%m%d%H%M%S)
 ACCOUNTING_TEST_TAGS ?= rebuild_account_migration_unit

@@ -22,8 +22,8 @@ Two other target databases exist only to validate the two reconstruction
 strategies independently:
 
 ```text
-odoo_saas_19_2_validation_exact
-odoo_saas_19_2_validation_native
+odoo_saas_19_3_validation_exact
+odoo_saas_19_3_validation_native
 ```
 
 There is no separate demo database. All three targets are disposable; only
@@ -133,11 +133,11 @@ iterating on one pipeline layer.
 
 | Command | What it does | Depends on | Produces |
 | --- | --- | --- | --- |
-| `make accounting-source-restore` | Starts the isolated `accounting-source-db` PostgreSQL service and restores `usl-online-dump/dump.sql` into `odoo_online_source_saas_19_2`. It also creates the read-only source role used by extraction. | Docker Compose, `usl-online-dump/dump.sql`, `usl-online-dump/filestore/`. | A running source database containing the Odoo Online backup. |
+| `make accounting-source-restore` | Starts the isolated `accounting-source-db` PostgreSQL service and restores `usl-online-dump/dump.sql` into `odoo_online_source_saas_19_3`. It also creates the read-only source role used by extraction. | Docker Compose, `usl-online-dump/dump.sql`, `usl-online-dump/filestore/`. | A running source database containing the Odoo Online backup. |
 | `make accounting-dev-attachments` | Replays verified Accounting files through the ORM into the existing `odoo_dev` candidate and links source chatter evidence without rebuilding the ledger. | Restored read-only source database, mounted source filestore, current reconstructed records. | Idempotent source-traced attachments, native main previews and internal chatter links. |
 | `make accounting-attachment-audit` | Verifies every source-referenced blob, classifies unreferenced files, compares the complete Accounting scope with `odoo_dev`, and reads every target binary through Odoo storage. | Restored source database and a reconstructed `odoo_dev`. | Private attachment reconstruction evidence and a blocking pass/partial result. |
 | `make accounting-extract` | Reads accounting records from the restored source database and writes the private canonical snapshot/extract files. It does not read business data from the SQL file directly. | `accounting-source-db` must still be running and restored. | Snapshot files under `accounting_compat/private/` and `artifacts/accounting-compat/private/`. |
-| `make accounting-validation-exact-reset` | Recreates the disposable target Odoo database `odoo_saas_19_2_validation_exact` from scratch and initializes the needed Community, OCA and USL target modules. | The normal `db` PostgreSQL service must be running, and `make oca-addons-sync` must have populated `oca-addons/`. | A clean target Odoo database ready for import. |
+| `make accounting-validation-exact-reset` | Recreates the disposable target Odoo database `odoo_saas_19_3_validation_exact` from scratch and initializes the needed Community, OCA and USL target modules. | The normal `db` PostgreSQL service must be running, and `make oca-addons-sync` must have populated `oca-addons/`. | A clean target Odoo database ready for import. |
 | `make accounting-validation-exact-import` | Imports the extracted accounting snapshot into the clean target database through the target Odoo ORM. | Source database still running, extracted snapshot present, clean target database present. | Native companies, accounts, journals, entries in every state, payments, reconciliations, report definitions, assets, attachments and source traces. |
 | `make accounting-validation-exact-validate` | Runs target controls: balanced moves, duplicate source traces, counts, locks, relationships and imported evidence checks. | Successful target import. | Validation status artifacts and discrepancy updates. |
 | `make accounting-reports` | Exercises Odoo-facing report views, previews, exports and drill-down evidence from the imported target. | Successful target validation and imported report data. | Report export/check artifacts and Odoo report evidence. |
@@ -206,9 +206,9 @@ Expected: Odoo exits by itself without an error.
 
 The update applies only to the named database. Use
 `odoo_dev` for normal development and QA. Update
-`odoo_saas_19_2_validation_exact` or `odoo_saas_19_2_validation_native` only
+`odoo_saas_19_3_validation_exact` or `odoo_saas_19_3_validation_native` only
 while investigating that pipeline stage. Never
-run an update against `odoo_online_source_saas_19_2`.
+run an update against `odoo_online_source_saas_19_3`.
 
 ## Step 7 - Start the Dev Odoo Server
 

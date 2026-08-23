@@ -7,7 +7,7 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 
 command_name="${1:-all}"
-compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}"
 target_database="${PROJECT_TARGET_DATABASE:-odoo_dev}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons"
@@ -25,7 +25,7 @@ source_snapshot() {
 }
 
 case "$target_database" in
-    odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)
+    odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native)
         if [[ "${PROJECT_RESTORE_ALLOW_PROTECTED_TARGET:-0}" != "1" ]]; then
             echo "Refusing protected database $target_database."
             echo "Set PROJECT_RESTORE_ALLOW_PROTECTED_TARGET=1 only for an intentional in-place import."
@@ -108,7 +108,7 @@ import_projects() {
         -e PROJECT_SOURCE_DB_PORT="${PROJECT_SOURCE_DB_PORT:-5432}" \
         -e PROJECT_SOURCE_DB_USER="${PROJECT_SOURCE_DB_USER:-odoo}" \
         -e PROJECT_SOURCE_DB_PASSWORD="${PROJECT_SOURCE_DB_PASSWORD:-odoo}" \
-        -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
         -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-$(source_snapshot)}" \
         -e PROJECT_SOURCE_FILESTORE=/mnt/accounting-source/filestore \
         -e PROJECT_RESTORE_DEFAULT_PASSWORD="${PROJECT_RESTORE_DEFAULT_PASSWORD:-}" \
@@ -127,7 +127,7 @@ validate_projects() {
         -e PROJECT_SOURCE_DB_PORT="${PROJECT_SOURCE_DB_PORT:-5432}" \
         -e PROJECT_SOURCE_DB_USER="${PROJECT_SOURCE_DB_USER:-odoo}" \
         -e PROJECT_SOURCE_DB_PASSWORD="${PROJECT_SOURCE_DB_PASSWORD:-odoo}" \
-        -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e PROJECT_SOURCE_DATABASE="${PROJECT_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
         -e PROJECT_SOURCE_SNAPSHOT="${PROJECT_SOURCE_SNAPSHOT:-$(source_snapshot)}" \
         project-migration \
         odoo shell --config=/etc/odoo/odoo.conf \

@@ -7,8 +7,8 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 usl_cli_load_local_port_defaults "$ROOT"
 
-COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}}"
-CANONICAL_COMPOSE_PROJECT="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
+COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}}"
+CANONICAL_COMPOSE_PROJECT="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-3}"
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT")
 DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
 DEV_MODULE="${ODOO_DEV_MODULE:-rebuild_account_migration}"
@@ -455,7 +455,7 @@ configure_pocket_id() {
     return
   fi
   if [[ -z "${ODOO_DEV_DB:-}" \
-      || "$DEV_DB" == "odoo_online_source_saas_19_2" ]]; then
+      || "$DEV_DB" == "odoo_online_source_saas_19_3" ]]; then
     printf 'External Pocket ID configuration requires an explicit safe target.\n' >&2
     return 2
   fi

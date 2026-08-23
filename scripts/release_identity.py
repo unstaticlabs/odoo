@@ -198,7 +198,7 @@ def build_identity(
             "git",
             "merge-base",
             "HEAD",
-            "upstream/saas-19.2",
+            "upstream/saas-19.3",
         )
     except ReleaseIdentityError:
         upstream_commit = None
@@ -207,7 +207,7 @@ def build_identity(
         "release_commit": commit,
         "release_ref": run("git", "branch", "--show-current") or "detached",
         "tree_clean": not bool(status),
-        "upstream_saas_19_2_commit": upstream_commit,
+        "upstream_saas_19_3_commit": upstream_commit,
         "source": {
             "snapshot": f"source-{dump_sha256[:12]}",
             "dump_sha256": dump_sha256,

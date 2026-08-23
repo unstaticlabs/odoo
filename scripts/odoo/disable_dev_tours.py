@@ -11,7 +11,7 @@ if os.getenv("USL_EREPORTING_LIVE_ENABLED", "0") != "0":
     raise RuntimeError(message)
 
 database = env.cr.dbname  # noqa: F821
-if database == "odoo_online_source_saas_19_2":
+if database == "odoo_online_source_saas_19_3":
     message = "Refusing to change the preserved source database."
     raise RuntimeError(message)
 

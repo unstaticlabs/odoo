@@ -64,19 +64,19 @@ SOURCE_TAG_PALETTE = (
     "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab", "#2b8cbe", "#31a354",
 )
 QUALIFIED_SOURCE = {
-    "dump_sha256": "395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f",
-    "documents": 657,
+    "dump_sha256": "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f",
+    "documents": 665,
     "folders": 88,
     "tags": 56,
-    "tag_relations": 437,
-    "accesses": 722,
+    "tag_relations": 445,
+    "accesses": 728,
     "unassigned": 9,
     "document_groups": 5,
     "url_references": 1,
     "account_folder_settings": 46,
     "account_folder_setting_tags": 45,
     "hr_contract_tags": 1,
-    "checksum_groups": 638,
+    "checksum_groups": 645,
     "employee_folder_mappings": 3,
     "project_folder_mappings": 18,
     "classification_partners": 4,
@@ -110,7 +110,7 @@ def source_connection():
         password=os.getenv("DOCUMENTS_SOURCE_DB_PASSWORD", "odoo"),
         dbname=os.getenv(
             "DOCUMENTS_SOURCE_DATABASE",
-            "odoo_online_source_saas_19_2",
+            "odoo_online_source_saas_19_3",
         ),
         cursor_factory=psycopg2.extras.RealDictCursor,
     )
@@ -636,7 +636,7 @@ def ensure_operational_source_attachment(group, content, company, target):
                 "mimetype": source_item["mimetype"],
                 "rebuild_source_database": os.getenv(
                     "DOCUMENTS_SOURCE_DATABASE",
-                    "odoo_online_source_saas_19_2",
+                    "odoo_online_source_saas_19_3",
                 ),
                 "rebuild_source_model": "ir.attachment",
                 "rebuild_source_id": source_item["attachment_id"],
@@ -698,7 +698,7 @@ def ensure_fallback(group, content, source_snapshot):
                     ),
                     "rebuild_source_database": os.getenv(
                         "DOCUMENTS_SOURCE_DATABASE",
-                        "odoo_online_source_saas_19_2",
+                        "odoo_online_source_saas_19_3",
                     ),
                     "rebuild_source_model": "ir.attachment",
                     "rebuild_source_id": item["attachment_id"],

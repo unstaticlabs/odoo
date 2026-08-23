@@ -31,7 +31,7 @@ case "$ENVIRONMENT" in
     ;;
 esac
 case "$PROJECT" in
-  ""|usl-odoo-saas-19-2|odoo|production|prod|*canonical*|*[!A-Za-z0-9_.-]*)
+  ""|usl-odoo-saas-19-3|odoo|production|prod|*canonical*|*[!A-Za-z0-9_.-]*)
     printf 'Refusing shared or invalid Compose project: %s\n' "$PROJECT" >&2
     exit 2
     ;;

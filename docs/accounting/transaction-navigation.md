@@ -1,6 +1,6 @@
 # Transactions navigation contract
 
-Status: implemented and regression-tested on `saas~19.2`.
+Status: implemented and regression-tested on `saas~19.3`.
 
 ## Product purpose
 

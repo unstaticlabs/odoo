@@ -83,7 +83,7 @@ single cross-company employee record was rejected because it would weaken
 company checks around expenses, HR and payroll. OCA's
 `hr_employee_multi_company` was also reviewed; its 18.0 release is Beta and
 addresses employee visibility rather than this expense identity lifecycle, and
-no qualified saas~19.2 integration is available.
+no qualified saas~19.3 integration is available.
 
 ### Operational accounting baseline
 

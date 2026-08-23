@@ -644,5 +644,5 @@ def source_options():
         "port": int(os.getenv("IDENTITY_SOURCE_DB_PORT", "5432")),
         "user": os.getenv("IDENTITY_SOURCE_DB_USER", "odoo"),
         "password": os.getenv("IDENTITY_SOURCE_DB_PASSWORD", "odoo"),
-        "database": os.getenv("IDENTITY_SOURCE_DATABASE", "odoo_online_source_saas_19_2"),
+        "database": os.getenv("IDENTITY_SOURCE_DATABASE", "odoo_online_source_saas_19_3"),
     }

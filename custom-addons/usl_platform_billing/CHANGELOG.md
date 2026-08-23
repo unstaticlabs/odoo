@@ -1,6 +1,6 @@
 # Changelog
 
-## saas~19.2.1.2.1
+## saas~19.3.1.2.1
 
 - Show a green **No Payment Required** status for generated miscellaneous
   entries instead of Odoo's invoice-oriented **Not Paid** status.
@@ -10,7 +10,7 @@
 - Grant the named `valentin` user the application Administrator role in the
   isolated QA bootstrap without changing generic Accountant access.
 
-## saas~19.2.1.2.0
+## saas~19.3.1.2.0
 
 - Value bank-created foreign-currency payouts at their effective bank rate
   before posting invoices, commission bills and compensation entries.
@@ -22,14 +22,14 @@
 - Keep foreign-currency compensation entries labelled in their platform
   currency while retaining the exact company-currency accounting value.
 
-## saas~19.2.1.1.4
+## saas~19.3.1.1.4
 
 - Keep incomplete bank-import drafts out of the settlement selector until
   their platform currency and original amount are completed.
 - Align the French operator guide with ranked bank suggestions, pooled and
   delayed settlements, and explicit Platform Billing roles.
 
-## saas~19.2.1.1.3
+## saas~19.3.1.1.3
 
 - Import bank receipts as incomplete draft payouts, then complete platform,
   reference, currency and original payout amount on the session.
@@ -44,7 +44,7 @@
 - Hide bank transactions whose actual currency differs from the session bank
   currency, and keep the local import demo repeatable after a completed run.
 
-## saas~19.2.1.1.2
+## saas~19.3.1.1.2
 
 - Show every eligible open incoming bank transaction by default; matching
   rules now rank recommendations instead of hiding manual choices.
@@ -62,7 +62,7 @@
 - Add a guarded, deterministic local QA bootstrap for the delayed, pooled,
   partial, foreign-currency and role-boundary journeys.
 
-## saas~19.2.1.1.1
+## saas~19.3.1.1.1
 
 - Show every billing session by default while retaining the optional Open
   filter.
@@ -71,7 +71,7 @@
   state changes.
 - Cover fresh operator session creation and delayed settlement in browser QA.
 
-## saas~19.2.1.1.0
+## saas~19.3.1.1.0
 
 - Keep posted sessions open when platform payments are delayed.
 - Allocate one pooled bank receipt across payouts from several sessions.
@@ -81,7 +81,7 @@
 - Use partner payment terms unless the session has an explicit due-date
   override.
 
-## saas~19.2.1.0.0
+## saas~19.3.1.0.0
 
 - Replace the Studio/server-action bootstrap with a standalone application.
 - Add company-scoped platform, session and payout models.

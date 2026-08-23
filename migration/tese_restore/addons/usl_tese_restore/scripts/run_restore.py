@@ -7,11 +7,11 @@ from odoo import fields
 
 source_database = os.environ.get(
     "TESE_SOURCE_DATABASE",
-    "odoo_online_source_saas_19_2",
+    "odoo_online_source_saas_19_3",
 )
 source_snapshot = os.environ.get(
     "TESE_SOURCE_SNAPSHOT",
-    "odoo-online-saas-19.2-tese-payroll",
+    "odoo-online-saas-19.3-tese-payroll",
 )
 run = env["usl.tese.restore.run"].sudo().create({
     "source_database": source_database,

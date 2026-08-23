@@ -48,6 +48,51 @@ def compose_service(compose, name, next_name):
 
 
 errors = []
+
+# Active runtime and reconstruction paths must move together when the Odoo SaaS
+# generation changes. Historical alignment evidence and installed-version
+# migration directories intentionally retain their original identifiers.
+active_generation_roots = (
+    ROOT / "custom-addons",
+    ROOT / "migration",
+    ROOT / "scripts",
+    ROOT / "accounting_compat",
+)
+for active_root in active_generation_roots:
+    for path in active_root.rglob("*"):
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        relative = path.relative_to(ROOT)
+        if relative == Path("scripts/check-product-migration-boundary"):
+            continue
+        if any(
+            part.startswith("saas~19.2.")
+            for part in relative.parts
+        ):
+            continue
+        if path.suffix not in {
+            "",
+            ".py",
+            ".sh",
+            ".xml",
+            ".csv",
+            ".js",
+            ".md",
+            ".yaml",
+            ".yml",
+        }:
+            continue
+        text = path.read_text(errors="ignore")
+        for stale in (
+            "usl-odoo-saas-19-2",
+            "odoo_online_source_saas_19_2",
+            "odoo_saas_19_2_validation_exact",
+            "odoo_saas_19_2_validation_native",
+        ):
+            if stale in text:
+                errors.append(
+                    f"Active file {relative} contains stale 19.2 identifier {stale!r}.",
+                )
 for migration_name, migration_path in MIGRATION_ADDONS.items():
     if not (migration_path / migration_name / "__manifest__.py").is_file():
         errors.append(f"The {migration_name} add-on is not migration-isolated.")

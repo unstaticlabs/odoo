@@ -1,7 +1,7 @@
 {
     "name": "USL TESE Restoration",
     "summary": "Temporary Odoo Online TESE payroll and HR restoration machinery",
-    "version": "saas~19.2.1.0.0",
+    "version": "saas~19.3.1.0.0",
     "category": "Technical/Migration",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

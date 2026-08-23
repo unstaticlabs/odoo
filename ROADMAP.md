@@ -11,10 +11,10 @@ Status date: 6 August 2026
 - Branch: `19-usl`
 - Upstream baseline: `6b54f539d80af8958990fa66f65d5bf8f420d3f4`
 - Developer/QA product database: `odoo_dev`
-- Read-only source snapshot: `odoo_online_source_saas_19_2`
+- Read-only source snapshot: `odoo_online_source_saas_19_3`
 
 Accounting v1 is engineering-complete for internal daily use. The release
-preserves the current Odoo Online `saas~19.2` accounting state while keeping
+preserves the current Odoo Online `saas~19.3` accounting state while keeping
 USL behavior isolated in custom add-ons and maintained OCA dependencies.
 The same distribution now includes restored Projects, governed Pocket ID SSO,
 the focused Paie TESE workflow, Platform Billing and a Paperless-backed
@@ -130,6 +130,6 @@ or send real documents, run live scheduled exchange or submit e-reporting.
   an isolated extension is impossible and the trade-off is documented.
 - Protect material accounting, reconciliation, security and report behavior
   with focused regression tests.
-- Move from `saas-19.2` only through a separately planned and rehearsed upgrade.
+- Move from `saas-19.3` only through a separately planned and rehearsed upgrade.
 - Update user documentation when verified behavior changes; do not preserve
   temporary progress reports as product documentation.

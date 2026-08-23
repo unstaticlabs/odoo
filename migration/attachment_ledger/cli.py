@@ -505,7 +505,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--container", default=os.environ.get("MIGRATION_SOURCE_CONTAINER"))
     parser.add_argument(
         "--database",
-        default=os.environ.get("MIGRATION_SOURCE_DATABASE", "odoo_online_source_saas_19_2"),
+        default=os.environ.get("MIGRATION_SOURCE_DATABASE", "odoo_online_source_saas_19_3"),
     )
     parser.add_argument("--user", default=os.environ.get("MIGRATION_SOURCE_USER", "odoo"))
     return parser.parse_args(argv)

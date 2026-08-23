@@ -1,4 +1,4 @@
-name: ${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}
+name: ${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}
 
 services:
   db:
@@ -62,7 +62,7 @@ services:
       POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:-}
       POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
       POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1}
-      ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+      ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
@@ -297,7 +297,7 @@ services:
       start_period: 30s
 
   odoo:
-    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -357,7 +357,7 @@ services:
 
   init-db:
     profiles: ["init"]
-    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     depends_on:
       db:
         condition: service_healthy
@@ -409,7 +409,7 @@ services:
 
   accounting-migration:
     profiles: ["accounting-migration"]
-    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     depends_on:
       db:
         condition: service_healthy
@@ -447,7 +447,7 @@ services:
 
   project-migration:
     profiles: ["project-migration"]
-    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     depends_on:
       db:
         condition: service_healthy
@@ -490,7 +490,7 @@ services:
 
   tese-migration:
     profiles: ["tese-migration"]
-    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     depends_on:
       db:
         condition: service_healthy
@@ -530,7 +530,7 @@ services:
 
   platform-billing-migration:
     profiles: ["platform-billing-migration"]
-    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     depends_on:
       db:
         condition: service_healthy

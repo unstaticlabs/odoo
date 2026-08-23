@@ -11,12 +11,8 @@ require_isolated_project="${PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT:-${ODOO_DE
 target_database="${PLATFORM_BILLING_TARGET_DATABASE:-odoo_dev}"
 test_database="${PLATFORM_BILLING_TEST_DATABASE:-odoo_test_platform_billing_restore}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
-default_dump_sha="ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e"
-approved_dump_shas=(
-    "$default_dump_sha"
-    "e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9"
-    "395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f"
-)
+default_dump_sha="0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
+approved_dump_shas=("$default_dump_sha")
 source_dump_sha="$default_dump_sha"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/platform-billing-migration-addons"
 
@@ -30,7 +26,7 @@ if [[ "$require_isolated_project" == "1" && "$compose_project" != usl-odoo-fp-* 
     exit 2
 fi
 case "$target_database" in
-    odoo_online_source_saas_19_2)
+    odoo_online_source_saas_19_3)
         echo "Refusing the read-only source database as a target."
         exit 2
         ;;
@@ -169,8 +165,8 @@ run_shell() {
         -e PLATFORM_BILLING_SOURCE_DB_PORT=5432 \
         -e PLATFORM_BILLING_SOURCE_DB_USER="${PLATFORM_BILLING_SOURCE_DB_USER:-odoo}" \
         -e PLATFORM_BILLING_SOURCE_DB_PASSWORD="${PLATFORM_BILLING_SOURCE_DB_PASSWORD:-odoo}" \
-        -e PLATFORM_BILLING_SOURCE_DATABASE="${PLATFORM_BILLING_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
-        -e PLATFORM_BILLING_SOURCE_SNAPSHOT="${PLATFORM_BILLING_SOURCE_SNAPSHOT:-odoo-online-saas-19.2-platform-billing}" \
+        -e PLATFORM_BILLING_SOURCE_DATABASE="${PLATFORM_BILLING_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
+        -e PLATFORM_BILLING_SOURCE_SNAPSHOT="${PLATFORM_BILLING_SOURCE_SNAPSHOT:-odoo-online-saas-19.3-platform-billing}" \
         -e PLATFORM_BILLING_SOURCE_DUMP_SHA256="$source_dump_sha" \
         -e "PLATFORM_BILLING_EVIDENCE_PATH=$evidence_path" \
         platform-billing-migration \

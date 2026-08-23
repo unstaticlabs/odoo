@@ -16,11 +16,11 @@ source_options = {
     "password": os.getenv("PROJECT_SOURCE_DB_PASSWORD", "odoo"),
     "database": os.getenv(
         "PROJECT_SOURCE_DATABASE",
-        "odoo_online_source_saas_19_2",
+        "odoo_online_source_saas_19_3",
     ),
     "snapshot": os.getenv(
         "PROJECT_SOURCE_SNAPSHOT",
-        "odoo-online-saas-19.2-projects",
+        "odoo-online-saas-19.3-projects",
     ),
 }
 source = ProjectSourceReader(source_options).read()

@@ -24,7 +24,7 @@ lxml==6.1.1; python_version >= '3.14'  # (Resolute)
 lxml-html-clean; python_version >= '3.12' # (Noble - removed from lxml, unpinned for futur security patches)
 MarkupSafe==2.1.5 ; python_version >= '3.12'  # (Noble) Mostly to have a wheel package
 markdown-it-py==4.2.0 ; python_version >= '3.12'  # Render the built-in USL user guide
-num2words==0.5.14 ; python_version >= '3.12' 
+num2words==0.5.14 ; python_version >= '3.12'
 ofxparse==0.21
 openpyxl==3.1.5 ; python_version >= '3.12'
 passlib==1.7.4 # min version = 1.7.2 (Focal with security backports)

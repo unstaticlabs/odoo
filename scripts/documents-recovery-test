@@ -50,7 +50,7 @@ case "$SOURCE_DATABASE" in
     ;;
 esac
 case "$RESTORE_PROJECT" in
-  "$SOURCE_PROJECT"|usl-odoo-saas-19-2|odoo|production|prod|*canonical*)
+  "$SOURCE_PROJECT"|usl-odoo-saas-19-3|odoo|production|prod|*canonical*)
     printf 'Refusing unsafe restore project: %s\n' "$RESTORE_PROJECT" >&2
     exit 2
     ;;

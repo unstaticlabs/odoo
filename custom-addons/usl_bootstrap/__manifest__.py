@@ -1,6 +1,6 @@
 {
     "name": "USL Bootstrap",
-    "version": "saas~19.2.1.0.0",
+    "version": "saas~19.3.1.0.0",
     "category": "Customization",
     "summary": "Reproducible Unstatic Labs local demo baseline.",
     "author": "Unstatic Labs",

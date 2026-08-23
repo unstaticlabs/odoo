@@ -4,7 +4,7 @@ Status: implemented and locally validated
 
 Decision date: 2026-07-29
 
-Scope: Odoo Community `saas~19.2`, Pocket ID OIDC, every human user
+Scope: Odoo Community `saas~19.3`, Pocket ID OIDC, every human user
 
 ## Decision
 

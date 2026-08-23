@@ -17,14 +17,10 @@ BOOTSTRAP_SHA256 = (
     "a7617a282cb812ae051f41b5a6c15047c950bf3e8b85ef3a4014757345053791"
 )
 SOURCE_DUMP_SHA256 = (
-    "ee6d9789224a7a8ba1d9048c813939a41ffed77e13fad3b65be246cfc3f83c9e"
+    "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
 )
 APPROVED_SOURCE_DUMP_SHA256S = frozenset(
-    {
-        SOURCE_DUMP_SHA256,
-        "e1d95464d1ff633ec0db112cef50a20463f746abe94d05e5749d781b1f79cdd9",
-        "395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f",
-    },
+    {SOURCE_DUMP_SHA256},
 )
 TRACE_MODELS = {
     "company": ("res.company", "res.company"),
@@ -1867,11 +1863,11 @@ def default_source_options():
         "password": os.getenv("PLATFORM_BILLING_SOURCE_DB_PASSWORD", "odoo"),
         "database": os.getenv(
             "PLATFORM_BILLING_SOURCE_DATABASE",
-            "odoo_online_source_saas_19_2",
+            "odoo_online_source_saas_19_3",
         ),
         "snapshot": os.getenv(
             "PLATFORM_BILLING_SOURCE_SNAPSHOT",
-            "odoo-online-saas-19.2-platform-billing",
+            "odoo-online-saas-19.3-platform-billing",
         ),
         "source_dump_sha256": os.getenv(
             "PLATFORM_BILLING_SOURCE_DUMP_SHA256",

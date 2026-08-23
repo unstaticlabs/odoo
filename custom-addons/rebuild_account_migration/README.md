@@ -3,7 +3,7 @@
 Technical module name: `rebuild_account_migration`
 
 This isolated add-on is the USL Accounting product layer for the Community
-`saas~19.2` fork. The historical technical name is retained to preserve module,
+`saas~19.3` fork. The historical technical name is retained to preserve module,
 model and XML-ID continuity; users see **USL Accounting**, not migration
 tooling.
 

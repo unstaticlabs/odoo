@@ -83,9 +83,9 @@ source package validation
 The normal `odoo_dev` database is reset only by explicit development rebuild
 stages. Validation commands use their own temporary databases, so ordinary
 module updates do not require additional development database names.
-Exact reconstruction uses `odoo_saas_19_2_validation_exact`. Native-engine
+Exact reconstruction uses `odoo_saas_19_3_validation_exact`. Native-engine
 Track B proof uses
-`odoo_saas_19_2_validation_native`, so recomputed current-period documents
+`odoo_saas_19_3_validation_native`, so recomputed current-period documents
 cannot alter the exact historical replay.
 
 `make accounting-failure-tests` validates six non-destructive source-package guardrails: missing source directory, missing `dump.sql`, missing filestore directory, filestore path that is not a directory, unsupported dump format and a minimal valid plain-SQL source package. These tests use temporary private packages under `artifacts/accounting-compat/private/failure-tests/` and never mutate the real source backup.
@@ -119,22 +119,22 @@ The important databases are:
 
 | Database | Role |
 | --- | --- |
-| `odoo_online_source_saas_19_2` | Read-only source database restored from `usl-online-dump/dump.sql`. |
-| `odoo_saas_19_2_validation_exact` | Clean target Odoo database rebuilt from the extracted snapshot. |
-| `odoo_saas_19_2_validation_native` | Separate clean target for native current-period business-document recomputation. |
+| `odoo_online_source_saas_19_3` | Read-only source database restored from `usl-online-dump/dump.sql`. |
+| `odoo_saas_19_3_validation_exact` | Clean target Odoo database rebuilt from the extracted snapshot. |
+| `odoo_saas_19_3_validation_native` | Separate clean target for native current-period business-document recomputation. |
 | `odoo_dev` | Disposable SaaS developer/QA product database. A clean reset and import reproduce the complete source Accounting state here. |
 
 Stage dependencies:
 
 | Command | Reads | Writes | Why it must run here |
 | --- | --- | --- | --- |
-| `make accounting-source-restore` | `usl-online-dump/dump.sql`, `usl-online-dump/filestore/` | `odoo_online_source_saas_19_2` in `accounting-source-db`; source restore status artifacts | It creates the source database that every later source read depends on. |
+| `make accounting-source-restore` | `usl-online-dump/dump.sql`, `usl-online-dump/filestore/` | `odoo_online_source_saas_19_3` in `accounting-source-db`; source restore status artifacts | It creates the source database that every later source read depends on. |
 | `make accounting-attachment-audit` | Restored source attachment metadata, complete source filestore and reconstructed `odoo_dev` | Private source/target integrity, relationship, chatter and exclusion evidence | It verifies every referenced source blob, reads every imported target binary through Odoo storage and blocks material Accounting omissions. See [Accounting attachment reconstruction](attachment-reconstruction.md). |
 | `make accounting-extract` | Restored source database through read-only SQL | Private canonical snapshot and extraction artifacts | It converts the physical SaaS database into the durable transfer package used by the target importer. |
-| `make accounting-validation-exact-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_saas_19_2_validation_exact` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
+| `make accounting-validation-exact-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_saas_19_3_validation_exact` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
 | `make accounting-validation-exact-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs the complete source Accounting state through the target Odoo ORM. |
 | `make accounting-validation-exact-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
-| `make accounting-validation-native-reset` | Installed target/OCA add-ons | Fresh `odoo_saas_19_2_validation_native` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
+| `make accounting-validation-native-reset` | Installed target/OCA add-ons | Fresh `odoo_saas_19_3_validation_native` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
 | `make accounting-validation-native-expenses` | Read-only restored source expense/business fields, verified source filestore binaries and Track B configuration | Native employees, products, expenses, company payments, employee receipts and source-traced receipt attachments in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. It verifies every source receipt checksum/size and preserves the source-designated main attachment. Run it before the document stage so expense-generated receipts can be reused. |
 | `make accounting-validation-native-documents` | Read-only restored source business fields, verified source filestore binaries and Track B configuration | Native posted invoices, bills, supplier refunds and receipts with source-traced document attachments in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, compares headers, due dates and per-account effects to source, then verifies every business-document binary and source-designated main attachment. |
 | `make accounting-validation-native-assets` | Read-only source asset master data, depreciation schedules and Track B configuration | OCA assets, profiles, depreciation-board lines and native posted depreciation entries; private proof artifact | It seeds the source business schedule into maintained OCA `account_asset_management`, lets OCA create and post every in-period entry, leaves future schedule lines unposted and compares date, amount and account effects exactly. |
@@ -171,7 +171,7 @@ usl-online-dump/filestore/
 Default source database:
 
 ```text
-odoo_online_source_saas_19_2
+odoo_online_source_saas_19_3
 ```
 
 The restore stage:
@@ -260,7 +260,7 @@ posted number, sequence, state, date, amount or relationship.
 
 Track B is deliberately separate from the exact replay. Three approaches were considered:
 
-1. create recomputed documents inside `odoo_saas_19_2_validation_exact`, which would mix generated current-period effects with the historical-truth baseline;
+1. create recomputed documents inside `odoo_saas_19_3_validation_exact`, which would mix generated current-period effects with the historical-truth baseline;
 2. create a dedicated clean database with the same Community/OCA configuration and replay source business fields through native Odoo posting;
 3. calculate expected taxes, currencies and due lines in a custom migration engine and write the resulting journal entries.
 

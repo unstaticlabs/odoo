@@ -262,7 +262,7 @@ class UslTeseRestoreRun(models.Model):
             password=os.environ.get("TESE_SOURCE_DB_PASSWORD", "odoo"),
             dbname=os.environ.get(
                 "TESE_SOURCE_DATABASE",
-                "odoo_online_source_saas_19_2",
+                "odoo_online_source_saas_19_3",
             ),
         )
         connection.set_session(readonly=True, autocommit=False)

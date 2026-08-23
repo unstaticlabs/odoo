@@ -232,7 +232,7 @@ esac
         worktree.mkdir()
         (worktree / ".git").write_text("gitdir: /tmp/example\n", encoding="utf-8")
         command = (
-            'usl_verify_compose_scope usl-odoo-saas-19-2 "$2" Test'
+            'usl_verify_compose_scope usl-odoo-saas-19-3 "$2" Test'
         )
 
         completed = self.run_scope(command, "", str(worktree))
@@ -258,8 +258,8 @@ esac
                     cwd=ROOT,
                     env=self.environment(
                         rows,
-                        COMPOSE_PROJECT_NAME="usl-odoo-saas-19-2",
-                        ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-2",
+                        COMPOSE_PROJECT_NAME="usl-odoo-saas-19-3",
+                        ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-3",
                         ODOO_DEV_DB="odoo_dev",
                         USL_DEV_RECLAIM_CONFIRM=confirmation,
                     ),
@@ -298,10 +298,10 @@ esac
                     cwd=ROOT,
                     env=self.environment(
                         rows,
-                        COMPOSE_PROJECT_NAME="usl-odoo-saas-19-2",
-                        ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-2",
+                        COMPOSE_PROJECT_NAME="usl-odoo-saas-19-3",
+                        ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-3",
                         ODOO_DEV_DB="odoo_dev",
-                        USL_DEV_RECLAIM_CONFIRM="usl-odoo-saas-19-2",
+                        USL_DEV_RECLAIM_CONFIRM="usl-odoo-saas-19-3",
                     ),
                     check=False,
                     capture_output=True,
@@ -359,11 +359,11 @@ printf '%s' "$USL_FAKE_OWNED_ROWS" > "$USL_FAKE_DOCKER_STATE"
             cwd=ROOT,
             env=self.environment(
                 rows,
-                COMPOSE_PROJECT_NAME="usl-odoo-saas-19-2",
-                ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-2",
+                COMPOSE_PROJECT_NAME="usl-odoo-saas-19-3",
+                ODOO_SAAS_COMPOSE_PROJECT="usl-odoo-saas-19-3",
                 ODOO_DEV_DB="odoo_dev",
                 ODOO_DEV_RUNTIME_STARTER=str(runtime),
-                USL_DEV_RECLAIM_CONFIRM="usl-odoo-saas-19-2",
+                USL_DEV_RECLAIM_CONFIRM="usl-odoo-saas-19-3",
                 USL_FAKE_OWNED_ROWS=owned_rows,
                 USL_FAKE_RUNTIME_LOG=str(runtime_log),
             ),

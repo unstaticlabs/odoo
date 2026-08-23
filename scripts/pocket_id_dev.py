@@ -170,7 +170,7 @@ def _write_new_env(path: Path) -> None:
         return
     project_name = os.getenv(
         "USL_POCKET_ID_DEV_COMPOSE_PROJECT",
-        "usl-odoo-saas-19-2",
+        "usl-odoo-saas-19-3",
     ).strip()
     database = os.getenv(
         "USL_POCKET_ID_DEV_ODOO_DB",

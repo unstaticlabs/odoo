@@ -11,7 +11,7 @@ usl_verify_compose_scope \
 
 target_database="${ODOO_DEV_DB:-odoo_dev}"
 case "$target_database" in
-  ""|odoo_online_source_saas_19_2|*[!A-Za-z0-9_]*)
+  ""|odoo_online_source_saas_19_3|*[!A-Za-z0-9_]*)
     printf 'Refusing unsafe product boundary database: %s\n' \
       "${target_database:-<unset>}" >&2
     exit 2

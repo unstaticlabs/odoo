@@ -61,7 +61,7 @@ def table_exists(table):
 errors = []
 if env.cr.dbname != os.environ.get("ODOO_INIT_DB", "odoo_dev"):  # noqa: F821
     errors.append("The boundary check is connected to an unexpected database.")
-if env.cr.dbname == "odoo_online_source_saas_19_2":  # noqa: F821
+if env.cr.dbname == "odoo_online_source_saas_19_3":  # noqa: F821
     errors.append("The read-only Online source database is not a product target.")
 if os.environ.get("USL_EINVOICE_LIVE_ENABLED", "0") != "0":
     errors.append("Electronic-invoice live access is enabled.")

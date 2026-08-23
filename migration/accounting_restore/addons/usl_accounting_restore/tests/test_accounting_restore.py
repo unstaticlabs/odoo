@@ -9351,12 +9351,12 @@ class TestRebuildAccountMigration(TransactionCase):
             fields.Date.to_date("2099-12-31"),
         )
         definition.with_context(accounting_definition_seed=True).write({
-            "definition_version": "saas~19.2.3",
+            "definition_version": "saas~19.3.3",
             "default_group_by": "none",
             "default_amount_rounding": "cents",
         })
         Definition._ensure_standard_definitions()
-        self.assertEqual(definition.definition_version, "saas~19.2.4")
+        self.assertEqual(definition.definition_version, "saas~19.3.4")
         self.assertEqual(definition.default_group_by, "section")
         self.assertEqual(definition.default_amount_rounding, "whole")
 

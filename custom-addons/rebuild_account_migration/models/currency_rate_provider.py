@@ -190,7 +190,7 @@ class ResCompany(models.Model):
                 provider_url,
                 headers={
                     "Accept": "application/xml,text/xml",
-                    "User-Agent": "USL-Odoo-Accounting/saas-19.2",
+                    "User-Agent": "USL-Odoo-Accounting/saas-19.3",
                 },
                 timeout=30 if backfill else 15,
             )

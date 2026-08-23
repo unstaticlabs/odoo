@@ -342,10 +342,10 @@ class RebuildAccountImportRun(models.Model):
         """Replay source deferral schedules through native journal entries."""
         self.ensure_one()
         options = {
-            "source_database": "odoo_online_source_saas_19_2",
+            "source_database": "odoo_online_source_saas_19_3",
             "source_snapshot_id": "source-unknown",
             "source_dump_sha256": "",
-            "source_version": "Odoo Online Enterprise saas~19.2",
+            "source_version": "Odoo Online Enterprise saas~19.3",
             "target_database": self.env.cr.dbname,
             "date_from": "2025-10-01",
             "date_to": "2026-06-30",

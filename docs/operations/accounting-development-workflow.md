@@ -28,10 +28,10 @@ Normal development, module updates and browser QA use one disposable database:
 mirror: business data is reconstructed from Odoo Online, then target-only
 configuration such as Pocket ID is applied in a separate finalization stage.
 
-The reconstruction harness creates `odoo_saas_19_2_validation_exact` and
-`odoo_saas_19_2_validation_native` only when their explicit pipeline stages
+The reconstruction harness creates `odoo_saas_19_3_validation_exact` and
+`odoo_saas_19_3_validation_native` only when their explicit pipeline stages
 run. They are disposable evidence databases, not alternate development
-environments. The restored `odoo_online_source_saas_19_2` database is isolated
+environments. The restored `odoo_online_source_saas_19_3` database is isolated
 in the optional `accounting-source-db` service and is used read-only for
 extraction.
 
@@ -160,7 +160,7 @@ before changing anything. From the main checkout, and only after confirming no
 migration or test is active, recover with:
 
 ```bash
-make dev-reclaim CONFIRM=usl-odoo-saas-19-2
+make dev-reclaim CONFIRM=usl-odoo-saas-19-3
 make deploy
 ```
 

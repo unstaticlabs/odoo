@@ -27,7 +27,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("Refusing non-isolated", completed.stderr)
 
     def test_rejects_empty_or_protected_target_database(self):
-        for database in ("", "odoo_online_source_saas_19_2"):
+        for database in ("", "odoo_online_source_saas_19_3"):
             with self.subTest(database=database):
                 completed = self.run_runner(
                     COMPOSE_PROJECT_NAME="codex-migration-safety-test",

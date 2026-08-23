@@ -225,7 +225,7 @@ clean_install_database=odoo_release_clean_install
 
 cleanup_clean_install_database() {
   case "$clean_install_database" in
-    ""|odoo_dev|odoo_online_source_saas_19_2|*[!A-Za-z0-9_]*)
+    ""|odoo_dev|odoo_online_source_saas_19_3|*[!A-Za-z0-9_]*)
       printf 'Refusing unsafe clean-install database: %s\n' \
         "${clean_install_database:-<unset>}" >&2
       return 2

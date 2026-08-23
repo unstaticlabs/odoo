@@ -1,7 +1,7 @@
 # AI Contributor Guide
 
-This branch starts from upstream Odoo `saas~19.2` at
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`. Keep it close to upstream Odoo:
+This branch starts from upstream Odoo `saas~19.3` at
+`efb98f932f3a568ce550a26ebde06da0e14e65d3`. Keep it close to upstream Odoo:
 avoid changes to core Odoo code unless the task explicitly requires a
 distribution-level core patch and the tradeoff is documented.
 
@@ -82,7 +82,7 @@ distribution-level core patch and the tradeoff is documented.
 - For UI, report formatting, menu, permission and documentation changes, prefer
   an Odoo module update on the disposable `odoo_dev` product database plus
   targeted validation.
-- Never open the read-only `odoo_online_source_saas_19_2` source database with
+- Never open the read-only `odoo_online_source_saas_19_3` source database with
   target Odoo code.
 - Use `odoo_dev` as the single developer/QA product database. Create exact or
   native validation databases only as explicitly named, automatically cleaned

@@ -1,8 +1,8 @@
 # USL Accounting add-on architecture
 
-Status: accepted architecture decision  
-Baseline: Odoo Community `saas~19.2` at
-`6b54f539d80af8958990fa66f65d5bf8f420d3f4`
+Status: accepted architecture decision
+Baseline: Odoo Community `saas~19.3` at
+`efb98f932f3a568ce550a26ebde06da0e14e65d3`
 
 ## Decision
 
@@ -168,7 +168,7 @@ menus.
 | `reporting-engine` | `6692523980cbc57d414935311d7f7bf1c834edc6` |
 | `account-financial-tools` | `3b3b3cf0974d5452734090e5a0421e762089de75` |
 
-Tracked patches under `oca-patches/saas-19.2/` are part of that exact
+Tracked patches under `oca-patches/saas-19.3/` are part of that exact
 integration. A manifest version adaptation alone is not compatibility
 evidence. OCA compatibility tests must also be independent of restored
 candidate data: partner fixtures use unique exact evidence, date assertions

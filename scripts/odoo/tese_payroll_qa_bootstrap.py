@@ -53,7 +53,7 @@ def _check_safety(env):
     )
     if (
         env.cr.dbname != expected_database
-        or env.cr.dbname == "odoo_online_source_saas_19_2"
+        or env.cr.dbname == "odoo_online_source_saas_19_3"
         or not (env.cr.dbname == "odoo_dev" or env.cr.dbname.endswith("_qa"))
     ):
         raise RuntimeError(UNSAFE_DATABASE)

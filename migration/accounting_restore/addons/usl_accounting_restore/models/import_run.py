@@ -982,7 +982,7 @@ class RebuildAccountImportRun(models.Model):
         conn = psycopg2.connect(
             host=options.get("source_host") or os.environ.get("ACCOUNTING_SOURCE_DB_HOST", "accounting-source-db"),
             port=options.get("source_port") or os.environ.get("ACCOUNTING_SOURCE_DB_PORT", "5432"),
-            dbname=options.get("source_database") or "odoo_online_source_saas_19_2",
+            dbname=options.get("source_database") or "odoo_online_source_saas_19_3",
             user=options.get("source_user") or os.environ.get("ACCOUNTING_SOURCE_POSTGRES_USER", "odoo"),
             password=options.get("source_password") or os.environ.get("ACCOUNTING_SOURCE_POSTGRES_PASSWORD", "odoo"),
             cursor_factory=psycopg2.extras.RealDictCursor,
@@ -7397,10 +7397,10 @@ class RebuildAccountImportRun(models.Model):
         """
         self.ensure_one()
         options = {
-            "source_database": "odoo_online_source_saas_19_2",
+            "source_database": "odoo_online_source_saas_19_3",
             "source_snapshot_id": "source-unknown",
             "source_dump_sha256": "",
-            "source_version": "Odoo Online Enterprise saas~19.2",
+            "source_version": "Odoo Online Enterprise saas~19.3",
             "target_database": self.env.cr.dbname,
             "date_from": "2024-01-10",
             "date_to": fields.Date.context_today(self),
@@ -8143,10 +8143,10 @@ class RebuildAccountImportRun(models.Model):
         """
         self.ensure_one()
         options = {
-            "source_database": "odoo_online_source_saas_19_2",
+            "source_database": "odoo_online_source_saas_19_3",
             "source_snapshot_id": "source-unknown",
             "source_dump_sha256": "",
-            "source_version": "Odoo Online Enterprise saas~19.2",
+            "source_version": "Odoo Online Enterprise saas~19.3",
             "target_database": self.env.cr.dbname,
             "date_from": "2025-10-01",
             "date_to": "2026-06-30",
@@ -8944,10 +8944,10 @@ class RebuildAccountImportRun(models.Model):
         """
         self.ensure_one()
         options = {
-            "source_database": "odoo_online_source_saas_19_2",
+            "source_database": "odoo_online_source_saas_19_3",
             "source_snapshot_id": "source-unknown",
             "source_dump_sha256": "",
-            "source_version": "Odoo Online Enterprise saas~19.2",
+            "source_version": "Odoo Online Enterprise saas~19.3",
             "target_database": self.env.cr.dbname,
             "date_from": "2025-10-01",
             "date_to": "2026-06-30",
@@ -9354,10 +9354,10 @@ class RebuildAccountImportRun(models.Model):
     def run_exact_ledger_replay_from_source(self, options):
         self.ensure_one()
         options = {
-            "source_database": "odoo_online_source_saas_19_2",
+            "source_database": "odoo_online_source_saas_19_3",
             "source_snapshot_id": "source-unknown",
             "source_dump_sha256": "",
-            "source_version": "Odoo Online Enterprise saas~19.2",
+            "source_version": "Odoo Online Enterprise saas~19.3",
             "target_database": self.env.cr.dbname,
             "date_from": "2024-01-10",
             "date_to": "2025-09-30",

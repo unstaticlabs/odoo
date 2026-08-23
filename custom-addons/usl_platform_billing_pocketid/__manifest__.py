@@ -1,7 +1,7 @@
 {
     "name": "USL Platform Billing Pocket ID",
     "summary": "Map governed administrators to Platform Billing access",
-    "version": "saas~19.2.1.0.1",
+    "version": "saas~19.3.1.0.1",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

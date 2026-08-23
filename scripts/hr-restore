@@ -7,14 +7,14 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 
 command_name="${1:-all}"
-compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}"
+compose_project="${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}"
 target_database="${HR_TARGET_DATABASE:-odoo_dev}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/project-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/hr-migration-addons"
 usl_verify_compose_scope "$compose_project" "$ROOT" "HR restoration"
 
 case "$target_database" in
-    odoo_online_source_saas_19_2|odoo_saas_19_2_validation_exact|odoo_saas_19_2_validation_native)
+    odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native)
         echo "Refusing protected HR target $target_database." >&2
         exit 2
         ;;
@@ -50,7 +50,7 @@ run_shell() {
         -e HR_SOURCE_DB_PORT="${HR_SOURCE_DB_PORT:-5432}" \
         -e HR_SOURCE_DB_USER="${HR_SOURCE_DB_USER:-odoo}" \
         -e HR_SOURCE_DB_PASSWORD="${HR_SOURCE_DB_PASSWORD:-odoo}" \
-        -e HR_SOURCE_DATABASE="${HR_SOURCE_DATABASE:-odoo_online_source_saas_19_2}" \
+        -e HR_SOURCE_DATABASE="${HR_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
         -e HR_SOURCE_SNAPSHOT="$source_snapshot" \
         project-migration odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" --database="$target_database" \
