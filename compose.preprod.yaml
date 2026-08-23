@@ -1,0 +1,24 @@
+services:
+  odoo:
+    # A qualified release is built explicitly as Dockerfile's distribution
+    # stage. Runtime startup must never rebuild or bind-mount another checkout.
+    build: !reset null
+    environment:
+      ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/usl/custom-addons,/opt/usl/oca-addons
+      USL_USER_DOCS_PATH: /opt/usl/user-docs
+    ports: !override
+      - "127.0.0.1:${ODOO_HTTP_PORT}:8069"
+      - "127.0.0.1:${ODOO_GEVENT_PORT}:8072"
+    volumes: !override
+      - odoo-data:/var/lib/odoo
+
+  init-db:
+    environment:
+      ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/usl/custom-addons,/opt/usl/oca-addons
+      USL_USER_DOCS_PATH: /opt/usl/user-docs
+    volumes: !override
+      - odoo-data:/var/lib/odoo
+
+  paperless-webserver:
+    ports: !override
+      - "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"

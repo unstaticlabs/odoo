@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_pocketid" model="ir.ui.view">
+        <field name="name">res.users.form.usl.pocketid</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <field name="usl_sso_only_login" invisible="1"/>
+            </xpath>
+            <xpath expr="//div[@name='auth']" position="attributes">
+                <attribute name="invisible">usl_sso_only_login</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page
+                    name="usl_pocketid"
+                    string="Pocket ID"
+                    groups="base.group_system">
+                    <group>
+                        <group string="Login governance">
+                            <field name="usl_identity_classification"/>
+                            <field name="usl_pocketid_access"/>
+                            <field
+                                name="usl_pocketid_email_link"
+                                invisible="not usl_pocketid_access"/>
+                            <field name="usl_local_break_glass"/>
+                        </group>
+                    </group>
+                    <field
+                        name="usl_oidc_identity_ids"
+                        context="{'default_user_id': id}">
+                        <list>
+                            <field name="issuer"/>
+                            <field name="subject_fingerprint"/>
+                            <field name="link_method"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="last_login_at"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_preferences_pocketid" model="ir.ui.view">
+        <field name="name">res.users.preferences.usl.pocketid</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <field name="usl_sso_only_login" invisible="1"/>
+            </xpath>
+            <xpath expr="//div[@name='auth']" position="attributes">
+                <attribute name="invisible">usl_sso_only_login</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_passkeys_pocketid" model="ir.ui.view">
+        <field name="name">res.users.passkeys.usl.pocketid</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="auth_passkey.auth_passkey_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='auth_passkey_key_ids']/ancestor::div[hasclass('d-md-flex')]" position="attributes">
+                <attribute name="invisible">usl_sso_only_login</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_preferences_passkeys_pocketid" model="ir.ui.view">
+        <field name="name">res.users.preferences.passkeys.usl.pocketid</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="auth_passkey.auth_passkey_users_preferences"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='auth_passkey_key_ids']/ancestor::div[hasclass('d-lg-flex')]" position="attributes">
+                <attribute name="invisible">usl_sso_only_login</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

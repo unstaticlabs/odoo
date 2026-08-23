@@ -1,0 +1,911 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_expense_batch
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-04 22:35+0000\n"
+"PO-Revision-Date: 2026-08-04 22:35+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "%(date_from)s to %(date_to)s"
+msgstr "du %(date_from)s au %(date_to)s"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "%(employee)s — %(period)s"
+msgstr "%(employee)s — %(period)s"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "%(expense)s was returned for individual correction by %(user)s."
+msgstr ""
+"%(expense)s a été retournée pour correction individuelle par %(user)s."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_account_move_form_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_form_batch
+msgid "<span class=\"o_stat_text\">Expense Batch</span>"
+msgstr "<span class=\"o_stat_text\">Note de frais</span>"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "A batch cannot contain expenses from different companies."
+msgstr ""
+"Une note de frais ne peut pas contenir de dépenses de sociétés différentes."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "A batch cannot contain expenses from different employees."
+msgstr ""
+"Une note de frais ne peut pas contenir de dépenses d’employés différents."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "A batch cannot mix expenses from different companies."
+msgstr ""
+"Une note de frais ne peut pas mélanger des dépenses de sociétés différentes."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "A batch cannot mix expenses from different employees."
+msgstr ""
+"Une note de frais ne peut pas mélanger des dépenses d’employés différents."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "A submitted expense batch must be preserved for auditability."
+msgstr "Une note de frais soumise doit être conservée à des fins d’audit."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Accounting entries posted for %(count)s expenses."
+msgstr "Écritures comptables enregistrées pour %(count)s dépenses."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_needaction
+msgid "Action Needed"
+msgstr "Nécessite une action"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_ids
+msgid "Activities"
+msgstr "Activités"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Indicateur d’exception d’activité"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plans d'activité"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_state
+msgid "Activity State"
+msgstr "Statut de l'activité"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Icône de type d'activité"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Add at least one expense before continuing."
+msgstr "Ajoutez au moins une dépense avant de continuer."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_readiness__batched
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Already in a batch"
+msgstr "Déjà dans une note de frais"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Approve batch"
+msgstr "Approuver la note de frais"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__approved
+msgid "Approved"
+msgstr "Approuvée"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__approved_by_id
+msgid "Approved By"
+msgstr "Approuvée par"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__approved_date
+msgid "Approved Date"
+msgstr "Date d’approbation"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_attachment_status__attached
+msgid "Attached"
+msgstr "Joint"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_attachment_status
+msgid "Attachment status"
+msgstr "État du justificatif"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Batch approved with %(count)s expenses."
+msgstr "Note de frais approuvée avec %(count)s dépenses."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_readiness
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__readiness_state
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__readiness_state
+msgid "Batch readiness"
+msgstr "État de préparation"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Batch submitted with %(count)s expenses for manager review."
+msgstr ""
+"Note de frais soumise avec %(count)s dépenses pour contrôle du responsable."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Claim"
+msgstr "Demande"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Common business purpose and review context"
+msgstr "Objet commun et contexte de contrôle"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__company_id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__company_id
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__company_paid_total
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__company_paid_total
+msgid "Company Paid Total"
+msgstr "Total payé par la société"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid ""
+"Complete the following expenses before submission:\n"
+"%s"
+msgstr ""
+"Complétez les dépenses suivantes avant la soumission :\n"
+"%s"
+
+#. module: usl_expense_batch
+#: model:ir.model,name:usl_expense_batch.model_usl_expense_batch_create_wizard
+msgid "Create Expense Batch"
+msgstr "Créer une note de frais"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "Create a separate expense batch for each employee and company."
+msgstr ""
+"Créez une note de frais distincte pour chaque employé et chaque société."
+
+#. module: usl_expense_batch
+#: model_terms:ir.actions.act_window,help:usl_expense_batch.action_expense_batches
+msgid "Create an expense batch"
+msgstr "Créer une note de frais"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Create batch"
+msgstr "Créer la note"
+
+#. module: usl_expense_batch
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+#: code:addons/usl_expense_batch/static/src/xml/expense_batch_list.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Create expense batch"
+msgstr "Créer une note de frais"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid ""
+"Create the batch and send its draft expenses for manager approval. Nothing "
+"is posted or paid."
+msgstr ""
+"Crée la note et envoie ses dépenses en brouillon pour approbation. Rien n’est "
+"comptabilisé ni payé."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__create_uid
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__create_date
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__currency_id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__currency_id
+msgid "Currency"
+msgstr "Devise"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__date_from
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__date_from
+msgid "Date From"
+msgstr "Date de début"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__date_to
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__date_to
+msgid "Date To"
+msgstr "Date de fin"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_account_move__display_name
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__display_name
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__display_name
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__draft
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__draft_count
+msgid "Draft expenses"
+msgstr "Dépenses en brouillon"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__draft_incomplete_count
+msgid "Draft expenses needing information"
+msgstr "Dépenses en brouillon nécessitant des informations"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__employee_id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__employee_id
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Employee"
+msgstr "Employé"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__employee_paid_total
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__employee_paid_total
+msgid "Employee Paid Total"
+msgstr "Total payé par l’employé"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "Enter a batch name and a common business purpose."
+msgstr "Saisissez le nom de la note de frais et son objet commun."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Every selected expense must still exist."
+msgstr "Chaque dépense sélectionnée doit toujours exister."
+
+#. module: usl_expense_batch
+#: model:ir.model,name:usl_expense_batch.model_hr_expense
+msgid "Expense"
+msgstr "Dépense"
+
+#. module: usl_expense_batch
+#: model:ir.model,name:usl_expense_batch.model_usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_account_bank_statement_line__expense_batch_id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_account_move__expense_batch_id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__expense_batch_id
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Expense Batch"
+msgstr "Note de frais"
+
+#. module: usl_expense_batch
+#: model:ir.actions.act_window,name:usl_expense_batch.action_expense_batches
+#: model:ir.ui.menu,name:usl_expense_batch.menu_expense_batches
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_list
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Expense Batches"
+msgstr "Notes de frais"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__expense_count
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__expense_count
+msgid "Expense Count"
+msgstr "Nombre de dépenses"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Expense period"
+msgstr "Période des dépenses"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Expense status"
+msgstr "Statut de la dépense"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__expense_ids
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__expense_ids
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Expenses"
+msgstr "Dépenses"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__incomplete_count
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__incomplete_count
+msgid "Expenses needing information"
+msgstr "Dépenses nécessitant des informations"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_follower_ids
+msgid "Followers"
+msgstr "Abonnés"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnés (Partenaires)"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Icône Font Awesome par ex. fa-tasks"
+
+#. module: usl_expense_batch
+#: model_terms:ir.actions.act_window,help:usl_expense_batch.action_expense_batches
+msgid ""
+"Group related receipts into one clear submission and accounting context."
+msgstr ""
+"Regroupez les justificatifs liés dans un contexte unique de soumission et de"
+" comptabilisation."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__has_message
+msgid "Has Message"
+msgstr "A un message"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_account_move__id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_exception_icon
+msgid "Icon"
+msgstr "Icône"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icône pour indiquer une activité d'exception."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si coché, de nouveaux messages demandent votre attention."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__message_has_error
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si coché, certains messages ont une erreur de livraison."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__incomplete_expense_ids
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__incomplete_expense_ids
+msgid "Incomplete expenses"
+msgstr "Dépenses à compléter"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_is_follower
+msgid "Is Follower"
+msgstr "Est un abonné"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__move_ids
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Journal Entries"
+msgstr "Écritures comptables"
+
+#. module: usl_expense_batch
+#: model:ir.model,name:usl_expense_batch.model_account_move
+msgid "Journal Entry"
+msgstr "Pièce comptable"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__write_uid
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__write_date
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__main_analytic_activity
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__main_analytic_activity
+msgid "Main Analytic Activity"
+msgstr "Activité analytique principale"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_has_error
+msgid "Message Delivery error"
+msgstr "Erreur d'envoi du message"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_ids
+msgid "Messages"
+msgstr "Messages"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_attachment_status__missing
+msgid "Missing"
+msgstr "Manquant"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_incomplete_reason
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Missing information"
+msgstr "Informations manquantes"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "Missing: %s"
+msgstr "Manquant : %s"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__move_count
+msgid "Move Count"
+msgstr "Nombre d’écritures"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "Échéance de mon activité"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "My expense batches"
+msgstr "Mes notes de frais"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__name
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_readiness__incomplete
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__readiness_state__incomplete
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__readiness_state__incomplete
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Needs information"
+msgstr "Informations requises"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Échéance de la prochaine activité"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_summary
+msgid "Next Activity Summary"
+msgstr "Résumé de la prochaine activité"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_type_id
+msgid "Next Activity Type"
+msgstr "Type de la prochaine activité"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Not in a batch"
+msgstr "Hors note de frais"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_attachment_status__not_required
+msgid "Not required"
+msgstr "Non requis"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Nombre d'actions"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_has_error_counter
+msgid "Number of errors"
+msgstr "Nombre d'erreurs"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Nombre de messages nécessitant une action"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages avec des erreurs d'envoi"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Only existing expenses can be added when creating an expense batch."
+msgstr ""
+"Seules des dépenses existantes peuvent être ajoutées lors de la création "
+"d’une note de frais."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "Only submitted or approved expenses can be returned."
+msgstr "Seules les dépenses soumises ou approuvées peuvent être retournées."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid ""
+"Only unbatched draft, approved, or posted expenses can be added to a new "
+"batch."
+msgstr ""
+"Seules les dépenses en brouillon, approuvées ou comptabilisées qui ne "
+"figurent dans aucune note peuvent être ajoutées à une nouvelle note."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid ""
+"Only unbatched draft, approved, or posted expenses can be added to an "
+"expense batch."
+msgstr ""
+"Seules les dépenses en brouillon, approuvées ou comptabilisées qui ne "
+"figurent dans aucune note peuvent être ajoutées à une note de frais."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "Only unbatched draft, approved, or posted expenses can be selected."
+msgstr ""
+"Seules les dépenses en brouillon, approuvées ou comptabilisées qui ne "
+"figurent dans aucune note peuvent être sélectionnées."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__paid
+msgid "Paid"
+msgstr "Payée"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Post batch"
+msgstr "Comptabiliser la note de frais"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__posted
+msgid "Posted"
+msgstr "Comptabilisée"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Preview"
+msgstr "Aperçu"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__purpose
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__purpose
+msgid "Purpose"
+msgstr "Objet"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__rating_ids
+msgid "Ratings"
+msgstr "Évaluations"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Read-only accountants cannot change expense batches."
+msgstr ""
+"Les comptables en lecture seule ne peuvent pas modifier les notes de frais."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__readiness_state__ready
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__readiness_state__ready
+msgid "Ready"
+msgstr "Prête"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Ready to post"
+msgstr "Prête à comptabiliser"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_readiness__ready
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Ready to submit"
+msgstr "Prête à soumettre"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__attachment_count
+msgid "Receipt Count"
+msgstr "Nombre de justificatifs"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Remove"
+msgstr "Retirer"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid ""
+"Remove an expense from its current batch before adding it to another one."
+msgstr ""
+"Retirez la dépense de sa note actuelle avant de l’ajouter à une autre."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__activity_user_id
+msgid "Responsible User"
+msgstr "Utilisateur responsable"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__refused
+msgid "Returned"
+msgstr "Retournée"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Review"
+msgstr "Vérifier"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Erreur d'envoi SMS"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "Select at least one eligible expense."
+msgstr "Sélectionnez au moins une dépense admissible."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "Select at least one expense."
+msgstr "Sélectionnez au moins une dépense."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__state
+msgid "State"
+msgstr "État"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Status"
+msgstr "Statut"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Statut basé sur les activités\n"
+"En retard : l'échéance est déjà dépassée\n"
+"Aujourd'hui : la date d'activité est aujourd'hui\n"
+"Planifié : activités futures."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Submit batch"
+msgstr "Soumettre la note de frais"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid ""
+"Send the draft expenses in this batch for manager approval. Nothing is "
+"posted or paid."
+msgstr ""
+"Envoie les dépenses en brouillon de cette note pour approbation. Rien n’est "
+"comptabilisé ni payé."
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__submitted
+msgid "Submitted"
+msgstr "Soumise"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__submitted_by_id
+msgid "Submitted By"
+msgstr "Soumise par"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__submitted_date
+msgid "Submitted Date"
+msgstr "Date de soumission"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "The expense and its batch must belong to the same company."
+msgstr "La dépense et sa note doivent appartenir à la même société."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "The expense and its batch must belong to the same employee."
+msgstr "La dépense et sa note doivent appartenir au même employé."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "This batch has no %(state)s expenses to process."
+msgstr "Cette note ne contient aucune dépense « %(state)s » à traiter."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "This selection has no draft expenses to submit."
+msgstr "Cette sélection ne contient aucune dépense en brouillon à soumettre."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_list
+msgid "Total"
+msgstr "Total"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__total_amount
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__total_amount
+msgid "Total Amount"
+msgstr "Montant total"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Type d'activité d'exception enregistrée."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+msgid "Waiting approval"
+msgstr "En attente d’approbation"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__website_message_ids
+msgid "Website Messages"
+msgstr "Messages du site web"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch__website_message_ids
+msgid "Website communication history"
+msgstr "Historique de communication du site web"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid ""
+"You can create the batch now; only incomplete draft expenses block "
+"submission."
+msgstr ""
+"Vous pouvez créer la note maintenant ; seules les dépenses en brouillon "
+"incomplètes bloquent la soumission."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "category"
+msgstr "catégorie"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "description"
+msgstr "description"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "e.g. Toronto trip — June/July 2026"
+msgstr "p. ex. Déplacement à Toronto — juin/juillet 2026"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "expense(s) need information."
+msgstr "dépense(s) nécessitent des informations."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "non-zero amount"
+msgstr "montant non nul"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "receipt"
+msgstr "justificatif"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Approve the submitted expenses in this batch. Nothing is posted or paid."
+msgstr "Approuve les dépenses soumises de cette note. Rien n’est comptabilisé ni payé."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Post the approved expenses in this batch to Accounting."
+msgstr "Comptabilise les dépenses approuvées de cette note."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Remove this expense from the batch and return it for individual correction."
+msgstr "Retire cette dépense de la note pour permettre sa correction individuelle."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Group the selected expenses without submitting, posting, or paying them."
+msgstr "Regroupe les dépenses sélectionnées sans les soumettre, les comptabiliser ni les payer."

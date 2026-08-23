@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        USL operates in France but keeps both English and French interfaces.
+        Keep the language choice independent from the unambiguous product-wide
+        date convention.
+    -->
+    <function
+        model="res.lang"
+        name="_activate_and_install_lang"
+        eval="['fr_FR']"/>
+    <record id="base.lang_en" model="res.lang">
+        <field name="date_format">%d/%m/%Y</field>
+    </record>
+    <record id="base.lang_fr" model="res.lang">
+        <field name="date_format">%d/%m/%Y</field>
+    </record>
+</odoo>

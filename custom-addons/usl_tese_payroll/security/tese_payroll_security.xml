@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="rule_tese_profile_company_and_role" model="ir.rule">
+        <field name="name">TESE profiles by company and combined role</field>
+        <field name="model_id" ref="model_usl_tese_profile"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['&amp;', ('company_id', 'in', company_ids), (1, '=', 1)] if user.has_group('hr.group_hr_manager') and (user.has_group('account.group_account_readonly') or user.has_group('account.group_account_manager')) else [(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_tese_profile_line_company_and_role" model="ir.rule">
+        <field name="name">TESE profile components by company and combined role</field>
+        <field name="model_id" ref="model_usl_tese_profile_line"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['&amp;', ('company_id', 'in', company_ids), (1, '=', 1)] if user.has_group('hr.group_hr_manager') and (user.has_group('account.group_account_readonly') or user.has_group('account.group_account_manager')) else [(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_tese_payslip_company_and_role" model="ir.rule">
+        <field name="name">TESE payroll by company and combined role</field>
+        <field name="model_id" ref="model_usl_tese_payslip"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['&amp;', ('company_id', 'in', company_ids), (1, '=', 1)] if user.has_group('hr.group_hr_manager') and (user.has_group('account.group_account_readonly') or user.has_group('account.group_account_manager')) else [(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_tese_payslip_line_company_and_role" model="ir.rule">
+        <field name="name">TESE payroll snapshots by company and combined role</field>
+        <field name="model_id" ref="model_usl_tese_payslip_line"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['&amp;', ('company_id', 'in', company_ids), (1, '=', 1)] if user.has_group('hr.group_hr_manager') and (user.has_group('account.group_account_readonly') or user.has_group('account.group_account_manager')) else [(0, '=', 1)]</field>
+    </record>
+
+    <record id="rule_tese_diagnostic_company_and_role" model="ir.rule">
+        <field name="name">TESE diagnostics by company and combined role</field>
+        <field name="model_id" ref="model_usl_tese_diagnostic_issue"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['&amp;', ('company_id', 'in', company_ids), (1, '=', 1)] if user.has_group('hr.group_hr_manager') and (user.has_group('account.group_account_readonly') or user.has_group('account.group_account_manager')) else [(0, '=', 1)]</field>
+    </record>
+</odoo>

@@ -1,0 +1,40 @@
+# Docker images are self-contained for deployment, but only the paths copied by
+# Dockerfile belong in the build context. Private dumps, filestores and
+# repository metadata must never be transferred to the builder. Custom add-ons,
+# OCA add-ons and user docs enter the context only for the product stage; the
+# dev/test stages keep using Compose bind mounts.
+*
+
+!.dockerignore
+!Dockerfile
+!MANIFEST.in
+!odoo-bin
+!requirements.txt
+!setup.py
+
+!addons/
+!addons/**
+!debian/
+!debian/odoo.conf
+!docker/
+!docker/**
+!odoo/
+!odoo/**
+!setup/
+!setup/**
+
+# Product-stage payloads. usl_bootstrap is a test-only fixture and must never
+# ship in a product image; OCA vendor checkouts enter without their Git state.
+!custom-addons/
+!custom-addons/**
+custom-addons/usl_bootstrap/
+!docs/
+docs/*
+!docs/users/
+!docs/users/**
+!oca-addons/
+!oca-addons/**
+!oca-src/
+!oca-src/**
+oca-src/**/.git
+oca-src/**/.git/**

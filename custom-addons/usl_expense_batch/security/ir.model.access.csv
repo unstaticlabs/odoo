@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_expense_batch_employee,usl.expense.batch.employee,model_usl_expense_batch,base.group_user,1,1,1,1
+access_expense_batch_approver,usl.expense.batch.approver,model_usl_expense_batch,hr_expense.group_hr_expense_team_approver,1,1,1,1
+access_expense_batch_manager,usl.expense.batch.manager,model_usl_expense_batch,hr_expense.group_hr_expense_manager,1,1,1,1
+access_expense_batch_accountant,usl.expense.batch.accountant,model_usl_expense_batch,account.group_account_invoice,1,1,1,0
+access_expense_batch_readonly,usl.expense.batch.readonly,model_usl_expense_batch,account.group_account_readonly,1,0,0,0
+access_expense_batch_create_wizard,usl.expense.batch.create.wizard,model_usl_expense_batch_create_wizard,base.group_user,1,1,1,0

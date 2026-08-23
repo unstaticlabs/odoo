@@ -1,0 +1,127 @@
+services:
+  pocket-id:
+    image: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1}
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_URL: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
+      ENCRYPTION_KEY: ${POCKET_ID_ENCRYPTION_KEY:?Generate .pocket-id.env with scripts/pocket-id-dev bootstrap}
+      STATIC_API_KEY: ${POCKET_ID_STATIC_API_KEY:?Generate .pocket-id.env with scripts/pocket-id-dev bootstrap}
+      ANALYTICS_DISABLED: "true"
+      VERSION_CHECK_DISABLED: "true"
+      ALLOW_INSECURE_CALLBACK_URLS: "true"
+      UI_CONFIG_DISABLED: "true"
+      APP_NAME: USL Pocket ID Preproduction
+      REQUIRE_USER_EMAIL: "true"
+      EMAILS_VERIFIED: "true"
+      ALLOW_USER_SIGNUPS: disabled
+      EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED: "false"
+      EMAIL_ONE_TIME_ACCESS_AS_UNAUTHENTICATED_ENABLED: "false"
+      EMAIL_LOGIN_NOTIFICATION_ENABLED: "false"
+    ports:
+      - "127.0.0.1:${POCKET_ID_HTTP_PORT:-1411}:1411"
+    healthcheck:
+      test: [CMD, /app/pocket-id, healthcheck]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - pocket-id-data:/app/data
+
+  odoo:
+    depends_on:
+      pocket-id:
+        condition: service_healthy
+    extra_hosts:
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
+    environment:
+      ODOO_LIST_DB: "False"
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost},${POCKET_ID_HOSTNAME:-pocket-id.localhost}
+      USL_POCKET_ID_ENABLED: "1"
+      USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
+      USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
+      USL_POCKET_ID_CLIENT_SECRET: ${POCKET_ID_CLIENT_SECRET:?Generate .pocket-id.env with scripts/pocket-id-dev bootstrap}
+      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
+      USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
+      USL_POCKET_ID_SCOPES: openid profile email groups
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-1}
+      USL_POCKET_ID_LOGIN_POLICY: ${USL_POCKET_ID_LOGIN_POLICY:-sso_only}
+      USL_POCKET_ID_BREAK_GLASS_ENABLED: ${USL_POCKET_ID_BREAK_GLASS_ENABLED:-0}
+      USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT: ${USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT:-}
+      POCKET_ID_EXTRA_USERS_JSON: ${POCKET_ID_EXTRA_USERS_JSON:-[]}
+
+  paperless-preflight:
+    environment:
+      PAPERLESS_OIDC_ENABLED: "1"
+      PAPERLESS_PUBLIC_BASE_URL: ${PAPERLESS_PUBLIC_BASE_URL:-${PAPERLESS_PUBLIC_URL:-}}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-true}
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
+      POCKET_ID_APP_URL: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
+      POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
+      POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}
+      POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
+      POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1}
+
+  paperless-webserver:
+    depends_on:
+      pocket-id:
+        condition: service_healthy
+    extra_hosts:
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
+    environment:
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
+        {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}","settings":{"server_url":"${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}","token_auth_method":"client_secret_basic"}}]}}
+      PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+      PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
+      PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS: ${PAPERLESS_SSO_BASE_GROUP:-USL Odoo document users}
+      # Pocket restricts who may authenticate. Odoo remains the only business
+      # authorization authority, so identity-provider groups are never copied
+      # into Paperless permissions.
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
+      PAPERLESS_DISABLE_REGULAR_LOGIN: ${PAPERLESS_DISABLE_REGULAR_LOGIN:-true}
+      PAPERLESS_REDIRECT_LOGIN_TO_SSO: ${PAPERLESS_REDIRECT_LOGIN_TO_SSO:-true}
+      # django-allauth defaults callback URLs to HTTPS independently of
+      # PAPERLESS_URL. Local QA is deliberately HTTP; production-like targets
+      # must set and validate HTTPS.
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: ${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:-https}
+
+  paperless-identity-init:
+    environment:
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
+        {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}","settings":{"server_url":"${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}","token_auth_method":"client_secret_basic"}}]}}
+
+  init-db:
+    depends_on:
+      pocket-id:
+        condition: service_healthy
+    extra_hosts:
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
+    environment:
+      ODOO_LIST_DB: "False"
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,pocket-id.localhost,odoo.localhost},${POCKET_ID_HOSTNAME:-pocket-id.localhost}
+      USL_POCKET_ID_ENABLED: "1"
+      USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}
+      USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-usl-odoo-preproduction}
+      USL_POCKET_ID_CLIENT_SECRET: ${POCKET_ID_CLIENT_SECRET:?Generate .pocket-id.env with scripts/pocket-id-dev bootstrap}
+      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:-http://odoo.localhost:8069}
+      USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:-odoo-preproduction}
+      USL_POCKET_ID_SCOPES: openid profile email groups
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-1}
+      USL_POCKET_ID_LOGIN_POLICY: ${USL_POCKET_ID_LOGIN_POLICY:-sso_only}
+      USL_POCKET_ID_BREAK_GLASS_ENABLED: ${USL_POCKET_ID_BREAK_GLASS_ENABLED:-0}
+      USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT: ${USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT:-}
+      POCKET_ID_EXTRA_USERS_JSON: ${POCKET_ID_EXTRA_USERS_JSON:-[]}
+
+  test:
+    extra_hosts:
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
+
+  devcontainer:
+    extra_hosts:
+      - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
+
+volumes:
+  pocket-id-data:

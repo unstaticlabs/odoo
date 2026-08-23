@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_platform_billing_bank_import_wizard_form" model="ir.ui.view">
+        <field name="name">usl.platform.billing.bank.import.wizard.form</field>
+        <field name="model">usl.platform.billing.bank.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Bank Transactions">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="session_id"/>
+                            <field name="bank_currency_id"/>
+                        </group>
+                        <group>
+                            <field name="mode" widget="radio"/>
+                            <field name="candidate_scope" string="Show"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info py-2" role="status"
+                         invisible="mode != 'link'">
+                        Select the open payouts first, then select the payment that
+                        settles them.
+                    </div>
+
+                    <separator string="Open payouts" invisible="mode != 'link'"/>
+                    <field name="payout_candidate_ids"
+                           invisible="mode != 'link'">
+                        <list editable="bottom" create="false" delete="false"
+                              default_order="payout_date, id"
+                              decoration-warning="validation_status == 'error'">
+                            <button name="action_select" string="Select"
+                                    type="object" icon="fa-plus"
+                                    invisible="selected"/>
+                            <button name="action_unselect" string="Remove"
+                                    type="object" icon="fa-minus"
+                                    invisible="not selected"/>
+                            <field name="selected" column_invisible="True"/>
+                            <field name="validation_status" string="Validation" widget="badge"
+                                   decoration-success="validation_status == 'ok'"
+                                   decoration-warning="validation_status == 'warning'"
+                                   decoration-danger="validation_status == 'error'"/>
+                            <field name="bank_match_status" string="Bank" widget="badge"
+                                   decoration-muted="bank_match_status == 'unmatched'"
+                                   decoration-info="bank_match_status == 'selected'"
+                                   decoration-warning="bank_match_status == 'partial'"
+                                   decoration-success="bank_match_status == 'reconciled'"
+                                   decoration-danger="bank_match_status == 'blocked'"/>
+                            <field name="session_id"/>
+                            <field name="platform_id"/>
+                            <field name="payout_date"/>
+                            <field name="platform_reference"/>
+                            <field name="payout_currency_id" column_invisible="True"/>
+                            <field name="remaining_payout_amount"/>
+                            <field name="allocated_payout_amount"/>
+                        </list>
+                    </field>
+
+                    <separator string="Open incoming bank transactions"/>
+                    <field name="candidate_ids">
+                        <list editable="bottom" create="false" delete="false"
+                              default_order="recommended desc, score desc, bank_date desc"
+                              decoration-warning="confidence == 'ambiguous'">
+                            <button name="action_select" string="Select"
+                                    type="object" icon="fa-plus"
+                                    invisible="selected"/>
+                            <button name="action_unselect" string="Remove"
+                                    type="object" icon="fa-minus"
+                                    invisible="not selected"/>
+                            <field name="selected" column_invisible="True"/>
+                            <field name="recommended" column_invisible="True"/>
+                            <field name="confidence" column_invisible="True"/>
+                            <field name="recommendation_marker" decoration-success="recommended"
+                                   width="32px"/>
+                            <field name="bank_label" string="Bank Label" decoration-bf="1"
+                                   width="360px"/>
+                            <field name="bank_currency_id" column_invisible="True"/>
+                            <field name="bank_amount"/>
+                            <field name="allocated_bank_amount" string="Amount to Link"
+                                   column_invisible="parent.mode != 'link'"/>
+                            <field name="bank_date"/>
+                            <field name="bank_journal_id" optional="show"/>
+                            <field name="bank_partner_id" optional="hide"/>
+                            <field name="platform_id" readonly="1" optional="hide"/>
+                            <field name="bank_foreign_currency_id"
+                                   column_invisible="True"/>
+                            <field name="bank_foreign_amount" optional="hide"/>
+                            <field name="detection_reason" optional="hide"/>
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <button name="action_create_payouts"
+                            string="Import selected as payouts"
+                            title="Create payout lines from the selected bank transactions."
+                            type="object" class="btn-primary"
+                            invisible="mode != 'create'"/>
+                    <button name="action_link_payouts"
+                            string="Link selected transactions"
+                            title="Link the selected bank transactions to the selected open payouts."
+                            type="object" class="btn-primary"
+                            invisible="mode != 'link'"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,27 @@
+diff --git a/account_reconcile_oca/models/account_bank_statement_line.py b/account_reconcile_oca/models/account_bank_statement_line.py
+index 2644123..ff3c2f8 100644
+--- a/account_reconcile_oca/models/account_bank_statement_line.py
++++ b/account_reconcile_oca/models/account_bank_statement_line.py
+@@ -1464,7 +1464,7 @@ class AccountBankStatementLine(models.Model):
+             SQL(
+                 "%s ILIKE '%%' || %s || '%%'",
+                 SQL.identifier(
+-                    self.env["res.partner.bank"]._table, "sanitized_acc_number"
++                    self.env["res.partner.bank"]._table, "sanitized_account_number"
+                 ),
+                 SQL.identifier(self._table, "account_number"),
+             ),
+
+diff --git a/account_reconcile_oca/tests/test_bank_account_reconcile.py b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+index 343e0f3..4a2132d 100644
+--- a/account_reconcile_oca/tests/test_bank_account_reconcile.py
++++ b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+@@ -1386,7 +1386,7 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+                             0,
+                             0,
+                             {
+-                                "acc_number": account_number,
++                                "account_number": account_number,
+                             },
+                         )
+                     ],

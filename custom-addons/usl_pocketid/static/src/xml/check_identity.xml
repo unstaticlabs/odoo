@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_pocketid.CheckIdentityForm">
+        <input type="hidden" name="type" value="usl_pocketid"/>
+        <p class="mb-3">Confirm this sensitive action with Pocket ID.</p>
+        <button type="submit" class="btn btn-primary w-100">Confirm with Pocket ID</button>
+    </t>
+    <t t-name="usl_pocketid.CheckIdentityLink">Use Pocket ID</t>
+</templates>

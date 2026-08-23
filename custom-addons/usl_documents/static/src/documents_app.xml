@@ -1,0 +1,1042 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_documents.DocumentPreview">
+        <div class="o_usl_document_preview"
+             t-att-data-version="props.versionId || ''"
+             aria-label="Document preview">
+            <div t-if="state.loading" class="text-center text-muted p-4">
+                <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading preview…
+            </div>
+            <img t-elif="state.kind === 'image'"
+                 t-att-src="imageUrl"
+                 alt="Document preview"/>
+            <pre t-elif="state.kind === 'text'"
+                 class="m-0 p-3"
+                 t-esc="state.text"/>
+            <div t-elif="state.kind === 'pdf'" class="o_usl_pdf_preview">
+                <canvas t-ref="canvas"/>
+                <div t-if="state.pageCount &gt; 1"
+                     class="o_usl_pdf_preview_controls">
+                    <button type="button" class="btn btn-sm btn-light"
+                            t-att-disabled="state.page === 1"
+                            t-on-click="previousPage"
+                            aria-label="Previous preview page">
+                        <i class="fa fa-chevron-left"/>
+                    </button>
+                    <span>Page <t t-esc="state.page"/> of <t t-esc="state.pageCount"/></span>
+                    <button type="button" class="btn btn-sm btn-light"
+                            t-att-disabled="state.page === state.pageCount"
+                            t-on-click="nextPage"
+                            aria-label="Next preview page">
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+            </div>
+            <div t-elif="state.error" class="alert alert-warning m-3">
+                <strong>Preview unavailable.</strong>
+                <div t-esc="state.error"/>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="usl_documents.OpenDocumentsField">
+        <button type="button"
+                class="btn btn-link p-0 text-nowrap o_usl_open_documents"
+                t-att-title="label"
+                t-att-aria-label="label"
+                t-on-click.stop="open">
+            <i class="fa fa-folder-open-o me-1" aria-hidden="true"/>
+            <t t-esc="label"/>
+        </button>
+    </t>
+
+    <t t-name="usl_documents.PermanentDeleteDialog">
+        <Dialog title="'Permanently delete document?'" size="'md'">
+            <p>
+                This permanently removes <strong t-esc="props.documentName"/> from
+                Paperless. It cannot be restored. Odoo keeps an audit tombstone.
+            </p>
+            <label class="form-label fw-semibold" for="usl_delete_reason">
+                Why is permanent deletion authorized?
+            </label>
+            <textarea id="usl_delete_reason" class="form-control" rows="3"
+                      placeholder="Required for the audit trail"
+                      t-model="state.reason"/>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-secondary"
+                        t-att-disabled="state.busy"
+                        t-on-click="props.close">Cancel</button>
+                <button type="button" class="btn btn-danger"
+                        title="Permanently delete this file from Paperless and keep an Odoo audit record."
+                        t-att-disabled="state.busy || !state.reason.trim()"
+                        t-on-click="confirm">
+                    <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
+                    Permanently delete
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="usl_documents.ShortcutSaveDialog">
+        <Dialog title="props.shortcut ? 'Update one-click shortcut' : 'Save as one-click shortcut'"
+                size="'md'">
+            <div t-if="state.loading" class="text-center text-muted p-4">
+                <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading…
+            </div>
+            <div t-else="" class="d-flex flex-column gap-3">
+                <div>
+                    <label class="form-label fw-semibold"
+                           for="usl_shortcut_name">Name</label>
+                    <input id="usl_shortcut_name" class="o_input w-100"
+                           type="text" placeholder="For example: Supplier invoices to review"
+                           t-model.trim="state.name"/>
+                </div>
+                <div class="row g-3">
+                    <div class="col-8">
+                        <label class="form-label fw-semibold"
+                               for="usl_shortcut_icon">Icon</label>
+                        <input id="usl_shortcut_icon" class="o_input w-100"
+                               type="text" placeholder="fa-filter"
+                               t-model.trim="state.icon"/>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label fw-semibold"
+                               for="usl_shortcut_sequence">Order</label>
+                        <input id="usl_shortcut_sequence" class="o_input w-100"
+                               type="number" min="0" t-model="state.sequence"/>
+                    </div>
+                </div>
+                <div>
+                    <span class="form-label fw-semibold d-block">
+                        Show in Smart Views
+                    </span>
+                    <div class="border rounded p-2">
+                        <label t-foreach="state.smartViews" t-as="view"
+                               t-key="view.id"
+                               class="d-flex align-items-center gap-2 py-1">
+                            <input type="checkbox"
+                                   t-att-checked="state.selectedViewIds.includes(view.id)"
+                                   t-on-change="() => this.toggleView(view.id)"/>
+                            <span t-esc="view.name"/>
+                        </label>
+                    </div>
+                </div>
+                <p class="small text-muted mb-0">
+                    The current filters, grouping, and sorting are saved. The parent
+                    Smart View remains the Paperless-synchronized base view.
+                </p>
+            </div>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-secondary"
+                        t-att-disabled="state.saving"
+                        t-on-click="props.close">Cancel</button>
+                <button type="button" class="btn btn-primary"
+                        title="Save the current filters as a reusable shortcut."
+                        t-att-disabled="state.loading || state.saving || !state.name.trim()"
+                        t-on-click="save">
+                    <i t-if="state.saving"
+                       class="fa fa-circle-o-notch fa-spin me-1"/>
+                    Save shortcut
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="usl_documents.ShortcutFavoriteItem">
+        <DropdownItem t-if="state.allowed"
+                      class="'o_menu_item text-truncate'"
+                      onSelected.bind="open">
+            <i class="fa fa-bolt me-2 text-primary"/>
+            Save as one-click shortcut
+        </DropdownItem>
+    </t>
+
+    <t t-name="usl_documents.DocumentsWorkspace">
+        <WithSearch t-props="withSearchProps" t-slot-scope="search">
+            <DocumentsWorkspaceView t-props="this.props"
+                                    context="search.context"
+                                    domain="search.domain"
+                                    groupBy="search.groupBy"
+                                    orderBy="search.orderBy"
+                                    display="search.display"/>
+        </WithSearch>
+    </t>
+
+    <t t-name="usl_documents.DocumentsWorkspaceView">
+        <div class="o_usl_documents d-flex h-100 bg-view">
+            <aside class="o_usl_documents_sidebar border-end p-3">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <i class="fa fa-folder-open-o fs-3 text-primary"/>
+                    <div class="o_usl_sidebar_label">
+                        <h4 class="mb-0">Documents</h4>
+                        <small class="text-muted">Find what matters</small>
+                    </div>
+                </div>
+                <nav class="nav nav-pills flex-column gap-1">
+                    <button t-foreach="sharedViews" t-as="view" t-key="view.id"
+                            type="button"
+                            t-att-class="'nav-link text-start ' + (state.workspace === view.key ? 'active' : '')"
+                            t-att-title="view.name"
+                            t-att-aria-label="view.name"
+                            t-on-click="() => this.selectWorkspace(view)">
+                        <i t-att-class="'fa ' + view.icon + ' me-2'"/>
+                        <span class="o_usl_sidebar_label" t-esc="view.name"/>
+                    </button>
+                </nav>
+                <div class="mt-auto pt-4">
+                    <div t-if="state.degraded" class="alert alert-warning small mb-0">
+                        <strong>Archive unavailable</strong>
+                        <div class="o_usl_sidebar_label">Your Odoo work is still available.</div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="flex-grow-1 min-w-0 d-flex flex-column">
+                <header class="o_usl_documents_toolbar border-bottom bg-white p-3">
+                    <div t-if="recordContext" class="alert alert-info py-2 mb-3">
+                        Upload a document or choose one from the archive to link it to
+                        this record.
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="flex-grow-1 o_usl_documents_search">
+                            <SearchBar/>
+                        </div>
+                        <select t-if="state.view === 'cards'"
+                                class="form-select o_usl_sort_select"
+                                t-on-change="setCardSort"
+                                aria-label="Sort documents">
+                            <option t-if="cardSort === 'custom'" value="custom"
+                                    disabled="disabled" selected="selected">
+                                Custom sorting
+                            </option>
+                            <option value="recent"
+                                    t-att-selected="cardSort === 'recent'">
+                                Document date
+                            </option>
+                            <option value="ingested"
+                                    t-att-selected="cardSort === 'ingested'">
+                                Recently added
+                            </option>
+                            <option value="title"
+                                    t-att-selected="cardSort === 'title'">
+                                Title
+                            </option>
+                        </select>
+                        <div class="btn-group">
+                            <button type="button"
+                                    t-att-class="'btn btn-outline-secondary ' + (state.view === 'cards' ? 'active' : '')"
+                                    t-on-click="() => this.setView('cards')" title="Card view">
+                                <i class="fa fa-th-large"/>
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-outline-secondary ' + (state.view === 'list' ? 'active' : '')"
+                                    t-on-click="() => this.setView('list')" title="Compact list">
+                                <i class="fa fa-list"/>
+                            </button>
+                        </div>
+                        <label t-if="state.canUpload"
+                               t-att-class="'btn btn-primary mb-0 ' + (state.uploading ? 'disabled' : '')">
+                            <i class="fa fa-upload me-1"/>
+                            <t t-if="state.uploading">Uploading…</t>
+                            <t t-else="">Upload</t>
+                            <input type="file" class="d-none" t-on-change="onFileChange"
+                                   t-att-disabled="state.uploading"/>
+                        </label>
+                    </div>
+                    <div t-if="smartViewShortcuts.length || visibleTagShortcuts.length"
+                         class="o_usl_filter_shortcuts d-flex align-items-center gap-2 mt-3"
+                         aria-label="Useful document filters">
+                        <button t-foreach="smartViewShortcuts" t-as="shortcut"
+                                t-key="'shortcut:' + shortcut.id"
+                                type="button"
+                                t-att-data-shortcut-key="shortcut.key"
+                                t-att-class="'btn btn-sm rounded-pill text-nowrap ' + (this.isSmartShortcutActive(shortcut) ? 'btn-primary' : 'btn-outline-secondary')"
+                                t-att-title="shortcut.name"
+                                t-on-click="() => this.toggleSmartShortcut(shortcut)">
+                            <i t-att-class="'fa ' + shortcut.icon + ' me-1'"/>
+                            <t t-esc="shortcut.name"/>
+                        </button>
+                        <span t-if="smartViewShortcuts.length &amp;&amp; visibleTagShortcuts.length"
+                              class="o_usl_filter_shortcut_divider" aria-hidden="true"/>
+                        <button t-foreach="visibleTagShortcuts" t-as="tag"
+                                t-key="'tag:' + tag.id"
+                                type="button"
+                                t-att-class="'o_usl_tag_chip btn btn-sm ' + (this.isTagShortcutActive(tag) ? 'is-selected' : '')"
+                                t-att-style="'--tag-color:' + tag.color"
+                                t-att-title="'Filter by tag: ' + tag.name"
+                                t-on-click="() => this.toggleTagFilter(tag)">
+                            <span class="o_usl_tag_chip_label" t-esc="tag.name"/>
+                        </button>
+                        <details t-if="overflowTagShortcuts.length"
+                                 class="o_usl_more_tags position-relative">
+                            <summary class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap">
+                                More tags (<t t-esc="overflowTagShortcuts.length"/>)
+                            </summary>
+                            <div class="o_usl_more_tags_menu dropdown-menu show p-2 shadow">
+                                <label class="visually-hidden" for="o_usl_tag_shortcut_search">
+                                    Search tags
+                                </label>
+                                <input id="o_usl_tag_shortcut_search"
+                                       type="search"
+                                       class="form-control form-control-sm mb-2"
+                                       placeholder="Search tags…"
+                                       t-att-value="state.tagShortcutQuery"
+                                       t-on-input="onTagShortcutSearch"/>
+                                <div class="o_usl_more_tags_results" role="listbox"
+                                     aria-label="Available tag filters">
+                                    <button t-foreach="tagShortcutResults" t-as="tag"
+                                            t-key="'more-tag:' + tag.id"
+                                            type="button"
+                                            t-att-class="'dropdown-item d-flex align-items-center gap-2 rounded ' + (this.isTagShortcutActive(tag) ? 'active' : '')"
+                                            t-att-title="'Filter by tag: ' + tag.name"
+                                            t-on-click="() => this.toggleTagFilter(tag)">
+                                        <span class="o_usl_tag_color flex-shrink-0"
+                                              t-att-style="'--tag-color:' + tag.color"/>
+                                        <span class="text-truncate flex-grow-1"
+                                              t-esc="tag.name"/>
+                                        <span class="small opacity-75"
+                                              t-esc="tag.document_count || 0"/>
+                                    </button>
+                                    <div t-if="!tagShortcutResults.length"
+                                         class="small text-muted p-2">
+                                        No matching tags. Use the search bar to create a
+                                        structured Tags filter.
+                                    </div>
+                                </div>
+                                <div t-if="tagShortcutResults.length === 50"
+                                     class="small text-muted border-top mt-2 pt-2 px-2">
+                                    Showing the first 50 matches. Refine the search to find
+                                    another tag.
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </header>
+
+                <div t-if="state.operation" class="px-3 pt-3">
+                    <div t-att-class="'alert mb-0 ' + (state.operation.state === 'failed' ? 'alert-danger' : state.operation.state === 'archived' ? 'alert-success' : 'alert-info')">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <i t-att-class="'fa ' + (state.operation.state === 'failed' ? 'fa-times-circle' : state.operation.state === 'archived' ? 'fa-check-circle' : 'fa-circle-o-notch fa-spin')"/>
+                            <strong t-esc="state.operation.name"/>
+                            <span class="text-capitalize" t-esc="state.operation.state"/>
+                            <span t-if="state.operation.error" t-esc="state.operation.error"/>
+                        </div>
+                    </div>
+                </div>
+                <div t-if="state.failedOperations.length" class="px-3 pt-3">
+                    <div t-foreach="state.failedOperations" t-as="operation"
+                         t-key="operation.id"
+                         class="alert alert-warning mb-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <i class="fa fa-exclamation-triangle"/>
+                            <div class="flex-grow-1">
+                                <strong t-esc="operation.name"/>
+                                <div class="small" t-esc="operation.error || 'Archive processing needs review.'"/>
+                            </div>
+                            <label t-if="state.canUpload"
+                                   class="btn btn-sm btn-primary mb-0"
+                                   title="Choose the same file to retry safely. Its checksum prevents a duplicate archive item.">
+                                Choose file to retry
+                                <input type="file" class="d-none"
+                                       t-on-change="onFileChange"
+                                       t-att-disabled="state.uploading"/>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-link"
+                                    title="Hide this failed operation. The document is unchanged."
+                                    t-on-click="() => this.dismissOperation(operation)">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <section class="flex-grow-1 overflow-auto p-3"
+                         t-ref="documentList"
+                         t-att-class="state.dragged ? 'flex-grow-1 overflow-auto p-3 o_usl_documents_dragged' : 'flex-grow-1 overflow-auto p-3'"
+                         t-on-dragover="onDragOver" t-on-dragleave="onDragLeave"
+                         t-on-drop="onDrop">
+                    <div t-if="state.loading"
+                         class="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
+                        <i class="fa fa-circle-o-notch fa-spin fs-2 mb-3"/>
+                        <span>Finding your documents…</span>
+                    </div>
+                    <div t-elif="state.error"
+                         class="h-100 d-flex align-items-center justify-content-center">
+                        <div class="o_usl_documents_empty text-center">
+                            <i class="fa fa-plug fs-1 text-warning mb-3"/>
+                            <h4>Documents are temporarily unavailable</h4>
+                            <p class="text-muted" t-esc="state.error"/>
+                            <button class="btn btn-primary" type="button"
+                                    t-on-click="load">Try again</button>
+                        </div>
+                    </div>
+                    <div t-elif="!state.documents.length"
+                         class="h-100 d-flex align-items-center justify-content-center">
+                        <div class="o_usl_documents_empty text-center">
+                            <i class="fa fa-inbox fs-1 text-muted mb-3"/>
+                            <h4>No documents found</h4>
+                            <p class="text-muted" t-if="state.query || activeFilterCount">
+                                Try changing the search or filters.
+                            </p>
+                            <p class="text-muted" t-elif="state.canUpload">
+                                Drop a file here or upload one. Paperless will classify it.
+                            </p>
+                            <p class="text-muted" t-else="">
+                                No accessible documents match this view.
+                            </p>
+                            <button t-if="state.query || activeFilterCount"
+                                    class="btn btn-outline-primary" type="button"
+                                    t-on-click="clearAll">Clear search and filters</button>
+                        </div>
+                    </div>
+                    <t t-else="">
+                        <div t-if="state.truncated" class="alert alert-warning">
+                            There are more matches than can be shown safely. Add a filter
+                            to narrow the result.
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">
+                                <t t-esc="state.count"/> document<t t-if="state.count !== 1">s</t>
+                            </span>
+                            <span t-if="state.dragged"
+                                  class="badge text-bg-primary fs-6">Drop to upload</span>
+                        </div>
+                        <section t-foreach="documentGroups" t-as="documentGroup"
+                                 t-key="documentGroup.key"
+                                 class="o_usl_document_group mb-4">
+                            <h5 t-if="documentGroup.label"
+                                class="o_usl_document_group_title mb-2"
+                                t-esc="documentGroup.label"/>
+                        <div t-if="state.view === 'cards'" class="o_usl_documents_grid">
+                            <article t-foreach="documentGroup.documents" t-as="document"
+                                     t-key="document.id"
+                                     class="card o_usl_document_card shadow-sm"
+                                     role="button" tabindex="0"
+                                     t-att-aria-label="'Open ' + document.name"
+                                     t-on-click="() => this.select(document)"
+                                     t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
+                                <div class="o_usl_document_thumb">
+                                    <img t-if="document.availability_state === 'available' &amp;&amp; !document.access_error"
+                                         t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
+                                         alt="Document thumbnail"/>
+                                    <div t-else=""
+                                         class="o_usl_document_thumb_placeholder"
+                                         aria-hidden="true">
+                                        <i class="fa fa-file-text-o"/>
+                                    </div>
+                                    <span t-if="document.review_state === 'needs_attention'"
+                                          class="badge text-bg-warning">Needs review</span>
+                                    <span t-if="document.availability_state === 'trashed'"
+                                          class="badge text-bg-secondary">In Trash</span>
+                                    <span t-elif="document.availability_state !== 'available'"
+                                          class="badge text-bg-danger">Unavailable</span>
+                                    <span t-if="document.access_error"
+                                          class="badge text-bg-danger">Access needs attention</span>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title o_usl_document_title mb-1"
+                                        t-esc="document.name"/>
+                                    <div class="small text-muted text-truncate">
+                                        <t t-esc="document.correspondent || 'Unknown correspondent'"/>
+                                        <t t-if="document.document_type">
+                                            · <t t-esc="document.document_type"/>
+                                        </t>
+                                    </div>
+                                    <div t-if="document.tags.length"
+                                         class="d-flex flex-wrap gap-1 mt-2">
+                                        <button t-foreach="document.tags.slice(0, 3)"
+                                                t-as="tag" t-key="tag.id" type="button"
+                                                class="o_usl_tag_chip btn btn-sm"
+                                                t-att-style="'--tag-color:' + tag.color + ';--tag-text:' + tag.text_color"
+                                                t-on-click.stop="() => this.toggleTagFilter(tag)">
+                                            <span class="o_usl_tag_chip_label" t-esc="tag.name"/>
+                                        </button>
+                                        <span t-if="document.tags.length &gt; 3"
+                                              class="badge rounded-pill text-bg-light">
+                                            +<t t-esc="document.tags.length - 3"/>
+                                        </span>
+                                    </div>
+                                    <div class="small text-muted mt-3 d-flex justify-content-between gap-2">
+                                        <span t-esc="this.formatDocumentDate(document.date) || 'No date'"/>
+                                        <span t-if="document.primary_link"
+                                              class="text-truncate" style="max-width:55%">
+                                            <i class="fa fa-link me-1"/>
+                                            <t t-esc="document.primary_link.name"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                        <div t-else=""
+                             class="o_list_renderer table-responsive border rounded bg-white shadow-sm">
+                            <table class="o_list_table table table-sm table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('name')">
+                                            Document
+                                            <i t-att-class="sortIcon('name')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('document_date')">
+                                            Date
+                                            <i t-att-class="sortIcon('document_date')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('correspondent_id')">
+                                            Correspondent
+                                            <i t-att-class="sortIcon('correspondent_id')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('document_type_id')">
+                                            Type
+                                            <i t-att-class="sortIcon('document_type_id')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('company_id')">
+                                            Company
+                                            <i t-att-class="sortIcon('company_id')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('tag_sort_key')">
+                                            Tags
+                                            <i t-att-class="sortIcon('tag_sort_key')"/>
+                                        </th>
+                                        <th class="o_column_sortable"
+                                            t-on-click="() => this.sortDocuments('status_sort_key')">
+                                            Status
+                                            <i t-att-class="sortIcon('status_sort_key')"/>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="documentGroup.documents"
+                                        t-as="document" t-key="document.id"
+                                        class="o_data_row cursor-pointer"
+                                        tabindex="0"
+                                        t-on-click="() => this.select(document)"
+                                        t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                                <img t-if="document.availability_state === 'available' &amp;&amp; !document.access_error"
+                                                     t-att-src="'/usl_documents/' + document.id + '/thumbnail'"
+                                                     class="o_usl_document_list_thumb" alt=""/>
+                                                <span t-else=""
+                                                      class="o_usl_document_list_thumb o_usl_document_list_thumb_placeholder"
+                                                      aria-hidden="true">
+                                                    <i class="fa fa-file-text-o"/>
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <strong class="d-block text-truncate"
+                                                            t-esc="document.name"/>
+                                                    <small t-if="document.primary_link"
+                                                           class="d-block text-muted text-truncate">
+                                                        <i class="fa fa-link me-1"/>
+                                                        <t t-esc="document.primary_link.name"/>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-nowrap text-muted"
+                                            t-esc="this.formatDocumentDate(document.date) || '—'"/>
+                                        <td class="text-truncate"
+                                            t-esc="document.correspondent || '—'"/>
+                                        <td class="text-truncate"
+                                            t-esc="document.document_type || '—'"/>
+                                        <td class="text-truncate"
+                                            t-esc="document.company || '—'"/>
+                                        <td>
+                                            <div class="d-flex gap-1 o_usl_list_tags">
+                                                <span t-foreach="document.tags.slice(0, 2)"
+                                                      t-as="tag" t-key="tag.id"
+                                                      class="o_usl_tag_chip"
+                                                      t-att-style="'--tag-color:' + tag.color"
+                                                      t-esc="tag.name"/>
+                                                <span t-if="document.tags.length &gt; 2"
+                                                      class="badge rounded-pill text-bg-light">
+                                                    +<t t-esc="document.tags.length - 2"/>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span t-if="document.access_error"
+                                                  class="badge text-bg-danger">Access error</span>
+                                            <span t-elif="document.availability_state === 'trashed'"
+                                                  class="badge text-bg-secondary">In Trash</span>
+                                            <span t-elif="document.availability_state !== 'available'"
+                                                  class="badge text-bg-danger">Unavailable</span>
+                                            <span t-elif="document.review_state === 'needs_attention'"
+                                                  class="badge text-bg-warning">Needs review</span>
+                                            <span t-else="" class="badge text-bg-light">Ready</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        </section>
+                        <div class="d-flex justify-content-center mt-4">
+                            <Pager t-props="pagerProps"/>
+                        </div>
+                    </t>
+                </section>
+            </main>
+
+            <aside t-if="state.selected"
+                   class="o_usl_documents_detail border-start bg-white d-flex flex-column"
+                   aria-label="Document details">
+                <header class="p-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="min-w-0 flex-grow-1 me-3">
+                            <label t-if="state.selected.can_edit"
+                                   for="usl_document_title" class="visually-hidden">
+                                Document title
+                            </label>
+                            <input t-if="state.selected.can_edit"
+                                   id="usl_document_title"
+                                   class="o_input o_usl_detail_title_input"
+                                   type="text"
+                                   t-att-value="state.selected.name"
+                                   t-att-disabled="state.savingFields.name"
+                                   t-on-blur="saveTitle"
+                                   t-on-keydown="onTitleKeydown"/>
+                            <h3 t-else=""
+                                class="o_usl_detail_title text-break mb-1"
+                                t-esc="state.selected.name"/>
+                            <small class="text-muted">
+                                <t t-esc="state.selected.document_type || 'Unclassified'"/>
+                                <t t-if="state.selected.date">
+                                    · <t t-esc="selectedDocumentDateDisplay"/>
+                                </t>
+                            </small>
+                            <span t-if="state.savingFields.name"
+                                  class="small text-muted ms-2" role="status">
+                                <i class="fa fa-spinner fa-spin me-1"/>Saving…
+                            </span>
+                        </div>
+                        <button class="btn-close flex-shrink-0" type="button"
+                                t-on-click="closeDetail" aria-label="Close"/>
+                    </div>
+                    <nav t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; (state.selected.archive_available !== false || state.selected.paperless_url)"
+                         class="o_usl_detail_header_actions d-flex flex-wrap gap-2 mt-2"
+                         aria-label="Document links">
+                        <a t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
+                           t-att-href="state.selected.preview_url"
+                           target="_blank" rel="noopener noreferrer"
+                           class="btn btn-sm btn-light border"
+                           data-testid="document-open-preview"
+                           aria-label="Open document preview in a new tab"
+                           title="Open the authorized document preview in a new tab.">
+                            <i class="fa fa-eye me-1" aria-hidden="true"/>Open Preview
+                        </a>
+                        <a t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.paperless_url"
+                           t-att-href="state.selected.paperless_url"
+                           target="_blank" rel="noopener noreferrer"
+                           class="btn btn-sm btn-light border"
+                           data-testid="document-open-paperless"
+                           aria-label="Open document in Paperless in a new tab"
+                           title="Open advanced document tools in Paperless.">
+                            <i class="fa fa-external-link me-1" aria-hidden="true"/>Open in Paperless
+                        </a>
+                    </nav>
+                </header>
+                <div class="flex-grow-1 overflow-auto">
+                    <div t-if="state.selected.review_state !== 'reviewed'"
+                         t-att-class="'alert m-3 mb-0 o_usl_review_banner ' + (state.selected.review_state === 'needs_attention' ? 'alert-warning' : 'alert-info')">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="flex-grow-1">
+                                <strong t-if="state.selected.review_state === 'needs_attention'">
+                                    Review this document
+                                </strong>
+                                <strong t-else="">Ready for review</strong>
+                                <div t-if="state.selected.review_blocker"
+                                     class="small mt-1"
+                                     t-esc="state.selected.review_blocker"/>
+                                <div t-else="" class="small mt-1">
+                                    Check the company, classification, and linked records,
+                                    then confirm the review.
+                                </div>
+                                <div t-if="!state.selected.can_manage"
+                                     class="small mt-1 text-muted">
+                                    A Documents manager can complete the review.
+                                </div>
+                            </div>
+                            <button t-if="state.selected.can_manage"
+                                    type="button"
+                                    class="btn btn-sm btn-primary text-nowrap"
+                                    t-att-disabled="state.reviewing || !state.selected.can_mark_reviewed"
+                                    t-att-title="state.selected.review_blocker || 'Confirm that this document has been reviewed'"
+                                    t-on-click="markReviewed">
+                                <i t-if="state.reviewing"
+                                   class="fa fa-circle-o-notch fa-spin me-1"/>
+                                <i t-else="" class="fa fa-check me-1"/>
+                                Mark reviewed
+                            </button>
+                        </div>
+                    </div>
+                    <div t-if="state.selected.archive_available === false"
+                         class="alert alert-warning m-3 mb-0">
+                        <strong>Archive temporarily unavailable.</strong>
+                        <div class="mb-2">
+                            Preview and downloads will return when Paperless is
+                            available. Odoo links and business records are unaffected.
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-dark"
+                                title="Try to load this document from Paperless again."
+                                t-on-click="retryDocumentDetail">
+                            <i class="fa fa-refresh me-1"/>Try again
+                        </button>
+                    </div>
+                    <div t-if="state.selected.access_error"
+                         class="alert alert-danger m-3 mb-0">
+                        <strong>Document access needs attention.</strong>
+                        <div>The file is blocked until an administrator synchronizes its archive permissions.</div>
+                    </div>
+                    <DocumentPreview t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error &amp;&amp; state.selected.archive_available !== false"
+                                     url="state.selected.preview_url"
+                                     versionId="state.selected.selected_version_id || currentVersion?.paperless_version_id || ''"/>
+                    <div t-elif="state.selected.availability_state === 'trashed'"
+                         class="alert alert-secondary m-3">
+                        <strong>In Trash</strong>
+                        <p class="mb-2">
+                            The archived file is hidden from normal results. Its Odoo
+                            links are preserved.
+                        </p>
+                        <button t-if="state.selected.can_restore"
+                                type="button" class="btn btn-sm btn-primary"
+                                title="Restore this archived document and keep all Odoo links."
+                                t-on-click="restoreFromTrash">
+                            <i class="fa fa-undo me-1"/>Restore document
+                        </button>
+                    </div>
+                    <div t-else="" class="alert alert-warning m-3">
+                        Preview is unavailable. Its classification and links remain visible.
+                    </div>
+
+                    <section class="p-3">
+                        <div t-if="isSavingMetadata &amp;&amp; !state.savingFields.name"
+                             class="small text-muted text-end mb-2" role="status">
+                            <i class="fa fa-spinner fa-spin me-1"/>Saving…
+                        </div>
+                        <div class="o_usl_inline_metadata">
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_type"
+                                       class="small fw-semibold">Document type</label>
+                                <Many2One t-props="documentTypeProps"/>
+                            </div>
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_correspondent"
+                                       class="small fw-semibold">Correspondent</label>
+                                <Many2One t-props="correspondentProps"/>
+                            </div>
+                            <div class="o_usl_inline_field">
+                                <label for="usl_document_date"
+                                       class="small fw-semibold">Document date</label>
+                                <DateTimeInput
+                                    t-if="!state.selectedLoading"
+                                    t-key="'document-date-' + state.selected.id + '-' + (state.selected.can_edit ? 'editable' : 'readonly')"
+                                    id="'usl_document_date'"
+                                    type="'date'"
+                                    format="'dd/MM/yyyy'"
+                                    value="documentDateValue"
+                                    disabled="!state.selected.can_edit || state.savingFields.document_date"
+                                    placeholder="'Choose a date…'"
+                                    onApply.bind="saveDocumentDate"/>
+                                <span t-else=""
+                                      class="o_usl_readonly_value"
+                                      t-esc="selectedDocumentDateDisplay || 'Loading…'"/>
+                            </div>
+                            <div class="o_usl_inline_field">
+                                <label t-if="state.selected.can_change_company"
+                                       for="usl_document_company"
+                                       class="small fw-semibold">Company</label>
+                                <span t-else="" class="small fw-semibold">Company</span>
+                                <Many2One t-if="state.selected.can_change_company"
+                                          t-props="companyProps"/>
+                                <span t-else=""
+                                      class="o_usl_readonly_value"
+                                      t-esc="state.selected.company || 'Needs review'"/>
+                            </div>
+                        </div>
+                        <div class="o_usl_detail_tags mt-3">
+                            <label class="form-label small fw-semibold mb-2">Tags</label>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span t-foreach="state.selected.tags" t-as="tag"
+                                      t-key="tag.id"
+                                      class="o_usl_tag_chip d-inline-flex align-items-center"
+                                      t-att-style="'--tag-color:' + tag.color">
+                                    <span t-esc="tag.name"/>
+                                    <button t-if="state.selected.can_edit"
+                                            type="button"
+                                            class="o_usl_tag_remove btn p-0 ms-1"
+                                            t-att-aria-label="'Remove tag ' + tag.name"
+                                            t-att-title="'Remove ' + tag.name"
+                                            t-on-click="() => this.removeSelectedTag(tag.id)">
+                                        <i class="fa fa-times"/>
+                                    </button>
+                                </span>
+                            </div>
+                            <div t-if="state.selected.can_edit"
+                                 class="o_usl_tag_autocomplete mt-2">
+                                <Many2XAutocomplete t-props="tagAutocompleteProps"/>
+                            </div>
+                            <div t-if="!state.selected.tags.length &amp;&amp; !state.selected.can_edit"
+                                 class="small text-muted mt-2">
+                                No tags assigned.
+                            </div>
+                        </div>
+                        <div t-if="state.selected.custom_fields?.length"
+                             class="mt-3">
+                            <label class="form-label small fw-semibold mb-2">
+                                Additional details
+                            </label>
+                            <dl class="row small mb-0">
+                                <t t-foreach="state.selected.custom_fields"
+                                   t-as="field" t-key="field.id">
+                                    <dt class="col-5" t-esc="field.name"/>
+                                    <dd class="col-7 text-break"
+                                        t-esc="field.value === null || field.value === '' ? 'Not set' : field.value"/>
+                                </t>
+                            </dl>
+                        </div>
+                    </section>
+
+                    <section class="border-top p-3">
+                        <h6>Linked records</h6>
+                        <div t-if="state.selected.links?.length" class="list-group">
+                            <button t-foreach="state.selected.links" t-as="link"
+                                    t-key="link.id" type="button"
+                                    class="list-group-item list-group-item-action"
+                                    t-on-click="() => this.openLink(link)">
+                                <strong t-esc="link.record_name"/>
+                                <small class="d-block text-muted"
+                                       t-esc="link.model_label"/>
+                                <small t-if="link.version_id" class="d-block text-muted">
+                                    Evidence file: <t t-esc="link.version_label"/>
+                                </small>
+                            </button>
+                        </div>
+                        <div t-else="" class="small text-muted">
+                            This document is not linked to an Odoo record yet.
+                        </div>
+                    </section>
+                    <section t-if="state.selected.availability_state === 'trashed'"
+                             class="border-top p-3">
+                        <h6>Trash and retention</h6>
+                        <p class="small mb-1">
+                            This archive item keeps the same identity and Odoo links
+                            while it is in Trash.
+                        </p>
+                        <dl class="row small mb-2">
+                            <dt class="col-4">Moved by</dt>
+                            <dd class="col-8" t-esc="state.selected.trashed_by"/>
+                            <dt class="col-4">Moved on</dt>
+                            <dd class="col-8"
+                                t-esc="state.selected.trashed_at || 'Not reported'"/>
+                        </dl>
+                        <p t-if="state.selected.retention_hold"
+                           class="small text-warning mb-1">
+                            A retention hold prevents permanent deletion.
+                        </p>
+                        <p t-elif="state.selected.retention_until"
+                           class="small text-muted mb-0">
+                            Retained until <t t-esc="state.selected.retention_until"/>.
+                        </p>
+                    </section>
+
+                    <section class="o_usl_detail_section border-top p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="mb-0">File versions</h6>
+                            <span t-if="state.selected.versions?.length"
+                                  class="badge rounded-pill text-bg-light"
+                                  t-esc="state.selected.versions.length"/>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            The current file is shown below. Replacing or restoring a file
+                            keeps the complete history.
+                        </p>
+                        <div t-if="currentVersion"
+                             t-att-class="'list-group-item rounded ' + (!state.selected.selected_version_id || state.selected.selected_version_id === currentVersion.paperless_version_id ? 'border-primary' : '')">
+                            <button type="button"
+                                    class="btn btn-link text-start text-decoration-none p-0 w-100"
+                                    t-on-click="() => this.selectVersion(currentVersion)">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <strong class="text-body"
+                                            t-esc="currentVersion.label || 'Current file'"/>
+                                    <span>
+                                        <span class="badge text-bg-primary">Current</span>
+                                        <span t-if="currentVersion.is_received_original"
+                                              class="badge text-bg-secondary ms-1">
+                                            Received original
+                                        </span>
+                                    </span>
+                                </div>
+                                <small class="d-block text-muted text-truncate"
+                                       t-esc="currentVersion.filename || 'Document file'"/>
+                                <small t-if="currentVersion.submitted_by"
+                                       class="d-block text-muted">
+                                    Added by <t t-esc="currentVersion.submitted_by"/>
+                                </small>
+                            </button>
+                            <div t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
+                                 class="mt-2 d-flex flex-wrap gap-2">
+                                <a t-att-href="currentVersion.original_url"
+                                   class="btn btn-sm btn-outline-primary">Download</a>
+                                <a t-att-href="currentVersion.archive_url"
+                                   class="btn btn-sm btn-link text-decoration-none"
+                                   title="Download Paperless's processed copy. The original is unchanged.">
+                                    Searchable PDF
+                                </a>
+                            </div>
+                        </div>
+                        <div t-elif="state.selected.availability_state === 'available'"
+                             class="small text-muted">
+                            File history is being synchronized.
+                        </div>
+                        <details t-if="earlierVersions.length" class="mt-3">
+                            <summary class="fw-semibold">
+                                Earlier versions (<t t-esc="earlierVersions.length"/>)
+                            </summary>
+                            <div class="list-group mt-2">
+                                <div t-foreach="earlierVersions" t-as="version"
+                                     t-key="version.id"
+                                     t-att-class="'list-group-item ' + (state.selected.selected_version_id === version.paperless_version_id ? 'border-primary' : '')">
+                                    <button type="button"
+                                            class="btn btn-link text-start text-decoration-none p-0 w-100"
+                                            t-on-click="() => this.selectVersion(version)">
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <strong class="text-body" t-esc="version.label"/>
+                                            <span t-if="version.is_received_original"
+                                                  class="badge text-bg-secondary">
+                                                Received original
+                                            </span>
+                                        </div>
+                                        <small class="d-block text-muted text-truncate"
+                                               t-esc="version.filename || 'Document file'"/>
+                                        <small t-if="version.submitted_by"
+                                               class="d-block text-muted">
+                                            Added by <t t-esc="version.submitted_by"/>
+                                        </small>
+                                    </button>
+                                    <div t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
+                                         class="mt-2 d-flex flex-wrap gap-2">
+                                        <a t-att-href="version.original_url"
+                                           class="btn btn-sm btn-outline-primary">Download</a>
+                                        <a t-att-href="version.archive_url"
+                                           class="btn btn-sm btn-link text-decoration-none"
+                                           title="Download Paperless's processed copy. The original is unchanged.">
+                                            Searchable PDF
+                                        </a>
+                                        <button t-if="state.selected.can_edit"
+                                                type="button"
+                                                class="btn btn-sm btn-link text-decoration-none"
+                                                title="Makes this file current as a new version. Nothing is deleted."
+                                                t-on-click="() => this.restoreVersion(version)">
+                                            Restore as current
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </section>
+
+                    <details t-if="state.selected.can_manage"
+                             class="o_usl_detail_section border-top p-3">
+                        <summary class="small text-muted">Technical details</summary>
+                        <dl class="row small mt-3 mb-0">
+                            <dt class="col-5">Paperless ID</dt>
+                            <dd class="col-7" t-esc="state.selected.paperless_id"/>
+                            <dt class="col-5">Source</dt>
+                            <dd class="col-7" t-esc="state.selected.source"/>
+                            <dt class="col-5">Filename</dt>
+                            <dd class="col-7 text-break" t-esc="state.selected.filename"/>
+                            <dt class="col-5">Checksum</dt>
+                            <dd class="col-7 text-break font-monospace"
+                                t-esc="state.selected.checksum"/>
+                            <dt class="col-5">Access checked</dt>
+                            <dd class="col-7"
+                                t-esc="state.selected.permission_checked_at || 'Not yet checked'"/>
+                        </dl>
+                    </details>
+                    <div t-if="state.selectedLoading" class="text-center text-muted p-3">
+                        <i class="fa fa-circle-o-notch fa-spin me-2"/>
+                        Loading document details…
+                    </div>
+                </div>
+
+                <footer class="p-3 border-top">
+                    <div class="d-flex gap-2">
+                        <a t-if="state.selected.availability_state === 'available' &amp;&amp; !state.selected.access_error"
+                           t-att-href="'/usl_documents/' + state.selected.id + '/download?original=1'"
+                           class="btn btn-primary flex-grow-1"
+                           title="Download the file that was received or uploaded.">
+                            <i class="fa fa-download me-1"/>Download original
+                        </a>
+                        <details t-if="state.selected.availability_state === 'available'"
+                                 class="o_usl_action_menu">
+                            <summary class="btn btn-outline-secondary"
+                                     title="More document actions">
+                                More <i class="fa fa-caret-down ms-1"/>
+                            </summary>
+                            <div class="o_usl_action_menu_items shadow border rounded bg-white">
+                                <a t-if="!state.selected.access_error"
+                                   t-att-href="'/usl_documents/' + state.selected.id + '/download?original=0'"
+                                   class="dropdown-item"
+                                   title="Download Paperless's processed copy. The original is unchanged.">
+                                    <i class="fa fa-file-pdf-o me-2"/>Download searchable PDF
+                                </a>
+                                <label t-if="state.selected.can_edit &amp;&amp; !state.selected.access_error"
+                                       class="dropdown-item mb-0"
+                                       title="Adds a new current file. Earlier versions remain available.">
+                                    <i class="fa fa-files-o me-2"/>Upload new version
+                                    <input type="file" class="d-none"
+                                           t-on-change="onVersionFileChange"
+                                           t-att-disabled="state.uploading"/>
+                                </label>
+                                <button t-if="state.selected.can_trash"
+                                        type="button"
+                                        class="dropdown-item text-danger"
+                                        title="Move this document to Trash without removing its Odoo links."
+                                        t-on-click="moveToTrash">
+                                    <i class="fa fa-trash-o me-2"/>Move to Trash
+                                </button>
+                                <button t-if="state.selected.can_manage" type="button"
+                                        class="dropdown-item"
+                                        t-on-click="() => this.openRecord(state.selected)">
+                                    <i class="fa fa-wrench me-2"/>Open technical record
+                                </button>
+                            </div>
+                        </details>
+                        <button t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_restore"
+                                type="button" class="btn btn-primary flex-grow-1"
+                                title="Restore this archived document and keep all Odoo links."
+                                t-on-click="restoreFromTrash">
+                            <i class="fa fa-undo me-1"/>Restore document
+                        </button>
+                        <button t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_manage"
+                                type="button"
+                                class="btn btn-outline-danger"
+                                t-att-disabled="state.selected.permanent_delete_blocker"
+                                t-att-title="state.selected.permanent_delete_blocker || 'Permanently delete from Paperless'"
+                                t-on-click="requestPermanentDelete">
+                            <i class="fa fa-trash me-1"/>Delete permanently
+                        </button>
+                    </div>
+                    <div t-if="state.selected.availability_state === 'trashed' &amp;&amp; state.selected.can_manage &amp;&amp; state.selected.permanent_delete_blocker"
+                         class="small text-muted mt-2"
+                         t-esc="state.selected.permanent_delete_blocker"/>
+                    <button t-if="recordContext &amp;&amp; state.selected.can_change_links &amp;&amp; state.selected.availability_state === 'available' &amp;&amp; !this.isLinkedToCurrent()"
+                            type="button" class="btn btn-success w-100 mt-2"
+                            title="Link this archived document to the current Odoo record."
+                            t-on-click="() => this.linkSelected()">
+                        <i class="fa fa-link me-1"/>Link to this record
+                    </button>
+                    <button t-if="recordContext &amp;&amp; state.selected.can_change_links &amp;&amp; this.isLinkedToCurrent()"
+                            type="button" class="btn btn-link text-danger w-100 mt-2"
+                            title="Remove this Odoo link without deleting the archived document."
+                            t-on-click="() => this.unlinkCurrent()">
+                        Remove link from this record
+                    </button>
+                </footer>
+            </aside>
+        </div>
+    </t>
+</templates>

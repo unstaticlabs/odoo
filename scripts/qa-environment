@@ -1,0 +1,263 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+# shellcheck source=lib/compose-scope.sh
+source "$ROOT/scripts/lib/compose-scope.sh"
+# shellcheck source=lib/cli-ui.sh
+source "$ROOT/scripts/lib/cli-ui.sh"
+
+profile="${1:-${PROFILE:-full}}"
+case "$profile" in
+  full|no-documents|documents-smoke|clean-install) ;;
+  *)
+    printf 'QA profile must be full, no-documents, documents-smoke, or clean-install.\n' >&2
+    exit 2
+    ;;
+esac
+
+root_hash="$(printf '%s' "$ROOT" | shasum -a 256 | cut -c 1-8)"
+common_git_dir="$(git rev-parse --path-format=absolute --git-common-dir)"
+main_checkout="$(cd "$(dirname "$common_git_dir")" && pwd -P)"
+export USL_ONLINE_DUMP_DIR="${USL_ONLINE_DUMP_DIR:-$main_checkout/usl-online-dump}"
+port_seed="$(printf '%s' "$ROOT" | cksum)"
+port_seed="${port_seed%% *}"
+port_base=$((24000 + port_seed % 12000))
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-usl-odoo-qa-$root_hash}"
+export ODOO_HTTP_PORT="${ODOO_HTTP_PORT:-$port_base}"
+export ODOO_GEVENT_PORT="${ODOO_GEVENT_PORT:-$((port_base + 1))}"
+export POCKET_ID_HTTP_PORT="${POCKET_ID_HTTP_PORT:-$((port_base + 2))}"
+export PAPERLESS_HTTP_PORT="${PAPERLESS_HTTP_PORT:-$((port_base + 3))}"
+export ODOO_DEV_DB=odoo_dev
+export ODOO_DB_NAME=odoo_dev
+export USL_DEPLOYMENT_ENV=qa
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+export PAPERLESS_PUBLIC_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$PAPERLESS_HTTP_PORT}"
+export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}"
+export POCKET_ID_ENV_FILE="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id-qa-$root_hash.env}"
+export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME"
+export USL_POCKET_ID_DEV_ODOO_DB=odoo_dev
+export USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_HTTP_PORT"
+export USL_POCKET_ID_DEV_GEVENT_PORT="$ODOO_GEVENT_PORT"
+export USL_POCKET_ID_DEV_POCKET_PORT="$POCKET_ID_HTTP_PORT"
+export USL_POCKET_ID_DEV_PAPERLESS_PORT="$PAPERLESS_HTTP_PORT"
+export USL_POCKET_ID_DEV_PAPERLESS_URL="$PAPERLESS_PUBLIC_URL"
+export COMPOSE_IGNORE_ORPHANS=1
+requested_project="$COMPOSE_PROJECT_NAME"
+requested_odoo_port="$ODOO_HTTP_PORT"
+requested_gevent_port="$ODOO_GEVENT_PORT"
+requested_pocket_port="$POCKET_ID_HTTP_PORT"
+requested_paperless_port="$PAPERLESS_HTTP_PORT"
+requested_odoo_image="$ODOO_IMAGE"
+
+case "$COMPOSE_PROJECT_NAME" in
+  usl-odoo-qa-?*) ;;
+  *)
+    printf 'QA provisioning requires an isolated usl-odoo-qa-* Compose project.\n' >&2
+    exit 2
+    ;;
+esac
+usl_verify_compose_scope "$COMPOSE_PROJECT_NAME" "$ROOT" "QA provisioning"
+
+scripts/pocket-id-dev bootstrap >/dev/null
+set -a
+# shellcheck disable=SC1090
+source "$POCKET_ID_ENV_FILE"
+set +a
+# Environment identity files own secrets, while this invocation owns scope.
+export COMPOSE_PROJECT_NAME="$requested_project"
+export ODOO_HTTP_PORT="$requested_odoo_port"
+export ODOO_GEVENT_PORT="$requested_gevent_port"
+export POCKET_ID_HTTP_PORT="$requested_pocket_port"
+export PAPERLESS_HTTP_PORT="$requested_paperless_port"
+export ODOO_IMAGE="$requested_odoo_image"
+export PAPERLESS_PUBLIC_URL="http://paperless.localhost:$PAPERLESS_HTTP_PORT"
+compose=(
+  docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$POCKET_ID_ENV_FILE"
+  -f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml"
+)
+
+timing_dir="$ROOT/artifacts/migration/private/qa-runs"
+mkdir -p "$timing_dir"
+timing_file="$timing_dir/${COMPOSE_PROJECT_NAME}-$(date -u +%Y%m%dT%H%M%SZ).tsv"
+report_file="${timing_file%.tsv}.json"
+run_started="$(date +%s)"
+cache_result="not-applicable"
+: > "$timing_file"
+
+stage() {
+  local name="$1" started finished status
+  shift
+  printf '\n[%s] %s\n' "$(($(wc -l < "$timing_file") + 1))" "$name"
+  started="$(date +%s)"
+  set +e
+  (set -e; "$@")
+  status=$?
+  set -e
+  finished="$(date +%s)"
+  printf '%s\t%s\t%s\n' "$name" "$((finished - started))" "$status" >> "$timing_file"
+  return "$status"
+}
+
+write_report() {
+  local outcome="$1"
+  python3 - "$timing_file" "$report_file" "$profile" "$COMPOSE_PROJECT_NAME" "$run_started" "$outcome" "${qa_seed_manifest:-}" "$cache_result" <<'PY'
+import json
+import sys
+import time
+from pathlib import Path
+
+timings = []
+for row in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
+    name, duration, status = row.split("\t")
+    timings.append({"duration_seconds": int(duration), "name": name, "status": int(status)})
+payload = {
+    "cache": sys.argv[8],
+    "compose_project": sys.argv[4],
+    "duration_seconds": int(time.time()) - int(sys.argv[5]),
+    "outcome": sys.argv[6],
+    "profile": sys.argv[3],
+    "stages": timings,
+    "validation_level": "cached-full" if sys.argv[3] == "full" else "partial",
+}
+if sys.argv[7]:
+    manifest = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8"))
+    payload.update({
+        "downloaded_bytes": sum(item["size"] for item in manifest["artifacts"].values()),
+        "ocr_submissions": 0,
+        "reused_document_roots": manifest["qualification"]["paperless_documents"],
+        "seed_fingerprint": manifest["fingerprint"],
+    })
+Path(sys.argv[2]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+}
+trap 'write_report failed' EXIT
+
+reset_project() {
+  local unsafe
+  usl_compose_scope_scan "$COMPOSE_PROJECT_NAME" "$ROOT"
+  unsafe="$(usl_compose_active_unsafe_resources || true)"
+  if [[ -n "$unsafe" ]]; then
+    printf 'A one-shot QA or migration operation is active; refusing reset:\n%s\n' \
+      "$(usl_format_compose_resources "$unsafe")" >&2
+    return 2
+  fi
+  "${compose[@]}" --profile paperless down --volumes --remove-orphans
+}
+
+product_modules='rebuild_account_migration,usl_accounting,usl_documents,usl_documents_accounting,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
+
+verify_seed() {
+  local runtime_json
+  runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.XXXXXX.json")"
+  scripts/qa-seed runtime "$runtime_json"
+  if ! scripts/qa_seed.py verify \
+    --root "$ROOT" --seed-dir "$qa_seed_dir" \
+    --source-dump "${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}/dump.sql" \
+    --runtime-json "$runtime_json" >/dev/null; then
+    rm -f "$runtime_json"
+    printf '\nBlocked: the shared QA seed is incompatible with this source or runtime.\n' >&2
+    printf 'No containers or data volumes were changed.\n' >&2
+    printf 'Next step (main checkout): make qa-cache-refresh\n' >&2
+    return 2
+  fi
+  rm -f "$runtime_json"
+}
+
+hydrate_seed() {
+  local odoo_volume paperless_export_volume
+
+  "${compose[@]}" up -d --wait db
+  "${compose[@]}" exec -T db createdb -U odoo odoo_dev
+  "${compose[@]}" exec -T db pg_restore -U odoo -d odoo_dev \
+    --no-owner --no-privileges < "$qa_seed_dir/odoo.dump"
+
+  odoo_volume="${COMPOSE_PROJECT_NAME}_odoo-data"
+  docker volume create \
+    --label "com.docker.compose.project=$COMPOSE_PROJECT_NAME" \
+    --label com.docker.compose.volume=odoo-data \
+    "$odoo_volume" >/dev/null
+  docker run --rm \
+    -v "$odoo_volume:/target" -v "$qa_seed_dir:/seed:ro" alpine:3.24.1 \
+    sh -ec 'mkdir -p /target/filestore && tar -C /target/filestore -xzf /seed/odoo-filestore.tgz'
+
+  paperless_export_volume="${COMPOSE_PROJECT_NAME}_paperless-export"
+  docker volume create \
+    --label "com.docker.compose.project=$COMPOSE_PROJECT_NAME" \
+    --label com.docker.compose.volume=paperless-export \
+    "$paperless_export_volume" >/dev/null
+  docker run --rm \
+    -v "$paperless_export_volume:/export" -v "$qa_seed_dir/paperless-export:/seed:ro" \
+    alpine:3.24.1 sh -ec 'mkdir -p /export/qa-seed && cp -a /seed/. /export/qa-seed/'
+  "${compose[@]}" --profile paperless up -d --wait paperless-webserver
+  "${compose[@]}" stop paperless-webserver
+  "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
+    document_importer --no-progress-bar /usr/src/paperless/export/qa-seed
+  "${compose[@]}" --profile paperless up -d --wait paperless-webserver
+  "${compose[@]}" exec -T paperless-webserver python manage.py document_sanity_checker
+}
+
+clean_install() {
+  "${compose[@]}" up -d --wait db
+  "${compose[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev init-db odoo \
+    --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    --init="$product_modules" --without-demo=true --stop-after-init --log-level=warn
+  "${compose[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/qa_clean_install_company.py"
+  USL_QA_DATA_PROFILE=clean-install \
+    scripts/pocket-id-dev configure-odoo "$product_modules"
+  "${compose[@]}" stop odoo
+  "${compose[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev -e USL_PLATFORM_BILLING_QA_BOOTSTRAP=1 \
+    init-db odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/platform_billing_qa_bootstrap.py"
+  "${compose[@]}" up -d --wait odoo
+  scripts/odoo-dev disable-tours
+  scripts/check-product-migration-boundary
+  scripts/check-product-database-boundary
+}
+
+usl_cli_title "provision isolated QA target"
+printf '  Profile:  %s\n  Project:  %s\n  Database: odoo_dev\n' "$profile" "$COMPOSE_PROJECT_NAME"
+if [[ "$profile" == full ]]; then
+  cache_result="miss"
+  if ! qa_seed_dir="$(scripts/qa-seed path)"; then
+    printf '\nBlocked: no qualified QA seed is available.\n' >&2
+    printf 'No containers or data volumes were changed.\n' >&2
+    printf 'Next step (main checkout): make qa-cache-refresh\n' >&2
+    exit 2
+  fi
+  qa_seed_manifest="$qa_seed_dir/manifest.json"
+  stage "verify qualified seed (read only)" verify_seed
+  cache_result="hit"
+fi
+stage "reset isolated QA project" reset_project
+case "$profile" in
+  full)
+    stage "hydrate qualified seed" hydrate_seed
+    stage "upgrade and finalize current branch" \
+      env USL_QA_DATA_PROFILE=full scripts/target-finalize
+    ;;
+  no-documents|documents-smoke)
+    stage "source reconstruction ($profile)" \
+      env USL_QA_DATA_PROFILE="$profile" scripts/target-reconstruct
+    ;;
+  clean-install)
+    stage "clean product installation" clean_install
+    ;;
+esac
+
+write_report passed
+trap - EXIT
+printf '\nQA target ready (%s)\n' "$profile"
+printf '  Odoo:     http://odoo.localhost:%s/web/login?db=odoo_dev\n' "$ODOO_HTTP_PORT"
+if [[ "$profile" != no-documents ]]; then
+  printf '  Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
+fi
+printf '  Evidence: %s\n' "$report_file"
+printf '  Login:    POCKET_ID_ENV_FILE=%s make login-link USER=valentin\n' "$POCKET_ID_ENV_FILE"

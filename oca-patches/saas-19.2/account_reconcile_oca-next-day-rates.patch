@@ -1,0 +1,61 @@
+diff --git a/account_reconcile_oca/tests/test_bank_account_reconcile.py b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+--- a/account_reconcile_oca/tests/test_bank_account_reconcile.py
++++ b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+@@ -164,7 +164,7 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+         self.env["res.currency.rate"].create(
+             {
+                 "currency_id": self.env.ref("base.USD").id,
+-                "name": time.strftime("%Y-07-15"),
++                "name": time.strftime("%Y-07-14"),
+                 "rate": 2,
+             }
+         )
+@@ -1133,13 +1133,13 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+         self.env["res.currency.rate"].create(
+             {
+-                "name": time.strftime("%Y-09-10"),
++                "name": time.strftime("%Y-09-09"),
+                 "currency_id": cny.id,
+                 "inverse_company_rate": 0.125989013758,
+             }
+         )
+         self.env["res.currency.rate"].create(
+             {
+-                "name": time.strftime("%Y-09-09"),
++                "name": time.strftime("%Y-09-08"),
+                 "currency_id": cny.id,
+                 "inverse_company_rate": 0.126225969731,
+             }
+@@ -1304,14 +1304,14 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+         self.env["res.currency.rate"].create(
+             {
+                 "currency_id": self.env.ref("base.USD").id,
+-                "name": time.strftime("%Y-07-14"),
++                "name": time.strftime("%Y-07-13"),
+                 "rate": 1.15,
+             }
+         )
+         self.env["res.currency.rate"].create(
+             {
+                 "currency_id": self.env.ref("base.USD").id,
+-                "name": time.strftime("%Y-07-15"),
++                "name": time.strftime("%Y-07-14"),
+                 "rate": 1.2,
+             }
+         )
+@@ -1337,12 +1337,12 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+                 "date": time.strftime("%Y-07-16"),
+             }
+         )
+-        # rate of 07-16 is create after the statement line, meaning the rate of the
+-        # statement line is the one of the 07-15
++        # SaaS rates are effective the day after their date. Create the effective
++        # 07-16 rate after the statement line to simulate a late update.
+         self.env["res.currency.rate"].create(
+             {
+                 "currency_id": self.env.ref("base.USD").id,
+-                "name": time.strftime("%Y-07-16"),
++                "name": time.strftime("%Y-07-15"),
+                 "rate": 1.25,
+             }
+         )

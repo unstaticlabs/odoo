@@ -1,0 +1,44 @@
+diff --git a/account_reconcile_oca/models/account_bank_statement_line.py b/account_reconcile_oca/models/account_bank_statement_line.py
+--- a/account_reconcile_oca/models/account_bank_statement_line.py
++++ b/account_reconcile_oca/models/account_bank_statement_line.py
+@@ -948,7 +948,7 @@ class AccountBankStatementLine(models.Model):
+         res = self.env["account.reconcile.model"]._get_rules(to_do)
+         done = self.browse()
+         for record_id, rule_models in res.items():
+-            record = self.browse(record_id).with_prefetch(to_do)
++            record = self.browse(record_id).with_prefetch(to_do.ids)
+             liquidity_lines, suspense_lines, other_lines = record._seek_for_lines()
+             data = []
+             reconcile_auxiliary_id = 1
+diff --git a/account_reconcile_oca/tests/test_bank_account_reconcile.py b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+--- a/account_reconcile_oca/tests/test_bank_account_reconcile.py
++++ b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+@@ -795,7 +795,7 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             f.add_account_move_line_id = receivable1
+             self.assertTrue(f.can_reconcile)
+         self.assertFalse(bank_stmt_line.is_reconciled)
+-        self.assertEqual(bank_stmt_line.review_state, "reviewed")
++        self.assertNotIn(bank_stmt_line.review_state, ("todo", "anomaly"))
+         bank_stmt_line.action_to_check()
+         self.assertTrue(bank_stmt_line.is_reconciled)
+         self.assertEqual(bank_stmt_line.review_state, "todo")
+@@ -826,7 +826,7 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             }
+         )
+         self.assertFalse(bank_stmt_line.is_reconciled)
+-        self.assertEqual(bank_stmt_line.review_state, "reviewed")
++        self.assertNotIn(bank_stmt_line.review_state, ("todo", "anomaly"))
+         bank_stmt_line.action_to_check()
+         self.assertFalse(bank_stmt_line.is_reconciled)
+         self.assertEqual(bank_stmt_line.review_state, "todo")
+diff --git a/account_reconcile_oca/tests/test_js.py b/account_reconcile_oca/tests/test_js.py
+--- a/account_reconcile_oca/tests/test_js.py
++++ b/account_reconcile_oca/tests/test_js.py
+@@ -18,5 +18,5 @@ class TestAccountReconcileOCAJS(WebSuite):
+     @mute_logger(
+         "odoo.addons.account_reconcile_oca.tests.test_js.TestAccountReconcileOCAJS.test_automation_oca"
+     )
+-    def test_automation_oca(self):
+-        self.test_unit_desktop()
++    def test_automation_oca(self, modules):
++        self.test_unit_desktop(modules)

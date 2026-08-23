@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC_DIR="${ROOT_DIR}/oca-src"
+ADDONS_DIR="${ROOT_DIR}/oca-addons"
+PATCH_DIR="${ROOT_DIR}/oca-patches/saas-19.2"
+
+mkdir -p "${SRC_DIR}" "${ADDONS_DIR}"
+
+sync_repo() {
+    local name="$1"
+    local url="$2"
+    local branch="$3"
+    local commit="$4"
+    local path="${SRC_DIR}/${name}"
+
+    if [[ ! -d "${path}/.git" ]]; then
+        git clone --depth 1 --branch "${branch}" "${url}" "${path}"
+    else
+        git -C "${path}" remote set-url origin "${url}"
+        git -C "${path}" fetch --depth 1 origin "${branch}"
+    fi
+
+    git -C "${path}" fetch --depth 1 origin "${commit}" || true
+    git -C "${path}" checkout --detach "${commit}"
+    # These are ignored, exact-pin vendor checkouts. Restore the pinned tree
+    # before applying the tracked SaaS integration patches so repeated syncs
+    # are deterministic and never accumulate generated adaptations.
+    git -C "${path}" restore --source="${commit}" --worktree -- .
+}
+
+link_module() {
+    local repo="$1"
+    local module="$2"
+    local source="${SRC_DIR}/${repo}/${module}"
+    local target="${ADDONS_DIR}/${module}"
+
+    if [[ ! -f "${source}/__manifest__.py" ]]; then
+        echo "Missing OCA module manifest: ${source}/__manifest__.py" >&2
+        exit 1
+    fi
+
+    rm -f "${target}"
+    ln -s "../oca-src/${repo}/${module}" "${target}"
+}
+
+adapt_saas_manifest() {
+    local repo="$1"
+    local module="$2"
+    local manifest="${SRC_DIR}/${repo}/${module}/__manifest__.py"
+
+    python3 - "${manifest}" <<'PY'
+from pathlib import Path
+import sys
+
+manifest = Path(sys.argv[1])
+content = manifest.read_text()
+adapted = content.replace(
+    '"version": "19.0.',
+    '"version": "saas~19.2.',
+    1,
+)
+if adapted == content and '"version": "saas~19.2.' not in content:
+    raise SystemExit(f"Could not adapt OCA manifest version: {manifest}")
+manifest.write_text(adapted)
+PY
+}
+
+apply_saas_patch() {
+    local repo="$1"
+    local patch="$2"
+    local path="${SRC_DIR}/${repo}"
+    local patch_path="${PATCH_DIR}/${patch}"
+
+    if git -C "${path}" apply --reverse --check "${patch_path}" 2>/dev/null; then
+        return
+    fi
+    git -C "${path}" apply --check "${patch_path}"
+    git -C "${path}" apply "${patch_path}"
+}
+
+sync_repo "account-financial-reporting" "https://github.com/OCA/account-financial-reporting.git" "19.0" "aa34bf33fc96fbae7fb5a2b9609b807b4e20514c"
+sync_repo "account-reconcile" "https://github.com/OCA/account-reconcile.git" "19.0" "a9bbab67e42f3b762e9c34b30b6c1a77f9c373fb"
+sync_repo "bank-statement-import" "https://github.com/OCA/bank-statement-import.git" "19.0" "7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c"
+sync_repo "server-ux" "https://github.com/OCA/server-ux.git" "19.0" "1372e6489daa3a639d7542f3dcd60af640fb294b"
+sync_repo "server-auth" "https://github.com/OCA/server-auth.git" "19.0" "f51fe1b36965b78ac935e80c6b95d7115440a1b4"
+sync_repo "reporting-engine" "https://github.com/OCA/reporting-engine.git" "19.0" "6692523980cbc57d414935311d7f7bf1c834edc6"
+sync_repo "account-financial-tools" "https://github.com/OCA/account-financial-tools.git" "19.0" "3b3b3cf0974d5452734090e5a0421e762089de75"
+
+link_module "server-auth" "auth_oidc"
+link_module "server-ux" "date_range"
+link_module "reporting-engine" "report_xlsx"
+link_module "reporting-engine" "report_xlsx_helper"
+link_module "account-reconcile" "account_statement_base"
+link_module "account-reconcile" "account_reconcile_oca"
+link_module "bank-statement-import" "account_statement_import_base"
+link_module "bank-statement-import" "account_statement_import_file"
+link_module "bank-statement-import" "account_statement_import_file_reconcile_oca"
+link_module "bank-statement-import" "account_statement_import_camt"
+link_module "bank-statement-import" "account_statement_import_qif"
+link_module "bank-statement-import" "account_statement_import_sheet_file"
+link_module "bank-statement-import" "account_statement_import_sheet_file_xlsx"
+link_module "account-financial-reporting" "account_financial_report"
+link_module "account-financial-reporting" "account_tax_balance"
+link_module "account-financial-reporting" "partner_statement"
+link_module "account-financial-tools" "account_asset_management"
+
+apply_saas_patch "reporting-engine" "report_xlsx-content-disposition.patch"
+apply_saas_patch "reporting-engine" "report_xlsx_helper-content-disposition.patch"
+apply_saas_patch "account-reconcile" "account_statement_base-review-state.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-query-import.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-review-state.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-saas-api.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-next-day-rates.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-dashboard-owl.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-partner-bank-fields.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-browser-assets.patch"
+apply_saas_patch "account-reconcile" "account_reconcile_oca-test-compat.patch"
+apply_saas_patch "bank-statement-import" "bank_statement_import-sanitize-import.patch"
+apply_saas_patch "bank-statement-import" "bank_statement_import-partner-bank-fields.patch"
+
+adapt_saas_manifest "server-auth" "auth_oidc"
+adapt_saas_manifest "server-ux" "date_range"
+adapt_saas_manifest "reporting-engine" "report_xlsx"
+adapt_saas_manifest "reporting-engine" "report_xlsx_helper"
+adapt_saas_manifest "account-reconcile" "account_statement_base"
+adapt_saas_manifest "account-reconcile" "account_reconcile_oca"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_base"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_file"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_file_reconcile_oca"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_camt"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_qif"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_sheet_file"
+adapt_saas_manifest "bank-statement-import" "account_statement_import_sheet_file_xlsx"
+adapt_saas_manifest "account-financial-reporting" "account_financial_report"
+adapt_saas_manifest "account-financial-reporting" "account_tax_balance"
+adapt_saas_manifest "account-financial-reporting" "partner_statement"
+adapt_saas_manifest "account-financial-tools" "account_asset_management"
+
+# MIS was superseded by the canonical interactive Accounting reports. Remove a
+# link left by an older checkout so it cannot return as a competing runtime.
+rm -f "${ADDONS_DIR}/mis_builder"
+
+echo "OCA add-ons are available under ${ADDONS_DIR}"

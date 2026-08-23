@@ -1,0 +1,44 @@
+diff --git a/account_reconcile_oca/static/src/components/account_reconcile_oca_chatter/account_reconcile_oca_chatter.esm.js b/account_reconcile_oca/static/src/components/account_reconcile_oca_chatter/account_reconcile_oca_chatter.esm.js
+index 56a87f7..3a93787 100644
+--- a/account_reconcile_oca/static/src/components/account_reconcile_oca_chatter/account_reconcile_oca_chatter.esm.js
++++ b/account_reconcile_oca/static/src/components/account_reconcile_oca_chatter/account_reconcile_oca_chatter.esm.js
+@@ -1,12 +1,9 @@
+-// Import {ChatterContainer} from "@mail/components/chatter_container/chatter_container";
+-// import {Chatter} from "@mail/core/web/chatter";
+-import {Chatter} from "@mail/chatter/web_portal/chatter";
++import {Chatter} from "@mail/chatter/web_portal_project/chatter";
+ 
++import {Component} from "@odoo/owl";
+ import {registry} from "@web/core/registry";
+ import {standardFieldProps} from "@web/views/fields/standard_field_props";
+ 
+-const {Component} = owl;
+-
+ export class AccountReconcileChatterWidget extends Component {}
+ AccountReconcileChatterWidget.props = {...standardFieldProps};
+ AccountReconcileChatterWidget.template =
+diff --git a/account_reconcile_oca/static/src/components/account_reconcile_oca_match/account_reconcile_oca_match.esm.js b/account_reconcile_oca/static/src/components/account_reconcile_oca_match/account_reconcile_oca_match.esm.js
+index 4a669c7..e46ef1d 100644
+--- a/account_reconcile_oca/static/src/components/account_reconcile_oca_match/account_reconcile_oca_match.esm.js
++++ b/account_reconcile_oca/static/src/components/account_reconcile_oca_match/account_reconcile_oca_match.esm.js
+@@ -1,11 +1,10 @@
+ import {View} from "@web/views/view";
+ import {evaluateBooleanExpr} from "@web/core/py_js/py";
+ import {getFieldContext} from "@web/model/relational_model/utils";
++import {Component, useSubEnv} from "@odoo/owl";
+ import {registry} from "@web/core/registry";
+ import {standardFieldProps} from "@web/views/fields/standard_field_props";
+ 
+-const {Component, useSubEnv} = owl;
+-
+ export class AccountReconcileMatchWidget extends Component {
+     setup() {
+         // Necessary in order to avoid a loop
+@@ -47,7 +46,6 @@ export class AccountReconcileMatchWidget extends Component {
+             searchViewId: false,
+             parentRecord: this.props.record,
+             parentField: this.props.name,
+-            showButtons: false,
+         };
+     }
+ }

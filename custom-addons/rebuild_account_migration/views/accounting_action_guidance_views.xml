@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Concise hover guidance for consequential or ambiguous Accounting actions.
+        The actions themselves remain native Odoo/OCA/custom model methods; this
+        file changes presentation only.
+    -->
+
+    <record id="view_rebuild_account_move_action_guidance" model="ir.ui.view">
+        <field name="name">account.move.form.action.guidance</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_post']" position="attributes">
+                <attribute name="title">Validate this document and post its accounting entry. Posted amounts affect balances and reports.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_post'])[2]" position="attributes">
+                <attribute name="title">Validate this document and post its accounting entry. Posted amounts affect balances and reports.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_invoice_sent']" position="attributes">
+                <attribute name="title">Open the send and print options. Review the recipients and attached document before sending.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_invoice_sent'])[2]" position="attributes">
+                <attribute name="title">Open the send and print options. Review the recipients and attached document before sending.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_print_pdf']" position="attributes">
+                <attribute name="title">Generate the current customer invoice or credit note as a PDF.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_print_pdf'])[2]" position="attributes">
+                <attribute name="title">Generate the current customer invoice or credit note as a PDF.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_register_payment']" position="attributes">
+                <attribute name="title">Record a payment against this posted document. Use an existing outstanding payment instead when one already matches.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_register_payment'])[2]" position="attributes">
+                <attribute name="title">Record a payment against this posted document. Use an existing outstanding payment instead when one already matches.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_reverse']" position="attributes">
+                <attribute name="title">Create a draft credit note or supplier refund linked to this posted document. Review and post it separately.</attribute>
+            </xpath>
+            <xpath expr="//button[@type='action'][@data-hotkey='z']" position="attributes">
+                <attribute name="title">Create a new journal entry that reverses this posted entry on the selected date.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_cancel']" position="attributes">
+                <attribute name="title">Cancel this draft without posting it. No accounting balance is changed.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_cancel'][@invisible=&quot;not id or state != 'draft' or move_type == 'entry'&quot;]" position="attributes">
+                <attribute name="title">Cancel this draft without posting it. No accounting balance is changed.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_draft']" position="attributes">
+                <attribute name="title">Return this document to draft for correction. Review any payment or reconciliation links afterward.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_hash']" position="attributes">
+                <attribute name="title">Make this posted entry inalterable in the secured journal. This cannot be undone.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_request_cancel']" position="attributes">
+                <attribute name="title">Request cancellation through the configured electronic-document workflow. This does not cancel the entry immediately.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_l10n_fr_pdp_cancel_action_guidance" model="ir.ui.view">
+        <field name="name">l10n.fr.pdp.move.cancel.action.guidance</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_fr_pdp.l10n_fr_pdp_view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_cancel'][contains(@invisible, 'pdp_is_sent')]" position="attributes">
+                <attribute name="title">Request cancellation of the electronic document already sent to the approved platform.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_l10n_fr_pdp_flow_cancel_action_guidance" model="ir.ui.view">
+        <field name="name">l10n.fr.pdp.flow.cancel.action.guidance</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_fr_pdp.l10n_fr_pdp_reports_view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_cancel'][contains(@invisible, 'l10n_fr_pdp_sent_in_flow_ids')]" position="attributes">
+                <attribute name="title">Cancel the posted document through its existing French e-invoicing flow.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_payment_action_guidance" model="ir.ui.view">
+        <field name="name">account.payment.form.action.guidance</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_post']" position="attributes">
+                <attribute name="title">Confirm and post this payment. Match it to the bank transaction and related documents afterward.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_reject']" position="attributes">
+                <attribute name="title">Record that the sent payment was rejected and return it for correction.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_draft']" position="attributes">
+                <attribute name="title">Return this payment to draft for correction. Review any reconciliation links first.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_request_cancel']" position="attributes">
+                <attribute name="title">Request cancellation through the configured payment workflow. This does not cancel the payment immediately.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='mark_as_sent']" position="attributes">
+                <attribute name="title">Mark the payment instruction as sent to the bank. This does not confirm bank execution.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='unmark_as_sent']" position="attributes">
+                <attribute name="title">Remove the sent marker so the payment instruction can be corrected or sent again.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="attributes">
+                <attribute name="title">Cancel this payment record. Review linked documents and reconciliation before continuing.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_payment_list_action_guidance" model="ir.ui.view">
+        <field name="name">account.payment.list.action.guidance</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_post']" position="attributes">
+                <attribute name="title">Confirm and post the selected draft payments.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_hr_expense_action_guidance" model="ir.ui.view">
+        <field name="name">hr.expense.form.action.guidance</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_submit']" position="attributes">
+                <attribute name="title">Send this prepared expense and its receipt for manager approval.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_submit'])[2]" position="attributes">
+                <attribute name="title">Send this prepared expense and its receipt for manager approval.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_approve']" position="attributes">
+                <attribute name="title">Approve the business purpose, amount, accounting, analytics, and receipt for posting.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_approve'])[2]" position="attributes">
+                <attribute name="title">Approve the business purpose, amount, accounting, analytics, and receipt for posting.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_post']" position="attributes">
+                <attribute name="title">Create and post the native accounting entry for this approved expense.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_post'])[2]" position="attributes">
+                <attribute name="title">Create and post the native accounting entry for this approved expense.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_refuse']" position="attributes">
+                <attribute name="title">Refuse this claim and return it to the employee with a reason. No accounting entry is posted.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_reset']" position="attributes">
+                <attribute name="title">Return this expense to draft so its details or evidence can be corrected.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_reset'])[2]" position="attributes">
+                <attribute name="title">Return this expense to draft so its details or evidence can be corrected.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_split_wizard']" position="attributes">
+                <attribute name="title">Split this receipt into separate expense lines while preserving the original evidence.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_split_wizard'])[2]" position="attributes">
+                <attribute name="title">Split this receipt into separate expense lines while preserving the original evidence.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_split_expense']" position="attributes">
+                <attribute name="title">Open the original expense from which this line was split.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_account_move']" position="attributes">
+                <attribute name="title">Open the journal entry created when this expense was posted.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_bank_matching_action_guidance" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.matching.action.guidance</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account_reconcile_oca.bank_statement_line_form_reconcile_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='reconcile_bank_line']" position="attributes">
+                <attribute name="title">Post the proposed matching and reconcile this bank transaction with the selected entries.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='reconcile_bank_line'])[2]" position="attributes">
+                <attribute name="title">Complete the proposal before reconciling this bank transaction.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='unreconcile_bank_line']" position="attributes">
+                <attribute name="title">Remove the current matching and reopen the affected bank transaction and journal items.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='clean_reconcile']" position="attributes">
+                <attribute name="title">Discard the current unvalidated matching proposal and start again.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_checked']" position="attributes">
+                <attribute name="title">Mark the review as complete. This does not change the reconciliation.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_show_move']" position="attributes">
+                <attribute name="title">Open the journal entry created for this bank transaction.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_general_reconciliation_action_guidance" model="ir.ui.view">
+        <field name="name">account.account.reconcile.form.action.guidance</field>
+        <field name="model">account.account.reconcile</field>
+        <field name="inherit_id" ref="account_reconcile_oca.account_account_reconcile_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='reconcile']" position="attributes">
+                <attribute name="title">Reconcile the selected debit and credit items. Any unmatched balance remains open.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='clean_reconcile']" position="attributes">
+                <attribute name="title">Clear the current unvalidated selection and restart the matching proposal.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_reconciliation_item_action_guidance" model="ir.ui.view">
+        <field name="name">account.move.line.reconcile.list.action.guidance</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account_reconcile_oca.account_move_line_tree_reconcile_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_business_doc']" position="attributes">
+                <attribute name="title">Open the invoice, bill, payment, or journal entry behind this item.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_declaration_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.form.action.guidance</field>
+        <field name="model">rebuild.account.declaration</field>
+        <field name="inherit_id" ref="view_rebuild_account_declaration_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_refresh_preparation']" position="attributes">
+                <attribute name="title">Recalculate ledger-derived declaration fields and validation results. External facts remain unchanged.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_mark_internal_ready']" position="attributes">
+                <attribute name="title">Confirm preparation is complete and move this declaration to internal review.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_request_accountant_review']" position="attributes">
+                <attribute name="title">Move this declaration to optional accountant review without filing or sending anything.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_record_review_decision']" position="attributes">
+                <attribute name="title">Record the reviewer, conclusion, notes, and evidence for this declaration.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_mark_filed']" position="attributes">
+                <attribute name="title">Record that filing was completed outside Odoo. This button does not submit the declaration.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_mark_paid_or_refunded']" position="attributes">
+                <attribute name="title">Record the declaration payment, credit, or refund outcome after verifying it externally.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_prefilled_fields']" position="attributes">
+                <attribute name="title">Open the calculated and externally supplied fields supporting this declaration.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_official_source']" position="attributes">
+                <attribute name="title">Open the official authority guidance used by this declaration definition.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_portal']" position="attributes">
+                <attribute name="title">Open the external tax portal. No information is submitted automatically.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_closing_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.closing.period.form.action.guidance</field>
+        <field name="model">rebuild.account.closing.period</field>
+        <field name="inherit_id" ref="view_rebuild_account_closing_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_request_accountant_review']" position="attributes">
+                <attribute name="title">Move this closing workspace to optional accountant review without applying lock dates.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_record_review_decision']" position="attributes">
+                <attribute name="title">Record the reviewer, conclusion, notes, and supporting evidence for this period.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_capture_accepted_snapshots']" position="attributes">
+                <attribute name="title">Freeze the accepted control and report evidence so later configuration changes do not alter this review.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_close_and_apply_lock_dates']" position="attributes">
+                <attribute name="title">Close the workspace and apply fiscal, tax, sales, and purchase lock dates through the period end.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_declarations']" position="attributes">
+                <attribute name="title">Open the declarations that apply to this closing period.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_closing_package']" position="attributes">
+                <attribute name="title">Generate or open the PDF/XLSX review package for this closing period.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_open_closing_package'])[2]" position="attributes">
+                <attribute name="title">Generate or open the PDF/XLSX review package for this closing period.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_snapshots']" position="attributes">
+                <attribute name="title">Open the immutable evidence snapshots captured after an accepted review.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_report_definition_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.report.definition.form.action.guidance</field>
+        <field name="model">rebuild.account.report.definition</field>
+        <field name="inherit_id" ref="view_rebuild_account_report_definition_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_report']" position="attributes">
+                <attribute name="title">Open this configured report with its current company, filters, hierarchy, and presentation.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_open_report'])[2]" position="attributes">
+                <attribute name="title">Open the report sessions generated from this configured definition.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_customize_for_company']" position="attributes">
+                <attribute name="title">Create a company-specific copy that can be adapted without changing the upgrade-managed definition.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_declaration_rule_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.rule.form.action.guidance</field>
+        <field name="model">rebuild.account.declaration.rule</field>
+        <field name="inherit_id" ref="view_rebuild_account_declaration_rule_form_framework"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_declarations']" position="attributes">
+                <attribute name="title">Open the company declaration instances created from this definition.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_customize_for_company']" position="attributes">
+                <attribute name="title">Create a company-specific copy that can be adapted without changing the localization definition.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_official_source']" position="attributes">
+                <attribute name="title">Open the official authority guidance recorded for this declaration definition.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_einvoice_action_guidance" model="ir.ui.view">
+        <field name="name">res.company.einvoice.readiness.form.action.guidance</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="view_company_rebuild_einvoice_readiness_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_rebuild_begin_einvoice_activation']" position="attributes">
+                <attribute name="title">Review the company setup, record management approval and start the native Odoo Approved Platform registration. E-reporting remains disabled.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rebuild_enable_einvoice_exchange']" position="attributes">
+                <attribute name="title">Resume incoming-invoice checks for this connected company.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rebuild_suspend_einvoice_exchange']" position="attributes">
+                <attribute name="title">Pause incoming-invoice checks without deleting received bills or evidence.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_bank_transaction_partner_action_guidance" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.partner.action.guidance</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="view_rebuild_bank_transaction_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_rebuild_apply_partner_suggestion']" position="attributes">
+                <attribute name="title">Set the suggested partner on this bank transaction. This does not reconcile or post anything.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rebuild_refresh_partner_suggestions']" position="attributes">
+                <attribute name="title">Re-evaluate the current bank evidence. A sufficiently reliable result may set the partner automatically.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_bank_transaction_list_action_guidance" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.list.action.guidance</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="view_rebuild_bank_transaction_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_rebuild_open_bank_matching']" position="attributes">
+                <attribute name="title">Open this transaction in Bank Matching to reconcile or categorize it.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rebuild_apply_partner_suggestion']" position="attributes">
+                <attribute name="title">Set the suggested partner without reconciling or posting anything.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_journal_entry']" position="attributes">
+                <attribute name="title">Open this bank transaction's own journal entry.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_open_journal_entry'])[2]" position="attributes">
+                <attribute name="title">Open this bank transaction's reconciled journal entry.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_bank_matching_partner_action_guidance" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.matching.partner.action.guidance</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="view_rebuild_bank_matching_form_partner_suggestion"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_rebuild_apply_partner_suggestion']" position="attributes">
+                <attribute name="title">Set the suggested partner on this bank transaction. Review the matching proposal before reconciling.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_report_workbench_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.report.export.wizard.action.guidance</field>
+        <field name="model">rebuild.account.report.export.wizard</field>
+        <field name="inherit_id" ref="view_rebuild_account_report_export_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_preview_report']" position="attributes">
+                <attribute name="title">Recalculate the on-screen report using the current period, filters, and hierarchy.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_generate_export']" position="attributes">
+                <attribute name="title">Download the current report as the selected PDF, XLSX, or FEC format.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_journal_items']" position="attributes">
+                <attribute name="title">Open the journal items behind the current report scope and filters.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_expand_all']" position="attributes">
+                <attribute name="title">Open every group in the current report hierarchy.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_collapse_all']" position="attributes">
+                <attribute name="title">Close every group and return to the report summary.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_apply_period']" position="attributes">
+                <attribute name="title">Resolve the selected period preset into exact start and end dates, then refresh the report.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_deferral_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.deferral.form.action.guidance</field>
+        <field name="model">rebuild.account.deferral</field>
+        <field name="inherit_id" ref="view_rebuild_account_deferral_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_start']" position="attributes">
+                <attribute name="title">Validate the schedule and start recognition from its configured dates. No future entry is posted yet.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_post_due']" position="attributes">
+                <attribute name="title">Post every scheduled recognition entry due through today. Future lines remain scheduled.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_post']" position="attributes">
+                <attribute name="title">Post this scheduled recognition entry and link it to the original deferral.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_post'])[2]" position="attributes">
+                <attribute name="title">Post this scheduled recognition entry and link it to the original deferral.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_original_move']" position="attributes">
+                <attribute name="title">Open the original journal entry whose amount is being deferred.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_posted_entries']" position="attributes">
+                <attribute name="title">Open the recognition entries already posted from this schedule.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_open_posted_entries'])[2]" position="attributes">
+                <attribute name="title">Open the recognition entries already posted from this schedule.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_move']" position="attributes">
+                <attribute name="title">Open the journal entry posted for this schedule line.</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_open_move'])[2]" position="attributes">
+                <attribute name="title">Open the journal entry posted for this schedule line.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_report_definition_list_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.report.definition.list.action.guidance</field>
+        <field name="model">rebuild.account.report.definition</field>
+        <field name="inherit_id" ref="view_rebuild_account_report_definition_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_report']" position="attributes">
+                <attribute name="title">Open this configured report with its current company, filters, hierarchy, and presentation.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_customize_for_company']" position="attributes">
+                <attribute name="title">Create a company-specific copy without changing the upgrade-managed definition.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_declaration_rule_list_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.rule.list.action.guidance</field>
+        <field name="model">rebuild.account.declaration.rule</field>
+        <field name="inherit_id" ref="view_rebuild_account_declaration_rule_list_framework"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_declarations']" position="attributes">
+                <attribute name="title">Open the company declaration instances created from this definition.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_customize_for_company']" position="attributes">
+                <attribute name="title">Create a company-specific copy without changing the localization definition.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_official_source']" position="attributes">
+                <attribute name="title">Open the official authority guidance recorded for this declaration definition.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_declaration_list_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.list.action.guidance</field>
+        <field name="model">rebuild.account.declaration</field>
+        <field name="inherit_id" ref="view_rebuild_account_declaration_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_prefilled_fields']" position="attributes">
+                <attribute name="title">Open the calculated and externally supplied fields supporting this declaration.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_closing_list_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.account.closing.period.list.action.guidance</field>
+        <field name="model">rebuild.account.closing.period</field>
+        <field name="inherit_id" ref="view_rebuild_account_closing_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_refresh_controls']" position="attributes">
+                <attribute name="title">Recalculate this period's enabled closing controls without posting or modifying accounting entries.</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_currency_update_action_guidance" model="ir.ui.view">
+        <field name="name">rebuild.currency.rate.update.wizard.action.guidance</field>
+        <field name="model">rebuild.currency.rate.update.wizard</field>
+        <field name="inherit_id" ref="view_rebuild_currency_rate_update_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_save_configuration']" position="attributes">
+                <attribute name="title">Save the selected rate provider and schedule for this company.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_update_now']" position="attributes">
+                <attribute name="title">Fill every missing published ECB business-day rate from the coverage boundary through the latest available date. Restored, manual and transaction-specific rates are preserved.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_currency_rates']" position="attributes">
+                <attribute name="title">Open the company's dated currency-rate history and provider evidence.</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="rebuild_account_migration.MatchingBadgeField">
+        <button
+            t-if="props.record.data[props.name]"
+            type="button"
+            class="o_usl_matching_badge_button"
+            t-att-title="helpText"
+            t-att-aria-label="helpText"
+            t-on-click.stop="openMatchingItems">
+            <span
+                class="badge rounded-pill"
+                t-att-class="badgeClass"
+                t-esc="formattedValue"/>
+        </button>
+    </t>
+</templates>

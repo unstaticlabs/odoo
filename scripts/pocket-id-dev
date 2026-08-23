@@ -1,0 +1,496 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT/scripts/lib/compose-scope.sh"
+
+# Secrets and immutable subjects belong to the Compose project owned by this
+# checkout. Linked worktrees must not silently reuse the main checkout's key.
+DEFAULT_ENV_FILE="$ROOT/.pocket-id.env"
+ENV_FILE="${POCKET_ID_ENV_FILE:-$DEFAULT_ENV_FILE}"
+PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
+COMPOSE_FILES=(-f "$ROOT/compose.yaml" -f "$ROOT/compose.pocket-id.yaml")
+if [[ -n "${USL_POCKET_ID_COMPOSE_EXTRA_FILE:-}" ]]; then
+  if [[ ! -f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE" ]]; then
+    printf 'Pocket ID Compose override is missing: %s\n' \
+      "$USL_POCKET_ID_COMPOSE_EXTRA_FILE" >&2
+    exit 2
+  fi
+  COMPOSE_FILES+=(-f "$USL_POCKET_ID_COMPOSE_EXTRA_FILE")
+fi
+
+bootstrap() {
+  if [[ -f "$ROOT/.git" && ! -f "$ENV_FILE" ]]; then
+    local required_name
+    for required_name in \
+      COMPOSE_PROJECT_NAME ODOO_HTTP_PORT ODOO_GEVENT_PORT \
+      POCKET_ID_HTTP_PORT PAPERLESS_HTTP_PORT; do
+      if [[ -z "${!required_name:-}" ]]; then
+        printf 'Linked-worktree Pocket ID bootstrap requires %s.\n' \
+          "$required_name" >&2
+        return 2
+      fi
+    done
+    export USL_POCKET_ID_DEV_COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME"
+    export USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_HTTP_PORT"
+    export USL_POCKET_ID_DEV_GEVENT_PORT="$ODOO_GEVENT_PORT"
+    export USL_POCKET_ID_DEV_POCKET_PORT="$POCKET_ID_HTTP_PORT"
+    export USL_POCKET_ID_DEV_PAPERLESS_PORT="$PAPERLESS_HTTP_PORT"
+    export USL_POCKET_ID_DEV_PAPERLESS_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:$PAPERLESS_HTTP_PORT}"
+  fi
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
+}
+
+load_environment() {
+  local requested_compose_project="${COMPOSE_PROJECT_NAME:-}"
+  local requested_odoo_http_port="${ODOO_HTTP_PORT:-}"
+  local requested_odoo_gevent_port="${ODOO_GEVENT_PORT:-}"
+  local requested_pocket_id_http_port="${POCKET_ID_HTTP_PORT:-}"
+  local requested_paperless_http_port="${PAPERLESS_HTTP_PORT:-}"
+  local requested_paperless_public_url="${PAPERLESS_PUBLIC_URL:-}"
+  bootstrap >/dev/null
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+  if [[ -n "$requested_compose_project" \
+      && "$COMPOSE_PROJECT_NAME" != "$requested_compose_project" ]]; then
+    printf 'Pocket ID environment targets %s, not requested project %s.\n' \
+      "$COMPOSE_PROJECT_NAME" "$requested_compose_project" >&2
+    return 2
+  fi
+  [[ -z "$requested_odoo_http_port" ]] \
+    || export ODOO_HTTP_PORT="$requested_odoo_http_port"
+  [[ -z "$requested_odoo_gevent_port" ]] \
+    || export ODOO_GEVENT_PORT="$requested_odoo_gevent_port"
+  [[ -z "$requested_pocket_id_http_port" ]] \
+    || export POCKET_ID_HTTP_PORT="$requested_pocket_id_http_port"
+  [[ -z "$requested_paperless_http_port" ]] \
+    || export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"
+  [[ -z "$requested_paperless_public_url" ]] \
+    || export PAPERLESS_PUBLIC_URL="$requested_paperless_public_url"
+  if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
+      || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
+    printf 'Refusing Pocket ID while a live regulatory guard is enabled.\n' >&2
+    return 2
+  fi
+  if [[ "${ODOO_INIT_DB:-}" != "odoo_dev" \
+      || "${ODOO_DB_FILTER:-}" != "^odoo_dev$" ]]; then
+    printf \
+      'Refusing local Pocket ID outside canonical odoo_dev.\n' \
+      >&2
+    return 2
+  fi
+  export ODOO_IMAGE="${ODOO_IMAGE:-${COMPOSE_PROJECT_NAME}-odoo:latest}"
+  COMPOSE=(
+    docker compose
+    -p "$COMPOSE_PROJECT_NAME"
+    --env-file "$ENV_FILE"
+    "${COMPOSE_FILES[@]}"
+  )
+  usl_verify_compose_scope \
+    "$COMPOSE_PROJECT_NAME" "$ROOT" "Pocket ID helper"
+}
+
+start_idp() {
+  load_environment
+  "${COMPOSE[@]}" up -d --wait pocket-id
+}
+
+start_paperless_runtime() {
+  "${COMPOSE[@]}" --profile paperless up -d --wait paperless-webserver
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-access-init
+}
+
+require_target_database() {
+  local database_status
+  load_environment
+  "${COMPOSE[@]}" up -d --wait db
+  usl_compose_database_status "$COMPOSE_PROJECT_NAME" "$ROOT" "$ODOO_INIT_DB"
+  database_status="$USL_COMPOSE_DATABASE_STATUS"
+  if [[ "$database_status" == "present" ]]; then
+    return 0
+  fi
+  if [[ "$database_status" == "missing" ]]; then
+    USL_CLI_NO_CHANGES_MESSAGE='The database service was checked, but no Odoo modules or business data were changed.' \
+      usl_cli_blocked \
+        "Target database $ODOO_INIT_DB does not exist in Compose project $COMPOSE_PROJECT_NAME." \
+        "Deploy updates an existing reconstructed target; it cannot recreate source accounting data." \
+        "Run: make target-reconstruct" \
+        "For unchanged Paperless inputs, run: make target-reconstruct-reuse-documents"
+    return 2
+  fi
+  USL_CLI_NO_CHANGES_MESSAGE='The database service was checked, but no Odoo modules or business data were changed.' \
+    usl_cli_blocked \
+      "Target database $ODOO_INIT_DB could not be verified." \
+      "PostgreSQL is not ready for a safe module update (status: $database_status)." \
+      "Run: make doctor" \
+      "Inspect logs with: make logs SERVICE=db"
+  return 2
+}
+
+provision() {
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" provision
+}
+
+ensure_unlinked() {
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" ensure-unlinked
+}
+
+run_policy() {
+  local apply_mode="$1" policy
+  policy="$(python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" odoo-policy)"
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    -e USL_POCKET_ID_USERS_JSON="$policy" \
+    -e USL_POCKET_ID_BREAK_GLASS_PASSWORD="$USL_POCKET_ID_BREAK_GLASS_PASSWORD" \
+    -e USL_POCKET_ID_APPLY="$apply_mode" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" < "$ROOT/scripts/odoo/pocket_id_configure.py"
+}
+
+sync_paperless_identities() {
+  local force_permissions="${1:-0}"
+  local identity_policy plan_output plan paperless_output identities
+  identity_policy="$(
+    python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" paperless-policy
+  )"
+  plan_output="$(
+    "${COMPOSE[@]}" --profile init run --rm -T \
+      -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+      -e USL_PAPERLESS_IDENTITY_POLICY_JSON="$identity_policy" \
+      init-db odoo shell \
+      --config=/etc/odoo/odoo.conf \
+      --database="$ODOO_INIT_DB" \
+      < "$ROOT/scripts/odoo/documents_identity_plan.py"
+  )"
+  plan="$(
+    sed -n 's/^USL_PAPERLESS_IDENTITY_PLAN=//p' <<<"$plan_output" | tail -n 1
+  )"
+  if [[ -z "$plan" ]]; then
+    printf 'Odoo did not produce a Paperless identity plan.\n' >&2
+    return 1
+  fi
+  paperless_output="$(
+    "${COMPOSE[@]}" --profile paperless run --rm --no-deps -T \
+      -e PAPERLESS_IDENTITY_PLAN_JSON="$plan" \
+      paperless-identity-init
+  )"
+  identities="$(
+    sed -n 's/^USL_PAPERLESS_IDENTITIES=//p' <<<"$paperless_output" | tail -n 1
+  )"
+  if [[ -z "$identities" ]]; then
+    printf 'Paperless did not produce verified individual identities.\n' >&2
+    return 1
+  fi
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    -e USL_PAPERLESS_IDENTITIES_JSON="$identities" \
+    -e USL_PAPERLESS_FORCE_PERMISSION_SYNC="$force_permissions" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    < "$ROOT/scripts/odoo/documents_identity_apply.py"
+}
+
+configure_documents_runtime() {
+  local setup token service_user_id
+  setup="$(
+    "${COMPOSE[@]}" --profile paperless exec -T paperless-webserver \
+      python manage.py shell \
+      < "$ROOT/deploy/documents/paperless_integration_access.py"
+  )"
+  token="$(sed -n 's/^USL_PAPERLESS_TOKEN=//p' <<<"$setup" | tail -n 1)"
+  service_user_id="$(
+    sed -n 's/^USL_PAPERLESS_SERVICE_USER_ID=//p' <<<"$setup" | tail -n 1
+  )"
+  if [[ -z "$token" || ! "$service_user_id" =~ ^[1-9][0-9]*$ ]]; then
+    printf 'Paperless did not produce a valid Odoo integration identity.\n' >&2
+    return 1
+  fi
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    -e PAPERLESS_RUNTIME_INTERNAL_URL=http://paperless-webserver:8000 \
+    -e PAPERLESS_RUNTIME_PUBLIC_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:${PAPERLESS_HTTP_PORT:-8010}}" \
+    -e PAPERLESS_RUNTIME_TOKEN="$token" \
+    -e PAPERLESS_RUNTIME_SERVICE_USER_ID="$service_user_id" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    < "$ROOT/scripts/odoo/documents_runtime_config.py"
+}
+
+configure_odoo() {
+  local module="${1:-usl_pocketid}"
+  local skip_paperless="${2:-0}"
+  local status=0 module_name module_state modules_csv seen_modules
+  local qa_data_profile="${USL_QA_DATA_PROFILE:-full}"
+  local -a init_modules requested_modules update_modules module_args
+  require_target_database
+  provision
+  if [[ "$skip_paperless" != 1 ]]; then
+    start_paperless_runtime
+  fi
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  modules_csv="usl_pocketid"
+  if [[ "$module" != "usl_pocketid" ]]; then
+    modules_csv="$modules_csv,$module"
+  fi
+  seen_modules=","
+  IFS=',' read -r -a requested_modules <<< "$modules_csv"
+  for module_name in "${requested_modules[@]}"; do
+    if [[ ! "$module_name" =~ ^[a-z0-9_]+$ ]]; then
+      printf 'Refusing unsafe Odoo module name: %s\n' "$module_name" >&2
+      return 2
+    fi
+    if [[ "$seen_modules" == *",$module_name,"* ]]; then
+      continue
+    fi
+    seen_modules="${seen_modules}${module_name},"
+    module_state="$(
+      "${COMPOSE[@]}" exec -T db \
+        psql -X -qAt -U "${ODOO_DB_USER:-odoo}" \
+        -d "$ODOO_INIT_DB" \
+        -c "SELECT state FROM ir_module_module WHERE name = '$module_name'"
+    )"
+    case "$module_state" in
+      installed)
+        update_modules+=("$module_name")
+        ;;
+      ""|uninstalled)
+        init_modules+=("$module_name")
+        ;;
+      *)
+        printf 'Module %s has unresolved state %s.\n' \
+          "$module_name" "$module_state" >&2
+        return 2
+        ;;
+    esac
+  done
+  module_args=()
+  if ((${#init_modules[@]})); then
+    module_args+=("--init=$(IFS=,; printf '%s' "${init_modules[*]}")")
+  fi
+  if ((${#update_modules[@]})); then
+    module_args+=("--update=$(IFS=,; printf '%s' "${update_modules[*]}")")
+  fi
+  if "${COMPOSE[@]}" --profile init run --rm \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    "${module_args[@]}" \
+    --without-demo=true \
+    --stop-after-init \
+    --log-level=warn; then
+    if run_policy 0; then
+      if run_policy 1; then
+        if run_policy 0; then
+          if [[ "$skip_paperless" == 1 ]]; then
+            printf 'Paperless identity synchronization skipped for partial QA.\n'
+          else
+            if configure_documents_runtime; then
+              sync_paperless_identities 0 || status=$?
+            else
+              status=$?
+            fi
+          fi
+        else
+          status=$?
+        fi
+      else
+        status=$?
+      fi
+    else
+      status=$?
+    fi
+  else
+    status=$?
+  fi
+  if ((status)); then
+    "${COMPOSE[@]}" up -d --wait odoo || true
+    return "$status"
+  fi
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    -e USL_QA_DATA_PROFILE="$qa_data_profile" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    --shell-interface=python \
+    < "$ROOT/scripts/odoo/qa_data_profile.py"
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+  if [[ "$skip_paperless" == 1 ]]; then
+    printf 'Documents: intentionally unavailable in this partial QA profile\n'
+  else
+    printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
+  fi
+}
+
+sync_paperless_users() {
+  provision
+  start_paperless_runtime
+  "${COMPOSE[@]}" up -d --wait db
+  # Rebuild the runtime service identity and claim any archive roots still
+  # owned by the one-shot migration user before forcing permission sync.
+  configure_documents_runtime
+  sync_paperless_identities 1
+}
+
+start_runtime() {
+  require_target_database
+  provision
+  start_paperless_runtime
+  "${COMPOSE[@]}" up -d --wait db pocket-id odoo
+  printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+  printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
+}
+
+one_time_link() {
+  local username="${1:?Usage: scripts/pocket-id-dev one-time-link USER}"
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" one-time-link "$username"
+}
+
+set_disabled() {
+  local username="${1:?Usage: scripts/pocket-id-dev set-disabled USER true|false}"
+  local state="${2:?Usage: scripts/pocket-id-dev set-disabled USER true|false}"
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" set-disabled "$username" "$state"
+}
+
+set_profile() {
+  local username="${1:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
+  local email="${2:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
+  local display_name="${3:?Usage: scripts/pocket-id-dev set-profile USER EMAIL DISPLAY_NAME}"
+  start_idp
+  python3 "$PYTHON_HELPER" \
+    --env-file "$ENV_FILE" \
+    set-profile "$username" "$email" "$display_name"
+}
+
+set_group() {
+  local username="${1:?Usage: scripts/pocket-id-dev set-group USER present|absent}"
+  local state="${2:?Usage: scripts/pocket-id-dev set-group USER present|absent}"
+  start_idp
+  python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" set-group "$username" "$state"
+}
+
+stop_idp() {
+  load_environment
+  "${COMPOSE[@]}" stop pocket-id
+}
+
+stop_stack() {
+  load_environment
+  "${COMPOSE[@]}" down
+}
+
+follow_logs() {
+  load_environment
+  "${COMPOSE[@]}" logs -f "$@"
+}
+
+status() {
+  load_environment
+  "${COMPOSE[@]}" ps
+}
+
+reset_idp() {
+  local confirmation="${1:-}"
+  load_environment
+  if [[ "$confirmation" != "--confirm" ]]; then
+    printf 'This deletes only the local Pocket ID container and volume.\n' >&2
+    printf 'Re-run with: scripts/pocket-id-dev reset-idp --confirm\n' >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" rm -sf pocket-id
+  docker volume rm "${COMPOSE_PROJECT_NAME}_pocket-id-data"
+}
+
+case "${1:-help}" in
+  bootstrap)
+    bootstrap
+    ;;
+  start-idp)
+    start_idp
+    ;;
+  provision)
+    provision
+    ;;
+  ensure-unlinked)
+    ensure_unlinked
+    ;;
+  configure-odoo)
+    configure_odoo "${2:-usl_pocketid}"
+    ;;
+  configure-odoo-no-paperless)
+    configure_odoo "${2:-usl_pocketid}" 1
+    ;;
+  sync-paperless-users)
+    sync_paperless_users
+    ;;
+  start-runtime)
+    start_runtime
+    ;;
+  one-time-link)
+    one_time_link "${2:-}"
+    ;;
+  set-disabled)
+    set_disabled "${2:-}" "${3:-}"
+    ;;
+  set-profile)
+    set_profile "${2:-}" "${3:-}" "${4:-}"
+    ;;
+  set-group)
+    set_group "${2:-}" "${3:-}"
+    ;;
+  stop-idp)
+    stop_idp
+    ;;
+  stop-stack)
+    stop_stack
+    ;;
+  logs)
+    shift
+    follow_logs "$@"
+    ;;
+  status)
+    status
+    ;;
+  reset-idp)
+    reset_idp "${2:-}"
+    ;;
+  help|*)
+    cat <<'EOF'
+Usage: scripts/pocket-id-dev <command>
+
+Commands:
+  bootstrap                  Generate ignored local secrets and stable test IDs
+  start-idp                  Start only the isolated Pocket ID service
+  provision                  Idempotently configure users, group, and OIDC client
+  ensure-unlinked            Add the Pocket-only lifecycle-denial identity
+  configure-odoo [MODULE]    Configure canonical odoo_dev and start its SSO stack
+  configure-odoo-no-paperless [MODULE]
+                             Finalize partial QA without starting Paperless
+  sync-paperless-users       Reconcile governed Odoo and Paperless identities
+  start-runtime              Start Odoo, Pocket ID, and Paperless for odoo_dev
+  one-time-link USER         Generate a one-hour link for any Pocket ID user
+  set-disabled USER BOOL     Enable or disable a named Pocket ID user
+  set-profile USER EMAIL NAME
+                             Change claims without changing the immutable subject
+  set-group USER STATE       Add or remove a named user from the Odoo group
+  stop-idp                   Stop Pocket ID for outage testing
+  stop-stack                 Stop the canonical Odoo/Pocket ID stack
+  logs [SERVICE]             Follow canonical target stack logs
+  status                     Show this project's services
+  reset-idp --confirm        Delete only local Pocket ID service data
+EOF
+    ;;
+esac

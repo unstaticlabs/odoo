@@ -1,0 +1,1299 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_pocketid
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-04 22:35+0000\n"
+"PO-Revision-Date: 2026-08-04 22:35+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "%(label)s is missing from discovery."
+msgstr "%(label)s est absent du document de découverte."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "%(label)s is not a safe absolute URL."
+msgstr "%(label)s n’est pas une URL absolue sûre."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "%(label)s may use HTTP only for a loopback test service."
+msgstr "%(label)s ne peut utiliser HTTP que pour un service de test local."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "%(label)s must use HTTPS."
+msgstr "%(label)s doit utiliser HTTPS."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "%(label)s must use the Pocket ID issuer origin."
+msgstr "%(label)s doit utiliser l'origine de l'émetteur Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "%(message)s User login: %(login)s."
+msgstr "%(message)s Identifiant utilisateur : %(login)s."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "A required authorization group is not installed: %s"
+msgstr "Un groupe d’autorisation requis n’est pas installé : %s"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_needaction
+msgid "Action Needed"
+msgstr "Nécessite une action"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__active
+msgid "Active Pocket ID-managed user"
+msgstr "Utilisateur actif géré par Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Active users require companies='all' or a non-empty company list."
+msgstr ""
+"Les utilisateurs actifs nécessitent companies='all' ou une liste de sociétés"
+" non vide."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__actor_id
+msgid "Actor"
+msgstr "Acteur"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_allow_unique_email_link
+msgid ""
+"Allow a verified email to create an identity link only when exactly one "
+"active internal Odoo user was explicitly pre-approved."
+msgstr ""
+"Autoriser un e-mail vérifié à créer une association d’identité uniquement "
+"lorsqu’un seul utilisateur interne Odoo actif a été explicitement "
+"préapprouvé."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_pocketid_access
+msgid "Allow an already governed Pocket ID identity to log in as this user."
+msgstr ""
+"Autoriser une identité Pocket ID déjà gérée à se connecter avec cet "
+"utilisateur."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_pocketid_email_link
+msgid ""
+"Allow first-login linking only when the verified Pocket ID email uniquely "
+"and exactly matches this active internal user."
+msgstr ""
+"Autoriser l’association à la première connexion uniquement lorsque l’e-mail "
+"Pocket ID vérifié correspond exactement et sans ambiguïté à cet utilisateur "
+"interne actif."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_allow_unique_email_link
+msgid "Allow pre-approved unique email linking"
+msgstr "Autoriser l’association par e-mail unique préapprouvée"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid ""
+"An active Pocket ID user requires an immutable subject or explicit verified-"
+"email first-link approval."
+msgstr ""
+"Un utilisateur Pocket ID actif nécessite un identifiant immuable ou une "
+"autorisation explicite d’association initiale par e-mail vérifié."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Break-glass classification and local access must match."
+msgstr ""
+"La classification de secours (break-glass) et l’accès local doivent "
+"correspondre."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_public_base_url
+msgid "Canonical public Odoo URL used to construct the registered callback."
+msgstr ""
+"URL publique canonique d’Odoo utilisée pour construire l’URL de retour "
+"enregistrée."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid ""
+"Choose either an immutable subject or verified-email first-link approval, "
+"not both."
+msgstr ""
+"Choisissez soit un identifiant immuable, soit une autorisation d’association"
+" initiale par e-mail vérifié, mais pas les deux."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__auth_oauth_provider__usl_token_auth_method__client_secret_basic
+msgid "Client secret HTTP Basic"
+msgstr "Secret client via HTTP Basic"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__auth_oauth_provider__usl_token_auth_method__client_secret_post
+msgid "Client secret POST body"
+msgstr "Secret client dans le corps POST"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Company names must be non-empty strings."
+msgstr "Les noms de sociétés doivent être des chaînes non vides."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__configuration
+msgid "Configuration changed"
+msgstr "Configuration modifiée"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__create_uid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__create_date
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Creating a user requires an explicit name and email."
+msgstr ""
+"La création d’un utilisateur nécessite un nom et un e-mail explicites."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_usl_oidc_identity_form
+msgid "Disabled"
+msgstr "Désactivé"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__display_name
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__display_name
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__display_name
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Each Pocket ID user entry must be an object."
+msgstr "Chaque entrée utilisateur Pocket ID doit être un objet."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Each Pocket ID user requires a login."
+msgstr "Chaque utilisateur Pocket ID nécessite un identifiant de connexion."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Each configured company name must match exactly one company."
+msgstr ""
+"Chaque nom de société configuré doit correspondre exactement à une société."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_local_break_glass
+msgid "Emergency local administrator independent of Pocket ID."
+msgstr "Administrateur local de secours indépendant de Pocket ID."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__event_type
+msgid "Event Type"
+msgstr "Type d’événement"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Every non-system Odoo user must be explicitly classified: %s"
+msgstr ""
+"Chaque utilisateur non système Odoo doit être explicitement classé : %s"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_oidc_issuer
+msgid "Exact issuer expected in Pocket ID ID tokens."
+msgstr "Émetteur exact attendu dans les jetons d’identité Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Exactly one active local break-glass administrator is required."
+msgstr "Un seul administrateur local de secours actif est requis."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_identity__link_method__explicit
+msgid "Explicit administrator link"
+msgstr "Association explicite par un administrateur"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_follower_ids
+msgid "Followers"
+msgstr "Abonnés"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnés (Partenaires)"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__has_message
+msgid "Has Message"
+msgstr "A un message"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Historical and decision-required users must remain archived."
+msgstr ""
+"Les utilisateurs historiques et décisionnels doivent demeurer archivés."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__historical
+msgid "Historical identity; login disabled"
+msgstr "Identité historique; connexion désactivée"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__id
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__id
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__id
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__identity_id
+msgid "Identity"
+msgstr "Identité"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_identity_classification
+msgid "Identity classification"
+msgstr "Classification de l’identité"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__identity_disabled
+msgid "Identity disabled"
+msgstr "Identité désactivée"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__identity_enabled
+msgid "Identity enabled"
+msgstr "Identité activée"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__identity_linked
+msgid "Identity linked"
+msgstr "Identité associée"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__identity_relinked
+msgid "Identity relinked"
+msgstr "Identité réassociée"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_usl_oidc_identity__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si coché, de nouveaux messages demandent votre attention."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_usl_oidc_identity__message_has_error
+#: model:ir.model.fields,help:usl_pocketid.field_usl_oidc_identity__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si coché, certains messages ont une erreur de livraison."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Inactive historical and decision profiles cannot create users."
+msgstr ""
+"Les profils historiques et décisionnels inactifs ne peuvent pas créer "
+"d'utilisateurs."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_is_follower
+msgid "Is Follower"
+msgstr "Est un abonné"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__issuer
+msgid "Issuer"
+msgstr "Émetteur"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__last_display_name
+msgid "Last Display Name"
+msgstr "Dernier nom affiché"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__last_email
+msgid "Last Email"
+msgstr "Dernier e-mail"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__last_login_at
+msgid "Last Login At"
+msgstr "Dernière connexion le"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__write_uid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__write_date
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__link_method
+msgid "Link Method"
+msgstr "Méthode d’association"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__linked_at
+msgid "Linked At"
+msgstr "Associée le"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__linked_by_id
+msgid "Linked By"
+msgstr "Associée par"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_local_break_glass
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__break_glass
+msgid "Local break-glass administrator"
+msgstr "Administrateur local de secours"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+#: model:auth.oauth.provider,body:usl_pocketid.provider_pocketid
+msgid "Log in with Pocket ID"
+msgstr "Se connecter avec Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__login_denied
+msgid "Login denied"
+msgstr "Connexion refusée"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_form_pocketid
+msgid "Login governance"
+msgstr "Gouvernance des connexions"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__login_success
+msgid "Login succeeded"
+msgstr "Connexion réussie"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_has_error
+msgid "Message Delivery error"
+msgstr "Erreur d'envoi du message"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_ids
+msgid "Messages"
+msgstr "Messages"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "No active allowed company was resolved."
+msgstr "Aucune société autorisée n'a été résolue."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "No existing Odoo user matched and creation was not approved."
+msgstr ""
+"Aucun utilisateur Odoo n'a été associé et la création n'a pas été approuvée."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Nombre d'actions"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_has_error_counter
+msgid "Number of errors"
+msgstr "Nombre d'erreurs"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_usl_oidc_identity__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Nombre de messages nécessitant une action"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_usl_oidc_identity__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages avec des erreurs d'envoi"
+
+#. module: usl_pocketid
+#: model:ir.model,name:usl_pocketid.model_auth_oauth_provider
+msgid "OAuth2 provider"
+msgstr "Fournisseur OAuth2"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_oidc_issuer
+msgid "OIDC Issuer"
+msgstr "Émetteur OIDC"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_audit_event.py:0
+msgid "OIDC audit events cannot be deleted."
+msgstr "Les événements d'audit OIDC ne peuvent pas être supprimés."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_oidc_identity_ids
+msgid "OIDC identities"
+msgstr "Identités OIDC"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "OIDC identity links must be disabled or relinked, not deleted."
+msgstr ""
+"Les associations d’identité OIDC doivent être désactivées ou réassociées, et"
+" non supprimées."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__decision
+msgid "Obsolete or duplicate; decision required"
+msgstr "Obsolète ou en double; décision requise"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__occurred_at
+msgid "Occurred At"
+msgstr "Survenu le"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_public_base_url
+msgid "Odoo Public Base URL"
+msgstr "URL publique de base Odoo"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Odoo public base URL"
+msgstr "URL publique de base Odoo"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Only one USL Pocket ID provider is allowed."
+msgstr "Un seul fournisseur USL Pocket ID est autorisé."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Only one active local break-glass administrator is allowed."
+msgstr "Un seul administrateur local de secours actif est autorisé."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.view_users_form_pocketid
+msgid "Pocket ID"
+msgstr "Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.actions.act_window,name:usl_pocketid.action_usl_oidc_audit_event
+#: model:ir.ui.menu,name:usl_pocketid.menu_usl_oidc_audit_event
+msgid "Pocket ID Audit Events"
+msgstr "Journal d’audit Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.actions.act_window,name:usl_pocketid.action_usl_oidc_identity
+#: model:ir.ui.menu,name:usl_pocketid.menu_usl_oidc_identity
+msgid "Pocket ID Identity Links"
+msgstr "Identités Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID JWKS endpoint"
+msgstr "Point de terminaison JWKS Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID authorization endpoint"
+msgstr "Point de terminaison d’autorisation Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid ""
+"Pocket ID client secrets must come from USL_POCKET_ID_CLIENT_SECRET and "
+"cannot be stored in Odoo."
+msgstr ""
+"Les secrets client Pocket ID doivent provenir de USL_POCKET_ID_CLIENT_SECRET"
+" et ne peuvent pas être stockés dans Odoo."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Pocket ID did not authorize this sign-in."
+msgstr "Pocket ID n'a pas autorisé cette connexion."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID discovery could not be loaded safely."
+msgstr ""
+"Le document de découverte Pocket ID n’a pas pu être chargé de manière sûre."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID discovery does not advertise RS256 ID-token signing."
+msgstr ""
+"Le document de découverte Pocket ID n’annonce pas la signature RS256 des "
+"jetons d’identité."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID discovery does not advertise the authorization-code flow."
+msgstr ""
+"Le document de découverte Pocket ID n’annonce pas le flux par code "
+"d’autorisation."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID discovery returned a different issuer."
+msgstr "Le document de découverte Pocket ID indique un autre émetteur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID does not advertise the selected client authentication."
+msgstr ""
+"Pocket ID ne propose pas la méthode d’authentification client sélectionnée."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID environment configuration must be applied first."
+msgstr ""
+"La configuration d’environnement de Pocket ID doit d’abord être appliquée."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_required_group
+msgid "Pocket ID group required to authenticate. It never grants Odoo groups."
+msgstr ""
+"Groupe Pocket ID requis pour s’authentifier. Il n’accorde jamais de groupes "
+"Odoo."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID internal SSO cannot be enabled for portal users."
+msgstr ""
+"Le SSO interne Pocket ID ne peut pas être activé pour les utilisateurs du "
+"portail."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "Pocket ID internal SSO cannot be linked to a portal user."
+msgstr ""
+"Le SSO interne Pocket ID ne peut pas être associé à un utilisateur du "
+"portail."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID is enabled but required variables are missing: %s"
+msgstr "Pocket ID est activé, mais des variables requises sont absentes : %s"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid ""
+"Pocket ID is not configured for this Odoo environment. Contact an "
+"administrator."
+msgstr ""
+"Pocket ID n'est pas configuré pour cet environnement Odoo. Contactez un "
+"administrateur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Pocket ID is temporarily unavailable. Please try again later."
+msgstr ""
+"Pocket ID est temporairement indisponible. Veuillez réessayer plus tard."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID issuer"
+msgstr "Émetteur Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_access
+msgid "Pocket ID login enabled"
+msgstr "Connexion Pocket ID activée"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID login requires an active identity classification."
+msgstr ""
+"La connexion Pocket ID nécessite une classification active de l'identité."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Pocket ID returned a sign-in response Odoo could not validate."
+msgstr ""
+"Pocket ID a renvoyé une réponse de connexion qu’Odoo n’a pas pu valider."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID scopes must include openid, email and groups."
+msgstr "Les portées Pocket ID doivent inclure openid, email et groups."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Pocket ID sign-in failed safely. Please try again."
+msgstr ""
+"La connexion Pocket ID a échoué sans compromettre la sécurité. Veuillez "
+"réessayer."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID token endpoint"
+msgstr "Point de terminaison des jetons Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID user configuration must be a non-empty list."
+msgstr ""
+"La configuration de l'utilisateur Pocket ID doit être une liste non vide."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid ""
+"Pocket ID-managed users must register and use passkeys in Pocket ID, not in "
+"Odoo."
+msgstr ""
+"Les utilisateurs gérés par Pocket ID doivent enregistrer et utiliser leurs "
+"clés d’accès dans Pocket ID, et non dans Odoo."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__portal
+msgid "Portal or external identity"
+msgstr "Portail ou identité externe"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_pocketid_email_link
+msgid "Pre-approve verified email link"
+msgstr "Préapprouver l’association par e-mail vérifié"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_identity__link_method__verified_unique_email
+msgid "Pre-approved verified unique email"
+msgstr "E-mail unique vérifié préapprouvé"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__provider_id
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__provider_id
+msgid "Provider"
+msgstr "Fournisseur"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__rating_ids
+msgid "Ratings"
+msgstr "Évaluations"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__reason_code
+msgid "Reason Code"
+msgstr "Code du motif"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_required_group
+msgid "Required Pocket ID Group"
+msgstr "Groupe Pocket ID requis"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Erreur d'envoi SMS"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__subject
+msgid "Subject"
+msgstr "Sujet"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__subject_fingerprint
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__subject_fingerprint
+msgid "Subject Fingerprint"
+msgstr "Empreinte du sujet"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "The Odoo user already has a conflicting OAuth identity."
+msgstr "L'utilisateur Odoo a déjà une identité OAuth en conflit."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The Pocket ID subject appears more than once."
+msgstr "Le sujet Pocket ID apparaît plus d'une fois."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The Pocket ID subject is already linked to another user."
+msgstr "Le sujet Pocket ID est déjà lié à un autre utilisateur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid ""
+"The USL Pocket ID provider is environment-managed. Use the documented "
+"configuration helper."
+msgstr ""
+"Le fournisseur USL Pocket ID est géré par l'environnement. Utilisez l'aide "
+"de configuration documentée."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid ""
+"The USL Pocket ID provider must be disabled through environment "
+"configuration, not deleted."
+msgstr ""
+"Le fournisseur USL Pocket ID doit être désactivé par configuration "
+"d'environnement, et non supprimé."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The break-glass administrator must remain independent of Pocket ID."
+msgstr ""
+"L’administrateur local de secours doit rester indépendant de Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured Pocket ID subject is invalid."
+msgstr "Le sujet Pocket ID configuré est invalide."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured email does not match the user with this login."
+msgstr ""
+"L’e-mail configuré ne correspond pas à l’utilisateur associé à cet "
+"identifiant."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured email is ambiguous."
+msgstr "L’e-mail configuré est ambigu."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured email is invalid."
+msgstr "L’e-mail configuré est invalide."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured email matches more than one contact."
+msgstr "L’e-mail configuré correspond à plusieurs contacts."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured identity profile is unsupported."
+msgstr "Le profil d’identité configuré n’est pas pris en charge."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured login and email resolve to different users."
+msgstr ""
+"L’identifiant et l’e-mail configurés correspondent à des utilisateurs "
+"différents."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured login is ambiguous."
+msgstr "L’identifiant configuré est ambigu."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The configured user name is invalid."
+msgstr "Le nom d'utilisateur configuré est invalide."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "The identity issuer must exactly match the Pocket ID provider."
+msgstr ""
+"L'émetteur d'identité doit correspondre exactement au fournisseur Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "The linked Odoo user is not enabled for Pocket ID login."
+msgstr ""
+"L’utilisateur Odoo associé n’est pas autorisé à se connecter avec Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The local break-glass password must contain at least 20 characters."
+msgstr ""
+"Le mot de passe du compte local de secours doit contenir au moins 20 "
+"caractères."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The login appears more than once in the configuration."
+msgstr "L’identifiant apparaît plusieurs fois dans la configuration."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "The original identity-link method, actor and time are immutable."
+msgstr ""
+"La méthode d’association initiale, son auteur et sa date sont immuables."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "The user already has a different identity for this issuer."
+msgstr "L'utilisateur a déjà une identité différente pour cet émetteur."
+
+#. module: usl_pocketid
+#: model:ir.model.constraint,message:usl_pocketid.constraint_usl_oidc_identity_unique_issuer_user
+msgid "This Odoo user already has an identity for this issuer."
+msgstr "Cet utilisateur Odoo a déjà une identité pour cet émetteur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "This Pocket ID identity has been disabled in Odoo."
+msgstr "Cette identité Pocket ID a été désactivée dans Odoo."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid ""
+"This Pocket ID sign-in request expired or was already used. Please start "
+"again."
+msgstr ""
+"Cette demande de connexion Pocket ID a expiré ou a déjà été utilisée. "
+"Veuillez recommencer."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "This is not the governed Pocket ID provider."
+msgstr "Ce n'est pas le fournisseur Pocket ID géré."
+
+#. module: usl_pocketid
+#: model:ir.model.constraint,message:usl_pocketid.constraint_usl_oidc_identity_unique_issuer_subject
+msgid "This issuer and subject are already linked."
+msgstr "Cet émetteur et ce sujet sont déjà liés."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "This non-SSO profile cannot define a Pocket ID link."
+msgstr "Ce profil non-SSO ne peut pas définir un lien Pocket ID."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_pocketid
+msgid "This provider is governed by the USL Pocket ID environment."
+msgstr "Ce fournisseur est géré par l'environnement USL Pocket ID."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_token_auth_method
+msgid "Token endpoint authentication"
+msgstr "Authentification au point de terminaison des jetons"
+
+#. module: usl_pocketid
+#: model:ir.model,name:usl_pocketid.model_usl_oidc_audit_event
+msgid "USL OIDC Audit Event"
+msgstr "Événement d’audit OIDC USL"
+
+#. module: usl_pocketid
+#: model:ir.model,name:usl_pocketid.model_usl_oidc_identity
+msgid "USL OIDC Identity Link"
+msgstr "Association d’identité OIDC USL"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_pocketid
+msgid "USL Pocket ID provider"
+msgstr "Fournisseur USL Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Unsupported Pocket ID token authentication method."
+msgstr "Méthode d’authentification des jetons Pocket ID non prise en charge."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Unsupported Pocket ID user keys: %s"
+msgstr "Clés utilisateur Pocket ID non prises en charge : %s"
+
+#. module: usl_pocketid
+#: model:ir.model,name:usl_pocketid.model_res_users
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_audit_event__user_id
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__usl_oidc_audit_event__event_type__user_policy
+msgid "User policy applied"
+msgstr "Politique de l'utilisateur appliquée"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Verified-email first-link approval requires an exact email."
+msgstr ""
+"L’autorisation d’association initiale par e-mail vérifié nécessite une "
+"adresse exacte."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Verified-email linking is not enabled on the Pocket ID provider."
+msgstr ""
+"L’association par e-mail vérifié n’est pas activée sur le fournisseur Pocket"
+" ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Verified-email linking requires Pocket ID login access."
+msgstr ""
+"L’association par e-mail vérifié nécessite l’accès à la connexion Pocket ID."
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_usl_oidc_identity__website_message_ids
+msgid "Website Messages"
+msgstr "Messages du site web"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_usl_oidc_identity__website_message_ids
+msgid "Website communication history"
+msgstr "Historique de communication du site web"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Your Pocket ID account is not authorized for this Odoo environment."
+msgstr ""
+"Votre compte Pocket ID n'est pas autorisé pour cet environnement Odoo."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid ""
+"Your Pocket ID identity cannot be linked safely. Contact an administrator "
+"and mention an identity conflict."
+msgstr ""
+"Votre identité Pocket ID ne peut pas être associée de manière sûre. "
+"Contactez un administrateur en signalant un conflit d’identité."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Your Pocket ID identity is not linked to an approved Odoo user."
+msgstr ""
+"Votre identité Pocket ID n’est pas associée à un utilisateur Odoo autorisé."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "create_if_missing must be true or false."
+msgstr "create_if_missing doit valoir true ou false."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "email_link must be true or false."
+msgstr "email_link doit valoir true ou false."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "jwks_uri"
+msgstr "jwks_uri"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "token_endpoint"
+msgstr "token_endpoint"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Continue with Pocket ID"
+msgstr "Continuer avec Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Use your USL identity to continue."
+msgstr "Utilisez votre identité USL pour continuer."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_only_login
+msgid "Pocket ID is not ready. Contact an administrator."
+msgstr "Pocket ID n’est pas disponible. Contactez un administrateur."
+
+#. module: usl_pocketid
+#: model:ir.model.fields.selection,name:usl_pocketid.selection__res_users__usl_identity_classification__break_glass
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_local_break_glass
+msgid "Sealed emergency administrator"
+msgstr "Administrateur d’urgence scellé"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Emergency administrator"
+msgstr "Administrateur d’urgence"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "This time-limited recovery route is audited."
+msgstr "Cet accès de secours temporaire est audité."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Emergency password"
+msgstr "Mot de passe d’urgence"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Sign in for recovery"
+msgstr "Se connecter pour le dépannage"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.reauth_complete
+msgid "Identity confirmed. This window can close."
+msgstr "Identité confirmée. Cette fenêtre peut être fermée."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityForm
+msgid "Confirm this sensitive action with Pocket ID."
+msgstr "Confirmez cette action sensible avec Pocket ID."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityForm
+msgid "Confirm with Pocket ID"
+msgstr "Confirmer avec Pocket ID"
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.CheckIdentityLink
+msgid "Use Pocket ID"
+msgstr "Utiliser Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-javascript
+#: code:addons/usl_pocketid/static/src/js/check_identity.js:0
+msgid "Allow the Pocket ID confirmation window and try again."
+msgstr "Autorisez la fenêtre de confirmation Pocket ID, puis réessayez."
+
+#. module: usl_pocketid
+#. odoo-javascript
+#: code:addons/usl_pocketid/static/src/js/check_identity.js:0
+msgid "Pocket ID confirmation was not completed."
+msgstr "La confirmation Pocket ID n’a pas abouti."
+
+#. module: usl_pocketid
+#: model:mail.template,body_html:usl_pocketid.portal_sso_invitation
+msgid "<div>\n                <p>Hello <t t-out=\"object.name or ''\"/>,</p>\n                <p t-if=\"ctx.get('welcome_message')\"><t t-out=\"ctx.get('welcome_message')\"/></p>\n                <p>Your USL portal uses Pocket ID. No Odoo password is required.</p>\n                <p>\n                    <a t-att-href=\"object.get_base_url() + '/web/login'\" style=\"background:#714b67;color:#fff;padding:10px 16px;text-decoration:none;border-radius:4px;display:inline-block;\">\n                        Continue with Pocket ID\n                    </a>\n                </p>\n                <p>If Pocket ID does not recognize this email, contact your USL administrator.</p>\n            </div>\n        "
+msgstr "<div>\n                <p>Bonjour <t t-out=\"object.name or ''\"/>,</p>\n                <p t-if=\"ctx.get('welcome_message')\"><t t-out=\"ctx.get('welcome_message')\"/></p>\n                <p>Votre portail USL utilise Pocket ID. Aucun mot de passe Odoo n’est nécessaire.</p>\n                <p>\n                    <a t-att-href=\"object.get_base_url() + '/web/login'\" style=\"background:#714b67;color:#fff;padding:10px 16px;text-decoration:none;border-radius:4px;display:inline-block;\">\n                        Continuer avec Pocket ID\n                    </a>\n                </p>\n                <p>Si Pocket ID ne reconnaît pas cette adresse e-mail, contactez votre administrateur USL.</p>\n            </div>\n        "
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_pocketid_email_link
+msgid "Allow first-login linking only when the verified Pocket ID email uniquely and exactly matches this active governed user."
+msgstr "Autoriser l’association à la première connexion uniquement lorsque l’adresse e-mail vérifiée par Pocket ID correspond exactement et sans ambiguïté à cet utilisateur actif et administré."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "Emergency credentials were not accepted."
+msgstr "Les identifiants d’urgence n’ont pas été acceptés."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Every active interactive user must have governed Pocket ID access: %s"
+msgstr "Chaque utilisateur interactif actif doit disposer d’un accès Pocket ID administré : %s"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_res_users__usl_local_break_glass
+msgid "Independent administrator accepted only on the audited emergency route during a short deployment-approved incident window."
+msgstr "Administrateur indépendant accepté uniquement par l’accès d’urgence audité, pendant une courte période d’incident autorisée au niveau du déploiement."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.emergency_login
+msgid "Login"
+msgstr "Identifiant"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_auth_oauth_provider__usl_end_session_endpoint
+msgid "OIDC Logout Endpoint"
+msgstr "Point de terminaison de déconnexion OIDC"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Passwords are disabled by the SSO-only login policy."
+msgstr "Les mots de passe sont désactivés par la politique de connexion exclusivement par SSO."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Passwords are disabled. Manage this user's Pocket ID access instead."
+msgstr "Les mots de passe sont désactivés. Gérez plutôt l’accès Pocket ID de cet utilisateur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID logout endpoint"
+msgstr "Point de terminaison de déconnexion Pocket ID"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/auth_oauth_provider.py:0
+msgid "Pocket ID logout endpoint must use the issuer origin."
+msgstr "Le point de terminaison de déconnexion Pocket ID doit utiliser l’origine de l’émetteur."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID must be completely configured before SSO-only login."
+msgstr "Pocket ID doit être entièrement configuré avant d’activer la connexion exclusivement par SSO."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID must be the only enabled interactive login provider."
+msgstr "Pocket ID doit être le seul fournisseur de connexion interactive activé."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/oidc_identity.py:0
+msgid "Pocket ID portal identities require the portal classification."
+msgstr "Les identités de portail Pocket ID doivent être classées comme utilisateurs du portail."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Pocket ID portal users require the portal identity classification."
+msgstr "Les utilisateurs du portail Pocket ID doivent disposer de la classification d’identité « Portail »."
+
+#. module: usl_pocketid
+#: model:ir.model,name:usl_pocketid.model_portal_wizard_user
+msgid "Portal User Config"
+msgstr "Configuration de l’utilisateur du portail"
+
+#. module: usl_pocketid
+#: model:mail.template,name:usl_pocketid.portal_sso_invitation
+msgid "Portal: Pocket ID access"
+msgstr "Portail : accès Pocket ID"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,field_description:usl_pocketid.field_res_users__usl_sso_only_login
+msgid "SSO-only login"
+msgstr "Connexion exclusivement par SSO"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "SSO-only login requires exactly one sealed emergency administrator."
+msgstr "La connexion exclusivement par SSO exige exactement un administrateur d’urgence scellé."
+
+#. module: usl_pocketid
+#: model_terms:ir.ui.view,arch_db:usl_pocketid.sso_logout_redirect
+msgid "Signing out…"
+msgstr "Déconnexion…"
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/controllers/main.py:0
+msgid "This Odoo Distribution accepts Pocket ID sign-in only."
+msgstr "Cette distribution Odoo accepte uniquement la connexion avec Pocket ID."
+
+#. module: usl_pocketid
+#. odoo-python
+#: code:addons/usl_pocketid/models/res_users.py:0
+msgid "Unsupported Pocket ID login policy: %s"
+msgstr "Politique de connexion Pocket ID non prise en charge : %s"
+
+#. module: usl_pocketid
+#: model:ir.model.fields,help:usl_pocketid.field_auth_oauth_provider__usl_end_session_endpoint
+msgid "Validated Pocket ID endpoint used for provider-aware logout."
+msgstr "Point de terminaison Pocket ID validé, utilisé pour déconnecter également la session chez le fournisseur."
+
+#. module: usl_pocketid
+#: model:mail.template,subject:usl_pocketid.portal_sso_invitation
+msgid "Your USL portal access"
+msgstr "Votre accès au portail USL"

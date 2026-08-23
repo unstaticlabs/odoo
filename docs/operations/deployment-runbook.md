@@ -1,0 +1,56 @@
+# Deployment runbook
+
+## Objective
+
+Deploy an approved Odoo release without losing data, weakening controls or leaving the service in an ambiguous state.
+
+For the exact USL distribution build, reconstruction, identity and local
+qualification command, follow [Pre-production release](preproduction-release.md).
+
+## Before deployment
+
+Confirm:
+
+- the release and scope are approved;
+- required checks and accounting gates pass;
+- a recent recoverable backup exists;
+- database and document storage are covered together;
+- expected data changes are documented and rehearsed;
+- external integrations and scheduled actions are understood;
+- a rollback point and decision owner are identified;
+- users know about material downtime or behaviour changes.
+
+## Deployment
+
+During deployment:
+
+- prevent competing writes where required;
+- record the exact release being deployed;
+- apply only approved changes;
+- keep external side effects controlled;
+- stop on an unexplained critical error;
+- retain logs and evidence needed to understand the outcome.
+
+## Validation
+
+Before normal use resumes, verify:
+
+- users can authenticate with expected permissions;
+- each company opens in the correct context;
+- core records are readable;
+- attachments are accessible;
+- scheduled work is controlled;
+- critical integrations are healthy or visibly paused;
+- accounting entries remain balanced;
+- key reports and control totals remain consistent;
+- no unexpected migration warning remains unresolved.
+
+## Completion
+
+A deployment is complete only when:
+
+- validation passes;
+- service status is communicated;
+- evidence is recorded;
+- unresolved non-critical issues have owners;
+- rollback is no longer the recommended action.

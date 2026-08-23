@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="res_groups_privilege_platform_billing" model="res.groups.privilege">
+        <field name="name">Platform Billing</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+        <field name="sequence">8</field>
+    </record>
+
+    <record id="group_platform_billing_reader" model="res.groups">
+        <field name="name">Read-only</field>
+        <field name="privilege_id" ref="res_groups_privilege_platform_billing"/>
+        <field name="comment">Inspect platform billing configurations, sessions, payouts and linked accounting evidence.</field>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
+
+    <record id="group_platform_billing_operator" model="res.groups">
+        <field name="name">Operator</field>
+        <field name="privilege_id" ref="res_groups_privilege_platform_billing"/>
+        <field name="comment">Prepare, generate, post and reconcile platform billing sessions without configuring platforms.</field>
+        <field name="implied_ids" eval="[(4, ref('group_platform_billing_reader')), (4, ref('account.group_account_basic'))]"/>
+    </record>
+
+    <record id="group_platform_billing_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="res_groups_privilege_platform_billing"/>
+        <field name="comment">Full platform billing access, including configuration and eligible record deletion.</field>
+        <field name="implied_ids" eval="[(4, ref('group_platform_billing_operator')), (4, ref('account.group_account_manager')), (4, ref('analytic.group_analytic_accounting'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="rule_platform_company" model="ir.rule">
+        <field name="name">Platform billing configurations: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_platform"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_session_company" model="ir.rule">
+        <field name="name">Platform billing sessions: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_session"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_payout_company" model="ir.rule">
+        <field name="name">Platform billing payouts: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_payout"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_bank_allocation_company" model="ir.rule">
+        <field name="name">Platform billing bank allocations: allowed companies</field>
+        <field name="model_id" ref="model_usl_platform_billing_bank_allocation"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
