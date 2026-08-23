@@ -42,119 +42,207 @@
     <record id="rule_rebuild_account_external_report_value_company" model="ir.rule">
         <field name="name">External report values: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_external_report_value"/>
+        <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_overview_company" model="ir.rule">
         <field name="name">Accounting home summaries: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_overview"/>
+        <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_revenue_spending_month_company" model="ir.rule">
         <field name="name">Revenue and spending trend: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_revenue_spending_month"/>
+        <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
+
+    <!--
+        SQL-backed report models do not inherit the company rules of the
+        account.move/account.move.line tables used by their views.  Keep a
+        rule on every public report model so UI domains, RPC clients, exports,
+        and future MCP callers all enforce the same allowed-company boundary.
+    -->
+    <record id="rule_rebuild_account_trial_balance_line_company" model="ir.rule">
+        <field name="name">Trial balance: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_trial_balance_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_general_ledger_line_company" model="ir.rule">
+        <field name="name">General ledger: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_general_ledger_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_journal_report_line_company" model="ir.rule">
+        <field name="name">Journal report: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_journal_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_partner_ledger_line_company" model="ir.rule">
+        <field name="name">Partner ledger: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_partner_ledger_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_open_item_line_company" model="ir.rule">
+        <field name="name">Open items: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_open_item_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_aged_partner_balance_line_company" model="ir.rule">
+        <field name="name">Aged balances: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_aged_partner_balance_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_financial_statement_line_company" model="ir.rule">
+        <field name="name">Financial statements: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_financial_statement_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_tax_report_line_company" model="ir.rule">
+        <field name="name">Tax reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_tax_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_eu_tax_report_line_company" model="ir.rule">
+        <field name="name">EU tax reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_eu_tax_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_bank_reconciliation_line_company" model="ir.rule">
+        <field name="name">Bank reconciliation report: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_bank_reconciliation_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_currency_report_line_company" model="ir.rule">
+        <field name="name">Currency reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_currency_report_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_management_summary_line_company" model="ir.rule">
+        <field name="name">Management reports: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_management_summary_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_analytic_distribution_line_company" model="ir.rule">
+        <field name="name">Analytic distribution report: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_analytic_distribution_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_french_statement_line_company" model="ir.rule">
+        <field name="name">French statements: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_french_statement_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_french_tax_package_line_company" model="ir.rule">
+        <field name="name">French tax package: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_french_tax_package_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_rebuild_account_assurance_decision_company" model="ir.rule">
+        <field name="name">Accounting assurance decisions: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_assurance_decision"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
 
     <record id="rule_rebuild_account_deferral_company" model="ir.rule">
         <field name="name">Deferrals: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_deferral"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_deferral_line_company" model="ir.rule">
         <field name="name">Deferral schedule lines: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_deferral_line"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_declaration_company" model="ir.rule">
         <field name="name">Declarations: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_declaration"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_declaration_rule_company" model="ir.rule">
         <field name="name">Declaration definitions: shared or allowed companies</field>
         <field name="model_id" ref="model_rebuild_account_declaration_rule"/>
         <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_report_definition_company" model="ir.rule">
         <field name="name">Report definitions: shared or allowed companies</field>
         <field name="model_id" ref="model_rebuild_account_report_definition"/>
         <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_report_account_presentation_company" model="ir.rule">
         <field name="name">Report account presentations: shared or allowed companies</field>
         <field name="model_id" ref="model_rebuild_account_report_account_presentation"/>
         <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_einvoice_reception_company" model="ir.rule">
         <field name="name">Electronic invoice reception: allowed companies</field>
         <field name="model_id" ref="model_rebuild_einvoice_reception"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_declaration_field_company" model="ir.rule">
         <field name="name">Declaration fields: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_declaration_field"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_closing_period_company" model="ir.rule">
         <field name="name">Closing periods: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_closing_period"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_closing_control_company" model="ir.rule">
         <field name="name">Closing controls: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_closing_control"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_closing_control_definition_company" model="ir.rule">
         <field name="name">Closing control configuration: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_closing_control_definition"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_closing_snapshot_company" model="ir.rule">
         <field name="name">Accepted closing snapshots: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_closing_snapshot"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_hygiene_issue_company" model="ir.rule">
         <field name="name">Accounting Hygiene issues: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_hygiene_issue"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
     <record id="rule_rebuild_account_hygiene_dismissal_company" model="ir.rule">
         <field name="name">Accounting Hygiene dismissals: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_hygiene_dismissal"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 </odoo>

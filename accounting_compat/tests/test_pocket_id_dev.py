@@ -216,6 +216,18 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertGreaterEqual(script.count("stop_product"), 5)
         self.assertIn(
+            'docker compose -p "$compose_project" up -d --wait db',
+            script,
+        )
+        self.assertLess(
+            script.index("start_target_database"),
+            script.index("scripts/accounting-compat dev-reset"),
+        )
+        self.assertIn(
+            'export POCKET_ID_ENV_FILE="$ROOT/.pocket-id-${compose_project}.env"',
+            script,
+        )
+        self.assertIn(
             'COMPOSE_PROJECT_NAME="$compose_project" '
             "scripts/platform-billing-restore all",
             script,

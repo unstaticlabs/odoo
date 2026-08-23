@@ -160,6 +160,26 @@ FRENCH_PROFIT_LOSS_SUBTOTALS = {
 
 HIERARCHY_STATE_SENTINEL = "__pcg_hierarchy_initialized__"
 
+# These reports contain comparable summary rows which can be added across
+# companies sharing the same company currency. Detail-ledger reports keep one
+# row per company so their source identity and running balances stay exact.
+MULTI_COMPANY_AGGREGATE_KEYS = {
+    "trial_balance": ("account_code", "account_type"),
+    "journal_report": ("journal_code", "journal_type"),
+    "balance_sheet": ("section", "account_code", "account_type"),
+    "profit_loss": ("statement_key", "line_code", "section"),
+    "cash_flow": ("line_code", "section", "label"),
+    "executive_summary": ("line_code", "section", "label"),
+    "fixed_asset_group_account": ("account_code",),
+    "french_annual": ("statement_key", "line_code", "section"),
+    "french_balance_sheet_2024": (
+        "statement_key",
+        "line_code",
+        "section",
+    ),
+    "sig_caf_2024": ("statement_key", "line_code", "section"),
+}
+
 
 def _amount(value):
     return Decimal(str(value or "0")).quantize(Decimal("0.01"))
@@ -368,8 +388,36 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             wizard.report_type = CANONICAL_REPORT_TYPES[
                 wizard.report_type
             ]
+        allowed_company_ids = set(self.env.companies.ids)
+        requested_company_id = int(filters.get("company_id") or 0)
+        if (
+            requested_company_id
+            and requested_company_id not in allowed_company_ids
+        ):
+            message = (
+                "You cannot report on a company outside your allowed "
+                "companies."
+            )
+            raise AccessError(message)
+        requested_scope_ids = [
+            int(company_id)
+            for company_id in (filters.get("company_ids") or [])
+        ]
+        if requested_scope_ids:
+            if not set(requested_scope_ids) <= allowed_company_ids:
+                message = (
+                    "You cannot report on a company outside your allowed "
+                    "companies."
+                )
+                raise AccessError(message)
+            if requested_company_id not in requested_scope_ids:
+                filters = {
+                    **filters,
+                    "company_id": requested_scope_ids[0],
+                }
+                requested_company_id = requested_scope_ids[0]
         requested_company = (
-            self.env["res.company"].browse(filters.get("company_id")).exists()
+            self.env["res.company"].browse(requested_company_id).exists()
             or wizard.company_id
             or self.env.company
         )
@@ -386,10 +434,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 requested_company.rebuild_compute_fiscalyear_dates(today)
             )
             default_group = definition.default_group_by
+            initial_company_ids = requested_scope_ids or self.env.companies.ids
             wizard = self.create({
                 "report_type": report_type,
                 "company_id": requested_company.id,
-                "company_ids": [Command.set([requested_company.id])],
+                "company_ids": [Command.set(initial_company_ids)],
                 "period_preset": "fiscal_year",
                 "period_anchor_date": today,
                 "date_from": fiscal_from,
@@ -416,6 +465,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         allowed_filter_fields = {
             "company_id",
+            "company_ids",
             "date_from",
             "date_to",
             "period_preset",
@@ -458,10 +508,33 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "analytic_plan_ids": [],
                 "analytic_account_ids": [],
             })
-        if values.get("company_id"):
-            values["company_ids"] = [
-                Command.set([int(values["company_id"])]),
+        if "company_ids" in values:
+            requested_company_ids = [
+                int(company_id)
+                for company_id in (values.pop("company_ids") or [])
             ]
+            allowed_company_ids = set(self.env.companies.ids)
+            if not requested_company_ids:
+                message = "Select at least one company."
+                raise UserError(message)
+            if not set(requested_company_ids) <= allowed_company_ids:
+                message = (
+                    "You cannot report on a company outside your allowed "
+                    "companies."
+                )
+                raise AccessError(message)
+            values["company_ids"] = [Command.set(requested_company_ids)]
+            if int(values.get("company_id") or 0) not in requested_company_ids:
+                values["company_id"] = requested_company_ids[0]
+        elif values.get("company_id"):
+            requested_company_id = int(values["company_id"])
+            if requested_company_id not in self.env.companies.ids:
+                message = (
+                    "You cannot report on a company outside your allowed "
+                    "companies."
+                )
+                raise AccessError(message)
+            values["company_ids"] = [Command.set([requested_company_id])]
         for field_name in {
             "journal_ids",
             "account_ids",
@@ -581,6 +654,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "payment_status": row.get("payment_status") or "",
                 "due_date": row.get("due_date") or "",
                 "can_drilldown": row.get("empty_report") != "true",
+                "company_contributions": row.get("company_contributions") or [],
+                "company_name": row.get("report_company_name") or "",
                 "values": {
                     column["key"]: row.get(column["key"])
                     for column in columns
@@ -590,7 +665,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "wizard_id": self.id,
             "title": self._report_type_label(),
             "company_id": self.company_id.id,
-            "company_name": self.company_id.display_name,
+            "company_name": ", ".join(
+                self._selected_companies().mapped("display_name"),
+            ),
+            "company_ids": self._selected_companies().ids,
+            "multi_company": len(self._selected_companies()) > 1,
+            "aggregation_mode": (
+                "aggregate"
+                if len(self._selected_companies()) > 1
+                and self.report_type in MULTI_COMPANY_AGGREGATE_KEYS
+                else "company_rows"
+            ),
             # Accounting statements follow the French presentation contract
             # independently from the user's general Odoo interface language.
             "locale": "fr-FR",
@@ -622,6 +707,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "amount_rounding": self._amount_rounding_metadata(),
             "filters": {
                 "company_id": self.company_id.id,
+                "company_ids": self._selected_companies().ids,
                 "date_from": fields.Date.to_string(self.date_from),
                 "date_to": fields.Date.to_string(self.date_to),
                 "period_preset": self.period_preset,
@@ -2103,9 +2189,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _preview_journal_item_domain(self, row):
         row_company_id = self._row_int(row, "report_company_id")
+        row_company_ids = self._row_int_list(row, "report_company_ids")
         domain = list(
             self._journal_item_domain(
-                company_ids=[row_company_id] if row_company_id else None,
+                company_ids=(
+                    row_company_ids
+                    or ([row_company_id] if row_company_id else None)
+                ),
             ),
         )
         refinements = []
@@ -2191,9 +2281,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _preview_analytic_line_domain(self, row):
         row_company_id = self._row_int(row, "report_company_id")
+        row_company_ids = self._row_int_list(row, "report_company_ids")
         domain = list(
             self._analytic_line_domain(
-                company_ids=[row_company_id] if row_company_id else None,
+                company_ids=(
+                    row_company_ids
+                    or ([row_company_id] if row_company_id else None)
+                ),
             ),
         )
         analytic_key = self._row_int(row, "analytic_key")
@@ -2217,9 +2311,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _preview_accounts(self, row, source_account_ids=None):
         Account = self.env["account.account"]
         accounts = Account.browse()
+        company_ids = (
+            self._row_int_list(row, "report_company_ids")
+            or [self._row_int(row, "report_company_id") or self.company_id.id]
+        )
         if source_account_ids:
             accounts |= Account.search([
-                ("company_ids", "in", self.company_id.id),
+                ("company_ids", "in", company_ids),
                 ("id", "in", source_account_ids),
             ])
         exact_codes = {
@@ -2233,10 +2331,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if prefix.strip()
         ]
         if exact_codes or prefixes:
-            for account in Account.search([("company_ids", "in", self.company_id.id)]):
-                code = self._account_code_for_company(account)
-                if code in exact_codes or any(code.startswith(prefix) for prefix in prefixes):
-                    accounts |= account
+            for company in self.env["res.company"].browse(company_ids):
+                for account in Account.with_company(company).search([
+                    ("company_ids", "in", company.id),
+                ]):
+                    code = self._account_code_for_company(account, company=company)
+                    if code in exact_codes or any(
+                        code.startswith(prefix) for prefix in prefixes
+                    ):
+                        accounts |= account
         return accounts
 
     def _row_has_account_ref(self, row):
@@ -2264,10 +2367,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 codes.append(str(value).strip())
         return [code for code in codes if code]
 
-    def _account_code_for_company(self, account):
+    def _account_code_for_company(self, account, company=None):
         code_store = account.code_store
         if isinstance(code_store, dict):
-            source_company_id = str(self.company_id.id or "")
+            source_company_id = str((company or self.company_id).id or "")
             return (
                 code_store.get(source_company_id)
                 or code_store.get("1")
@@ -2293,6 +2396,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if value and value not in values:
                 values.append(value)
         return values
+
+    @staticmethod
+    def _row_int_list(row, key):
+        value = row.get(key) or []
+        if not isinstance(value, (list, tuple, set)):
+            return []
+        result = []
+        for item in value:
+            try:
+                item = int(item)
+            except (TypeError, ValueError):
+                continue
+            if item and item not in result:
+                result.append(item)
+        return result
 
     def _export_metadata(self, row_count=None):
         partner = self.company_id.partner_id
@@ -3947,7 +4065,100 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     "report_currency": company.currency_id.name,
                 })
                 rows.append(row)
+        if (
+            len(self._selected_companies()) > 1
+            and self.report_type in MULTI_COMPANY_AGGREGATE_KEYS
+        ):
+            return self._aggregate_company_rows(rows)
         return rows
+
+    def _aggregate_company_rows(self, rows):
+        """Combine same-currency summary rows and retain their contributions."""
+        self.ensure_one()
+        key_fields = MULTI_COMPANY_AGGREGATE_KEYS[self.report_type]
+        buckets = {}
+        for row in rows:
+            key = tuple(str(row.get(field_name) or "") for field_name in key_fields)
+            bucket = buckets.setdefault(key, {"rows": [], "template": dict(row)})
+            bucket["rows"].append(row)
+        aggregated = []
+        for bucket in buckets.values():
+            company_rows = bucket["rows"]
+            row = bucket["template"]
+            row.update({
+                "report_company_id": self.company_id.id,
+                "report_company_ids": sorted({
+                    int(company_row["report_company_id"])
+                    for company_row in company_rows
+                }),
+                "report_company_name": ", ".join(
+                    sorted({
+                        company_row["report_company_name"]
+                        for company_row in company_rows
+                    }),
+                ),
+                "company_contributions": [
+                    {
+                        "company_id": company_row["report_company_id"],
+                        "company_name": company_row["report_company_name"],
+                        "values": {
+                            field_name: company_row.get(field_name)
+                            for field_name in self._summable_report_fields()
+                            if company_row.get(field_name) not in (None, "")
+                        },
+                    }
+                    for company_row in company_rows
+                ],
+            })
+            for field_name in self._summable_report_fields():
+                values = [
+                    _amount(company_row.get(field_name))
+                    for company_row in company_rows
+                    if company_row.get(field_name) not in (None, "")
+                ]
+                if values:
+                    row[field_name] = _amount_text(sum(values))
+            counts = [
+                int(company_row.get("move_line_count") or 0)
+                for company_row in company_rows
+                if company_row.get("move_line_count") not in (None, "")
+            ]
+            if counts:
+                row["move_line_count"] = str(sum(counts))
+            if any(company_row.get("account_breakdown") for company_row in company_rows):
+                row["account_breakdown"] = self._aggregate_account_breakdown(
+                    company_rows,
+                )
+            aggregated.append(row)
+        return aggregated
+
+    @staticmethod
+    def _aggregate_account_breakdown(company_rows):
+        accounts = {}
+        for company_row in company_rows:
+            company_id = int(company_row["report_company_id"])
+            company_name = company_row["report_company_name"]
+            for account in company_row.get("account_breakdown") or []:
+                key = str(account.get("account_code") or "")
+                bucket = accounts.setdefault(key, {
+                    **account,
+                    "amount": "0.00",
+                    "move_line_count": 0,
+                })
+                bucket["amount"] = _amount_text(
+                    _amount(bucket["amount"]) + _amount(account.get("amount")),
+                )
+                bucket["move_line_count"] += int(
+                    account.get("move_line_count") or 0,
+                )
+                bucket.setdefault("company_contributions", []).append({
+                    "company_id": company_id,
+                    "company_name": company_name,
+                    "values": {
+                        "amount": account.get("amount") or "0.00",
+                    },
+                })
+        return [accounts[key] for key in sorted(accounts)]
 
     def _report_clone_values(self, company, date_from, date_to):
         journals = self.journal_ids.filtered(
@@ -4183,6 +4394,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 if entry["kind"] == "account":
                     account = entry["account"]
                     flattened.append({
+                        "report_company_id": row.get("report_company_id"),
+                        "report_company_ids": row.get("report_company_ids"),
+                        "report_company_name": row.get("report_company_name"),
+                        "report_currency_id": row.get("report_currency_id"),
+                        "report_currency": row.get("report_currency"),
                         "statement_key": row.get("statement_key"),
                         "section": row.get("section"),
                         "line_code": row.get("line_code"),
@@ -4197,6 +4413,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         ),
                         "move_line_count": str(
                             account.get("move_line_count") or 0,
+                        ),
+                        "company_contributions": (
+                            account.get("company_contributions") or []
                         ),
                         "amount": _amount_text(account.get("amount")),
                         "net_amount": _amount_text(account.get("amount")),
@@ -4220,6 +4439,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     if account.get("account_code")
                 })
                 flattened.append({
+                    "report_company_id": row.get("report_company_id"),
+                    "report_company_ids": row.get("report_company_ids"),
+                    "report_company_name": row.get("report_company_name"),
+                    "report_currency_id": row.get("report_currency_id"),
+                    "report_currency": row.get("report_currency"),
                     "statement_key": row.get("statement_key"),
                     "section": row.get("section"),
                     "line_code": row.get("line_code"),
@@ -4254,7 +4478,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         ]
 
     def _report_group(self, row):
-        company_key = str(row.get("report_company_id") or "")
+        report_company_ids = row.get("report_company_ids") or []
+        company_key = (
+            "aggregate"
+            if len(report_company_ids) > 1
+            else str(row.get("report_company_id") or "")
+        )
         company_name = row.get("report_company_name") or ""
         field_map = {
             "section": (
@@ -4327,10 +4556,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         label = (
             f"{company_name} — {value}"
             if len(self.company_ids or self.company_id) > 1
+            and len(report_company_ids) <= 1
             else value
         )
         values = {
             "report_company_id": row.get("report_company_id"),
+            "report_company_ids": report_company_ids,
             "report_company_name": company_name,
             "report_currency_id": row.get("report_currency_id"),
             "report_currency": row.get("report_currency"),
@@ -4618,6 +4849,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             message = (
                 "French statutory and closing packages must be generated "
                 "for one company at a time."
+            )
+            raise UserError(message)
+        if len(companies.mapped("currency_id")) != 1:
+            message = (
+                "Combined reports require companies with the same company "
+                "currency. Run this report separately for each currency."
             )
             raise UserError(message)
         if self.export_format == "txt":

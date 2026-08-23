@@ -9,6 +9,8 @@ from . import (
     bank_partner_suggestion,
     expense_bank_matching,
     fiscal_year,
+    multi_company_expenses,
+    multi_company_setup,
     payment_suggestion,
     immediate_settlement,
     readonly_evidence,

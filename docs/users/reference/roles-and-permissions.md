@@ -31,6 +31,31 @@ allow arbitrary Python, SQL or JavaScript execution.
 
 ## Company access
 
-The company switcher controls the active company context. A user sees only companies granted on their user record. Multi-company reports include only selected companies the user is allowed to access.
+The company switcher controls the active company context. A user sees only
+companies granted on their user record. The highlighted company is where new
+accounting records are created; selecting several companies is for combined
+reading and does not turn a write into a cross-company operation.
+
+With one company selected, the top navigation uses its configured interface
+color. A colored dot identifies each company inside the switcher. With several
+companies selected, the navigation uses Odoo's neutral default theme and `+N`
+shows how many additional companies are selected for viewing.
+Administrators configure the color from **Settings > Users & Companies >
+Companies**; leaving it empty assigns a stable automatic color. This interface
+color does not change financial statements or external documents.
+
+Interactive Accounting reports have a visible **Companies** selector. Summary
+statements combine same-currency companies and show each company's
+contribution. Detailed ledgers keep company-specific rows. FEC, French tax and
+closing packages are always generated one company at a time. Different company
+currencies must also be reported separately.
+
+Changing the global company selector never grants access: Allowed Companies on
+the user record remains authoritative.
+
+For a multi-company expense user, an administrator enables **Expenses in all
+allowed companies** on the user record. Odoo keeps one employee profile per
+legal company and selects the right profile from the highlighted company;
+contracts, payroll, approvals and accounting are never merged.
 
 Roles and responsible users are configured; personal names are not embedded in the product.

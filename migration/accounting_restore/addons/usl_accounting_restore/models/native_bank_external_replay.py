@@ -281,7 +281,7 @@ class RebuildAccountImportRun(models.Model):
             companies,
             currencies,
         )
-        journals = self._journal_map(
+        journals, archive_journal_ids = self._journal_map(
             conn,
             configuration_options,
             companies,
@@ -312,26 +312,7 @@ class RebuildAccountImportRun(models.Model):
             analytic_accounts,
             archive_account_ids,
             staged_suspense,
-            {
-                row["id"]
-                for row in self._fetchall(
-                    conn,
-                    """
-                    SELECT id
-                    FROM account_journal
-                    WHERE id = ANY(%(source_journal_ids)s)
-                      AND NOT active
-                    """,
-                    {
-                        **options,
-                        "source_journal_ids": sorted({
-                            row["journal_id"]
-                            for row in bank_rows + manual_move_rows
-                        })
-                        or [0],
-                    },
-                )
-            },
+            set(archive_journal_ids),
         )
 
     def _native_bank_external_categorize(

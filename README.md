@@ -39,6 +39,9 @@ Primary entry points:
   for reconstruction and parity evidence.
 - [Accounting restoration boundary](migration/accounting_restore/README.md)
   for the one-off importer lifecycle and finalization contract.
+- [Multi-company Accounting](docs/accounting/multi-company-accounting.md) for
+  company isolation, combined management reporting and the explicit legal
+  consolidation boundary.
 - [Projects restoration runbook](docs/operations/project-restoration.md) for
   repeatable Odoo Online project and task recovery.
 - [Product and migration boundary](docs/agents/product-migration-boundary.md)
@@ -241,8 +244,8 @@ Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the c
 The production custom-module boundaries are:
 
 - `usl_locale`: the dependency-light presentation foundation that enforces
-  day-first (`DD/MM/YYYY`) dates through Odoo language formats and web-client
-  localization;
+  day-first (`DD/MM/YYYY`) dates and keeps list-view company columns aligned
+  with the currently selected single- or multi-company scope;
 - `usl_accounting`: dependency-light extensions of native and pinned OCA
   Accounting models;
 - `usl_expense_batch`: the independent Expenses claim-batch feature;

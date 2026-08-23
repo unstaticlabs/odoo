@@ -125,6 +125,54 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         flex-basis: 155px !important;
     }
 
+    .o_usl_report_company_filter {
+        flex: 1 1 280px;
+        min-width: 220px;
+
+        > span {
+            display: block;
+            margin-bottom: 0.12rem;
+            color: #475467;
+            font-size: 0.67rem;
+            font-weight: 600;
+        }
+    }
+
+    .o_usl_report_company_choices {
+        display: flex;
+        min-height: 1.95rem;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .o_usl_report_company_choice {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.28rem;
+        margin: 0;
+        padding: 0.2rem 0.48rem;
+        border: 1px solid #d0d5dd;
+        border-radius: 999px;
+        background: #fff;
+        color: #344054;
+        cursor: pointer;
+        font-size: 0.74rem;
+        white-space: nowrap;
+
+        &:has(input:checked) {
+            border-color: #98a2b3;
+            background: #f2f4f7;
+            font-weight: 600;
+        }
+
+        input {
+            width: auto;
+            min-height: auto;
+            margin: 0;
+        }
+    }
+
     .o_usl_report_filter_unit {
         flex-basis: 112px !important;
     }

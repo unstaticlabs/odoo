@@ -502,13 +502,13 @@
         <field name="inherit_id" ref="view_rebuild_currency_rate_update_wizard_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_save_configuration']" position="attributes">
-                <attribute name="title">Save the selected rate provider and schedule for this company.</attribute>
+                <attribute name="title">Save this company's provider, schedule and same-currency sharing policy.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_update_now']" position="attributes">
-                <attribute name="title">Fill every missing published ECB business-day rate from the coverage boundary through the latest available date. Restored, manual and transaction-specific rates are preserved.</attribute>
+                <attribute name="title">Fill every missing published ECB business-day rate for the displayed companies. Restored, manual and transaction-specific rates are preserved.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_open_currency_rates']" position="attributes">
-                <attribute name="title">Open the company's dated currency-rate history and provider evidence.</attribute>
+                <attribute name="title">Open the synchronized companies' dated currency-rate history and provider evidence.</attribute>
             </xpath>
         </field>
     </record>

@@ -2,7 +2,10 @@
 
 1. Open the **Expenses** app, then **Expenses to Process**. The removable **Needs action** filter initially shows drafts and approved expenses that still need work. Select the **Expenses** app title whenever you want to return to **My Expenses**.
 2. Select **Upload** to create an expense from a receipt, or **New** to enter one manually.
-3. Check the employee, description, date, category, paid-by method, currency and analytic distribution.
+3. If you work for several companies, first highlight the company that incurred
+   the expense in the company selector. Odoo uses your employee profile for
+   that company automatically. Then check the employee, description, date,
+   category, paid-by method, currency and analytic distribution.
 4. Use the compact **Receipt** status (**Attached**, **Missing** or **Not
    required**) to find missing evidence. Open an expense to see its contextual
    next-step guidance; a required missing receipt blocks
@@ -33,6 +36,11 @@ A scoped read-only accountant can inspect suggestions and accepted history but
 cannot refresh or use them. Ordinary employees cannot see bank-match evidence.
 
 Use the **Missing receipt** filter to prepare incomplete drafts. A category such as a configured fixed allowance can explicitly say **Receipt not required**; this is a category policy, not an exception hidden in the workflow.
+
+If the active company has no employee profile, ask an administrator to open
+your user under **Settings > Users & Companies > Users**, enable **Expenses in
+all allowed companies**, and select **Refresh expense access**. Do not change an
+existing expense to another company: create it in the correct active company.
 
 ## Group related expenses
 

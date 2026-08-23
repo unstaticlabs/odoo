@@ -373,13 +373,13 @@ class RebuildAccountImportRun(models.Model):
                 countries,
             )
             partners = self._partner_map(conn, options)
-            accounts, _accounts_to_archive = self._account_map(
+            accounts, accounts_to_archive = self._account_map(
                 conn,
                 options,
                 companies,
                 currencies,
             )
-            journals = self._journal_map(
+            journals, journals_to_archive = self._journal_map(
                 conn,
                 options,
                 companies,
@@ -862,6 +862,11 @@ class RebuildAccountImportRun(models.Model):
                 and passed_opening_move_count == len(opening_rows)
                 else "failed"
             )
+            for source_account_id in accounts_to_archive:
+                accounts[source_account_id].active = False
+            for source_journal_id in journals_to_archive:
+                journals[source_journal_id].active = False
+
             stats = {
                 "classification": (
                     "NATIVE_VALIDATION_NATIVE_DEFERRAL_AND_OPENING_REPLAY"

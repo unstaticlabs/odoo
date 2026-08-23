@@ -98,6 +98,45 @@ test("checkbox filters send booleans to the shared report state", async () => {
     expect(changes).toEqual({ hide_zero_accounts: true });
 });
 
+test("company choices preserve a real multi-company report scope", async () => {
+    const report = reportWith([]);
+    report.state.filters = { company_id: 3, company_ids: [3] };
+    let changes;
+    report.load = async (nextChanges) => {
+        changes = nextChanges;
+    };
+
+    await report.onManyFilterChange(
+        { target: { value: "7", checked: true } },
+        "company_ids",
+    );
+
+    expect(changes).toEqual({ company_ids: [3, 7] });
+});
+
+test("combined report explains each company contribution compactly", () => {
+    const report = reportWith([]);
+    report.state.data.locale = "fr-FR";
+    report.state.data.display_unit = {
+        key: "units",
+        factor: 1,
+        short_label: "€",
+    };
+    report.state.data.amount_rounding = {
+        key: "cents",
+        decimal_places: 2,
+    };
+
+    expect(
+        report.companyContributionLabel({
+            company_contributions: [
+                { company_name: "Alpha", values: { amount: "100.00" } },
+                { company_name: "Beta", values: { amount: "25.50" } },
+            ],
+        }),
+    ).toBe("Alpha: 100,00 · Beta: 25,50");
+});
+
 test("export refreshes transient line identifiers before further navigation", () => {
     const report = reportWith([{ id: 10, label: "Ancienne ligne" }]);
     report.state.filters = { hide_zero_accounts: false };

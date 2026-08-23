@@ -1,0 +1,50 @@
+html[data-usl-company-theme="active"] {
+    .o_main_navbar {
+        --NavBar-entry-color: var(--usl-company-foreground);
+        --NavBar-entry-color--hover: var(--usl-company-foreground);
+        --NavBar-entry-color--active: var(--usl-company-foreground);
+        --NavBar-brand-color: var(--usl-company-foreground);
+        --NavBar-entry-backgroundColor: var(--usl-company-color);
+        --NavBar-entry-backgroundColor--hover: color-mix(
+            in srgb,
+            var(--usl-company-foreground) 14%,
+            var(--usl-company-color)
+        );
+        --NavBar-entry-backgroundColor--focus: var(--NavBar-entry-backgroundColor--hover);
+        --NavBar-entry-backgroundColor--active: var(--NavBar-entry-backgroundColor--hover);
+
+        background: var(--usl-company-color);
+        color: var(--usl-company-foreground);
+        transition: background-color 120ms ease;
+    }
+
+    .o_switch_company_menu {
+        border: 1px solid color-mix(in srgb, var(--usl-company-foreground) 30%, transparent);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--usl-company-foreground) 10%, transparent);
+    }
+
+    .usl_company_scope_count {
+        background: color-mix(in srgb, var(--usl-company-foreground) 18%, transparent);
+        color: var(--usl-company-foreground);
+    }
+}
+
+.usl_company_color_dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 50%;
+    background: var(--usl-company-indicator, #714b67);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.usl_company_scope_summary {
+    color: var(--o-main-text-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-usl-company-theme="active"] .o_main_navbar {
+        transition: none;
+    }
+}

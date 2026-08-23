@@ -6,7 +6,7 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Accounting v1
 
-Status date: 4 August 2026
+Status date: 6 August 2026
 
 - Branch: `19-usl`
 - Upstream baseline: `6b54f539d80af8958990fa66f65d5bf8f420d3f4`
@@ -31,6 +31,13 @@ Documents application.
   as distinct, role-aware journeys.
 - Assets, depreciation, deferrals, historical currencies and multi-plan
   analytical accounting.
+- Native multi-company operation with complete company accounting
+  configuration, company-scoped roles and same-currency combined management
+  statements, synchronized provider-controlled ECB rates and seamless
+  company-specific employee expense profiles, verified against both companies
+  in the canonical dump. Legal
+  consolidation, eliminations, currency translation and unused Enterprise
+  payment transports are explicitly outside Accounting v1.
 - Configurable, versioned Controls, Reports and Declarations under Accounting
   Configuration, with operational results kept separate.
 - Compact interactive financial, partner, tax, management and analytical

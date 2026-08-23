@@ -4,6 +4,7 @@ import io
 import json
 import zipfile
 from datetime import date
+from decimal import Decimal
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -1114,3 +1115,288 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(second_issue.status, "open")
         self.assertEqual(first_issue.dismissal_ids.company_id, first_company)
         self.assertFalse(second_issue.dismissal_ids)
+
+
+@tagged("post_install", "-at_install", "rebuild_account_migration_unit")
+class TestMultiCompanyAccountingReports(TransactionCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.euro = cls.env.ref("base.EUR")
+        cls.first_company = cls.env["res.company"].create({
+            "name": "Combined Report Alpha",
+            "currency_id": cls.euro.id,
+        })
+        cls.second_company = cls.env["res.company"].create({
+            "name": "Combined Report Beta",
+            "currency_id": cls.euro.id,
+        })
+        cls.allowed_env = cls.env(context={
+            **cls.env.context,
+            "allowed_company_ids": [
+                cls.first_company.id,
+                cls.second_company.id,
+            ],
+        })
+
+    def _wizard(self, **values):
+        return self.allowed_env[
+            "rebuild.account.report.export.wizard"
+        ].with_company(self.first_company).create({
+            "report_type": "trial_balance",
+            "company_id": self.first_company.id,
+            "company_ids": [Command.set([
+                self.first_company.id,
+                self.second_company.id,
+            ])],
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+            **values,
+        })
+
+    def _post_revenue(self, company, amount):
+        cash = self.env["account.account"].with_company(company).create({
+            "code": "512991",
+            "name": "Combined report bank",
+            "account_type": "asset_cash",
+            "company_ids": [Command.set([company.id])],
+        })
+        revenue = self.env["account.account"].with_company(company).create({
+            "code": "706991",
+            "name": "Combined report revenue",
+            "account_type": "income",
+            "company_ids": [Command.set([company.id])],
+        })
+        journal = self.env["account.journal"].with_company(company).create({
+            "name": "Combined report journal",
+            "code": "MCR",
+            "type": "general",
+            "company_id": company.id,
+        })
+        move = self.env["account.move"].with_company(company).create({
+            "date": "2026-06-30",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Combined revenue",
+                    "account_id": cash.id,
+                    "debit": amount,
+                    "credit": 0,
+                }),
+                Command.create({
+                    "name": "Combined revenue",
+                    "account_id": revenue.id,
+                    "debit": 0,
+                    "credit": amount,
+                }),
+            ],
+        })
+        move.action_post()
+
+    def test_same_currency_summary_rows_are_aggregated_with_contributions(self):
+        wizard = self._wizard()
+        rows = wizard._aggregate_company_rows([
+            {
+                "account_code": "512000",
+                "account_type": "asset_cash",
+                "account_name": "Bank",
+                "debit": "100.00",
+                "credit": "10.00",
+                "closing_balance": "90.00",
+                "move_line_count": "2",
+                "report_company_id": self.first_company.id,
+                "report_company_name": self.first_company.name,
+                "report_currency_id": self.euro.id,
+                "report_currency": "EUR",
+            },
+            {
+                "account_code": "512000",
+                "account_type": "asset_cash",
+                "account_name": "Bank",
+                "debit": "50.00",
+                "credit": "5.00",
+                "closing_balance": "45.00",
+                "move_line_count": "1",
+                "report_company_id": self.second_company.id,
+                "report_company_name": self.second_company.name,
+                "report_currency_id": self.euro.id,
+                "report_currency": "EUR",
+            },
+        ])
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["debit"], "150.00")
+        self.assertEqual(rows[0]["credit"], "15.00")
+        self.assertEqual(rows[0]["closing_balance"], "135.00")
+        self.assertEqual(rows[0]["move_line_count"], "3")
+        self.assertEqual(
+            rows[0]["report_company_ids"],
+            [self.first_company.id, self.second_company.id],
+        )
+        self.assertEqual(len(rows[0]["company_contributions"]), 2)
+        domain = wizard._preview_journal_item_domain(rows[0])
+        self.assertIn(
+            (
+                "company_id",
+                "in",
+                [self.first_company.id, self.second_company.id],
+            ),
+            domain,
+        )
+
+    def test_trial_balance_combines_real_company_ledgers(self):
+        self._post_revenue(self.first_company, 100)
+        self._post_revenue(self.second_company, 25)
+        rows = self._wizard()._raw_report_rows(
+            fields.Date.from_string("2026-01-01"),
+            fields.Date.from_string("2026-12-31"),
+        )
+
+        cash = next(row for row in rows if row["account_code"] == "512991")
+        revenue = next(row for row in rows if row["account_code"] == "706991")
+        self.assertEqual(cash["closing_balance"], "125.00")
+        self.assertEqual(revenue["closing_balance"], "-125.00")
+        self.assertEqual(len(cash["company_contributions"]), 2)
+
+        individual_balances = {}
+        for company in (self.first_company, self.second_company):
+            individual = self._wizard(
+                company_id=company.id,
+                company_ids=[Command.set([company.id])],
+            )._raw_report_rows(
+                fields.Date.from_string("2026-01-01"),
+                fields.Date.from_string("2026-12-31"),
+            )
+            individual_balances[company.id] = next(
+                row for row in individual if row["account_code"] == "512991"
+            )["closing_balance"]
+        self.assertEqual(
+            Decimal(cash["closing_balance"]),
+            sum(map(Decimal, individual_balances.values())),
+        )
+
+    def test_combined_xlsx_and_pdf_preserve_company_scope(self):
+        self._post_revenue(self.first_company, 100)
+        self._post_revenue(self.second_company, 25)
+        wizard = self._wizard(export_format="xlsx")
+
+        wizard.action_generate_export()
+        xlsx_payload = base64.b64decode(wizard.export_file)
+        self.assertTrue(xlsx_payload.startswith(b"PK"))
+        with zipfile.ZipFile(io.BytesIO(xlsx_payload)) as workbook_archive:
+            shared_strings = workbook_archive.read("xl/sharedStrings.xml")
+        self.assertIn(self.first_company.name.encode(), shared_strings)
+        self.assertIn(self.second_company.name.encode(), shared_strings)
+        xlsx_metadata = json.loads(wizard.export_metadata)
+        self.assertEqual(
+            {company["id"] for company in xlsx_metadata["companies"]},
+            {self.first_company.id, self.second_company.id},
+        )
+
+        wizard.export_format = "pdf"
+        wizard.action_generate_export()
+        self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"%PDF"))
+        pdf_metadata = json.loads(wizard.export_metadata)
+        self.assertEqual(
+            {company["id"] for company in pdf_metadata["companies"]},
+            {self.first_company.id, self.second_company.id},
+        )
+
+    def test_combined_report_rejects_different_company_currencies(self):
+        usd = self.env.ref("base.USD")
+        self.second_company.currency_id = usd
+        wizard = self._wizard()
+
+        with self.assertRaisesRegex(
+            UserError,
+            "Combined reports require companies with the same company currency",
+        ):
+            wizard._validate_filter_scope()
+
+    def test_interactive_client_preserves_selected_company_scope(self):
+        payload = self.allowed_env[
+            "rebuild.account.report.export.wizard"
+        ].report_client_load(
+            "trial_balance",
+            {
+                "company_id": self.first_company.id,
+                "company_ids": [
+                    self.first_company.id,
+                    self.second_company.id,
+                ],
+                "date_from": "2026-01-01",
+                "date_to": "2026-12-31",
+            },
+        )
+
+        self.assertTrue(payload["multi_company"])
+        self.assertEqual(payload["aggregation_mode"], "aggregate")
+        self.assertEqual(
+            payload["filters"]["company_ids"],
+            [self.first_company.id, self.second_company.id],
+        )
+
+    def test_new_report_uses_the_global_selected_company_scope(self):
+        payload = self.allowed_env[
+            "rebuild.account.report.export.wizard"
+        ].report_client_load(
+            "trial_balance",
+            {
+                "date_from": "2026-01-01",
+                "date_to": "2026-12-31",
+            },
+        )
+
+        self.assertTrue(payload["multi_company"])
+        self.assertEqual(
+            set(payload["filters"]["company_ids"]),
+            {self.first_company.id, self.second_company.id},
+        )
+
+    def test_interactive_client_moves_primary_company_with_single_scope(self):
+        payload = self.allowed_env[
+            "rebuild.account.report.export.wizard"
+        ].report_client_load(
+            "trial_balance",
+            {
+                "company_id": self.first_company.id,
+                "company_ids": [self.second_company.id],
+                "date_from": "2026-01-01",
+                "date_to": "2026-12-31",
+            },
+        )
+
+        self.assertFalse(payload["multi_company"])
+        self.assertEqual(payload["company_id"], self.second_company.id)
+        self.assertEqual(
+            payload["filters"]["company_ids"],
+            [self.second_company.id],
+        )
+
+    def test_interactive_client_rejects_unselected_company_access(self):
+        restricted = self.env(context={
+            **self.env.context,
+            "allowed_company_ids": [self.first_company.id],
+        })
+
+        with self.assertRaises(AccessError):
+            restricted[
+                "rebuild.account.report.export.wizard"
+            ].report_client_load(
+                "trial_balance",
+                {
+                    "company_id": self.first_company.id,
+                    "company_ids": [
+                        self.first_company.id,
+                        self.second_company.id,
+                    ],
+                },
+            )
+
+        with self.assertRaises(AccessError):
+            restricted[
+                "rebuild.account.report.export.wizard"
+            ].report_client_load(
+                "trial_balance",
+                {"company_id": self.second_company.id},
+            )

@@ -9,6 +9,12 @@ usl_require_explicit_compose_project "Canonical reconstruction"
 compose_project="$COMPOSE_PROJECT_NAME"
 usl_verify_compose_scope "$compose_project" "$ROOT" "Canonical reconstruction"
 
+if [[ -f "$ROOT/.git" && -z "${POCKET_ID_ENV_FILE:-}" ]]; then
+  export POCKET_ID_ENV_FILE="$ROOT/.pocket-id-${compose_project}.env"
+  printf 'Pocket ID: using isolated project environment %s.\n' \
+    "$(basename "$POCKET_ID_ENV_FILE")"
+fi
+
 if [[ "${ODOO_DEV_DB:-odoo_dev}" != "odoo_dev" ]]; then
   printf 'Canonical reconstruction is reserved for odoo_dev.\n' >&2
   exit 2
@@ -128,10 +134,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
+start_target_database() {
+  printf 'Target database: starting isolated PostgreSQL service.\n'
+  docker compose -p "$compose_project" up -d --wait db
+}
+
 stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
 }
 
+start_target_database
 stop_product
 run_stage "restore source database" scripts/accounting-compat source-restore
 run_stage "source product gate" scripts/migration-source-truth product-gate
