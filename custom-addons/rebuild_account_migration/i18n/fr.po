@@ -12898,3 +12898,18 @@ msgstr "Retire cette décision tout en la conservant dans l’historique d’aud
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_form_rebuild_declaration_profile
 msgid "Create or update the declaration and closing schedule from this company profile."
 msgstr "Crée ou met à jour le calendrier des déclarations et clôtures à partir de ce profil de société."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_res_company__rebuild_currency_rate_share_same_base
+msgid "Share ECB Rates with Same-Currency Companies"
+msgstr "Partager les taux BCE entre sociétés de même devise"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_currency_rate_update_wizard__share_same_base
+msgid "Share across same-currency companies"
+msgstr "Partager entre sociétés de même devise"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_currency_rate_update_wizard__shared_company_ids
+msgid "Companies kept in sync"
+msgstr "Sociétés synchronisées"

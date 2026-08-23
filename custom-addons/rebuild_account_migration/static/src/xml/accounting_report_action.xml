@@ -46,14 +46,19 @@
             </div>
 
             <div class="o_usl_report_filters">
-                <label t-if="showCompanyFilter">
-                    <span>Société</span>
-                    <select name="company_id" t-on-change="onFilterChange">
-                        <t t-foreach="state.data.options.companies" t-as="option" t-key="option.value">
-                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.company_id" t-esc="option.label"/>
-                        </t>
-                    </select>
-                </label>
+                <div t-if="showCompanyFilter" class="o_usl_report_company_filter">
+                    <span>Sociétés</span>
+                    <div class="o_usl_report_company_choices">
+                        <label t-foreach="state.data.options.companies" t-as="option"
+                               t-key="option.value" class="o_usl_report_company_choice">
+                            <input type="checkbox" t-att-value="option.value"
+                                   t-att-checked="optionIsSelected('company_ids', option.value)"
+                                   t-att-disabled="optionIsSelected('company_ids', option.value) and state.filters.company_ids.length === 1"
+                                   t-on-change="(event) => this.onManyFilterChange(event, 'company_ids')"/>
+                            <span t-esc="option.label"/>
+                        </label>
+                    </div>
+                </div>
                 <label class="o_usl_report_filter_period">
                     <span>Période</span>
                     <select name="period_preset" t-on-change="onFilterChange">
@@ -213,6 +218,11 @@
 
             <div class="o_usl_report_pills">
                 <span class="o_usl_report_scope_label">Périmètre actif</span>
+                <span class="badge rounded-pill text-bg-light" t-if="state.data.multi_company">
+                    <t t-if="state.data.aggregation_mode === 'aggregate'">Total combiné · </t>
+                    <t t-else="">Vue par société · </t>
+                    <t t-esc="state.data.company_name"/>
+                </span>
                 <span class="badge rounded-pill text-bg-light">
                     <t t-esc="periodLabel"/>
                 </span>
@@ -304,6 +314,13 @@
                                 </button>
                                 <span class="o_usl_report_code" t-if="line.account_code" t-esc="line.account_code"/>
                                 <span t-esc="line.label"/>
+                                <small t-if="line.company_contributions.length &gt; 1"
+                                       class="d-block text-muted"
+                                       title="Contribution de chaque société au total combiné"
+                                       t-esc="companyContributionLabel(line)"/>
+                                <small t-if="state.data.multi_company and state.data.aggregation_mode === 'company_rows' and line.company_name"
+                                       class="d-block text-muted"
+                                       t-esc="line.company_name"/>
                                 <small t-if="line.partner_name" class="d-block text-muted" t-esc="line.partner_name"/>
                             </td>
                             <td class="text-nowrap" t-if="isDetailedLedger" t-esc="formatDate(line.date)"/>

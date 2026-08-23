@@ -165,6 +165,13 @@
         <field name="groups" eval="[Command.link(ref('group_documents_user'))]"/>
     </record>
 
+    <record id="rule_document_operation_company" model="ir.rule">
+        <field name="name">Document operations: selected companies</field>
+        <field name="model_id" ref="model_usl_document_operation"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
     <record id="rule_document_operation_manager" model="ir.rule">
         <field name="name">Document operations: administrator</field>
         <field name="model_id" ref="model_usl_document_operation"/>

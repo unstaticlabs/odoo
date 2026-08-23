@@ -119,6 +119,27 @@ export class AccountingReportAction extends Component {
         await this.load({ [fieldName]: [...selectedIds] });
     }
 
+    companyContributionLabel(line) {
+        const preferredKeys = [
+            "closing_balance",
+            "amount",
+            "net_amount",
+            "balance",
+            "total",
+            "debit",
+        ];
+        return (line.company_contributions || [])
+            .map((contribution) => {
+                const values = contribution.values || {};
+                const key = preferredKeys.find(
+                    (candidate) => values[candidate] !== undefined,
+                );
+                const value = key ? this.formatAmount(values[key]) : "—";
+                return `${contribution.company_name}: ${value}`;
+            })
+            .join(" · ");
+    }
+
     async removeFilter(fieldName, recordId = false) {
         if (recordId) {
             await this.load({

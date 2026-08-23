@@ -4968,6 +4968,68 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertNotEqual(mapping[902], default_line)
         self.assertEqual(mapping[902].payment_account_id, distinct_account)
         self.assertEqual(repeated_mapping[902], mapping[902])
+    def test_payment_method_compatibility_classifies_only_unused_enterprise_methods(self):
+        method_line = self._journal("bank").outbound_payment_method_line_ids[:1]
+        source_company_id = 990001
+        source_rows = [
+            {
+                "id": 901,
+                "company_id": source_company_id,
+                "code": "manual",
+                "payment_type": "outbound",
+                "payment_usage_count": 3,
+                "expense_usage_count": 4,
+            },
+            {
+                "id": 902,
+                "company_id": source_company_id,
+                "code": "sepa_ct",
+                "payment_type": "outbound",
+                "payment_usage_count": 0,
+                "expense_usage_count": 0,
+            },
+            {
+                "id": 903,
+                "company_id": source_company_id,
+                "code": "batch_payment",
+                "payment_type": "inbound",
+                "payment_usage_count": 1,
+                "expense_usage_count": 0,
+            },
+            {
+                "id": 904,
+                "company_id": source_company_id,
+                "code": "unexpected_method",
+                "payment_type": "outbound",
+                "payment_usage_count": 0,
+                "expense_usage_count": 0,
+            },
+        ]
+        import_run = self.env["rebuild.account.import.run"]
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            return_value=source_rows,
+        ):
+            result = import_run._payment_method_line_compatibility(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {901: method_line},
+            )[source_company_id]
+
+        self.assertEqual(result["source_count"], 4)
+        self.assertEqual(result["mapped_count"], 1)
+        self.assertEqual(result["unavailable_unused_count"], 1)
+        self.assertEqual(result["classified_count"], 2)
+        self.assertEqual(
+            result["unavailable_unused"][0]["classification"],
+            "unused_enterprise_only",
+        )
+        self.assertEqual(
+            {item["classification"] for item in result["blocking"]},
+            {"used_unavailable", "unknown_unavailable"},
+        )
 
     def test_accountant_reviewer_can_read_native_expenses_but_not_change_them(self):
         reviewer = self.env["res.users"].with_context(
@@ -5650,7 +5712,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "_sync_company_einvoice_configuration",
             ),
         ):
-            mapped = import_run._journal_map(
+            mapped, archive_after_post = import_run._journal_map(
                 object(),
                 options,
                 {990001: self.company},
@@ -5659,11 +5721,205 @@ class TestRebuildAccountMigration(TransactionCase):
             )
 
         self.assertEqual(mapped[990013], journal)
+        self.assertFalse(archive_after_post)
         self.assertEqual(
             (journal.inbound_payment_method_line_ids | journal.outbound_payment_method_line_ids).ids,
             method_line_ids,
         )
         self.assertEqual(self.env["account.payment.method.line"].browse(method_line_ids).journal_id, journal)
+
+    def test_journal_replay_preserves_archived_source_state(self):
+        journal = self.env["account.journal"].create({
+            "name": "Archived source journal",
+            "code": "TARC",
+            "type": "general",
+            "company_id": self.company.id,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Archived journal replay",
+            "source_snapshot_id": "unit-complete-company-configuration",
+        })
+        source_row = {
+            "id": 990014,
+            "name": "Archived source journal",
+            "code": "TARC",
+            "type": "general",
+            "company_id": 990001,
+            "default_account_id": False,
+            "currency_id": False,
+            "active": False,
+            "sequence": journal.sequence,
+            "refund_sequence": journal.refund_sequence,
+            "restrict_mode_hash_table": journal.restrict_mode_hash_table,
+        }
+
+        with (
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                return_value=[source_row],
+            ),
+            patch.object(
+                type(import_run),
+                "_sync_company_einvoice_configuration",
+            ),
+        ):
+            mapped, archive_after_post = import_run._journal_map(
+                object(),
+                {
+                    "source_company_ids": [990001],
+                    "source_snapshot_id": (
+                        "unit-complete-company-configuration"
+                    ),
+                },
+                {990001: self.company},
+                {},
+                {},
+            )
+
+        self.assertEqual(mapped[990014], journal)
+        self.assertTrue(journal.active)
+        self.assertEqual(archive_after_post, [990014])
+
+    def test_company_configuration_parity_is_source_traced_and_company_scoped(self):
+        snapshot = "unit-company-configuration-parity"
+        source_company_id = 990001
+        account = self.env["account.account"].create({
+            "name": "Source-traced company account",
+            "code": "TMC001",
+            "account_type": "asset_current",
+            "company_ids": [Command.set([self.company.id])],
+            "rebuild_source_model": "account.account",
+            "rebuild_source_id": 990101,
+            "rebuild_source_snapshot": snapshot,
+        })
+        self.env["account.account"].create({
+            "name": "Target-only bootstrap account",
+            "code": "TMC002",
+            "account_type": "asset_current",
+            "company_ids": [Command.set([self.company.id])],
+        })
+        journal = self.env["account.journal"].create({
+            "name": "Source-traced company journal",
+            "code": "TMCJ",
+            "type": "general",
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.journal",
+            "rebuild_source_id": 990201,
+            "rebuild_source_snapshot": snapshot,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company configuration parity",
+            "source_snapshot_id": snapshot,
+        })
+        source_rows = [{
+            "company_id": source_company_id,
+            "account_count": 1,
+            "active_account_count": 1,
+            "journal_count": 1,
+            "active_journal_count": 1,
+        }]
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            return_value=source_rows,
+        ):
+            passed = import_run._company_configuration_parity(
+                object(),
+                {
+                    "source_company_ids": [source_company_id],
+                    "source_snapshot_id": snapshot,
+                },
+                {source_company_id: self.company},
+            )
+            journal.active = False
+            failed = import_run._company_configuration_parity(
+                object(),
+                {
+                    "source_company_ids": [source_company_id],
+                    "source_snapshot_id": snapshot,
+                },
+                {source_company_id: self.company},
+            )
+
+        self.assertTrue(account.active)
+        self.assertEqual(passed["status"], "passed")
+        self.assertEqual(passed["mismatch_count"], 0)
+        self.assertEqual(failed["status"], "failed")
+        self.assertFalse(
+            failed["companies"][0]["checks"]["active_journal_count"],
+        )
+
+    def test_company_without_source_expense_journal_gets_idempotent_native_default(self):
+        company = self.env["res.company"].create({
+            "name": "Operational expense company",
+            "currency_id": self.company.currency_id.id,
+        })
+        expense_account = self.env["account.account"].with_company(
+            company,
+        ).create({
+            "name": "Travel expenses",
+            "code": "625100",
+            "account_type": "expense",
+            "company_ids": [Command.set([company.id])],
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Operational expense configuration",
+            "source_snapshot_id": "unit-operational-expense-company",
+        })
+        source_company_id = 990008
+        source_rows = [{
+            "id": source_company_id,
+            "expense_journal_id": False,
+            "allowed_payment_method_line_ids": [],
+        }]
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[source_rows, source_rows],
+        ):
+            first = import_run._native_expense_configure_companies(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {source_company_id: company},
+                {},
+                {},
+                {990625: expense_account},
+                [],
+            )
+            first_journal = company.expense_journal_id
+            second = import_run._native_expense_configure_companies(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {source_company_id: company},
+                {},
+                {},
+                {990625: expense_account},
+                [],
+            )
+
+        self.assertTrue(first_journal)
+        self.assertEqual(first_journal.code, "NDF")
+        self.assertEqual(first_journal.type, "purchase")
+        self.assertEqual(first_journal.default_account_id, expense_account)
+        self.assertEqual(company.expense_journal_id, first_journal)
+        self.assertEqual(
+            self.env["account.journal"].search_count([
+                ("company_id", "=", company.id),
+                ("code", "=", "NDF"),
+            ]),
+            1,
+        )
+        self.assertEqual(
+            set(self.env["account.journal"].search([
+                ("company_id", "=", company.id),
+            ]).mapped("type")),
+            {"general", "purchase", "sale"},
+        )
+        self.assertEqual(first["operational_default_expense_journal_count"], 4)
+        self.assertEqual(second["operational_default_expense_journal_count"], 1)
 
     def test_reconciliation_model_replay_preserves_native_oca_rule_semantics(self):
         snapshot = "unit-reconciliation-models"
@@ -6566,6 +6822,80 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(updated_companies, company)
         self.assertTrue(company.tax_exigibility)
         self.assertIn("Tax definitions were not changed", company.rebuild_import_note)
+
+    def test_cash_basis_transition_account_is_reconcilable_on_replay(self):
+        account = self.env["account.account"].create({
+            "code": "TMCB01",
+            "name": "Unit cash-basis transition",
+            "account_type": "asset_current",
+            "reconcile": False,
+            "company_ids": [Command.set([self.company.id])],
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Cash-basis account replay",
+        })
+
+        self.assertTrue(
+            import_run._ensure_cash_basis_transition_account_reconcile(
+                account,
+            ),
+        )
+        self.assertTrue(account.reconcile)
+        self.assertIn(
+            "cash-basis tax transition account",
+            account.rebuild_import_note,
+        )
+        self.assertFalse(
+            import_run._ensure_cash_basis_transition_account_reconcile(
+                account,
+            ),
+        )
+
+    def test_tax_replay_queries_are_limited_to_selected_companies(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company-scoped tax replay",
+        })
+        options = {
+            "source_company_ids": [101],
+            "source_snapshot_id": "unit-company-tax-scope",
+        }
+        queries = []
+
+        def capture_query(_run, _connection, query, params=None):
+            queries.append((query, params))
+            return []
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            new=capture_query,
+        ):
+            import_run._tax_group_map(
+                object(),
+                options,
+                {},
+                {},
+                {},
+            )
+            import_run._tax_map(
+                object(),
+                options,
+                {},
+                {},
+                {},
+                {},
+                {},
+            )
+
+        company_owned_queries = [
+            (query, params)
+            for query, params in queries
+            if "account_tax" in query
+        ]
+        self.assertTrue(company_owned_queries)
+        for query, params in company_owned_queries:
+            self.assertIn("source_company_ids", query)
+            self.assertIs(params, options)
 
     def test_import_currency_rates_preserves_native_source_rate_and_trace(self):
         eur = self.env.ref("base.EUR")

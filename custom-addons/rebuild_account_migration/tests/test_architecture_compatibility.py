@@ -1,3 +1,4 @@
+from odoo import Command
 from odoo.tests import TransactionCase, tagged
 
 
@@ -67,6 +68,142 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
                 self.env.ref(xmlid, raise_if_not_found=False),
                 f"{xmlid} belongs only to codex/fix-seamless-paperless-documents",
             )
+    def test_company_scoped_custom_models_have_record_rules(self):
+        """A public product model must never rely on UI company domains."""
+        Model = self.env["ir.model"].sudo()
+        Access = self.env["ir.model.access"].sudo()
+        Rule = self.env["ir.rule"].sudo().with_context(active_test=False)
+        product_modules = {
+            module.name
+            for module in self.env["ir.module.module"].sudo().search([
+                ("name", "=like", "usl_%"),
+                ("state", "=", "installed"),
+            ])
+        } | {"rebuild_account_migration"}
+        missing = []
+        for model_name, model_class in sorted(self.env.registry.models.items()):
+            company_field = model_class._fields.get("company_id")
+            if (
+                model_class._transient
+                or not company_field
+                or not company_field.store
+            ):
+                continue
+            model = Model._get(model_name)
+            if model_class._original_module not in product_modules:
+                continue
+            if not Access.search_count([
+                ("model_id", "=", model.id),
+                ("active", "=", True),
+                ("perm_read", "=", True),
+            ]):
+                continue
+            rules = Rule.search([
+                ("model_id", "=", model.id),
+                ("active", "=", True),
+            ])
+            if not any(
+                getattr(rule, "global")
+                and "company_ids" in (rule.domain_force or "")
+                for rule in rules
+            ):
+                missing.append(model_name)
+        self.assertFalse(
+            missing,
+            "Company-scoped custom models with read access require a global "
+            f"allowed-company record rule: {', '.join(missing)}",
+        )
+
+    def test_sql_reports_and_assurance_decisions_are_company_isolated(self):
+        first_company = self.env.company
+        second_company = self.env["res.company"].create({
+            "name": "Accounting Isolation Company",
+            "currency_id": first_company.currency_id.id,
+        })
+        accounts = self.env["account.account"]
+        for code, name, account_type in (
+            ("601991", "Isolation debit", "expense"),
+            ("701991", "Isolation credit", "income"),
+        ):
+            accounts |= self.env["account.account"].with_company(
+                second_company,
+            ).create({
+                "code": code,
+                "name": name,
+                "account_type": account_type,
+                "company_ids": [Command.set([second_company.id])],
+            })
+        journal = self.env["account.journal"].with_company(
+            second_company,
+        ).create({
+            "name": "Isolation journal",
+            "code": "ISO",
+            "type": "general",
+            "company_id": second_company.id,
+        })
+        move = self.env["account.move"].with_company(second_company).create({
+            "date": "2026-01-31",
+            "journal_id": journal.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Isolation debit",
+                    "account_id": accounts[0].id,
+                    "debit": 100,
+                }),
+                Command.create({
+                    "name": "Isolation credit",
+                    "account_id": accounts[1].id,
+                    "credit": 100,
+                }),
+            ],
+        })
+        move.action_post()
+        decision = self.env[
+            "rebuild.account.assurance.decision"
+        ].with_company(second_company).create({
+            "name": "Isolation decision",
+            "company_id": second_company.id,
+            "decision_summary": "Only the second company may review this.",
+        })
+
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Single-company accounting reviewer",
+            "login": "single-company-reviewer@example.invalid",
+            "company_id": first_company.id,
+            "company_ids": [Command.set([first_company.id])],
+            "group_ids": [Command.set([
+                self.env.ref(
+                    "rebuild_account_migration."
+                    "group_rebuild_accountant_reviewer",
+                ).id,
+            ])],
+        })
+        reviewer_context = {
+            "allowed_company_ids": [first_company.id],
+        }
+        for model_name in (
+            "rebuild.account.trial.balance.line",
+            "rebuild.account.general.ledger.line",
+            "rebuild.account.journal.report.line",
+            "rebuild.account.financial.statement.line",
+            "rebuild.account.management.summary.line",
+            "rebuild.account.french.statement.line",
+        ):
+            leaked = self.env[model_name].with_user(reviewer).with_context(
+                **reviewer_context,
+            ).search([("company_id", "=", second_company.id)])
+            self.assertFalse(
+                leaked,
+                f"{model_name} exposed another company's accounting data",
+            )
+        self.assertNotIn(
+            decision,
+            self.env["rebuild.account.assurance.decision"].with_user(
+                reviewer,
+            ).with_context(**reviewer_context).search([]),
+        )
 
     def test_governed_definitions_do_not_duplicate_business_keys(self):
         for model_name in (

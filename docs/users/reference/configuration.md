@@ -114,6 +114,12 @@ the displayed coverage boundary through the latest available date. The daily
 scheduled action checks the recent publication history as well, so a temporary
 outage does not leave a silent gap.
 
+Keep **Share across same-currency companies** enabled to retrieve once and
+maintain the same provider-controlled dates and values for every displayed EUR
+company. The list names the companies that will be updated. Odoo retains a
+separate native row for each company; restored, manual and transaction-specific
+non-ECB rates remain untouched and may legitimately differ.
+
 USL's company currency is EUR. Odoo therefore treats EUR as the implicit rate
 `1.0` and does not require a generated EUR row. Automation creates native
 `res.currency.rate` rows only for active foreign currencies such as USD and
@@ -122,6 +128,19 @@ overwritten.
 
 ECB rates are informational reference rates. Preserve the actual bank, card or
 platform conversion when it defines a transaction.
+
+## Expenses in several companies
+
+An administrator opens **Settings > Users & Companies > Users**, selects the
+user and enables **Expenses in all allowed companies**. **Refresh expense
+access** verifies that every allowed company has its own active employee
+profile.
+
+The user then switches the highlighted company before creating an expense.
+Odoo selects that company's employee profile automatically. This does not share
+contracts, payroll, departments, approvers or accounting between companies.
+Archived or ambiguous profiles show **Needs attention** and must be reviewed by
+an administrator.
 
 ## Employee expense payable account
 

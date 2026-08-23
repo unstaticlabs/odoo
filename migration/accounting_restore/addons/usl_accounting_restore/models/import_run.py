@@ -8,8 +8,8 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, _, fields, models
-
 from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
+from odoo.exceptions import ValidationError
 
 
 # The Online source contains six misleading account names.  Account codes and
@@ -41,6 +41,18 @@ USL_ACCOUNT_NAME_TRANSLATIONS = {
         "fr_FR": "Autres produits financiers",
     },
 }
+
+# These source methods are supplied by Odoo Enterprise payment modules which
+# are not installed in the Community distribution.  They may be classified as
+# an intentional capability difference only while they are unused.  A payment
+# or expense using one is a reconstruction blocker rather than a silent
+# fallback to ``manual``.
+ENTERPRISE_ONLY_PAYMENT_METHOD_CODES = frozenset({
+    "batch_payment",
+    "iso20022",
+    "iso20022_us",
+    "sepa_ct",
+})
 
 
 # These profiles translate verified legal documents and tax-return settings
@@ -1966,112 +1978,15 @@ class RebuildAccountImportRun(models.Model):
         rows = self._fetchall(
             conn,
             """
-            WITH source_account_ids AS (
-                SELECT DISTINCT aml.account_id AS id
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE am.company_id = ANY(%(source_company_ids)s) AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
-                UNION
-                SELECT DISTINCT aml.account_id AS id
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE am.company_id = ANY(%(source_company_ids)s) AND am.state != 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
-                  AND aml.account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT default_account_id AS id
-                FROM account_journal
-                WHERE company_id = ANY(%(source_company_ids)s) AND default_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_id AS id
-                FROM account_tax_repartition_line
-                WHERE account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT cash_basis_transition_account_id AS id
-                FROM account_tax
-                WHERE cash_basis_transition_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT tax_payable_account_id AS id
-                FROM account_tax_group
-                WHERE tax_payable_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT tax_receivable_account_id AS id
-                FROM account_tax_group
-                WHERE tax_receivable_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT advance_tax_payment_account_id AS id
-                FROM account_tax_group
-                WHERE advance_tax_payment_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT income_currency_exchange_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND income_currency_exchange_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT expense_currency_exchange_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND expense_currency_exchange_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_journal_suspense_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND account_journal_suspense_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT transfer_account_id AS id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND transfer_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT outstanding_account_id AS id
-                FROM account_payment
-                WHERE company_id = ANY(%(source_company_ids)s)
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                  AND outstanding_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT destination_account_id AS id
-                FROM account_payment
-                WHERE company_id = ANY(%(source_company_ids)s)
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                  AND destination_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT general_account_id AS id
-                FROM account_analytic_line
-                WHERE company_id = ANY(%(source_company_ids)s)
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                  AND general_account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_asset_id AS id
-                FROM account_asset
-                WHERE account_asset_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_depreciation_id AS id
-                FROM account_asset
-                WHERE account_depreciation_id IS NOT NULL
-                UNION
-                SELECT DISTINCT account_depreciation_expense_id AS id
-                FROM account_asset
-                WHERE account_depreciation_expense_id IS NOT NULL
-                UNION
-                SELECT DISTINCT line.account_id AS id
-                FROM account_reconcile_model_line line
-                JOIN account_reconcile_model model ON model.id = line.model_id
-                WHERE model.company_id = ANY(%(source_company_ids)s)
-                  AND line.account_id IS NOT NULL
-                UNION
-                SELECT DISTINCT aa.id AS id
-                FROM account_account aa
-                JOIN account_account_res_company_rel rel ON rel.account_account_id = aa.id
-                WHERE aa.account_type = 'equity_unaffected'
-                  AND rel.res_company_id = ANY(%(source_company_ids)s)
-            )
             SELECT aa.id, aa.name, aa.code_store, aa.account_type, aa.active, aa.reconcile,
                    aa.non_trade, aa.currency_id,
                    array_remove(array_agg(rel.res_company_id ORDER BY rel.res_company_id), NULL) AS company_ids
             FROM account_account aa
-            LEFT JOIN account_account_res_company_rel rel ON rel.account_account_id = aa.id
-            WHERE aa.id IN (SELECT id FROM source_account_ids)
+            JOIN account_account_res_company_rel selected_rel
+              ON selected_rel.account_account_id = aa.id
+             AND selected_rel.res_company_id = ANY(%(source_company_ids)s)
+            LEFT JOIN account_account_res_company_rel rel
+              ON rel.account_account_id = aa.id
             GROUP BY aa.id
             ORDER BY aa.id
             """,
@@ -2455,8 +2370,10 @@ class RebuildAccountImportRun(models.Model):
                    preceding_subtotal, tax_payable_account_id, tax_receivable_account_id,
                    advance_tax_payment_account_id
             FROM account_tax_group
+            WHERE company_id = ANY(%(source_company_ids)s)
             ORDER BY company_id, sequence, id
             """,
+            options,
         )
         groups = {}
         TaxGroup = self.env["account.tax.group"]
@@ -2498,6 +2415,19 @@ class RebuildAccountImportRun(models.Model):
             groups[row["id"]] = group
         return groups
 
+    def _ensure_cash_basis_transition_account_reconcile(self, account):
+        if not account or account.reconcile:
+            return False
+        account.write({
+            "reconcile": True,
+            "rebuild_import_note": (
+                (account.rebuild_import_note or "")
+                + "\nEnabled reconciliation because this account is used "
+                "as a cash-basis tax transition account."
+            ).strip(),
+        })
+        return True
+
     def _tax_map(self, conn, options, companies, accounts, tax_groups, tax_tags, countries):
         tax_rows = self._fetchall(
             conn,
@@ -2509,34 +2439,65 @@ class RebuildAccountImportRun(models.Model):
                    tax_group_id, country_id, cash_basis_transition_account_id,
                    ubl_cii_tax_category_code, ubl_cii_tax_exemption_reason_code
             FROM account_tax
+            WHERE company_id = ANY(%(source_company_ids)s)
             ORDER BY company_id, sequence, id
             """,
+            options,
         )
         repartition_rows = self._fetchall(
             conn,
             """
-            SELECT id, tax_id, account_id, sequence, repartition_type, document_type,
-                   factor_percent, use_in_tax_closing
-            FROM account_tax_repartition_line
-            ORDER BY tax_id, document_type, repartition_type, sequence, id
+            SELECT line.id, line.tax_id, line.account_id, line.sequence,
+                   line.repartition_type, line.document_type,
+                   line.factor_percent, line.use_in_tax_closing
+            FROM account_tax_repartition_line line
+            JOIN account_tax tax ON tax.id = line.tax_id
+            WHERE tax.company_id = ANY(%(source_company_ids)s)
+            ORDER BY line.tax_id, line.document_type, line.repartition_type,
+                     line.sequence, line.id
             """,
+            options,
         )
         repartition_tag_rows = self._fetchall(
             conn,
             """
             SELECT account_tax_repartition_line_id AS repartition_line_id,
                    account_account_tag_id AS tag_id
-            FROM account_account_tag_account_tax_repartition_line_rel
-            ORDER BY account_tax_repartition_line_id, account_account_tag_id
+            FROM account_account_tag_account_tax_repartition_line_rel relation
+            JOIN account_tax_repartition_line line
+              ON line.id = relation.account_tax_repartition_line_id
+            JOIN account_tax tax ON tax.id = line.tax_id
+            WHERE tax.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.account_tax_repartition_line_id,
+                     relation.account_account_tag_id
             """,
+            options,
         )
         child_rows = self._fetchall(
             conn,
-            "SELECT parent_tax, child_tax FROM account_tax_filiation_rel ORDER BY parent_tax, child_tax",
+            """
+            SELECT relation.parent_tax, relation.child_tax
+            FROM account_tax_filiation_rel relation
+            JOIN account_tax parent ON parent.id = relation.parent_tax
+            JOIN account_tax child ON child.id = relation.child_tax
+            WHERE parent.company_id = ANY(%(source_company_ids)s)
+              AND child.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.parent_tax, relation.child_tax
+            """,
+            options,
         )
         alternative_rows = self._fetchall(
             conn,
-            "SELECT dest_tax_id, src_tax_id FROM account_tax_alternatives ORDER BY dest_tax_id, src_tax_id",
+            """
+            SELECT relation.dest_tax_id, relation.src_tax_id
+            FROM account_tax_alternatives relation
+            JOIN account_tax destination ON destination.id = relation.dest_tax_id
+            JOIN account_tax source ON source.id = relation.src_tax_id
+            WHERE destination.company_id = ANY(%(source_company_ids)s)
+              AND source.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.dest_tax_id, relation.src_tax_id
+            """,
+            options,
         )
         repartitions_by_tax = defaultdict(list)
         for row in repartition_rows:
@@ -2547,11 +2508,25 @@ class RebuildAccountImportRun(models.Model):
                 tags_by_repartition[row["repartition_line_id"]].append(tax_tags[row["tag_id"]].id)
 
         taxes = {}
-        Tax = self.env["account.tax"].with_context(active_test=False, tracking_disable=True)
+        Tax = self.env["account.tax"].with_context(
+            active_test=False,
+            tracking_disable=True,
+        )
         for row in tax_rows:
             company = companies[row["company_id"]]
             country = countries.get(row["country_id"])
             name = self._source_text(row["name"]) or f"Source tax {row['id']}"
+            cash_basis_transition_account = accounts.get(
+                row["cash_basis_transition_account_id"],
+            )
+            if cash_basis_transition_account:
+                # Odoo validates this invariant again whenever a tax is
+                # updated. Keep idempotent configuration replays valid even
+                # when a preceding historical stage temporarily left the
+                # account without its source reconciliation flag.
+                self._ensure_cash_basis_transition_account_reconcile(
+                    cash_basis_transition_account,
+                )
             tax = Tax.search([
                 ("rebuild_source_model", "=", "account.tax"),
                 ("rebuild_source_id", "=", row["id"]),
@@ -2585,17 +2560,46 @@ class RebuildAccountImportRun(models.Model):
                 "tax_group_id": tax_groups[row["tax_group_id"]].id,
                 "country_id": country.id if country else False,
                 "cash_basis_transition_account_id": (
-                    accounts[row["cash_basis_transition_account_id"]].id
-                    if row["cash_basis_transition_account_id"] in accounts else False
+                    cash_basis_transition_account.id
+                    if cash_basis_transition_account else False
                 ),
                 "ubl_cii_tax_category_code": row["ubl_cii_tax_category_code"],
                 "ubl_cii_tax_exemption_reason_code": row["ubl_cii_tax_exemption_reason_code"],
                 **self._trace_values("account.tax", row["id"], options),
             }
+            # This is the same temporary setup context used by Odoo's chart
+            # loader. It permits taxes and their transition accounts to be
+            # restored in either source order; the explicit invariant below
+            # still fails the import if the final native configuration is not
+            # valid.
             if tax:
-                tax.write(vals)
+                tax.with_context(chart_template_load=True).write(vals)
             else:
-                tax = Tax.create(vals)
+                tax = Tax.with_context(chart_template_load=True).create(vals)
+            # Creating/updating the tax can invalidate and recompute the
+            # account's stored ``reconcile`` value after the earlier account
+            # import. Enforce the invariant on the account actually linked by
+            # the resulting tax, then read it back for the final assertion.
+            self._ensure_cash_basis_transition_account_reconcile(
+                tax.cash_basis_transition_account_id,
+            )
+            tax.invalidate_recordset([
+                "tax_exigibility",
+                "cash_basis_transition_account_id",
+            ])
+            if (
+                tax.tax_exigibility == "on_payment"
+                and not tax.cash_basis_transition_account_id.reconcile
+            ):
+                raise ValidationError(
+                    _(
+                        "Cash-basis tax %(tax)s (source %(source)s) was "
+                        "restored with a transition account that does not "
+                        "allow reconciliation.",
+                        tax=tax.display_name,
+                        source=row["id"],
+                    ),
+                )
             taxes[row["id"]] = tax
 
             existing_repartition_by_source = {
@@ -2648,6 +2652,7 @@ class RebuildAccountImportRun(models.Model):
             for line in self.env["account.tax.repartition.line"].search([
                 ("rebuild_source_model", "=", "account.tax.repartition.line"),
                 ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
+                ("tax_id", "in", [tax.id for tax in taxes.values()]),
             ])
         }
 
@@ -2865,37 +2870,13 @@ class RebuildAccountImportRun(models.Model):
             SELECT DISTINCT aj.id, aj.name, aj.code, aj.type, aj.company_id, aj.default_account_id,
                    aj.currency_id, aj.active, aj.sequence, aj.refund_sequence, aj.restrict_mode_hash_table
             FROM account_journal aj
-            WHERE aj.id IN (
-                SELECT DISTINCT journal_id
-                FROM account_move
-                WHERE company_id = ANY(%(source_company_ids)s) AND state = 'posted'
-                  AND date BETWEEN %(date_from)s AND %(date_to)s
-                UNION
-                SELECT DISTINCT journal_id
-                FROM account_move
-                WHERE company_id = ANY(%(source_company_ids)s) AND state <> 'posted'
-                  AND date >= %(date_from)s
-                UNION
-                SELECT DISTINCT journal_id
-                FROM account_asset
-                WHERE journal_id IS NOT NULL
-                UNION
-                SELECT DISTINCT relation.account_journal_id
-                FROM account_journal_account_reconcile_model_rel relation
-                JOIN account_reconcile_model model
-                  ON model.id = relation.account_reconcile_model_id
-                WHERE model.company_id = ANY(%(source_company_ids)s)
-                UNION
-                SELECT peppol_purchase_journal_id
-                FROM res_company
-                WHERE id = ANY(%(source_company_ids)s)
-                  AND peppol_purchase_journal_id IS NOT NULL
-            )
+            WHERE aj.company_id = ANY(%(source_company_ids)s)
             ORDER BY aj.company_id, aj.id
             """,
             options,
         )
         journals = {}
+        archive_after_post = []
         Journal = self.env["account.journal"].with_context(active_test=False, import_file=True)
         for row in rows:
             company = companies[row["company_id"]]
@@ -2915,6 +2896,8 @@ class RebuildAccountImportRun(models.Model):
                 "type": row["type"],
                 "company_id": company.id,
                 "sequence": row["sequence"] or 10,
+                # Historical moves can only be posted while their journal is
+                # active. Restore the source archive state after replay.
                 "active": True,
                 "refund_sequence": bool(row["refund_sequence"]),
                 "restrict_mode_hash_table": bool(row["restrict_mode_hash_table"]),
@@ -2935,13 +2918,460 @@ class RebuildAccountImportRun(models.Model):
             else:
                 journal = Journal.create(vals)
             journals[row["id"]] = journal
+            if not row["active"]:
+                archive_after_post.append(row["id"])
         self._sync_company_einvoice_configuration(
             conn,
             options,
             companies,
             journals,
         )
-        return journals
+        return journals, archive_after_post
+
+    def _company_configuration_parity(
+        self,
+        conn,
+        options,
+        companies,
+        method_lines=None,
+    ):
+        """Prove complete operational Accounting configuration per company.
+
+        The target can contain additional native bootstrap records.  Parity is
+        therefore measured only on source-traced records and on their active
+        state. Target-only operational defaults are reported separately and do
+        not weaken the source mapping checks.
+        """
+        source_rows = self._fetchall(
+            conn,
+            """
+            SELECT company.id AS company_id,
+                   currency.name AS currency_name,
+                   fiscal_country.code AS fiscal_country_code,
+                   company.fiscalyear_last_day,
+                   company.fiscalyear_last_month,
+                   company.fiscalyear_lock_date,
+                   company.tax_lock_date,
+                   company.sale_lock_date,
+                   company.purchase_lock_date,
+                   company.hard_lock_date,
+                   company.tax_calculation_rounding_method,
+                   company.tax_exigibility,
+                   company.expense_journal_id,
+                   (SELECT COUNT(*)
+                      FROM account_payment_method_line_res_company_rel relation
+                     WHERE relation.res_company_id = company.id)
+                       AS expense_allowed_payment_method_line_count,
+                   (SELECT COUNT(*)
+                      FROM account_group model
+                     WHERE model.company_id = company.id) AS account_group_count,
+                   (SELECT COUNT(*)
+                      FROM account_account_res_company_rel relation
+                     WHERE relation.res_company_id = company.id) AS account_count,
+                   (SELECT COUNT(*)
+                      FROM account_account_res_company_rel relation
+                      JOIN account_account account
+                        ON account.id = relation.account_account_id
+                     WHERE relation.res_company_id = company.id
+                       AND account.active) AS active_account_count,
+                   (SELECT COUNT(*) FROM account_journal model
+                     WHERE model.company_id = company.id) AS journal_count,
+                   (SELECT COUNT(*) FROM account_journal model
+                     WHERE model.company_id = company.id AND model.active)
+                       AS active_journal_count,
+                   (SELECT COUNT(*)
+                      FROM account_payment_method_line method_line
+                      JOIN account_journal journal
+                        ON journal.id = method_line.journal_id
+                     WHERE journal.company_id = company.id)
+                       AS payment_method_line_count,
+                   (SELECT COUNT(*) FROM account_tax_group model
+                     WHERE model.company_id = company.id) AS tax_group_count,
+                   (SELECT COUNT(*) FROM account_tax model
+                     WHERE model.company_id = company.id) AS tax_count,
+                   (SELECT COUNT(*) FROM account_tax model
+                     WHERE model.company_id = company.id AND model.active)
+                       AS active_tax_count,
+                   (SELECT COUNT(*)
+                      FROM account_tax_repartition_line line
+                      JOIN account_tax tax ON tax.id = line.tax_id
+                     WHERE tax.company_id = company.id)
+                       AS tax_repartition_line_count,
+                   (SELECT COUNT(*) FROM account_fiscal_position model
+                     WHERE model.company_id = company.id)
+                       AS fiscal_position_count,
+                   (SELECT COUNT(*) FROM account_fiscal_position model
+                     WHERE model.company_id = company.id AND model.active)
+                       AS active_fiscal_position_count,
+                   (SELECT COUNT(*)
+                      FROM account_fiscal_position_account mapping
+                      JOIN account_fiscal_position position
+                        ON position.id = mapping.position_id
+                     WHERE position.company_id = company.id)
+                       AS fiscal_position_account_mapping_count,
+                   (SELECT COUNT(*)
+                      FROM account_fiscal_position_account_tax_rel relation
+                      JOIN account_fiscal_position position
+                        ON position.id = relation.account_fiscal_position_id
+                     WHERE position.company_id = company.id)
+                       AS fiscal_position_tax_link_count,
+                   (SELECT COUNT(*) FROM account_reconcile_model model
+                     WHERE model.company_id = company.id)
+                       AS reconcile_model_count,
+                   (SELECT COUNT(*) FROM account_reconcile_model model
+                     WHERE model.company_id = company.id AND model.active)
+                       AS active_reconcile_model_count,
+                   (SELECT COUNT(*)
+                      FROM account_reconcile_model_line line
+                      JOIN account_reconcile_model model
+                        ON model.id = line.model_id
+                     WHERE model.company_id = company.id)
+                       AS reconcile_model_line_count,
+                   (SELECT COUNT(*) FROM account_analytic_account model
+                     WHERE model.company_id = company.id)
+                       AS analytic_account_count,
+                   (SELECT COUNT(*) FROM account_analytic_account model
+                     WHERE model.company_id = company.id AND model.active)
+                       AS active_analytic_account_count,
+                   (SELECT COUNT(*) FROM res_currency_rate model
+                     WHERE model.company_id = company.id)
+                       AS currency_rate_count,
+                   (SELECT COUNT(*) FROM account_payment_term model
+                     WHERE model.company_id IS NULL) AS shared_payment_term_count,
+                   (SELECT COUNT(*)
+                      FROM account_payment_term_line line
+                      JOIN account_payment_term term ON term.id = line.payment_id
+                     WHERE term.company_id IS NULL)
+                       AS shared_payment_term_line_count,
+                   (SELECT COUNT(*) FROM account_analytic_plan)
+                       AS shared_analytic_plan_count,
+                   (SELECT COUNT(*) FROM account_account_tag)
+                       AS shared_tax_tag_count
+              FROM res_company company
+              LEFT JOIN res_currency currency ON currency.id = company.currency_id
+              LEFT JOIN res_country fiscal_country
+                     ON fiscal_country.id = company.account_fiscal_country_id
+             WHERE company.id = ANY(%(source_company_ids)s)
+             ORDER BY company.id
+            """,
+            options,
+        )
+        source_by_company = {
+            row["company_id"]: row
+            for row in source_rows
+        }
+        snapshot = options.get("source_snapshot_id")
+        def traced(model_name, source_model, snapshot, domain=()):
+            return self.env[model_name].sudo().with_context(
+                active_test=False,
+            ).search([
+                ("rebuild_source_model", "=", source_model),
+                ("rebuild_source_snapshot", "=", snapshot),
+                *domain,
+            ])
+
+        payment_method_compatibility = (
+            self._payment_method_line_compatibility(
+                conn,
+                options,
+                method_lines,
+            )
+            if method_lines is not None
+            else {}
+        )
+        company_results = []
+        mismatch_count = 0
+        for source_company_id in self._source_company_ids(options):
+            company = companies[source_company_id]
+            source = source_by_company.get(source_company_id, {})
+            imported = {
+                "account_groups": traced(
+                    "account.group", "account.group", snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "accounts": traced(
+                    "account.account", "account.account", snapshot,
+                    [("company_ids", "in", company.id)],
+                ),
+                "journals": traced(
+                    "account.journal", "account.journal", snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "tax_groups": traced(
+                    "account.tax.group", "account.tax.group", snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "taxes": traced(
+                    "account.tax", "account.tax", snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "tax_repartition_lines": traced(
+                    "account.tax.repartition.line",
+                    "account.tax.repartition.line",
+                    snapshot,
+                    [("tax_id.company_id", "=", company.id)],
+                ),
+                "fiscal_positions": traced(
+                    "account.fiscal.position",
+                    "account.fiscal.position",
+                    snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "fiscal_position_accounts": traced(
+                    "account.fiscal.position.account",
+                    "account.fiscal.position.account",
+                    snapshot,
+                    [("position_id.company_id", "=", company.id)],
+                ),
+                "reconcile_models": traced(
+                    "account.reconcile.model",
+                    "account.reconcile.model",
+                    snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "reconcile_model_lines": traced(
+                    "account.reconcile.model.line",
+                    "account.reconcile.model.line",
+                    snapshot,
+                    [("model_id.company_id", "=", company.id)],
+                ),
+                "analytic_accounts": traced(
+                    "account.analytic.account",
+                    "account.analytic.account",
+                    snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+                "currency_rates": traced(
+                    "res.currency.rate", "res.currency.rate", snapshot,
+                    [("company_id", "=", company.id)],
+                ),
+            }
+            imported_journal_methods = self.env[
+                "account.payment.method.line"
+            ].browse()
+            for journal in imported["journals"]:
+                imported_journal_methods |= (
+                    journal.inbound_payment_method_line_ids
+                    | journal.outbound_payment_method_line_ids
+                )
+            method_compatibility = payment_method_compatibility.get(
+                source_company_id,
+                {},
+            )
+            expected_candidates = {
+                "account_group_count": source.get("account_group_count"),
+                "account_count": source.get("account_count"),
+                "active_account_count": source.get("active_account_count"),
+                "journal_count": source.get("journal_count"),
+                "active_journal_count": source.get("active_journal_count"),
+                "payment_method_line_count": (
+                    method_compatibility.get("mapped_count")
+                    if method_compatibility
+                    else source.get("payment_method_line_count")
+                ),
+                "tax_group_count": source.get("tax_group_count"),
+                "tax_count": source.get("tax_count"),
+                "active_tax_count": source.get("active_tax_count"),
+                "tax_repartition_line_count": source.get(
+                    "tax_repartition_line_count",
+                ),
+                "fiscal_position_count": source.get(
+                    "fiscal_position_count",
+                ),
+                "active_fiscal_position_count": source.get(
+                    "active_fiscal_position_count",
+                ),
+                "fiscal_position_account_mapping_count": source.get(
+                    "fiscal_position_account_mapping_count",
+                ),
+                "fiscal_position_tax_link_count": source.get(
+                    "fiscal_position_tax_link_count",
+                ),
+                "reconcile_model_count": source.get(
+                    "reconcile_model_count",
+                ),
+                "active_reconcile_model_count": source.get(
+                    "active_reconcile_model_count",
+                ),
+                "reconcile_model_line_count": source.get(
+                    "reconcile_model_line_count",
+                ),
+                "analytic_account_count": source.get(
+                    "analytic_account_count",
+                ),
+                "active_analytic_account_count": source.get(
+                    "active_analytic_account_count",
+                ),
+                "currency_rate_count": source.get("currency_rate_count"),
+                "expense_allowed_payment_method_line_count": source.get(
+                    "expense_allowed_payment_method_line_count",
+                ),
+                "shared_payment_term_count": source.get(
+                    "shared_payment_term_count",
+                ),
+                "shared_payment_term_line_count": source.get(
+                    "shared_payment_term_line_count",
+                ),
+                "shared_analytic_plan_count": source.get(
+                    "shared_analytic_plan_count",
+                ),
+                "shared_tax_tag_count": source.get("shared_tax_tag_count"),
+            }
+            expected = {
+                key: value
+                for key, value in expected_candidates.items()
+                if value is not None
+            }
+            imported_positions = imported["fiscal_positions"]
+            actual_candidates = {
+                "account_group_count": len(imported["account_groups"]),
+                "account_count": len(imported["accounts"]),
+                "active_account_count": len(
+                    imported["accounts"].filtered("active"),
+                ),
+                "journal_count": len(imported["journals"]),
+                "active_journal_count": len(
+                    imported["journals"].filtered("active"),
+                ),
+                "payment_method_line_count": len(imported_journal_methods),
+                "tax_group_count": len(imported["tax_groups"]),
+                "tax_count": len(imported["taxes"]),
+                "active_tax_count": len(imported["taxes"].filtered("active")),
+                "tax_repartition_line_count": len(
+                    imported["tax_repartition_lines"],
+                ),
+                "fiscal_position_count": len(imported_positions),
+                "active_fiscal_position_count": len(
+                    imported_positions.filtered("active"),
+                ),
+                "fiscal_position_account_mapping_count": len(
+                    imported["fiscal_position_accounts"],
+                ),
+                "fiscal_position_tax_link_count": sum(
+                    len(position.tax_ids) for position in imported_positions
+                ),
+                "reconcile_model_count": len(imported["reconcile_models"]),
+                "active_reconcile_model_count": len(
+                    imported["reconcile_models"].filtered("active"),
+                ),
+                "reconcile_model_line_count": len(
+                    imported["reconcile_model_lines"],
+                ),
+                "analytic_account_count": len(imported["analytic_accounts"]),
+                "active_analytic_account_count": len(
+                    imported["analytic_accounts"].filtered("active"),
+                ),
+                "currency_rate_count": len(imported["currency_rates"]),
+                "expense_allowed_payment_method_line_count": len(
+                    company.company_expense_allowed_payment_method_line_ids,
+                ),
+                "shared_payment_term_count": len(traced(
+                    "account.payment.term", "account.payment.term", snapshot,
+                    [("company_id", "=", False)],
+                )),
+                "shared_payment_term_line_count": len(traced(
+                    "account.payment.term.line",
+                    "account.payment.term.line",
+                    snapshot,
+                    [("payment_id.company_id", "=", False)],
+                )),
+                "shared_analytic_plan_count": len(traced(
+                    "account.analytic.plan",
+                    "account.analytic.plan",
+                    snapshot,
+                )),
+                "shared_tax_tag_count": len(traced(
+                    "account.account.tag",
+                    "account.account.tag",
+                    snapshot,
+                )),
+            }
+            actual = {key: actual_candidates[key] for key in expected}
+            checks = {
+                key: actual[key] == expected[key]
+                for key in expected
+            }
+            company_settings_expected = {
+                key: source[key]
+                for key in (
+                    "currency_name",
+                    "fiscal_country_code",
+                    "fiscalyear_last_day",
+                    "fiscalyear_last_month",
+                    "fiscalyear_lock_date",
+                    "tax_lock_date",
+                    "sale_lock_date",
+                    "purchase_lock_date",
+                    "hard_lock_date",
+                    "tax_calculation_rounding_method",
+                    "tax_exigibility",
+                )
+                if key in source
+            }
+            company_settings_actual = {
+                "currency_name": company.currency_id.name,
+                "fiscal_country_code": company.account_fiscal_country_id.code,
+                "fiscalyear_last_day": company.fiscalyear_last_day,
+                "fiscalyear_last_month": company.fiscalyear_last_month,
+                "fiscalyear_lock_date": company.fiscalyear_lock_date,
+                "tax_lock_date": company.tax_lock_date,
+                "sale_lock_date": company.sale_lock_date,
+                "purchase_lock_date": company.purchase_lock_date,
+                "hard_lock_date": company.hard_lock_date,
+                "tax_calculation_rounding_method": (
+                    company.tax_calculation_rounding_method
+                ),
+                "tax_exigibility": company.tax_exigibility,
+            }
+            for key, expected_value in company_settings_expected.items():
+                actual_value = company_settings_actual[key]
+                checks[f"company_{key}"] = (
+                    (actual_value or False) == (expected_value or False)
+                )
+            if method_compatibility:
+                checks["payment_method_lines_fully_classified"] = (
+                    not method_compatibility["blocking"]
+                    and method_compatibility["classified_count"]
+                    == method_compatibility["source_count"]
+                )
+            source_expense_journal_id = source.get("expense_journal_id")
+            if "expense_journal_id" in source:
+                checks["source_expense_journal"] = (
+                    not source_expense_journal_id
+                    or company.expense_journal_id.rebuild_source_id
+                    == source_expense_journal_id
+                )
+                checks["operational_expense_journal"] = bool(
+                    company.expense_journal_id,
+                )
+            mismatch_count += int(not all(checks.values()))
+            company_results.append({
+                "source_company_id": source_company_id,
+                "target_company_id": company.id,
+                "company_name": company.name,
+                "expected": expected,
+                "actual": actual,
+                "checks": checks,
+                "company_settings_expected": company_settings_expected,
+                "company_settings_actual": company_settings_actual,
+                "expense_journal": {
+                    "source_journal_id": source_expense_journal_id,
+                    "target_journal_id": company.expense_journal_id.id,
+                    "target_source_journal_id": (
+                        company.expense_journal_id.rebuild_source_id
+                    ),
+                    "target_created_operational_default": bool(
+                        company.expense_journal_id
+                        and not company.expense_journal_id.rebuild_source_id
+                    ),
+                },
+                "payment_method_compatibility": method_compatibility,
+            })
+        return {
+            "status": "passed" if not mismatch_count else "failed",
+            "mismatch_count": mismatch_count,
+            "companies": company_results,
+        }
 
     def _sync_company_einvoice_configuration(
         self,
@@ -3567,6 +3997,96 @@ class RebuildAccountImportRun(models.Model):
                 line = PaymentMethodLine.create(vals)
             method_lines[row["id"]] = line
         return method_lines
+
+    def _payment_method_line_compatibility(
+        self,
+        conn,
+        options,
+        method_lines,
+    ):
+        """Classify every source method line without inventing capabilities.
+
+        Native Community methods are mapped by ``_payment_method_line_map``.
+        Unused Enterprise-only methods remain explicit reconstruction evidence.
+        Any unrecognised or used-but-unavailable method blocks parity.
+        """
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT pml.id, journal.company_id, method.code,
+                   method.payment_type,
+                   (SELECT COUNT(*) FROM account_payment payment
+                     WHERE payment.payment_method_line_id = pml.id)
+                       AS payment_usage_count,
+                   (SELECT COUNT(*) FROM hr_expense expense
+                     WHERE expense.payment_method_line_id = pml.id)
+                       AS expense_usage_count
+              FROM account_payment_method_line pml
+              JOIN account_payment_method method
+                ON method.id = pml.payment_method_id
+              JOIN account_journal journal ON journal.id = pml.journal_id
+             WHERE journal.company_id = ANY(%(source_company_ids)s)
+             ORDER BY journal.company_id, pml.id
+            """,
+            options,
+        )
+        results = {}
+        for source_company_id in self._source_company_ids(options):
+            company_rows = [
+                row for row in rows
+                if row["company_id"] == source_company_id
+            ]
+            mapped = []
+            unavailable = []
+            blocking = []
+            for row in company_rows:
+                detail = {
+                    "source_payment_method_line_id": row["id"],
+                    "code": row["code"],
+                    "payment_type": row["payment_type"],
+                    "payment_usage_count": row["payment_usage_count"],
+                    "expense_usage_count": row["expense_usage_count"],
+                }
+                if row["id"] in method_lines:
+                    mapped.append({
+                        **detail,
+                        "target_payment_method_line_id": (
+                            method_lines[row["id"]].id
+                        ),
+                        "classification": "native_mapped",
+                    })
+                    continue
+                is_unused = not (
+                    row["payment_usage_count"]
+                    or row["expense_usage_count"]
+                )
+                if (
+                    row["code"] in ENTERPRISE_ONLY_PAYMENT_METHOD_CODES
+                    and is_unused
+                ):
+                    unavailable.append({
+                        **detail,
+                        "classification": "unused_enterprise_only",
+                    })
+                else:
+                    blocking.append({
+                        **detail,
+                        "classification": (
+                            "used_unavailable"
+                            if not is_unused
+                            else "unknown_unavailable"
+                        ),
+                    })
+            results[source_company_id] = {
+                "source_count": len(company_rows),
+                "mapped_count": len(mapped),
+                "unavailable_unused_count": len(unavailable),
+                "classified_count": len(mapped) + len(unavailable),
+                "mapped": mapped,
+                "unavailable_unused": unavailable,
+                "blocking": blocking,
+            }
+        return results
 
     def _move_rows(self, conn, options):
         return self._fetchall(
@@ -6394,6 +6914,7 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
         configured_method_line_ids = set()
+        operational_default_journals = self.env["account.journal"]
         for source_move in move_rows:
             source_method_line_id = source_move["payment_method_line_id"]
             source_outstanding_account_id = source_move["outstanding_account_id"]
@@ -6408,6 +6929,32 @@ class RebuildAccountImportRun(models.Model):
             if not company:
                 continue
             expense_journal = journals.get(row["expense_journal_id"])
+            if not expense_journal:
+                expense_journal = self.env["account.journal"].sudo().with_company(
+                    company,
+                ).search([
+                    ("company_id", "=", company.id),
+                    ("code", "=", "NDF"),
+                ], limit=1)
+                if not expense_journal:
+                    expense_account = self.env[
+                        "account.account"
+                    ].sudo().with_company(company).search([
+                        ("company_ids", "in", company.id),
+                        ("active", "=", True),
+                        ("account_type", "=", "expense"),
+                        ("code", "=", "625100"),
+                    ], limit=1)
+                    expense_journal = self.env[
+                        "account.journal"
+                    ].sudo().with_company(company).create({
+                        "name": "Notes de frais",
+                        "code": "NDF",
+                        "type": "purchase",
+                        "company_id": company.id,
+                        "default_account_id": expense_account.id,
+                    })
+                operational_default_journals |= expense_journal
             allowed_method_lines = [
                 method_lines[source_id].id
                 for source_id in row["allowed_payment_method_line_ids"]
@@ -6422,9 +6969,24 @@ class RebuildAccountImportRun(models.Model):
                 vals["expense_journal_id"] = expense_journal.id
             company.write(vals)
             configured_method_line_ids.update(allowed_method_lines)
+        operational_default_journals |= self.env["res.company"].browse(
+            [company.id for company in companies.values()],
+        )._usl_ensure_operational_accounting_journals()
         return {
             "configured_company_count": len(company_rows),
             "configured_payment_method_line_count": len(configured_method_line_ids),
+            "operational_default_expense_journal_count": len(
+                operational_default_journals,
+            ),
+            "operational_default_expense_journals": [
+                {
+                    "company_id": journal.company_id.id,
+                    "company_name": journal.company_id.name,
+                    "journal_id": journal.id,
+                    "journal_code": journal.code,
+                }
+                for journal in operational_default_journals
+            ],
         }
 
     def _native_expense_restore_context(
@@ -6898,7 +7460,7 @@ class RebuildAccountImportRun(models.Model):
                 tax_tags,
                 countries,
             )
-            journals = self._journal_map(
+            journals, journal_ids_to_archive = self._journal_map(
                 conn,
                 options,
                 companies,
@@ -7247,6 +7809,8 @@ class RebuildAccountImportRun(models.Model):
             )
             for source_account_id in account_ids_to_archive:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive:
+                journals[source_journal_id].active = False
 
             passed_count = 0
             mismatch_cases = []
@@ -7651,7 +8215,13 @@ class RebuildAccountImportRun(models.Model):
                 accounts,
                 fiscal_positions,
             )
-            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            journals, journal_ids_to_archive_after_post = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
             method_lines = self._payment_method_line_map(conn, journals, accounts)
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(
@@ -8266,6 +8836,8 @@ class RebuildAccountImportRun(models.Model):
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive_after_post:
+                journals[source_journal_id].active = False
 
             status = (
                 "passed"
@@ -8435,7 +9007,27 @@ class RebuildAccountImportRun(models.Model):
                 accounts,
                 fiscal_positions,
             )
-            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            journals, journal_ids_to_archive_after_post = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
+            method_lines = self._payment_method_line_map(
+                conn,
+                journals,
+                accounts,
+            )
+            self._native_expense_configure_companies(
+                conn,
+                options,
+                companies,
+                journals,
+                method_lines,
+                accounts,
+                self._native_expense_move_rows(conn, options),
+            )
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(
                 conn,
@@ -8672,6 +9264,8 @@ class RebuildAccountImportRun(models.Model):
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive_after_post:
+                journals[source_journal_id].active = False
 
             document_attachment_stats = self._import_attachments(
                 conn,
@@ -8819,7 +9413,29 @@ class RebuildAccountImportRun(models.Model):
                 accounts,
                 fiscal_positions,
             )
-            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            journals, journal_ids_to_archive_after_post = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
+            method_lines = self._payment_method_line_map(
+                conn,
+                journals,
+                accounts,
+            )
+            expense_configuration_stats = (
+                self._native_expense_configure_companies(
+                    conn,
+                    options,
+                    companies,
+                    journals,
+                    method_lines,
+                    accounts,
+                    self._native_expense_move_rows(conn, options),
+                )
+            )
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(conn, options, companies, partners, analytic_plans)
             _reconciliation_models, reconciliation_model_stats = (
@@ -9112,6 +9728,8 @@ class RebuildAccountImportRun(models.Model):
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
+            for source_journal_id in journal_ids_to_archive_after_post:
+                journals[source_journal_id].active = False
 
             non_posted_moves = [
                 row for row in move_rows if row["state"] != "posted"
@@ -9172,6 +9790,26 @@ class RebuildAccountImportRun(models.Model):
                         lock_vals[field_name] = row[field_name]
                 if lock_vals:
                     company.write(lock_vals)
+
+            company_configuration_parity = (
+                self._company_configuration_parity(
+                    conn,
+                    options,
+                    companies,
+                    method_lines,
+                )
+            )
+            if company_configuration_parity["mismatch_count"]:
+                raise ValueError(
+                    "Per-company operational Accounting configuration "
+                    "differs from the source or is incomplete: %s"
+                    % json.dumps(
+                        company_configuration_parity,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
 
             for company in companies.values():
                 if company.rebuild_declaration_profile_active:
@@ -9309,6 +9947,8 @@ class RebuildAccountImportRun(models.Model):
                 "journal_count": len(journals),
                 "partner_count": len(partners),
                 "company_count": len(companies),
+                "company_configuration": company_configuration_parity,
+                "expense_configuration": expense_configuration_stats,
                 "currency_rates": currency_rate_stats,
                 "tax_configuration": tax_stats,
                 "payment_terms": payment_term_stats,

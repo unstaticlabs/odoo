@@ -95,7 +95,7 @@ identifiers. It is explicitly rejected for this increment.
 
 | Component | Resulting owner | Classification | Safety evidence |
 | --- | --- | --- | --- |
-| Day-first date presentation | `usl_locale` | shared runtime presentation foundation | language-format data, web-client localization tests and repository architecture guard |
+| Shared locale and company-scope presentation | `usl_locale` | shared runtime presentation foundation | language-format data, list-company defaults, web-client tests and repository architecture guard |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
 | Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
 | Foreign-currency settlement definitions, views and payment-widget assets | `usl_accounting` | runtime foundation over native/OCA | exact/native-FX, payment-rate, reversal, ACL and browser tests |

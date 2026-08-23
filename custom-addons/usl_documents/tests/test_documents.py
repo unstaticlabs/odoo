@@ -2016,6 +2016,28 @@ class TestDocuments(TransactionCase):
         self.assertFalse(accountant_workspace["can_upload"])
         self.assertFalse(accountant_workspace["failed_operations"])
 
+    def test_ingestion_operations_never_cross_allowed_company_boundary(self):
+        operation = self.env["usl.document.operation"].sudo().create({
+            "name": "other-company.pdf",
+            "state": "failed",
+            "checksum": "6" * 64,
+            "company_id": self.company_b.id,
+            "user_id": self.user.id,
+            "error_message": "Must remain isolated",
+        })
+        restricted_operations = self.env["usl.document.operation"].with_user(
+            self.user,
+        ).with_context(allowed_company_ids=self.company_a.ids)
+
+        self.assertNotIn(operation, restricted_operations.search([]))
+        with self.assertRaises(AccessError):
+            restricted_operations.browse(operation.id).check_access("read")
+        self.assertFalse(
+            self.env["usl.document"].with_user(self.user).with_context(
+                allowed_company_ids=self.company_a.ids,
+            ).workspace_data(workspace="attention")["failed_operations"],
+        )
+
     def test_structured_versions_are_stable_and_version_downloads_are_scoped(self):
         document = self._document(184)
         document._synchronize_versions(

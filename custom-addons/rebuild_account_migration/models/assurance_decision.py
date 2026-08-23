@@ -8,6 +8,7 @@ class RebuildAccountAssuranceDecision(models.Model):
     _name = "rebuild.account.assurance.decision"
     _description = "USL Accounting Assurance Decision"
     _order = "reviewed_at desc, id desc"
+    _check_company_auto = True
 
     name = fields.Char(required=True, default="Accounting Review Decision")
     state = fields.Selection(
@@ -57,18 +58,30 @@ class RebuildAccountAssuranceDecision(models.Model):
         default="accountant",
         index=True,
     )
-    company_id = fields.Many2one("res.company", index=True)
+    company_id = fields.Many2one(
+        "res.company",
+        required=True,
+        default=lambda self: self.env.company,
+        index=True,
+    )
     period_key = fields.Char(index=True)
-    external_value_id = fields.Many2one("rebuild.account.external.report.value", index=True, ondelete="set null")
+    external_value_id = fields.Many2one(
+        "rebuild.account.external.report.value",
+        index=True,
+        ondelete="set null",
+        check_company=True,
+    )
     declaration_id = fields.Many2one(
         "rebuild.account.declaration",
         index=True,
         ondelete="set null",
+        check_company=True,
     )
     closing_period_id = fields.Many2one(
         "rebuild.account.closing.period",
         index=True,
         ondelete="set null",
+        check_company=True,
     )
     evidence_key = fields.Char(index=True)
     decision_summary = fields.Text(required=True, default="Pending review.")
@@ -93,10 +106,11 @@ class RebuildAccountAssuranceDecision(models.Model):
     def write(self, vals):
         protected = self.filtered(lambda decision: decision.state in {"recorded", "superseded"})
         if protected and (set(vals) != {"state"} or vals.get("state") != "superseded"):
-            raise UserError(
+            message = (
                 "Recorded or superseded accounting review decisions are immutable. "
                 "Supersede the decision and create a new review decision instead."
             )
+            raise UserError(message)
         return super().write(vals)
 
     @api.model
@@ -116,9 +130,17 @@ class RebuildAccountAssuranceDecision(models.Model):
     def action_record(self):
         for decision in self:
             if not decision.decision_summary or decision.decision_summary == "Pending review.":
-                raise UserError("Record a factual decision summary before marking this review decision as recorded.")
+                message = (
+                    "Record a factual decision summary before marking this "
+                    "review decision as recorded."
+                )
+                raise UserError(message)
             if decision.conclusion == "pending":
-                raise UserError("Choose a non-pending conclusion before marking this review decision as recorded.")
+                message = (
+                    "Choose a non-pending conclusion before marking this "
+                    "review decision as recorded."
+                )
+                raise UserError(message)
             if (
                 decision.gate in {"declaration_review", "closing_review"}
                 and decision.conclusion in {"accepted", "accepted_with_difference", "not_applicable"}
@@ -254,7 +276,11 @@ class RebuildAccountAssuranceDecision(models.Model):
     def action_open_external_value(self):
         self.ensure_one()
         if not self.external_value_id:
-            raise UserError("This review decision is not linked to an external report value.")
+            message = (
+                "This review decision is not linked to an external report "
+                "value."
+            )
+            raise UserError(message)
         return {
             "type": "ir.actions.act_window",
             "name": "External Report Value",

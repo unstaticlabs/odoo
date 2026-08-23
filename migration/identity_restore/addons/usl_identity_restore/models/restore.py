@@ -460,6 +460,9 @@ class UslIdentityRestoreRun(models.Model):
                                 or [companies[row["company_id"]].id],
                             ),
                         ],
+                        "usl_expense_multi_company": (
+                            not row["share"] and len(allowed_companies) > 1
+                        ),
                     },
                 )
                 if row["share"]:
