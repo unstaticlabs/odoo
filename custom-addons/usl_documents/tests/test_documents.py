@@ -4897,8 +4897,19 @@ class TestDocuments(TransactionCase):
 
     def test_cache_policy_and_direct_link_creation_are_not_client_writable(self):
         document = self._document(186)
+        availability = self.env["usl.document"]._fields["availability_state"]
+        self.assertTrue(availability.readonly)
+        self.assertIn("Updated automatically", availability.help)
+        self.assertIn(
+            "supporting evidence",
+            self.env["usl.document"]._fields["accounting_evidence"].help,
+        )
         with self.assertRaises(AccessError):
             document.with_user(self.user).write({"name": "Spoofed Paperless title"})
+        with self.assertRaises(AccessError):
+            document.with_user(self.manager).write(
+                {"availability_state": "processing"},
+            )
         with self.assertRaises(AccessError):
             document.with_user(self.user).write({"confidentiality": "private"})
         with self.assertRaises(AccessError):
