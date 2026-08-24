@@ -278,6 +278,11 @@ msgid "Accounting Evidence"
 msgstr "justificatif comptable"
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__accounting_evidence
+msgid "Mark this document as supporting evidence for bookkeeping, tax, or audit work. With Accounting evidence privacy, it becomes available read-only to Accounting Evidence Readers. The document is also easier to retrieve in accounting filters and is put on retention hold if Paperless reports it in Trash. Changing this setting resynchronizes archive permissions."
+msgstr "Marquez ce document comme justificatif pour la comptabilité, la fiscalité ou l’audit. Avec la confidentialité Justificatif comptable, il devient accessible en lecture seule aux lecteurs de justificatifs comptables. Il est également plus facile à retrouver dans les filtres comptables et fait l’objet d’un blocage de conservation si Paperless le signale dans la corbeille. La modification de ce réglage resynchronise les autorisations de l’archive."
+
+#. module: usl_documents
 #: model:res.groups,name:usl_documents.group_documents_accountant
 msgid "Accounting Evidence Reader"
 msgstr "Lecteur de justificatifs comptables"
@@ -685,6 +690,11 @@ msgstr "Disponibilité"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__availability_state
 msgid "Availability State"
 msgstr "État de disponibilité"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__availability_state
+msgid "Updated automatically from Paperless processing, reconciliation, trash and restore operations, and permission checks. It cannot be changed manually."
+msgstr "Mis à jour automatiquement à partir du traitement et du rapprochement Paperless, des opérations de mise à la corbeille et de restauration, ainsi que des contrôles d’autorisation. Il ne peut pas être modifié manuellement."
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__availability_state__available
