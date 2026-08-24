@@ -70,7 +70,7 @@ test("landing renders the five document journeys and routes only the selected ac
     expect(".usl_sign_work_card").toHaveCount(5);
     expect("section:nth-child(1) .usl_sign_work_card").toHaveText(/Sign now/);
     expect("section:nth-child(2) .usl_sign_work_card").toHaveText(/Prepare and send/);
-    expect("section:nth-child(3) .usl_sign_work_card").toHaveText(/Resolve issues/);
+    expect("section:nth-child(3) .usl_sign_work_card").toHaveText(/Needs attention/);
     expect("section:nth-child(4) .usl_sign_work_card").toHaveText(/Waiting on others/);
     expect("section:nth-child(5) .usl_sign_work_card").toHaveText(/Recently completed/);
     expect(".list-group-item-action").toHaveText(/Routine Agreement/);

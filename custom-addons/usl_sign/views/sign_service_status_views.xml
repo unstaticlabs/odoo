@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <kanban create="0" edit="0" delete="0" default_order="company_id, sequence">
                 <header>
-                    <button name="action_refresh_company" type="object" string="Check all capabilities" class="btn-primary" display="always"/>
+                    <button name="action_refresh_company" type="object" string="Check all" class="btn-primary" display="always"/>
                 </header>
                 <field name="name"/><field name="status"/><field name="purpose"/><field name="checks"/>
                 <field name="summary"/><field name="version"/><field name="latency_ms"/>
@@ -33,7 +33,10 @@
                             <div class="small fw-semibold">Next action</div>
                             <field name="next_action"/>
                         </div>
-                        <p class="small text-muted mb-2"><field name="checks"/></p>
+                        <details class="small text-muted mb-2">
+                            <summary>What is checked</summary>
+                            <field name="checks"/>
+                        </details>
                         <div class="small text-muted d-flex flex-wrap gap-2">
                             <span t-if="record.version.raw_value"><field name="version"/></span>
                             <span t-if="record.checked_at.raw_value">Checked <field name="checked_at"/></span>
@@ -57,7 +60,7 @@
                 <header><button name="action_refresh" type="object" string="Check again" class="btn-primary"/></header>
                 <sheet>
                     <div class="oe_title">
-                        <p class="text-uppercase text-muted fw-semibold small mb-1">Signing readiness</p>
+                        <p class="text-uppercase text-muted fw-semibold small mb-1">System status</p>
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-3">
@@ -97,9 +100,10 @@
                             <field name="version" readonly="1" invisible="not version"/>
                         </group>
                     </group>
-                    <group string="Technical diagnostic" groups="usl_sign.group_sign_admin" invisible="not diagnostic_code">
-                        <field name="diagnostic_code" readonly="1"/>
-                    </group>
+                    <details class="mt-3" groups="usl_sign.group_sign_admin" invisible="not diagnostic_code">
+                        <summary class="text-muted">Technical diagnostic</summary>
+                        <field name="diagnostic_code" readonly="1" nolabel="1"/>
+                    </details>
                 </sheet>
             </form>
         </field>
@@ -113,8 +117,8 @@
                 decoration-success="status == 'ready'"
                 decoration-warning="status in ['degraded', 'not_configured']"
                 decoration-danger="status in ['unreachable', 'action_required']">
-                <header><button name="action_refresh_company" type="object" string="Check all capabilities" class="btn-primary" display="always"/></header>
-                <field name="name" string="Capability"/><field name="company_id" groups="base.group_multi_company"/>
+                <header><button name="action_refresh_company" type="object" string="Check all" class="btn-primary" display="always"/></header>
+                <field name="name" string="Signing service"/><field name="company_id" groups="base.group_multi_company"/>
                 <field name="status" widget="badge"/><field name="summary" string="Current result"/>
                 <field name="checked_at"/><field name="version" optional="hide"/><field name="latency_ms" optional="hide"/>
                 <button name="action_refresh" type="object" string="Check again"/>
@@ -127,7 +131,7 @@
         <field name="model">usl.sign.service.health</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name" string="Capability"/><field name="company_id"/>
+                <field name="name" string="Signing service"/><field name="company_id"/>
                 <filter name="issues" string="Needs attention" domain="[('status', 'in', ['degraded', 'unreachable', 'action_required'])]"/>
                 <filter name="not_configured" string="Not configured" domain="[('status', '=', 'not_configured')]"/>
                 <filter name="ready" string="Ready" domain="[('status', '=', 'ready')]"/>

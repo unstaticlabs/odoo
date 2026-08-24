@@ -37,4 +37,5 @@ access_usl_sign_daily_manifest_entry_admin,usl.sign.daily.manifest.entry admin,m
 access_usl_sign_daily_manifest_receipt_reviewer,usl.sign.daily.manifest.receipt reviewer,model_usl_sign_daily_manifest_receipt,group_sign_evidence_reviewer,1,0,0,0
 access_usl_sign_daily_manifest_receipt_admin,usl.sign.daily.manifest.receipt admin,model_usl_sign_daily_manifest_receipt,group_sign_admin,1,0,0,0
 access_usl_sign_start_user,usl.sign.start user,model_usl_sign_start,group_sign_user,1,1,1,1
+access_usl_sign_request_method_user,usl.sign.request.method user,model_usl_sign_request_method,group_sign_user,1,1,1,1
 access_usl_sign_service_health_admin,usl.sign.service.health admin,model_usl_sign_service_health,group_sign_admin,1,0,0,0

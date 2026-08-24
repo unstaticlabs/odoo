@@ -1912,3 +1912,187 @@ msgstr "Un lien d’identité Pocket ID contrôlé est requis avant d’utiliser
 #. module: usl_sign
 msgid "<strong>A signer role is a place in a document, not an access group.</strong>\n                        Create simple reusable roles such as Client, Employee, or Company representative. The actual person is normally chosen when preparing a request."
 msgstr "<strong>Un rôle de signataire désigne une place dans un document, pas un groupe d’accès.</strong>\n                        Créez des rôles réutilisables simples, par exemple Client, Salarié ou Représentant de la société. La personne est normalement choisie lors de la préparation de la demande."
+
+#. module: usl_sign
+msgid "Send a document for signature"
+msgstr "Envoyer un document à signer"
+
+#. module: usl_sign
+msgid "Upload a PDF, choose the signer, then place the fields they need to complete."
+msgstr "Ajoutez un PDF, choisissez le signataire, puis placez les champs à compléter."
+
+#. module: usl_sign
+msgid "Add signing fields"
+msgstr "Ajouter les champs à remplir"
+
+#. module: usl_sign
+msgid "Choose signers"
+msgstr "Choisir les signataires"
+
+#. module: usl_sign
+msgid "More options"
+msgstr "Plus d’options"
+
+#. module: usl_sign
+msgid "Choose how this document is signed"
+msgstr "Choisir la méthode de signature"
+
+#. module: usl_sign
+msgid "Standard is right for most everyday documents."
+msgstr "La signature standard convient à la plupart des documents courants."
+
+#. module: usl_sign
+msgid "Field Groups"
+msgstr "Groupes de champs"
+
+#. module: usl_sign
+msgid "Field group"
+msgstr "Groupe de champs"
+
+#. module: usl_sign
+msgid "Field group name"
+msgstr "Nom du groupe de champs"
+
+#. module: usl_sign
+msgid "<strong>Field groups tell Sign which fields belong to each person.</strong>\n                        Use short names such as Client, Employee, or Company representative. You choose the actual person when you send a document."
+msgstr "<strong>Les groupes de champs indiquent les champs attribués à chaque personne.</strong>\n                        Utilisez des noms courts comme Client, Salarié ou Représentant de la société. Vous choisirez la personne au moment de l’envoi."
+
+#. module: usl_sign
+msgid "System Status"
+msgstr "État du système"
+
+#. module: usl_sign
+msgid "Check all"
+msgstr "Tout vérifier"
+
+#. module: usl_sign
+msgid "What is checked"
+msgstr "Éléments vérifiés"
+
+#. module: usl_sign
+msgid "Send documents for signature and follow what happens next."
+msgstr "Envoyez des documents à signer et suivez leur avancement."
+
+#. module: usl_sign
+msgid "Documents currently with signers"
+msgstr "Documents en cours chez les signataires"
+
+#. module: usl_sign
+msgid "Documents waiting for a fix or setup step"
+msgstr "Documents qui nécessitent une correction ou un réglage"
+
+#. module: usl_sign
+msgid "Documents you are getting ready"
+msgstr "Documents que vous préparez"
+
+#. module: usl_sign
+msgid "Final documents ready to retrieve"
+msgstr "Documents finaux disponibles"
+
+#. module: usl_sign
+msgid "Loading your work…"
+msgstr "Chargement de vos documents…"
+
+#. module: usl_sign
+msgid "This page could not be loaded."
+msgstr "Impossible de charger cette page."
+
+#. module: usl_sign
+msgid "This item could not be opened."
+msgstr "Impossible d’ouvrir cet élément."
+
+#. module: usl_sign
+msgid "No deadline"
+msgstr "Aucune échéance"
+
+#. module: usl_sign
+msgid "Signing method"
+msgstr "Méthode de signature"
+
+#. module: usl_sign
+msgid "Add the fields people need to complete."
+msgstr "Ajoutez les champs que les signataires doivent remplir."
+
+#. module: usl_sign
+msgid "Review the request, then send it."
+msgstr "Vérifiez la demande, puis envoyez-la."
+
+#. module: usl_sign
+msgid "Waiting for %(count)s signers."
+msgstr "En attente de %(count)s signataires."
+
+#. module: usl_sign
+msgid "Waiting for %(signer)s."
+msgstr "En attente de %(signer)s."
+
+#. module: usl_sign
+msgid "A signer needs to finish identity setup."
+msgstr "Un signataire doit terminer la configuration de son identité."
+
+#. module: usl_sign
+msgid "Waiting for the signed document from the external provider."
+msgstr "En attente du document signé par le prestataire externe."
+
+#. module: usl_sign
+msgid "Check the imported signed document."
+msgstr "Vérifiez le document signé importé."
+
+#. module: usl_sign
+msgid "Checking the signed document."
+msgstr "Vérification du document signé."
+
+#. module: usl_sign
+msgid "Finishing the signed document."
+msgstr "Finalisation du document signé."
+
+#. module: usl_sign
+msgid "The final document is ready."
+msgstr "Le document final est prêt."
+
+#. module: usl_sign
+msgid "This request needs attention before it can continue."
+msgstr "Cette demande nécessite votre attention avant de continuer."
+
+#. module: usl_sign
+msgid "The signed document did not pass its checks. Review the issue before continuing."
+msgstr "Le document signé n’a pas passé les vérifications. Examinez le problème avant de continuer."
+
+#. module: usl_sign
+msgid "The signed document failed verification. Open Final document for details."
+msgstr "Le document signé n’a pas passé la vérification. Ouvrez Document final pour consulter les détails."
+
+#. module: usl_sign
+msgid "The signed document is safe, but final storage needs attention."
+msgstr "Le document signé est valide, mais son archivage nécessite votre attention."
+
+#. module: usl_sign
+msgid "The document is signed and valid, but its final copy could not be stored. Try again."
+msgstr "Le document est signé et valide, mais sa copie finale n’a pas pu être archivée. Réessayez."
+
+#. module: usl_sign
+msgid "A private signing link, clear consent, and a complete record of what happened."
+msgstr "Un lien de signature privé, un consentement clair et un historique complet."
+
+#. module: usl_sign
+msgid "The signer confirms with Pocket ID and adds a personal digital signature."
+msgstr "Le signataire confirme avec Pocket ID et ajoute une signature numérique personnelle."
+
+#. module: usl_sign
+msgid "A qualified provider signs the document; the result is checked here before completion."
+msgstr "Un prestataire qualifié signe le document ; le résultat est vérifié ici avant finalisation."
+
+#. module: usl_sign
+msgid "Review and sign"
+msgstr "Vérifier et signer"
+
+#. module: usl_sign
+msgid "Independent timestamp"
+msgstr "Horodatage indépendant"
+
+#. module: usl_sign
+msgid "Final document"
+msgstr "Document final"
+
+#. module: usl_sign
+msgid "Completed signature dossier: %(name)s"
+msgstr "Dossier de signature finalisé : %(name)s"

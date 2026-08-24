@@ -22,9 +22,9 @@
             <form>
                 <sheet>
                     <div class="alert alert-info" role="status">
-                        This is a provider-neutral reference catalog, not an API connection. Add only providers whose qualified services, territory, mobile journey, and commercial terms have been reviewed.
+                        This list helps requesters choose where to complete an exceptional qualified signature. Add only providers your organization has reviewed.
                     </div>
-                    <div class="oe_title"><p class="text-muted mb-1">Qualified-signature provider</p><h1><field name="name"/></h1></div>
+                    <div class="oe_title"><p class="text-muted mb-1">External signing provider</p><h1><field name="name"/></h1></div>
                     <group>
                         <group string="Provider scope">
                             <field name="active" string="Enabled"/>
@@ -50,28 +50,31 @@
         </field>
     </record>
     <record id="sign_external_provider_action" model="ir.actions.act_window">
-        <field name="name">Qualified Providers</field>
+        <field name="name">External Providers</field>
         <field name="res_model">usl.sign.external.provider</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">No qualified providers reviewed</p>
-            <p>Add a provider only after its territory, qualified services, mobile journey and commercial terms have been reviewed.</p>
+            <p class="o_view_nocontent_smiling_face">No external providers reviewed</p>
+            <p>Add a provider after checking where it operates, what qualified signatures it offers, and how signers use it.</p>
         </field>
     </record>
     <record id="sign_external_import_wizard_form" model="ir.ui.view">
         <field name="name">usl.sign.external.import.wizard.form</field>
         <field name="model">usl.sign.external.import.wizard</field>
         <field name="arch" type="xml">
-            <form string="Import Qualified Signature">
-                <group>
-                    <field name="journey_id"/>
-                    <field name="signed_pdf" filename="signed_filename"/>
+            <form string="Return a signed document">
+                <sheet>
+                    <div class="oe_title"><h2>Upload the result from the external provider</h2><p class="text-muted">The signed PDF will be checked before the request can finish.</p></div>
+                    <group>
+                    <field name="journey_id" string="Request"/>
+                    <field name="signed_pdf" filename="signed_filename" string="Signed PDF"/>
                     <field name="signed_filename" invisible="1"/>
-                    <field name="proof_package" filename="proof_filename"/>
+                    <field name="proof_package" filename="proof_filename" string="Provider record"/>
                     <field name="proof_filename" invisible="1"/>
-                </group>
+                    </group>
+                </sheet>
                 <footer>
-                    <button name="action_import" type="object" string="Import for Validation" class="btn-primary"/>
+                    <button name="action_import" type="object" string="Upload and check" class="btn-primary"/>
                     <button string="Cancel" special="cancel"/>
                 </footer>
             </form>

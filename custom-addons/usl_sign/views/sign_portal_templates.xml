@@ -13,7 +13,7 @@
             </div>
             <span class="usl-sign-security-pill">
                 <i class="fa fa-lock" aria-hidden="true"/>
-                Protected session
+                Secure signing
             </span>
         </header>
     </template>
@@ -87,19 +87,14 @@
                         <dl class="usl-sign-summary">
                             <div><dt>Signing as</dt><dd t-out="signer.partner_id.name"/></div>
                             <div><dt>Your role</dt><dd t-out="signer.role_id.name"/></div>
-                            <div><dt>Signing level</dt><dd t-out="requested_trust_display"/></div>
+                            <div t-if="signer.request_id.requested_trust != 'standard'"><dt>Signing method</dt><dd t-out="requested_trust_display"/></div>
                             <div t-if="signer.request_id.expires_at"><dt>Complete by</dt><dd t-out="signer.request_id.expires_at"/></div>
                         </dl>
-                        <div class="usl-sign-assurance-row" aria-label="Signing protections">
-                            <span><i class="fa fa-eye" aria-hidden="true"/> Review before signing</span>
-                            <span><i class="fa fa-check-circle" aria-hidden="true"/> Explicit consent</span>
-                            <span><i class="fa fa-shield" aria-hidden="true"/> Validation and proof</span>
-                        </div>
                         <a class="usl-sign-button usl-sign-button--wide" t-att-href="'/sign/session/%s/%s?review=1' % (signer.id, access_token)">
                             Review document
                             <i class="fa fa-arrow-right" aria-hidden="true"/>
                         </a>
-                        <p class="usl-sign-action-note">Nothing is signed until you review the document and confirm.</p>
+                            <p class="usl-sign-action-note">You can review the whole document before you sign.</p>
                     </div>
                 </section>
             </main>
@@ -118,17 +113,17 @@
                     <div class="usl-sign-public-card__body usl-sign-public-card__body--centered">
                         <t t-if="successful">
                             <span class="usl-sign-result-icon usl-sign-result-icon--success" aria-hidden="true"><i class="fa fa-check"/></span>
-                            <p class="usl-sign-eyebrow">Signature received</p>
+                            <p class="usl-sign-eyebrow">Signed</p>
                             <h1>You’re done</h1>
-                            <p t-if="result_request_name" class="usl-sign-lead">Your signature was recorded for <strong t-out="result_request_name"/>.</p>
-                            <p t-else="" class="usl-sign-lead">Your signature was recorded.</p>
-                            <p class="usl-sign-muted mb-0">When everyone has signed, the final document and its proof will be validated and archived.</p>
+                            <p t-if="result_request_name" class="usl-sign-lead">Your signature has been saved for <strong t-out="result_request_name"/>.</p>
+                            <p t-else="" class="usl-sign-lead">Your signature has been saved.</p>
+                            <p class="usl-sign-muted mb-0">You’ll receive the final copy when it is ready.</p>
                         </t>
                         <t t-elif="declined">
                             <span class="usl-sign-result-icon usl-sign-result-icon--neutral" aria-hidden="true"><i class="fa fa-ban"/></span>
                             <p class="usl-sign-eyebrow">Response received</p>
                             <h1>You declined this document</h1>
-                            <p class="usl-sign-muted mb-0">The sender can see your reason and will decide what happens next.</p>
+                            <p class="usl-sign-muted mb-0">The sender can see your response.</p>
                         </t>
                         <t t-else="">
                             <span class="usl-sign-result-icon usl-sign-result-icon--danger" aria-hidden="true"><i class="fa fa-exclamation"/></span>
@@ -190,12 +185,12 @@
                         <div>
                             <p class="usl-sign-eyebrow">Strong personal signature</p>
                             <h1>Review and confirm your signature</h1>
-                            <p class="usl-sign-lead"><t t-out="signer.request_id.company_id.name"/> will verify your identity with Pocket ID, then protect and validate this exact document.</p>
+                            <p class="usl-sign-lead">Pocket ID will ask for your passkey. <t t-out="signer.request_id.company_id.name"/> will then add and check your signature.</p>
                         </div>
                         <ol class="usl-sign-steps" aria-label="Signing progress">
                             <li data-step="review" class="is-current"><span>1</span>Review</li>
-                            <li data-step="identity"><span>2</span>Confirm identity</li>
-                            <li data-step="complete"><span>3</span>Complete</li>
+                            <li data-step="identity"><span>2</span>Confirm</li>
+                            <li data-step="complete"><span>3</span>Done</li>
                         </ol>
                     </section>
 
@@ -216,15 +211,15 @@
                             <input id="usl_strong_consent" type="checkbox"/>
                             <span>
                                 <strong>I have reviewed this document and agree to sign it.</strong>
-                                <small>I authorize my personal electronic signature using my Pocket ID passkey.</small>
+                                <small>Pocket ID will ask you to confirm with your passkey.</small>
                             </span>
                         </label>
                         <button id="usl_strong_sign_button" class="usl-sign-button usl-sign-button--wide" type="button" disabled="disabled">
                             <span class="usl-sign-button__spinner" aria-hidden="true"/>
                             <i class="fa fa-shield" aria-hidden="true"/>
-                            <span class="usl-sign-button__label">Confirm identity and sign</span>
+                            <span class="usl-sign-button__label">Sign with Pocket ID</span>
                         </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID opens briefly to confirm your passkey. The document never leaves this page.</p>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID will open in a small window.</p>
                         <div id="usl_strong_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
                             <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
                             <span><strong data-status-title=""/><small data-status-message=""/></span>
@@ -232,16 +227,11 @@
                         </div>
                     </section>
 
-                    <div class="usl-sign-assurance-row usl-sign-assurance-row--secure" aria-label="Signature protections">
-                        <span><i class="fa fa-key" aria-hidden="true"/> One-use browser key</span>
-                        <span><i class="fa fa-file-pdf-o" aria-hidden="true"/> Bound to this PDF</span>
-                        <span><i class="fa fa-check-circle" aria-hidden="true"/> Independently validated</span>
-                    </div>
-
                     <details class="usl-sign-technical-details">
-                        <summary>Signature and document details</summary>
+                        <summary>Security details</summary>
                         <p><strong>Document fingerprint</strong><code class="usl-sign-hash" t-out="signer.request_id.current_hash"/></p>
-                        <p>This journey is designed for advanced-signature requirements. Formal classification remains subject to independent legal and security review.</p>
+                        <p>A one-use key created in this browser is bound to this exact PDF. The completed signature is checked before it is accepted.</p>
+                        <p>This method is designed for advanced-signature requirements. Formal classification still requires independent legal and security review.</p>
                     </details>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
@@ -284,7 +274,7 @@
                             <i class="fa fa-shield" aria-hidden="true"/>
                             <span class="usl-sign-button__label">Connect Pocket ID</span>
                         </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> A protected Pocket ID window will open. This does not sign a document.</p>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID will open in a small window. This does not sign a document.</p>
                         <div id="usl_enroll_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
                             <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
                             <span><strong data-status-title=""/><small data-status-message=""/></span>
