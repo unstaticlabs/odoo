@@ -34,19 +34,23 @@ menus, included in the dashboard, or seeded in QA.
   from its entire body, while its explicit controls retain their own actions.
   The adapter handles pointer cancellation, iframe reload and normalized page
   coordinates.
+- **Simple PDF requests:** Start now defaults to upload, asks only for the PDF,
+  signer and an optional note, derives the document name, and opens field
+  placement immediately. Advanced linking and template reuse stay available
+  without interrupting the common journey.
 - **Requests:** Open Requests contains only requests owned or coordinated by
-  the current user. The form leads with state, progress, next action, requested
-  trust, due date, proof and archive status; technical material stays under
-  Proof & Validation.
+  the current user. The form leads with people, signing method, deadline,
+  progress and one next action. Verification and file fingerprints stay in a
+  reviewer-only disclosure under Final document.
 - **My Signatures:** the native list includes both pending and historical
   signer records. Filters separate Ready to sign, Waiting for my turn, Signed
   by me, Completed, Closed and due-dated items without hiding history by
   default.
-- **Configuration:** signer roles now explain that a role is a document slot,
-  show how the person is selected, and keep linked-record expressions in an
-  administrator-only advanced section. Identity reviews, trust rules, qualified
-  providers and daily proofs each include purpose, safe defaults and next-step
-  guidance.
+- **Configuration:** user-facing signer roles are now **Field Groups** and
+  explain that they assign template fields to people. Person-selection rules
+  are guided, while linked-record expressions stay in an administrator-only
+  advanced section. Identity reviews, signing policies, external providers,
+  daily timestamps and settings use business-facing names and next-step help.
 - **Signing Readiness:** the former settings redirect is replaced by a native,
   company-aware capability workspace. Standard, Strong, Qualified external,
   Daily proof and optional TSA report Ready, Degraded, Not configured,
@@ -55,6 +59,10 @@ menus, included in the dashboard, or seeded in QA.
 - **saas-19.3 compatibility:** binary fields use the new binary wrapper API,
   downloads use `ir.binary` streams, and business-record form integration uses
   the new renderer contract.
+- **Final archival:** request and daily-timestamp dossiers are converted from
+  saas-19.3's `BinaryValue` wrapper to the base64 contract expected by
+  `usl_documents`. This fixes the case where signing and validation succeeded
+  but Paperless finalization left the request in Evidence incomplete.
 
 ## Trust and evidence behavior
 
@@ -86,10 +94,13 @@ authenticator:
 
 - clean `usl_sign` installation and focused QA bootstrap from module state,
   with `--without-demo` and no SQL dump;
-- backend `TestCleanUslSign`: 49 post-tests, with Odoo reporting 51 total tests,
-  zero failures and zero errors;
-- desktop frontend: 15 tests and 65 assertions, all passed;
-- mobile frontend: 15 tests and 65 assertions, all passed;
+- backend `TestCleanUslSign`: 51 test methods, with Odoo test statistics
+  reporting 53 counted tests, zero failures and zero errors;
+- desktop frontend: 15 tests and 65 assertions, all passed. This includes the
+  stale palette-drag regression, whole-field movement, iframe pointer bridge,
+  autosave rollback, template upload and dashboard routing;
+- the preceding checkpoint's mobile frontend run passed 15 tests and 65
+  assertions. It was not repeated for this copy-and-view-focused closure;
 - six headless browser journeys covering the native template workspace,
   requester preparation/send/monitoring, Standard public signing and archival,
   Pocket ID enrolment presentation, Strong signing presentation, and the Sign
@@ -98,17 +109,24 @@ authenticator:
   focused rerun on Chrome 151;
 - XML syntax, Python compilation, shell syntax and `git diff --check`;
 - French catalogue format and product-language checks for all maintained USL
-  catalogues. New navigation, role and readiness terms were reviewed manually;
-  untranslated active terms continue to use Odoo's English fallback rather
-  than unreviewed machine translation.
+  catalogues. The new dashboard, simple upload, request, field-group, System
+  Status, recovery and signer-facing terms have maintained translations;
+- live QA recovery of request 4: Completed, validation Valid, evidence
+  Complete, archive Archived, linked `usl.document` present and no remaining
+  archive error;
+- live System Status refresh: Standard, Strong personal and Daily timestamps
+  Ready; Qualified external Action required because the lightweight QA tenant
+  has no trusted-list feed; optional PDF signing timestamps Not configured.
 
 The exact release-gate and final QA deployment results are recorded in the
 feature handoff. The final source gates passed: clean Sign product boundary,
 reproducible browser-worker/private-key boundary, product/migration source
 boundary, Python compilation, XML parsing, shell syntax, French catalogue
-validation, and `git diff --check`. The canonical database half of the
-product/migration boundary intentionally refuses to run from a linked
-worktree; no canonical database was opened from this feature checkout.
+validation, and `git diff --check`. The full-product database boundary is not
+a Sign-only gate: the worktree guard correctly refused the canonical project,
+and the isolated lightweight QA database correctly reported unrelated
+Accounting and Project product modules as uninstalled. No canonical database
+was opened from this feature checkout.
 
 The final `usl-sign-0a32-qa` tenant was rebuilt from empty project-scoped
 PostgreSQL, Odoo filestore, Pocket ID and Paperless volumes. It installed

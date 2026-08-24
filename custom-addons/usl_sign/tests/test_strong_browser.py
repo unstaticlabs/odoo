@@ -92,7 +92,7 @@ class TestSignBrowserJourneys(HttpCase):
                 const expectedSections = [
                     "Sign now",
                     "Prepare and send",
-                    "Resolve issues",
+                    "Needs attention",
                     "Waiting on others",
                     "Recently completed",
                 ];
@@ -237,6 +237,13 @@ class TestSignBrowserJourneys(HttpCase):
                     () => document.querySelector(".o_dialog"),
                     "The Start dialog did not open.",
                 );
+                const templateChoice = startDialog.querySelector(
+                    'input[type="radio"][value="template"]',
+                );
+                if (!templateChoice) {{
+                    throw new Error("The template starting point is missing.");
+                }}
+                templateChoice.click();
                 const nameInput = startDialog.querySelector(
                     '.o_field_widget[name="name"] input',
                 );
@@ -251,7 +258,7 @@ class TestSignBrowserJourneys(HttpCase):
 
                 const prepareDialog = await waitFor(
                     () => Array.from(document.querySelectorAll(".o_dialog")).find(
-                        (dialog) => dialog.textContent.includes("Who must sign?"),
+                        (dialog) => dialog.textContent.includes("Who will sign?"),
                     ),
                     "The Prepare request dialog did not open.",
                 );
@@ -278,8 +285,8 @@ class TestSignBrowserJourneys(HttpCase):
                 const prepareText = prepareDialog.textContent.replace(/\\s+/g, " ").trim();
                 for (const expected of [
                     "Recommended",
-                    "Standard electronic signature with reinforced evidence.",
-                    "Create request",
+                    "Ready. Each signer receives a private link",
+                    "Continue",
                 ]) {{
                     if (!prepareText.includes(expected)) {{
                         throw new Error(`Preparation is missing: ${{expected}}`);
@@ -295,15 +302,13 @@ class TestSignBrowserJourneys(HttpCase):
                 const formText = form.textContent.replace(/\\s+/g, " ").trim();
                 for (const expected of [
                     {json.dumps(request_name)},
-                    "Signatures",
-                    "Requested trust",
-                    "Proof",
-                    "Archive",
+                    "People",
+                    "Signing method",
+                    "Deadline",
+                    "Status",
                     "Overview",
-                    "Signers",
-                    "Documents",
-                    "Proof & Validation",
-                    "Timeline",
+                    "Files",
+                    "Final document",
                 ]) {{
                     if (!formText.includes(expected)) {{
                         throw new Error(`Request review is missing: ${{expected}}`);
@@ -421,7 +426,7 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertIn("Connect your Pocket ID", page)
         self.assertIn(self.company.name, page)
         self.assertIn("never your passkey credentials", page)
-        self.assertIn("Protected session", page)
+        self.assertIn("Secure signing", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertEqual(response.headers["Cache-Control"], "no-store, max-age=0")
         self.assertIn(
@@ -501,8 +506,8 @@ class TestSignBrowserJourneys(HttpCase):
         page = response.text
         self.assertIn(self.company.name, page)
         self.assertIn("Review and confirm your signature", page)
-        self.assertIn("Confirm identity and sign", page)
-        self.assertIn("The document never leaves this page", page)
+        self.assertIn("Sign with Pocket ID", page)
+        self.assertIn("Pocket ID will ask for your passkey", page)
         self.assertNotIn("Exact document SHA-256", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])

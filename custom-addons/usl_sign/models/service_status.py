@@ -10,37 +10,37 @@ from .constants import INTERNAL_OPERATION
 
 
 CAPABILITIES = (
-    ("standard", "Standard signing", 10),
-    ("strong", "Strong personal signing", 20),
-    ("qualified", "Qualified external validation", 30),
-    ("daily_proof", "Daily Bitcoin proof", 40),
-    ("rfc3161", "Independent RFC 3161 timestamp", 50),
+    ("standard", "Standard documents", 10),
+    ("strong", "Strong personal signatures", 20),
+    ("qualified", "External qualified signatures", 30),
+    ("daily_proof", "Daily timestamps", 40),
+    ("rfc3161", "PDF signing timestamps", 50),
 )
 
 CAPABILITY_GUIDANCE = {
     "standard": (
-        "Send routine documents and produce a sealed, independently validated result.",
-        "Checks DSS PDF services, the platform seal, validation, and Paperless archival.",
+        "Send everyday documents and keep a checked final copy.",
+        "Checks PDF sealing, signature verification, and final storage.",
         False,
     ),
     "strong": (
-        "Use a fresh Pocket ID passkey to authorize a personal document signature.",
-        "Checks Pocket ID, the short-lived certificate authority, DSS, and Paperless.",
+        "Let known signers confirm each signature with a Pocket ID passkey.",
+        "Checks Pocket ID, personal signature certificates, PDF verification, and final storage.",
         False,
     ),
     "qualified": (
-        "Import and verify a qualified signature completed with an external provider.",
-        "Checks DSS trusted-list validation and Paperless archival.",
+        "Check a qualified signature returned by an external provider.",
+        "Checks European trusted providers, signature verification, and final storage.",
         False,
     ),
     "daily_proof": (
-        "Anchor each closed day's completed-document hashes to Bitcoin.",
-        "Checks manifest signing, OpenTimestamps scheduling, recent jobs, and proof archival.",
+        "Add an independent Bitcoin timestamp to each day's completed documents.",
+        "Checks daily record signing, timestamp scheduling, recent jobs, and final storage.",
         False,
     ),
     "rfc3161": (
-        "Add an independent timestamp directly to a PDF signature when configured.",
-        "Optional. Checks whether an external RFC 3161 timestamp authority is enabled.",
+        "Add an independent timestamp directly inside a signed PDF.",
+        "Optional. Checks whether an external timestamp service is enabled.",
         True,
     ),
 }
@@ -112,6 +112,12 @@ class SignServiceHealth(models.Model):
             row.code: row
             for row in self.sudo().search([("company_id", "=", company.id)])
         }
+        for code, label, sequence in CAPABILITIES:
+            row = existing.get(code)
+            if row and (row.name != label or row.sequence != sequence):
+                row.with_context(usl_sign_health_write=INTERNAL_OPERATION).write(
+                    {"name": label, "sequence": sequence},
+                )
         missing = [
             {
                 "name": label,
@@ -201,15 +207,15 @@ class SignServiceHealth(models.Model):
         if self.code in {"standard", "strong", "qualified"} and not paperless:
             return {
                 "status": "not_configured",
-                "summary": "Paperless archival is not configured.",
-                "next_action": "Configure the Paperless service identity before signing.",
+                "summary": "Final document storage is not configured.",
+                "next_action": "Connect the Paperless service before sending documents.",
                 "diagnostic_code": "paperless_not_configured",
                 "version": f"DSS {dss.get('engineVersion', '6.4')}",
             }
         if self.code == "standard":
             return {
                 "status": "ready",
-                "summary": "PDF sealing, independent validation, and durable archival are available.",
+                "summary": "Signed PDFs can be sealed, checked, and stored.",
                 "next_action": False,
                 "diagnostic_code": False,
                 "version": f"DSS {dss.get('engineVersion', '6.4')} · Paperless {paperless.get('server_version', '')}",
@@ -219,7 +225,7 @@ class SignServiceHealth(models.Model):
             self._step_ca(cache)
             return {
                 "status": "ready",
-                "summary": "Fresh Pocket ID passkey authorization and short-lived personal certificates are available.",
+                "summary": "Pocket ID confirmation and personal document signatures are available.",
                 "next_action": False,
                 "diagnostic_code": False,
                 "version": f"DSS {dss.get('engineVersion', '6.4')} · Pocket ID fresh passkey",
@@ -228,14 +234,14 @@ class SignServiceHealth(models.Model):
             if not dss.get("qualifiedTrustReady"):
                 return {
                     "status": "action_required",
-                    "summary": "DSS trusted-list validation is not ready.",
-                    "next_action": "Restore the EU trusted-list cache before importing a qualified signature.",
+                    "summary": "The European trusted-provider list is not ready.",
+                    "next_action": "Restore the trusted-provider list before importing a qualified signature.",
                     "diagnostic_code": "qualified_trust_unavailable",
                     "version": f"DSS {dss.get('engineVersion', '6.4')}",
                 }
             return {
                 "status": "ready",
-                "summary": "Qualified-provider chains and achieved signature levels can be validated independently.",
+                "summary": "Returned qualified signatures can be checked before acceptance.",
                 "next_action": False,
                 "diagnostic_code": False,
                 "version": f"DSS {dss.get('engineVersion', '6.4')}",
@@ -244,16 +250,16 @@ class SignServiceHealth(models.Model):
             if not self.company_id.sign_opentimestamps_enabled:
                 return {
                     "status": "not_configured",
-                    "summary": "Daily Bitcoin existence proof is disabled for this company.",
-                    "next_action": "Enable it in Sign settings to schedule closed-day evidence manifests.",
+                    "summary": "Daily Bitcoin timestamps are disabled for this company.",
+                    "next_action": "Enable Daily Bitcoin timestamps in Sign settings.",
                     "diagnostic_code": "daily_proof_disabled",
                     "version": "OpenTimestamps 0.4.5",
                 }
             if not paperless:
                 return {
                     "status": "not_configured",
-                    "summary": "Daily proof archival is unavailable because Paperless is not configured.",
-                    "next_action": "Configure the Paperless service identity before relying on daily proof.",
+                    "summary": "Daily timestamp records cannot be stored because Paperless is not configured.",
+                    "next_action": "Connect the Paperless service before relying on daily timestamps.",
                     "diagnostic_code": "paperless_not_configured",
                     "version": "OpenTimestamps 0.4.5",
                 }
@@ -275,8 +281,8 @@ class SignServiceHealth(models.Model):
             ):
                 return {
                     "status": "action_required",
-                    "summary": "A daily proof scheduler is disabled or failing.",
-                    "next_action": "Review the Evidence Manifest scheduled actions and retry failed proofs.",
+                    "summary": "A daily timestamp job is disabled or failing.",
+                    "next_action": "Review the scheduled jobs and retry failed timestamps.",
                     "diagnostic_code": "daily_proof_cron_unhealthy",
                     "version": "OpenTimestamps 0.4.5",
                 }
@@ -288,22 +294,22 @@ class SignServiceHealth(models.Model):
             if latest and latest.anchoring_status == "action_required":
                 return {
                     "status": "degraded",
-                    "summary": "Daily proof is configured, but the latest manifest needs review.",
-                    "next_action": "Open Evidence Manifests and retry the failed operation.",
+                    "summary": "Daily timestamps are configured, but the latest day needs attention.",
+                    "next_action": "Open Daily Timestamps and retry the failed operation.",
                     "diagnostic_code": latest.failure_code or "latest_manifest_failed",
                     "version": "OpenTimestamps 0.4.5",
                 }
             if latest and latest.anchoring_status == "confirmed" and latest.archive_status != "archived":
                 return {
                     "status": "degraded",
-                    "summary": "The latest Bitcoin proof is confirmed but its Paperless archive is incomplete.",
-                    "next_action": "Open Evidence Manifests and retry proof archival.",
+                    "summary": "The latest Bitcoin timestamp is confirmed but its final copy was not stored.",
+                    "next_action": "Open Daily Timestamps and retry final storage.",
                     "diagnostic_code": "latest_manifest_archive_incomplete",
                     "version": "OpenTimestamps 0.4.5",
                 }
             return {
                 "status": "ready",
-                "summary": "Closed UTC days are signed and scheduled for Bitcoin-backed existence proof.",
+                "summary": "Completed documents are scheduled for a daily Bitcoin timestamp.",
                 "next_action": False,
                 "diagnostic_code": False,
                 "version": "OpenTimestamps 0.4.5",
@@ -311,23 +317,23 @@ class SignServiceHealth(models.Model):
         if not self.company_id.sign_rfc3161_enabled:
             return {
                 "status": "not_configured",
-                "summary": "Independent RFC 3161 timestamping is optional and disabled.",
-                "next_action": "Enable it only after configuring and reviewing an independent TSA.",
+                "summary": "PDF signing timestamps are optional and disabled.",
+                "next_action": "Enable them only after configuring and reviewing an independent timestamp service.",
                 "diagnostic_code": "tsa_disabled",
                 "version": False,
             }
         if not os.getenv("USL_DSS_TSA_URL"):
             return {
                 "status": "action_required",
-                "summary": "RFC 3161 timestamping is enabled without a TSA endpoint.",
-                "next_action": "Configure USL_DSS_TSA_URL or disable RFC 3161 timestamping.",
+                "summary": "PDF signing timestamps are enabled without a timestamp service.",
+                "next_action": "Configure the timestamp service or disable PDF signing timestamps.",
                 "diagnostic_code": "tsa_endpoint_missing",
                 "version": False,
             }
         return {
             "status": "degraded",
-            "summary": "The TSA is configured; availability is verified during the next timestamped signature.",
-            "next_action": "Review the next PAdES-T validation report before relying on this capability.",
+            "summary": "The timestamp service is configured but has not yet been confirmed by a signed PDF.",
+            "next_action": "Review the next timestamped signature before relying on this service.",
             "diagnostic_code": "tsa_not_yet_exercised",
             "version": f"DSS {dss.get('engineVersion', '6.4')}",
         }

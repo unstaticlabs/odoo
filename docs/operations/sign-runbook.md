@@ -36,6 +36,7 @@ For a lightweight QA tenant tied to the current worktree, run:
 scripts/sign-qa-stack start
 scripts/sign-qa-stack info
 scripts/sign-qa-stack status
+scripts/sign-qa-stack upgrade
 scripts/sign-qa-stack login-link valentin
 scripts/sign-qa-stack login-link roger
 scripts/sign-qa-stack test /usl_sign
@@ -50,6 +51,9 @@ first start. The initial start creates `odoo_dev --without-demo` and runs the
 focused synthetic bootstrap; it never imports an SQL dump, filestore or shared
 volume. Custom add-ons remain bind-mounted, while the Odoo runtime image is
 content-addressed from its dependency inputs so unchanged images are reused.
+Use `upgrade` after changing `usl_sign`: it updates the module in place and
+restarts only Odoo, preserving the disposable QA records and isolated service
+volumes. Use `start` for a complete service/configuration refresh.
 
 `info` prints the resolved project, URLs, review users and login-link commands.
 `login-link` creates a one-time Pocket ID session for the named synthetic user;

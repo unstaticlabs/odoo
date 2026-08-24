@@ -149,7 +149,7 @@
     </record>
 
     <record id="sign_daily_manifest_action" model="ir.actions.act_window">
-        <field name="name">Daily Timestamp Proofs</field>
+        <field name="name">Daily Timestamps</field>
         <field name="res_model">usl.sign.daily.manifest</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">

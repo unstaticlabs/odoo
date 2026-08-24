@@ -21,9 +21,9 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_create_invitation" type="object" string="Invite to Connect Pocket ID" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
-                    <button name="action_confirm_identity" type="object" string="Confirm Pocket ID Identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer"/>
-                    <button name="action_open_revoke" type="object" string="Revoke Enrolment" invisible="state == 'revoked'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_create_invitation" type="object" string="Send Pocket ID invitation" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_confirm_identity" type="object" string="Approve identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_open_revoke" type="object" string="Revoke identity" invisible="state == 'revoked'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
                 </header>
                 <sheet>
@@ -32,13 +32,13 @@
                         <h1><field name="partner_id"/></h1>
                     </div>
                     <div class="alert alert-info" role="status" invisible="state != 'pending_pocket'">
-                        <strong>Next: connect Pocket ID.</strong> Send the secure invitation to this person. They sign in to Pocket ID and confirm the identity link; no passkey credential is copied into Odoo.
+                        <strong>Next: connect Pocket ID.</strong> Send the invitation so this person can confirm their Pocket ID account.
                     </div>
                     <div class="alert alert-warning" role="status" invisible="state != 'pending_review'">
-                        <strong>Next: review the identity match.</strong> Confirm that the Pocket ID account belongs to the partner below and that the recorded relationship meets the stated policy.
+                        <strong>Next: review the identity.</strong> Check that the Pocket ID account belongs to this person and that your organization already knows them.
                     </div>
                     <div class="alert alert-success" role="status" invisible="state != 'active'">
-                        <strong>Ready for Strong personal signing.</strong> Each future signature still requires a fresh Pocket ID passkey confirmation bound to that exact document.
+                        <strong>Ready for Strong personal signing.</strong> Pocket ID will ask for a passkey every time this person signs.
                     </div>
                     <div class="alert alert-danger" role="status" invisible="state != 'revoked'">
                         <strong>This identity link is revoked.</strong> It cannot authorize new Strong signatures. Completed documents remain valid and unchanged.
@@ -63,9 +63,10 @@
                             <field name="revocation_reason" invisible="not revocation_reason"/>
                         </group>
                     </group>
-                    <div class="text-muted small" role="note">
-                        Pocket ID owns passkey registration, recovery, and credential revocation. Odoo stores only the immutable Pocket ID identity link and this review decision.
-                    </div>
+                    <details class="text-muted small mt-3">
+                        <summary>How identity data is handled</summary>
+                        Pocket ID manages passkeys and account recovery. The signing application keeps the Pocket ID account link and this review decision; it does not copy the person's passkeys.
+                    </details>
                 </sheet>
             </form>
         </field>
@@ -101,13 +102,13 @@
         </field>
     </record>
     <record id="sign_enrollment_action" model="ir.actions.act_window">
-        <field name="name">Identity Reviews</field>
+        <field name="name">Signer Identity Reviews</field>
         <field name="res_model">usl.sign.enrollment</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="sign_enrollment_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">No Strong signing identities to review</p>
-            <p>Create an identity review only for an employee, contractor, or recurring partner whose relationship can be confirmed. Pocket ID manages the person's passkeys; Odoo records the reviewed identity link.</p>
+            <p class="o_view_nocontent_smiling_face">No signer identities to review</p>
+            <p>Create one for an employee, contractor, or recurring partner your organization already knows. Pocket ID will manage their passkeys.</p>
         </field>
     </record>
 </odoo>
