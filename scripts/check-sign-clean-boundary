@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Reject obsolete Sign implementation residue from the delivered product."""
+
+import ast
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SCANNED = (
+    ROOT / "custom-addons" / "usl_sign",
+    ROOT / "services" / "usl-sign-dss",
+    ROOT / "docs" / "product" / "sign.md",
+    ROOT / "docs" / "users" / "guides" / "signatures-electroniques.md",
+    ROOT / "docs" / "operations" / "sign-runbook.md",
+    ROOT / "compose.yaml",
+    ROOT / ".env.example",
+    ROOT / "scripts" / "odoo" / "sign_qa_bootstrap.py",
+)
+FORBIDDEN = (
+    "yousign",
+    "usl_sign_restore",
+    "usl.sign.restore",
+    "migration/sign_restore",
+    "sign-migration",
+    "sign-restore",
+    "provider transaction",
+    "provider_transaction",
+    "migration_assurance",
+    "historical evidence",
+    "odoo online",
+    "/sign/webhook",
+    "usl.sign.passkey",
+    "sign_webauthn",
+    "registration_challenge",
+    "verify_authentication_response",
+)
+FORBIDDEN_PATHS = (
+    ROOT / "migration" / "sign_restore",
+    ROOT / "scripts" / "sign-restore",
+    ROOT / "docs" / "operations" / "sign-yousign-runbook.md",
+    ROOT / "custom-addons" / "usl_sign" / "controllers" / "webhook.py",
+    ROOT / "custom-addons" / "usl_sign" / "services" / "yousign.py",
+)
+REQUIRED_PURPOSE_SEPARATION = {
+    ROOT / "compose.yaml": (
+        "USL_DSS_PLATFORM_KEYSTORE: /run/usl-sign-dss/platform.p12",
+        "USL_DSS_MANIFEST_KEYSTORE: /run/usl-sign-dss/manifest.p12",
+    ),
+    ROOT / "scripts" / "sign-services-bootstrap": (
+        'issue_leaf platform "USL Sign Platform Seal"',
+        'issue_leaf manifest "USL Sign Evidence Manifest"',
+        '"$dss_secret_dir/manifest.p12"',
+    ),
+    ROOT / "services" / "usl-sign-dss" / "src" / "main" / "java"
+    / "com" / "unstaticlabs" / "sign" / "dss" / "Application.java": (
+        'requiredEnv("USL_DSS_PLATFORM_KEYSTORE")',
+        'requiredEnv("USL_DSS_MANIFEST_KEYSTORE")',
+        "enforceSigningKeySeparation();",
+    ),
+}
+TEXT_SUFFIXES = {"", ".csv", ".env", ".html", ".js", ".json", ".md", ".po", ".py", ".scss", ".xml", ".yaml", ".yml"}
+
+
+errors = []
+for path in FORBIDDEN_PATHS:
+    if path.exists():
+        errors.append(f"Forbidden obsolete Sign path remains: {path.relative_to(ROOT)}")
+
+for path, snippets in REQUIRED_PURPOSE_SEPARATION.items():
+    content = path.read_text(errors="ignore") if path.is_file() else ""
+    for snippet in snippets:
+        if snippet not in content:
+            errors.append(
+                f"{path.relative_to(ROOT)} is missing Sign key-separation boundary {snippet!r}",
+            )
+
+for root in SCANNED:
+    paths = root.rglob("*") if root.is_dir() else [root]
+    for path in paths:
+        if (
+            not path.is_file()
+            or "__pycache__" in path.parts
+            or "node_modules" in path.parts
+            or path.suffix.lower() not in TEXT_SUFFIXES
+        ):
+            continue
+        content = path.read_text(errors="ignore").lower()
+        for forbidden in FORBIDDEN:
+            if forbidden in content:
+                errors.append(
+                    f"{path.relative_to(ROOT)} contains forbidden Sign residue {forbidden!r}"
+                )
+
+constants_path = ROOT / "custom-addons" / "usl_sign" / "models" / "constants.py"
+constants = constants_path.read_text()
+tree = ast.parse(constants, filename=str(constants_path))
+trust_levels = None
+for node in tree.body:
+    if isinstance(node, ast.Assign) and any(
+        isinstance(target, ast.Name) and target.id == "TRUST_LEVELS"
+        for target in node.targets
+    ):
+        trust_levels = [row[0] for row in ast.literal_eval(node.value)]
+        break
+if trust_levels != ["standard", "strong_personal", "qualified_external"]:
+    errors.append(f"Final trust vocabulary is not exact: {trust_levels!r}")
+for obsolete in ('"0_sent"', '"2_signed"'):
+    if obsolete in constants:
+        errors.append(f"Obsolete Sign vocabulary {obsolete!r} remains in constants.")
+
+for path in (ROOT / "custom-addons" / "usl_sign").rglob("*.py"):
+    if "tests" in path.parts:
+        # Security tests deliberately exercise the obsolete, forgeable context
+        # booleans and prove that the final process-local sentinel rejects them.
+        continue
+    content = path.read_text(errors="ignore")
+    if "usl_sign_" in content and "=True" in content:
+        for line_number, line in enumerate(content.splitlines(), start=1):
+            if "usl_sign_" in line and "=True" in line:
+                errors.append(
+                    f"{path.relative_to(ROOT)}:{line_number} uses a client-forgeable Sign mutation flag"
+                )
+
+if errors:
+    raise SystemExit("\n".join(f"- {error}" for error in errors))
+
+print("Clean USL Sign boundary: PASS")

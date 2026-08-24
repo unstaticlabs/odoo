@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SLOT_DEFAULT="$(basename "$(dirname "$ROOT")")"
+SLOT="${USL_SIGN_QA_SLOT:-$SLOT_DEFAULT}"
+if [[ ! "$SLOT" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+  printf 'USL_SIGN_QA_SLOT must contain only lowercase letters, numbers, and hyphens.\n' >&2
+  exit 2
+fi
+
+# A stable per-worktree port block keeps concurrent QA projects apart without
+# reserving host-global state. Every port is still checked before first start.
+CHECKSUM="$(printf '%s' "$SLOT" | cksum | awk '{print $1}')"
+OFFSET="$((CHECKSUM % 1000))"
+RUNTIME_FINGERPRINT="$({
+  git -C "$ROOT" hash-object \
+    Dockerfile requirements.txt docker/constraints.txt setup.py
+} | git hash-object --stdin | cut -c1-12)"
+
+export USL_SIGN_POCKETID_PROJECT="${USL_SIGN_POCKETID_PROJECT:-usl-sign-${SLOT}-qa}"
+export USL_SIGN_POCKETID_ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-${SLOT}-qa.env}"
+export USL_SIGN_POCKETID_SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-${SLOT}-qa}"
+export USL_SIGN_POCKETID_ODOO_PORT="${USL_SIGN_POCKETID_ODOO_PORT:-$((17000 + OFFSET))}"
+export USL_SIGN_POCKETID_GEVENT_PORT="${USL_SIGN_POCKETID_GEVENT_PORT:-$((18000 + OFFSET))}"
+export USL_SIGN_POCKETID_POCKET_PORT="${USL_SIGN_POCKETID_POCKET_PORT:-$((19000 + OFFSET))}"
+export USL_SIGN_POCKETID_PAPERLESS_PORT="${USL_SIGN_POCKETID_PAPERLESS_PORT:-$((20000 + OFFSET))}"
+export USL_SIGN_POCKETID_ODOO_HOSTNAME="${USL_SIGN_POCKETID_ODOO_HOSTNAME:-odoo-sign-${SLOT}-qa.localhost}"
+export USL_SIGN_POCKETID_POCKET_HOSTNAME="${USL_SIGN_POCKETID_POCKET_HOSTNAME:-pocket-id-sign-${SLOT}-qa.localhost}"
+# Custom add-ons stay bind-mounted for immediate branch fidelity. The runtime
+# image is content-addressed so Python dependency changes trigger one rebuild,
+# while unchanged worktrees reuse the cached image safely.
+export ODOO_IMAGE="${ODOO_IMAGE:-usl-sign-qa-odoo:${RUNTIME_FINGERPRINT}}"
+
+exec "$ROOT/scripts/sign-pocketid-stack" "$@"

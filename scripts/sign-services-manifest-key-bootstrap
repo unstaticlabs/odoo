@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Add the purpose-separated evidence-manifest credential to an existing local
+# Sign secret set. This never replaces the CA, platform seal, or an existing
+# manifest keystore.
+
+umask 077
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+sign_dir="$repo_root/.secrets/sign"
+step_dir="$sign_dir/step-ca"
+dss_secret_dir="$sign_dir/dss"
+dss_env="$sign_dir/dss.env"
+manifest_store="$dss_secret_dir/manifest.p12"
+
+if [ -e "$manifest_store" ]; then
+    if grep -q '^USL_DSS_MANIFEST_KEYSTORE_PASSWORD=' "$dss_env"; then
+        echo "The separate USL Sign evidence-manifest credential is already configured."
+        exit 0
+    fi
+    echo "A manifest keystore exists but its secret environment value is missing; inspect it manually." >&2
+    exit 1
+fi
+
+for required in \
+    "$step_dir/password" \
+    "$step_dir/secrets/intermediate_ca_key" \
+    "$step_dir/certs/intermediate_ca.crt" \
+    "$step_dir/certs/root_ca.crt" \
+    "$dss_env"; do
+    if [ ! -f "$required" ]; then
+        echo "Required existing Sign secret is missing: $required" >&2
+        exit 1
+    fi
+done
+
+password_file=$(mktemp "$sign_dir/.manifest-password.XXXXXX")
+chain_file=$(mktemp "$sign_dir/.manifest-chain.XXXXXX")
+extension_file=$(mktemp "$sign_dir/.manifest-extension.XXXXXX")
+env_file=$(mktemp "$sign_dir/.dss-env.XXXXXX")
+cleanup() {
+    rm -f "$password_file" "$chain_file" "$extension_file" "$env_file"
+}
+trap cleanup EXIT
+
+openssl rand -base64 36 > "$password_file"
+openssl ecparam -name prime256v1 -genkey -noout -out "$dss_secret_dir/manifest.key"
+openssl req -new -sha256 \
+    -key "$dss_secret_dir/manifest.key" \
+    -subj "/CN=USL Sign Evidence Manifest/O=Unstatic Labs" \
+    -out "$dss_secret_dir/manifest.csr"
+{
+    printf '%s\n' 'basicConstraints=critical,CA:FALSE'
+    printf '%s\n' 'keyUsage=critical,digitalSignature'
+} > "$extension_file"
+openssl x509 -req -sha256 \
+    -in "$dss_secret_dir/manifest.csr" \
+    -CA "$step_dir/certs/intermediate_ca.crt" \
+    -CAkey "$step_dir/secrets/intermediate_ca_key" \
+    -passin "file:$step_dir/password" \
+    -CAserial "$step_dir/certs/usl-sign-ca.srl" \
+    -CAcreateserial \
+    -days 365 \
+    -extfile "$extension_file" \
+    -out "$dss_secret_dir/manifest.crt"
+rm "$dss_secret_dir/manifest.csr"
+{
+    cp "$step_dir/certs/intermediate_ca.crt" "$chain_file"
+    printf '\n' >> "$chain_file"
+    sed -n '1,$p' "$step_dir/certs/root_ca.crt" >> "$chain_file"
+}
+openssl pkcs12 -export \
+    -name usl-sign-evidence-manifest \
+    -inkey "$dss_secret_dir/manifest.key" \
+    -in "$dss_secret_dir/manifest.crt" \
+    -certfile "$chain_file" \
+    -passout "file:$password_file" \
+    -out "$manifest_store"
+
+grep -v '^USL_DSS_MANIFEST_KEYSTORE_PASSWORD=' "$dss_env" > "$env_file"
+printf 'USL_DSS_MANIFEST_KEYSTORE_PASSWORD=%s\n' \
+    "$(tr -d '\r\n' < "$password_file")" >> "$env_file"
+mv "$env_file" "$dss_env"
+chmod 600 "$dss_secret_dir/manifest.key" "$dss_secret_dir/manifest.crt" \
+    "$manifest_store" "$dss_env"
+
+echo "Added a purpose-separated USL Sign evidence-manifest credential."

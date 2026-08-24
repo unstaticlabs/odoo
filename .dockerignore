@@ -22,7 +22,6 @@
 !odoo/**
 !setup/
 !setup/**
-
 # Product-stage payloads. usl_bootstrap is a test-only fixture and must never
 # ship in a product image; OCA vendor checkouts enter without their Git state.
 !custom-addons/
@@ -38,3 +37,6 @@ docs/*
 !oca-src/**
 oca-src/**/.git
 oca-src/**/.git/**
+!services/
+!services/usl-sign-dss/
+!services/usl-sign-dss/**

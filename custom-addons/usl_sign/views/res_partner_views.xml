@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_partner_form_sign" model="ir.ui.view">
+        <field name="name">res.partner.form.sign</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_signature_requests" type="object" class="oe_stat_button" icon="fa-pencil-square-o" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer" invisible="signature_request_count == 0">
+                    <field name="signature_request_count" widget="statinfo" string="Signatures"/>
+                </button>
+                <button name="action_request_signature" type="object" class="oe_stat_button" icon="fa-paper-plane" groups="usl_sign.group_sign_user">
+                    <div class="o_stat_info"><span class="o_stat_text">Request</span><span class="o_stat_text">signature</span></div>
+                </button>
+                <button name="action_start_sign_enrollment" type="object" class="oe_stat_button" icon="fa-key" groups="usl_sign.group_sign_identity_reviewer">
+                    <div class="o_stat_info"><span class="o_stat_text">Strong signer</span><span class="o_stat_text">enrolment</span></div>
+                </button>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="after">
+                <field name="signature_current_state" widget="badge" readonly="1" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer" invisible="signature_current_state == 'none'"/>
+                <field name="sign_enrollment_state" widget="badge" readonly="1" groups="usl_sign.group_sign_identity_reviewer,usl_sign.group_sign_admin"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
