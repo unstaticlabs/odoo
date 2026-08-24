@@ -41,7 +41,13 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.1}
+      PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
+      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+      PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
+      PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
+      PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.35}
@@ -106,6 +112,7 @@ services:
             "$${PAPERLESS_BROKER_IMAGE}" \
             "$${PAPERLESS_GOTENBERG_IMAGE}" \
             "$${PAPERLESS_TIKA_IMAGE}" \
+            "$${OLLAMA_IMAGE}" \
             "$${POCKET_ID_IMAGE}"
           do
             case "$${image}" in
@@ -114,6 +121,13 @@ services:
               *) echo "Image must include an exact tag or digest: $${image}"; exit 1;;
             esac
           done
+          [ "$${PAPERLESS_BASE_IMAGE}" = "ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" ] || {
+            echo "Paperless distribution base digest is not qualified"; exit 1;
+          }
+          [ "$${PAPERLESS_AI_ENABLED}" = "true" ] || { echo "Paperless local AI index must be enabled"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_BACKEND}" = "ollama" ] || { echo "Paperless embeddings must use Ollama"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" = "usl-bge-m3:documents-20260824-rc1" ] || { echo "Paperless BGE-M3 alias is not qualified"; exit 1; }
+          [ "$${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE}" = "512" ] || { echo "Paperless embedding chunk size is not frozen"; exit 1; }
           case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
           case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
           case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
@@ -158,6 +172,37 @@ services:
     volumes:
       - paperless-broker-data:/data
 
+  paperless-ollama:
+    profiles: ["paperless"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
+    volumes:
+      - paperless-ollama-data:/root/.ollama
+
+  paperless-model-preflight:
+    profiles: ["paperless"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
+    restart: "no"
+    depends_on:
+      paperless-ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://paperless-ollama:11434
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        ollama show "$${PAPERLESS_AI_LLM_EMBEDDING_MODEL}" >/dev/null
+
   paperless-trash-init:
     profiles: ["paperless"]
     image: alpine:3.24.1
@@ -168,7 +213,12 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.1}
+    build:
+      context: .
+      dockerfile: deploy/documents/paperless-ngx/Dockerfile
+      args:
+        PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
     restart: unless-stopped
     depends_on:
       paperless-preflight:
@@ -177,6 +227,8 @@ services:
         condition: service_healthy
       paperless-broker:
         condition: service_healthy
+      paperless-model-preflight:
+        condition: service_completed_successfully
       paperless-trash-init:
         condition: service_completed_successfully
       paperless-gotenberg:
@@ -206,6 +258,16 @@ services:
       PAPERLESS_TIKA_ENABLED: "1"
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg:3000
       PAPERLESS_TIKA_ENDPOINT: http://paperless-tika:9998
+      PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
+      PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ${PAPERLESS_AI_LLM_EMBEDDING_BACKEND:-ollama}
+      PAPERLESS_AI_LLM_EMBEDDING_MODEL: ${PAPERLESS_AI_LLM_EMBEDDING_MODEL:-usl-bge-m3:documents-20260824-rc1}
+      PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT: http://paperless-ollama:11434
+      PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
+      PAPERLESS_AI_LLM_CONTEXT_SIZE: ${PAPERLESS_AI_LLM_CONTEXT_SIZE:-8192}
+      PAPERLESS_AI_LLM_REQUEST_TIMEOUT: ${PAPERLESS_AI_LLM_REQUEST_TIMEOUT:-300}
+      PAPERLESS_AI_LLM_ALLOW_INTERNAL_ENDPOINTS: "true"
+      PAPERLESS_LLM_INDEX_TASK_CRON: ${PAPERLESS_LLM_INDEX_TASK_CRON:-10 2 * * *}
+      PAPERLESS_USL_SCOPED_SERVICE_USERS: ${PAPERLESS_USL_SCOPED_SERVICE_USERS:-odoo-integration}
     ports:
       - "127.0.0.1:${PAPERLESS_HTTP_PORT:-8010}:8000"
     healthcheck:
@@ -229,7 +291,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.1}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -250,7 +312,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.5}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.1}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -669,3 +731,4 @@ volumes:
   paperless-export:
   paperless-consume:
   paperless-trash:
+  paperless-ollama-data:

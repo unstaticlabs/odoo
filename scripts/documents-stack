@@ -111,6 +111,8 @@ SERVICES=(
   paperless-preflight
   paperless-db
   paperless-broker
+  paperless-ollama
+  paperless-model-preflight
   paperless-trash-init
   paperless-gotenberg
   paperless-tika
@@ -146,8 +148,24 @@ validate_config() {
     printf 'E-reporting live safety flag is not disabled.\n' >&2
     return 1
   }
-  grep -Fq "ghcr.io/paperless-ngx/paperless-ngx:3.0.5" <<<"$config" || {
-    printf 'Paperless 3.0.5 is not exactly pinned.\n' >&2
+  grep -Fq "PAPERLESS_BASE_IMAGE: ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" <<<"$config" || {
+    printf 'Paperless 3.0.5 base image is not pinned by qualified digest.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_MODEL: usl-bge-m3:documents-20260824-rc1" <<<"$config" || {
+    printf 'Paperless BGE-M3 release alias is not pinned.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_BACKEND: ollama" <<<"$config" || {
+    printf 'Paperless embeddings are not local Ollama embeddings.\n' >&2
+    return 1
+  }
+  grep -Fq "PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: \"512\"" <<<"$config" || {
+    printf 'Paperless embedding chunk size is not frozen at 512.\n' >&2
+    return 1
+  }
+  grep -Fq "ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca" <<<"$config" || {
+    printf 'Ollama 0.30.11 is not pinned by qualified digest.\n' >&2
     return 1
   }
   grep -Fq "ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1" <<<"$config" || {
@@ -289,7 +307,7 @@ case "$COMMAND" in
       exit 2
     }
     validate_config
-    "${COMPOSE[@]}" build odoo
+    "${COMPOSE[@]}" build odoo paperless-webserver
     ;;
   up)
     validate_config
@@ -313,7 +331,8 @@ case "$COMMAND" in
       --stop-after-init \
       --log-level=warn
     "${COMPOSE[@]}" up -d --wait --pull never \
-      db paperless-preflight paperless-db paperless-broker \
+      db paperless-preflight paperless-db paperless-broker paperless-ollama \
+      paperless-model-preflight \
       paperless-gotenberg paperless-tika paperless-webserver
     ensure_paperless_access
     "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
