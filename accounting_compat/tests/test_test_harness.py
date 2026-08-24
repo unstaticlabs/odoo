@@ -294,7 +294,10 @@ class OdooTestHarnessTest(unittest.TestCase):
         pocket_helper = (
             REPOSITORY_ROOT / "scripts" / "pocket-id-dev"
         ).read_text(encoding="utf-8")
-        self.assertIn('local apply_identity_policy="${2:-1}"', pocket_helper)
+        self.assertIn('local skip_paperless="${2:-0}"', pocket_helper)
+        self.assertIn('local apply_identity_policy="${3:-1}"', pocket_helper)
+        self.assertIn('configure_odoo "${2:-usl_pocketid}" 1 1', pocket_helper)
+        self.assertIn('configure_odoo "${2:-usl_pocketid}" 0 0', pocket_helper)
         self.assertIn('[[ "$apply_identity_policy" == "0" ]]', pocket_helper)
         verify_runtime = pocket_helper.split(
             "\nverify_odoo_runtime() {\n",
