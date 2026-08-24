@@ -130,12 +130,16 @@ expense profiles, contribution evidence, multi-company drill-down,
 different-currency rejection, complete source configuration replay and
 repeated migration idempotence.
 
-The latest full-dump proof reconstructed 5,067 moves and 11,941 lines with no
-unbalanced posted move or configuration mismatch. Per-company acceptance also
+The 24 August 2026 full-dump proof reconstructed 5,425 moves and 12,991 lines,
+including 5,258 posted moves, with no unbalanced posted move, source identity
+gap or configuration mismatch. Per-company acceptance also
 posts invoices, credit notes, bills, refunds, a general entry, a payment, a
 bank transaction and an employee expense for USL MEDIA, then deliberately
 rolls those temporary records back. It verifies that the scoped reviewer
-cannot read the second company's Accounting or custom operational records.
+cannot read the second company's Accounting or custom operational records. It
+also requires each opted-in EUR company to expose the same 1,949 provider-owned
+ECB rows while preserving manual exceptions. Target finalization performs this
+alignment from existing imported rates only; it makes no network request.
 Run it against a reconstructed disposable target with:
 
 ```bash

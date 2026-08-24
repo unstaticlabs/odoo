@@ -3,6 +3,8 @@
 Status date: 26 July 2026
 
 This is retained as historical reconstruction evidence. For the current
+Distribution baseline and reconstruction evidence, use
+`saas-19.3-alignment-register.md`. For the current
 electronic-invoice product and activation state, use
 `french-electronic-invoicing-readiness.md` and
 `../operations/activate-french-electronic-invoicing.md`; their verified

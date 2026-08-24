@@ -40,16 +40,60 @@ records; it is not an in-place database upgrade.
 
 ## Qualification record
 
-The Distribution may be promoted only after the following evidence is current:
+The aligned product passed a clean installation with 317 post-install tests,
+two consecutive upgrades, the complete pinned OCA reconciliation suite (49
+backend tests plus desktop and mobile browser suites), and the USL desktop and
+mobile frontend suites.
 
-- clean product installation and two consecutive upgrades;
-- USL and OCA backend and browser suites;
-- company isolation, combined reports, shared ECB rates and role checks;
-- complete fresh reconstruction from the frozen dump, repeated-import
-  idempotence and zero migration residue;
-- balanced accounting, attachment and reconciliation parity;
-- pre-production, recovery and target-identity gates.
+The fresh reconstruction of the frozen Online source produced:
 
-Validation results and any justified exclusions are recorded here before
-promotion. The 19.2 register remains historical and must not be edited to
-describe 19.3 evidence.
+- 2 companies, 5,425 accounting moves and 12,991 lines;
+- 5,258 posted moves, with debit and credit balanced and no duplicate source
+  representation;
+- 432 expenses, 113 payments, 3,095 bank transactions, 1,340 full and 2,861
+  partial reconciliations;
+- 3 native assets, 31 linked posted depreciation moves and 91 schedule lines;
+- 3 employees, 4 source HR versions and 13 employee types;
+- 18 projects, 1,910 tasks, 20,945 messages, 8,328 tracking values, 2,224
+  followers and 44 project attachments;
+- 10 TESE payslips and accounting entries, 10 payroll PDFs and 4 profiles;
+- 4 platforms, 3 billing sessions, 31 payouts and all 51 linked accounting
+  moves, with an unchanged ledger digest.
+
+Accounting import, validation and the TESE and Platform Billing restorations
+were each repeated without changing their business counts or digests. The
+source/target current-period debit and credit are both EUR 1,746,386.67, with
+no account, journal or profit-and-loss difference. Historical source sequence
+exceptions are preserved exactly rather than silently resequenced.
+
+The only transformation notes are explicit compatibility translations: nine
+Enterprise expense states map from `in_payment` to the Community `paid`
+state, and two stale stored untaxed values are recomputed from their source
+lines. Legacy Platform Billing cache statuses remain external migration
+evidence and do not become product records.
+
+The local target deliberately used the `documents-smoke` profile rather than
+waiting for the complete 645-group Paperless ingestion. Its eight deterministic
+groups cover both companies, Accounting, HR, access rules, PDF, image, Tika,
+Trash, duplicate and unassigned cases; all eight archived successfully with no
+processing or failed item. This is sufficient for local development and is
+explicitly not release evidence. Full OCR and archive parity remain an
+on-demand final migration, pre-production and recovery gate.
+
+Multi-company acceptance passed for both reconstructed companies. It proved
+EUR 2,900,936.82 of balanced combined posted debit and credit, isolated
+company contributions, a complete USL MEDIA invoice/bill/payment/bank/expense
+journey, Prosper's zero access to USL MEDIA records, and 1,949 aligned
+provider-owned ECB rates per company. The finalizer mirrors existing ECB rows
+offline; it does not retrieve rates or overwrite manual exceptions.
+
+The reconstruction initially exposed 12 target-only Project tasks: four native
+onboarding todos created while restoring users and eight future occurrences
+created while restoring already-closed recurring tasks. The migration now
+suppresses both target conveniences and rejects any target-only Project task.
+Focused identity and recurrence regression tests pass. A fresh final
+reconstruction must confirm the product total remains the 1,910 source tasks.
+
+The complete Paperless archive, pre-production and coordinated recovery gates
+remain outstanding. The 19.2 register remains historical and must not be edited
+to describe 19.3 evidence.

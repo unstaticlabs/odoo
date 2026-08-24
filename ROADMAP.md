@@ -6,15 +6,16 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Accounting v1
 
-Status date: 6 August 2026
+Status date: 24 August 2026
 
 - Branch: `19-usl`
-- Upstream baseline: `6b54f539d80af8958990fa66f65d5bf8f420d3f4`
+- Upstream baseline: `efb98f932f3a568ce550a26ebde06da0e14e65d3`
 - Developer/QA product database: `odoo_dev`
 - Read-only source snapshot: `odoo_online_source_saas_19_3`
 
-Accounting v1 is engineering-complete for internal daily use. The release
-preserves the current Odoo Online `saas~19.3` accounting state while keeping
+Accounting v1 is engineering-complete for internal daily use. The release is
+aligned with the frozen upstream `saas~19.3` baseline and preserves the current
+Odoo Online `saas~19.3.1.3` accounting state while keeping
 USL behavior isolated in custom add-ons and maintained OCA dependencies.
 The same distribution now includes restored Projects, governed Pocket ID SSO,
 the focused Paie TESE workflow, Platform Billing and a Paperless-backed
@@ -59,9 +60,9 @@ Documents application.
 - Paperless-backed Documents provides authorized search, OCR, previews,
   metadata, versions, Trash and links to Accounting, Contacts, Employees and
   Paie TESE records without duplicating originals in Odoo.
-- The latest canonical reconstruction preserves 548 Paperless originals and
-  745 native business links, including all 9 source Paie TESE document links,
-  with zero failed archive groups and a clean product/migration boundary.
+- Canonical reconstruction can rebuild the complete Paperless archive. Normal
+  local QA uses a deterministic semantic sample and does not wait for bulk OCR;
+  complete ingestion remains a release/cutover qualification gate.
 - Pocket ID SSO with immutable identity links and one independent local
   break-glass administrator; Odoo remains authoritative for roles, companies
   and record rules.
@@ -69,13 +70,14 @@ Documents application.
   credit notes, including native draft bills, original evidence,
   duplicate/retry controls, role-aware browser journeys and controlled
   readiness. It is ready but deliberately inactive.
-- Complete reconstruction of 710 Accounting attachments with source metadata,
+- Complete Accounting attachment reconstruction preserves source metadata,
   native record/chatter links and access inheritance.
 - Reproducible development, reconstruction, parity and evidence workflows.
 
-The verified accounting counts, balances, source advisories and evidence index
-are recorded in
-[`docs/accounting/milestone-13-final-candidate.md`](docs/accounting/milestone-13-final-candidate.md).
+The current accounting counts, balances, source advisories and qualification
+evidence are recorded in
+[`docs/accounting/saas-19.3-alignment-register.md`](docs/accounting/saas-19.3-alignment-register.md).
+The Milestone 13 candidate note is retained as historical evidence only.
 
 ## Deliberately inactive or deferred
 
