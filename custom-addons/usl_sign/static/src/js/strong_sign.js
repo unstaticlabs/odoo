@@ -166,7 +166,7 @@
             },
             popup_closed: {
                 title: "Pocket ID was closed",
-                message: "Nothing was signed. Try again when you’re ready to confirm your passkey.",
+                message: "Nothing was signed. Try again when you’re ready.",
             },
             cancelled: {
                 title: "Confirmation cancelled",
@@ -276,7 +276,7 @@
                 navigatePocketID(popup, started.authorization_url);
                 setPhase(container, "identity", {
                     title: "Confirm in Pocket ID",
-                    message: "Use your passkey in the Pocket ID window.",
+                    message: "Follow the prompt in the Pocket ID window.",
                 });
                 const result = await poll(
                     `${base}/status`,
@@ -361,7 +361,7 @@
                 setButtonBusy(button, true, "Waiting for Pocket ID…");
                 setPhase(container, "identity", {
                     title: "Confirm in Pocket ID",
-                    message: "Use your passkey in the Pocket ID window.",
+                    message: "Follow the prompt in the Pocket ID window.",
                 });
                 const authorization = await poll(
                     `${base}/status`,
@@ -434,7 +434,7 @@
         });
 
         setPhase(container, "review");
-        setButtonBusy(button, false, "Sign with Pocket ID");
+        setButtonBusy(button, false, "Confirm and sign");
         button.disabled = !consent.checked;
         container.dataset.ready = "true";
     }

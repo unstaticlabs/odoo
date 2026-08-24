@@ -7,7 +7,7 @@
             <list create="0" delete="0" edit="0" decoration-danger="state == 'failed' or anchoring_status == 'action_required' or archive_status == 'failed'" decoration-success="anchoring_status == 'confirmed' and archive_status != 'failed'">
                 <field name="manifest_date" string="UTC day"/>
                 <field name="company_id" groups="base.group_multi_company"/>
-                <field name="state" string="Manifest"/>
+                <field name="state" string="Daily record"/>
                 <field name="request_count" string="Requests"/>
                 <field name="event_count" string="Events"/>
                 <field name="anchoring_status" string="Timestamp proof" widget="badge"/>
@@ -27,7 +27,7 @@
         <field name="arch" type="xml">
             <form create="0" delete="0" edit="0">
                 <header>
-                    <button name="action_retry" type="object" string="Retry manifest signing" class="btn-primary" invisible="state != 'failed'"/>
+                    <button name="action_retry" type="object" string="Try again" class="btn-primary" invisible="state != 'failed'"/>
                     <button name="action_retry_anchoring" type="object" string="Retry timestamp proof" class="btn-primary" invisible="anchoring_status != 'action_required'"/>
                     <button name="action_retry_archive" type="object" string="Retry Paperless archive" class="btn-primary" invisible="archive_status != 'failed' or not confirmed_at"/>
                     <field name="anchoring_status" widget="statusbar" statusbar_visible="scheduled,pending,confirmed,action_required"/>
@@ -39,16 +39,16 @@
                         </button>
                     </div>
                     <div class="oe_title">
-                        <p class="text-muted mb-1">Daily evidence manifest</p>
+                        <p class="text-muted mb-1">Daily timestamp proof</p>
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
 
                     <div class="alert alert-success" role="status" invisible="anchoring_status != 'confirmed'">
                         <strong>Independent existence proof confirmed.</strong>
-                        The signed manifest and its listed document hashes existed no later than <field name="bitcoin_block_time" readonly="1" class="d-inline"/>.
+                        The documents listed in this daily record existed no later than <field name="bitcoin_block_time" readonly="1" class="d-inline"/>.
                     </div>
                     <div class="alert alert-info" role="status" invisible="anchoring_status != 'pending'">
-                        The manifest was accepted by multiple OpenTimestamps calendars. Bitcoin confirmation normally takes several hours.
+                        The daily record was accepted for timestamping. Bitcoin confirmation normally takes several hours.
                     </div>
                     <div class="alert alert-warning" role="status" invisible="anchoring_status != 'scheduled'">
                         This closed UTC day is signed and scheduled for OpenTimestamps submission.
@@ -87,9 +87,9 @@
                         </page>
                         <page string="Proof Files" name="proof_files">
                             <group>
-                                <group string="Daily manifest">
+                                <group string="Daily proof files">
                                     <field name="signed_envelope_filename" invisible="1"/>
-                                    <field name="signed_envelope" filename="signed_envelope_filename" string="Signed manifest" readonly="1" invisible="not signed_envelope"/>
+                                    <field name="signed_envelope" filename="signed_envelope_filename" string="Signed daily record" readonly="1" invisible="not signed_envelope"/>
                                     <field name="verification_report_filename" invisible="1"/>
                                     <field name="verification_report" filename="verification_report_filename" string="Explorer verification report" readonly="1" invisible="not verification_report"/>
                                     <field name="proof_dossier_filename" invisible="1"/>
@@ -115,9 +115,9 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Technical Details" name="technical">
+                        <page string="Verification details" name="technical">
                             <group>
-                                <group string="Manifest integrity">
+                                <group string="Daily record integrity">
                                     <field name="state" readonly="1"/>
                                     <field name="manifest_date" string="Closed UTC day" readonly="1"/>
                                     <field name="company_id" readonly="1"/>
@@ -137,7 +137,7 @@
                                     <field name="archive_error" readonly="1" invisible="not archive_error"/>
                                 </group>
                             </group>
-                            <group string="Original manifest payload">
+                            <group string="Original daily record data">
                                 <field name="payload_filename" invisible="1"/>
                                 <field name="payload" filename="payload_filename" string="Canonical payload" readonly="1"/>
                             </group>
@@ -154,7 +154,7 @@
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No closed-day proof has been created yet</p>
-            <p>After a UTC day closes, Sign collects the completed-document hashes into a signed manifest, submits it to OpenTimestamps, verifies Bitcoin confirmation through two public explorers, and archives the portable proof in Paperless.</p>
+            <p>After each UTC day closes, Sign collects the completed-document fingerprints into one signed daily record, timestamps it through OpenTimestamps, checks the Bitcoin confirmation through two public explorers, and stores the portable proof in Paperless.</p>
         </field>
     </record>
 </odoo>

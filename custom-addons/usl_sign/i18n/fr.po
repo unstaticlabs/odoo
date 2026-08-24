@@ -2096,3 +2096,307 @@ msgstr "Document final"
 #. module: usl_sign
 msgid "Completed signature dossier: %(name)s"
 msgstr "Dossier de signature finalisé : %(name)s"
+
+#. module: usl_sign
+msgid "Closed after a decline"
+msgstr "Clôturé après un refus"
+
+#. module: usl_sign
+msgid "Result needs review"
+msgstr "Résultat à vérifier"
+
+#. module: usl_sign
+msgid "Ready to sign"
+msgstr "Prêt à signer"
+
+#. module: usl_sign
+msgid "Waiting for your turn"
+msgstr "En attente de votre tour"
+
+#. module: usl_sign
+msgid "Not sent yet"
+msgstr "Pas encore envoyé"
+
+#. module: usl_sign
+msgid "Signing Roles"
+msgstr "Rôles de signature"
+
+#. module: usl_sign
+msgid "Signing role"
+msgstr "Rôle de signature"
+
+#. module: usl_sign
+msgid "A signing role groups the fields completed by one person."
+msgstr "Un rôle de signature regroupe les champs remplis par une même personne."
+
+#. module: usl_sign
+msgid "Add everyone who must sign. A signing role identifies the fields each person will complete."
+msgstr "Ajoutez toutes les personnes qui doivent signer. Le rôle de signature indique les champs que chacune doit remplir."
+
+#. module: usl_sign
+msgid "Result & proof"
+msgstr "Résultat et preuves"
+
+#. module: usl_sign
+msgid "Completion certificate"
+msgstr "Certificat de finalisation"
+
+#. module: usl_sign
+msgid "Complete proof record"
+msgstr "Dossier de preuves complet"
+
+#. module: usl_sign
+msgid "Activity record"
+msgstr "Journal d’activité"
+
+#. module: usl_sign
+msgid "Signing as"
+msgstr "Rôle"
+
+#. module: usl_sign
+msgid "Your status"
+msgstr "Votre statut"
+
+#. module: usl_sign
+msgid "View result"
+msgstr "Voir le résultat"
+
+#. module: usl_sign
+msgid "View details"
+msgstr "Voir les détails"
+
+#. module: usl_sign
+msgid "Choose one person for each part of the document."
+msgstr "Choisissez une personne pour chaque rôle du document."
+
+#. module: usl_sign
+msgid "Request signatures"
+msgstr "Demander des signatures"
+
+#. module: usl_sign
+msgid "Start with a PDF or a reusable template."
+msgstr "Commencez avec un PDF ou un modèle réutilisable."
+
+#. module: usl_sign
+msgid "1. Choose the document"
+msgstr "1. Choisissez le document"
+
+#. module: usl_sign
+msgid "2. Choose the signer"
+msgstr "2. Choisissez le signataire"
+
+#. module: usl_sign
+msgid "PDF to sign"
+msgstr "PDF à signer"
+
+#. module: usl_sign
+msgid "Who should sign?"
+msgstr "Qui doit signer ?"
+
+#. module: usl_sign
+msgid "Optional note shown with the invitation"
+msgstr "Message facultatif affiché avec l’invitation"
+
+#. module: usl_sign
+msgid "Link this request to an Odoo record"
+msgstr "Lier cette demande à un enregistrement Odoo"
+
+#. module: usl_sign
+msgid "Place signing fields"
+msgstr "Placer les champs à remplir"
+
+#. module: usl_sign
+msgid "Confirm this signature"
+msgstr "Confirmer cette signature"
+
+#. module: usl_sign
+msgid "Review the document first. When you’re ready, Pocket ID will ask you to confirm it’s you."
+msgstr "Vérifiez d’abord le document. Lorsque vous serez prêt, Pocket ID vous demandera de confirmer votre identité."
+
+#. module: usl_sign
+msgid "Your confirmation applies only to this document."
+msgstr "Votre confirmation s’applique uniquement à ce document."
+
+#. module: usl_sign
+msgid "Confirm and sign"
+msgstr "Confirmer et signer"
+
+#. module: usl_sign
+msgid "A secure Pocket ID window will open."
+msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir."
+
+#. module: usl_sign
+msgid "Connect your signing identity"
+msgstr "Connecter votre identité de signature"
+
+#. module: usl_sign
+msgid "Your account stays under your control."
+msgstr "Votre compte reste sous votre contrôle."
+
+#. module: usl_sign
+msgid "Follow the prompt in the Pocket ID window."
+msgstr "Suivez les instructions dans la fenêtre Pocket ID."
+
+#. module: usl_sign
+msgid "Download the exact document to sign."
+msgstr "Téléchargez le document exact à signer."
+
+#. module: usl_sign
+msgid "Complete the signature with the provider, then upload the result."
+msgstr "Terminez la signature auprès du prestataire, puis importez le résultat."
+
+#. module: usl_sign
+msgid "The returned document is ready to be checked."
+msgstr "Le document retourné est prêt à être vérifié."
+
+#. module: usl_sign
+msgid "The external signature was accepted."
+msgstr "La signature externe a été acceptée."
+
+#. module: usl_sign
+msgid "The returned document was not accepted. Review the reason."
+msgstr "Le document retourné n’a pas été accepté. Consultez le motif."
+
+#. module: usl_sign
+msgid "This external signing task is closed."
+msgstr "Cette tâche de signature externe est clôturée."
+
+#. module: usl_sign
+msgid "Download document"
+msgstr "Télécharger le document"
+
+#. module: usl_sign
+msgid "Open signing provider"
+msgstr "Ouvrir le prestataire de signature"
+
+#. module: usl_sign
+msgid "Upload signed result"
+msgstr "Importer le résultat signé"
+
+#. module: usl_sign
+msgid "Provider website"
+msgstr "Site du prestataire"
+
+#. module: usl_sign
+msgid "Original document fingerprint"
+msgstr "Empreinte du document original"
+
+#. module: usl_sign
+msgid "Returned document fingerprint"
+msgstr "Empreinte du document retourné"
+
+#. module: usl_sign
+msgid "Provider review"
+msgstr "Vérification du prestataire"
+
+#. module: usl_sign
+msgid "View signed PDF"
+msgstr "Voir le PDF signé"
+
+#. module: usl_sign
+msgid "Daily timestamp proof"
+msgstr "Preuve d’horodatage quotidienne"
+
+#. module: usl_sign
+msgid "Daily record"
+msgstr "Registre quotidien"
+
+#. module: usl_sign
+msgid "Daily proof files"
+msgstr "Fichiers de preuve quotidiens"
+
+#. module: usl_sign
+msgid "Signed daily record"
+msgstr "Registre quotidien signé"
+
+#. module: usl_sign
+msgid "Verification details"
+msgstr "Détails de la vérification"
+
+#. module: usl_sign
+msgid "Daily record integrity"
+msgstr "Intégrité du registre quotidien"
+
+#. module: usl_sign
+msgid "Original daily record data"
+msgstr "Données originales du registre quotidien"
+
+#. module: usl_sign
+msgid "By continuing, I agree to sign this document electronically. The final record includes my consent and the document checks. This is a Standard electronic signature with reinforced evidence—not a qualified signature."
+msgstr "En continuant, j’accepte de signer ce document par voie électronique. Le dossier final comprend mon consentement et les vérifications du document. Il s’agit d’une signature électronique Standard avec preuves renforcées, et non d’une signature qualifiée."
+
+#. module: usl_sign
+msgid "Check the signing fields, then continue."
+msgstr "Vérifiez les champs à remplir, puis continuez."
+
+#. module: usl_sign
+msgid "Place the fields the signer needs to complete."
+msgstr "Placez les champs que le signataire doit remplir."
+
+#. module: usl_sign
+msgid "Ready to send"
+msgstr "Prêt à envoyer"
+
+#. module: usl_sign
+msgid "Waiting for identity setup"
+msgstr "En attente de la configuration de l’identité"
+
+#. module: usl_sign
+msgid "With external provider"
+msgstr "Chez le prestataire externe"
+
+#. module: usl_sign
+msgid "Ready to check"
+msgstr "Prêt à vérifier"
+
+#. module: usl_sign
+msgid "Checking result"
+msgstr "Vérification du résultat"
+
+#. module: usl_sign
+msgid "Final storage needs attention"
+msgstr "Archivage final à vérifier"
+
+#. module: usl_sign
+msgid "Result rejected"
+msgstr "Résultat rejeté"
+
+#. module: usl_sign
+msgid "The signed document failed verification. Open Result & proof for details."
+msgstr "Le document signé n’a pas passé la vérification. Ouvrez Résultat et preuves pour consulter les détails."
+
+#. module: usl_sign
+msgid "Send setup invitation"
+msgstr "Envoyer l’invitation de configuration"
+
+#. module: usl_sign
+msgid "<strong>Next: connect the signing identity.</strong> Send the invitation so this person can connect their Pocket ID account."
+msgstr "<strong>Étape suivante : connecter l’identité de signature.</strong> Envoyez l’invitation afin que cette personne puisse connecter son compte Pocket ID."
+
+#. module: usl_sign
+msgid "<strong>Ready for Strong personal signing.</strong> Pocket ID will ask for a fresh confirmation every time this person signs."
+msgstr "<strong>Prêt pour la signature personnelle renforcée.</strong> Pocket ID demandera une nouvelle confirmation à chaque signature."
+
+#. module: usl_sign
+msgid "Create one for an employee, contractor, or recurring partner your organization already knows. Pocket ID manages the account security; your organization reviews the identity link."
+msgstr "Créez une identité pour un salarié, un prestataire ou un partenaire régulier que votre organisation connaît déjà. Pocket ID sécurise le compte ; votre organisation vérifie le lien d’identité."
+
+#. module: usl_sign
+msgid "A reviewed Pocket ID identity link is required before you can use Strong personal signing. Pocket ID manages account security and recovery."
+msgstr "Un lien d’identité Pocket ID vérifié est nécessaire pour utiliser la signature personnelle renforcée. Pocket ID gère la sécurité et la récupération du compte."
+
+#. module: usl_sign
+msgid "Storage:"
+msgstr "Archivage :"
+
+#. module: usl_sign
+msgid "View request"
+msgstr "Voir la demande"
+
+#. module: usl_sign
+msgid "Signed PDF"
+msgstr "PDF signé"
+
+#. module: usl_sign
+msgid "Proof record"
+msgstr "Dossier de preuves"

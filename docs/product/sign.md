@@ -1,5 +1,8 @@
 # USL Sign
 
+The ten end-user release journeys and their acceptance expectations are kept in
+`docs/product/sign-ux-journeys.md`.
+
 ## Product boundary
 
 USL Sign is an Odoo-native document-signing application. Odoo is the
