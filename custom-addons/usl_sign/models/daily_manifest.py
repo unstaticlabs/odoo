@@ -15,6 +15,7 @@ from ..services import (
     OpenTimestampsClient,
     OpenTimestampsError,
     OpenTimestampsRejectedError,
+    base64_text,
     field_content,
     field_value,
 )
@@ -788,7 +789,7 @@ class SignDailyManifest(models.Model):
                 .with_company(self.company_id)
                 .upload_from_odoo(
                     self.proof_dossier_filename,
-                    self.proof_dossier,
+                    base64_text(field_content(self.proof_dossier)),
                     "application/pdf",
                     res_model=self._name,
                     res_id=self.id,

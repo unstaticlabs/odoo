@@ -1,7 +1,11 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
-from .constants import TRUST_LEVELS
+SHORT_TRUST_LEVELS = [
+    ("standard", "Standard"),
+    ("strong_personal", "Strong personal"),
+    ("qualified_external", "Qualified external"),
+]
 
 
 class SignTemplateGenerate(models.TransientModel):
@@ -62,8 +66,12 @@ class SignTemplateGenerate(models.TransientModel):
     requires_signed_pdf = fields.Boolean(default=True)
     formal_qes_required = fields.Boolean(string="A formal QES is required")
     policy_id = fields.Many2one("usl.sign.policy", readonly=True)
-    recommended_trust = fields.Selection(TRUST_LEVELS, readonly=True)
-    requested_trust = fields.Selection(TRUST_LEVELS, required=True, default="standard")
+    recommended_trust = fields.Selection(SHORT_TRUST_LEVELS, readonly=True)
+    requested_trust = fields.Selection(
+        SHORT_TRUST_LEVELS,
+        required=True,
+        default="standard",
+    )
     recommendation_reason = fields.Text(readonly=True)
     recommendation_consequence = fields.Text(readonly=True)
     override_reason = fields.Text()
@@ -155,20 +163,16 @@ class SignTemplateGenerate(models.TransientModel):
             )
             if missing:
                 return (
-                    "Strong personal signing is not immediately available for: "
+                    "Identity setup is still needed for: "
                     + ", ".join(missing.mapped("name"))
-                    + ". Create the request for review, then enrol them or choose another justified journey."
+                    + "."
                 )
-            return "Every selected signer has a reviewed signing identity."
+            return "Ready. Every signer has an approved signing identity."
         if self.requested_trust == "qualified_external":
             return (
-                "Odoo will freeze the exact document and wait for a provider-neutral "
-                "external signing journey and independent validation."
+                "The PDF will be locked here, signed by the provider, then checked on return."
             )
-        return (
-            "The invitation channel, explicit consent and reinforced evidence are used; "
-            "the signer does not receive a personal cryptographic certificate."
-        )
+        return "Ready. Each signer receives a private link to review and sign."
 
     def _generate_vals(self):
         self.ensure_one()
@@ -252,3 +256,134 @@ class SignTemplateGenerate(models.TransientModel):
         raise AccessError(
             "Internal Decision requests are not part of the document-signing product.",
         )
+
+
+class SignRequestMethod(models.TransientModel):
+    _name = "usl.sign.request.method"
+    _description = "Choose a signing method"
+
+    request_id = fields.Many2one("sign.oca.request", required=True, readonly=True)
+    company_id = fields.Many2one(related="request_id.company_id", readonly=True)
+    document_category = fields.Selection(
+        [
+            ("internal_decision", "Corporate decision document"),
+            ("routine_agreement", "Routine agreement"),
+            ("employment", "Employment document"),
+            ("intellectual_property", "Intellectual property"),
+            ("commercial", "Commercial agreement"),
+            ("finance_guarantee", "Financing or guarantee"),
+            ("mandate", "Mandate"),
+            ("other", "Other"),
+        ],
+        required=True,
+    )
+    signer_type = fields.Selection(
+        [
+            ("internal", "Internal user"),
+            ("recurring", "Known recurring signer"),
+            ("occasional", "Occasional external signer"),
+        ],
+        required=True,
+    )
+    risk_level = fields.Selection(
+        [("low", "Low"), ("material", "Material"), ("maximum", "Maximum")],
+        required=True,
+    )
+    formal_qes_required = fields.Boolean()
+    requested_trust = fields.Selection(SHORT_TRUST_LEVELS, required=True)
+    recommended_trust = fields.Selection(SHORT_TRUST_LEVELS, readonly=True)
+    recommendation_reason = fields.Text(readonly=True)
+    override_reason = fields.Text()
+    external_provider_id = fields.Many2one(
+        "usl.sign.external.provider",
+        domain="[('active', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            request = self.env["sign.oca.request"].browse(values.get("request_id"))
+            if request:
+                values.setdefault("document_category", request.document_category)
+                values.setdefault("signer_type", request.signer_type)
+                values.setdefault("risk_level", request.risk_level)
+                values.setdefault("formal_qes_required", request.formal_qes_required)
+                values.setdefault("requested_trust", request.requested_trust)
+                values.setdefault("recommended_trust", request.recommended_trust)
+                values.setdefault("recommendation_reason", request.recommendation_reason)
+                values.setdefault("override_reason", request.override_reason)
+                values.setdefault("external_provider_id", request.external_provider_id.id)
+        return super().create(vals_list)
+
+    @api.onchange(
+        "document_category",
+        "signer_type",
+        "risk_level",
+        "formal_qes_required",
+    )
+    def _onchange_policy_inputs(self):
+        for wizard in self:
+            previous = wizard.recommended_trust
+            policy = self.env["usl.sign.policy"].recommend(
+                wizard.company_id,
+                category=wizard.document_category,
+                signer_type=wizard.signer_type,
+                risk_level=wizard.risk_level,
+                formal_qes=wizard.formal_qes_required,
+            )
+            recommended = (
+                policy.recommendation
+                if policy
+                else "qualified_external"
+                if wizard.formal_qes_required
+                else "standard"
+            )
+            wizard.recommended_trust = recommended
+            wizard.recommendation_reason = (
+                policy.reason
+                if policy
+                else "No reviewed company rule matches this document. The safest available default is shown."
+            )
+            if (
+                wizard.formal_qes_required
+                or not wizard.requested_trust
+                or wizard.requested_trust == previous
+            ):
+                wizard.requested_trust = recommended
+
+    def action_apply(self):
+        self.ensure_one()
+        request = self.request_id
+        request._check_owner_access()
+        if request.state != "draft":
+            msg = "The signing method is fixed after the request is prepared."
+            raise ValidationError(msg)
+        self._onchange_policy_inputs()
+        if self.formal_qes_required and self.requested_trust != "qualified_external":
+            msg = "This document requires a qualified external signature."
+            raise ValidationError(msg)
+        if self.requested_trust != self.recommended_trust:
+            if not self.override_reason:
+                msg = "Explain why you are choosing a different signing method."
+                raise ValidationError(msg)
+            if not self.env.user.has_group("usl_sign.group_sign_trust_override"):
+                msg = "You do not have permission to override the recommended method."
+                raise AccessError(msg)
+        if self.requested_trust == "qualified_external" and not self.external_provider_id:
+            msg = "Choose a qualified provider before continuing."
+            raise ValidationError(msg)
+        request.write(
+            {
+                "document_category": self.document_category,
+                "signer_type": self.signer_type,
+                "risk_level": self.risk_level,
+                "formal_qes_required": self.formal_qes_required,
+                "requested_trust": self.requested_trust,
+                "override_reason": self.override_reason,
+                "external_provider_id": self.external_provider_id.id
+                if self.requested_trust == "qualified_external"
+                else False,
+            },
+        )
+        request.action_compute_recommendation(apply_timing_defaults=True)
+        return {"type": "ir.actions.act_window_close"}
