@@ -24,10 +24,15 @@
                     </div>
                 </div>
 
-                <div class="usl_sign_save_status" role="status" aria-live="polite">
-                    <span t-if="editor.saveStatus === 'saving'" class="text-muted"><i class="fa fa-spinner fa-spin me-1"/>Saving</span>
-                    <span t-elif="editor.saveStatus === 'error'" class="text-danger"><i class="fa fa-exclamation-circle me-1"/>Could not save</span>
-                    <span t-else="" class="text-success"><i class="fa fa-check-circle me-1"/>Saved</span>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="usl_sign_save_status" role="status" aria-live="polite">
+                        <span t-if="editor.saveStatus === 'saving'" class="text-muted"><i class="fa fa-spinner fa-spin me-1"/>Saving</span>
+                        <span t-elif="editor.saveStatus === 'error'" class="text-danger"><i class="fa fa-exclamation-circle me-1"/>Could not save</span>
+                        <span t-else="" class="text-success"><i class="fa fa-check-circle me-1"/>Saved</span>
+                    </div>
+                    <button type="button" class="btn btn-primary" t-on-click="finishEditing" t-att-disabled="editor.saveStatus === 'saving' || editor.saveStatus === 'error' || editor.conflict">
+                        <t t-out="finishLabel"/><i class="fa fa-arrow-right ms-2"/>
+                    </button>
                 </div>
             </header>
 
