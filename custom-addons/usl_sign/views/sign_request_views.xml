@@ -27,7 +27,8 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="configure" type="object" class="oe_stat_button" icon="fa-pencil-square-o" string="Edit fields" invisible="state != 'draft' or not has_signing_fields or not can_coordinate"/>
-                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="Open document" invisible="state in ['draft', 'ready']"/>
+                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="Open document" invisible="state in ['draft', 'ready', 'completed']"/>
+                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="View signed PDF" invisible="state != 'completed'"/>
                     </div>
                     <widget name="web_ribbon" title="Completed" invisible="state != 'completed'"/>
                     <widget name="web_ribbon" title="Cancelled" bg_color="bg-danger" invisible="state != 'cancelled'"/>
@@ -79,9 +80,9 @@
                                 </group>
                             </details>
                         </page>
-                        <page string="People" name="signers">
+                        <page string="Signers" name="signers">
                             <div class="border rounded bg-light p-3 mb-3" role="note" invisible="state != 'draft'">
-                                Add everyone who must sign. Each person needs a different field group so their fields can be matched correctly.
+                                Add everyone who must sign. A signing role identifies the fields each person will complete.
                             </div>
                             <group invisible="state != 'draft'">
                                 <field name="signing_order" string="People must sign in this order" readonly="requested_trust == 'strong_personal'"/>
@@ -90,7 +91,7 @@
                                 <list editable="bottom" decoration-success="state == 'signed'" decoration-danger="state == 'declined'">
                                     <field name="sequence" widget="handle"/>
                                     <field name="partner_id" string="Person"/>
-                                    <field name="role_id" string="Field group"/>
+                                    <field name="role_id" string="Signing role"/>
                                     <field name="state" string="Status" readonly="1"/>
                                     <field name="invitation_delivery_state" string="Invitation" readonly="1" optional="show"/>
                                     <field name="authentication_method" readonly="1" optional="hide" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
@@ -113,7 +114,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Final document" name="proof">
+                        <page string="Result &amp; proof" name="proof">
                             <div class="border rounded bg-light p-3" role="status" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external']">
                                 The final document will appear here after everyone has signed and the result has been checked.
                             </div>
@@ -128,8 +129,8 @@
                                     <field name="completion_filename" invisible="1"/>
                                     <field name="dossier_filename" invisible="1"/>
                                     <field name="final_data" filename="final_filename" string="Signed PDF" readonly="1" invisible="not final_data"/>
-                                    <field name="completion_certificate" filename="completion_filename" string="Signing certificate" readonly="1" invisible="not completion_certificate"/>
-                                    <field name="dossier_data" filename="dossier_filename" string="Complete record" readonly="1" invisible="not dossier_data"/>
+                                    <field name="completion_certificate" filename="completion_filename" string="Completion certificate" readonly="1" invisible="not completion_certificate"/>
+                                    <field name="dossier_data" filename="dossier_filename" string="Complete proof record" readonly="1" invisible="not dossier_data"/>
                                 </group>
                             </group>
                             <group string="Independent timestamp" invisible="state != 'completed'">
@@ -177,7 +178,7 @@
                                 </field>
                             </details>
                         </page>
-                        <page string="Technical history" name="timeline" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
+                        <page string="Activity record" name="timeline" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
                             <field name="event_ids" readonly="1" nolabel="1">
                                 <list create="0" delete="0" edit="0"><field name="occurred_at"/><field name="event_type"/><field name="signer_id"/><field name="state_from" optional="hide"/><field name="state_to" optional="hide"/><field name="actor_id"/></list>
                             </field>
@@ -285,15 +286,17 @@
                 decoration-warning="state in ['draft', 'notified', 'viewed', 'authorized'] and request_state not in ['expired', 'cancelled']">
                 <field name="request_id" string="Document"/>
                 <field name="sender_id" string="Sent by"/>
-                <field name="role_id" string="Your role"/>
-                <field name="state" string="Your signature"/>
+                <field name="role_id" string="Signing as"/>
+                <field name="personal_status" string="Your status"/>
                 <field name="request_due_at" string="Due date"/>
                 <field name="overall_status" string="Request status"/>
                 <field name="requested_trust_short" string="Signing method"/>
                 <field name="signed_on" string="Signed on" optional="show"/>
-                <button name="sign" type="object" string="Sign" class="btn-primary" invisible="not is_allow_signature"/>
-                <button name="action_open_request" type="object" string="Open"/>
+                <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
+                <button name="action_open_request" type="object" string="View result" invisible="state != 'signed'"/>
+                <button name="action_open_request" type="object" string="View details" invisible="state == 'signed'"/>
                 <field name="is_allow_signature" column_invisible="1"/>
+                <field name="state" column_invisible="1"/>
             </list>
         </field>
     </record>
@@ -303,14 +306,19 @@
         <field name="priority">2</field>
         <field name="arch" type="xml">
             <form create="0" edit="0" delete="0">
-                <header><button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/><button name="action_open_request" type="object" string="Open document record"/></header>
+                <header>
+                    <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
+                    <button name="action_open_request" type="object" string="View result" invisible="state != 'signed'"/>
+                    <button name="action_open_request" type="object" string="View details" invisible="state == 'signed'"/>
+                </header>
                 <sheet>
                     <field name="is_allow_signature" invisible="1"/>
+                    <field name="state" invisible="1"/>
                     <div class="oe_title"><p class="text-muted mb-1">Your signature</p><h1><field name="request_id"/></h1></div>
                     <div class="row g-3 my-4">
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Sent by</div><div class="fw-semibold"><field name="sender_id" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Your part</div><div class="fw-semibold"><field name="role_id" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Your signature</div><div class="fw-semibold"><field name="state" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing as</div><div class="fw-semibold"><field name="role_id" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Your status</div><div class="fw-semibold"><field name="personal_status" readonly="1"/></div></div></div></div>
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Document</div><div class="fw-semibold"><field name="overall_status" readonly="1"/></div></div></div></div>
                     </div>
                     <group>
