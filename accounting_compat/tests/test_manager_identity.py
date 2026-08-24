@@ -24,6 +24,31 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
         "open_debit_count": 4,
     }
 
+    def test_normalizes_enterprise_expense_payment_display_state(self):
+        self.assertEqual(
+            cli.normalize_source_expense_state_counts({
+                "approved": "136",
+                "in_payment": "9",
+                "paid": "115",
+            }),
+            {
+                "approved": "136",
+                "paid": "124",
+            },
+        )
+
+    def test_preserves_expense_states_without_enterprise_override(self):
+        self.assertEqual(
+            cli.normalize_source_expense_state_counts({
+                "draft": "99",
+                "paid": "124",
+            }),
+            {
+                "draft": "99",
+                "paid": "124",
+            },
+        )
+
     def test_accepts_one_canonical_source_faithful_identity(self):
         target = {
             **{

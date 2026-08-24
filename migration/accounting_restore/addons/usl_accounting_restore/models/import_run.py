@@ -6505,7 +6505,11 @@ class RebuildAccountImportRun(models.Model):
         arithmetic = self._amount(
             source_expense[total_key],
         ) - self._amount(source_expense[tax_key])
-        if round(stored, 2) != round(arithmetic, 2):
+        # Preserve the source's stored rounding.  The 19.3 source contains
+        # legitimate one-cent differences between the stored subtotal and
+        # ``total - tax``.  Only translate an actually stale zero subtotal
+        # when the stored total proves that the expense has a material base.
+        if round(stored, 2) == 0 and round(arithmetic, 2) != 0:
             return arithmetic, {
                 "classification": "stale_source_expense_untaxed_compute",
                 "source_expense_id": source_expense["id"],

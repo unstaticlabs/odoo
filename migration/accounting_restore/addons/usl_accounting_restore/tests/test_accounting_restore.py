@@ -6376,6 +6376,22 @@ class TestRebuildAccountMigration(TransactionCase):
             "stale_source_expense_untaxed_compute",
         )
 
+    def test_native_expense_preserves_stored_source_rounding(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Expense amount rounding",
+        })
+        source = {
+            "id": 374,
+            "total_amount": 8.06,
+            "tax_amount": 1.34,
+            "untaxed_amount": 6.73,
+        }
+
+        expected, evidence = import_run._native_expense_expected_untaxed(source)
+
+        self.assertEqual(expected, 6.73)
+        self.assertIsNone(evidence)
+
     def test_native_expense_settlement_preserves_source_partial_amount(self):
         import_run = self.env["rebuild.account.import.run"]
 

@@ -744,6 +744,17 @@ def manager_accounting_identity_matches(
     )
 
 
+def normalize_source_expense_state_counts(
+    counts: dict[str, str] | None,
+) -> dict[str, str]:
+    """Translate Enterprise accountant display states to Community states."""
+    normalized = dict(counts or {})
+    in_payment = int(normalized.pop("in_payment", "0"))
+    if in_payment:
+        normalized["paid"] = str(int(normalized.get("paid", "0")) + in_payment)
+    return normalized
+
+
 def scalar(db: str, sql: str, *, set_readonly_role: bool = True) -> str | None:
     raw = psql(db, sql, set_readonly_role=set_readonly_role)
     return raw or None
@@ -5118,6 +5129,11 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
         )
         """,
     ))
+    source_snapshot["native_expense_state_counts"] = (
+        normalize_source_expense_state_counts(
+            source_snapshot.get("native_expense_state_counts"),
+        )
+    )
     target_snapshot = query_json(
         DEV_QA_DB,
         """
