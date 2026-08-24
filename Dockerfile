@@ -198,7 +198,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         inotify==0.2.10 \
         pytest==8.4.1 \
         responses==0.26.2 \
-        ruff==0.15.0 \
+        ruff==0.16.1 \
     && printf 'odoo ALL=(root) NOPASSWD:ALL\n' > /etc/sudoers.d/odoo \
     && chmod 0440 /etc/sudoers.d/odoo \
     && ln -s /workspace/odoo/odoo-bin /usr/local/bin/odoo
