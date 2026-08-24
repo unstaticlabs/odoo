@@ -10,29 +10,29 @@
                 <attribute name="data-string">Sign</attribute>
             </xpath>
             <xpath expr="//app[@name='sign_oca']//setting[field[@name='sign_oca_send_sign_request_copy']]" position="attributes">
-                <attribute name="help">After validation and Paperless archival, send every signer the final PDF/A-3 evidence dossier. It contains the signed PDF and completion evidence.</attribute>
+                <attribute name="help">When the request is complete, send every signer the final signed document and its signing record.</attribute>
             </xpath>
             <xpath expr="//app[@name='sign_oca']" position="inside">
-                <block title="Trust and evidence" name="sign_trust">
-                    <setting string="Default recommendation policy">
+                <block title="Signing defaults" name="sign_trust">
+                    <setting string="Default signing policy">
                         <field name="sign_default_policy_id"/>
                     </setting>
-                    <setting string="Evidence retention">
+                    <setting string="Keep completed signing records">
                         <field name="sign_evidence_retention_years"/> years
                     </setting>
-                    <setting string="Independent RFC 3161 timestamps" help="Enable only after a reviewed TSA endpoint is configured in the server environment.">
+                    <setting string="Independent signing timestamps" help="Optional. Enable only after a reviewed timestamp service is configured on the server.">
                         <field name="sign_rfc3161_enabled"/>
                     </setting>
-                    <setting string="Daily Bitcoin existence proof" help="Submit each closed UTC day's signed evidence manifest to OpenTimestamps. Confirmation normally takes hours and never delays a completed signature request.">
+                    <setting string="Daily Bitcoin timestamps" help="Add an independent existence timestamp to each day's completed documents. Confirmation normally takes several hours and does not delay completion.">
                         <field name="sign_opentimestamps_enabled"/>
                         <div class="text-muted mt-2">
-                            OpenTimestamps proves existence no later than a Bitcoin block time. It is not an RFC 3161 or qualified timestamp and does not identify a signer.
+                            This proves that the listed files existed by a confirmed time. It does not identify who signed them.
                         </div>
                     </setting>
                 </block>
-                <block title="Strong personal signature" name="sign_strong">
-                    <setting string="Signing service readiness" help="Inspect Standard, Strong personal, qualified validation, archival, and timestamp capabilities without exposing credentials.">
-                        <button name="action_open_sign_service_status" type="object" string="Open Signing Readiness" class="btn-link"/>
+                <block title="System status" name="sign_strong">
+                    <setting string="Signing services" help="Check whether each signing method and final-storage service is available.">
+                        <button name="action_open_sign_service_status" type="object" string="Open System Status" class="btn-link"/>
                     </setting>
                 </block>
             </xpath>

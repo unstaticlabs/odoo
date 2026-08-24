@@ -10,23 +10,22 @@
                 <strong t-out="signer.request_id.name"/>.
             </p>
             <p t-if="signer.request_id.responsible_message" t-out="signer.request_id.responsible_message"/>
-            <p><strong t-out="dict(signer.request_id._fields['requested_trust'].selection).get(signer.request_id.requested_trust)"/></p>
+            <p t-if="signer.request_id.requested_trust != 'standard'">
+                Signing method: <strong t-out="dict(signer.request_id._fields['requested_trust'].selection).get(signer.request_id.requested_trust)"/>
+            </p>
             <p>
                 <a t-att-href="link" style="background:#714B67;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px;display:inline-block;">
                     Review and sign
                 </a>
             </p>
-            <p>This personal link expires after first use and must not be forwarded.</p>
+            <p>This link is for you. Please do not forward it.</p>
         </div>
     </template>
 
     <template id="sign_completion_delivery_body" name="USL Sign completion delivery body">
         <div style="font-family: Arial, sans-serif; font-size: 14px;">
             <p>The signature request <strong t-out="record.name"/> is complete.</p>
-            <p>
-                The attached final evidence dossier contains the signed document,
-                completion certificate, and validation evidence.
-            </p>
+            <p>The final signed document and its complete record are attached.</p>
             <p t-out="record.company_id.name"/>
         </div>
     </template>

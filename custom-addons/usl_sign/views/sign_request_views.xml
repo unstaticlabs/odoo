@@ -7,41 +7,44 @@
         <field name="arch" type="xml">
             <form create="1" delete="0">
                 <header>
-                    <button name="action_mark_ready" type="object" string="Review request" class="btn-primary" invisible="state != 'draft' or not can_coordinate"/>
+                    <button name="configure" type="object" string="Add signing fields" class="btn-primary" invisible="state != 'draft' or has_signing_fields or not can_coordinate"/>
+                    <button name="action_mark_ready" type="object" string="Check and continue" class="btn-primary" invisible="state != 'draft' or not has_signing_fields or not can_coordinate"/>
                     <button name="action_send" type="object" string="Send for signature" class="btn-primary" invisible="state != 'ready' or not can_send"/>
-                    <button name="action_resume_after_enrollment" type="object" string="Continue after enrolment" class="btn-primary" invisible="state != 'waiting_enrollment' or not can_coordinate"/>
-                    <button name="action_validate_external" type="object" string="Validate imported document" class="btn-primary" invisible="state != 'signed_to_import' or not can_coordinate"/>
+                    <button name="action_resume_after_enrollment" type="object" string="Continue" class="btn-primary" invisible="state != 'waiting_enrollment' or not can_coordinate"/>
+                    <button name="action_validate_external" type="object" string="Check imported document" class="btn-primary" invisible="state != 'signed_to_import' or not can_coordinate"/>
                     <button name="action_create_replacement" type="object" string="Create replacement" class="btn-primary" invisible="state != 'validation_failed' or not can_send"/>
-                    <button name="action_retry_validation" type="object" string="Retry" class="btn-primary" invisible="state != 'action_required' or not can_coordinate"/>
-                    <button name="action_retry_archive" type="object" string="Retry archive" class="btn-primary" invisible="state != 'evidence_incomplete' or archive_status != 'failed' or not can_coordinate"/>
-                    <button name="action_send_reminder" type="object" string="Send reminder" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders or not can_coordinate"/>
-                    <button name="cancel" type="object" string="Cancel request" confirm="Cancel this request and revoke every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external', 'signed_to_import', 'action_required'] or not can_send"/>
+                    <button name="action_retry_validation" type="object" string="Try again" class="btn-primary" invisible="state != 'action_required' or not can_coordinate"/>
+                    <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="state != 'evidence_incomplete' or archive_status != 'failed' or not can_coordinate"/>
+                    <button name="action_send_reminder" type="object" string="Remind signers" invisible="state not in ['sent', 'viewed', 'partial'] or reminder_count &gt;= max_reminders or not can_coordinate"/>
+                    <button name="cancel" type="object" string="Cancel" confirm="Cancel this request and disable every signing link?" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external', 'signed_to_import', 'action_required'] or not can_send"/>
                     <field name="lifecycle_stage" widget="statusbar" statusbar_visible="draft,ready,sent,progress,checks,closed" readonly="1"/>
                     <field name="state" invisible="1"/>
+                    <field name="archive_status" invisible="1"/>
+                    <field name="has_signing_fields" invisible="1"/>
                     <field name="can_coordinate" invisible="1"/>
                     <field name="can_send" invisible="1"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="configure" type="object" class="oe_stat_button" icon="fa-pencil-square-o" string="Place fields" invisible="state != 'draft' or not can_coordinate"/>
-                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="Document" invisible="state in ['draft', 'ready']"/>
+                        <button name="configure" type="object" class="oe_stat_button" icon="fa-pencil-square-o" string="Edit fields" invisible="state != 'draft' or not has_signing_fields or not can_coordinate"/>
+                        <button name="preview" type="object" class="oe_stat_button" icon="fa-file-pdf-o" string="Open document" invisible="state in ['draft', 'ready']"/>
                     </div>
                     <widget name="web_ribbon" title="Completed" invisible="state != 'completed'"/>
                     <widget name="web_ribbon" title="Cancelled" bg_color="bg-danger" invisible="state != 'cancelled'"/>
                     <div class="oe_title">
-                        <p class="text-muted mb-1">Signature request</p>
-                        <h1><field name="name" placeholder="Agreement or document name" readonly="state != 'draft'"/></h1>
+                        <p class="text-muted mb-1">Document for signature</p>
+                        <h1><field name="name" placeholder="Document name" readonly="state != 'draft'"/></h1>
                     </div>
 
                     <div class="row g-3 my-3 usl_sign_request_summary">
-                        <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signatures</div><div class="fw-semibold"><field name="signer_progress" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Requested trust</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Proof</div><div class="fw-semibold"><field name="evidence_status" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-md-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Archive</div><div class="fw-semibold"><field name="archive_status" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">People</div><div class="fw-semibold"><field name="signer_progress" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Deadline</div><div class="fw-semibold"><field name="due_date_summary" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Status</div><div class="fw-semibold"><field name="lifecycle_stage_label" readonly="1"/></div></div></div></div>
                     </div>
 
                     <div class="alert alert-warning" role="status" invisible="state not in ['waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed']">
-                        <strong>What is blocking completion?</strong>
+                        <strong>Needs attention</strong>
                         <field name="blocking_summary" nolabel="1" readonly="1"/>
                     </div>
                     <div class="alert alert-info" role="status" invisible="state in ['waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed', 'completed', 'cancelled', 'declined', 'expired']">
@@ -51,123 +54,130 @@
                     <notebook>
                         <page string="Overview" name="overview">
                             <group>
-                                <group string="Request details">
-                                    <field name="record_ref" string="Linked business record" readonly="state != 'draft'"/>
-                                    <field name="template_id" string="Request template" readonly="1" invisible="not template_id"/>
-                                    <field name="user_id" string="Requester" readonly="state != 'draft'"/>
-                                    <field name="coordinator_ids" string="Coordinators" widget="many2many_tags" readonly="not can_send" options="{'no_create': true}"/>
+                                <group string="Details">
+                                    <field name="user_id" string="Sent by" readonly="state != 'draft'"/>
+                                    <field name="record_ref" string="Linked record" readonly="state != 'draft'"/>
+                                    <field name="template_id" string="Template" readonly="1" invisible="not template_id"/>
                                     <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
-                                    <field name="expires_at" string="Request due date" readonly="state != 'draft'"/>
-                                    <field name="responsible_message" string="Message to signers" readonly="state != 'draft'"/>
+                                    <field name="expires_at" string="Deadline" readonly="state != 'draft'"/>
+                                    <field name="responsible_message" string="Message to signers" readonly="state != 'draft'" placeholder="Optional note shown with the invitation"/>
                                 </group>
-                                <group string="Trust recommendation">
-                                    <field name="document_category" string="Document type" readonly="state != 'draft'"/>
-                                    <field name="signer_type" string="Signer relationship" readonly="state != 'draft'"/>
-                                    <field name="risk_level" string="Risk" readonly="state != 'draft'"/>
-                                    <field name="recommended_trust" string="Recommended level" readonly="1"/>
-                                    <field name="requested_trust" string="Requested level" readonly="state != 'draft' or not can_send"/>
-                                    <field name="achieved_trust" string="Achieved level" readonly="1" invisible="not achieved_trust"/>
-                                    <field name="override_reason" string="Reason for override" readonly="state != 'draft' or not can_send" invisible="requested_trust == recommended_trust"/>
-                                    <field name="formal_qes_required" string="Formal QES required" readonly="state != 'draft'"/>
-                                    <field name="external_provider_id" string="Provider" readonly="state != 'draft'" invisible="requested_trust != 'qualified_external'"/>
+                                <group string="Signing method">
+                                    <field name="requested_trust_short" string="Method" readonly="1"/>
+                                    <field name="achieved_trust_short" string="Result" readonly="1" invisible="not achieved_trust_short"/>
+                                    <field name="signing_method_summary" nolabel="1" readonly="1"/>
+                                    <button name="action_open_signing_method" type="object" string="Change signing method" class="oe_link" invisible="state != 'draft' or not can_send"/>
                                 </group>
                             </group>
-                            <div class="border rounded bg-light p-3" role="note">
-                                <field name="recommendation_reason" nolabel="1" readonly="1"/>
-                                <field name="recommendation_consequence" nolabel="1" readonly="1" class="text-muted"/>
-                            </div>
-                            <group string="Timing and order">
-                                <field name="signing_order" string="Signing order" readonly="state != 'draft' or requested_trust == 'strong_personal'"/>
-                                <field name="reminder_days" string="Days before reminder" readonly="state != 'draft'"/>
-                                <field name="max_reminders" string="Maximum reminders" readonly="state != 'draft'"/>
-                                <field name="reminder_count" string="Reminders sent" readonly="1"/>
-                            </group>
+                            <details class="mt-3">
+                                <summary class="text-muted">More options</summary>
+                                <group class="mt-2">
+                                    <field name="coordinator_ids" string="People helping manage this request" widget="many2many_tags" readonly="not can_send" options="{'no_create': true}"/>
+                                    <field name="reminder_days" string="Remind after (days)" readonly="state != 'draft'"/>
+                                    <field name="max_reminders" string="Maximum reminders" readonly="state != 'draft'"/>
+                                    <field name="reminder_count" string="Reminders sent" readonly="1"/>
+                                </group>
+                            </details>
                         </page>
-                        <page string="Signers" name="signers">
+                        <page string="People" name="signers">
+                            <div class="border rounded bg-light p-3 mb-3" role="note" invisible="state != 'draft'">
+                                Add everyone who must sign. Each person needs a different field group so their fields can be matched correctly.
+                            </div>
+                            <group invisible="state != 'draft'">
+                                <field name="signing_order" string="People must sign in this order" readonly="requested_trust == 'strong_personal'"/>
+                            </group>
                             <field name="signer_ids" readonly="state != 'draft' or not can_coordinate" nolabel="1">
                                 <list editable="bottom" decoration-success="state == 'signed'" decoration-danger="state == 'declined'">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="role_id"/>
-                                    <field name="partner_id"/>
-                                    <field name="state" readonly="1"/>
-                                    <field name="invitation_delivery_state" readonly="1" optional="show"/>
-                                    <field name="authentication_method" readonly="1" optional="hide"/>
-                                    <field name="signed_on" readonly="1"/>
+                                    <field name="partner_id" string="Person"/>
+                                    <field name="role_id" string="Field group"/>
+                                    <field name="state" string="Status" readonly="1"/>
+                                    <field name="invitation_delivery_state" string="Invitation" readonly="1" optional="show"/>
+                                    <field name="authentication_method" readonly="1" optional="hide" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
+                                    <field name="signed_on" string="Signed on" readonly="1"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Documents" name="documents">
+                        <page string="Files" name="documents">
                             <group>
-                                <field name="data" filename="filename" string="Primary PDF" readonly="state != 'draft'"/>
+                                <field name="data" filename="filename" string="Main PDF" readonly="state != 'draft'"/>
                                 <field name="filename" invisible="1"/>
                             </group>
                             <field name="document_ids" readonly="state != 'draft' or not can_coordinate" nolabel="1">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="is_annex"/>
-                                    <field name="name"/>
+                                    <field name="is_annex" string="Annex"/>
+                                    <field name="name" string="Document"/>
                                     <field name="filename"/>
                                     <field name="data" filename="filename"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Proof &amp; Validation" name="proof">
-                            <div class="alert alert-info" role="status" invisible="state not in ['draft', 'ready']">
-                                Proof and independent validation become available after the document has been signed.
+                        <page string="Final document" name="proof">
+                            <div class="border rounded bg-light p-3" role="status" invisible="state not in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external']">
+                                The final document will appear here after everyone has signed and the result has been checked.
                             </div>
-                            <group invisible="state in ['draft', 'ready']">
+                            <group invisible="state in ['draft', 'ready', 'sent', 'viewed', 'partial', 'waiting_enrollment', 'waiting_external']">
                                 <group string="Result">
-                                    <field name="validation_status" readonly="1"/>
-                                    <field name="evidence_status" readonly="1"/>
-                                    <field name="archive_status" readonly="1"/>
-                                    <field name="completed_at" readonly="1" invisible="not completed_at"/>
-                                    <field name="archive_document_id" readonly="1" invisible="not archive_document_id"/>
+                                    <field name="achieved_trust_short" string="Signing method achieved" readonly="1" invisible="not achieved_trust_short"/>
+                                    <field name="completed_at" string="Completed on" readonly="1" invisible="not completed_at"/>
+                                    <field name="archive_document_id" string="Stored copy" readonly="1" invisible="not archive_document_id"/>
                                 </group>
-                                <group string="Retrieve">
+                                <group string="Download">
                                     <field name="final_filename" invisible="1"/>
                                     <field name="completion_filename" invisible="1"/>
                                     <field name="dossier_filename" invisible="1"/>
-                                    <field name="final_data" filename="final_filename" string="Final signed PDF" readonly="1" invisible="not final_data"/>
-                                    <field name="completion_certificate" filename="completion_filename" string="Completion certificate" readonly="1" invisible="not completion_certificate"/>
-                                    <field name="dossier_data" filename="dossier_filename" string="Evidence dossier" readonly="1" invisible="not dossier_data"/>
+                                    <field name="final_data" filename="final_filename" string="Signed PDF" readonly="1" invisible="not final_data"/>
+                                    <field name="completion_certificate" filename="completion_filename" string="Signing certificate" readonly="1" invisible="not completion_certificate"/>
+                                    <field name="dossier_data" filename="dossier_filename" string="Complete record" readonly="1" invisible="not dossier_data"/>
                                 </group>
                             </group>
-                            <group string="Daily timestamp proof" invisible="state != 'completed'">
+                            <group string="Independent timestamp" invisible="state != 'completed'">
                                 <group>
                                     <field name="daily_timestamp_status" readonly="1" widget="badge"/>
                                     <field name="daily_timestamp_message" readonly="1" nolabel="1"/>
                                 </group>
-                                <group groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
-                                    <field name="daily_timestamp_manifest_id" readonly="1" invisible="not daily_timestamp_manifest_id"/>
-                                    <button name="action_open_daily_timestamp_proof" type="object" string="Open daily proof" class="btn-secondary" invisible="not daily_timestamp_manifest_id"/>
-                                    <field name="daily_timestamp_has_pending_receipt" invisible="1"/>
-                                    <field name="daily_timestamp_has_confirmed_receipt" invisible="1"/>
-                                    <field name="daily_timestamp_has_report" invisible="1"/>
-                                    <field name="daily_timestamp_has_dossier" invisible="1"/>
-                                    <button name="action_download_daily_signed_manifest" type="object" string="Signed manifest" class="btn-link" invisible="not daily_timestamp_manifest_id"/>
-                                    <button name="action_download_daily_pending_receipt" type="object" string="Pending receipt" class="btn-link" invisible="not daily_timestamp_has_pending_receipt"/>
-                                    <button name="action_download_daily_confirmed_receipt" type="object" string="Confirmed .ots proof" class="btn-link" invisible="not daily_timestamp_has_confirmed_receipt"/>
-                                    <button name="action_download_daily_verification_report" type="object" string="Verification report" class="btn-link" invisible="not daily_timestamp_has_report"/>
-                                    <button name="action_download_daily_proof_dossier" type="object" string="Daily proof dossier" class="btn-link" invisible="not daily_timestamp_has_dossier"/>
-                                </group>
                                 <div class="text-muted small" colspan="2">
-                                    OpenTimestamps provides independent Bitcoin-backed existence evidence after completion. It is not an RFC 3161 or qualified timestamp.
+                                    A daily Bitcoin timestamp will independently show that this completed file existed by a verified date.
                                 </div>
                             </group>
-                            <group string="Technical proof" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin" invisible="state in ['draft', 'ready']">
-                                <field name="original_sha256" readonly="1"/>
-                                <field name="final_sha256" readonly="1" invisible="not final_sha256"/>
-                                <field name="policy_id" readonly="1"/>
-                                <field name="policy_version" readonly="1"/>
-                            </group>
-                            <field name="validation_ids" readonly="1" nolabel="1" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin" invisible="state in ['draft', 'ready']">
-                                <list create="0" delete="0" edit="0"><field name="engine"/><field name="engine_version"/><field name="expected_trust"/><field name="achieved_trust"/><field name="status"/><field name="signature_count"/><field name="qualified_provider"/></list>
-                            </field>
-                            <field name="evidence_ids" readonly="1" nolabel="1" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin" invisible="state in ['draft', 'ready']">
-                                <list create="0" delete="0" edit="0"><field name="kind"/><field name="name"/><field name="signer_id"/><field name="created_at"/><field name="data" filename="name"/></list>
-                            </field>
+                            <details class="mt-4" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin" invisible="state in ['draft', 'ready']">
+                                <summary class="text-muted">Verification details</summary>
+                                <group class="mt-3">
+                                    <group string="Checks">
+                                        <field name="validation_status" readonly="1"/>
+                                        <field name="evidence_status" readonly="1"/>
+                                        <field name="archive_status" readonly="1"/>
+                                        <field name="policy_id" readonly="1"/>
+                                        <field name="policy_version" readonly="1"/>
+                                    </group>
+                                    <group string="File fingerprints">
+                                        <field name="original_sha256" readonly="1"/>
+                                        <field name="final_sha256" readonly="1" invisible="not final_sha256"/>
+                                    </group>
+                                </group>
+                                <field name="daily_timestamp_manifest_id" readonly="1" invisible="not daily_timestamp_manifest_id"/>
+                                <button name="action_open_daily_timestamp_proof" type="object" string="Open timestamp record" class="btn-secondary" invisible="not daily_timestamp_manifest_id"/>
+                                <field name="daily_timestamp_has_pending_receipt" invisible="1"/>
+                                <field name="daily_timestamp_has_confirmed_receipt" invisible="1"/>
+                                <field name="daily_timestamp_has_report" invisible="1"/>
+                                <field name="daily_timestamp_has_dossier" invisible="1"/>
+                                <div class="d-flex flex-wrap gap-2 my-2" invisible="not daily_timestamp_manifest_id">
+                                    <button name="action_download_daily_signed_manifest" type="object" string="Daily record" class="btn-link"/>
+                                    <button name="action_download_daily_pending_receipt" type="object" string="Pending timestamp" class="btn-link" invisible="not daily_timestamp_has_pending_receipt"/>
+                                    <button name="action_download_daily_confirmed_receipt" type="object" string="Confirmed timestamp" class="btn-link" invisible="not daily_timestamp_has_confirmed_receipt"/>
+                                    <button name="action_download_daily_verification_report" type="object" string="Timestamp check" class="btn-link" invisible="not daily_timestamp_has_report"/>
+                                    <button name="action_download_daily_proof_dossier" type="object" string="Timestamp record" class="btn-link" invisible="not daily_timestamp_has_dossier"/>
+                                </div>
+                                <field name="validation_ids" readonly="1" nolabel="1">
+                                    <list create="0" delete="0" edit="0"><field name="engine"/><field name="engine_version"/><field name="expected_trust"/><field name="achieved_trust"/><field name="status"/><field name="signature_count"/><field name="qualified_provider"/></list>
+                                </field>
+                                <field name="evidence_ids" readonly="1" nolabel="1">
+                                    <list create="0" delete="0" edit="0"><field name="kind"/><field name="name"/><field name="signer_id"/><field name="created_at"/><field name="data" filename="name"/></list>
+                                </field>
+                            </details>
                         </page>
-                        <page string="Timeline" name="timeline">
+                        <page string="Technical history" name="timeline" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin">
                             <field name="event_ids" readonly="1" nolabel="1">
                                 <list create="0" delete="0" edit="0"><field name="occurred_at"/><field name="event_type"/><field name="signer_id"/><field name="state_from" optional="hide"/><field name="state_to" optional="hide"/><field name="actor_id"/></list>
                             </field>
@@ -177,6 +187,48 @@
                         </page>
                     </notebook>
                 </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_request_method_form" model="ir.ui.view">
+        <field name="name">usl.sign.request.method.form</field>
+        <field name="model">usl.sign.request.method</field>
+        <field name="arch" type="xml">
+            <form string="Signing method">
+                <sheet>
+                    <field name="request_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h2>Choose how this document is signed</h2>
+                        <p class="text-muted">Standard is right for most everyday documents.</p>
+                    </div>
+                    <field name="requested_trust" widget="radio" nolabel="1"/>
+                    <div class="row g-3 my-3">
+                        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><strong>Standard</strong><p class="small text-muted mb-0">Quick online signing with consent and a complete activity record.</p></div></div></div>
+                        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><strong>Strong personal</strong><p class="small text-muted mb-0">For an enrolled signer who confirms with a Pocket ID passkey.</p></div></div></div>
+                        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><strong>Qualified external</strong><p class="small text-muted mb-0">For a formal QES requirement handled by an external provider.</p></div></div></div>
+                    </div>
+                    <div class="alert alert-info" role="status">
+                        <strong>Recommended: <field name="recommended_trust" class="d-inline" readonly="1"/></strong>
+                        <field name="recommendation_reason" nolabel="1" readonly="1"/>
+                    </div>
+                    <field name="external_provider_id" invisible="requested_trust != 'qualified_external'" required="requested_trust == 'qualified_external'"/>
+                    <field name="override_reason" string="Why choose a different method?" invisible="requested_trust == recommended_trust" required="requested_trust != recommended_trust"/>
+                    <details class="mt-3">
+                        <summary class="text-muted">Change the recommendation inputs</summary>
+                        <group class="mt-2">
+                            <field name="document_category" string="Document type"/>
+                            <field name="signer_type" string="Relationship to signer"/>
+                            <field name="risk_level" string="Business risk"/>
+                            <field name="formal_qes_required" string="A formal QES is required"/>
+                        </group>
+                    </details>
+                </sheet>
+                <footer>
+                    <button name="action_apply" type="object" string="Use this method" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
             </form>
         </field>
     </record>
@@ -193,7 +245,7 @@
                 <field name="signer_progress" string="Progress"/>
                 <field name="next_step" string="Next action"/>
                 <field name="expires_at" string="Due date"/>
-                <field name="requested_trust_short" string="Trust level"/>
+                <field name="requested_trust_short" string="Signing method"/>
                 <field name="validation_status" string="Proof status" optional="hide"/>
                 <field name="archive_status" string="Archive status" optional="hide"/>
                 <field name="user_id" optional="hide"/>
@@ -213,8 +265,8 @@
                 <field name="signer_ids"/>
                 <filter name="needs_action" string="Needs my action" domain="[('state', 'in', ['draft', 'ready', 'waiting_enrollment', 'signed_to_import', 'action_required', 'evidence_incomplete'])]"/>
                 <filter name="waiting" string="Waiting for signers" domain="[('state', 'in', ['sent', 'viewed', 'partial'])]"/>
-                <filter name="final_checks" string="Final checks" domain="[('state', 'in', ['signed_to_import', 'validating', 'evidence_incomplete'])]"/>
-                <filter name="recovery" string="Recovery needed" domain="[('state', 'in', ['action_required', 'validation_failed', 'evidence_incomplete'])]"/>
+                <filter name="final_checks" string="Finishing" domain="[('state', 'in', ['signed_to_import', 'validating', 'evidence_incomplete'])]"/>
+                <filter name="recovery" string="Needs attention" domain="[('state', 'in', ['action_required', 'validation_failed', 'evidence_incomplete'])]"/>
                 <filter name="external" string="External signing" domain="[('state', 'in', ['waiting_external', 'signed_to_import'])]"/>
                 <group><filter name="group_status" string="Status" context="{'group_by': 'state'}"/><filter name="group_requester" string="Requester" context="{'group_by': 'user_id'}"/></group>
             </search>
@@ -237,7 +289,7 @@
                 <field name="state" string="Your signature"/>
                 <field name="request_due_at" string="Due date"/>
                 <field name="overall_status" string="Request status"/>
-                <field name="requested_trust_short" string="Trust level"/>
+                <field name="requested_trust_short" string="Signing method"/>
                 <field name="signed_on" string="Signed on" optional="show"/>
                 <button name="sign" type="object" string="Sign" class="btn-primary" invisible="not is_allow_signature"/>
                 <button name="action_open_request" type="object" string="Open"/>
@@ -251,11 +303,20 @@
         <field name="priority">2</field>
         <field name="arch" type="xml">
             <form create="0" edit="0" delete="0">
-                <header><button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/><button name="action_open_request" type="object" string="Open request"/></header>
+                <header><button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/><button name="action_open_request" type="object" string="Open document record"/></header>
                 <sheet>
                     <field name="is_allow_signature" invisible="1"/>
                     <div class="oe_title"><p class="text-muted mb-1">Your signature</p><h1><field name="request_id"/></h1></div>
-                    <group><group><field name="sender_id"/><field name="role_id"/><field name="state"/><field name="signed_on" invisible="not signed_on"/></group><group><field name="overall_status"/><field name="request_due_at"/><field name="requested_trust_short"/></group></group>
+                    <div class="row g-3 my-4">
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Sent by</div><div class="fw-semibold"><field name="sender_id" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Your part</div><div class="fw-semibold"><field name="role_id" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Your signature</div><div class="fw-semibold"><field name="state" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Document</div><div class="fw-semibold"><field name="overall_status" readonly="1"/></div></div></div></div>
+                    </div>
+                    <group>
+                        <group string="Timing"><field name="request_due_at" string="Complete by"/><field name="signed_on" invisible="not signed_on"/></group>
+                        <group string="Signing"><field name="requested_trust_short" string="Signing method"/></group>
+                    </group>
                 </sheet>
             </form>
         </field>
@@ -317,7 +378,7 @@
         <field name="context">{'search_default_completed': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No completed documents yet</p>
-            <p>A document appears here only after signing, independent validation, complete proof, and durable Paperless archival.</p>
+            <p>Final signed documents appear here when they are ready to download.</p>
         </field>
     </record>
 </odoo>
