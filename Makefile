@@ -37,6 +37,7 @@ endef
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
 .PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-reuse qa-clean qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-qualify-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
+.PHONY: sign-product-validate
 .PHONY: migration-source-inventory migration-source-report migration-source-gate migration-outbound-safety attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
 .PHONY: documents-release-build documents-release-verify documents-release-restore documents-release-accept documents-release-publish
@@ -446,6 +447,10 @@ accounting-compat: oca-addons-sync
 
 project-restore:
 	scripts/project-restore all
+
+sign-product-validate:
+	scripts/check-sign-clean-boundary
+	scripts/check-sign-worker-build
 
 project-restore-install:
 	scripts/project-restore install

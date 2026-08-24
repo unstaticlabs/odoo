@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_oca.sign_oca_root_menu" model="ir.ui.menu">
+        <field name="name">Sign</field>
+        <field name="action" eval="'ir.actions.client,%d' % ref('sign_landing_action')"/>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_user'), ref('usl_sign.group_sign_identity_reviewer'), ref('usl_sign.group_sign_evidence_reviewer')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_template_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sign_oca.sign_oca_request_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="sign_oca.sign_oca_settings_menu" model="ir.ui.menu">
+        <field name="name">Configuration</field>
+        <field name="sequence">90</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_user'), ref('usl_sign.group_sign_admin'), ref('usl_sign.group_sign_identity_reviewer'), ref('usl_sign.group_sign_evidence_reviewer')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_general_settings_menu" model="ir.ui.menu">
+        <field name="name">Settings</field>
+        <field name="active" eval="True"/>
+        <field name="sequence">90</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_admin')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_role_menu" model="ir.ui.menu">
+        <field name="name">Signer Roles</field>
+        <field name="sequence">50</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_template_manager')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_field_menu" model="ir.ui.menu">
+        <field name="name">Field Types</field>
+        <field name="sequence">60</field>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_template_manager')])]"/>
+    </record>
+
+    <record id="sign_service_status_action" model="ir.actions.act_window">
+        <field name="name">Service Status</field>
+        <field name="res_model">usl.sign.service.health</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="context">{'search_default_company': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Check signing capabilities</p>
+            <p>Use Refresh all to inspect the current company's signing, validation, archival, identity, and timestamp services.</p>
+        </field>
+    </record>
+    <record id="my_sign_identity_action" model="ir.actions.act_window">
+        <field name="name">Signing Identities</field>
+        <field name="res_model">usl.sign.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('partner_id.user_ids', 'in', [uid])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No signing identity yet</p>
+            <p>A reviewed Pocket ID identity link is required before you can use Strong personal signature. Pocket ID manages your passkeys and recovery.</p>
+        </field>
+    </record>
+
+    <menuitem id="sign_library_menu" name="Library" parent="sign_oca.sign_oca_root_menu" action="sign_oca.sign_oca_template_act_window" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_templates_menu" name="Templates" parent="sign_library_menu" action="sign_oca.sign_oca_template_act_window" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_completed_menu" name="Completed Documents" parent="sign_library_menu" action="completed_documents_action" sequence="20" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_decisions_menu" name="Decisions" parent="sign_library_menu" action="completed_decisions_action" sequence="30" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="open_requests_menu" name="Open Requests" parent="sign_oca.sign_oca_root_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>
+    <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="30" groups="usl_sign.group_sign_user"/>
+
+    <menuitem id="my_sign_identity_menu" name="Signing Identities" parent="sign_oca.sign_oca_settings_menu" action="my_sign_identity_action" sequence="10" groups="usl_sign.group_sign_user"/>
+    <menuitem id="sign_enrollment_menu" name="Identity Reviews" parent="sign_oca.sign_oca_settings_menu" action="sign_enrollment_action" sequence="20" groups="usl_sign.group_sign_identity_reviewer"/>
+    <menuitem id="sign_policy_menu" name="Signing Policies" parent="sign_oca.sign_oca_settings_menu" action="sign_policy_action" sequence="30" groups="usl_sign.group_sign_admin"/>
+    <menuitem id="sign_external_provider_menu" name="Qualified Providers" parent="sign_oca.sign_oca_settings_menu" action="sign_external_provider_action" sequence="40" groups="usl_sign.group_sign_admin"/>
+    <menuitem id="sign_service_status_menu" name="Service Status" parent="sign_oca.sign_oca_settings_menu" action="sign_service_status_action" sequence="70" groups="usl_sign.group_sign_admin"/>
+    <menuitem id="sign_daily_manifest_menu" name="Evidence Manifests" parent="sign_oca.sign_oca_settings_menu" action="sign_daily_manifest_action" sequence="80" groups="usl_sign.group_sign_evidence_reviewer,usl_sign.group_sign_admin"/>
+</odoo>

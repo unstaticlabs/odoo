@@ -1,0 +1,49 @@
+services:
+  pocket-id:
+    build:
+      context: .
+      dockerfile: services/usl-pocket-id/Dockerfile
+      args:
+        POCKET_ID_COMMIT: b3fb8de5bc55aa813a27b4e15c1d761026fcceaa
+    image: usl-pocket-id-sign:v2.12.0-fresh-passkey
+    environment:
+      APP_NAME: USL Sign Pocket ID QA
+
+  odoo:
+    depends_on:
+      pocket-id:
+        condition: service_healthy
+      usl-sign-dss:
+        condition: service_healthy
+      usl-sign-step-ca:
+        condition: service_healthy
+    environment:
+      ODOO_DB_NAME: odoo_dev
+      USL_POCKET_ID_SIGN_CLIENT_ID: ${POCKET_ID_SIGN_CLIENT_ID:?Missing dedicated Sign client ID}
+      USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}
+      USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${POCKET_ID_SIGN_GROUP_NAME:?Missing Sign signer group}
+      USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"
+    # This disposable review tenant must not be exposed on the developer's
+    # LAN. Replace the base ports rather than publishing a second binding.
+    ports: !override
+      - "127.0.0.1:${ODOO_HTTP_PORT:-16669}:8069"
+      - "127.0.0.1:${ODOO_GEVENT_PORT:-16672}:8072"
+
+  init-db:
+    environment:
+      USL_POCKET_ID_SIGN_CLIENT_ID: ${POCKET_ID_SIGN_CLIENT_ID:?Missing dedicated Sign client ID}
+      USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}
+      USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${POCKET_ID_SIGN_GROUP_NAME:?Missing Sign signer group}
+      USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"
+
+  test:
+    depends_on:
+      usl-sign-dss:
+        condition: service_healthy
+      usl-sign-step-ca:
+        condition: service_healthy
+    environment:
+      USL_POCKET_ID_SIGN_CLIENT_ID: ${POCKET_ID_SIGN_CLIENT_ID:?Missing dedicated Sign client ID}
+      USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}
+      USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${POCKET_ID_SIGN_GROUP_NAME:?Missing Sign signer group}
+      USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"

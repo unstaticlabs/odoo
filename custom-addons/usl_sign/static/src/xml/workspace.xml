@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.Landing">
+        <div class="o_action_manager overflow-auto usl_sign_workspace">
+            <div class="container-xxl py-4 px-3 px-lg-4">
+                <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+                    <div>
+                        <p class="text-uppercase text-muted fw-semibold small mb-1">Document signing</p>
+                        <h1 class="h2 mb-1">What needs your attention?</h1>
+                        <p class="text-muted mb-0">Sign, decide, prepare, or retrieve trusted documents.</p>
+                    </div>
+                    <button t-if="state.data.can_start" type="button" class="btn btn-primary" t-on-click="start">
+                        <i class="fa fa-plus me-2"/>Start
+                    </button>
+                </header>
+                <div t-if="state.loading" class="usl_sign_workspace_state" aria-busy="true">
+                    <i class="fa fa-spinner fa-spin me-2"/>Loading your work…
+                </div>
+                <div t-elif="state.error" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+                    <span>Your Sign workspace could not be loaded.</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" t-on-click="load">Retry</button>
+                </div>
+                <div t-else="" class="row g-4">
+                    <t t-foreach="sections" t-as="section" t-key="section[0]">
+                        <t t-set="content" t-value="getSection(section[0])"/>
+                        <section class="col-12 col-xl-6">
+                            <div class="card h-100 usl_sign_work_card">
+                                <div class="card-header bg-transparent d-flex align-items-start justify-content-between gap-3">
+                                    <div class="d-flex gap-3">
+                                        <span class="usl_sign_section_icon"><i t-att-class="'fa ' + section[3]"/></span>
+                                        <div>
+                                            <h2 class="h5 mb-1" t-out="section[1]"/>
+                                            <p class="text-muted small mb-0" t-out="section[2]"/>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill text-bg-secondary" t-out="content.count"/>
+                                </div>
+                                <div class="list-group list-group-flush">
+                                    <button t-foreach="content.items" t-as="item" t-key="item.model + '-' + item.id"
+                                            type="button" class="list-group-item list-group-item-action py-3"
+                                            t-on-click="() => this.openItem(item)">
+                                        <div class="d-flex justify-content-between gap-3">
+                                            <div class="min-w-0 text-start">
+                                                <div class="fw-semibold text-truncate" t-out="item.title"/>
+                                                <div t-if="item.subtitle" class="small text-muted text-truncate" t-out="item.subtitle"/>
+                                            </div>
+                                            <span class="badge text-bg-light align-self-start" t-out="item.trust"/>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2 mt-2 small text-muted text-start">
+                                            <span t-out="item.status"/>
+                                            <span aria-hidden="true">·</span>
+                                            <span t-out="item.progress"/>
+                                            <span t-if="item.due"><span aria-hidden="true">·</span> Due <t t-out="item.due"/></span>
+                                        </div>
+                                        <div t-if="item.next_step" class="small mt-1 text-start"><strong>Next:</strong> <t t-out="item.next_step"/></div>
+                                    </button>
+                                    <div t-if="!content.items.length" class="p-4 text-center text-muted small">
+                                        Nothing needs attention here.
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

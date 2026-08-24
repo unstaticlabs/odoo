@@ -18,6 +18,7 @@ nav:
   - Tutorial:
       - Guided Accounting Tour: tutorials/accounting-application.md
   - How-To Guides:
+      - Préparer une signature électronique: guides/signatures-electroniques.md
       - Record and Reconcile TESE Payroll: guides/paie-tese.md
       - Review B2C Commerce History: guides/review-b2c-commerce.md
       - Process a Supplier Bill: how-to/process-vendor-bill.md
