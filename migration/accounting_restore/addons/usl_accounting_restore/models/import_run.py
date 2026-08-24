@@ -6469,6 +6469,52 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
 
+    def _native_expense_expected_state(self, source_expense, expense):
+        """Translate the Enterprise accountant payment label to Community.
+
+        ``accountant`` overrides ``account.move._get_invoice_in_payment_state``
+        to return ``in_payment``.  Community intentionally returns ``paid``
+        for the same partially reconciled move.  Preserve the native target
+        lifecycle and classify the display-state translation explicitly.
+        """
+        expected = source_expense["state"]
+        if (
+            expected == "in_payment"
+            and expense.account_move_id.payment_state == "partial"
+        ):
+            target_state = self.env[
+                "account.move"
+            ]._get_invoice_in_payment_state()
+            if target_state != expected:
+                return target_state, {
+                    "classification": (
+                        "enterprise_accountant_payment_state_translation"
+                    ),
+                    "source_expense_id": source_expense["id"],
+                    "source_state": expected,
+                    "target_state": target_state,
+                }
+        return expected, None
+
+    def _native_expense_expected_untaxed(self, source_expense, currency=False):
+        suffix = "_currency" if currency else ""
+        untaxed_key = f"untaxed_amount{suffix}"
+        total_key = f"total_amount{suffix}"
+        tax_key = f"tax_amount{suffix}"
+        stored = self._amount(source_expense[untaxed_key])
+        arithmetic = self._amount(
+            source_expense[total_key],
+        ) - self._amount(source_expense[tax_key])
+        if round(stored, 2) != round(arithmetic, 2):
+            return arithmetic, {
+                "classification": "stale_source_expense_untaxed_compute",
+                "source_expense_id": source_expense["id"],
+                "field": untaxed_key,
+                "source_stored_value": stored,
+                "source_arithmetic_value": arithmetic,
+            }
+        return stored, None
+
     def _native_expense_source_account_totals(self, conn, options):
         rows = self._fetchall(
             conn,
@@ -7835,6 +7881,7 @@ class RebuildAccountImportRun(models.Model):
 
             passed_count = 0
             mismatch_cases = []
+            compatibility_transformations = []
             state_counts = defaultdict(int)
             for source_expense in expense_rows:
                 expense = expenses_by_source_id.get(source_expense["id"])
@@ -7869,8 +7916,28 @@ class RebuildAccountImportRun(models.Model):
                 expected_split_origin = expenses_by_source_id.get(
                     source_expense["split_expense_origin_id"],
                 )
+                expected_state, state_transformation = (
+                    self._native_expense_expected_state(
+                        source_expense,
+                        expense,
+                    )
+                )
+                expected_untaxed, untaxed_transformation = (
+                    self._native_expense_expected_untaxed(source_expense)
+                )
+                expected_untaxed_currency, currency_untaxed_transformation = (
+                    self._native_expense_expected_untaxed(
+                        source_expense,
+                        currency=True,
+                    )
+                )
+                compatibility_transformations.extend(filter(None, (
+                    state_transformation,
+                    untaxed_transformation,
+                    currency_untaxed_transformation,
+                )))
                 checks = {
-                    "state": expense.state == source_expense["state"],
+                    "state": expense.state == expected_state,
                     "approval_state": (
                         (expense.approval_state or False)
                         == (source_expense["approval_state"] or False)
@@ -8003,20 +8070,12 @@ class RebuildAccountImportRun(models.Model):
                         expense.untaxed_amount,
                         2,
                     )
-                    == round(
-                        self._amount(source_expense["untaxed_amount"]),
-                        2,
-                    ),
+                    == round(expected_untaxed, 2),
                     "untaxed_currency_amount": round(
                         expense.untaxed_amount_currency,
                         2,
                     )
-                    == round(
-                        self._amount(
-                            source_expense["untaxed_amount_currency"],
-                        ),
-                        2,
-                    ),
+                    == round(expected_untaxed_currency, 2),
                     "price_unit": round(expense.price_unit, 6)
                     == round(
                         self._amount(source_expense["price_unit"]),
@@ -8057,6 +8116,7 @@ class RebuildAccountImportRun(models.Model):
                         "source_expense_id": source_expense["id"],
                         "target_expense_id": expense.id,
                         "source_state": source_expense["state"],
+                        "expected_target_state": expected_state,
                         "target_state": expense.state,
                         "checks": checks,
                     })
@@ -8114,6 +8174,13 @@ class RebuildAccountImportRun(models.Model):
                 "mismatch_expense_count": len(mismatch_cases),
                 "blocked_case_count": len(blocked_cases),
                 "state_counts": dict(sorted(state_counts.items())),
+                "compatibility_transformation_counts": dict(sorted(Counter(
+                    item["classification"]
+                    for item in compatibility_transformations
+                ).items())),
+                "compatibility_transformation_examples": (
+                    compatibility_transformations[:20]
+                ),
                 "attachments": attachment_stats,
                 "expense_bank_matches": bank_match_cache_stats,
                 "mismatch_examples": mismatch_cases[:20],

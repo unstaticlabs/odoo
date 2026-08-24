@@ -7,6 +7,7 @@ from decimal import Decimal
 from email.message import EmailMessage
 from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -6337,6 +6338,43 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(import_run._native_expense_company_value({"1": 19.5}, 1), 19.5)
         self.assertEqual(import_run._native_expense_company_value({1: 21.5}, 1), 21.5)
         self.assertIsNone(import_run._native_expense_company_value({"2": 24.0}, 1))
+
+    def test_native_expense_classifies_enterprise_payment_state_translation(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Expense state compatibility",
+        })
+
+        expected, evidence = import_run._native_expense_expected_state(
+            {"id": 42, "state": "in_payment"},
+            SimpleNamespace(
+                account_move_id=SimpleNamespace(payment_state="partial"),
+            ),
+        )
+
+        self.assertEqual(expected, "paid")
+        self.assertEqual(
+            evidence["classification"],
+            "enterprise_accountant_payment_state_translation",
+        )
+
+    def test_native_expense_recomputes_stale_source_untaxed_amount(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Expense amount compatibility",
+        })
+        source = {
+            "id": 477,
+            "total_amount": 17.57,
+            "tax_amount": 0.0,
+            "untaxed_amount": 0.0,
+        }
+
+        expected, evidence = import_run._native_expense_expected_untaxed(source)
+
+        self.assertEqual(expected, 17.57)
+        self.assertEqual(
+            evidence["classification"],
+            "stale_source_expense_untaxed_compute",
+        )
 
     def test_native_expense_settlement_preserves_source_partial_amount(self):
         import_run = self.env["rebuild.account.import.run"]
