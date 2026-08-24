@@ -826,8 +826,16 @@ for membership in source["document_groups"]:
     if user:
         user.sudo().write({"group_ids": [Command.link(manager_group.id)]})
 
-admin = env.ref("base.user_admin").with_company(next(iter(companies.values()), env.company))
-documents = documents_model.with_user(admin)
+target_companies = env["res.company"].browse(  # noqa: F821
+    sorted({company.id for company in companies.values()}),
+)
+primary_company = target_companies[:1] or env.company  # noqa: F821
+admin = (
+    env.ref("base.user_admin")  # noqa: F821
+    .with_company(primary_company)
+    .with_context(allowed_company_ids=target_companies.ids)
+)
+documents = documents_model.with_env(admin.env)
 client = documents._paperless()
 compatibility = client.compatibility()
 if compatibility["api_version"] != "10":
@@ -846,7 +854,7 @@ classifications = {
     group[0]["checksum"]: classify_group(group)
     for group in groups
 }
-tag_model = env["usl.paperless.tag"].with_user(admin)
+tag_model = env["usl.paperless.tag"].with_env(admin.env)
 source_tag_colors = {}
 for row in source["tags"]:
     name = normalized_source_tag(text(row["name"]))
@@ -878,7 +886,7 @@ for name in sorted(
         )
     tags_by_name[name] = tag
 
-document_type_model = env["usl.paperless.document.type"].with_user(admin)
+document_type_model = env["usl.paperless.document.type"].with_env(admin.env)
 document_types = {}
 for name in sorted(
     {
@@ -902,7 +910,7 @@ for name in sorted(
         )
     document_types[name] = document_type
 
-correspondent_model = env["usl.paperless.correspondent"].with_user(admin)
+correspondent_model = env["usl.paperless.correspondent"].with_env(admin.env)
 source_partner_by_name = {
     row["name"]: row["id"] for row in source["classification_partners"]
 }
@@ -1041,11 +1049,13 @@ def settle_pending(force=False):
         progressed = False
         for item in list(pending):
             operation = item["operation"]
-            operation.poll()
+            operation.with_context(
+                allowed_company_ids=target_companies.ids,
+            ).poll()
             env.cr.commit()
             operation.invalidate_recordset()
             if operation.state == "archived" and operation.document_id:
-                item["document"] = operation.document_id.with_user(admin)
+                item["document"] = operation.document_id.with_env(admin.env)
                 item["state"] = "archived"
                 pending.remove(item)
                 completed.append(item)
@@ -1239,7 +1249,7 @@ for item in completed:
     group = item["group"]
     source_item = representative(group)
     classification = classifications[source_item["checksum"]]
-    document = item["document"].with_user(admin)
+    document = item["document"].with_env(admin.env)
     if document.availability_state == "trashed":
         # Paperless exposes Trash through a separate API. Temporarily restore
         # the same stable root so metadata, bytes, preview and permissions can

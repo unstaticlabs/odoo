@@ -80,6 +80,32 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("Run the normal fresh reconstruction", checkpoint)
 
+    def test_canonical_reset_clears_target_mirror_before_archive_volumes(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+        reset = (
+            ROOT / "migration/documents_archive/scripts/reset_target_cache.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertLess(
+            script.index("reset_target_cache.py"),
+            script.index('"${compose[@]}" --profile paperless rm -sf'),
+        )
+        self.assertIn("DOCUMENTS_CANONICAL_RESET_CONFIRMED=1", script)
+        self.assertIn('env.cr.dbname != "odoo_dev"', reset)
+        self.assertIn('env["usl.document.operation"]', reset)
+        self.assertIn('env["usl.document.link"]', reset)
+        self.assertIn('env["usl.document"]', reset)
+
+    def test_restore_uses_all_mapped_companies_for_archive_policy(self):
+        restore = (
+            ROOT
+            / "migration/documents_archive/scripts/source_documents_restore.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("allowed_company_ids=target_companies.ids", restore)
+        self.assertIn("documents_model.with_env(admin.env)", restore)
+        self.assertIn('item["document"].with_env(admin.env)', restore)
+
     def test_fast_qa_verifies_seed_before_reset_and_uses_official_importer(self):
         script = QA_SCRIPT.read_text(encoding="utf-8")
 
