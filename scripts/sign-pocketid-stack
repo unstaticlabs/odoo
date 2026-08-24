@@ -48,7 +48,7 @@ load_environment() {
     printf 'Refusing Sign QA while a regulatory live flag is enabled.\n' >&2
     return 2
   fi
-  if [[ "$COMPOSE_PROJECT_NAME" == "usl-odoo-saas-19-2" ]]; then
+  if [[ "$COMPOSE_PROJECT_NAME" == "usl-odoo-saas-19-3" ]]; then
     printf 'Refusing the canonical Compose project.\n' >&2
     return 2
   fi
@@ -62,7 +62,7 @@ load_environment() {
   export USL_SIGN_ODOO_ENV_FILE="$SECRET_ROOT/odoo.env"
   # Custom add-ons are mounted from this worktree. Reuse the pinned base image
   # when available; rebuilding it adds no source freshness and wastes several GB.
-  export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}"
+  export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}"
   COMPOSE=(
     docker compose
     -p "$PROJECT"
@@ -190,7 +190,12 @@ start() {
   bootstrap
   prepare_fresh_qa_project
   assert_ports_available
-  docker image inspect "$ODOO_IMAGE" >/dev/null 2>&1 || "${COMPOSE[@]}" build odoo
+  if ! docker image inspect "$ODOO_IMAGE" >/dev/null 2>&1 \
+      || ! docker run --rm "$ODOO_IMAGE" python3 -c \
+        'import importlib.metadata; importlib.metadata.version("opentimestamps")' \
+        >/dev/null 2>&1; then
+    "${COMPOSE[@]}" build odoo
+  fi
   docker image inspect usl-pocket-id-sign:v2.12.0-fresh-passkey >/dev/null 2>&1 \
     || "${COMPOSE[@]}" build pocket-id
   docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
@@ -220,7 +225,10 @@ review_info() {
   printf 'Paperless: %s\n' "$PAPERLESS_PUBLIC_URL"
   printf '\nReview users:\n'
   printf '  Valentin — requester, template manager, evidence reviewer, administrator\n'
-  printf '  Roger (roger@unstaticlabs.com) — signer and decision-maker\n'
+  printf '  Roger (roger@unstaticlabs.com) — document signer\n'
+  printf '\nCreate a one-time Pocket ID session for manual review:\n'
+  printf '  scripts/sign-qa-stack login-link valentin\n'
+  printf '  scripts/sign-qa-stack login-link roger\n'
 }
 
 stop() {
@@ -248,8 +256,11 @@ test_stack() {
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
     'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
   local test_image="${PROJECT}-test:latest"
-  docker image inspect "$test_image" >/dev/null 2>&1 \
-    || "${COMPOSE[@]}" --profile test build test
+  if ! docker image inspect "$test_image" >/dev/null 2>&1 \
+    || ! docker run --rm "$test_image" sh -c \
+      'odoo --version | grep -F "saas~19.3" >/dev/null && python3 -c "import opentimestamps"'; then
+    "${COMPOSE[@]}" --profile test build test
+  fi
   "${COMPOSE[@]}" --profile test --profile sign run --rm \
     -e ODOO_INIT_DB="$database" \
     -e ODOO_DB_FILTER="^${database}$" \

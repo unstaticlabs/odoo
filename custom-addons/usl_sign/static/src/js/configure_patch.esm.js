@@ -67,8 +67,8 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         this.undoStack = [];
         this.redoStack = [];
         this.pageListeners = [];
-        this.activeManipulation = false;
-        this.activePaletteDrag = false;
+        this.activeManipulation = null;
+        this.activePaletteDrag = null;
         this.beforeUnload = (event) => {
             if (this.editor.pending || this.editor.error) {
                 event.preventDefault();
@@ -81,8 +81,8 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
             for (const cleanup of this.pageListeners) {
                 cleanup();
             }
-            this.activeManipulation?.cancel();
-            this.activePaletteDrag?.cancel();
+            this.cancelManipulation();
+            this.cancelPaletteDrag();
         });
     }
 
@@ -386,7 +386,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
         event.preventDefault();
         event.stopPropagation();
-        this.activeManipulation?.cancel();
+        this.cancelManipulation();
         const before = editableItemValues(item);
         const element = this.items[item.id];
         const page = element?.closest(".page");
@@ -449,7 +449,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 captureTarget.releasePointerCapture(pointerId);
             }
             if (this.activeManipulation?.pointerId === pointerId) {
-                this.activeManipulation = false;
+                this.activeManipulation = null;
             }
         };
         const restore = () => {
@@ -521,6 +521,14 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         this.activeManipulation = {pointerId, cancel: () => finish(true)};
     }
 
+    cancelManipulation() {
+        const activeManipulation = this.activeManipulation;
+        this.activeManipulation = null;
+        if (activeManipulation && typeof activeManipulation.cancel === "function") {
+            activeManipulation.cancel();
+        }
+    }
+
     onFieldKeydown(event, item) {
         if (!this.isEditable) {
             return;
@@ -564,7 +572,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
             return;
         }
         event.preventDefault();
-        this.activePaletteDrag?.cancel();
+        this.cancelPaletteDrag();
         const start = {x: event.clientX, y: event.clientY};
         const button = event.currentTarget;
         const pointerId = event.pointerId;
@@ -596,7 +604,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 button.releasePointerCapture(pointerId);
             }
             if (this.activePaletteDrag?.pointerId === pointerId) {
-                this.activePaletteDrag = false;
+                this.activePaletteDrag = null;
             }
         };
         const finish = (pointerEvent, cancelled = false) => {
@@ -655,6 +663,14 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         window.addEventListener("pointercancel", cancel, true);
         window.addEventListener("blur", cancel);
         this.activePaletteDrag = {pointerId, cancel: () => finish(event, true)};
+    }
+
+    cancelPaletteDrag() {
+        const activeDrag = this.activePaletteDrag;
+        this.activePaletteDrag = null;
+        if (activeDrag && typeof activeDrag.cancel === "function") {
+            activeDrag.cancel();
+        }
     }
 
     contextCreate() {

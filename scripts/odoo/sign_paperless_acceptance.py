@@ -1,6 +1,5 @@
 """Exercise a real Standard Sign completion and Paperless recovery journey."""
 
-import base64
 import hashlib
 import json
 import time
@@ -8,6 +7,7 @@ import uuid
 from io import BytesIO
 
 from odoo.tools.pdf import PdfWriter
+from odoo.addons.usl_sign.services import field_content, field_value
 
 
 def _pdf():
@@ -65,7 +65,7 @@ def _complete_standard(label):
     request = env["sign.oca.request"].create(
         {
             "name": label,
-            "data": base64.b64encode(raw_pdf),
+            "data": field_value(raw_pdf),
             "filename": f"{label}.pdf",
             "company_id": env.company.id,
             "user_id": env.user.id,
@@ -153,8 +153,8 @@ try:
             f"Archive recovery did not complete: {recovery.state}/{recovery.archive_status}",
         )
 
-    direct_dossier = base64.b64decode(direct.dossier_data)
-    recovery_dossier = base64.b64decode(recovery.dossier_data)
+    direct_dossier = field_content(direct.dossier_data)
+    recovery_dossier = field_content(recovery.dossier_data)
     print(
         json.dumps(
             {

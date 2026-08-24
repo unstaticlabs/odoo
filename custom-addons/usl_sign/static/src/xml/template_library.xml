@@ -8,9 +8,5 @@
                 <t t-if="uploadState.uploading">Preparing…</t><t t-else="">Upload PDF</t>
             </button>
         </xpath>
-        <xpath expr="." position="inside">
-            <button type="button" class="btn btn-secondary" t-on-click="openCompletedDocuments">Completed documents</button>
-            <button type="button" class="btn btn-secondary" t-on-click="openDecisions">Decisions</button>
-        </xpath>
     </t>
 </templates>

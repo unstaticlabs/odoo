@@ -33,7 +33,7 @@ class SignTemplateGenerate(models.TransientModel):
     )
     document_category = fields.Selection(
         [
-            ("internal_decision", "Internal decision"),
+            ("internal_decision", "Corporate decision document"),
             ("routine_agreement", "Routine agreement"),
             ("employment", "Employment document"),
             ("intellectual_property", "Intellectual property"),
@@ -93,7 +93,6 @@ class SignTemplateGenerate(models.TransientModel):
         "document_category",
         "signer_type",
         "risk_level",
-        "requires_signed_pdf",
         "formal_qes_required",
         "signer_ids",
         "requested_trust",
@@ -104,10 +103,7 @@ class SignTemplateGenerate(models.TransientModel):
     def _refresh_usl_journey(self):
         for wizard in self:
             previous_recommendation = wizard.recommended_trust
-            wizard.approval_recommended = bool(
-                wizard.document_category == "internal_decision"
-                and not wizard.requires_signed_pdf,
-            )
+            wizard.approval_recommended = False
             policy = self.env["usl.sign.policy"].recommend(
                 wizard.company_id or self.env.company,
                 category=wizard.document_category,
@@ -144,11 +140,6 @@ class SignTemplateGenerate(models.TransientModel):
 
     def _journey_availability_note(self):
         self.ensure_one()
-        if self.approval_recommended:
-            return (
-                "An attributable business decision is proportionate; request a decision "
-                "instead of creating a signed PDF."
-            )
         if self.requested_trust == "strong_personal":
             partners = self.signer_ids.mapped("partner_id")
             enrollment_model = self.env["usl.sign.enrollment"].sudo()
@@ -206,7 +197,7 @@ class SignTemplateGenerate(models.TransientModel):
                 "document_category": self.document_category,
                 "signer_type": self.signer_type,
                 "risk_level": self.risk_level,
-                "requires_signed_pdf": self.requires_signed_pdf,
+                "requires_signed_pdf": True,
                 "formal_qes_required": self.formal_qes_required,
                 "requested_trust": self.requested_trust,
                 "override_reason": self.override_reason,
@@ -237,11 +228,6 @@ class SignTemplateGenerate(models.TransientModel):
     def generate(self):
         self.ensure_one()
         self._refresh_usl_journey()
-        if self.approval_recommended:
-            msg = "This decision does not need a signed PDF. Request a business decision instead."
-            raise ValidationError(
-                msg,
-            )
         if self.formal_qes_required and self.requested_trust != "qualified_external":
             msg = "A formal QES requirement cannot be overridden."
             raise ValidationError(msg)
@@ -263,11 +249,6 @@ class SignTemplateGenerate(models.TransientModel):
         }
 
     def action_request_approval(self):
-        self.ensure_one()
-        action = self.env["ir.actions.actions"]._for_xml_id("usl_sign.sign_start_action")
-        action["context"] = {
-            "default_request_type": "decision",
-            "default_name": self.template_id.name,
-            "default_company_id": self.company_id.id,
-        }
-        return action
+        raise AccessError(
+            "Internal Decision requests are not part of the document-signing product.",
+        )
