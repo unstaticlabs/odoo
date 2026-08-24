@@ -152,10 +152,18 @@ if any(trip_products.product_tmpl_id.mapped("active")):
 canada_batch = env["usl.expense.batch"].sudo().search([
     ("name", "=", "SBFH — Canada 2026"),
 ], limit=1)
-if not canada_batch or canada_batch.expense_count != 20:
-    raise RuntimeError("The final Canada Expense Batch does not contain 20 expenses.")
+if not canada_batch or canada_batch.expense_count != 19:
+    raise RuntimeError("The final Canada Expense Batch does not contain 19 expenses.")
 if canada_batch.exception_count:
     raise RuntimeError("The final Canada Expense Batch has false context exceptions.")
+ambiguous_expense = canada_batch.expense_ids.filtered(
+    lambda expense: (
+        expense.name == "Zen Kyoto — Canada 2026 — 18,08 CAD / 11,18 EUR"
+        and expense.product_id.default_code == "CA26"
+    ),
+)
+if len(ambiguous_expense) != 1:
+    raise RuntimeError("The ambiguous Canada expense was not preserved for review.")
 if any(
     expense.account_context_source != "batch"
     or expense.analytic_context_source != "batch"
@@ -182,6 +190,7 @@ summary = {
     "expense_batch_transition": {
         "canada_expenses": canada_batch.expense_count,
         "canada_exceptions": canada_batch.exception_count,
+        "ambiguous_canada_expenses": len(ambiguous_expense),
         "trip_products_archived": len(trip_products),
     },
 }

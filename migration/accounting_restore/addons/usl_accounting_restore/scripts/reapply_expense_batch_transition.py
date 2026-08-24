@@ -16,6 +16,12 @@ trip_products = env["product.product"].sudo().with_context(active_test=False).se
 canada_batch = env["usl.expense.batch"].sudo().search([
     ("name", "=", "SBFH — Canada 2026"),
 ], limit=1)
+ambiguous_expense = canada_batch.expense_ids.filtered(
+    lambda expense: (
+        expense.name == "Zen Kyoto — Canada 2026 — 18,08 CAD / 11,18 EUR"
+        and expense.product_id.default_code == "CA26"
+    ),
+)
 
 checks = {
     "repair_changes_only_product_activity": (
@@ -38,8 +44,9 @@ checks = {
         and not any(trip_products.product_tmpl_id.mapped("active"))
     ),
     "canada_batch_preserved": (
-        canada_batch.expense_count == 20
+        canada_batch.expense_count == 19
         and canada_batch.exception_count == 0
+        and len(ambiguous_expense) == 1
         and len(canada_batch.message_ids.filtered(
             lambda message: "Canada draft transition prepared" in (message.body or ""),
         )) == 1

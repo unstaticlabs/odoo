@@ -3792,6 +3792,17 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                   AND expense.date BETWEEN DATE '2024-01-10'
                                        AND source_end.date_to
             ),
+            'source_canada_draft_expense_count', (
+                SELECT count(*)
+                FROM hr_expense expense
+                JOIN product_product product
+                  ON product.id = expense.product_id
+                WHERE expense.company_id = 1
+                  AND expense.state = 'draft'
+                  AND product.default_code = 'CA26'
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
+            ),
             'source_expense_split_count', (
                 SELECT count(*)
                 FROM hr_expense expense
@@ -4169,6 +4180,9 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "source_move_count": source_profile["source_move_count"],
         "imported_move_line_count": source_profile["source_move_line_count"],
         "source_expense_count": source_profile["source_expense_count"],
+        "source_canada_draft_expense_count": source_profile[
+            "source_canada_draft_expense_count"
+        ],
         "source_asset_count": source_profile["source_asset_count"],
         "source_posted_asset_move_count": (
             source_profile["source_posted_asset_move_count"]
@@ -4180,6 +4194,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         for key, expected_value in expected.items()
         if key not in {
             "source_expense_count",
+            "source_canada_draft_expense_count",
             "source_asset_count",
             "source_posted_asset_move_count",
         }
@@ -4246,13 +4261,31 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
     )
     transition = payload["expense_batch_transition"]
     transition_rerun = payload["expense_batch_transition_rerun"]
+    source_canada_draft_count = source_profile[
+        "source_canada_draft_expense_count"
+    ]
+    expected_ambiguous = [{
+        "name": "Zen Kyoto — Canada 2026 — 18,08 CAD / 11,18 EUR",
+        "reason": "description_not_confidently_mapped",
+    }]
+    actual_ambiguous = [
+        {
+            "name": example["name"],
+            "reason": example["reason"],
+        }
+        for example in transition["ambiguous_examples"]
+    ]
     checks["expense_batch_transition_matches"] = (
-        transition["candidate_draft_count"] == 20
-        and transition["reclassified_expense_count"] == 20
+        transition["candidate_draft_count"] == source_canada_draft_count
+        and transition["reclassified_expense_count"]
+        == source_canada_draft_count - len(expected_ambiguous)
         and transition["created_batch_count"] == 1
-        and transition["batched_expense_count"] == 20
+        and transition["batched_expense_count"] == source_canada_draft_count
+        and transition["newly_batched_expense_count"]
+        == source_canada_draft_count
         and transition["incomplete_expense_count"] == 4
-        and transition["ambiguous_count"] == 0
+        and transition["ambiguous_count"] == len(expected_ambiguous)
+        and actual_ambiguous == expected_ambiguous
         and transition["archived_trip_product_count"] == 4
         and transition["archived_trip_product_codes"]
         == ["AUS26", "BCN2602", "CA26", "LPASUM26"]

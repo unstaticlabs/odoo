@@ -173,7 +173,9 @@ drafts, applies `625600 Missions`, `Projet: SBFH prod` and
 `Epic: Canada 2026`, and maps only unambiguous descriptions to reusable
 Transport/Accommodation, Foreign Meals or non-recoverable-VAT Gifts Products.
 Ambiguous drafts stay on their original Product for review. Missing-receipt
-lines remain incomplete and nothing is submitted.
+lines remain incomplete and nothing is submitted. In the authoritative source
+dump, this yields 19 inherited Canada drafts: 18 deterministic category mappings
+and one unchanged Zen Kyoto Product classification for review.
 
 The four proven trip Products (`AUS26`, `CA26`, `LPASUM26`, `BCN2602`) are
 archived after the transition. Existing history keeps displaying them. The
