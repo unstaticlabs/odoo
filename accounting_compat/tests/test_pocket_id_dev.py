@@ -203,9 +203,9 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             encoding="utf-8",
         )
         ordered_steps = [
-            "scripts/accounting-compat dev-reset",
-            "scripts/accounting-compat dev-import",
-            "scripts/accounting-compat dev-validate",
+            'run_stage "reset target database" scripts/accounting-compat dev-reset',
+            'run_stage "import accounting" scripts/accounting-compat dev-import',
+            'run_stage "validate accounting" scripts/accounting-compat dev-validate',
             "scripts/project-restore all",
             "scripts/tese-restore all",
             "scripts/platform-billing-restore all",
