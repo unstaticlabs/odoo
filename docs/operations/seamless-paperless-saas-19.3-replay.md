@@ -26,7 +26,9 @@ Its product intent is replayed as eight ordered commits:
 Follow-up commits correct replay-specific integration defects without changing
 the feature boundary: migration-stage ordering, saas~19.3 attachment binary
 access, isolated recovery validation, and Trash ownership handoff from the
-temporary migration identity to the runtime integration identity.
+temporary migration identity to the runtime integration identity. Repeated
+finalization also initializes its installed-only module arrays explicitly for
+the Bash version shipped by the remote Mac.
 
 ## Conflict-resolution decision
 

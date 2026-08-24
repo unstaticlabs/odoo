@@ -256,6 +256,11 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         )
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
+        self.assertIn(
+            "local -a init_modules=() requested_modules=() "
+            "update_modules=() module_args=()",
+            script,
+        )
         self.assertIn('module_args+=("--init=', script)
         self.assertIn('module_args+=("--update=', script)
         self.assertIn("SELECT state FROM ir_module_module", script)
