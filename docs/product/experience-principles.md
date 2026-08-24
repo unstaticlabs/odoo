@@ -19,6 +19,15 @@ Activities must not become a queue of work that an authorized agent can complete
 
 The system should infer or establish sensible policies rather than expose unnecessary configuration choices. Important evidence and consequences appear first; deeper detail remains available through progressive disclosure.
 
+### Focused application launcher
+
+The Distribution launcher emphasizes the operational products USL expects
+people to enter directly. Discussion, To-do, generic Dashboards and Apps remain
+installed for framework compatibility and may still be reached from an
+intentional workflow, but they are not launcher destinations. This applies to
+administrators and debug mode as well as ordinary internal users; technical
+access must not silently turn the launcher back into a module catalogue.
+
 ## Sparse signals
 
 Chatter, urgency, warnings and notifications must remain high-signal. Success messages should not create work. Warnings must identify the affected object, consequence and next action.
