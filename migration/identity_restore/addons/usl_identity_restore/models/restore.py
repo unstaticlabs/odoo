@@ -180,6 +180,30 @@ class UslIdentityRestoreRun(models.Model):
     finished_at = fields.Datetime()
     statistics_json = fields.Json(readonly=True)
 
+    def _create_restored_user(self, values):
+        """Create a source user without retaining target onboarding todos."""
+        task_model = (
+            self.env["project.task"]
+            if "project.task" in self.env.registry
+            else False
+        )
+        task_ids_before = (
+            set(task_model.sudo().search([]).ids)
+            if task_model is not False
+            else set()
+        )
+        user = (
+            self.env["res.users"]
+            .sudo()
+            .with_context(no_reset_password=True)
+            .create(values)
+        )
+        if task_model is not False:
+            task_model.sudo().search(
+                [("id", "not in", list(task_ids_before) or [0])],
+            ).unlink()
+        return user
+
     def _trace_values(self, model, source_id):
         return {
             "rebuild_source_database": self.source_database,
@@ -489,7 +513,11 @@ class UslIdentityRestoreRun(models.Model):
                 self._claim_trace(user, "res.users", row["id"])
                 user.sudo().with_context(no_reset_password=True).write(values)
             else:
-                user = self.env["res.users"].sudo().with_context(no_reset_password=True).create(values)
+                # project_todo creates a personal welcome task whenever an
+                # internal user is created.  That is useful for a new Odoo
+                # database, but it is not source business data and would make
+                # a reconstructed target diverge once per restored user.
+                user = self._create_restored_user(values)
             users[row["id"]] = user
 
         group_equivalents = {

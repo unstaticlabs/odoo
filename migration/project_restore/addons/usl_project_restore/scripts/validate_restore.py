@@ -283,6 +283,9 @@ for row in source["follower_subtype_rel"]:
 
 assert len(project_map) == len(source["projects"])
 assert len(task_map) == len(source["tasks"])
+assert env["project.task"].with_context(active_test=False).sudo().search_count([]) == len(
+    source["tasks"],
+), "Target-only Project tasks remain after reconstruction."
 assert len(message_map) == len(source["messages"])
 assert len(tracking_map) == len(source["tracking_values"])
 assert len(activity_map) == len(source["activities"])

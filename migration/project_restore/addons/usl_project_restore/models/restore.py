@@ -867,7 +867,10 @@ class UslProjectRestoreRun(models.Model):
                 "usl_source_task_properties": row["task_properties"] or {},
                 "description": row["description"],
                 "active": row["active"],
-                "recurring_task": bool(row["recurring_task"]),
+                # Link recurrence after creation.  Creating an already closed
+                # recurring task invokes Odoo's live inverse and generates a
+                # new occurrence that does not exist in the source snapshot.
+                "recurring_task": False,
                 "is_template": bool(row["is_template"]),
                 "date_end": row["date_end"],
                 "date_assign": row["date_assign"],
@@ -878,11 +881,6 @@ class UslProjectRestoreRun(models.Model):
                 "milestone_id": (
                     milestones.get(row["milestone_id"]).id
                     if milestones.get(row["milestone_id"])
-                    else False
-                ),
-                "recurrence_id": (
-                    recurrences.get(row["recurrence_id"]).id
-                    if recurrences.get(row["recurrence_id"])
                     else False
                 ),
                 "user_ids": [Command.set(task_users[row["id"]])],
@@ -897,6 +895,17 @@ class UslProjectRestoreRun(models.Model):
             )
             tasks[row["id"]] = record
             self._stamp_audit("project.task", record, row, users)
+
+        for row in payload["tasks"]:
+            task = tasks.get(row["id"])
+            recurrence = recurrences.get(row["recurrence_id"])
+            if task and row["recurring_task"]:
+                task.with_context(tracking_disable=True).write(
+                    {
+                        "recurring_task": True,
+                        "recurrence_id": recurrence.id if recurrence else False,
+                    },
+                )
 
         for row in payload["tasks"]:
             task = tasks.get(row["id"])

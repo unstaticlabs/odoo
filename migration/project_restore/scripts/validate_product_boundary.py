@@ -40,7 +40,7 @@ if loaded_forbidden_models:
     )
 
 business_models = {
-    "hr.contract.type",
+    "hr.employee.type",
     "hr.department",
     "hr.departure.reason",
     "hr.job",

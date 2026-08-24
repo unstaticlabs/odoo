@@ -537,6 +537,59 @@ class TestProjectRestore(TransactionCase):
             1,
         )
 
+    def test_closed_recurrence_does_not_generate_target_only_task(self):
+        payload = self._payload()
+        recurrence_id = 9020
+        payload["recurrences"] = [
+            {
+                "id": recurrence_id,
+                "repeat_interval": 1,
+                "repeat_unit": "month",
+                "repeat_type": "forever",
+                "repeat_until": None,
+                "create_uid": self.source_user_id,
+                "write_uid": self.source_user_id,
+                "create_date": datetime(2026, 8, 1, 10),
+                "write_date": datetime(2026, 8, 1, 10),
+            },
+        ]
+        payload["tasks"][0].update(
+            {
+                "recurrence_id": recurrence_id,
+                "recurring_task": True,
+                "state": "1_done",
+            },
+        )
+        payload["counts"].update(
+            {
+                "recurrences": 1,
+                "task_recurrence_links": 1,
+            },
+        )
+
+        first = self._run(deepcopy(payload))
+        self.assertEqual(
+            first.status,
+            "passed",
+            first.issue_ids.mapped("description"),
+        )
+        source_tasks = self.env["project.task"].with_context(
+            active_test=False,
+        ).search(
+            [
+                ("rebuild_source_model", "=", "project.task"),
+                ("rebuild_source_snapshot", "=", "test_snapshot"),
+            ],
+        )
+        self.assertEqual(len(source_tasks), 2)
+        recurring = source_tasks.filtered("recurring_task")
+        self.assertEqual(len(recurring), 1)
+        self.assertEqual(recurring.recurrence_id.task_ids, recurring)
+
+        second = self._run(deepcopy(payload))
+        self.assertEqual(second.status, "passed")
+        self.assertEqual(recurring.recurrence_id.task_ids, recurring)
+
     def test_private_project_respects_native_record_rules(self):
         payload = self._payload()
         self._run(payload)
