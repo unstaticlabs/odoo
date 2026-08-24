@@ -28,6 +28,8 @@ from ..services import (
     DSSServiceError,
     DSSUnavailableError,
     OpenTimestampsUnavailableError,
+    field_content,
+    field_value,
 )
 
 
@@ -217,7 +219,7 @@ class TestCleanUslSign(TransactionCase):
             }
         request_values = {
             "name": "Clean Sign request",
-            "data": base64.b64encode(self.pdf),
+            "data": field_value(self.pdf),
             "filename": "clean-request.pdf",
             "company_id": self.company.id,
             "user_id": self.env.user.id,
@@ -302,7 +304,7 @@ class TestCleanUslSign(TransactionCase):
                     "request_id": request.id,
                     "name": "Malformed PDF",
                     "filename": "malformed.pdf",
-                    "data": base64.b64encode(stream.getvalue()),
+                    "data": field_value(stream.getvalue()),
                 },
             )
 
@@ -311,7 +313,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "name": "Guided Standard template",
                 "filename": "guided.pdf",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
                 "company_id": self.company.id,
                 "policy_id": self.policy.id,
             },
@@ -367,7 +369,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "name": "Typed editor template",
                 "filename": "typed.pdf",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
                 "company_id": self.company.id,
             },
         )
@@ -393,7 +395,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "name": "Command editor template",
                 "filename": "commands.pdf",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
                 "company_id": self.company.id,
             },
         )
@@ -437,7 +439,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "name": "Validated editor template",
                 "filename": "validated.pdf",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
                 "company_id": self.company.id,
             },
         )
@@ -517,7 +519,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "name": "Other-company template",
                 "filename": "other.pdf",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
                 "company_id": other_company.id,
             },
         )
@@ -577,12 +579,12 @@ class TestCleanUslSign(TransactionCase):
         request.with_user(self.override_user).action_mark_ready()
         self.assertEqual(request.state, "ready")
 
-    def test_internal_decision_guides_to_attributable_odoo_approval(self):
+    def test_every_sign_request_requires_a_signed_document(self):
         request = self._request(
             document_category="internal_decision", requires_signed_pdf=False,
         )
-        self.assertTrue(request.approval_recommended)
-        with self.assertRaisesRegex(ValidationError, "business decision instead"):
+        self.assertFalse(request.approval_recommended)
+        with self.assertRaisesRegex(ValidationError, "must produce a signed PDF"):
             request.action_mark_ready()
 
     def test_freeze_is_deterministic_and_sent_content_is_immutable(self):
@@ -590,7 +592,7 @@ class TestCleanUslSign(TransactionCase):
         request._freeze_document()
         self.assertEqual(
             request.original_sha256,
-            hashlib.sha256(base64.b64decode(request.original_data)).hexdigest(),
+            hashlib.sha256(field_content(request.original_data)).hexdigest(),
         )
         self.assertEqual(request.page_map[0]["sha256"], request.document_ids.source_sha256)
         self.assertEqual(
@@ -601,7 +603,7 @@ class TestCleanUslSign(TransactionCase):
         self.assertTrue(request.consent_text_snapshot)
         request._transition("sent", "request_sent")
         with self.assertRaises(ValidationError):
-            request.write({"data": base64.b64encode(self.pdf + b"changed")})
+            request.write({"data": field_value(self.pdf + b"changed")})
         with self.assertRaises(ValidationError):
             request.signer_ids.write({"role_id": self.role_employee.id})
 
@@ -641,7 +643,7 @@ class TestCleanUslSign(TransactionCase):
                     "request_id": request.id,
                     "kind": "validation",
                     "name": "forged.json",
-                    "data": base64.b64encode(b"forged"),
+                    "data": field_value(b"forged"),
                     "mimetype": "application/json",
                 },
             )
@@ -808,7 +810,7 @@ class TestCleanUslSign(TransactionCase):
                 items,
                 access_token="first-session",
                 document_sha256=hashlib.sha256(
-                    base64.b64decode(request.data),
+                    field_content(request.data),
                 ).hexdigest(),
                 consent=True,
             )
@@ -887,7 +889,7 @@ class TestCleanUslSign(TransactionCase):
         template = self.env["sign.oca.template"].create(
             {
                 "name": "Versioned clean template",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
                 "filename": "versioned.pdf",
                 "company_id": self.company.id,
                 "policy_id": self.policy.id,
@@ -929,7 +931,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "name": "Browser upload hash regression",
                 "filename": "browser-upload.pdf",
-                "data": base64.b64encode(self.pdf),
+                "data": field_value(self.pdf),
             },
         )
         self.assertEqual(
@@ -962,9 +964,9 @@ class TestCleanUslSign(TransactionCase):
         journey = request.external_journey_id
         journey.with_context(usl_sign_external_transition=INTERNAL_OPERATION).write(
             {
-                "imported_pdf": base64.b64encode(self.pdf),
+                "imported_pdf": field_value(self.pdf),
                 "imported_filename": "signed.pdf",
-                "proof_package": base64.b64encode(b"provider proof"),
+                "proof_package": field_value(b"provider proof"),
                 "proof_filename": "proof.bin",
                 "state": "imported",
                 "imported_sha256": hashlib.sha256(self.pdf).hexdigest(),
@@ -1041,9 +1043,9 @@ class TestCleanUslSign(TransactionCase):
         wizard = self.env["usl.sign.external.import.wizard"].create(
             {
                 "journey_id": journey.id,
-                "signed_pdf": base64.b64encode(self.pdf),
+                "signed_pdf": field_value(self.pdf),
                 "signed_filename": "qualified-signed.pdf",
-                "proof_package": base64.b64encode(b"external proof package"),
+                "proof_package": field_value(b"external proof package"),
                 "proof_filename": "qualified-proof.zip",
             },
         )
@@ -1074,9 +1076,9 @@ class TestCleanUslSign(TransactionCase):
         journey = request.external_journey_id
         journey.with_context(usl_sign_external_transition=INTERNAL_OPERATION).write(
             {
-                "imported_pdf": base64.b64encode(self.pdf),
+                "imported_pdf": field_value(self.pdf),
                 "imported_filename": "signed.pdf",
-                "proof_package": base64.b64encode(b"provider proof"),
+                "proof_package": field_value(b"provider proof"),
                 "proof_filename": "proof.zip",
                 "state": "imported",
                 "imported_sha256": hashlib.sha256(self.pdf).hexdigest(),
@@ -1307,7 +1309,7 @@ class TestCleanUslSign(TransactionCase):
                 "request_id": sign_request.id,
                 "signer_id": signer.id,
                 "enrollment_id": enrollment.id,
-                "challenge": base64.b64encode(b"binding"),
+                "challenge": field_value(b"binding"),
                 "challenge_sha256": hashlib.sha256(b"binding").hexdigest(),
                 "document_sha256": hashlib.sha256(self.pdf).hexdigest(),
                 "consent_sha256": hashlib.sha256(b"consent").hexdigest(),
@@ -1346,159 +1348,69 @@ class TestCleanUslSign(TransactionCase):
             "strong_signature_attempt_cancelled",
         )
 
-    def test_decision_proof_is_attributable_validated_and_archived(self):
-        approval = self.env["usl.sign.approval"].create(
-            {
-                "name": "Approve routine internal decision",
-                "record_ref": f"res.partner,{self.partner_one.id}",
-                "approver_ids": [(6, 0, [self.sign_user.id])],
-                "policy_version": "2026.1",
-            },
+    def test_decisions_are_not_loaded_into_the_product_registry(self):
+        self.assertNotIn("usl.sign.approval", self.env.registry)
+        self.assertNotIn("usl.sign.approval.event", self.env.registry)
+        self.assertFalse(
+            self.env.ref("usl_sign.completed_decisions_action", raise_if_not_found=False),
         )
-        archived = self.env["usl.document"].sudo().create(
-            {
-                "name": "Decision proof",
-                "paperless_id": 990002,
-                "company_id": self.company.id,
-                "confidentiality": "private",
-                "availability_state": "available",
-                "source": "odoo_generated",
-            },
+
+    def test_document_navigation_and_retrieval_views_match_the_product_boundary(self):
+        expected = [
+            ("usl_sign.sign_dashboard_menu", "Sign Dashboard", "sign_oca.sign_oca_root_menu"),
+            ("usl_sign.request_signature_menu", "Request Signature", "sign_oca.sign_oca_root_menu"),
+            ("usl_sign.request_signature_templates_menu", "Templates", "usl_sign.request_signature_menu"),
+            ("usl_sign.request_signature_open_menu", "Open Requests", "usl_sign.request_signature_menu"),
+            ("usl_sign.request_signature_completed_menu", "Completed", "usl_sign.request_signature_menu"),
+            ("usl_sign.my_signatures_menu", "My Signatures", "sign_oca.sign_oca_root_menu"),
+        ]
+        for xml_id, name, parent_xml_id in expected:
+            menu = self.env.ref(xml_id)
+            self.assertTrue(menu.active)
+            self.assertEqual(menu.name, name)
+            self.assertEqual(menu.parent_id, self.env.ref(parent_xml_id))
+        self.assertFalse(
+            self.env.ref("usl_sign.sign_library_menu", raise_if_not_found=False),
         )
-        approval.action_send()
-        with (
-            patch.object(
-                type(self.env["sign.oca.request"]),
-                "_sign_dss_client",
-                return_value=FakeDSS(),
-            ),
-            patch.object(
-                type(self.env["usl.document"]),
-                "upload_from_odoo",
-                autospec=True,
-                return_value={"state": "duplicate", "document_id": archived.id},
-            ),
-        ):
-            approval.with_user(self.sign_user)._record_response(
-                "rejected",
-                "Business owner declined.",
-            )
-        self.assertEqual(approval.state, "completed")
-        self.assertEqual(approval.outcome, "rejected")
-        self.assertEqual(approval.outcome_by_id, self.sign_user)
-        self.assertEqual(approval.proof_status, "valid")
-        self.assertEqual(approval.archive_status, "archived")
-        self.assertTrue(approval.receipt_sha256)
-        approval.event_ids.verify_chain()
+        self.assertNotIn("request_type", self.env["usl.sign.start"]._fields)
+        landing = self.env["usl.sign.workspace"].with_user(self.sign_user).get_landing()
         self.assertEqual(
-            approval.event_ids.mapped("event_type"),
-            [
-                "created",
-                "sent",
-                "rejected",
-                "outcome_recorded",
-                "proof_validated",
-                "archive_queued",
-                "completed",
-            ],
+            set(landing["sections"]),
+            {"sign_now", "prepare", "issues", "waiting", "completed"},
         )
-        class Tomorrow(datetime):
-            @classmethod
-            def now(cls, tz=None):
-                tomorrow = datetime.now(UTC) + timedelta(days=1)
-                return tomorrow if tz else tomorrow.replace(tzinfo=None)
 
-        with (
-            patch("odoo.addons.usl_sign.models.daily_manifest.datetime", Tomorrow),
-            patch(
-                "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
-                return_value=FakeDSS(),
-            ),
-        ):
-            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
-                self.company,
-                fields.Date.today(),
-            )
-        entry = manifest.entry_ids.filtered(lambda item: item.approval_id == approval)
-        self.assertEqual(entry.record_type, "decision")
-        self.assertEqual(entry.decision_outcome, "rejected")
-        self.assertEqual(entry.decision_receipt_sha256, approval.receipt_sha256)
+        my_signatures = self.env.ref("usl_sign.my_signatures_action")
+        self.assertNotIn("search_default", my_signatures.context or "")
+        search_arch = self.env.ref("usl_sign.my_signature_search_usl").arch
+        for filter_name in [
+            "to_sign",
+            "waiting_turn",
+            "signed_by_me",
+            "completed",
+            "closed",
+            "group_sender",
+            "group_due",
+        ]:
+            self.assertIn(f'name="{filter_name}"', search_arch)
+
+    def test_configuration_guidance_uses_business_facing_role_and_capability_copy(self):
+        role_labels = dict(
+            self.env["sign.oca.role"]._fields[
+                "partner_selection_policy"
+            ]._description_selection(self.env),
+        )
+        self.assertEqual(role_labels["empty"], "Choose for each request")
+        self.assertEqual(role_labels["default"], "Preselect one person")
+        self.assertEqual(role_labels["expression"], "Use the linked business record")
+        self.assertFalse(self.env.ref("sign_oca.sign_oca_field_menu").active)
         self.assertEqual(
-            entry.decision_manifest_sha256,
-            approval.signed_manifest_sha256,
+            self.env.ref("usl_sign.sign_service_status_action").name,
+            "Signing Readiness",
         )
-        with self.assertRaises(AccessError):
-            approval.event_ids[-1].write({"reason": "changed"})
-        with self.assertRaises(AccessError):
-            approval.unlink()
-
-    def test_sign_user_creates_and_reassigns_protected_decision_responses(self):
-        approval = self.env["usl.sign.approval"].with_user(self.sign_user).create(
-            {
-                "name": "Review synthetic supplier onboarding",
-                "record_ref": f"res.partner,{self.partner_one.id}",
-                "approver_ids": [(6, 0, [self.sign_user.id])],
-            },
-        )
-        self.assertEqual(approval.response_ids.user_id, self.sign_user)
-
-        approval.with_user(self.sign_user).write(
-            {"approver_ids": [(6, 0, [self.sign_admin.id])]},
-        )
-        self.assertEqual(approval.response_ids.user_id, self.sign_admin)
-        with self.assertRaisesRegex(AccessError, "created with the request"):
-            self.env["usl.sign.approval.response"].with_user(
-                self.sign_user,
-            ).create(
-                {"approval_id": approval.id, "user_id": self.sign_user.id},
-            )
-
-    def test_decision_maker_reconciles_service_owned_archive_operation(self):
-        approval = self.env["usl.sign.approval"].with_user(self.sign_user).create(
-            {
-                "name": "Archive a synthetic decision proof",
-                "record_ref": f"res.partner,{self.partner_one.id}",
-                "approver_ids": [(6, 0, [self.sign_user.id])],
-            },
-        )
-        document = self.env["usl.document"].sudo().create(
-            {
-                "name": "Archived decision proof",
-                "paperless_id": 990003,
-                "company_id": self.company.id,
-                "confidentiality": "private",
-                "availability_state": "available",
-                "source": "odoo_generated",
-            },
-        )
-        operation = self.env["usl.document.operation"].sudo().create(
-            {
-                "name": "Archive decision proof",
-                "state": "archived",
-                "checksum": "a" * 64,
-                "mime_type": "application/pdf",
-                "company_id": self.company.id,
-                "confidentiality": "private",
-                "document_id": document.id,
-                "source": "odoo_generated",
-            },
-        )
-        approval.sudo()._operational_write(
-            {
-                "state": "finalizing",
-                "outcome": "approved",
-                "proof_status": "valid",
-                "archive_status": "processing",
-                "archive_operation_id": operation.id,
-                "receipt_sha256": "b" * 64,
-            },
-        )
-
-        approval.with_user(self.sign_user)._reconcile_archive()
-
-        self.assertEqual(approval.state, "completed")
-        self.assertEqual(approval.archive_status, "archived")
-        self.assertEqual(approval.archive_document_id, document)
+        health = self.env["usl.sign.service.health"]._ensure_company(self.company)
+        self.assertTrue(all(health.mapped("purpose")))
+        self.assertTrue(all(health.mapped("checks")))
+        self.assertTrue(health.filtered(lambda row: row.code == "rfc3161").is_optional)
 
     def test_service_status_reports_ready_missing_and_partial_capabilities(self):
         health = self.env["usl.sign.service.health"]._ensure_company(self.company)
@@ -1648,7 +1560,7 @@ class TestCleanUslSign(TransactionCase):
             manifest.entry_ids.chain_head_hash,
             manifest.entry_ids.event_hash,
         )
-        raw = base64.b64decode(manifest.payload)
+        raw = field_content(manifest.payload)
         self.assertEqual(manifest.payload_sha256, hashlib.sha256(raw).hexdigest())
 
         request._append_event(
@@ -1839,7 +1751,7 @@ class TestCleanUslSign(TransactionCase):
         dossier = _pdf()
         manifest._operational_write(
             {
-                "proof_dossier": base64.b64encode(dossier),
+                "proof_dossier": field_value(dossier),
                 "proof_dossier_sha256": hashlib.sha256(dossier).hexdigest(),
             },
         )
@@ -1870,7 +1782,7 @@ class TestCleanUslSign(TransactionCase):
             {
                 "anchoring_status": "confirmed",
                 "confirmed_at": fields.Datetime.now(),
-                "verification_report": base64.b64encode(b"{}"),
+                "verification_report": field_value(b"{}"),
                 "verification_report_sha256": hashlib.sha256(b"{}").hexdigest(),
                 "archive_status": "archived",
             },

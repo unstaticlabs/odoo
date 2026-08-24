@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server saas~19.2\n"
+"Project-Id-Version: Odoo Server saas~19.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-08-06 04:10+0000\n"
-"PO-Revision-Date: 2026-08-05 00:00+0000\n"
+"PO-Revision-Date: 2026-08-24 00:00+0000\n"
 "Last-Translator: Unstatic Labs\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -38,12 +38,6 @@ msgstr "État de l’archivage"
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__archived
 msgid "Archived"
 msgstr "Archivé"
-
-#. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
-msgid "Business decisions waiting for you"
-msgstr "Décisions qui attendent votre réponse"
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__cancelled
@@ -118,12 +112,6 @@ msgstr "Terminée ou clôturée"
 #: code:addons/usl_sign/models/request.py:0
 msgid "Create a replacement request if signatures are still needed."
 msgstr "Créez une nouvelle demande si les signatures sont toujours nécessaires."
-
-#. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
-msgid "Decide"
-msgstr "À décider"
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__declined
@@ -259,13 +247,6 @@ msgstr "La validation indépendante des signatures est en cours."
 #: code:addons/usl_sign/models/request.py:0
 msgid "Inspect validation evidence and create a replacement request."
 msgstr "Examinez les preuves de validation et créez une nouvelle demande."
-
-#. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/xml/workspace.xml:0
-#: model:ir.ui.menu,name:usl_sign.sign_library_menu
-msgid "Library"
-msgstr "Bibliothèque"
 
 #. module: usl_sign
 #: model:ir.actions.act_window,name:usl_sign.my_signatures_action
@@ -435,12 +416,6 @@ msgid "Reusable templates and trusted completed documents."
 msgstr "Modèles réutilisables et documents terminés fiables."
 
 #. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/xml/workspace.xml:0
-msgid "Search the library"
-msgstr "Rechercher dans la bibliothèque"
-
-#. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__authentication_method__secure_link
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__authentication_method__secure_link
 #: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__default_authentication__secure_link
@@ -474,12 +449,6 @@ msgstr "État des services"
 #: code:addons/usl_sign/static/src/js/workspace.esm.js:0
 msgid "Sign now"
 msgstr "À signer"
-
-#. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/xml/workspace.xml:0
-msgid "Sign, decide, prepare, or retrieve trusted documents."
-msgstr "Signez, décidez, préparez ou retrouvez des documents fiables."
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__signed_to_import
@@ -762,19 +731,9 @@ msgid "What do you need?"
 msgstr "Que souhaitez-vous faire ?"
 
 #. module: usl_sign
-#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
-msgid "Choose a decision when an approval is enough. Choose signatures when the PDF itself must be signed."
-msgstr "Choisissez une décision si une approbation suffit. Choisissez la signature si le PDF doit être signé."
-
-#. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__request_type__signature
 msgid "Request document signatures"
 msgstr "Demander des signatures sur un document"
-
-#. module: usl_sign
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__request_type__decision
-msgid "Request a business decision"
-msgstr "Demander une décision métier"
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__signature_source__template
@@ -1797,3 +1756,159 @@ msgstr "L’heure du bloc Bitcoin vérifié est mal formée."
 #. module: usl_sign
 msgid "The verified Bitcoin block time has no UTC offset."
 msgstr "L’heure du bloc Bitcoin vérifié n’indique pas de décalage UTC."
+
+#. module: usl_sign
+msgid "Document signing"
+msgstr "Signature de documents"
+
+#. module: usl_sign
+msgid "Sign Dashboard"
+msgstr "Tableau de bord"
+
+#. module: usl_sign
+msgid "Request Signature"
+msgstr "Demander une signature"
+
+#. module: usl_sign
+msgid "Signing Readiness"
+msgstr "État des services de signature"
+
+#. module: usl_sign
+msgid "Signer Roles"
+msgstr "Rôles de signataire"
+
+#. module: usl_sign
+msgid "Role name"
+msgstr "Nom du rôle"
+
+#. module: usl_sign
+msgid "Signer selection"
+msgstr "Choix du signataire"
+
+#. module: usl_sign
+msgid "Choose for each request"
+msgstr "Choisir pour chaque demande"
+
+#. module: usl_sign
+msgid "Preselect one person"
+msgstr "Présélectionner une personne"
+
+#. module: usl_sign
+msgid "Use linked business record"
+msgstr "Utiliser l’élément Odoo lié"
+
+#. module: usl_sign
+msgid "My Strong Identity"
+msgstr "Mon identité forte"
+
+#. module: usl_sign
+msgid "Trust Rules"
+msgstr "Règles de niveau de confiance"
+
+#. module: usl_sign
+msgid "Daily Timestamp Proofs"
+msgstr "Preuves d’antériorité quotidiennes"
+
+#. module: usl_sign
+msgid "Settings"
+msgstr "Paramètres"
+
+#. module: usl_sign
+msgid "Degraded"
+msgstr "Partiellement disponible"
+
+#. module: usl_sign
+msgid "Not configured"
+msgstr "Non configuré"
+
+#. module: usl_sign
+msgid "Unreachable"
+msgstr "Injoignable"
+
+#. module: usl_sign
+msgid "Check all capabilities"
+msgstr "Vérifier toutes les fonctions"
+
+#. module: usl_sign
+msgid "Check again"
+msgstr "Vérifier à nouveau"
+
+#. module: usl_sign
+msgid "Current result"
+msgstr "Résultat actuel"
+
+#. module: usl_sign
+msgid "What to do next"
+msgstr "Étape suivante"
+
+#. module: usl_sign
+msgid "What this check covers"
+msgstr "Éléments vérifiés"
+
+#. module: usl_sign
+msgid "Last check"
+msgstr "Dernière vérification"
+
+#. module: usl_sign
+msgid "Technical diagnostic"
+msgstr "Diagnostic technique"
+
+#. module: usl_sign
+msgid "Capability"
+msgstr "Fonction"
+
+#. module: usl_sign
+msgid "Needs attention"
+msgstr "À vérifier"
+
+#. module: usl_sign
+msgid "How is the signer chosen?"
+msgstr "Comment le signataire est-il choisi ?"
+
+#. module: usl_sign
+msgid "Advanced linked-record rule"
+msgstr "Règle avancée liée à un élément Odoo"
+
+#. module: usl_sign
+msgid "Person to preselect"
+msgstr "Personne à présélectionner"
+
+#. module: usl_sign
+msgid "Preselected person"
+msgstr "Personne présélectionnée"
+
+#. module: usl_sign
+msgid "Chosen for each request"
+msgstr "Choisi pour chaque demande"
+
+#. module: usl_sign
+msgid "Linked-record rule"
+msgstr "Règle liée à un élément Odoo"
+
+#. module: usl_sign
+msgid "No signing capability checks are available"
+msgstr "Aucune vérification des services de signature n’est disponible"
+
+#. module: usl_sign
+msgid "Capability checks are created automatically for each company. Ask a Sign administrator to verify the module installation."
+msgstr "Les vérifications sont créées automatiquement pour chaque société. Demandez à un administrateur Sign de contrôler l’installation du module."
+
+#. module: usl_sign
+msgid "The requester chooses the person for this role each time. This is the safest and most common option."
+msgstr "Le demandeur choisit la personne pour ce rôle à chaque demande. C’est l’option la plus sûre et la plus courante."
+
+#. module: usl_sign
+msgid "Use this only when the same person normally fills this role. The requester can still review the assignment."
+msgstr "Utilisez cette option uniquement si la même personne remplit habituellement ce rôle. Le demandeur peut toujours contrôler l’attribution."
+
+#. module: usl_sign
+msgid "This rule runs only when a supported Odoo record is linked. Test it with the intended record type before using the role in a ready template."
+msgstr "Cette règle fonctionne uniquement lorsqu’un élément Odoo compatible est lié. Testez-la avec le type d’élément prévu avant d’utiliser ce rôle dans un modèle prêt."
+
+#. module: usl_sign
+msgid "A reviewed Pocket ID identity link is required before you can use Strong personal signature. Pocket ID manages your passkeys and recovery."
+msgstr "Un lien d’identité Pocket ID contrôlé est requis avant d’utiliser la signature personnelle forte. Pocket ID gère vos passkeys et leur récupération."
+
+#. module: usl_sign
+msgid "<strong>A signer role is a place in a document, not an access group.</strong>\n                        Create simple reusable roles such as Client, Employee, or Company representative. The actual person is normally chosen when preparing a request."
+msgstr "<strong>Un rôle de signataire désigne une place dans un document, pas un groupe d’accès.</strong>\n                        Créez des rôles réutilisables simples, par exemple Client, Salarié ou Représentant de la société. La personne est normalement choisie lors de la préparation de la demande."

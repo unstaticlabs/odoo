@@ -13,6 +13,8 @@ from odoo.tests.common import (
 )
 from odoo.tools.pdf import PdfWriter
 
+from ..services import field_content, field_value
+
 
 @tagged("post_install", "-at_install")
 class TestSignBrowserJourneys(HttpCase):
@@ -89,7 +91,6 @@ class TestSignBrowserJourneys(HttpCase):
                 };
                 const expectedSections = [
                     "Sign now",
-                    "Decide",
                     "Prepare and send",
                     "Resolve issues",
                     "Waiting on others",
@@ -101,6 +102,20 @@ class TestSignBrowserJourneys(HttpCase):
                 );
                 if (JSON.stringify(sectionTitles) !== JSON.stringify(expectedSections)) {
                     throw new Error(`Unexpected journey sections: ${sectionTitles.join(", ")}`);
+                }
+                const scroller = document.querySelector(
+                    ".usl_sign_workspace > .o_content",
+                );
+                document.querySelector(
+                    ".usl_sign_workspace .container-xxl",
+                ).style.minHeight = "2000px";
+                if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
+                    throw new Error("The dashboard does not expose a scrollable content area.");
+                }
+                scroller.scrollTop = 120;
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+                if (scroller.scrollTop <= 0) {
+                    throw new Error("The dashboard content cannot be scrolled.");
                 }
                 const startButton = document.querySelector(
                     ".usl_sign_workspace header .btn-primary",
@@ -115,9 +130,7 @@ class TestSignBrowserJourneys(HttpCase):
                 );
                 const dialogText = dialog.textContent.replace(/\\s+/g, " ").trim();
                 for (const expected of [
-                    "What do you need?",
-                    "Request document signatures",
-                    "Request a business decision",
+                    "Request signatures",
                     "Use a template",
                     "Upload a PDF",
                 ]) {
@@ -128,7 +141,7 @@ class TestSignBrowserJourneys(HttpCase):
                 console.log("test successful");
             })();
             """,
-            ready="document.querySelectorAll('.usl_sign_work_card').length === 6",
+            ready="document.querySelectorAll('.usl_sign_work_card').length === 5",
             login=self.workspace_user.login,
             timeout=60,
         )
@@ -139,7 +152,7 @@ class TestSignBrowserJourneys(HttpCase):
             {
                 "name": "Browser routine agreement template",
                 "filename": "browser-routine-agreement.pdf",
-                "data": base64.b64encode(self._pdf()),
+                "data": field_value(self._pdf()),
                 "company_id": self.company.id,
                 "policy_id": self.env.ref("usl_sign.policy_routine_standard").id,
             },
@@ -178,11 +191,7 @@ class TestSignBrowserJourneys(HttpCase):
                     throw new Error(message);
                 }};
                 const setInputValue = (input, value) => {{
-                    const setter = Object.getOwnPropertyDescriptor(
-                        HTMLInputElement.prototype,
-                        "value",
-                    ).set;
-                    setter.call(input, value);
+                    input.value = value;
                     input.dispatchEvent(new InputEvent("input", {{
                         bubbles: true,
                         data: value,
@@ -331,7 +340,7 @@ class TestSignBrowserJourneys(HttpCase):
                 console.log("test successful");
             }})();
             """,
-            ready="document.querySelectorAll('.usl_sign_work_card').length === 6",
+            ready="document.querySelectorAll('.usl_sign_work_card').length === 5",
             login=self.workspace_user.login,
             timeout=90,
         )
@@ -379,17 +388,10 @@ class TestSignBrowserJourneys(HttpCase):
                     "The primary Upload PDF action is missing.",
                 );
                 if (!upload.classList.contains("btn-primary")) {
-                    throw new Error("Upload PDF is not the primary Library action.");
-                }
-                for (const label of ["Completed documents", "Decisions"]) {
-                    if (!Array.from(document.querySelectorAll("button")).some(
-                        (button) => button.textContent.trim() === label,
-                    )) {
-                        throw new Error(`The Library action is missing: ${label}`);
-                    }
+                    throw new Error("Upload PDF is not the primary Templates action.");
                 }
                 if (!document.querySelector(".o_kanban_renderer")) {
-                    throw new Error("Library is not using the native template kanban.");
+                    throw new Error("Templates is not using the native template kanban.");
                 }
                 console.log("test successful");
             })();
@@ -449,7 +451,7 @@ class TestSignBrowserJourneys(HttpCase):
         sign_request = self.env["sign.oca.request"].create(
             {
                 "name": "Material agreement",
-                "data": base64.b64encode(self._pdf()),
+                "data": field_value(self._pdf()),
                 "filename": "material-agreement.pdf",
                 "company_id": self.company.id,
                 "user_id": self.env.user.id,
@@ -628,7 +630,7 @@ class TestSignBrowserJourneys(HttpCase):
         sign_request = self.env["sign.oca.request"].create(
             {
                 "name": "Browser Standard-signature acceptance",
-                "data": base64.b64encode(self._pdf()),
+                "data": field_value(self._pdf()),
                 "filename": "browser-standard-signature.pdf",
                 "company_id": self.company.id,
                 "user_id": self.env.user.id,
@@ -935,7 +937,7 @@ class TestSignBrowserJourneys(HttpCase):
             lambda evidence: evidence.kind == "consent",
         )
         self.assertEqual(len(consent_evidence), 1)
-        consent_payload = json.loads(base64.b64decode(consent_evidence.data))
+        consent_payload = json.loads(field_content(consent_evidence.data))
         self.assertEqual(
             consent_payload["reviewed_document_sha256"],
             sign_request.original_sha256,

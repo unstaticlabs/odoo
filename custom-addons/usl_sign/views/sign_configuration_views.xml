@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_role_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.role.form.usl.guided</field>
+        <field name="model">sign.oca.role</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_role_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="replace">
+                <sheet>
+                    <div class="alert alert-info" role="status">
+                        <strong>A signer role is a place in a document, not an access group.</strong>
+                        Create simple reusable roles such as Client, Employee, or Company representative. The actual person is normally chosen when preparing a request.
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Role name"/>
+                        <h1><field name="name" placeholder="Example: Client"/></h1>
+                    </div>
+                    <group>
+                        <group string="How is the signer chosen?">
+                            <field name="partner_selection_policy" widget="radio" nolabel="1"/>
+                            <field name="default_partner_id" string="Person to preselect"
+                                invisible="partner_selection_policy != 'default'"
+                                required="partner_selection_policy == 'default'"
+                                options="{'no_create': true}"/>
+                            <div class="text-muted" invisible="partner_selection_policy != 'empty'">
+                                The requester chooses the person for this role each time. This is the safest and most common option.
+                            </div>
+                            <div class="text-muted" invisible="partner_selection_policy != 'default'">
+                                Use this only when the same person normally fills this role. The requester can still review the assignment.
+                            </div>
+                        </group>
+                        <group string="Advanced linked-record rule" groups="usl_sign.group_sign_admin">
+                            <field name="expression_partner" string="Partner expression"
+                                invisible="partner_selection_policy != 'expression'"
+                                required="partner_selection_policy == 'expression'"
+                                placeholder="{{object.partner_id.id}}"/>
+                            <div class="alert alert-warning" role="status" invisible="partner_selection_policy != 'expression'">
+                                This rule runs only when a supported Odoo record is linked. Test it with the intended record type before using the role in a ready template.
+                            </div>
+                        </group>
+                    </group>
+                    <field name="domain" invisible="1"/>
+                </sheet>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sign_role_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.role.list.usl.guided</field>
+        <field name="model">sign.oca.role</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_role_tree_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="replace">
+                <list string="Signer Roles">
+                    <field name="name" string="Role"/>
+                    <field name="partner_selection_policy" string="Signer selection"/>
+                    <field name="default_partner_id" string="Preselected person" optional="show"/>
+                </list>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sign_role_search_usl" model="ir.ui.view">
+        <field name="name">sign.oca.role.search.usl.guided</field>
+        <field name="model">sign.oca.role</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_role_search_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="replace">
+                <search>
+                    <field name="name" string="Role"/>
+                    <field name="partner_selection_policy" string="Signer selection"/>
+                    <filter name="chosen_each_time" string="Chosen for each request" domain="[('partner_selection_policy', '=', 'empty')]"/>
+                    <filter name="preselected" string="Preselected person" domain="[('partner_selection_policy', '=', 'default')]"/>
+                    <filter name="linked_record" string="Linked-record rule" domain="[('partner_selection_policy', '=', 'expression')]"/>
+                </search>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sign_oca.sign_oca_role_act_window" model="ir.actions.act_window">
+        <field name="name">Signer Roles</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a role used by signing fields</p>
+            <p>Use short business names such as Client, Employee, or Company representative. You will assign an actual person to each role when preparing a signature request.</p>
+        </field>
+    </record>
+</odoo>

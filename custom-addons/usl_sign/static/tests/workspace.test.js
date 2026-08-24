@@ -10,7 +10,6 @@ defineMailModels();
 
 const EMPTY_SECTIONS = {
     sign_now: {count: 0, items: []},
-    decide: {count: 0, items: []},
     prepare: {count: 0, items: []},
     issues: {count: 0, items: []},
     waiting: {count: 0, items: []},
@@ -28,7 +27,7 @@ afterEach(() => {
     translatedTerms[translationLoaded] = translationsWereLoaded;
 });
 
-test("landing renders the six journeys and routes only the selected action", async () => {
+test("landing renders the five document journeys and routes only the selected action", async () => {
     const actions = [];
     mockService("action", {
         async doAction(action, options) {
@@ -65,13 +64,15 @@ test("landing renders the six journeys and routes only the selected action", asy
 
     await mountWithCleanup(SignLanding);
 
-    expect(".usl_sign_work_card").toHaveCount(6);
+    expect(".usl_sign_workspace.o_action").toHaveCount(1);
+    expect(".usl_sign_workspace > .o_content.overflow-auto").toHaveCount(1);
+    expect(".usl_sign_workspace.o_action_manager").toHaveCount(0);
+    expect(".usl_sign_work_card").toHaveCount(5);
     expect("section:nth-child(1) .usl_sign_work_card").toHaveText(/Sign now/);
-    expect("section:nth-child(2) .usl_sign_work_card").toHaveText(/Decide/);
-    expect("section:nth-child(3) .usl_sign_work_card").toHaveText(/Prepare and send/);
-    expect("section:nth-child(4) .usl_sign_work_card").toHaveText(/Resolve issues/);
-    expect("section:nth-child(5) .usl_sign_work_card").toHaveText(/Waiting on others/);
-    expect("section:nth-child(6) .usl_sign_work_card").toHaveText(/Recently completed/);
+    expect("section:nth-child(2) .usl_sign_work_card").toHaveText(/Prepare and send/);
+    expect("section:nth-child(3) .usl_sign_work_card").toHaveText(/Resolve issues/);
+    expect("section:nth-child(4) .usl_sign_work_card").toHaveText(/Waiting on others/);
+    expect("section:nth-child(5) .usl_sign_work_card").toHaveText(/Recently completed/);
     expect(".list-group-item-action").toHaveText(/Routine Agreement/);
     expect(".list-group-item-action").toHaveText(/Next:\s*Review and sign/);
 
@@ -111,6 +112,6 @@ test("landing failure is explicit and retry restores the workspace", async () =>
 
     expect(attempts).toBe(2);
     expect(".alert-danger").toHaveCount(0);
-    expect(".usl_sign_work_card").toHaveCount(6);
+    expect(".usl_sign_work_card").toHaveCount(5);
     expect("header .btn-primary").toHaveCount(0);
 });

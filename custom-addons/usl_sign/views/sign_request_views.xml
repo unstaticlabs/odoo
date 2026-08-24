@@ -226,7 +226,11 @@
         <field name="model">sign.oca.request.signer</field>
         <field name="priority">2</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0" decoration-success="state == 'signed'" decoration-danger="state == 'declined'">
+            <list create="0" edit="0" delete="0"
+                decoration-success="state == 'signed'"
+                decoration-danger="state == 'declined' or request_state == 'validation_failed'"
+                decoration-muted="request_state in ['expired', 'cancelled']"
+                decoration-warning="state in ['draft', 'notified', 'viewed', 'authorized'] and request_state not in ['expired', 'cancelled']">
                 <field name="request_id" string="Document"/>
                 <field name="sender_id" string="Sent by"/>
                 <field name="role_id" string="Your role"/>
@@ -263,10 +267,24 @@
         <field name="arch" type="xml">
             <search>
                 <field name="request_id"/>
-                <filter name="to_sign" string="To sign" domain="[('state', 'in', ['notified', 'viewed', 'authorized']), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <field name="sender_id"/>
+                <field name="role_id"/>
+                <field name="state"/>
+                <field name="request_state"/>
+                <separator/>
+                <filter name="to_sign" string="Ready to sign" domain="[('state', 'in', ['notified', 'viewed', 'authorized']), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <filter name="waiting_turn" string="Waiting for my turn" domain="[('state', '=', 'draft'), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
                 <filter name="signed_by_me" string="Signed by me" domain="[('state', '=', 'signed')]"/>
                 <filter name="completed" string="Completed" domain="[('request_id.state', '=', 'completed')]"/>
-                <group><filter name="group_signature" string="Your signature" context="{'group_by': 'state'}"/><filter name="group_status" string="Overall status" context="{'group_by': 'request_state'}"/></group>
+                <filter name="closed" string="Closed" domain="[('request_id.state', 'in', ['declined', 'expired', 'cancelled', 'validation_failed'])]"/>
+                <separator/>
+                <filter name="due" string="Has a due date" domain="[('request_due_at', '!=', False)]"/>
+                <group>
+                    <filter name="group_signature" string="My signature status" context="{'group_by': 'state'}"/>
+                    <filter name="group_status" string="Request status" context="{'group_by': 'request_state'}"/>
+                    <filter name="group_sender" string="Sender" context="{'group_by': 'sender_id'}"/>
+                    <filter name="group_due" string="Due month" context="{'group_by': 'request_due_at:month'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -286,10 +304,9 @@
         <field name="res_model">sign.oca.request.signer</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('partner_id.user_ids', 'in', [uid]), ('request_id.state', 'not in', ['draft', 'ready'])]</field>
-        <field name="context">{'search_default_to_sign': 1}</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Nothing to sign</p>
-            <p>Documents sent to you will appear here. Use the filters to retrieve items you already signed or completed requests.</p>
+            <p class="o_view_nocontent_smiling_face">No documents have been assigned to you</p>
+            <p>This page keeps both documents awaiting your signature and your earlier results. Use the search filters to focus on ready, signed, completed, or closed requests.</p>
         </field>
     </record>
     <record id="completed_documents_action" model="ir.actions.act_window">
