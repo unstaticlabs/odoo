@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 import re
@@ -467,7 +468,7 @@ class IrAttachment(models.Model):
 
     def write(self, values):
         archive_target_changed = bool(
-            {"raw", "datas", "res_model", "res_id", "res_field"}.intersection(
+            {"raw", "res_model", "res_id", "res_field"}.intersection(
                 values,
             ),
         )
@@ -665,8 +666,8 @@ class UslDocumentOperation(models.Model):
             attachment._queue_usl_documents_archive()
             return False
         try:
-            content_base64 = attachment.with_context(bin_size=False).datas
-            content = attachment.raw
+            content = bytes(attachment.raw)
+            content_base64 = base64.b64encode(content).decode()
             if self.target_document_id:
                 source_record = self.env[attachment.res_model].browse(
                     attachment.res_id,
@@ -770,9 +771,7 @@ class UslDocumentOperation(models.Model):
                 usl_documents_operation_id=self.id,
             ).upload_from_odoo(
                 attachment.name,
-                content_base64.decode()
-                if isinstance(content_base64, bytes)
-                else content_base64,
+                content_base64,
                 attachment.mimetype,
                 res_model=attachment.res_model,
                 res_id=attachment.res_id,

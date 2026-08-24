@@ -158,7 +158,7 @@ class TestDocuments(TransactionCase):
                 {"model": "project.project", "id": project.id},
             ],
         )
-        self.assertEqual(attachment.raw, b"native task evidence")
+        self.assertEqual(bytes(attachment.raw), b"native task evidence")
         request.assert_not_called()
 
     def test_attachment_reparent_and_repeat_queue_are_idempotent(self):
@@ -258,7 +258,7 @@ class TestDocuments(TransactionCase):
         self.assertEqual(operation.state, "pending")
         self.assertEqual(operation.attempt_count, 1)
         self.assertTrue(operation.next_attempt_at)
-        self.assertEqual(attachment.raw, b"still usable in Odoo")
+        self.assertEqual(bytes(attachment.raw), b"still usable in Odoo")
 
     def test_native_attachment_links_trashed_match_without_restoring_it(self):
         task = self.env["project.task"].create({"name": "Preserved Trash intent"})
@@ -307,7 +307,7 @@ class TestDocuments(TransactionCase):
             ).document_id,
             document,
         )
-        self.assertEqual(attachment.raw, content)
+        self.assertEqual(bytes(attachment.raw), content)
         upload.assert_not_called()
 
     def test_trash_conflict_does_not_abort_next_attachment(self):

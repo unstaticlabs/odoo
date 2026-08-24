@@ -325,7 +325,7 @@ if not generated_document:
         generated_document = documents.browse(generated_result["document_id"])
 check(bool(generated_attachment.exists()), "Odoo operational report copy retained")
 generated_checksum = hashlib.sha256(
-    base64.b64decode(generated_attachment.datas),
+    bytes(generated_attachment.raw),
 ).hexdigest()
 check(
     generated_document.source == "odoo_generated"

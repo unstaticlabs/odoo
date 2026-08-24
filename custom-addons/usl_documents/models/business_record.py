@@ -145,7 +145,7 @@ class DocumentLinkMixin(models.AbstractModel):
         attachment.check_access("read")
         if attachment.res_model != self._name or attachment.res_id != self.id:
             raise AccessError(_("This attachment does not belong to the current record."))
-        if attachment.type != "binary" or not attachment.datas:
+        if attachment.type != "binary" or not attachment.file_size:
             raise UserError(_("Only stored binary attachments can be archived."))
         # Keep Odoo's operational copy available immediately. The archive worker
         # performs every Paperless call after the user's transaction has committed.
