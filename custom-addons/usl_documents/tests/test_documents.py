@@ -18,6 +18,7 @@ from ..models.paperless_client import (
     PaperlessUnavailable,
 )
 from odoo.addons.mail.tests.common import mail_new_test_user
+from odoo.addons.usl_documents.models.attachment_bridge import ORIGIN_CAPTURE_TOKEN
 
 
 @tagged("post_install", "-at_install", "usl_documents")
@@ -149,6 +150,10 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(len(operation), 1)
         self.assertEqual(operation.state, "pending")
+        self.assertEqual(operation.archive_mode, "automatic")
+        self.assertEqual(operation.document_role, "background")
+        self.assertEqual(operation.attachment_origin, "direct_record")
+        self.assertEqual(operation.policy_reason, "project_direct_attachment")
         self.assertEqual(operation.source_attachment_checksum, attachment.checksum)
         self.assertEqual(operation.context_json["tags"], ["Projects"])
         self.assertEqual(
@@ -159,7 +164,148 @@ class TestDocuments(TransactionCase):
             ],
         )
         self.assertEqual(bytes(attachment.raw), b"native task evidence")
+        self.assertEqual(attachment.usl_documents_archive_mode, "automatic")
+        self.assertEqual(attachment.usl_documents_document_role, "background")
+        self.assertEqual(attachment.usl_documents_ledger_state, "pending")
         request.assert_not_called()
+
+    def test_project_chatter_attachment_waits_for_keep_in_documents(self):
+        project = self.env["project.project"].create({"name": "Chatter policy"})
+        task = self.env["project.task"].create(
+            {"name": "Chatter note", "project_id": project.id},
+        )
+
+        message = task.message_post(
+            body="A native attachment remains immediately available.",
+            attachments=[("chatter-note.txt", b"keep only when requested")],
+        )
+        attachment = message.attachment_ids.filtered(
+            lambda item: item.name == "chatter-note.txt",
+        )
+
+        self.assertEqual(len(attachment), 1)
+        self.assertEqual(attachment.usl_documents_origin, "chatter")
+        self.assertEqual(attachment.usl_documents_archive_mode, "on_request")
+        self.assertEqual(attachment.usl_documents_document_role, "library")
+        self.assertEqual(
+            attachment.usl_documents_policy_reason,
+            "project_chatter_on_request",
+        )
+        self.assertEqual(
+            attachment.usl_documents_ledger_state,
+            "native_only_on_request",
+        )
+        self.assertFalse(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
+        )
+
+        first = attachment.action_keep_in_documents()
+        second = attachment.action_keep_in_documents()
+
+        self.assertEqual(first, second)
+        self.assertEqual(first.archive_mode, "on_request")
+        self.assertEqual(first.document_role, "library")
+        self.assertEqual(first.attachment_origin, "chatter")
+        self.assertEqual(first.context_json["archive_mode"], "on_request")
+        self.assertEqual(first.context_json["document_role"], "library")
+        self.assertEqual(attachment.usl_documents_ledger_state, "pending")
+
+    def test_mandatory_evidence_overrides_chatter_origin(self):
+        employee = self.env["hr.employee"].create(
+            {"name": "Mandatory evidence employee"},
+        )
+
+        message = employee.message_post(
+            body="Provider evidence",
+            attachments=[("employee-evidence.txt", b"mandatory HR evidence")],
+        )
+        attachment = message.attachment_ids.filtered(
+            lambda item: item.name == "employee-evidence.txt",
+        )
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+
+        self.assertEqual(len(operation), 1)
+        self.assertEqual(operation.archive_mode, "mandatory")
+        self.assertEqual(operation.document_role, "evidence")
+        self.assertEqual(operation.attachment_origin, "chatter")
+        self.assertEqual(operation.confidentiality, "hr")
+
+    def test_generated_transient_output_is_explicitly_excluded(self):
+        task = self.env["project.task"].create({"name": "Transient preview"})
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_origin_token=ORIGIN_CAPTURE_TOKEN,
+            usl_documents_attachment_origin="generated_transient",
+        ).create(
+            {
+                "name": "draft-preview.txt",
+                "raw": b"regenerated preview",
+                "mimetype": "text/plain",
+                "res_model": task._name,
+                "res_id": task.id,
+            },
+        )
+
+        self.assertEqual(attachment.usl_documents_origin, "generated_transient")
+        self.assertEqual(attachment.usl_documents_archive_mode, "never")
+        self.assertEqual(
+            attachment.usl_documents_policy_reason,
+            "transient_generated_output",
+        )
+        self.assertEqual(
+            attachment.usl_documents_ledger_state,
+            "explicitly_excluded",
+        )
+        self.assertFalse(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
+        )
+
+    def test_client_context_cannot_forge_attachment_origin(self):
+        task = self.env["project.task"].create({"name": "Origin protection"})
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_origin_token="client-controlled-value",
+            usl_documents_attachment_origin="chatter",
+        ).create(
+            {
+                "name": "direct.txt",
+                "raw": b"direct record upload",
+                "mimetype": "text/plain",
+                "res_model": task._name,
+                "res_id": task.id,
+            },
+        )
+
+        self.assertEqual(attachment.usl_documents_origin, "direct_record")
+        self.assertEqual(attachment.usl_documents_archive_mode, "automatic")
+        with self.assertRaises(AccessError):
+            attachment.with_user(self.user).write(
+                {"usl_documents_archive_mode": "never"},
+            )
+
+    def test_root_prominence_uses_only_accessible_relationship_roles(self):
+        document = self._document(9701, intake_role="background")
+        document.link_to_record(
+            "res.partner",
+            self.partner_a.id,
+            policy_role="background",
+            policy_reason="contact_background_reference",
+        )
+        employee = self.env["hr.employee"].create({"name": "Restricted evidence"})
+        document.link_to_record(
+            "hr.employee",
+            employee.id,
+            archive_mode="mandatory",
+            policy_role="evidence",
+            policy_reason="employee_evidence",
+        )
+
+        self.assertTrue(document.is_prominent)
+        self.assertFalse(document.with_user(self.user).is_prominent)
 
     def test_attachment_reparent_and_repeat_queue_are_idempotent(self):
         task = self.env["project.task"].create({"name": "Final owner"})
@@ -755,6 +901,17 @@ class TestDocuments(TransactionCase):
         self.assertEqual(
             metadata_hash,
             self.env["usl.document"]._archive_metadata_hash(second_context),
+        )
+        promoted_context = {
+            **first_context,
+            "archive_mode": "on_request",
+            "document_role": "library",
+            "attachment_origin": "chatter",
+            "policy_reason": "user_requested_library_copy",
+        }
+        self.assertEqual(
+            metadata_hash,
+            self.env["usl.document"]._archive_metadata_hash(promoted_context),
         )
         content = b"shared project evidence"
         checksum = __import__("hashlib").sha256(content).hexdigest()

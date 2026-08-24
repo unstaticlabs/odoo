@@ -66,6 +66,8 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(expense_context["document_type"], "Expense receipt")
         self.assertEqual(expense_context["tags"], ["Accounting", "Expenses"])
         self.assertEqual(expense_context["document_date"], "2026-07-10")
+        self.assertEqual(expense_context["archive_mode"], "mandatory")
+        self.assertEqual(expense_context["document_role"], "evidence")
 
         batch = self._batch(expense)
         batch_context = batch._document_archive_context()
@@ -74,6 +76,8 @@ class TestExpenseBatch(TestExpenseCommon):
             "Expense batch evidence",
         )
         self.assertEqual(batch_context["tags"], ["Accounting", "Expenses"])
+        self.assertEqual(batch_context["archive_mode"], "mandatory")
+        self.assertEqual(batch_context["document_role"], "evidence")
         self.assertIn("usl.expense.batch", self.env["usl.document.link"]._allowed_models())
 
     def test_readiness_and_preview_wizard_are_deterministic(self):

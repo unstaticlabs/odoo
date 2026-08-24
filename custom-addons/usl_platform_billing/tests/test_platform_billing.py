@@ -200,6 +200,8 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             platform_context["document_type"],
             "Platform agreement or statement",
         )
+        self.assertEqual(platform_context["archive_mode"], "mandatory")
+        self.assertEqual(platform_context["document_role"], "evidence")
         self.assertEqual(
             platform_context["entity_tags"][0],
             {
@@ -214,6 +216,8 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         payout_context = payout._document_archive_context()
         self.assertEqual(payout_context["document_type"], "Platform payout evidence")
         self.assertEqual(payout_context["tags"], ["Accounting", "Platform billing"])
+        self.assertEqual(payout_context["archive_mode"], "mandatory")
+        self.assertEqual(payout_context["document_role"], "evidence")
         self.assertIn(
             {"model": "usl.platform.billing.session", "id": session.id},
             payout._document_related_records(),
