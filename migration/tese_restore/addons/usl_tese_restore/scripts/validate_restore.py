@@ -200,7 +200,6 @@ for row in payload["versions"]:
         ("contract_date_end", "contract_date_end"),
         ("trial_date_end", "trial_date_end"),
         ("job_title", "job_title"),
-        ("employee_type", "employee_type"),
         ("active", "active"),
     ):
         parity(
@@ -210,6 +209,21 @@ for row in payload["versions"]:
             row["id"],
             target_field,
         )
+    source_employee_type = next(
+        (
+            item
+            for item in payload["employee_types"]
+            if item["id"] == row.get("employee_type_id")
+        ),
+        None,
+    )
+    parity(
+        (version.employee_type_id.code or False)
+        == ((source_employee_type or {}).get("code") or False),
+        "hr.version",
+        row["id"],
+        "employee_type_id",
+    )
     for source_field, target_field in (
         ("wage", "wage"),
         ("hours_per_week", "hours_per_week"),

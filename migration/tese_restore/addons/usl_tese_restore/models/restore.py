@@ -288,6 +288,11 @@ class UslTeseRestoreRun(models.Model):
                   FROM hr_version
                  ORDER BY id
             """)
+            employee_types = self._fetch(cursor, """
+                SELECT id, country_id, code, name, sequence
+                  FROM hr_employee_type
+                 ORDER BY id
+            """)
             profiles = self._fetch(cursor, """
                 SELECT *
                   FROM x_tese_payroll_profile
@@ -429,6 +434,7 @@ class UslTeseRestoreRun(models.Model):
         return {
             "employees": employees,
             "versions": versions,
+            "employee_types": employee_types,
             "profiles": profiles,
             "payslips": payslips,
             "partners": partners,
@@ -470,6 +476,22 @@ class UslTeseRestoreRun(models.Model):
         users = {row["id"]: row for row in payload["users"]}
         countries = {row["id"]: row for row in payload["countries"]}
         versions = {row["id"]: row for row in payload["versions"]}
+        employee_types = {}
+        for row in payload["employee_types"]:
+            name = self._text(row.get("name"))
+            employee_types[row["id"]] = (
+                self.env["hr.employee.type"]
+                .sudo()
+                .with_context(active_test=False)
+                .search(
+                    [
+                        "|",
+                        ("code", "=", row.get("code")),
+                        ("name", "=", name),
+                    ],
+                    limit=1,
+                )
+            )
         employees = {}
         version_records = {}
         Employee = self.env["hr.employee"].sudo().with_context(
@@ -567,7 +589,10 @@ class UslTeseRestoreRun(models.Model):
                 "hours_per_week": row.get("hours_per_week") or 0,
                 "hours_per_day": row.get("hours_per_day") or 0,
                 "job_title": row.get("job_title"),
-                "employee_type": row.get("employee_type") or "employee",
+                "employee_type_id": employee_types.get(
+                    row.get("employee_type_id"),
+                    self.env["hr.employee.type"],
+                ).id,
                 "country_id": country.id,
                 "private_country_id": private_country.id,
                 "address_id": address.id,
@@ -612,7 +637,6 @@ class UslTeseRestoreRun(models.Model):
                 "place_of_birth": row.get("place_of_birth"),
                 "certificate": row.get("certificate"),
                 "study_field": row.get("study_field"),
-                "study_school": row.get("study_school"),
                 "emergency_contact": row.get("emergency_contact"),
                 "emergency_phone": row.get("emergency_phone"),
                 "private_phone": row.get("private_phone"),
