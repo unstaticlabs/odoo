@@ -1,5 +1,13 @@
 # Pocket ID SSO runbook
 
+## Existing production Pocket ID
+
+Final migration uses `compose.external-pocket-id.yaml`, which contains no Pocket
+service, volume, provisioning or restore action. The mode-`0600` external
+identity policy is applied only to Odoo and Paperless. Follow
+[Portable production migration candidate](portable-production-migration.md)
+and require matching read-only Pocket state hashes around rehearsal journeys.
+
 This runbook configures Pocket ID as the sole human login without making it an
 authorization source. Local integration QA uses canonical `odoo_dev`, the
 disposable production-shaped target reconstructed from the Online dump. The
