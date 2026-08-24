@@ -89,7 +89,10 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
         string="Working Hours",
         domain="[('company_id', 'in', (False, company_id))]",
     )
-    contract_type_id = fields.Many2one("hr.contract.type")
+    employee_type_id = fields.Many2one(
+        "hr.employee.type",
+        string="Employee Type",
+    )
     contract_date_start = fields.Date(string="Contract Start")
     contract_date_end = fields.Date(string="Contract End")
     comparison_warning = fields.Text(
@@ -215,7 +218,7 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
                 "wage": version.wage,
                 "hours_per_week": version.hours_per_week,
                 "resource_calendar_id": version.resource_calendar_id.id,
-                "contract_type_id": version.contract_type_id.id,
+                "employee_type_id": version.employee_type_id.id,
                 "contract_date_start": version.contract_date_start,
                 "contract_date_end": version.contract_date_end,
             })
@@ -236,7 +239,7 @@ class UslTeseSettingsRevisionWizard(models.TransientModel):
             "wage": self.wage,
             "hours_per_week": self.hours_per_week,
             "resource_calendar_id": self.resource_calendar_id.id,
-            "contract_type_id": self.contract_type_id.id,
+            "employee_type_id": self.employee_type_id.id,
             "contract_date_start": (
                 self.contract_date_start
                 if had_contract

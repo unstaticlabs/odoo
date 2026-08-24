@@ -30,6 +30,11 @@ records; it is not an in-place database upgrade.
 - OCA modules remain pinned to reviewed 19.0 commits. Their SaaS compatibility
   adaptations live under `oca-patches/saas-19.3/` and are reapplied
   deterministically.
+- SaaS 19.3 replaced `account.group` with parent accounts before the pinned
+  OCA financial reports adopted that hierarchy. `usl_accounting` therefore
+  retains the stable prefix-group model as a tested compatibility bridge; it
+  can be removed only after OCA reports and reconstructed hierarchy parity use
+  the native model.
 - Both electronic-invoice live guards remain disabled throughout migration and
   qualification.
 

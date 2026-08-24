@@ -17,8 +17,8 @@
         <xpath expr="(//button/div)[1]" position="replace">
             <div t-esc="display || (this.env.config?.viewType === 'list' ? 'No review status' : 'Set review status')"/>
         </xpath>
-        <xpath expr="//DropdownItem[@t-esc]" position="attributes">
-            <attribute name="t-esc">this.props.placeholder || 'Clear review status'</attribute>
+        <xpath expr="//DropdownItem[@t-out]" position="attributes">
+            <attribute name="t-out">this.props.placeholder || 'Clear review status'</attribute>
         </xpath>
         <xpath expr="//button[@t-att-disabled]" position="attributes">
             <attribute name="t-att-class">{'o_account_review_state_selection_badge_unset': !value}</attribute>

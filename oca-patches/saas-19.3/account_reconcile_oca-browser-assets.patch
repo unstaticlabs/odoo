@@ -42,3 +42,16 @@ index 4a669c7..e46ef1d 100644
          };
      }
  }
+diff --git a/account_reconcile_oca/static/src/views/reconcile_move_line/reconcile_move_line.xml b/account_reconcile_oca/static/src/views/reconcile_move_line/reconcile_move_line.xml
+index 3b39339..fb7e37e 100644
+--- a/account_reconcile_oca/static/src/views/reconcile_move_line/reconcile_move_line.xml
++++ b/account_reconcile_oca/static/src/views/reconcile_move_line/reconcile_move_line.xml
+@@ -5,7 +5,7 @@
+         t-inherit="web.ListView"
+         t-inherit-mode="primary"
+     >
+-        <xpath expr="//t[@list='model.root']" position="attributes">
++        <xpath expr="//t[@t-component='this.props.Renderer']" position="attributes">
+             <attribute name="parentRecord">props.parentRecord</attribute>
+             <attribute name="parentField">props.parentField</attribute>
+         </xpath>

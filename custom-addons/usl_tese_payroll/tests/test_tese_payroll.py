@@ -730,8 +730,10 @@ class TestTesePayroll(AccountTestInvoicingCommon):
 
     def test_security_requires_combined_roles(self):
         Payslip = self.env["usl.tese.payslip"]
-        self.assertFalse(Payslip.with_user(self.hr_only_user).search([]))
-        self.assertFalse(Payslip.with_user(self.accounting_only_user).search([]))
+        with self.assertRaises(AccessError):
+            Payslip.with_user(self.hr_only_user).search([])
+        with self.assertRaises(AccessError):
+            Payslip.with_user(self.accounting_only_user).search([])
         self.assertEqual(
             Payslip.with_user(self.readonly_user).search([]),
             self.env["usl.tese.payslip"],

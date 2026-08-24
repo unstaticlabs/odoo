@@ -94,7 +94,7 @@
                                            readonly="not update_contract"/>
                                 </group>
                                 <group string="Contract Dates">
-                                    <field name="contract_type_id"
+                                    <field name="employee_type_id"
                                            readonly="not update_contract"/>
                                     <field name="contract_date_start"
                                            readonly="not update_contract"/>

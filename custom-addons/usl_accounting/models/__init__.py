@@ -3,6 +3,7 @@
 # ruff: noqa: I001
 
 from . import (
+    account_group_compat,
     account_direction_guard,
     account_reconcile_compat,
     analytic_reporting,

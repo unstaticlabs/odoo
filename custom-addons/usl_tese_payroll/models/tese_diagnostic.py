@@ -77,6 +77,10 @@ class UslTeseDiagnosticIssue(models.Model):
 
     @api.model
     def _collect_company_issues(self, company):
+        # The public action checks the caller's combined HR/Accounting role.
+        # Diagnostics then need a complete company view to report configuration
+        # gaps without being truncated by the same operational record rules.
+        diagnostic = self.sudo()
         issues = {}
         if not company.tese_payroll_journal_id:
             self._issue(
@@ -112,7 +116,7 @@ class UslTeseDiagnosticIssue(models.Model):
                 fix=_("Select the URSSAF or provider partner on the company."),
             )
 
-        profiles = self.env["usl.tese.profile"].search([
+        profiles = diagnostic.env["usl.tese.profile"].search([
             ("company_id", "=", company.id),
             ("active", "=", True),
         ])
@@ -171,7 +175,7 @@ class UslTeseDiagnosticIssue(models.Model):
                     ),
                 )
 
-        payslips = self.env["usl.tese.payslip"].search([
+        payslips = diagnostic.env["usl.tese.payslip"].search([
             ("company_id", "=", company.id),
             ("state", "!=", "cancelled"),
         ])
