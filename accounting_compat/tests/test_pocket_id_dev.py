@@ -381,7 +381,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn('username = "odoo-integration"', integration_access)
         self.assertIn('migration_username = "odoo-migration"', integration_access)
         self.assertIn(
-            "Document.objects.filter(owner=migration_user).update(owner=user)",
+            "Document.global_objects.filter(owner=migration_user).update(owner=user)",
             integration_access,
         )
         self.assertIn("USL_PAPERLESS_OWNERS_CLAIMED=", integration_access)

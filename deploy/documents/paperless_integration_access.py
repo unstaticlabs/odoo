@@ -62,7 +62,10 @@ user.user_permissions.set(permissions)
 claimed = 0
 migration_user = User.objects.filter(username=migration_username).first()
 if migration_user is not None and migration_user.id != user.id:
-    claimed = Document.objects.filter(owner=migration_user).update(owner=user)
+    # Paperless's default Document manager excludes Trash. Its Trash endpoint
+    # is owner-filtered too, so leaving deleted migration roots behind would
+    # make them invisible to the runtime identity and break recovery parity.
+    claimed = Document.global_objects.filter(owner=migration_user).update(owner=user)
 
 token, _created = Token.objects.get_or_create(user=user)
 print(f"USL_PAPERLESS_TOKEN={token.key}")
