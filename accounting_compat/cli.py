@@ -8082,9 +8082,15 @@ def target_source_report_rows() -> list[dict[str, Any]]:
 def source_report_line_rows() -> list[dict[str, Any]]:
     if not table_exists(SOURCE_DB, "account_report_line"):
         return []
+    source_columns = column_names(SOURCE_DB, "account_report_line")
+    foldability_expression = (
+        "COALESCE(line.foldability::text, 'always_unfolded')"
+        if "foldability" in source_columns
+        else "CASE WHEN line.foldable THEN 'foldable' ELSE 'always_unfolded' END"
+    )
     return query_rows(
         SOURCE_DB,
-        """
+        f"""
         SELECT 'account.report.line:' || line.id::text AS source_report_line_key,
                line.id::text AS source_line_id,
                line.report_id::text AS source_report_id,
@@ -8098,7 +8104,7 @@ def source_report_line_rows() -> list[dict[str, Any]]:
                COALESCE(line.horizontal_split_side::text, '') AS horizontal_split_side,
                COALESCE(line.name->>'en_US', line.name->>'fr_FR', line.name::text) AS source_name,
                COALESCE(line.name->>'fr_FR', line.name->>'en_US', line.name::text) AS localized_name,
-               COALESCE(line.foldable::text, 'false') AS foldable,
+               {foldability_expression} AS foldability,
                COALESCE(line.print_on_new_page::text, 'false') AS print_on_new_page,
                COALESCE(line.hide_if_zero::text, 'false') AS hide_if_zero,
                COALESCE(expression_counts.expression_count, 0)::text AS expression_count
@@ -8132,7 +8138,9 @@ def target_source_report_line_rows() -> list[dict[str, Any]]:
                COALESCE(line.horizontal_split_side::text, '') AS horizontal_split_side,
                COALESCE(line.name::text, '') AS source_name,
                COALESCE(line.localized_name::text, '') AS localized_name,
-               line.foldable::text AS foldable,
+               COALESCE(line.foldability::text,
+                        CASE WHEN line.foldable THEN 'foldable' ELSE 'always_unfolded' END)
+                   AS foldability,
                line.print_on_new_page::text AS print_on_new_page,
                line.hide_if_zero::text AS hide_if_zero,
                line.expression_count::text AS expression_count
@@ -9422,7 +9430,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "horizontal_split_side",
                 "source_name",
                 "localized_name",
-                "foldable",
+                "foldability",
                 "print_on_new_page",
                 "hide_if_zero",
                 "expression_count",

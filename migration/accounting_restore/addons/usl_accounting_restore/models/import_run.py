@@ -1140,9 +1140,15 @@ class RebuildAccountImportRun(models.Model):
     def _source_report_line_rows(self, conn):
         if not self._source_table_exists(conn, "account_report_line"):
             return []
+        if self._source_column_exists(conn, "account_report_line", "foldability"):
+            foldability_expression = "line.foldability"
+        else:
+            foldability_expression = (
+                "CASE WHEN line.foldable THEN 'foldable' ELSE 'always_unfolded' END"
+            )
         return self._fetchall(
             conn,
-            """
+            f"""
             SELECT line.id,
                    line.report_id,
                    line.parent_id,
@@ -1155,7 +1161,7 @@ class RebuildAccountImportRun(models.Model):
                    line.horizontal_split_side,
                    COALESCE(line.name->>'en_US', line.name->>'fr_FR', line.name::text) AS source_name,
                    COALESCE(line.name->>'fr_FR', line.name->>'en_US', line.name::text) AS localized_name,
-                   line.foldable,
+                   {foldability_expression} AS foldability,
                    line.print_on_new_page,
                    line.hide_if_zero,
                    COALESCE(expression_counts.expression_count, 0)::integer AS expression_count
@@ -1379,7 +1385,8 @@ class RebuildAccountImportRun(models.Model):
                 "groupby": row["groupby"],
                 "user_groupby": row["user_groupby"],
                 "horizontal_split_side": row["horizontal_split_side"],
-                "foldable": bool(row["foldable"]),
+                "foldability": row["foldability"],
+                "foldable": row["foldability"] == "foldable",
                 "print_on_new_page": bool(row["print_on_new_page"]),
                 "hide_if_zero": bool(row["hide_if_zero"]),
                 "expression_count": row["expression_count"],

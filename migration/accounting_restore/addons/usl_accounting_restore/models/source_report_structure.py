@@ -22,6 +22,15 @@ class RebuildAccountSourceReportLine(models.Model):
     groupby = fields.Char(copy=False)
     user_groupby = fields.Char(copy=False)
     horizontal_split_side = fields.Char(copy=False)
+    foldability = fields.Selection(
+        selection=[
+            ("always_unfolded", "Always Unfolded"),
+            ("never_unfolded", "Never Unfolded"),
+            ("foldable", "Foldable"),
+        ],
+        copy=False,
+    )
+    # Retained for compatibility with pre-19.3 reconstruction evidence.
     foldable = fields.Boolean(copy=False)
     print_on_new_page = fields.Boolean(copy=False)
     hide_if_zero = fields.Boolean(copy=False)
