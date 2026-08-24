@@ -1,7 +1,7 @@
-# Build and publish the self-contained product image (Dockerfile `product`
+# Build and publish the qualified Distribution image (Dockerfile `distribution`
 # stage) to GHCR, pinned by commit SHA. Deployment stacks (Komodo/Compose)
 # pull this artifact and must never rebuild it on the host.
-name: Product image
+name: Distribution image
 
 on:
   push:
@@ -27,6 +27,13 @@ jobs:
       - name: Sync pinned OCA add-ons
         run: scripts/sync-oca-addons
 
+      - name: Resolve release build identity
+        id: release
+        run: |
+          digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
+          echo "oca_digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "release_commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -46,13 +53,32 @@ jobs:
             type=sha,format=long,prefix=
             type=ref,event=branch
 
-      - name: Build and push product image
+      - name: Build and push Distribution image
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: product
+          target: distribution
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            USL_RELEASE_COMMIT=${{ steps.release.outputs.release_commit }}
+            USL_OCA_BUNDLE_SHA256=${{ steps.release.outputs.oca_digest }}
+          provenance: mode=max
+          sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify immutable Distribution labels and digest
+        env:
+          IMAGE: ghcr.io/unstaticlabs/usl-odoo:${{ github.sha }}
+          EXPECTED_COMMIT: ${{ github.sha }}
+          EXPECTED_OCA: ${{ steps.release.outputs.oca_digest }}
+        run: |
+          docker pull "$IMAGE"
+          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
+          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
+          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
+          repo_digest="$(docker image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')"
+          case "$repo_digest" in *@sha256:*) : ;; *) echo "Missing immutable repo digest" >&2; exit 1 ;; esac
+          printf 'Distribution digest: `%s`\n' "$repo_digest" >> "$GITHUB_STEP_SUMMARY"
