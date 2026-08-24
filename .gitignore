@@ -52,8 +52,13 @@ setup/win32/static/postgresql*.exe
 
 # js tooling
 node_modules
+services/**/target/
 jsconfig.json
 tsconfig.json
+package-lock.json
+package.json
+!custom-addons/usl_sign/static/worker-build/package-lock.json
+!custom-addons/usl_sign/static/worker-build/package.json
 .husky
 
 # various virtualenv

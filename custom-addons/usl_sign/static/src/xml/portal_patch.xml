@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_sign.SignIframeTextRoleFix" t-inherit="sign_oca.sign_iframe_field_text" t-inherit-mode="extension">
+        <xpath expr="//input" position="attributes">
+            <attribute name="t-if">item.role_id == role_id</attribute>
+        </xpath>
+    </t>
+    <t t-name="usl_sign.SignIframeCheckRoleFix" t-inherit="sign_oca.sign_iframe_field_check" t-inherit-mode="extension">
+        <xpath expr="//input" position="attributes">
+            <attribute name="t-if">item.role_id == role_id</attribute>
+        </xpath>
+    </t>
+    <t t-name="usl_sign.DeclineDocumentDialog">
+        <Dialog title="'Decline this document'" size="'md'">
+            <p class="text-muted">The sender will see your reason and the request will stop.</p>
+            <label class="form-label" for="usl_sign_decline_reason">Reason</label>
+            <textarea id="usl_sign_decline_reason" class="form-control" rows="4" required="required" autofocus="autofocus" placeholder="Briefly explain why you cannot sign" t-on-input="updateReason"/>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-secondary" t-on-click="props.close">Keep reviewing</button>
+                <button type="button" class="btn btn-danger" t-att-disabled="!state.reason.trim() || state.busy" t-on-click="confirm">
+                    <i t-if="state.busy" class="fa fa-spinner fa-spin me-2"/>Decline document
+                </button>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="usl_sign.SignOcaPdfPortal" t-inherit="sign_oca.SignOcaPdfPortal" t-inherit-mode="extension">
+        <xpath expr="//header" position="replace">
+            <header class="usl_sign_portal_header">
+                <div class="usl_sign_portal_brand" aria-label="Secure document signing">
+                    <span class="usl_sign_portal_brand_mark"><i class="fa fa-shield" aria-hidden="true"/></span>
+                    <span><small>Document signing</small><strong t-esc="info.company_name"/></span>
+                </div>
+                <div class="usl_sign_portal_instruction">
+                    <strong>Review and sign</strong>
+                    <span>Complete the required fields, then confirm below.</span>
+                </div>
+                <span class="badge rounded-pill text-bg-light border"><i class="fa fa-lock me-1"/> Protected session</span>
+            </header>
+        </xpath>
+        <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="replace">
+            <div class="o_sign_validation_buttons">
+                <div class="usl_sign_consent">
+                    <div class="form-check">
+                        <input id="usl_sign_consent" class="form-check-input" type="checkbox"/>
+                        <label class="form-check-label" for="usl_sign_consent">I reviewed this document and consent to use an electronic signature.</label>
+                    </div>
+                    <div id="usl_sign_consent_error" class="text-danger small d-none">Consent is required.</div>
+                    <div id="usl_sign_submission_error" class="alert alert-warning py-2 mt-2 mb-0 d-none" role="alert" tabindex="-1"></div>
+                </div>
+                <div class="usl_sign_portal_actions">
+                    <button type="button" class="btn btn-outline-secondary" t-on-click="() => this._onClickDecline()">Decline</button>
+                    <button type="button" class="btn btn-primary" id="sign_oca_button" aria-label="Confirm consent and submit my signature" t-on-click="(ev) => this._onClickSign(ev)">
+                        Confirm and sign
+                    </button>
+                </div>
+            </div>
+        </xpath>
+    </t>
+    <t t-name="usl_sign.StandardSignatureDialog" t-inherit="web.SignatureDialog" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('mt16') and hasclass('small')]" position="replace">
+            <div class="mt16 small">
+                By adopting this signature, I confirm that it represents my electronic signature for this document. The sender’s signing application records consent and validation evidence. This Standard signature is not described as advanced, qualified, certified, or automatically equivalent to a handwritten signature.
+            </div>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,1799 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#  * usl_sign
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-06 04:10+0000\n"
+"PO-Revision-Date: 2026-08-05 00:00+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "%(signed)s of %(total)s signed"
+msgstr "%(signed)s sur %(total)s signé(s)"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__action_required
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__action_required
+msgid "Action required"
+msgstr "Action requise"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Archive status"
+msgstr "État de l’archivage"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__archived
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Business decisions waiting for you"
+msgstr "Décisions qui attendent votre réponse"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__cancelled
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__cancelled
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__invitation_delivery_state__cancelled
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__state__cancelled
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_approval__state__cancelled
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_approval_event__event_type__cancelled
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_external_journey__state__cancelled
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Cancelled"
+msgstr "Annulée"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/business_summary.xml:0
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Certificate"
+msgstr "Certificat"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__evidence_status__complete
+msgid "Complete"
+msgstr "Complet"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Complete strong-signer enrolment."
+msgstr "Terminez l’inscription du signataire fort."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Complete the qualified journey and import the result."
+msgstr "Terminez le parcours qualifié et importez le résultat."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Complete the request and inspect the trust recommendation."
+msgstr "Complétez la demande et vérifiez la recommandation de niveau."
+
+#. module: usl_sign
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_sign/controllers/portal.py:0
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__completed
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__completed
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_ceremony__state__completed
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_search_usl
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Completed"
+msgstr "Terminée"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Completed Documents"
+msgstr "Documents terminés"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__lifecycle_stage__closed
+msgid "Completed or closed"
+msgstr "Terminée ou clôturée"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Create a replacement request if signatures are still needed."
+msgstr "Créez une nouvelle demande si les signatures sont toujours nécessaires."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Decide"
+msgstr "À décider"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__declined
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__declined
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__state__declined
+msgid "Declined"
+msgstr "Refusée"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Documents waiting for your signature"
+msgstr "Documents qui attendent votre signature"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__draft
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__lifecycle_stage__draft
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__draft
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__state__draft
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_template__preparation_status__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Drafts and ready requests you manage"
+msgstr "Brouillons et demandes prêtes dont vous avez la charge"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model:ir.model.fields,field_description:usl_sign.field_sign_oca_request_signer__request_due_at
+msgid "Due"
+msgstr "Échéance"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.sign_daily_manifest_action
+#: model:ir.ui.menu,name:usl_sign.sign_daily_manifest_menu
+msgid "Evidence Manifests"
+msgstr "Manifestes de preuves"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Evidence dossier"
+msgstr "Dossier de preuves"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__evidence_incomplete
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__evidence_incomplete
+msgid "Evidence incomplete"
+msgstr "Preuves incomplètes"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__expired
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__expired
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__state__expired
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_ceremony__state__expired
+msgid "Expired"
+msgstr "Expirée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__authentication_method__external_provider
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__authentication_method__external_provider
+msgid "External qualified-signature provider"
+msgstr "Prestataire externe de signature qualifiée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__failed
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__invitation_delivery_state__failed
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_ceremony__state__failed
+msgid "Failed"
+msgstr "Échec"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/business_summary.xml:0
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Final PDF"
+msgstr "PDF final"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__lifecycle_stage__checks
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_search_usl
+msgid "Final checks"
+msgstr "Vérifications finales"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Finish or retry durable Paperless archival."
+msgstr "Terminez ou relancez l’archivage durable dans Paperless."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Finish template"
+msgstr "Terminer le modèle"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.sign_enrollment_action
+#: model:ir.ui.menu,name:usl_sign.sign_enrollment_menu
+msgid "Identity Reviews"
+msgstr "Contrôles d’identité"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__sign_enrollment_state__pending_review
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__state__pending_review
+msgid "Identity review required"
+msgstr "Contrôle d’identité requis"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__lifecycle_stage__progress
+msgid "In progress"
+msgstr "En cours"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Independent signature validation is running."
+msgstr "La validation indépendante des signatures est en cours."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Inspect validation evidence and create a replacement request."
+msgstr "Examinez les preuves de validation et créez une nouvelle demande."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model:ir.ui.menu,name:usl_sign.sign_library_menu
+msgid "Library"
+msgstr "Bibliothèque"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.my_signatures_action
+#: model:ir.ui.menu,name:usl_sign.my_signatures_menu
+msgid "My Signatures"
+msgstr "Mes signatures"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/business_summary.xml:0
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Next:"
+msgstr "Suite :"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "No further action is required."
+msgstr "Aucune autre action n’est nécessaire."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "No signers"
+msgstr "Aucun signataire"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__not_ready
+msgid "Not ready"
+msgstr "Pas prêt"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Nothing needs attention here."
+msgstr "Rien ne demande votre attention ici."
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.sign_request_action
+#: model:ir.ui.menu,name:usl_sign.open_requests_menu
+msgid "Open Requests"
+msgstr "Demandes en cours"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Open template"
+msgstr "Ouvrir le modèle"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Owner"
+msgstr "Responsable"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__partial
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__partial
+msgid "Partially signed"
+msgstr "Partiellement signée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__sign_enrollment_state__pending_passkey
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__state__pending_passkey
+msgid "Passkey registration required"
+msgstr "Passkey à enregistrer"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__authentication_method__passkey
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__authentication_method__passkey
+msgid "Passkey with user verification"
+msgstr "Clé d’accès avec vérification de l’utilisateur"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__pending
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__validation_status__pending
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_approval__state__pending
+msgid "Pending"
+msgstr "En attente"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Prepare and send"
+msgstr "À préparer et envoyer"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__processing
+msgid "Processing"
+msgstr "En cours"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Proof"
+msgstr "Preuves"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.sign_external_provider_action
+#: model:ir.ui.menu,name:usl_sign.sign_external_provider_menu
+msgid "Qualified Providers"
+msgstr "Prestataires qualifiés"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_template__default_trust__qualified_external
+msgid "Qualified external"
+msgstr "Qualifiée externe"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_journey_form
+msgid "Qualified external signature"
+msgstr "Signature qualifiée externe"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__ready
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__lifecycle_stage__ready
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__ready
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_template__preparation_status__ready
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Ready"
+msgstr "Prête"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Recently completed"
+msgstr "Terminés récemment"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Requested trust"
+msgstr "Niveau demandé"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Requests progressing without your action"
+msgstr "Demandes qui avancent sans action de votre part"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Requests that cannot move forward"
+msgstr "Demandes qui ne peuvent pas avancer"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Resolve issues"
+msgstr "À débloquer"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Resolve the recorded recovery action."
+msgstr "Effectuez l’action de reprise indiquée."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Reusable templates and trusted completed documents."
+msgstr "Modèles réutilisables et documents terminés fiables."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Search the library"
+msgstr "Rechercher dans la bibliothèque"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__authentication_method__secure_link
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__authentication_method__secure_link
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__default_authentication__secure_link
+msgid "Secure invitation link"
+msgstr "Lien d’invitation sécurisé"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Send the frozen request."
+msgstr "Envoyez la demande figée."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__sent
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__lifecycle_stage__sent
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__sent
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__invitation_delivery_state__sent
+msgid "Sent"
+msgstr "Envoyée"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.sign_service_status_action
+#: model:ir.ui.menu,name:usl_sign.sign_service_status_menu
+msgid "Service Status"
+msgstr "État des services"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Sign now"
+msgstr "À signer"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Sign, decide, prepare, or retrieve trusted documents."
+msgstr "Signez, décidez, préparez ou retrouvez des documents fiables."
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__signed_to_import
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__signed_to_import
+msgid "Signed document to import"
+msgstr "Document signé à importer"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Signers"
+msgstr "Signataires"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.my_sign_identity_action
+#: model:ir.ui.menu,name:usl_sign.my_sign_identity_menu
+msgid "Signing Identities"
+msgstr "Identités de signature"
+
+#. module: usl_sign
+#: model:ir.actions.act_window,name:usl_sign.sign_policy_action
+#: model:ir.ui.menu,name:usl_sign.sign_policy_menu
+msgid "Signing Policies"
+msgstr "Politiques de signature"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_template__default_trust__standard
+msgid "Standard"
+msgstr "Standard"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model:ir.actions.act_window,name:usl_sign.sign_start_action
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
+msgid "Start"
+msgstr "Démarrer"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_template__default_trust__strong_personal
+msgid "Strong personal"
+msgstr "Personnelle forte"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Templates"
+msgstr "Modèles"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "The document was viewed; a signature is still expected."
+msgstr "Le document a été consulté ; une signature est toujours attendue."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "The signer declined; decide whether to create a replacement."
+msgstr "Le signataire a refusé ; décidez s’il faut créer une nouvelle demande."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "This request is closed."
+msgstr "Cette demande est close."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+#: model:ir.model.fields,field_description:usl_sign.field_sign_oca_request_signer__requested_trust_short
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Trust"
+msgstr "Niveau"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Use template"
+msgstr "Utiliser le modèle"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Used"
+msgstr "Utilisé"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Validate the imported signed document."
+msgstr "Validez le document signé importé."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Validated and archived results"
+msgstr "Résultats validés et archivés"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__validation_failed
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__validation_failed
+msgid "Validation failed"
+msgstr "Échec de validation"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__validating
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__validating
+msgid "Validation in progress"
+msgstr "Validation en cours"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__viewed
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__viewed
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__state__viewed
+msgid "Viewed"
+msgstr "Consultée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__waiting_enrollment
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__waiting_enrollment
+msgid "Waiting for enrolment"
+msgstr "En attente d’inscription"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__res_partner__signature_current_state__waiting_external
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__waiting_external
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_external_journey__state__waiting
+msgid "Waiting for external signature"
+msgstr "En attente de signature externe"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Waiting for the first signer."
+msgstr "En attente du premier signataire."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Waiting for the remaining signers."
+msgstr "En attente des autres signataires."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/js/workspace.esm.js:0
+msgid "Waiting on others"
+msgstr "En attente des autres"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "What needs your attention?"
+msgstr "Qu’est-ce qui demande votre attention ?"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "requests"
+msgstr "demandes"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Request"
+msgstr "Demande"
+
+#. module: usl_sign
+#: model:ir.model.fields,field_description:usl_sign.field_usl_sign_start__record_ref
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Linked record"
+msgstr "Élément lié"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Stage"
+msgstr "Étape"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Progress"
+msgstr "Progression"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Next action"
+msgstr "Prochaine action"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Due date"
+msgstr "Échéance"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Trust level"
+msgstr "Niveau de confiance"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_list_usl
+msgid "Proof status"
+msgstr "État des preuves"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Sent by"
+msgstr "Envoyé par"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Your role"
+msgstr "Votre rôle"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_form_usl
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_search_usl
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Your signature"
+msgstr "Votre signature"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Request status"
+msgstr "État de la demande"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_list_usl
+msgid "Signed on"
+msgstr "Signé le"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_search_usl
+msgid "To sign"
+msgstr "À signer"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.my_signature_search_usl
+msgid "Signed by me"
+msgstr "Signés par moi"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.my_signatures_action
+msgid "Nothing to sign"
+msgstr "Aucun document à signer"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.my_signatures_action
+msgid "Documents sent to you will appear here. Use the filters to retrieve items you already signed or completed requests."
+msgstr "Les documents qui vous sont envoyés apparaissent ici. Utilisez les filtres pour retrouver ceux que vous avez signés ou les demandes terminées."
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Download final PDF"
+msgstr "Télécharger le PDF final"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Download certificate"
+msgstr "Télécharger le certificat"
+
+#. module: usl_sign
+#. odoo-javascript
+#: code:addons/usl_sign/static/src/xml/workspace.xml:0
+msgid "Download evidence dossier"
+msgstr "Télécharger le dossier de preuves"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
+msgid "What do you need?"
+msgstr "Que souhaitez-vous faire ?"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
+msgid "Choose a decision when an approval is enough. Choose signatures when the PDF itself must be signed."
+msgstr "Choisissez une décision si une approbation suffit. Choisissez la signature si le PDF doit être signé."
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__request_type__signature
+msgid "Request document signatures"
+msgstr "Demander des signatures sur un document"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__request_type__decision
+msgid "Request a business decision"
+msgstr "Demander une décision métier"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__signature_source__template
+msgid "Use a template"
+msgstr "Utiliser un modèle"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_start__signature_source__upload
+msgid "Upload a PDF"
+msgstr "Importer un PDF"
+
+#. module: usl_sign
+#: model:ir.model.fields,field_description:usl_sign.field_usl_sign_start__name
+msgid "Request name"
+msgstr "Nom de la demande"
+
+#. module: usl_sign
+#: model:ir.model.fields,field_description:usl_sign.field_usl_sign_start__request_type
+msgid "Journey"
+msgstr "Parcours"
+
+#. module: usl_sign
+#: model:ir.model.fields,field_description:usl_sign.field_usl_sign_start__signature_source
+msgid "Starting point"
+msgstr "Point de départ"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
+msgid "Continue"
+msgstr "Continuer"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_sign
+#: model:ir.model.fields,field_description:usl_sign.field_usl_sign_start__template_id
+msgid "Template"
+msgstr "Modèle"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_start_form
+msgid "A clear name for this request"
+msgstr "Un nom clair pour cette demande"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Signature request"
+msgstr "Demande de signature"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Signatures"
+msgstr "Signatures"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Archive"
+msgstr "Archivage"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Overview"
+msgstr "Résumé"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Proof & Validation"
+msgstr "Preuves et validation"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Timeline"
+msgstr "Historique"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Send reminder"
+msgstr "Envoyer un rappel"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Request details"
+msgstr "Détails de la demande"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Requester"
+msgstr "Demandeur"
+
+#. module: usl_sign
+#: model:ir.model.fields,field_description:usl_sign.field_sign_oca_request__coordinator_ids
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Coordinators"
+msgstr "Coordinateurs"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Message to signers"
+msgstr "Message aux signataires"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Trust recommendation"
+msgstr "Recommandation"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Document type"
+msgstr "Type de document"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Signer relationship"
+msgstr "Relation avec les signataires"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Risk"
+msgstr "Risque"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Recommended level"
+msgstr "Niveau recommandé"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Requested level"
+msgstr "Niveau demandé"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Achieved level"
+msgstr "Niveau atteint"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Reason for override"
+msgstr "Motif du changement"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Formal QES required"
+msgstr "Signature qualifiée exigée"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Provider"
+msgstr "Prestataire"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Why this level?"
+msgstr "Pourquoi ce niveau ?"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Timing and order"
+msgstr "Organisation"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Signing order"
+msgstr "Ordre de signature"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Days before reminder"
+msgstr "Délai avant rappel"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Maximum reminders"
+msgstr "Nombre maximal de rappels"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Reminders sent"
+msgstr "Rappels envoyés"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__evidence_status__not_started
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__validation_status__not_started
+msgid "Not started"
+msgstr "Non commencée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__signer_type__internal
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__signer_type__internal
+msgid "Internal user"
+msgstr "Utilisateur interne"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__signer_type__recurring
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__signer_type__recurring
+msgid "Known recurring signer"
+msgstr "Signataire régulier connu"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__signer_type__occasional
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__signer_type__occasional
+msgid "Occasional external signer"
+msgstr "Signataire externe occasionnel"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__risk_level__low
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__risk_level__low
+msgid "Low"
+msgstr "Faible"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__risk_level__material
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__risk_level__material
+msgid "Material"
+msgstr "Significatif"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__risk_level__maximum
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__risk_level__maximum
+msgid "Maximum"
+msgstr "Maximum"
+
+#. module: usl_sign
+#: model:usl.sign.policy,reason:usl_sign.policy_routine_standard
+msgid "Invitation-channel identity, explicit consent and a reinforced evidence trail are proportionate for routine documents."
+msgstr "L’identité liée à l’invitation, le consentement explicite et les preuves renforcées sont proportionnés aux documents courants."
+
+#. module: usl_sign
+#: model:usl.sign.policy,consequence:usl_sign.policy_routine_standard
+msgid "The signer does not receive a personal cryptographic certificate; USL seals and independently validates the completed PDF."
+msgstr "Le signataire ne reçoit pas de certificat cryptographique personnel ; USL scelle et valide indépendamment le PDF terminé."
+
+#. module: usl_sign
+#: model:usl.sign.policy,reason:usl_sign.policy_material_recurring_strong
+msgid "The document is material and the signer has an ongoing USL relationship suitable for reviewed passkey enrolment."
+msgstr "Le document est significatif et la relation régulière avec USL permet une inscription contrôlée par passkey."
+
+#. module: usl_sign
+#: model:usl.sign.policy,consequence:usl_sign.policy_material_recurring_strong
+msgid "Each signer authorizes a document-specific personal PAdES signature with a passkey and a single-use browser key."
+msgstr "Chaque signataire autorise avec sa passkey une signature PAdES personnelle liée au document et à une clé de navigateur à usage unique."
+
+#. module: usl_sign
+#: model:usl.sign.policy,reason:usl_sign.policy_maximum_qualified
+msgid "A formal QES requirement or maximum-assurance risk needs an independently qualified trust provider."
+msgstr "Une exigence formelle de signature qualifiée ou un risque maximal nécessite un prestataire de confiance qualifié indépendant."
+
+#. module: usl_sign
+#: model:usl.sign.policy,consequence:usl_sign.policy_maximum_qualified
+msgid "Odoo freezes and tracks the document, but signing takes place through a reviewed external provider and completes only after DSS qualification validation."
+msgstr "Odoo fige et suit le document ; la signature a lieu chez un prestataire externe contrôlé et ne se termine qu’après validation de la qualification par DSS."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Cancel request"
+msgstr "Annuler la demande"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Linked business record"
+msgstr "Élément métier lié"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Request template"
+msgstr "Modèle utilisé"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
+msgid "Request due date"
+msgstr "Échéance"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__internal_decision
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__internal_decision
+msgid "Internal decision"
+msgstr "Décision interne"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__routine_agreement
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__routine_agreement
+msgid "Routine agreement"
+msgstr "Accord courant"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__employment
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__employment
+msgid "Employment document"
+msgstr "Document lié à l’emploi"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__intellectual_property
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__intellectual_property
+msgid "Intellectual property"
+msgstr "Propriété intellectuelle"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__commercial
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__commercial
+msgid "Commercial agreement"
+msgstr "Accord commercial"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__finance_guarantee
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__finance_guarantee
+msgid "Financing or guarantee"
+msgstr "Financement ou garantie"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__mandate
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__mandate
+msgid "Mandate"
+msgstr "Mandat"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__other
+#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__other
+msgid "Other"
+msgstr "Autre"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.my_sign_identity_action
+msgid "No signing identity yet"
+msgstr "Aucune identité de signature"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.my_sign_identity_action
+msgid "A reviewed identity and at least one passkey are required before you can use Strong personal signature."
+msgstr "Une identité contrôlée et au moins une passkey sont nécessaires avant d’utiliser la signature personnelle forte."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_list
+msgid "Signer"
+msgstr "Signataire"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_list
+msgid "Identity basis"
+msgstr "Fondement de l’identité"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_list
+msgid "Enrolment status"
+msgstr "État de l’inscription"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+msgid "Reviewed by"
+msgstr "Contrôlé par"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_list
+msgid "Active passkeys"
+msgstr "Passkeys actives"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_list
+msgid "Recovery passkey"
+msgstr "Passkey de secours"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Relationship reference"
+msgstr "Justificatif de la relation"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Identity policy version"
+msgstr "Version de la politique d’identité"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Review note"
+msgstr "Note du contrôle"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_list
+msgid "Reviewed on"
+msgstr "Contrôlé le"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_enrollment_action
+msgid "No identity reviews"
+msgstr "Aucun contrôle d’identité"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_enrollment_action
+msgid "Create a review only for a recurring signer whose relationship and identity can be confirmed."
+msgstr "Créez un contrôle uniquement pour un signataire régulier dont la relation et l’identité peuvent être confirmées."
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__relationship_basis__pocket_id
+msgid "Existing Pocket ID account"
+msgstr "Compte Pocket ID existant"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__relationship_basis__employee
+msgid "Employee relationship"
+msgstr "Relation d’emploi"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__relationship_basis__contractor
+msgid "Contractor relationship"
+msgstr "Relation de prestation"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__relationship_basis__recurring_partner
+msgid "Known recurring partner"
+msgstr "Partenaire régulier connu"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_list
+msgid "Policy"
+msgstr "Politique"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_list
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_list
+msgid "Enabled"
+msgstr "Activé"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "When this policy applies"
+msgstr "Quand cette politique s’applique"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "Priority"
+msgstr "Priorité"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "Recommended journey"
+msgstr "Parcours recommandé"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "Default signer verification"
+msgstr "Vérification par défaut du signataire"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "Request expires after"
+msgstr "Expiration de la demande après"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "First reminder after"
+msgstr "Premier rappel après"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "Guidance shown to requesters"
+msgstr "Explication affichée aux demandeurs"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "Why this level"
+msgstr "Pourquoi ce niveau"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_policy_form
+msgid "What it means"
+msgstr "Ce que cela implique"
+
+#. module: usl_sign
+#: model:usl.sign.policy,name:usl_sign.policy_routine_standard
+msgid "Routine signing policy"
+msgstr "Politique de signature courante"
+
+#. module: usl_sign
+#: model:usl.sign.policy,name:usl_sign.policy_material_recurring_strong
+msgid "Material documents for recurring signers"
+msgstr "Documents significatifs pour signataires réguliers"
+
+#. module: usl_sign
+#: model:usl.sign.policy,name:usl_sign.policy_maximum_qualified
+msgid "Formal or maximum-assurance documents"
+msgstr "Documents formels ou à assurance maximale"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__signer_type__any
+msgid "Any signer"
+msgstr "Tout signataire"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_list
+msgid "Signature levels"
+msgstr "Niveaux de signature"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+msgid "Provider scope"
+msgstr "Périmètre du prestataire"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_list
+msgid "Provider territory"
+msgstr "Territoire"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+msgid "Catalog review"
+msgstr "Contrôle du catalogue"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_external_provider_form
+msgid "Recommendation priority"
+msgstr "Priorité de recommandation"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_external_provider_action
+msgid "No qualified providers reviewed"
+msgstr "Aucun prestataire qualifié contrôlé"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_external_provider_action
+msgid "Add a provider only after its territory, qualified services, mobile journey and commercial terms have been reviewed."
+msgstr "Ajoutez un prestataire uniquement après contrôle de son territoire, de ses services qualifiés, de son parcours mobile et de ses conditions commerciales."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "Date"
+msgstr "Date"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "Manifest status"
+msgstr "État du manifeste"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "Events"
+msgstr "Événements"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "Requests"
+msgstr "Demandes"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "Manifest SHA-256"
+msgstr "SHA-256 du manifeste"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "External anchoring"
+msgstr "Ancrage externe"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_form
+msgid "Signature algorithm"
+msgstr "Algorithme de signature"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__state__signed
+msgid "Signed"
+msgstr "Signé"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__state__failed
+msgid "Signing failed"
+msgstr "Échec de signature"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__scheduled
+msgid "Scheduled"
+msgstr "Planifiée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__pending
+msgid "Awaiting confirmation"
+msgstr "En attente de confirmation"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_daily_manifest__anchoring_status__confirmed
+msgid "Confirmed"
+msgstr "Confirmée"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_daily_manifest_action
+msgid "No evidence manifests yet"
+msgstr "Aucun manifeste de preuves"
+
+#. module: usl_sign
+#: model_terms:ir.actions.act_window,help:usl_sign.sign_daily_manifest_action
+msgid "The scheduled job signs one tamper-evident summary of each company’s Sign events every day."
+msgstr "La tâche planifiée signe chaque jour un résumé infalsifiable des événements Sign de chaque société."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_daily_manifest_list
+msgid "Retry"
+msgstr "Réessayer"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__state__active
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_passkey__state__active
+msgid "Active"
+msgstr "Active"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_enrollment__state__revoked
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_passkey__state__revoked
+msgid "Revoked"
+msgstr "Révoquée"
+
+#. module: usl_sign
+#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_passkey__state__lost
+msgid "Lost"
+msgstr "Perdue"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Confirm Identity and Invite"
+msgstr "Confirmer l’identité et inviter"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Register passkey"
+msgstr "Enregistrer une passkey"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Register recovery passkey"
+msgstr "Ajouter une passkey de secours"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Revoke Enrolment"
+msgstr "Révoquer l’inscription"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Passkey"
+msgstr "Passkey"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Status"
+msgstr "État"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Authenticator"
+msgstr "Appareil"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Backed up"
+msgstr "Sauvegardée"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Added on"
+msgstr "Ajoutée le"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Last used"
+msgstr "Dernière utilisation"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Status reason"
+msgstr "Motif"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+msgid "Mark Lost"
+msgstr "Signaler perdue"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_form
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_enrollment_revoke_wizard_form
+msgid "Revoke"
+msgstr "Révoquer"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Sign Service Status"
+msgstr "État des services de signature"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Service status"
+msgstr "État des services"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Check the services required to validate signatures and archive their proof."
+msgstr "Vérifiez les services nécessaires pour valider les signatures et archiver leurs preuves."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Signing engine"
+msgstr "Moteur de signature"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Readiness"
+msgstr "Diagnostic"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.res_config_settings_view_form_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Test DSS"
+msgstr "Tester DSS"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Evidence archive"
+msgstr "Archivage des preuves"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Paperless"
+msgstr "Paperless"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Last successful synchronization"
+msgstr "Dernière synchronisation réussie"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Test Paperless"
+msgstr "Tester Paperless"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/company.py:0
+msgid "Signing services are ready."
+msgstr "Les services de signature sont prêts."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/company.py:0
+msgid "Configure: %(services)s"
+msgstr "À configurer : %(services)s"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/company.py:0
+msgid "The DSS service is reachable."
+msgstr "Le service DSS est accessible."
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.res_config_settings_view_form_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_service_status_form
+msgid "Test certificate service"
+msgstr "Tester le service de certificats"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/company.py:0
+msgid "The certificate service is reachable."
+msgstr "Le service de certificats est accessible."
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "The document changed after you reviewed it. Reload it, review the latest revision, and sign again."
+msgstr "Le document a changé après votre vérification. Rechargez-le, vérifiez la dernière version, puis signez à nouveau."
+
+#. module: usl_sign
+msgid "Daily Bitcoin existence proof"
+msgstr "Preuve quotidienne d’existence Bitcoin"
+
+#. module: usl_sign
+msgid "Timestamp proof"
+msgstr "Preuve d’existence horodatée"
+
+#. module: usl_sign
+msgid "Scheduled for daily proof"
+msgstr "Preuve quotidienne planifiée"
+
+#. module: usl_sign
+msgid "Awaiting Bitcoin confirmation"
+msgstr "En attente de confirmation Bitcoin"
+
+#. module: usl_sign
+msgid "Confirmed — existed no later than %(time)s"
+msgstr "Confirmée — existait au plus tard le %(time)s"
+
+#. module: usl_sign
+msgid "Timestamp proof requires review"
+msgstr "La preuve d’existence doit être vérifiée"
+
+#. module: usl_sign
+msgid "%(proof)s · Daily proof archive needs attention"
+msgstr "%(proof)s · L’archive de la preuve quotidienne doit être vérifiée"
+
+#. module: usl_sign
+msgid "Daily evidence manifest"
+msgstr "Manifeste quotidien de preuves"
+
+#. module: usl_sign
+msgid "Daily manifest"
+msgstr "Manifeste quotidien"
+
+#. module: usl_sign
+msgid "Daily proof"
+msgstr "Preuve quotidienne"
+
+#. module: usl_sign
+msgid "Daily proof dossier"
+msgstr "Dossier de preuve quotidien"
+
+#. module: usl_sign
+msgid "No daily proofs yet"
+msgstr "Aucune preuve quotidienne pour le moment"
+
+#. module: usl_sign
+msgid "UTC day"
+msgstr "Jour UTC"
+
+#. module: usl_sign
+msgid "Closed UTC day"
+msgstr "Jour UTC clôturé"
+
+#. module: usl_sign
+msgid "Manifest"
+msgstr "Manifeste"
+
+#. module: usl_sign
+msgid "Covered Requests"
+msgstr "Demandes couvertes"
+
+#. module: usl_sign
+msgid "Proof Files"
+msgstr "Fichiers de preuve"
+
+#. module: usl_sign
+msgid "Technical Details"
+msgstr "Détails techniques"
+
+#. module: usl_sign
+msgid "Manifest integrity"
+msgstr "Intégrité du manifeste"
+
+#. module: usl_sign
+msgid "Original manifest payload"
+msgstr "Contenu canonique du manifeste"
+
+#. module: usl_sign
+msgid "Canonical payload"
+msgstr "Contenu canonique"
+
+#. module: usl_sign
+msgid "Confirmation"
+msgstr "Confirmation"
+
+#. module: usl_sign
+msgid "Confirmations"
+msgstr "Confirmations"
+
+#. module: usl_sign
+msgid "Bitcoin confirmations"
+msgstr "Confirmations Bitcoin"
+
+#. module: usl_sign
+msgid "Existence established by"
+msgstr "Existence établie au plus tard le"
+
+#. module: usl_sign
+msgid "Signed manifest"
+msgstr "Manifeste signé"
+
+#. module: usl_sign
+msgid "Pending receipt"
+msgstr "Reçu en attente"
+
+#. module: usl_sign
+msgid "Confirmed .ots proof"
+msgstr "Preuve .ots confirmée"
+
+#. module: usl_sign
+msgid "Explorer verification report"
+msgstr "Rapport de vérification des explorateurs"
+
+#. module: usl_sign
+msgid "Verification report"
+msgstr "Rapport de vérification"
+
+#. module: usl_sign
+msgid "OpenTimestamps receipts"
+msgstr "Reçus OpenTimestamps"
+
+#. module: usl_sign
+msgid "Original submission"
+msgstr "Soumission initiale"
+
+#. module: usl_sign
+msgid "Upgraded proof"
+msgstr "Preuve mise à niveau"
+
+#. module: usl_sign
+msgid "Receipt SHA-256"
+msgstr "SHA-256 du reçu"
+
+#. module: usl_sign
+msgid "Final PDF SHA-256"
+msgstr "SHA-256 du PDF final"
+
+#. module: usl_sign
+msgid "Dossier SHA-256"
+msgstr "SHA-256 du dossier"
+
+#. module: usl_sign
+msgid "Event head"
+msgstr "Tête de chaîne d’événements"
+
+#. module: usl_sign
+msgid "Event-head SHA-256"
+msgstr "SHA-256 de la tête d’événements"
+
+#. module: usl_sign
+msgid "Completion event"
+msgstr "Événement de finalisation"
+
+#. module: usl_sign
+msgid "Retry manifest signing"
+msgstr "Relancer la signature du manifeste"
+
+#. module: usl_sign
+msgid "Retry signing"
+msgstr "Relancer la signature"
+
+#. module: usl_sign
+msgid "Retry timestamp proof"
+msgstr "Relancer la preuve d’existence"
+
+#. module: usl_sign
+msgid "Retry proof"
+msgstr "Relancer la preuve"
+
+#. module: usl_sign
+msgid "Retry Paperless archive"
+msgstr "Relancer l’archivage Paperless"
+
+#. module: usl_sign
+msgid "Retry archive"
+msgstr "Relancer l’archivage"
+
+#. module: usl_sign
+msgid "Archive failed"
+msgstr "Échec de l’archivage"
+
+#. module: usl_sign
+msgid "Archiving"
+msgstr "Archivage en cours"
+
+#. module: usl_sign
+msgid "Not archived"
+msgstr "Non archivé"
+
+#. module: usl_sign
+msgid "Open proof record"
+msgstr "Ouvrir la preuve"
+
+#. module: usl_sign
+msgid "Download"
+msgstr "Télécharger"
+
+#. module: usl_sign
+msgid "The manifest was accepted by multiple OpenTimestamps calendars. Bitcoin confirmation normally takes several hours."
+msgstr "Le manifeste a été accepté par plusieurs calendriers OpenTimestamps. La confirmation Bitcoin prend généralement plusieurs heures."
+
+#. module: usl_sign
+msgid "This closed UTC day is signed and scheduled for OpenTimestamps submission."
+msgstr "Ce jour UTC clôturé est signé et sa soumission à OpenTimestamps est planifiée."
+
+#. module: usl_sign
+msgid "OpenTimestamps proves existence no later than a Bitcoin block time. It is not an RFC 3161 or qualified timestamp, does not identify a signer, and does not prove that signing happened at that exact time."
+msgstr "OpenTimestamps prouve une existence au plus tard à l’heure d’un bloc Bitcoin. Ce n’est ni un horodatage RFC 3161 ni un horodatage qualifié, n’identifie pas le signataire et ne prouve pas que la signature a eu lieu à cet instant précis."
+
+#. module: usl_sign
+msgid "Each closed UTC day is signed, submitted to OpenTimestamps, independently checked through two public Bitcoin explorers, and archived in Paperless."
+msgstr "Chaque jour UTC clôturé est signé, soumis à OpenTimestamps, vérifié indépendamment par deux explorateurs Bitcoin publics, puis archivé dans Paperless."
+
+#. module: usl_sign
+msgid "The verified Bitcoin block time is malformed."
+msgstr "L’heure du bloc Bitcoin vérifié est mal formée."
+
+#. module: usl_sign
+msgid "The verified Bitcoin block time has no UTC offset."
+msgstr "L’heure du bloc Bitcoin vérifié n’indique pas de décalage UTC."

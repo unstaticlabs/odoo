@@ -440,8 +440,22 @@ test_js() {
     --log-level=test
 }
 
+ensure_sign_test_services() {
+  if [[ ! -f "$ROOT/.secrets/sign/odoo.env" ]]; then
+    printf '%s\n' \
+      'Sign test secrets are missing. Run scripts/sign-services-bootstrap first.' \
+      >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" --profile sign up -d --wait \
+    usl-sign-step-ca usl-sign-dss
+}
+
 test_tag() {
   local test_tag="$1"
+  if [[ "$test_tag" == *usl_sign* ]]; then
+    ensure_sign_test_services
+  fi
   "${COMPOSE[@]}" --profile test build test
   run_with_odoo_stopped test test odoo \
     --config=/etc/odoo/odoo.conf \
@@ -629,6 +643,30 @@ bootstrap_tese_payroll_qa() {
   printf 'Open Payroll Records and apply the saved QA TESE filter.\n'
 }
 
+bootstrap_sign_qa() {
+  local module_state
+  module_state="$(
+    "${COMPOSE[@]}" exec -T db psql -U odoo -d "$DEV_DB" -Atc \
+      "SELECT state FROM ir_module_module WHERE name = 'usl_sign'"
+  )"
+  if [[ "$module_state" != "installed" ]]; then
+    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+    "${COMPOSE[@]}" --profile init run --rm \
+      -e ODOO_INIT_DB="$DEV_DB" \
+      init-db odoo \
+      --config=/etc/odoo/odoo.conf \
+      --database="$DEV_DB" \
+      --init=usl_sign \
+      --without-demo=true \
+      --stop-after-init \
+      --log-level=warn
+    restore_development_runtime
+  fi
+  "${COMPOSE[@]}" exec -T odoo odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < "$ROOT/scripts/odoo/sign_qa_bootstrap.py"
+}
+
 cleanup_test_database() {
   local database="$1"
   case "$database" in
@@ -687,6 +725,9 @@ test_module() {
   esac
   container="${COMPOSE_PROJECT}-test-${database}"
   trap 'finish_module_test "$database" "$container"' EXIT INT TERM
+  if [[ "$module" == "usl_sign" ]]; then
+    ensure_sign_test_services
+  fi
   "${COMPOSE[@]}" --profile test build test
   cleanup_test_container "$container"
   cleanup_test_database "$database"
@@ -823,6 +864,9 @@ case "$command_name" in
   bootstrap-tese-payroll-qa)
     bootstrap_tese_payroll_qa "${2:-01}"
     ;;
+  bootstrap-sign-qa)
+    bootstrap_sign_qa
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -886,6 +930,8 @@ Commands:
                 Prepare three-action foreign-currency settlement QA cases
   bootstrap-tese-payroll-qa [generation]
                 Seed synthetic Paie TESE journeys in the selected QA database
+  bootstrap-sign-qa
+                Assign local Sign roles and seed a synthetic Routine Agreement
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_service_health_kanban" model="ir.ui.view">
+        <field name="name">usl.sign.service.health.kanban</field>
+        <field name="model">usl.sign.service.health</field>
+        <field name="arch" type="xml">
+            <kanban create="0" edit="0" delete="0" default_order="company_id, sequence">
+                <header>
+                    <button name="action_refresh_company" type="object" string="Refresh all" class="btn-primary" display="always"/>
+                </header>
+                <field name="name"/><field name="status"/><field name="summary"/><field name="version"/>
+                <field name="latency_ms"/><field name="checked_at"/><field name="next_action"/><field name="company_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                            <strong><field name="name"/></strong>
+                            <field name="status" widget="badge"/>
+                        </div>
+                        <p class="mb-2"><field name="summary"/></p>
+                        <p t-if="record.next_action.raw_value" class="small text-warning mb-2"><i class="fa fa-arrow-right me-1" title="Next action"/><field name="next_action"/></p>
+                        <div class="small text-muted d-flex flex-wrap gap-2">
+                            <span t-if="record.version.raw_value"><field name="version"/></span>
+                            <span t-if="record.checked_at.raw_value">Checked <field name="checked_at"/></span>
+                            <span t-if="record.latency_ms.raw_value"><field name="latency_ms"/> ms</span>
+                        </div>
+                        <footer class="mt-3">
+                            <button name="action_refresh" type="object" string="Check now" class="btn btn-sm btn-outline-primary"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="sign_service_health_list" model="ir.ui.view">
+        <field name="name">usl.sign.service.health.list</field>
+        <field name="model">usl.sign.service.health</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <header><button name="action_refresh_company" type="object" string="Refresh all" class="btn-primary" display="always"/></header>
+                <field name="name"/><field name="company_id" groups="base.group_multi_company"/><field name="status" widget="badge"/>
+                <field name="summary"/><field name="version" optional="show"/><field name="checked_at"/><field name="latency_ms" optional="hide"/>
+                <button name="action_refresh" type="object" string="Check now"/>
+            </list>
+        </field>
+    </record>
+    <record id="sign_service_health_search" model="ir.ui.view">
+        <field name="name">usl.sign.service.health.search</field>
+        <field name="model">usl.sign.service.health</field>
+        <field name="arch" type="xml">
+            <search><field name="name"/><field name="company_id"/><filter name="issues" string="Needs attention" domain="[('status', '!=', 'ready')]"/><group><filter name="company" string="Company" context="{'group_by': 'company_id'}"/></group></search>
+        </field>
+    </record>
+</odoo>
