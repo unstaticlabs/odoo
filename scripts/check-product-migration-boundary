@@ -201,6 +201,14 @@ runtime_modules = {
         "source_snapshot",
         "/mnt/b2c-migration-addons",
     ),
+    PRODUCT_ADDONS / "usl_sign": (
+        "usl.sign.restore",
+        "usl_sign_restore",
+        "sign-restore",
+        "sign-migration",
+        "rebuild_source_",
+        "/mnt/sign-migration-addons",
+    ),
     PRODUCT_ADDONS / "usl_project": (
         "usl.project.restore",
         "rebuild_source_",

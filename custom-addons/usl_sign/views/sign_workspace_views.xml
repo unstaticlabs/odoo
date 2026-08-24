@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_landing_action" model="ir.actions.client">
+        <field name="name">Sign</field>
+        <field name="tag">usl_sign.landing</field>
+    </record>
+    <record id="sign_start_form" model="ir.ui.view">
+        <field name="name">usl.sign.start.form</field>
+        <field name="model">usl.sign.start</field>
+        <field name="arch" type="xml">
+            <form string="Start">
+                <sheet>
+                    <field name="company_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h2>What do you need?</h2>
+                        <p class="text-muted">Choose a decision when an approval is enough. Choose signatures when the PDF itself must be signed.</p>
+                    </div>
+                    <field name="request_type" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                    <group>
+                        <field name="name" placeholder="A clear name for this request"/>
+                        <field name="record_ref"/>
+                    </group>
+                    <group invisible="request_type != 'signature'">
+                        <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                        <field name="template_id" invisible="signature_source != 'template'" required="request_type == 'signature' and signature_source == 'template'" options="{'no_create': true}"/>
+                        <field name="document_data" filename="document_filename" invisible="signature_source != 'upload'" required="request_type == 'signature' and signature_source == 'upload'"/>
+                        <field name="document_filename" invisible="1"/>
+                    </group>
+                    <group invisible="request_type != 'decision'">
+                        <field name="approver_ids" widget="many2many_tags" required="request_type == 'decision'"/>
+                        <field name="decision_rule" required="request_type == 'decision'"/>
+                        <field name="due_date"/>
+                        <div class="alert alert-info" role="status" colspan="2">
+                            A decision request records who approved or rejected, signs its event history, generates a validated PDF proof, and archives it. It is useful when the business decision needs evidence but the document itself does not need a signature.
+                        </div>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_continue" type="object" string="Continue" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="sign_start_action" model="ir.actions.act_window">
+        <field name="name">Start</field>
+        <field name="res_model">usl.sign.start</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

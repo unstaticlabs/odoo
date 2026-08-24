@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sign_invitation_body" name="USL Sign invitation body">
+        <div style="font-family: Arial, sans-serif; font-size: 14px;">
+            <p>Hello <t t-out="signer.partner_id.name"/>,</p>
+            <p>
+                <t t-out="signer.request_id.company_id.name"/>
+                <t t-if="reminder"> is still waiting for you to review and sign </t>
+                <t t-else=""> has asked you to review and sign </t>
+                <strong t-out="signer.request_id.name"/>.
+            </p>
+            <p t-if="signer.request_id.responsible_message" t-out="signer.request_id.responsible_message"/>
+            <p><strong t-out="dict(signer.request_id._fields['requested_trust'].selection).get(signer.request_id.requested_trust)"/></p>
+            <p>
+                <a t-att-href="link" style="background:#714B67;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px;display:inline-block;">
+                    Review and sign
+                </a>
+            </p>
+            <p>This personal link expires after first use and must not be forwarded.</p>
+        </div>
+    </template>
+
+    <template id="sign_completion_delivery_body" name="USL Sign completion delivery body">
+        <div style="font-family: Arial, sans-serif; font-size: 14px;">
+            <p>The signature request <strong t-out="record.name"/> is complete.</p>
+            <p>
+                The attached final evidence dossier contains the signed document,
+                completion certificate, and validation evidence.
+            </p>
+            <p t-out="record.company_id.name"/>
+        </div>
+    </template>
+</odoo>

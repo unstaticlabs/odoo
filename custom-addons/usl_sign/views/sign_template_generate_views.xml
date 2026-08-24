@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_oca.sign_oca_template_generate_act_window" model="ir.actions.act_window">
+        <field name="name">Prepare request</field>
+    </record>
+    <record id="sign_template_generate_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.generate.form.usl.journey</field>
+        <field name="model">sign.oca.template.generate</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <form string="Prepare request">
+                <sheet>
+                    <field name="template_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="sign_now" invisible="1"/>
+                    <div class="oe_title mb-3"><p class="text-muted mb-1">Signature request</p><h2><field name="request_name" placeholder="Agreement or document name" required="1"/></h2></div>
+                    <div class="d-flex flex-wrap gap-3 text-muted mb-4">
+                        <span>Template: <field name="template_id" readonly="1" class="d-inline"/></span>
+                        <span invisible="not record_ref">Linked to: <field name="record_ref" class="d-inline"/></span>
+                    </div>
+                    <h3 class="h5">1. Who must sign?</h3>
+                    <field name="signer_ids" nolabel="1">
+                        <list editable="bottom" create="0" delete="0"><field name="role_id" force_save="1"/><field name="partner_id"/></list>
+                    </field>
+                    <separator string="2. What kind of document is this?"/>
+                    <group>
+                        <group><field name="document_category"/><field name="signer_type"/><field name="risk_level"/></group>
+                        <group><field name="requires_signed_pdf"/><field name="formal_qes_required"/></group>
+                    </group>
+                    <separator string="3. Review the recommended trust"/>
+                    <div class="card mb-3"><div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-5"><span class="o_form_label fw-semibold">Recommended</span><field name="recommended_trust" nolabel="1" readonly="1"/><field name="policy_id" invisible="1"/></div>
+                            <div class="col-12 col-md-7"><field name="recommendation_reason" nolabel="1" readonly="1"/><field name="recommendation_consequence" nolabel="1" readonly="1" class="text-muted"/></div>
+                        </div>
+                    </div></div>
+                    <div class="alert alert-warning" role="alert" invisible="not approval_recommended">
+                        This decision does not need a signed PDF. An attributable Odoo decision is the simpler, proportionate path.
+                        <button name="action_request_approval" type="object" string="Request approval instead" class="btn-link"/>
+                    </div>
+                    <field name="approval_recommended" invisible="1"/>
+                    <field name="journey_availability" nolabel="1" readonly="1"/>
+                    <group>
+                        <field name="requested_trust"/>
+                        <field name="external_provider_id" invisible="requested_trust != 'qualified_external'"/>
+                        <field name="override_reason" invisible="requested_trust == recommended_trust" required="requested_trust != recommended_trust"/>
+                    </group>
+                    <separator string="4. Message to signers"/>
+                    <field name="message" nolabel="1" placeholder="Add a short reason or instruction (optional)."/>
+                </sheet>
+                <footer>
+                    <button name="generate" string="Create request" class="btn-primary" type="object" invisible="approval_recommended"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
