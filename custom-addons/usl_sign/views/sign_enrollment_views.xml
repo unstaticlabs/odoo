@@ -27,16 +27,31 @@
                     <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
                 </header>
                 <sheet>
-                    <div class="oe_title"><h1><field name="partner_id"/></h1></div>
+                    <div class="oe_title">
+                        <p class="text-muted mb-1">Strong signing identity</p>
+                        <h1><field name="partner_id"/></h1>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'pending_pocket'">
+                        <strong>Next: connect Pocket ID.</strong> Send the secure invitation to this person. They sign in to Pocket ID and confirm the identity link; no passkey credential is copied into Odoo.
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state != 'pending_review'">
+                        <strong>Next: review the identity match.</strong> Confirm that the Pocket ID account belongs to the partner below and that the recorded relationship meets the stated policy.
+                    </div>
+                    <div class="alert alert-success" role="status" invisible="state != 'active'">
+                        <strong>Ready for Strong personal signing.</strong> Each future signature still requires a fresh Pocket ID passkey confirmation bound to that exact document.
+                    </div>
+                    <div class="alert alert-danger" role="status" invisible="state != 'revoked'">
+                        <strong>This identity link is revoked.</strong> It cannot authorize new Strong signatures. Completed documents remain valid and unchanged.
+                    </div>
                     <group>
-                        <group>
+                        <group string="Reviewed relationship">
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="relationship_basis" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="relationship_reference" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="policy_version" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="review_note" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                            <field name="relationship_basis" string="Why we know this person" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                            <field name="relationship_reference" string="Relationship reference" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Employee record, contractor agreement, or reviewer reference"/>
+                            <field name="policy_version" string="Identity policy version" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                            <field name="review_note" string="Reviewer note" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Record the checks performed; do not attach identity documents by default."/>
                         </group>
-                        <group>
+                        <group string="Pocket ID connection">
                             <field name="reviewer_id"/>
                             <field name="reviewed_at"/>
                             <field name="pocket_display_name" invisible="not pocket_subject"/>
@@ -48,11 +63,25 @@
                             <field name="revocation_reason" invisible="not revocation_reason"/>
                         </group>
                     </group>
-                    <div class="alert alert-info" role="status">
-                        Pocket ID owns passkey registration, recovery and credential revocation. Odoo keeps only the Pocket ID identity link and the reviewer decision. Revoking this enrolment immediately blocks Strong signing without affecting completed documents.
+                    <div class="text-muted small" role="note">
+                        Pocket ID owns passkey registration, recovery, and credential revocation. Odoo stores only the immutable Pocket ID identity link and this review decision.
                     </div>
                 </sheet>
             </form>
+        </field>
+    </record>
+    <record id="sign_enrollment_search" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.search</field>
+        <field name="model">usl.sign.enrollment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id" string="Person"/><field name="pocket_display_name" string="Pocket ID name"/><field name="company_id"/>
+                <filter name="needs_connection" string="Waiting for Pocket ID" domain="[('state', '=', 'pending_pocket')]"/>
+                <filter name="needs_review" string="Needs review" domain="[('state', '=', 'pending_review')]"/>
+                <filter name="active" string="Ready" domain="[('state', '=', 'active')]"/>
+                <filter name="revoked" string="Revoked" domain="[('state', '=', 'revoked')]"/>
+                <group><filter name="group_state" string="Stage" context="{'group_by': 'state'}"/><filter name="group_basis" string="Relationship" context="{'group_by': 'relationship_basis'}"/></group>
+            </search>
         </field>
     </record>
     <record id="sign_enrollment_revoke_wizard_form" model="ir.ui.view">
@@ -72,8 +101,13 @@
         </field>
     </record>
     <record id="sign_enrollment_action" model="ir.actions.act_window">
-        <field name="name">Strong Signer Enrolments</field>
+        <field name="name">Identity Reviews</field>
         <field name="res_model">usl.sign.enrollment</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="sign_enrollment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Strong signing identities to review</p>
+            <p>Create an identity review only for an employee, contractor, or recurring partner whose relationship can be confirmed. Pocket ID manages the person's passkeys; Odoo records the reviewed identity link.</p>
+        </field>
     </record>
 </odoo>

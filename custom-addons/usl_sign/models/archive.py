@@ -6,7 +6,7 @@ class UslDocumentLink(models.Model):
 
     @api.model
     def _allowed_models(self):
-        return super()._allowed_models() | {"sign.oca.request", "usl.sign.approval"}
+        return super()._allowed_models() | {"sign.oca.request"}
 
 
 class SignRequestArchive(models.Model):

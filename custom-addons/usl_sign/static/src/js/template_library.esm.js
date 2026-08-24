@@ -90,13 +90,6 @@ export class SignTemplateKanbanController extends KanbanController {
         }
     }
 
-    openCompletedDocuments() {
-        return this.actionService.doAction("usl_sign.completed_documents_action");
-    }
-
-    openDecisions() {
-        return this.actionService.doAction("usl_sign.completed_decisions_action");
-    }
 }
 
 registry.category("views").add("usl_sign_template_kanban", {

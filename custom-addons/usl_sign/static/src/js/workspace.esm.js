@@ -7,7 +7,6 @@ import {useService} from "@web/core/utils/hooks";
 
 const LANDING_SECTIONS = [
     ["sign_now", _t("Sign now"), _t("Documents waiting for your signature"), "fa-pencil"],
-    ["decide", _t("Decide"), _t("Business decisions waiting for you"), "fa-check-circle"],
     ["prepare", _t("Prepare and send"), _t("Drafts and ready requests you manage"), "fa-paper-plane"],
     ["issues", _t("Resolve issues"), _t("Requests that cannot move forward"), "fa-exclamation-triangle"],
     ["waiting", _t("Waiting on others"), _t("Requests progressing without your action"), "fa-clock-o"],

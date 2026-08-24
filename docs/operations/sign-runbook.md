@@ -36,6 +36,8 @@ For a lightweight QA tenant tied to the current worktree, run:
 scripts/sign-qa-stack start
 scripts/sign-qa-stack info
 scripts/sign-qa-stack status
+scripts/sign-qa-stack login-link valentin
+scripts/sign-qa-stack login-link roger
 scripts/sign-qa-stack test /usl_sign
 scripts/sign-qa-stack smoke
 scripts/sign-qa-stack stop
@@ -49,12 +51,54 @@ focused synthetic bootstrap; it never imports an SQL dump, filestore or shared
 volume. Custom add-ons remain bind-mounted, while the Odoo runtime image is
 content-addressed from its dependency inputs so unchanged images are reused.
 
-`info` prints the resolved project, URLs and review users. `test` uses a
-separate disposable database and headless/synthetic authenticators only.
+`info` prints the resolved project, URLs, review users and login-link commands.
+`login-link` creates a one-time Pocket ID session for the named synthetic user;
+after opening it, use **Continue with Pocket ID** on the Odoo login page. `test`
+uses a separate disposable database and headless/synthetic authenticators only.
 `smoke` exercises the local CA, DSS, key separation, pyHanko, deterministic
 PDF/A-3 dossier, veraPDF, replay and alteration checks. `stop` leaves all
 project volumes intact, so the same `start` command brings the tenant back.
 Remove project volumes only when deliberately requesting a new clean seed.
+
+## Product workspaces
+
+The installed Sign application is document-only. Its navigation is:
+
+- **Sign Dashboard** for immediate work, blockers, waiting requests and recent
+  results;
+- **Request Signature → Templates** for reusable documents and the PDF field
+  editor;
+- **Request Signature → Open Requests** for non-terminal requests owned or
+  coordinated by the current user;
+- **Request Signature → Completed** for validated and durably archived results;
+- **My Signatures** for both pending documents and the current user's signing
+  history;
+- **Configuration** for identity, trust, provider, readiness, timestamp and
+  role administration according to group membership.
+
+The dormant internal-decision experiment is not installed. When a signed PDF
+is unnecessary, use the approval mechanism of the relevant Odoo business app.
+Do not expose the dormant model or views from Sign without a separate product
+and security review.
+
+Configuration entries answer distinct operational questions:
+
+- **My Strong Identity** shows whether the current user has a reviewed Pocket
+  ID link for Strong personal signing.
+- **Identity Reviews** lets authorized reviewers verify or revoke a recurring
+  signer's relationship; Pocket ID continues to own passkeys and recovery.
+- **Trust Rules** recommends Standard, Strong personal or Qualified external
+  from business context without silently changing the requested level.
+- **Qualified Providers** is a reviewed provider-neutral reference catalog,
+  not an API integration.
+- **Signer Roles** defines reusable places such as Client or Employee. The
+  actual person is normally selected on each request.
+- **Signing Readiness** checks each end-to-end capability and explains the next
+  safe action. It stores health results, never credentials.
+- **Daily Timestamp Proofs** exposes signed closed-day manifests and portable
+  OpenTimestamps evidence.
+- **Settings** contains company policy and delivery defaults. Keep final-dossier
+  delivery enabled unless a reviewed company policy says otherwise.
 
 The lower-level `scripts/sign-pocketid-stack` helper remains available for
 Pocket patch, archive and virtual-authenticator acceptance. Those commands may
@@ -178,27 +222,26 @@ For the isolated worktree tenant, start the stack and create a short-lived
 account-settings link for the synthetic Roger user:
 
 ```bash
-scripts/sign-pocketid-stack start
-python3 scripts/pocket_id_dev.py --env-file .sign-pocketid-qa.env \
-  one-time-link roger --ttl 16m
+scripts/sign-qa-stack start
+scripts/sign-qa-stack login-link roger 16m
 ```
 
 Pocket ID uses six-character login codes at lifetimes of fifteen minutes or
 less. This QA tenant disables code-based Strong authorization, so the manual
 onboarding link deliberately uses sixteen minutes and redirects directly to
 account settings. Open it in the browser being tested and add the real
-platform passkey. The credential is scoped to the isolated
-`pocket-id-sign-qa.localhost` relying party.
+platform passkey. The credential is scoped to the isolated Pocket ID relying
+party printed by `scripts/sign-qa-stack info`.
 
 Prepare the reviewed browser journey and copy the IDs and URLs printed after
 each command:
 
 ```bash
-scripts/sign-pocketid-stack strong-acceptance-prepare touchid-qa real_platform
+scripts/sign-qa-stack strong-acceptance-prepare touchid-qa real_platform
 # Open invitation_url and connect the same Pocket ID account.
-scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID touchid-qa
+scripts/sign-qa-stack strong-acceptance-review ENROLMENT_ID touchid-qa
 # Open signing_url, consent, and complete the fresh passkey signature.
-scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID
+scripts/sign-qa-stack strong-acceptance-verify REQUEST_ID
 ```
 
 The prepare command records whether the run used a virtual or real platform

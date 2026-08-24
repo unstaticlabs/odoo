@@ -1,10 +1,10 @@
-import base64
 import hashlib
 import json
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
+from ..services import field_content
 from .constants import INTERNAL_OPERATION, TRUST_LEVELS
 
 
@@ -56,7 +56,7 @@ class SignEvidence(models.Model):
             msg = "Use the controlled evidence operation."
             raise AccessError(msg)
         for values in vals_list:
-            raw = base64.b64decode(values.get("data") or b"")
+            raw = field_content(values.get("data"))
             if not raw:
                 msg = "Evidence artifacts cannot be empty."
                 raise ValidationError(msg)
