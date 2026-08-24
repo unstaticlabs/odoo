@@ -9,10 +9,14 @@ usl_require_explicit_compose_project "Canonical reconstruction"
 compose_project="$COMPOSE_PROJECT_NAME"
 usl_verify_compose_scope "$compose_project" "$ROOT" "Canonical reconstruction"
 
-if [[ -f "$ROOT/.git" && -z "${POCKET_ID_ENV_FILE:-}" ]]; then
-  export POCKET_ID_ENV_FILE="$ROOT/.pocket-id-${compose_project}.env"
-  printf 'Pocket ID: using isolated project environment %s.\n' \
-    "$(basename "$POCKET_ID_ENV_FILE")"
+if [[ -z "${POCKET_ID_ENV_FILE:-}" ]]; then
+  if [[ -d "$ROOT/.git" && "$compose_project" == "usl-odoo-saas-19-3" ]]; then
+    export POCKET_ID_ENV_FILE="$ROOT/.pocket-id.env"
+  else
+    export POCKET_ID_ENV_FILE="$ROOT/.pocket-id-${compose_project}.env"
+    printf 'Pocket ID: using isolated project environment %s.\n' \
+      "$(basename "$POCKET_ID_ENV_FILE")"
+  fi
 fi
 
 if [[ "${ODOO_DEV_DB:-odoo_dev}" != "odoo_dev" ]]; then
@@ -123,6 +127,28 @@ case "$reuse_documents" in
     ;;
 esac
 
+resume_accounting="${USL_RECONSTRUCT_RESUME_ACCOUNTING:-0}"
+case "$resume_accounting" in
+  0) ;;
+  1)
+    if [[ "$migration_purpose" == production ]]; then
+      printf 'Production migration cannot resume from development evidence.\n' >&2
+      exit 2
+    fi
+    printf 'Accounting: resume requested; exact source parity will be revalidated before reuse.\n'
+    ;;
+  *)
+    printf 'USL_RECONSTRUCT_RESUME_ACCOUNTING must be 0 or 1.\n' >&2
+    exit 2
+    ;;
+esac
+
+if [[ "$migration_purpose" == production ]]; then
+  documents_task_workers="${USL_DOCUMENTS_TASK_WORKERS:-1}"
+else
+  documents_task_workers="${USL_DOCUMENTS_TASK_WORKERS:-3}"
+fi
+
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-$compose_project}"
 timing_dir="$ROOT/artifacts/migration/private/runs"
 mkdir -p "$timing_dir"
@@ -137,6 +163,7 @@ migration_code_sha256="$(
     'from pathlib import Path; from scripts.qa_seed import migration_digest; print(migration_digest(Path.cwd()))'
 )"
 seed_pending=0
+accounting_validated=0
 
 run_stage() {
   local label="$1" started status
@@ -238,6 +265,10 @@ cleanup() {
   [[ "$seed_pending" == 0 ]] || scripts/qa-seed discard >/dev/null 2>&1 || true
   if ((status)); then
     write_timing failed
+    if [[ "$accounting_validated" == 1 && "$migration_purpose" != production ]]; then
+      printf '\nAccounting remains validated. Resume without replaying it:\n' >&2
+      printf '  make qa-cache-resume\n' >&2
+    fi
   fi
   exit "$status"
 }
@@ -248,10 +279,32 @@ start_target_database() {
   docker compose -p "$compose_project" up -d --wait db
 }
 
+preflight_target_identity() {
+  local configured_project
+  USL_POCKET_ID_DEV_COMPOSE_PROJECT="$compose_project" \
+    USL_POCKET_ID_DEV_ODOO_PORT="${ODOO_HTTP_PORT:-8069}" \
+    USL_POCKET_ID_DEV_GEVENT_PORT="${ODOO_GEVENT_PORT:-8072}" \
+    USL_POCKET_ID_DEV_POCKET_PORT="${POCKET_ID_HTTP_PORT:-1411}" \
+    USL_POCKET_ID_DEV_PAPERLESS_PORT="${PAPERLESS_HTTP_PORT:-8010}" \
+    USL_POCKET_ID_DEV_PAPERLESS_URL="${PAPERLESS_PUBLIC_URL:-http://paperless.localhost:${PAPERLESS_HTTP_PORT:-8010}}" \
+    scripts/pocket-id-dev bootstrap >/dev/null
+  configured_project="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' "$POCKET_ID_ENV_FILE" | tail -n 1)"
+  if [[ "$configured_project" != "$compose_project" ]]; then
+    printf 'Target reconstruction is blocked: Pocket ID configuration belongs to another project.\n' >&2
+    printf 'Requested project: %s\n' "$compose_project" >&2
+    printf 'Configured project: %s\n' "${configured_project:-missing}" >&2
+    printf 'Configuration file: %s\n' "$POCKET_ID_ENV_FILE" >&2
+    printf 'No source or target database was changed.\n' >&2
+    printf 'Use a Pocket ID environment dedicated to this Compose project, then retry.\n' >&2
+    return 2
+  fi
+}
+
 stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
 }
 
+run_stage "target identity preflight" preflight_target_identity
 start_target_database
 stop_product
 run_stage "restore source database" scripts/accounting-compat source-restore
@@ -260,11 +313,17 @@ run_stage "attachment disposition gate" scripts/attachment-ledger "$attachment_g
 run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
 run_stage "source accounting controls" scripts/accounting-compat source-controls
 run_stage "extract accounting source" scripts/accounting-compat extract
-run_stage "reset target database" scripts/accounting-compat dev-reset
-stop_product
-run_stage "import accounting" scripts/accounting-compat dev-import
-stop_product
-run_stage "validate accounting" scripts/accounting-compat dev-validate
+if [[ "$resume_accounting" == 1 ]]; then
+  stop_product
+  run_stage "revalidate reusable accounting" scripts/accounting-compat dev-validate
+else
+  run_stage "reset target database" scripts/accounting-compat dev-reset
+  stop_product
+  run_stage "import accounting" scripts/accounting-compat dev-import
+  stop_product
+  run_stage "validate accounting" scripts/accounting-compat dev-validate
+fi
+accounting_validated=1
 stop_product
 run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
   DOCUMENTS_TARGET_DATABASE=odoo_dev \
@@ -288,6 +347,7 @@ if [[ "$documents_enabled" == 1 ]]; then
     DOCUMENTS_CANONICAL_RESET="$documents_reset" \
     DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint" \
     DOCUMENTS_RESTORE_PROFILE="$documents_profile" \
+    DOCUMENTS_PAPERLESS_TASK_WORKERS="$documents_task_workers" \
     DOCUMENTS_TARGET_DATABASE=odoo_dev \
     COMPOSE_PROJECT_NAME="$compose_project" \
     scripts/documents-restore all

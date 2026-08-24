@@ -47,10 +47,18 @@ source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dum
 canonical_reset="${DOCUMENTS_CANONICAL_RESET:-0}"
 require_checkpoint="${DOCUMENTS_REQUIRE_CHECKPOINT:-0}"
 restore_profile="${DOCUMENTS_RESTORE_PROFILE:-full}"
+paperless_task_workers="${DOCUMENTS_PAPERLESS_TASK_WORKERS:-1}"
 case "$restore_profile" in
     full|accounting|hr|smoke) ;;
     *)
         echo "Documents restore profile must be full, accounting, hr, or smoke." >&2
+        exit 2
+        ;;
+esac
+case "$paperless_task_workers" in
+    1|2|3|4) ;;
+    *)
+        echo "Documents Paperless task workers must be between 1 and 4." >&2
         exit 2
         ;;
 esac
@@ -161,6 +169,7 @@ else
     export PAPERLESS_CSRF_TRUSTED_ORIGINS="http://127.0.0.1:$paperless_port"
 fi
 export PAPERLESS_EMPTY_TRASH_DELAY=36500
+export PAPERLESS_TASK_WORKERS="$paperless_task_workers"
 export ODOO_HTTP_PORT="$odoo_port"
 export ODOO_GEVENT_PORT="$odoo_gevent_port"
 export ODOO_DB_NAME="$target_database"
@@ -363,6 +372,44 @@ validate_runtime() {
     printf 'Migration Paperless: http://127.0.0.1:%s\n' "$paperless_port"
 }
 
+require_source_bindings() {
+    local missing_bindings
+    missing_bindings="$(
+        "${compose[@]}" exec -T db psql \
+            -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -X -qAtc \
+            "WITH required(table_name, column_name) AS (
+                 VALUES
+                   ('res_company', 'rebuild_source_model'),
+                   ('res_company', 'rebuild_source_id'),
+                   ('res_users', 'rebuild_source_model'),
+                   ('res_users', 'rebuild_source_id'),
+                   ('res_partner', 'rebuild_source_model'),
+                   ('res_partner', 'rebuild_source_id'),
+                   ('account_move', 'rebuild_source_model'),
+                   ('account_move', 'rebuild_source_id'),
+                   ('hr_employee', 'rebuild_source_model'),
+                   ('hr_employee', 'rebuild_source_id'),
+                   ('ir_attachment', 'rebuild_source_model'),
+                   ('ir_attachment', 'rebuild_source_id')
+             )
+             SELECT string_agg(required.table_name || '.' || required.column_name, ', ' ORDER BY 1)
+               FROM required
+          LEFT JOIN information_schema.columns actual
+                 ON actual.table_schema = 'public'
+                AND actual.table_name = required.table_name
+                AND actual.column_name = required.column_name
+              WHERE actual.column_name IS NULL"
+    )"
+    if [[ -n "$missing_bindings" ]]; then
+        printf 'Documents restoration is blocked: migration source bindings are absent.\n' >&2
+        printf 'Missing: %s\n' "$missing_bindings" >&2
+        printf 'This target has already been finalized; no Documents or Paperless data was changed.\n' >&2
+        printf 'Run the supported full workflow instead: make qa-cache-refresh\n' >&2
+        printf 'Focused import/validation is available only before migration finalization.\n' >&2
+        exit 2
+    fi
+}
+
 serve_target() {
     start_archive
     "${compose[@]}" up -d --wait --pull never odoo
@@ -461,6 +508,7 @@ case "$command_name" in
         ;;
     import|validate)
         validate_source
+        require_source_bindings
         start_archive
         verify_checkpoint
         run_restore
@@ -468,6 +516,7 @@ case "$command_name" in
         ;;
     all)
         validate_source
+        require_source_bindings
         reset_canonical_archive
         start_archive
         verify_checkpoint

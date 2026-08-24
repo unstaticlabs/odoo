@@ -109,6 +109,49 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]', restore)
         self.assertIn("source contains unsupported Documents URL references", restore)
 
+    def test_focused_restore_rejects_a_finalized_target_before_paperless_changes(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("require_source_bindings", script)
+        self.assertIn("migration source bindings are absent", script)
+        self.assertIn("make qa-cache-refresh", script)
+        self.assertLess(
+            script.index("require_source_bindings\n        start_archive"),
+            script.index("verify_checkpoint\n        run_restore"),
+        )
+
+    def test_reconstruction_validates_identity_project_before_database_work(self):
+        script = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("preflight_target_identity", script)
+        self.assertIn("Pocket ID configuration belongs to another project", script)
+        self.assertLess(
+            script.index('run_stage "target identity preflight"'),
+            script.index("start_target_database\nstop_product"),
+        )
+
+    def test_qa_refresh_can_resume_only_after_exact_accounting_revalidation(self):
+        script = TARGET_SCRIPT.read_text(encoding="utf-8")
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("qa-cache-resume:", makefile)
+        self.assertIn("USL_RECONSTRUCT_RESUME_ACCOUNTING=1", makefile)
+        self.assertIn('run_stage "revalidate reusable accounting"', script)
+        self.assertIn("scripts/accounting-compat dev-validate", script)
+        self.assertIn("Production migration cannot resume", script)
+        self.assertIn("Accounting remains validated", script)
+
+    def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):
+        runner = SCRIPT.read_text(encoding="utf-8")
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+
+        self.assertIn("Documents Paperless task workers must be between 1 and 4", runner)
+        self.assertIn('PAPERLESS_TASK_WORKERS="$paperless_task_workers"', runner)
+        self.assertIn("PAPERLESS_TASK_WORKERS: ${PAPERLESS_TASK_WORKERS:-1}", compose)
+        self.assertIn('USL_DOCUMENTS_TASK_WORKERS:-1', target)
+        self.assertIn('USL_DOCUMENTS_TASK_WORKERS:-3', target)
+
     def test_fast_qa_verifies_seed_before_reset_and_uses_official_importer(self):
         script = QA_SCRIPT.read_text(encoding="utf-8")
 

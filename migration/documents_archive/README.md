@@ -94,6 +94,26 @@ make documents-restore-serve
 make documents-restore-status
 ```
 
+The focused `import` and `validate` stages are available only inside an active
+reconstruction, before migration finalization removes the temporary source
+bindings. They fail before changing Paperless when pointed at an already
+finalized product database. To rebuild a finalized development target and
+publish its reusable private QA seed, run `make qa-cache-refresh` instead.
+The reconstruction preflights its checkout/project-specific Pocket ID
+configuration before starting any database work, so stale environment ownership
+cannot fail only after a long Accounting import.
+
+If a QA cache refresh fails after exact Accounting validation, its final output
+offers `make qa-cache-resume`. That command restores and checks the same source
+package, reruns exact Accounting parity, and continues the downstream stages
+without resetting or replaying the ledger. It fails closed when parity cannot
+be proven; production migration always remains a complete fresh run.
+
+Fresh development/QA archive builds use a bounded three-worker Paperless pool
+to avoid serial OCR and metadata processing. Production remains conservative at
+one worker unless the operator explicitly qualifies another value; accepted
+values are one through four. Hydrating a qualified QA seed submits no OCR work.
+
 `validate` intentionally executes the same idempotent contract as `import`.
 It must reuse existing checksum roots, refresh authoritative Paperless
 metadata, recheck originals, previews, permissions and links, and leave counts

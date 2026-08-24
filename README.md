@@ -577,6 +577,12 @@ stopped and the exact qualified image and release Compose topology stay in use.
 Migration tooling is a maintained repository deliverable under `migration/`
 and `scripts/`; it is not installed or exposed in the normal Odoo UI.
 
+A failed QA cache refresh no longer requires another full ledger replay. After
+Accounting has passed exact parity, the failure output offers
+`make qa-cache-resume`; it revalidates the same source and target Accounting
+state before continuing downstream stages. The production migration command
+never uses this development shortcut and always reconstructs from source.
+
 The local Pocket ID workflow is pinned in `compose.pocket-id.yaml`, binds only
 to loopback, and stores generated secrets and stable immutable subjects in the
 ignored mode-0600 `.pocket-id.env`. Follow the
