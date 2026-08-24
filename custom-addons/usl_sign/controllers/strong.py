@@ -17,7 +17,14 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request
 
 from ..models.constants import INTERNAL_OPERATION, SIGN_RESULT_SESSION_KEY
-from ..services import DSSClient, DSSServiceError, StepCAClient, StepCAError
+from ..services import (
+    DSSClient,
+    DSSServiceError,
+    StepCAClient,
+    StepCAError,
+    field_content,
+    field_value,
+)
 from odoo.addons.usl_pocketid.exceptions import PocketIDAccessDenied
 
 _logger = logging.getLogger(__name__)
@@ -342,7 +349,7 @@ class StrongSignController(http.Controller):
             raise ValidationError(
                 msg,
             )
-        document = base64.b64decode(signer.request_id.data)
+        document = field_content(signer.request_id.data)
         document_sha256 = hashlib.sha256(document).hexdigest()
         csr_sha256 = hashlib.sha256(csr_pem.encode()).hexdigest()
         public_key_sha256 = hashlib.sha256(
@@ -386,7 +393,7 @@ class StrongSignController(http.Controller):
                 "request_id": signer.request_id.id,
                 "signer_id": signer.id,
                 "enrollment_id": enrollment.id,
-                "challenge": base64.b64encode(binding_digest),
+                "challenge": field_value(binding_digest),
                 "challenge_sha256": binding_digest.hex(),
                 "document_sha256": document_sha256,
                 "consent_sha256": consent_sha256,
@@ -419,7 +426,7 @@ class StrongSignController(http.Controller):
         signer = ceremony.signer_id
         enrollment = ceremony.enrollment_id
         current_document_hash = hashlib.sha256(
-            base64.b64decode(signer.request_id.data),
+            field_content(signer.request_id.data),
         ).hexdigest()
         if (
             ceremony.expires_at < fields.Datetime.now()
@@ -487,7 +494,7 @@ class StrongSignController(http.Controller):
                     msg,
                 )
             data_to_sign = DSSClient().data_to_sign(
-                base64.b64decode(signer.request_id.data),
+                field_content(signer.request_id.data),
                 issued["certificate"],
                 certificate_chain=issued["chain"],
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
@@ -709,7 +716,7 @@ class StrongSignController(http.Controller):
             or ceremony.signer_id != signer
             or ceremony.expires_at < fields.Datetime.now()
             or ceremony.document_sha256
-            != hashlib.sha256(base64.b64decode(signer.request_id.data)).hexdigest()
+            != hashlib.sha256(field_content(signer.request_id.data)).hexdigest()
             or not enrollment
             or enrollment != ceremony.enrollment_id
             or enrollment.pocket_subject != ceremony.oidc_subject
@@ -719,7 +726,7 @@ class StrongSignController(http.Controller):
         signature_bytes = base64.b64decode(signature, validate=True)
         try:
             embedded = DSSClient().embed_signature(
-                base64.b64decode(signer.request_id.data),
+                field_content(signer.request_id.data),
                 ceremony.certificate_pem,
                 signature_bytes,
                 request_reference=f"USL-STRONG-{signer.request_id.id}-{signer.id}",
@@ -746,7 +753,7 @@ class StrongSignController(http.Controller):
         digest = hashlib.sha256(signed_pdf).hexdigest()
         now = fields.Datetime.now()
         signer.request_id.with_context(usl_sign_working_pdf=INTERNAL_OPERATION).write(
-            {"data": base64.b64encode(signed_pdf), "current_hash": digest},
+            {"data": field_value(signed_pdf), "current_hash": digest},
         )
         signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
             {

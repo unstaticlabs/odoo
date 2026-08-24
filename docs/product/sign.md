@@ -22,12 +22,45 @@ use because it would move the workflow and evidence boundary outside Odoo and
 introduce a recurring dependency. External signing remains an exceptional,
 provider-neutral journey.
 
-## Approval and trust guidance
+## Document-only product boundary
 
-An attributable Odoo approval is preferred when no signed PDF is required.
-The linked business record's native approval is used when available;
-otherwise `usl.sign.approval` records the record, approvers, decision, reason,
-policy and append-only events.
+The delivered Sign application handles documents that must be signed. Internal
+business decisions are not part of its menus, dashboard, start flow, access
+rights, fixtures, or user guidance. Teams should use the native approval flow
+of the relevant Odoo business application when no signed document is needed.
+
+An earlier `usl.sign.approval` implementation remains dormant in source so it
+can be evaluated as a separate product later. Its views are not loaded and its
+models have no normal-user access. Re-enabling it requires a dedicated product,
+security, and evidence review; it must not be exposed ad hoc from Sign.
+
+## End-user workspaces
+
+Sign opens on a journey dashboard, not a technical record list. It separates
+what the current user must sign, what a requester must prepare or repair, what
+is waiting on others, and which completed results can be retrieved.
+
+The stable navigation is deliberately small:
+
+- **Request Signature → Templates** opens the native OCA template kanban and
+  its upload/drop authoring journey;
+- **Request Signature → Open Requests** contains non-terminal requests owned or
+  explicitly coordinated by the current user;
+- **Request Signature → Completed** contains only independently validated,
+  fully evidenced and durably archived results;
+- **My Signatures** combines documents awaiting the current user with their
+  earlier signed, completed or closed history and native search filters;
+- **Configuration** contains identity reviews, trust rules, signer roles,
+  provider references, signing readiness, daily timestamp proofs and settings,
+  each restricted to the relevant role.
+
+The request form progressively discloses technical material. Overview,
+Signers and Documents lead the operational journey; certificate, hash, DSS and
+manifest details remain under Proof & Validation. The primary action and
+current blocker stay visible without requiring users to reconstruct the state
+from chatter.
+
+## Trust guidance
 
 Document requests have exactly three trust levels:
 

@@ -92,40 +92,12 @@ class SignWorkspace(models.AbstractModel):
                 },
             }
 
-        def decision_item(decision):
-            return {
-                "id": decision.id,
-                "model": decision._name,
-                "title": decision.name,
-                "subtitle": decision.record_ref.display_name if decision.record_ref else "",
-                "status": dict(
-                    decision._fields["outcome"]._description_selection(self.env),
-                ).get(decision.outcome),
-                "progress": decision.response_progress,
-                "next_step": decision.next_step,
-                "due": fields.Date.to_string(decision.due_date)
-                if decision.due_date
-                else False,
-                "trust": "Decision proof",
-                "action": {"type": "open", "model": decision._name, "id": decision.id},
-            }
-
         sections = {
             "sign_now": self._section(
                 "sign.oca.request.signer",
                 signer_domain,
                 signer_item,
                 order="request_id desc, sequence, id",
-            ),
-            "decide": self._section(
-                "usl.sign.approval",
-                [
-                    ("state", "=", "waiting"),
-                    ("response_ids.user_id", "=", self.env.user.id),
-                    ("response_ids.state", "=", "pending"),
-                ],
-                decision_item,
-                order="create_date desc, id desc",
             ),
             "prepare": self._section(
                 request_model._name,
@@ -189,36 +161,6 @@ class SignWorkspace(models.AbstractModel):
                 order="completed_at desc, id desc",
             ),
         }
-        decision_issues = self._section(
-            "usl.sign.approval",
-            [
-                ("state", "=", "action_required"),
-                "|",
-                ("requested_by_id", "=", self.env.user.id),
-                ("approver_ids", "in", [self.env.user.id]),
-            ],
-            decision_item,
-            order="write_date desc, id desc",
-        )
-        sections["issues"]["count"] += decision_issues["count"]
-        sections["issues"]["items"] = (
-            sections["issues"]["items"] + decision_issues["items"]
-        )[:6]
-        completed_decisions = self._section(
-            "usl.sign.approval",
-            [
-                ("state", "=", "completed"),
-                "|",
-                ("requested_by_id", "=", self.env.user.id),
-                ("approver_ids", "in", [self.env.user.id]),
-            ],
-            decision_item,
-            order="completed_at desc, id desc",
-        )
-        sections["completed"]["count"] += completed_decisions["count"]
-        sections["completed"]["items"] = (
-            sections["completed"]["items"] + completed_decisions["items"]
-        )[:6]
         return {
             "can_start": self.env.user.has_group("usl_sign.group_sign_user"),
             "sections": sections,
@@ -227,17 +169,7 @@ class SignWorkspace(models.AbstractModel):
 
 class SignStart(models.TransientModel):
     _name = "usl.sign.start"
-    _description = "Start a Sign journey"
-
-    request_type = fields.Selection(
-        [
-            ("signature", "Request document signatures"),
-            ("decision", "Request a business decision"),
-        ],
-        string="Journey",
-        default="signature",
-        required=True,
-    )
+    _description = "Start a signature request"
     signature_source = fields.Selection(
         [("template", "Use a template"), ("upload", "Upload a PDF")],
         string="Starting point",
@@ -253,17 +185,6 @@ class SignStart(models.TransientModel):
     document_data = fields.Binary(string="PDF")
     document_filename = fields.Char()
     record_ref = fields.Reference(selection="_record_models", string="Linked record")
-    approver_ids = fields.Many2many(
-        "res.users",
-        string="Decision-makers",
-        domain="[('share', '=', False), ('company_ids', 'in', company_id)]",
-    )
-    decision_rule = fields.Selection(
-        [("any", "Any one decides"), ("all", "Everyone must approve")],
-        default="any",
-        required=True,
-    )
-    due_date = fields.Date(string="Due date")
     company_id = fields.Many2one(
         "res.company",
         required=True,
@@ -281,28 +202,6 @@ class SignStart(models.TransientModel):
 
     def action_continue(self):
         self.ensure_one()
-        if self.request_type == "decision":
-            if not self.record_ref or not self.approver_ids:
-                msg = "Choose the business record and at least one approver."
-                raise ValidationError(msg)
-            approval = self.env["usl.sign.approval"].create(
-                {
-                    "name": self.name,
-                    "company_id": self.company_id.id,
-                    "record_ref": f"{self.record_ref._name},{self.record_ref.id}",
-                    "approver_ids": [(6, 0, self.approver_ids.ids)],
-                    "decision_rule": self.decision_rule,
-                    "due_date": self.due_date,
-                },
-            )
-            return {
-                "type": "ir.actions.act_window",
-                "name": approval.name,
-                "res_model": approval._name,
-                "res_id": approval.id,
-                "views": [(False, "form")],
-                "target": "current",
-            }
         if self.signature_source == "template":
             if not self.template_id:
                 msg = "Choose a ready template."

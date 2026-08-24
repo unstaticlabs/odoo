@@ -32,7 +32,7 @@
                 </block>
                 <block title="Strong personal signature" name="sign_strong">
                     <setting string="Signing service readiness" help="Inspect Standard, Strong personal, qualified validation, archival, and timestamp capabilities without exposing credentials.">
-                        <button name="action_open_sign_service_status" type="object" string="Open Service Status" class="btn-link"/>
+                        <button name="action_open_sign_service_status" type="object" string="Open Signing Readiness" class="btn-link"/>
                     </setting>
                 </block>
             </xpath>

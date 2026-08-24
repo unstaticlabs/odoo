@@ -21,7 +21,10 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="alert alert-info" role="status">
+                        This is a provider-neutral reference catalog, not an API connection. Add only providers whose qualified services, territory, mobile journey, and commercial terms have been reviewed.
+                    </div>
+                    <div class="oe_title"><p class="text-muted mb-1">Qualified-signature provider</p><h1><field name="name"/></h1></div>
                     <group>
                         <group string="Provider scope">
                             <field name="active" string="Enabled"/>

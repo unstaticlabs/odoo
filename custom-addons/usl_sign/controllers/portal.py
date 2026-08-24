@@ -3,7 +3,6 @@ from werkzeug.exceptions import NotFound
 from odoo import http
 from odoo.exceptions import AccessError
 from odoo.http import request
-from odoo.http.stream import Stream
 
 from ..models.constants import SIGN_RESULT_SESSION_KEY, TRUST_LEVELS
 from .strong import _personal_certificate_subject
@@ -203,9 +202,13 @@ class SignPortalController(PortalSign):
             signer = self._secure_signer(signer_id, access_token)
         except NotFound:
             return request.not_found()
-        return Stream.from_binary_field(signer.request_id, "data").get_response(
+        stream = request.env["ir.binary"]._get_stream_from(
+            signer.request_id,
+            "data",
+            filename=signer.request_id.filename,
             mimetype="application/pdf",
         )
+        return stream.get_response()
 
     @http.route(
         ["/sign_oca/info/<int:signer_id>/<string:access_token>"],
@@ -300,8 +303,12 @@ class SignPortalController(PortalSign):
         if not journey:
             return request.not_found()
         journey.check_access("read")
-        stream = Stream.from_binary_field(journey.request_id, "original_data")
-        stream.download_name = journey.request_id.original_filename
+        stream = request.env["ir.binary"]._get_stream_from(
+            journey.request_id,
+            "original_data",
+            filename=journey.request_id.original_filename,
+            mimetype="application/pdf",
+        )
         return stream.get_response(as_attachment=True)
 
     def get_sign_requests_domain(self, http_request):
@@ -347,6 +354,10 @@ class SignPortalController(PortalSign):
             )
         ):
             return request.not_found()
-        stream = Stream.from_binary_field(sign_request, "final_data")
-        stream.download_name = sign_request.final_filename
+        stream = request.env["ir.binary"]._get_stream_from(
+            sign_request,
+            "final_data",
+            filename=sign_request.final_filename,
+            mimetype="application/pdf",
+        )
         return stream.get_response(as_attachment=True)

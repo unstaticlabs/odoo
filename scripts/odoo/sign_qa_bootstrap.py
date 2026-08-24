@@ -1,9 +1,8 @@
-import base64
 import logging
-import time
 from io import BytesIO
 
 from odoo import fields
+from odoo.addons.usl_sign.services import field_value
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -41,7 +40,7 @@ def _pdf(title, subtitle, sections):
     document.setFont("Helvetica", 8)
     document.drawString(42, 137, "Synthetic local QA document — no legal or commercial effect")
     document.save()
-    return base64.b64encode(stream.getvalue())
+    return field_value(stream.getvalue())
 
 
 def _template(env, *, name, description, category, policy, roles, layout, pdf, annex=False):
@@ -145,48 +144,6 @@ def _request_from_template(
     if send:
         request.action_send()
     return request
-
-
-def _complete_decision(env, requester, decision_maker, linked_record):
-    decision = env["usl.sign.approval"].search(
-        [("name", "=", "Publish the August product note — QA proof")],
-        limit=1,
-    )
-    if decision:
-        if decision.state == "action_required":
-            decision.with_user(requester).action_retry_proof()
-        return decision
-    decision = env["usl.sign.approval"].with_user(requester).create(
-        {
-            "name": "Publish the August product note — QA proof",
-            "company_id": env.company.id,
-            "record_ref": f"{linked_record._name},{linked_record.id}",
-            "approver_ids": [(6, 0, [decision_maker.id])],
-            "decision_rule": "any",
-            "due_date": fields.Date.today(),
-        },
-    )
-    decision.with_user(requester).action_send()
-    decision.with_user(decision_maker)._record_response(
-        "approved",
-        "The synthetic publication checklist is complete.",
-    )
-    for _attempt in range(20):
-        decision.invalidate_recordset()
-        if decision.state == "completed":
-            break
-        if decision.state == "action_required":
-            decision.with_user(requester).action_retry_proof()
-        else:
-            decision._reconcile_archive()
-        env.cr.commit()
-        time.sleep(0.5)
-    decision.invalidate_recordset()
-    if decision.state != "completed":
-        raise RuntimeError(
-            "The synthetic completed decision did not reach validated, archived completion.",
-        )
-    return decision
 
 
 def bootstrap(env):
@@ -293,7 +250,7 @@ def bootstrap(env):
         ),
         annex=True,
     )
-    sole_decision = _template(
+    sole_shareholder_document = _template(
         env,
         name="Sole Shareholder Decision — Timestamp QA",
         description="Self-signing document used to review existence and timestamp proof.",
@@ -335,7 +292,7 @@ def bootstrap(env):
             [("Mandate", [["This synthetic mandate demonstrates provider-neutral export and import."]])],
         ),
     )
-    del sole_decision
+    del sole_shareholder_document
 
     provider = env["usl.sign.external.provider"].search(
         [("name", "=", "EU qualified provider — QA catalog example")],
@@ -395,35 +352,15 @@ def bootstrap(env):
         send=True,
     )
 
-    pending = env["usl.sign.approval"].search(
-        [("name", "=", "Approve the synthetic supplier onboarding")],
-        limit=1,
-    )
-    if not pending:
-        pending = env["usl.sign.approval"].with_user(requester).create(
-            {
-                "name": "Approve the synthetic supplier onboarding",
-                "company_id": company.id,
-                "record_ref": f"res.partner,{supplier.id}",
-                "approver_ids": [(6, 0, [signer.id])],
-                "decision_rule": "any",
-                "due_date": fields.Date.today(),
-            },
-        )
-        pending.with_user(requester).action_send()
-    completed_decision = _complete_decision(env, requester, signer, creator)
-
     health = env["usl.sign.service.health"]._ensure_company(company)
     health.with_user(requester)._refresh_checks()
     env.cr.commit()
     _logger.info(
-        "Sign QA ready: templates=%s routine_request=%s strong_request=%s qualified_request=%s pending_decision=%s completed_decision=%s",
+        "Sign QA ready: templates=%s routine_request=%s strong_request=%s qualified_request=%s",
         len(env["sign.oca.template"].search([( "company_id", "=", company.id)])),
         routine_request.id,
         strong_request.id,
         qualified_request.id,
-        pending.id,
-        completed_decision.id,
     )
 
 

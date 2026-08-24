@@ -25,7 +25,7 @@
                     <separator string="2. What kind of document is this?"/>
                     <group>
                         <group><field name="document_category"/><field name="signer_type"/><field name="risk_level"/></group>
-                        <group><field name="requires_signed_pdf"/><field name="formal_qes_required"/></group>
+                        <group><field name="formal_qes_required"/></group>
                     </group>
                     <separator string="3. Review the recommended trust"/>
                     <div class="card mb-3"><div class="card-body">
@@ -34,11 +34,6 @@
                             <div class="col-12 col-md-7"><field name="recommendation_reason" nolabel="1" readonly="1"/><field name="recommendation_consequence" nolabel="1" readonly="1" class="text-muted"/></div>
                         </div>
                     </div></div>
-                    <div class="alert alert-warning" role="alert" invisible="not approval_recommended">
-                        This decision does not need a signed PDF. An attributable Odoo decision is the simpler, proportionate path.
-                        <button name="action_request_approval" type="object" string="Request approval instead" class="btn-link"/>
-                    </div>
-                    <field name="approval_recommended" invisible="1"/>
                     <field name="journey_availability" nolabel="1" readonly="1"/>
                     <group>
                         <field name="requested_trust"/>
@@ -49,7 +44,7 @@
                     <field name="message" nolabel="1" placeholder="Add a short reason or instruction (optional)."/>
                 </sheet>
                 <footer>
-                    <button name="generate" string="Create request" class="btn-primary" type="object" invisible="approval_recommended"/>
+                    <button name="generate" string="Create request" class="btn-primary" type="object"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

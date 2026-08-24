@@ -16,7 +16,13 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request as http_request
 from odoo.tools.pdf import PdfReader, PdfWriter
 
-from ..services import DSSClient, DSSRejectedError, DSSServiceError
+from ..services import (
+    DSSClient,
+    DSSRejectedError,
+    DSSServiceError,
+    field_content,
+    field_value,
+)
 from .constants import (
     AUTHENTICATION_METHODS,
     CANCELLABLE_REQUEST_STATES,
@@ -101,7 +107,7 @@ class SignRequest(models.Model):
     )
     document_category = fields.Selection(
         [
-            ("internal_decision", "Internal decision"),
+            ("internal_decision", "Corporate decision document"),
             ("routine_agreement", "Routine agreement"),
             ("employment", "Employment document"),
             ("intellectual_property", "Intellectual property"),
@@ -285,55 +291,8 @@ class SignRequest(models.Model):
             order="create_date desc, id desc",
             limit=20,
         )
-        decisions = self.env["usl.sign.approval"].search(
-            [("record_ref", "=", f"{res_model},{target.id}")],
-            order="create_date desc, id desc",
-            limit=20,
-        )
-        if not requests and not decisions:
-            return False
         if not requests:
-            active_decisions = decisions.filtered(
-                lambda decision: decision.state != "completed",
-            )
-            decision = active_decisions[:1] or decisions[:1]
-
-            def decision_content_url(field_name, filename):
-                if not filename or not decision[field_name]:
-                    return False
-                return (
-                    f"/web/content/{decision._name}/{decision.id}/{field_name}/"
-                    f"{quote(filename)}?download=true"
-                )
-
-            return {
-                "kind": "decision",
-                "record_model": decision._name,
-                "record_id": decision.id,
-                "request_name": decision.name,
-                "state": decision.state,
-                "state_label": dict(
-                    decision._fields["state"]._description_selection(self.env),
-                ).get(decision.state, decision.state),
-                "next_step": decision.next_step,
-                "requested_trust": "Attributable business decision",
-                "achieved_trust": dict(
-                    decision._fields["outcome"]._description_selection(self.env),
-                ).get(decision.outcome),
-                "archive_state": dict(
-                    decision._fields["archive_status"]._description_selection(
-                        self.env,
-                    ),
-                ).get(decision.archive_status),
-                "final_url": decision_content_url(
-                    "receipt_data", decision.receipt_filename,
-                ),
-                "certificate_url": False,
-                "evidence_url": decision_content_url(
-                    "signed_manifest", decision.signed_manifest_filename,
-                ),
-                "total_requests": len(decisions),
-            }
+            return False
         active = requests.filtered(
             lambda sign_request: sign_request.state not in TERMINAL_REQUEST_STATES,
         )
@@ -560,10 +519,7 @@ class SignRequest(models.Model):
 
     def action_compute_recommendation(self, apply_timing_defaults=True):
         for request in self:
-            request.approval_recommended = bool(
-                request.document_category == "internal_decision"
-                and not request.requires_signed_pdf,
-            )
+            request.approval_recommended = False
             policy = self.env["usl.sign.policy"].recommend(
                 request.company_id,
                 category=request.document_category,
@@ -600,22 +556,9 @@ class SignRequest(models.Model):
         return True
 
     def action_create_approval(self):
-        self.ensure_one()
-        if not self.record_ref:
-            msg = "Choose the business record that needs approval."
-            raise ValidationError(msg)
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": "usl.sign.approval",
-            "view_mode": "form",
-            "target": "current",
-            "context": {
-                "default_name": self.name,
-                "default_company_id": self.company_id.id,
-                "default_record_ref": f"{self.record_ref._name},{self.record_ref.id}",
-                "default_requested_by_id": self.user_id.id,
-            },
-        }
+        raise AccessError(
+            "Internal Decision requests are not part of the document-signing product.",
+        )
 
     def _append_event(self, event_type, **values):
         self.ensure_one()
@@ -671,7 +614,7 @@ class SignRequest(models.Model):
                 "signer_id": signer.id if signer else False,
                 "kind": kind,
                 "name": name,
-                "data": base64.b64encode(raw),
+                "data": field_value(raw),
                 "mimetype": mimetype,
                 "metadata": metadata or {},
             },
@@ -679,11 +622,9 @@ class SignRequest(models.Model):
 
     def _validate_preparation(self):
         self.ensure_one()
-        if self.approval_recommended:
-            msg = "This internal decision does not require a signed PDF. Request a business decision instead."
-            raise ValidationError(
-                msg,
-            )
+        if not self.requires_signed_pdf:
+            msg = "Every request in Sign must produce a signed PDF."
+            raise ValidationError(msg)
         if not self.signer_ids:
             msg = "Add at least one signer."
             raise ValidationError(msg)
@@ -907,7 +848,7 @@ class SignRequest(models.Model):
         self.ensure_one()
         try:
             page_count = len(
-                PdfReader(BytesIO(base64.b64decode(self.with_context(bin_size=False).data))).pages,
+                PdfReader(BytesIO(field_content(self.with_context(bin_size=False).data))).pages,
             )
         except Exception as error:
             msg = "Attach a readable PDF before editing its fields."
@@ -1067,8 +1008,8 @@ class SignRequest(models.Model):
         ]
         self.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
             {
-                "data": base64.b64encode(consolidated),
-                "original_data": base64.b64encode(consolidated),
+                "data": field_value(consolidated),
+                "original_data": field_value(consolidated),
                 "original_filename": self.filename or f"{self.name}.pdf",
                 "original_sha256": digest,
                 "current_hash": digest,
@@ -1088,7 +1029,7 @@ class SignRequest(models.Model):
             self._create_evidence(
                 "source",
                 document.filename,
-                base64.b64decode(document.data),
+                field_content(document.data),
                 mimetype="application/pdf",
                 metadata={
                     "sha256": document.source_sha256,
@@ -1206,8 +1147,8 @@ class SignRequest(models.Model):
         if self.state != "signed_to_import" or not journey.imported_pdf:
             msg = "Import the externally signed document first."
             raise ValidationError(msg)
-        signed_data = base64.b64decode(journey.imported_pdf)
-        frozen_data = base64.b64decode(self.original_data)
+        signed_data = field_content(journey.imported_pdf)
+        frozen_data = field_content(self.original_data)
         self._create_evidence(
             "external",
             journey.imported_filename or f"{self.name}-external-signed.pdf",
@@ -1221,7 +1162,7 @@ class SignRequest(models.Model):
         self._create_evidence(
             "external",
             journey.proof_filename or "external-proof-package.bin",
-            base64.b64decode(journey.proof_package),
+            field_content(journey.proof_package),
             mimetype="application/octet-stream",
             metadata={
                 "artifact": "external_provider_proof_submission",
@@ -1434,7 +1375,7 @@ class SignRequest(models.Model):
             raise ValidationError(msg)
         if self.state != "validating":
             self._transition("validating", "validation_started")
-        working = base64.b64decode(self.data)
+        working = field_content(self.data)
         try:
             sealed = self._sign_dss_client().seal(
                 working,
@@ -1694,10 +1635,10 @@ class SignRequest(models.Model):
         digest = hashlib.sha256(final_data).hexdigest()
         self.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
             {
-                "final_data": base64.b64encode(final_data),
+                "final_data": field_value(final_data),
                 "final_filename": f"{self.name}-signed.pdf",
                 "final_sha256": digest,
-                "data": base64.b64encode(final_data),
+                "data": field_value(final_data),
                 "current_hash": digest,
                 "achieved_trust": achieved,
                 "validation_status": "valid",
@@ -1801,7 +1742,7 @@ class SignRequest(models.Model):
         )
         self.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
             {
-                "completion_certificate": base64.b64encode(certificate),
+                "completion_certificate": field_value(certificate),
                 "completion_filename": certificate_evidence.name,
             },
         )
@@ -1980,7 +1921,7 @@ class SignRequest(models.Model):
         artifacts = [
             {
                 "name": f"final-{self.final_filename}",
-                "content": base64.b64decode(self.final_data),
+                "content": field_content(self.final_data),
                 "mimetype": "application/pdf",
                 "relationship": "Data",
                 "description": "Final independently validated signed document",
@@ -2000,7 +1941,7 @@ class SignRequest(models.Model):
             artifacts.append(
                 {
                     "name": f"{evidence.kind}-{evidence.id}-{evidence.name}",
-                    "content": base64.b64decode(evidence.data),
+                    "content": field_content(evidence.data),
                     "mimetype": evidence.mimetype,
                     "relationship": "Supplement",
                     "description": dict(evidence._fields["kind"].selection).get(
@@ -2251,7 +2192,7 @@ class SignRequest(models.Model):
                 payload={
                     "partner_ids": partners.ids,
                     "filename": request.dossier_filename,
-                    "sha256": hashlib.sha256(base64.b64decode(request.dossier_data)).hexdigest(),
+                    "sha256": hashlib.sha256(field_content(request.dossier_data)).hexdigest(),
                 },
             )
 
@@ -3112,7 +3053,7 @@ class SignRequestSigner(models.Model):
         if not consent:
             msg = "Explicit electronic-signature consent is required."
             raise ValidationError(msg)
-        current_sha256 = hashlib.sha256(base64.b64decode(self.request_id.data)).hexdigest()
+        current_sha256 = hashlib.sha256(field_content(self.request_id.data)).hexdigest()
         if (
             not isinstance(document_sha256, str)
             or len(document_sha256) != 64
@@ -3146,7 +3087,7 @@ class SignRequestSigner(models.Model):
         if not isinstance(items, dict):
             msg = "The signing payload is invalid."
             raise ValidationError(msg)
-        reader = PdfReader(BytesIO(base64.b64decode(request.data)))
+        reader = PdfReader(BytesIO(field_content(request.data)))
         writer = PdfWriter()
         pages = dict(enumerate(reader.pages, start=1))
         for key, configured in frozen_layout.items():
@@ -3195,7 +3136,7 @@ class SignRequestSigner(models.Model):
         consent_text = request.consent_text_snapshot
         request.with_context(usl_sign_working_pdf=INTERNAL_OPERATION).write(
             {
-                "data": base64.b64encode(signed_pdf),
+                "data": field_value(signed_pdf),
                 "current_hash": digest,
                 "signatory_data": completed_layout,
             },
@@ -3355,7 +3296,7 @@ class SignRequestSigner(models.Model):
             "trust_label": dict(TRUST_LEVELS)[self.request_id.requested_trust],
             "consent_text": self.request_id.consent_text_snapshot,
             "document_sha256": hashlib.sha256(
-                base64.b64decode(self.request_id.data),
+                field_content(self.request_id.data),
             ).hexdigest(),
         }
 
