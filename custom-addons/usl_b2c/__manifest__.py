@@ -7,6 +7,8 @@
     "license": "LGPL-3",
     "depends": [
         "account_payment",
+        "delivery",
+        "mrp",
         "payment",
         "purchase",
         "purchase_stock",

@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 from .constants import FULFILMENT_MODES
 
@@ -15,7 +16,6 @@ class ProductTemplate(models.Model):
         ],
         string="B2C Catalog Classification",
         default="unclassified",
-        required=True,
         index=True,
         copy=False,
         groups="usl_b2c.group_b2c_reader",
@@ -24,7 +24,6 @@ class ProductTemplate(models.Model):
         FULFILMENT_MODES,
         string="B2C Fulfilment Mode",
         default="unknown",
-        required=True,
         index=True,
         copy=False,
         groups="usl_b2c.group_b2c_reader",
@@ -38,7 +37,6 @@ class ProductTemplate(models.Model):
         ],
         string="Opening Stock Evidence",
         default="not_applicable",
-        required=True,
         index=True,
         copy=False,
         groups="usl_b2c.group_b2c_reader",
@@ -48,3 +46,21 @@ class ProductTemplate(models.Model):
             "a native inventory adjustment."
         ),
     )
+
+    @api.constrains(
+        "b2c_catalog_classification",
+        "b2c_fulfilment_mode",
+        "b2c_opening_stock_state",
+    )
+    def _check_b2c_product_classification(self):
+        for product in self:
+            if not all(
+                (
+                    product.b2c_catalog_classification,
+                    product.b2c_fulfilment_mode,
+                    product.b2c_opening_stock_state,
+                ),
+            ):
+                raise ValidationError(
+                    self.env._("B2C product classification fields may not be empty."),
+                )

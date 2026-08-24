@@ -13,7 +13,12 @@ class TestB2cFoundation(TransactionCase):
         cls.other_company = cls.env["res.company"].create(
             {"name": "B2C isolation company"},
         )
-        cls.plan = cls.env["account.analytic.plan"].create({"name": "Channel"})
+        cls.plan = cls.env["account.analytic.plan"].search(
+            [("name", "=", "Channel")],
+            limit=1,
+        )
+        if not cls.plan:
+            cls.plan = cls.env["account.analytic.plan"].create({"name": "Channel"})
         cls.analytic = cls.env["account.analytic.account"].create(
             {
                 "name": "Direct",
@@ -23,8 +28,8 @@ class TestB2cFoundation(TransactionCase):
         )
         cls.channel = cls.env["b2c.channel"].create(
             {
-                "name": "Direct",
-                "code": "direct",
+                "name": "B2C test direct",
+                "code": "test_direct",
                 "company_id": cls.company.id,
                 "analytic_account_id": cls.analytic.id,
             },
@@ -266,7 +271,7 @@ class TestB2cFoundation(TransactionCase):
             },
         )
         attachment = self.env["ir.attachment"].create(
-            {"name": "synthetic evidence", "datas": "dGVzdA=="},
+            {"name": "synthetic evidence", "raw": b"test"},
         )
         self.env["b2c.accounting.link"].create(
             {
