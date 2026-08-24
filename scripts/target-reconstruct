@@ -354,6 +354,11 @@ if [[ "$documents_enabled" == 1 ]]; then
     COMPOSE_PROJECT_NAME="$compose_project" \
     scripts/documents-restore all
   stop_product
+  # Documents may materialize a unique native attachment after the source
+  # parser has already run.  Repeat the governed, idempotent B2C pass so exact
+  # attachment evidence becomes a durable business link in the final target.
+  run_stage "refresh B2C Documents links" scripts/b2c-restore all
+  stop_product
 else
   printf 'Documents archive: skipped by explicit no-documents QA profile.\n'
 fi

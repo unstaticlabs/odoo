@@ -25,6 +25,12 @@ when requested, uninstalls the temporary add-on, removes its rows/columns/XML
 IDs, and runs the product/migration boundary. `scripts/target-reconstruct`
 places the same stage after Product restoration. Do not use `-u all`.
 
+When Documents is enabled, canonical reconstruction repeats the same idempotent
+B2C pass after archive ingestion and before final migration cleanup. This
+refresh links only exact, unique native attachments materialized by the archive;
+files without such a target remain explicitly pending in the discrepancy
+report.
+
 ## Import contract
 
 The source dump SHA-256 must be
