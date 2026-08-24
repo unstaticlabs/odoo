@@ -52,8 +52,14 @@ The detailed integration contract is in
 
 The workspace uses Odoo's native search model and SearchBar rather than a
 Documents-only filter form. **Search everywhere** is the first/default
-suggestion and searches Paperless OCR, title, correspondent, type, tags, and
-accessible custom fields together with authorized Odoo link labels. Frequent
+suggestion and combines Paperless Tantivy lexical retrieval with its local
+BGE-M3 semantic index across OCR, title, correspondent, type, tags, and
+accessible custom fields together with authorized Odoo link labels. Odoo
+supplies the current record-rule and company-authorized root scope before
+semantic retrieval, then fuses both rankings while preserving exact reference,
+VAT, amount, date, and code matches. If local embeddings are unavailable,
+lexical results remain available with a short warning. Search does not call a
+generative provider. Frequent
 field-specific suggestions remain available for Title, Document content, Tags,
 Correspondent, Type, Company, and Date. Specialist fields such as archive
 identity, source, privacy, review state, availability, mapped Contact, and

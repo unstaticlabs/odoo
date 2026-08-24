@@ -123,13 +123,29 @@ synchronized to a Paperless Saved View. Remote OCR and custom-field conditions
 are resolved once before Odoo runs count and page queries, avoiding duplicate
 Paperless requests or inconsistent pagination.
 
-`all_text` is a virtual search field. It calls Paperless's supported full-text
-`query` contract for OCR and archive metadata, then adds only Odoo labels that
-the current user can already read. The combined stable IDs are passed back
-through normal `usl.document` record rules before names, counts, or snippets
-are serialized. When no explicit order is selected, the Paperless relevance
-order is preserved. Explicit compact-list ordering is accepted only through a
-server allowlist of synchronized stored fields.
+`all_text` is a virtual search field. Odoo first derives the stable Paperless
+root IDs permitted by current Documents record rules and allowed companies.
+It sends that mandatory scope to the distribution's authenticated semantic
+endpoint, where Paperless intersects its own object permissions and metadata
+facets before querying its native vector index. In parallel, Paperless's
+simple Tantivy text surface searches OCR and archive metadata; using simple
+text keeps ordinary French and English punctuation out of the advanced query
+language. The lexical and custom-field requests carry the same explicit scope
+in bounded 500-root filters; an empty scope makes no Paperless request, and
+equal ranks are interleaved across large-scope chunks rather than favoring a
+numeric ID range. Odoo adds only local relationship labels the current user can
+already read, rechecks returned root IDs, and combines lexical and semantic
+rankings with reciprocal-rank fusion.
+
+Identifier-like queries preserve lexical order before semantic additions, so
+invoice/reference numbers, VAT numbers, amounts, dates, and codes do not lose
+their exact ranking. Exact-only and meaning-only modes are bounded advanced
+options; ordinary search is hybrid. If the index or Ollama is unavailable,
+hybrid search returns lexical results plus one structured warning. A
+meaning-only request fails honestly. Search never invokes a generative model.
+When no explicit list order is selected, fused relevance is preserved.
+Explicit compact-list ordering is accepted only through a server allowlist of
+synchronized stored fields.
 
 ## Write path
 

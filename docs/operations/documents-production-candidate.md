@@ -56,13 +56,18 @@ directory, e-reporting, or production provider.
 
 Paperless is exactly `3.0.5` at image digest
 `sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`.
-The isolated Ollama service is exactly `0.30.11` at image digest
+The qualified derived Paperless image is
+`usl-paperless-ngx:3.0.5-usl.1` at manifest digest
+`sha256:b811135ed1a675882be6b95d78c1753e8acfc8cf5837ffa30ace4d0b4f48ab3b`.
+It is built from the exact base above and contains only the documented
+`semantic-search-api-v1` overlay. The isolated Ollama service is exactly `0.30.11` at image digest
 `sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca`.
 Its application-facing model is `usl-bge-m3:documents-20260824-rc1`, model
 digest `7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab`,
-with 1,024-dimensional embeddings. The mutable model volume is isolated; the
-standalone container must be converted to tracked Compose configuration before
-the release-cohort checkpoint.
+with 1,024-dimensional F16 embeddings, an 8,192-token context, 1.2 GB model
+size, and the upstream MIT license. Ollama is a private tracked Compose service
+with a project-owned model volume; only the explicit QA override publishes it
+on loopback.
 
 ### QA personas
 
@@ -153,7 +158,7 @@ correspondent, type, or other user metadata.
 | Checkpoint | Required outcome | Current status |
 |---|---|---|
 | A — policy engine | origin, mode, role, deterministic operation/link diagnostics, adapters, idempotent retry/backfill | validated 2026-08-24 |
-| B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | Ollama qualified; Paperless API/index planned |
+| B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | validated 2026-08-25 |
 | C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | planned |
 | D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | isolated Worker running; endpoint planned |
 | E — personal Gemini | encrypted per-user key, activation/revocation, no chat UI, no search/index/MCP dependency | planned |
@@ -206,13 +211,72 @@ whole-file formatting drift in four large pre-existing modules; it was not
 applied because doing so would create unrelated formatting churn. The lint
 check for all changed implementation files passes.
 
-## Remaining gaps after Checkpoint A
+## Checkpoint B evidence — local hybrid search
+
+Three implementation alternatives were compared. Paperless's native
+similar-document helper is useful when an existing document is the query, but
+it cannot retrieve arbitrary text; its document-chat path would introduce a
+generative-provider dependency. A separate Odoo vector store could accept
+arbitrary text, but would duplicate embeddings and bypass Paperless's index
+lifecycle and permission boundary. The selected minimal Paperless 3.0.5
+overlay exposes a read-only semantic endpoint backed by Paperless's own
+embedding client and `llmindex.db`, with upstream-style tests and exact-source
+hash guards.
+
+For rank combination, raw-score normalization was rejected because Tantivy
+and cosine scores are not calibrated to one another, while lexical-only search
+failed most paraphrase cases. Reciprocal-rank fusion is selected because it is
+deterministic across the two rank domains. Identifier-like queries retain the
+complete lexical order before semantic-only additions to prevent exact-match
+regressions.
+
+Every Odoo-mediated lexical, custom-field, and semantic search carries the
+current Odoo record-rule/company scope. Lexical scope is split into bounded
+500-root request filters and equal ranks are interleaved across chunks. Empty
+scope performs no Paperless request. The semantic endpoint also resolves
+Paperless permissions and intersects the mandatory Odoo scope before vector
+retrieval. Reserved request fields cannot be overwritten by facets. The
+`odoo-integration` identity receives HTTP
+403 without a scope, an empty scope touches neither index nor embedding
+backend, facets narrow the scope first, and historical versions are admitted
+only after their root is authorized. Query, result, scope, facet, and excerpt
+bounds are enforced. Missing Ollama or index state returns a structured HTTP
+503; Odoo hybrid search retains lexical results and a bounded warning.
+
+The wholly synthetic French/English evaluation contained 21 records, five
+questions per record, and four negative probes. Both 512- and 1024-token
+candidates achieved hybrid recall@5 of 100%, hybrid MRR 0.9770, semantic
+recall@5 100%, semantic MRR 0.9484, zero unauthorized results, and zero exact
+identifier regressions. Their top-five rankings were identical across all 109
+questions. Paperless's native overlap is 200 tokens. The selected 512-token
+configuration produced 911 vectors under LLM-index schema 2, versus 264 for
+1024; it had lower observed semantic latency and Ollama memory while preserving
+quality. The timed selected rebuild completed in 448 seconds. Detailed public
+methodology and metrics live under `deploy/documents/evaluation/`; private
+per-query evidence remains outside Git with mode `0600`.
+
+The Paperless API suite passed 7 tests in the exact, network-disabled derived
+image. The Odoo hybrid scope, multi-company, fusion, exact-ranking, outage,
+meaning-only, empty-scope, large lexical/semantic scope, reserved-facet, and
+punctuation contracts passed in a focused 10-test run. The final complete
+`usl_documents` run passed 130 tests with zero failures and zero errors (134
+test entries). Two consecutive updates of `usl_documents` on the isolated QA
+database passed, followed by healthy real-stack apostrophe, exact-reference,
+and paraphrase queries with no warning.
+
+Three harness failures were corrected without weakening a test. The production
+Odoo image could not discover OCA tests because it intentionally lacks the
+test-only `responses` package, so the purpose-built test image was used. Ruff's
+first read-only run attempted to create its cache, then passed with `--no-cache`.
+Two new tests initially attempted to patch immutable Odoo recordset methods;
+they were rewritten to exercise the same contracts at the Paperless client
+boundary and the exact gate then passed.
+
+## Remaining gaps after Checkpoint B
 
 - Existing links cannot be promoted or demoted independently of the Paperless
   root.
 - Home/Recent does not yet suppress background-only roots.
-- Search is Paperless lexical plus authorized Odoo labels; it has no supported
-  Paperless semantic API or hybrid rank fusion.
 - The Odoo MCP has no `/documents/mcp` endpoint or Documents tools.
 - There is no per-user Gemini key boundary.
 - Ollama and MCP are isolated for QA but are not yet members of a portable,
