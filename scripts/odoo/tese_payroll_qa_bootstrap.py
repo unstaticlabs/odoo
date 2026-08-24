@@ -5,7 +5,6 @@ target company's configured accounts and journals, but every business record
 is synthetic and visibly prefixed with a QA generation.
 """
 
-import base64
 import os
 
 from dateutil.relativedelta import relativedelta
@@ -223,7 +222,7 @@ def _ensure_pdf(env, payslip):
                 "name": f"{payslip.tese_reference}.pdf",
                 "type": "binary",
                 "mimetype": "application/pdf",
-                "datas": base64.b64encode(QA_PDF),
+                "raw": QA_PDF,
                 "res_model": payslip._name,
                 "res_id": payslip.id,
             },

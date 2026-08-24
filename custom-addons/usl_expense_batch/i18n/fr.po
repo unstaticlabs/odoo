@@ -250,11 +250,11 @@ msgstr "Créer une note de frais"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid ""
-"Create the batch and send its draft expenses for manager approval. Nothing "
-"is posted or paid."
+"Create the batch and send only its draft expenses for manager approval. "
+"This does not post or pay them."
 msgstr ""
-"Crée la note et envoie ses dépenses en brouillon pour approbation. Rien n’est "
-"comptabilisé ni payé."
+"Crée la note et envoie uniquement ses dépenses en brouillon pour approbation. "
+"Elles ne sont ni comptabilisées ni payées."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__create_uid
@@ -769,11 +769,11 @@ msgstr "Soumettre la note de frais"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid ""
-"Send the draft expenses in this batch for manager approval. Nothing is "
-"posted or paid."
+"Send only the draft expenses in this batch for manager approval. This does "
+"not post or pay them."
 msgstr ""
-"Envoie les dépenses en brouillon de cette note pour approbation. Rien n’est "
-"comptabilisé ni payé."
+"Envoie uniquement les dépenses en brouillon de cette note pour approbation. "
+"Elles ne sont ni comptabilisées ni payées."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__submitted

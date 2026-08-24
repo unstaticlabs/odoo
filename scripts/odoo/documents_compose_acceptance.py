@@ -1,3 +1,5 @@
+# ruff: noqa: F821
+
 """Real-service acceptance checks for the Paperless-backed Documents product.
 
 Run this only against an isolated synthetic Compose project. Unlike the module
@@ -301,7 +303,7 @@ if not generated_document:
     generated_checksum = hashlib.sha256(generated_pdf).hexdigest()
     generated_attachment = env["ir.attachment"].create({
         "name": generated_name,
-        "datas": base64.b64encode(generated_pdf),
+        "raw": generated_pdf,
         "mimetype": "application/pdf",
         "res_model": bill._name,
         "res_id": bill.id,

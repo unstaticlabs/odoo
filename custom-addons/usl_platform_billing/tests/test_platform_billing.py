@@ -1,5 +1,3 @@
-import base64
-
 from psycopg2 import IntegrityError
 
 from odoo import Command, fields
@@ -407,7 +405,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         attachment = self.env["ir.attachment"].create(
             {
                 "name": "payout-proof.pdf",
-                "datas": base64.b64encode(b"synthetic payout evidence"),
+                "raw": b"synthetic payout evidence",
                 "res_model": payout._name,
                 "res_id": payout.id,
             },

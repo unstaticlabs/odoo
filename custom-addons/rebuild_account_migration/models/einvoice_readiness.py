@@ -1517,7 +1517,9 @@ class AccountEdiProxyClientUser(models.Model):
                     ),
                 }
 
-            document_hash = hashlib.sha256(attachment.raw or b"").hexdigest()
+            document_hash = hashlib.sha256(
+                bytes(attachment.raw or b""),
+            ).hexdigest()
             document_format, document_kind = self._rebuild_einvoice_format(
                 attachment,
             )
@@ -1695,7 +1697,7 @@ class AccountEdiProxyClientUser(models.Model):
             return "facturx", "unknown"
         try:
             tree = etree.fromstring(
-                attachment.raw or b"",
+                bytes(attachment.raw or b""),
                 parser=etree.XMLParser(resolve_entities=False),
             )
         except etree.XMLSyntaxError:

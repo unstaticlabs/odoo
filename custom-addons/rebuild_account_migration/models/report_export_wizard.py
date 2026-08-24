@@ -1,4 +1,3 @@
-import base64
 import calendar
 import csv
 import hashlib
@@ -10,6 +9,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
+from odoo.tools import BinaryBytes
 
 from .report_definition import (
     ACCOUNTING_REPORT_TYPES,
@@ -1528,7 +1528,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             filename = self._export_filename()
             metadata = self._export_metadata(len(rows))
         self.write({
-            "export_file": base64.b64encode(payload),
+            "export_file": BinaryBytes(payload),
             "export_filename": filename,
             "export_metadata": json.dumps(metadata, indent=2, sort_keys=True),
         })
@@ -1581,7 +1581,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         attachment = self.env["ir.attachment"].create({
             "name": filename,
             "type": "binary",
-            "datas": base64.b64encode(payload),
+            "raw": payload,
             "mimetype": mimetype,
             "res_model": closing._name,
             "res_id": closing.id,
@@ -6023,15 +6023,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         cash_received = decimal_value("cash_received")
         cash_spent = decimal_value("cash_spent")
         closing_cash = decimal_value("closing_cash")
-        revenue = decimal_value("revenue")
-        cost_of_revenue = decimal_value("cost_of_revenue")
-        expenses = decimal_value("expenses")
-        net_profit = decimal_value("net_profit")
-        receivables = decimal_value("receivables")
-        payables = decimal_value("payables")
-        net_assets = decimal_value("net_assets")
-        current_assets = decimal_value("current_assets")
-        current_liabilities = decimal_value("current_liabilities")
 
         rows = []
 

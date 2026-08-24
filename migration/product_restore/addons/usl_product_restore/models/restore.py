@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import os
 from pathlib import Path
@@ -7,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, fields, models
+from odoo.tools import BinaryBytes
 
 
 RESTORE_REVISION = 1
@@ -373,7 +373,7 @@ class UslProductRestoreRun(models.Model):
                 raise RuntimeError(
                     f"Product image {row['id']} references missing template {row['res_id']}",
                 )
-            template.write({"image_1920": base64.b64encode(source_binary(row))})
+            template.write({"image_1920": BinaryBytes(source_binary(row))})
 
         pricelists = {}
         for row in source["pricelists"]:

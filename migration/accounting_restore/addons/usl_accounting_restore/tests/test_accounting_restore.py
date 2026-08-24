@@ -22,7 +22,7 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.service.model import call_kw
 from odoo.tests import Form, TransactionCase, tagged
-from odoo.tools import file_open, format_date, mute_logger
+from odoo.tools import BinaryBytes, file_open, format_date, mute_logger
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.controllers import user_docs
@@ -1513,7 +1513,7 @@ class TestRebuildAccountMigration(TransactionCase):
         wizard = self.env["account.statement.import"].with_context(
             journal_id=bank_journal.id,
         ).create({
-            "statement_file": base64.b64encode(qif),
+            "statement_file": BinaryBytes(qif),
             "statement_filename": "qa-statement.qif",
         })
 
@@ -4710,7 +4710,7 @@ class TestRebuildAccountMigration(TransactionCase):
         receipt = self.env["ir.attachment"].sudo().create({
             "name": "unit-receipt.pdf",
             "type": "binary",
-            "datas": base64.b64encode(b"unit receipt"),
+            "raw": b"unit receipt",
             "res_model": "hr.expense",
             "res_id": expense.id,
         })
@@ -5241,7 +5241,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(stats["source_chatter_attachment_count"], 1)
         self.assertEqual(stats["imported_chatter_attachment_count"], 1)
         self.assertEqual(import_run._attachment_issue_count(stats), 0)
-        self.assertEqual(attachment.raw, raw)
+        self.assertEqual(bytes(attachment.raw), raw)
         self.assertEqual(attachment.res_model, "account.move")
         self.assertEqual(attachment.res_id, move.id)
         self.assertEqual(move.message_main_attachment_id, attachment)
@@ -8176,7 +8176,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(metadata["target_move"], "posted")
         self.assertEqual(metadata["format"], "csv")
         self.assertEqual(action["name"], "Export — Balance générale")
-        payload = base64.b64decode(wizard.export_file).decode("utf-8")
+        payload = bytes(wizard.export_file).decode("utf-8")
         self.assertIn("metadata", payload)
         self.assertIn("empty_report", payload)
 
@@ -8551,7 +8551,7 @@ class TestRebuildAccountMigration(TransactionCase):
         pdf_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(
-                BytesIO(base64.b64decode(wizard.export_file)),
+                BytesIO(bytes(wizard.export_file)),
             ).pages
         )
         self.assertIn(
@@ -8933,7 +8933,7 @@ class TestRebuildAccountMigration(TransactionCase):
             wizard.preview_line_ids.label,
             "Aucune ligne pour les filtres sélectionnés",
         )
-        self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"PK"))
+        self.assertTrue(bytes(wizard.export_file).startswith(b"PK"))
         analytic_wizard = Wizard.create({
             "company_id": self.company.id,
             "report_type": "analytic_report",
@@ -9556,7 +9556,7 @@ class TestRebuildAccountMigration(TransactionCase):
             )
             wizard = Report.browse(filtered["wizard_id"])
             self.assertEqual(download["field"], "export_file")
-            exported_file = base64.b64decode(wizard.export_file)
+            exported_file = bytes(wizard.export_file)
             self.assertTrue(
                 exported_file.startswith(signature),
             )
@@ -9820,7 +9820,7 @@ class TestRebuildAccountMigration(TransactionCase):
             wizard = Report.browse(french_balance["wizard_id"])
             self.assertEqual(download["field"], "export_file")
             self.assertTrue(
-                base64.b64decode(wizard.export_file).startswith(signature),
+                bytes(wizard.export_file).startswith(signature),
             )
 
     def test_report_rounding_matches_screen_pdf_xlsx_and_preserves_audit_data(self):
@@ -9951,7 +9951,7 @@ class TestRebuildAccountMigration(TransactionCase):
         pdf_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(
-                BytesIO(base64.b64decode(wizard.export_file)),
+                BytesIO(bytes(wizard.export_file)),
             ).pages
         )
         self.assertIn(
@@ -10141,13 +10141,13 @@ class TestRebuildAccountMigration(TransactionCase):
         pdf_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(
-                BytesIO(base64.b64decode(wizard.export_file)),
+                BytesIO(bytes(wizard.export_file)),
             ).pages
         )
         self.assertIn("604991", pdf_text)
         Report.report_client_export(wizard.id, "xlsx")
         with ZipFile(
-            BytesIO(base64.b64decode(wizard.export_file)),
+            BytesIO(bytes(wizard.export_file)),
         ) as workbook:
             readable_xml = b"\n".join(
                 workbook.read(name)

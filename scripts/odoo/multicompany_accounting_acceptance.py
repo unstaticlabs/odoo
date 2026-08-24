@@ -6,7 +6,6 @@ Run through ``odoo shell``.  The business journeys execute inside a savepoint
 which is deliberately rolled back; imported data is only read.
 """
 
-import base64
 import json
 from datetime import date
 
@@ -376,7 +375,7 @@ if media_company:
             receipt = media_env["ir.attachment"].create({
                 "name": "usl-media-acceptance-receipt.pdf",
                 "type": "binary",
-                "datas": base64.b64encode(b"USL MEDIA acceptance receipt"),
+                "raw": b"USL MEDIA acceptance receipt",
                 "res_model": "hr.expense",
                 "res_id": expense.id,
             })

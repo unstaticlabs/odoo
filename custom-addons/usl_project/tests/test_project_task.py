@@ -54,6 +54,8 @@ class TestProjectTask(TransactionCase):
             "mail.alias",
             "mail.followers",
         ):
+            if model_name not in self.env.registry:
+                continue
             self.assertFalse(
                 forbidden_fields & set(self.env[model_name]._fields),
                 f"{model_name} exposes migration-only provenance fields.",

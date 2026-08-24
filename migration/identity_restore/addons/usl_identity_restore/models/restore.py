@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import os
 from pathlib import Path
@@ -7,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, fields, models
+from odoo.tools import BinaryBytes
 
 RESTORE_REVISION = 1
 SOURCE_FILESTORE = Path(
@@ -552,7 +552,7 @@ class UslIdentityRestoreRun(models.Model):
                     f"Identity image {row['id']} references missing partner {row['res_id']}",
                 )
             partner.sudo().with_context(tracking_disable=True).write(
-                {"image_1920": base64.b64encode(source_binary(row))},
+                {"image_1920": BinaryBytes(source_binary(row))},
             )
 
         banks = {}

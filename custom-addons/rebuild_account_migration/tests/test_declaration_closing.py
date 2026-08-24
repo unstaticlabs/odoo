@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import io
 import json
@@ -163,19 +162,35 @@ class TestDeclarationAndClosing(TransactionCase):
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
 
-        self.assertEqual(declaration.with_user(reviewer).read(["name"])[0]["name"], declaration.name)
-        self.assertEqual(closing.with_user(reviewer).read(["name"])[0]["name"], closing.name)
+        reviewer_context = {"allowed_company_ids": reviewer.company_ids.ids}
+        reviewer_declaration = declaration.with_user(reviewer).with_context(
+            **reviewer_context,
+        )
+        reviewer_closing = closing.with_user(reviewer).with_context(
+            **reviewer_context,
+        )
+        self.assertEqual(
+            reviewer_declaration.read(["name"])[0]["name"],
+            declaration.name,
+        )
+        self.assertEqual(
+            reviewer_closing.read(["name"])[0]["name"],
+            closing.name,
+        )
         with self.assertRaises(AccessError):
-            declaration.with_user(reviewer).write({"status": "ready_to_file"})
+            reviewer_declaration.write({"status": "ready_to_file"})
         with self.assertRaises(AccessError):
-            closing.with_user(reviewer).write({"state": "ready"})
+            reviewer_closing.write({"state": "ready"})
 
         decision_model = self.env["rebuild.account.assurance.decision"]
-        self.assertTrue(decision_model.with_user(reviewer).has_access("read"))
-        self.assertFalse(decision_model.with_user(reviewer).has_access("write"))
-        self.assertFalse(decision_model.with_user(reviewer).has_access("create"))
+        reviewer_decisions = decision_model.with_user(reviewer).with_context(
+            **reviewer_context,
+        )
+        self.assertTrue(reviewer_decisions.has_access("read"))
+        self.assertFalse(reviewer_decisions.has_access("write"))
+        self.assertFalse(reviewer_decisions.has_access("create"))
         with self.assertRaises(AccessError):
-            decision_model.with_user(reviewer).create({
+            reviewer_decisions.create({
                 "gate": "declaration_review",
                 "conclusion": "accepted",
                 "required_authority": "accountant",
@@ -226,7 +241,7 @@ class TestDeclarationAndClosing(TransactionCase):
         package_attachment = self.env["ir.attachment"].create({
             "name": "reviewer-closing-package.pdf",
             "type": "binary",
-            "datas": base64.b64encode(package_payload),
+            "raw": package_payload,
             "mimetype": "application/pdf",
             "res_model": closing._name,
             "res_id": closing.id,
@@ -250,21 +265,26 @@ class TestDeclarationAndClosing(TransactionCase):
             snapshot.sha256,
             hashlib.sha256(package_payload).hexdigest(),
         )
-        self.assertEqual(base64.b64decode(snapshot.payload), package_payload)
+        self.assertEqual(bytes(snapshot.payload), package_payload)
         self.assertEqual(
-            snapshot.with_user(reviewer).read(["sha256"])[0]["sha256"],
+            snapshot.with_user(reviewer).with_context(
+                **reviewer_context,
+            ).read(["sha256"])[0]["sha256"],
             snapshot.sha256,
         )
-        self.assertFalse(snapshot.with_user(reviewer).has_access("write"))
+        reviewer_snapshot = snapshot.with_user(reviewer).with_context(
+            **reviewer_context,
+        )
+        self.assertFalse(reviewer_snapshot.has_access("write"))
         with self.assertRaisesRegex(UserError, "immutable"):
-            snapshot.with_user(reviewer).write({"name": "Changed"})
+            reviewer_snapshot.write({"name": "Changed"})
         with self.assertRaisesRegex(UserError, "immutable"):
             snapshot.write({"name": "Changed"})
         with self.assertRaisesRegex(UserError, "locked"):
             closing.write({"package_reference": "Changed after acceptance"})
         with self.assertRaisesRegex(UserError, "locked"):
             package_attachment.write({
-                "datas": base64.b64encode(b"changed package"),
+                "raw": b"changed package",
             })
         closing_decision.action_supersede()
         self.assertEqual(closing.review_status, "accountant_requested")
@@ -349,7 +369,7 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertIn("Closing overview", {row["section"] for row in rows})
         self.assertIn("Lock dates", {row["section"] for row in rows})
         wizard.action_generate_export()
-        xlsx_payload = base64.b64decode(wizard.export_file)
+        xlsx_payload = bytes(wizard.export_file)
         self.assertTrue(xlsx_payload.startswith(b"PK"))
         self.assertGreater(len(xlsx_payload), 8_000)
         with zipfile.ZipFile(io.BytesIO(xlsx_payload)) as workbook_archive:
@@ -363,7 +383,7 @@ class TestDeclarationAndClosing(TransactionCase):
 
         wizard.export_format = "pdf"
         wizard.action_generate_export()
-        pdf_payload = base64.b64decode(wizard.export_file)
+        pdf_payload = bytes(wizard.export_file)
         self.assertTrue(pdf_payload.startswith(b"%PDF"))
         self.assertGreater(len(pdf_payload), 10_000)
         self.assertIn(b"ReportLab PDF Library", pdf_payload)
@@ -377,7 +397,7 @@ class TestDeclarationAndClosing(TransactionCase):
             set(closing.snapshot_ids.mapped("sha256")),
             {
                 hashlib.sha256(
-                    attachment.raw,
+                    bytes(attachment.raw),
                 ).hexdigest()
                 for attachment in closing.package_attachment_ids
             },
@@ -885,7 +905,9 @@ class TestDeclarationAndClosing(TransactionCase):
             "company_ids": [Command.set([company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
-        reviewer_overview = overview.with_user(reviewer)
+        reviewer_overview = overview.with_user(reviewer).with_context(
+            allowed_company_ids=reviewer.company_ids.ids,
+        )
         with patch.object(
             type(reviewer_overview),
             "action_refresh_hygiene",
@@ -1281,7 +1303,7 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         wizard = self._wizard(export_format="xlsx")
 
         wizard.action_generate_export()
-        xlsx_payload = base64.b64decode(wizard.export_file)
+        xlsx_payload = bytes(wizard.export_file)
         self.assertTrue(xlsx_payload.startswith(b"PK"))
         with zipfile.ZipFile(io.BytesIO(xlsx_payload)) as workbook_archive:
             shared_strings = workbook_archive.read("xl/sharedStrings.xml")
@@ -1295,7 +1317,7 @@ class TestMultiCompanyAccountingReports(TransactionCase):
 
         wizard.export_format = "pdf"
         wizard.action_generate_export()
-        self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"%PDF"))
+        self.assertTrue(bytes(wizard.export_file).startswith(b"%PDF"))
         pdf_metadata = json.loads(wizard.export_metadata)
         self.assertEqual(
             {company["id"] for company in pdf_metadata["companies"]},

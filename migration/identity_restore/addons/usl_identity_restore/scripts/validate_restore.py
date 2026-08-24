@@ -1,6 +1,5 @@
 # ruff: noqa: F821, T201
 
-import base64
 import hashlib
 import json
 from decimal import Decimal
@@ -335,10 +334,10 @@ parity = {
                     row["id"],
                     row["res_id"],
                     hashlib.sha1(
-                        base64.b64decode(partners[row["res_id"]].image_1920),
+                        bytes(partners[row["res_id"]].image_1920),
                         usedforsecurity=False,
                     ).hexdigest(),
-                    len(base64.b64decode(partners[row["res_id"]].image_1920)),
+                    len(bytes(partners[row["res_id"]].image_1920)),
                 )
                 for row in source["images"]
             ],
@@ -347,7 +346,7 @@ parity = {
 }
 
 for row in source["images"]:
-    assert base64.b64decode(partners[row["res_id"]].image_1920) == source_binary(row)
+    assert bytes(partners[row["res_id"]].image_1920) == source_binary(row)
 parity_examples = {}
 for area, (source_rows, target_rows) in {
     "partners": (source_partner_rows, target_partner_rows),

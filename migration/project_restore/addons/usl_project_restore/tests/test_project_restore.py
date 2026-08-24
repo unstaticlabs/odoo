@@ -469,7 +469,7 @@ class TestProjectRestore(TransactionCase):
         message = self.env["mail.message"].sudo().search(message_domain)
         attachment = self.env["ir.attachment"].sudo().search(attachment_domain)
         self.assertEqual(message.attachment_ids, attachment)
-        self.assertEqual(attachment.raw, b"source evidence")
+        self.assertEqual(bytes(attachment.raw), b"source evidence")
         self.assertEqual(message.tracking_value_ids.new_value_char, "1")
         self.assertEqual(
             self.env["mail.activity"].sudo().search_count(activity_domain),

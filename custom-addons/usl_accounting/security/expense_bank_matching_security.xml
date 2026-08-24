@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
+    <record id="rule_usl_account_group_company" model="ir.rule">
+        <field name="name">Account groups by company</field>
+        <field name="model_id" ref="model_account_group"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'parent_of', company_ids)]</field>
+    </record>
+
     <record id="rule_usl_expense_bank_match_candidate_company" model="ir.rule">
         <field name="name">Expense bank matches by company</field>
         <field name="model_id" ref="model_usl_expense_bank_match_candidate"/>

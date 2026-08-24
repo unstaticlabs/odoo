@@ -1,4 +1,3 @@
-import base64
 import calendar
 import hashlib
 import json
@@ -7,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
+from odoo.tools import BinaryBytes
 
 from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 
@@ -1036,7 +1036,7 @@ class RebuildAccountClosingPeriod(models.Model):
         Snapshot = self.env["rebuild.account.closing.snapshot"].sudo()
         snapshots = Snapshot.browse()
         for attachment in self.package_attachment_ids.sorted("id"):
-            raw = attachment.raw
+            raw = bytes(attachment.raw or b"")
             if not raw:
                 raise UserError(
                     f"Closing package attachment {attachment.name} has no "
@@ -1210,7 +1210,7 @@ class RebuildAccountClosingSnapshot(models.Model):
                     "Only an attachment in the closing package can be "
                     "captured as accepted evidence."
                 )
-            raw = attachment.raw
+            raw = bytes(attachment.raw or b"")
             if not raw:
                 raise UserError(
                     "The accepted closing attachment must contain binary data."
@@ -1219,7 +1219,7 @@ class RebuildAccountClosingSnapshot(models.Model):
                 **vals,
                 "name": attachment.name,
                 "mimetype": attachment.mimetype,
-                "payload": base64.b64encode(raw),
+                "payload": BinaryBytes(raw),
                 "sha256": hashlib.sha256(raw).hexdigest(),
                 "file_size": len(raw),
                 "package_reference": closing.package_reference,

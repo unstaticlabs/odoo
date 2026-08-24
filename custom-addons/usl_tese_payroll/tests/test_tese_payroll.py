@@ -1,4 +1,3 @@
-import base64
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
@@ -171,7 +170,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             "name": f"{payslip.tese_reference}.pdf",
             "type": "binary",
             "mimetype": "application/pdf",
-            "datas": base64.b64encode(b"%PDF-1.4 TESE payroll test"),
+            "raw": b"%PDF-1.4 TESE payroll test",
             "res_model": payslip._name,
             "res_id": payslip.id,
         })

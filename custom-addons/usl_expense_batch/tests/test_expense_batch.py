@@ -1,5 +1,3 @@
-import base64
-
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
@@ -36,7 +34,7 @@ class TestExpenseBatch(TestExpenseCommon):
             attachment = self.env["ir.attachment"].sudo().create({
                 "name": f"{name}.pdf",
                 "type": "binary",
-                "datas": base64.b64encode(b"expense batch test receipt"),
+                "raw": b"expense batch test receipt",
                 "res_model": "hr.expense",
                 "res_id": expense.id,
             })

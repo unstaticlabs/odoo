@@ -1,4 +1,3 @@
-import base64
 import hashlib
 from copy import deepcopy
 from datetime import datetime
@@ -106,7 +105,7 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
         cls.attachment = cls.env["ir.attachment"].create(
             {
                 "name": "historical-evidence.txt",
-                "datas": base64.b64encode(b"historical evidence"),
+                "raw": b"historical evidence",
             },
         )
         cls._trace(

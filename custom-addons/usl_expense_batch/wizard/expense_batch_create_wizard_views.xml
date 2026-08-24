@@ -64,7 +64,7 @@
                             type="object"
                             class="btn-primary"
                             data-hotkey="q"
-                            title="Create the batch and send its draft expenses for manager approval. Nothing is posted or paid."
+                            title="Create the batch and send only its draft expenses for manager approval. This does not post or pay them."
                             invisible="draft_incomplete_count != 0 or draft_count == 0"/>
                     <button name="action_create_batch"
                             string="Create batch"

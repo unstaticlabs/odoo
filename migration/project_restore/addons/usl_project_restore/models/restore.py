@@ -1,4 +1,3 @@
-import base64
 import copy
 import hashlib
 import os
@@ -1163,7 +1162,7 @@ class UslProjectRestoreRun(models.Model):
                 "description": row["description"],
                 "res_model": row["res_model"],
                 "res_id": target_record.id,
-                "datas": base64.b64encode(binary),
+                "raw": binary,
                 "public": row["public"],
                 **self._trace_values("ir.attachment", row["id"], snapshot),
                 "rebuild_source_attachment_res_model": row["res_model"],
@@ -1173,7 +1172,7 @@ class UslProjectRestoreRun(models.Model):
             if attachment:
                 if not self._is_current_revision(attachment, snapshot):
                     immutable = dict(values)
-                    immutable.pop("datas")
+                    immutable.pop("raw")
                     attachment.sudo().write(immutable)
             else:
                 attachment = self.env["ir.attachment"].sudo().create(values)

@@ -1,6 +1,5 @@
 # ruff: noqa: F821, T201
 
-import base64
 import hashlib
 import json
 from decimal import Decimal
@@ -400,7 +399,7 @@ for row in source["company_calendars"]:
 
 for row in source["images"]:
     source_content = source_binary(row)
-    target_content = base64.b64decode(mapped["employees"][row["res_id"]].image_1920)
+    target_content = bytes(mapped["employees"][row["res_id"]].image_1920)
     assert target_content == source_content
     source_rows.append(("image", row["id"], row["res_id"], row["checksum"], row["file_size"]))
     target_rows.append(

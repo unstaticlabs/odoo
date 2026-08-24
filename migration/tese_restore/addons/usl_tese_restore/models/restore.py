@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import json
 import os
@@ -8,6 +7,7 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, api, fields, models
+from odoo.tools import BinaryBytes
 
 from odoo.addons.usl_tese_payroll.models.constants import (
     TESE_COMPONENTS,
@@ -446,7 +446,7 @@ class UslTeseRestoreRun(models.Model):
     def _attachment_binary(self, row):
         if row.get("db_datas"):
             value = row["db_datas"]
-            return base64.b64encode(bytes(value))
+            return bytes(value)
         store_name = row.get("store_fname")
         if not store_name:
             return False
@@ -463,7 +463,7 @@ class UslTeseRestoreRun(models.Model):
                 f"Source filestore object is missing: {store_name}.",
             )
             return False
-        return base64.b64encode(path.read_bytes())
+        return path.read_bytes()
 
     def _restore_employees(self, payload):
         partners = {row["id"]: row for row in payload["partners"]}
@@ -627,7 +627,7 @@ class UslTeseRestoreRun(models.Model):
             binary = self._attachment_binary(row)
             if employee and binary:
                 employee.with_context(tracking_disable=True).write({
-                    "image_1920": binary,
+                    "image_1920": BinaryBytes(binary),
                 })
                 count += 1
         return count
@@ -681,7 +681,7 @@ class UslTeseRestoreRun(models.Model):
             if not attachment:
                 if not binary:
                     continue
-                values["datas"] = binary
+                values["raw"] = binary
                 attachment = self.env["ir.attachment"].sudo().create(values)
             else:
                 attachment.sudo().write(values)

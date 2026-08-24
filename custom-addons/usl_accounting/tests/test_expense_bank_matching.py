@@ -1,4 +1,3 @@
-import base64
 from datetime import date, timedelta
 
 from odoo import Command, fields
@@ -77,7 +76,7 @@ class TestExpenseBankMatching(TestExpenseCommon):
             attachment = self.env["ir.attachment"].sudo().create({
                 "name": f"{name}.pdf",
                 "type": "binary",
-                "datas": base64.b64encode(b"expense matching test receipt"),
+                "raw": b"expense matching test receipt",
                 "res_model": "hr.expense",
                 "res_id": expense.id,
             })

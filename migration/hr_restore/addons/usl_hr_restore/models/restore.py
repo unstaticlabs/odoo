@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import os
 from pathlib import Path
@@ -7,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 
 from odoo import Command, fields, models
+from odoo.tools import BinaryBytes
 
 
 RESTORE_REVISION = 1
@@ -846,7 +846,7 @@ class UslHrRestoreRun(models.Model):
                 raise RuntimeError(
                     f"HR image {row['id']} references missing employee {row['res_id']}",
                 )
-            employee.write({"image_1920": base64.b64encode(source_binary(row))})
+            employee.write({"image_1920": BinaryBytes(source_binary(row))})
 
         for row in source["departments"]:
             departments[row["id"]].write(
