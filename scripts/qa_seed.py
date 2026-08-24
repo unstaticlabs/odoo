@@ -14,9 +14,16 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-SCHEMA = "usl-qa-reconstruction-seed-v1"
+SCHEMA = "usl-qa-reconstruction-seed-v2"
 MIGRATION_INPUTS = (
+    "Dockerfile",
     "accounting_compat",
+    "compose.yaml",
+    "compose.external-pocket-id.yaml",
+    "compose.pocket-id.yaml",
+    "compose.preprod.yaml",
+    "custom-addons",
+    "deploy/documents",
     "migration",
     "scripts/accounting-compat",
     "scripts/accounting-restore",
@@ -25,12 +32,22 @@ MIGRATION_INPUTS = (
     "scripts/hr-restore",
     "scripts/identity-restore",
     "scripts/migration-source-truth",
+    "scripts/migration-candidate",
+    "scripts/migration_candidate.py",
     "scripts/platform-billing-restore",
     "scripts/paperless_seed_sanitize.py",
+    "scripts/portable_filestore.py",
     "scripts/product-restore",
     "scripts/project-restore",
     "scripts/qa-seed",
+    "scripts/qa-environment",
     "scripts/qa_seed.py",
+    "scripts/production-cutover",
+    "scripts/production_cutover.py",
+    "scripts/release_identity.py",
+    "scripts/odoo/production_admission_policy.py",
+    "scripts/odoo/production_record_admission.py",
+    "scripts/odoo/production_side_effect_boundary.py",
     "scripts/odoo/qa_seed_sanitize.py",
     "scripts/target-finalize",
     "scripts/target-reconstruct",
@@ -48,6 +65,7 @@ REQUIRED_ARTIFACTS = (
     "odoo.dump",
     "odoo-filestore.tgz",
     "paperless-export",
+    "runtime.json",
 )
 
 
@@ -68,10 +86,13 @@ def iter_files(path: Path) -> list[Path]:
         raise SeedError(f"seed artifacts may not be symlinks: {path}")
     if path.is_file():
         return [path]
-    return sorted(
-        (item for item in path.rglob("*") if item.is_file()),
-        key=lambda item: item.relative_to(path).as_posix(),
-    )
+    files = []
+    for item in path.rglob("*"):
+        if item.is_symlink():
+            raise SeedError(f"seed artifacts may not be symlinks: {item}")
+        if item.is_file():
+            files.append(item)
+    return sorted(files, key=lambda item: item.relative_to(path).as_posix())
 
 
 def tree_digest(path: Path) -> tuple[str, int, int]:
@@ -216,10 +237,59 @@ def atomic_json(path: Path, value: dict) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def validate_qualification(qualification: dict) -> None:
+    required = {
+        "accounting": "passed",
+        "documents": "passed",
+        "migration_boundary": "passed",
+        "product_database_boundary": "passed",
+        "profile": "full",
+        "regulatory_live_guards": "disabled",
+        "status": "passed",
+    }
+    for key, expected in required.items():
+        value = qualification.get(key)
+        if isinstance(expected, str) and isinstance(value, dict):
+            value = value.get("status")
+        if value != expected:
+            raise SeedError(
+                f"seed qualification {key} is {value!r}, expected {expected!r}",
+            )
+    modules = qualification.get("module_versions")
+    if not isinstance(modules, dict) or not modules or any(
+        not isinstance(name, str)
+        or not name
+        or not isinstance(version, str)
+        or not version
+        for name, version in modules.items()
+    ):
+        raise SeedError("seed qualification has no exact module versions")
+    accounting = qualification["accounting"]
+    performance = accounting.get("performance") or {}
+    if (
+        not isinstance(accounting.get("controls"), dict)
+        or not accounting["controls"]
+        or not isinstance(performance.get("stages"), list)
+        or not performance["stages"]
+        or not performance.get("schema")
+    ):
+        raise SeedError("seed qualification has incomplete Accounting controls/timings")
+    documents = qualification["documents"]
+    if (
+        not isinstance(documents.get("controls"), dict)
+        or not documents["controls"]
+        or not isinstance(documents.get("paperless_document_count"), int)
+        or documents["paperless_document_count"] < 0
+    ):
+        raise SeedError("seed qualification has incomplete Documents controls")
+
+
 def seal(args: argparse.Namespace) -> None:
     seed_dir = args.seed_dir.resolve()
     runtime = read_json(args.runtime_json)
     seed_identity = identity(args.root.resolve(), args.source_dump.resolve(), runtime)
+    qualification = read_json(args.qualification_json)
+    validate_qualification(qualification)
     payload = {
         "schema": SCHEMA,
         "created_at": datetime.now(UTC).isoformat(),
@@ -227,7 +297,7 @@ def seal(args: argparse.Namespace) -> None:
         "identity": seed_identity,
         "fingerprint": identity_fingerprint(seed_identity),
         "artifacts": artifact_manifest(seed_dir),
-        "qualification": read_json(args.qualification_json),
+        "qualification": qualification,
     }
     atomic_json(seed_dir / "manifest.json", payload)
     print(payload["fingerprint"])
@@ -238,6 +308,8 @@ def verify(args: argparse.Namespace) -> dict:
     manifest = read_json(seed_dir / "manifest.json")
     if manifest.get("schema") != SCHEMA:
         raise SeedError("seed schema is missing or unsupported")
+    if manifest.get("created_from_commit") != args.commit:
+        raise SeedError("seed release commit differs from the current checkout")
     expected_identity = identity(
         args.root.resolve(),
         args.source_dump.resolve(),
@@ -261,8 +333,7 @@ def verify(args: argparse.Namespace) -> dict:
         )
         raise SeedError("seed artifacts differ: " + ", ".join(changed))
     qualification = manifest.get("qualification") or {}
-    if qualification.get("status") != "passed":
-        raise SeedError("seed qualification did not pass")
+    validate_qualification(qualification)
     return manifest
 
 
@@ -305,6 +376,7 @@ def parser() -> argparse.ArgumentParser:
         subparser.add_argument("--seed-dir", type=Path, required=True)
         subparser.add_argument("--source-dump", type=Path, required=True)
         subparser.add_argument("--runtime-json", type=Path, required=True)
+        subparser.add_argument("--commit", required=True)
 
     seal_parser = subparsers.add_parser("seal")
     seal_parser.add_argument("--root", type=Path, required=True)
