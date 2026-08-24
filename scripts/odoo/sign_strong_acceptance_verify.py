@@ -7,6 +7,8 @@ import os
 import time
 from datetime import timedelta
 
+from odoo.addons.usl_sign.services import field_content
+
 
 request_id = int(os.environ.get("USL_SIGN_ACCEPTANCE_REQUEST_ID", "0"))
 if request_id <= 0:
@@ -105,7 +107,7 @@ for name, passed in checks.items():
 if failures:
     raise RuntimeError("Strong acceptance checks failed: " + ", ".join(failures))
 
-final_pdf = base64.b64decode(sign_request.final_data)
+final_pdf = field_content(sign_request.final_data)
 validation = sign_request._sign_dss_client().validate(
     final_pdf,
     expected_level="strong_personal",
