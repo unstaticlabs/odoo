@@ -35,7 +35,7 @@ from classification import (  # noqa: E402
 from classification import (
     TAG_COLORS as CLASSIFICATION_TAG_COLORS,
 )
-from selection import select_groups  # noqa: E402
+from selection import resolve_company_scope, select_groups  # noqa: E402
 
 SOURCE_FILESTORE = Path(
     os.getenv("DOCUMENTS_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
@@ -1004,6 +1004,37 @@ def existing_document_for(content_sha256):
     return matches
 
 
+def existing_processing_operation_for(content_sha256, company, target):
+    operations = env["usl.document.operation"].sudo().search(
+        [
+            ("checksum", "=", content_sha256),
+            ("state", "=", "processing"),
+        ],
+        order="id",
+    )
+    if len(operations) > 1:
+        fail(
+            f"target contains {len(operations)} processing archive operations "
+            f"for SHA-256 {content_sha256}",
+        )
+    operation = operations[:1]
+    if not operation:
+        return operation
+    if operation.company_id != company:
+        fail(
+            f"processing archive operation {operation.id} belongs to "
+            f"{operation.company_id.display_name}, not {company.display_name}",
+        )
+    expected_target = (target._name, target.id) if target else (False, 0)
+    operation_target = (operation.res_model or False, operation.res_id or 0)
+    if operation_target != expected_target:
+        fail(
+            f"processing archive operation {operation.id} targets "
+            f"{operation_target}, not {expected_target}",
+        )
+    return operation
+
+
 def settle_pending(force=False):
     deadline = time.monotonic() + PROCESSING_TIMEOUT
     while pending and (force or len(pending) >= MAX_IN_FLIGHT):
@@ -1055,16 +1086,11 @@ for index, group in enumerate(groups, start=1):
     if any(candidate != content for candidate in source_contents[1:]):
         fail(f"source SHA-1 group {item['checksum']} contains different binaries")
     source_sha256 = hashlib.sha256(content).hexdigest()
-    source_company_ids = sorted(
-        {
-            entry.get("company_id") or entry.get("folder_company_id")
-            for entry in group
-            if entry.get("company_id") or entry.get("folder_company_id")
-        },
-    )
-    if len(source_company_ids) > 1:
-        fail(f"checksum {item['checksum']} spans several legal companies")
-    source_company_id = source_company_ids[0] if source_company_ids else None
+    try:
+        company_scope = resolve_company_scope(group)
+    except ValueError as error:
+        fail(f"checksum {item['checksum']} has unsafe company scope: {error}")
+    source_company_id = company_scope["company_id"]
     company = companies.get(source_company_id) or next(iter(companies.values()), env.company)
     target_moves = [
         moves[entry["res_id"]]
@@ -1096,6 +1122,11 @@ for index, group in enumerate(groups, start=1):
             entry["searchable_source_member"] = member_filename
     paperless_sha256 = hashlib.sha256(paperless_content).hexdigest()
     existing = existing_document_for(paperless_sha256)
+    processing_operation = (
+        env["usl.document.operation"]
+        if existing
+        else existing_processing_operation_for(paperless_sha256, company, target)
+    )
     task = {
         "index": index,
         "group": group,
@@ -1104,12 +1135,34 @@ for index, group in enumerate(groups, start=1):
         "sha256": source_sha256,
         "paperless_original_sha256": paperless_sha256,
         "source_truth": source_truth_payload(group),
+        "company_scope": company_scope,
         "state": "reused" if existing else "processing",
     }
     if existing:
         reused_group_count += 1
         task["document"] = existing
         completed.append(task)
+        if index % 25 == 0 or index == len(groups):
+            print(
+                "DOCUMENTS_SOURCE_RESTORE_PROGRESS="
+                + json.dumps(
+                    {
+                        "selected_groups": len(groups),
+                        "submitted_groups": index,
+                        "archived_or_reused_groups": len(completed),
+                        "processing_groups": len(pending),
+                        "failed_groups": len(failed),
+                    },
+                    sort_keys=True,
+                ),
+                flush=True,
+            )
+        continue
+    if processing_operation:
+        task["operation"] = processing_operation
+        task["recovered_operation_id"] = processing_operation.id
+        pending.append(task)
+        settle_pending()
         if index % 25 == 0 or index == len(groups):
             print(
                 "DOCUMENTS_SOURCE_RESTORE_PROGRESS="
@@ -1192,14 +1245,8 @@ for item in completed:
         # the same stable root so metadata, bytes, preview and permissions can
         # be revalidated, then return all-inactive source groups to Trash.
         document.restore_from_trash()
-    source_company_ids = sorted(
-        {
-            entry.get("company_id") or entry.get("folder_company_id")
-            for entry in group
-            if entry.get("company_id") or entry.get("folder_company_id")
-        },
-    )
-    source_company_id = source_company_ids[0] if source_company_ids else None
+    company_scope = item["company_scope"]
+    source_company_id = company_scope["company_id"]
     company = companies.get(source_company_id)
     if any(entry.get("operational_attachment_id") for entry in group):
         company = company or next(iter(companies.values()), env.company)
@@ -1430,6 +1477,10 @@ for item in completed:
         for model_name, target_id in sorted(target_links)
     ]
     item["restored_company_id"] = company.id if company else None
+    item["source_company_ids"] = company_scope["source_company_ids"]
+    item["superseded_inactive_company_ids"] = company_scope[
+        "superseded_inactive_company_ids"
+    ]
     item["source_added_at"] = classification["added_at"]
     quarantine = env["ir.attachment"].sudo().search(
         [

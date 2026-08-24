@@ -64,6 +64,39 @@ class DocumentsSelectionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown Documents restore profile"):
             selection.select_groups(self.groups, "random")
 
+    def test_active_business_company_supersedes_inactive_unlinked_history(self):
+        group = [
+            item(10, company=1, active=False, res_model=None, res_id=0),
+            item(11, company=8, res_model="account.move", res_id=10039),
+        ]
+
+        self.assertEqual(
+            selection.resolve_company_scope(group),
+            {
+                "company_id": 8,
+                "source_company_ids": [1, 8],
+                "superseded_inactive_company_ids": [1],
+            },
+        )
+
+    def test_active_cross_company_relationships_are_rejected(self):
+        group = [
+            item(12, company=1, res_model="account.move", res_id=1),
+            item(13, company=8, res_model="account.move", res_id=2),
+        ]
+
+        with self.assertRaisesRegex(ValueError, "several legal companies"):
+            selection.resolve_company_scope(group)
+
+    def test_inactive_linked_cross_company_history_is_rejected(self):
+        group = [
+            item(14, company=1, active=False, res_model="account.move", res_id=1),
+            item(15, company=8, res_model="account.move", res_id=2),
+        ]
+
+        with self.assertRaisesRegex(ValueError, "several legal companies"):
+            selection.resolve_company_scope(group)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,6 +7,65 @@ from classification import classify_group
 PROFILES = {"full", "accounting", "hr", "smoke"}
 
 
+def _company_id(item):
+    return item.get("company_id") or item.get("folder_company_id")
+
+
+def resolve_company_scope(group):
+    """Choose one legal company without trusting stale inactive identities.
+
+    An active business relationship is authoritative.  An older inactive,
+    unlinked Documents identity may carry another company after the same file
+    was reused by a different legal entity; retaining that identity as source
+    evidence must not broaden the resulting document's access scope.
+    """
+    source_company_ids = sorted(
+        {_company_id(item) for item in group if _company_id(item)},
+    )
+    active_items = [item for item in group if item.get("active")]
+    active_business_items = [
+        item
+        for item in active_items
+        if item.get("res_model") and item.get("res_id")
+    ]
+    authoritative_items = active_business_items or active_items or list(group)
+    authoritative_company_ids = sorted(
+        {
+            _company_id(item)
+            for item in authoritative_items
+            if _company_id(item)
+        },
+    )
+    if len(authoritative_company_ids) > 1:
+        raise ValueError(
+            "active source relationships span several legal companies: "
+            f"{authoritative_company_ids}",
+        )
+    company_id = authoritative_company_ids[0] if authoritative_company_ids else None
+    superseded_company_ids = sorted(
+        company for company in source_company_ids if company != company_id
+    )
+    unsafe_conflicts = [
+        item
+        for item in group
+        if _company_id(item) in superseded_company_ids
+        and (
+            item.get("active")
+            or (item.get("res_model") and item.get("res_id"))
+        )
+    ]
+    if unsafe_conflicts:
+        raise ValueError(
+            "source relationships span several legal companies and the "
+            "conflicting identities are not inactive unlinked history",
+        )
+    return {
+        "company_id": company_id,
+        "source_company_ids": source_company_ids,
+        "superseded_inactive_company_ids": superseded_company_ids,
+    }
+
+
 def _source_order(group):
     return min(
         item.get("document_id") or (1_000_000_000 + item["attachment_id"])
