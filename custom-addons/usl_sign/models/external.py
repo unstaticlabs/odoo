@@ -1,7 +1,7 @@
 import hashlib
 from urllib.parse import urlsplit
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 from ..services import field_content
@@ -91,6 +91,7 @@ class SignExternalJourney(models.Model):
     )
     provider_review_summary = fields.Char(compute="_compute_provider_details")
     signer_summary = fields.Text(compute="_compute_signer_summary")
+    next_step = fields.Char(compute="_compute_next_step")
 
     _request_unique = models.Constraint(
         "UNIQUE(request_id)", "A request can have only one external journey.",
@@ -123,6 +124,27 @@ class SignExternalJourney(models.Model):
                     f"{signer.get('role') or 'Signer'}",
                 )
             journey.signer_summary = "\n".join(lines)
+
+    @api.depends("state", "exported_at")
+    @api.depends_context("lang")
+    def _compute_next_step(self):
+        for journey in self:
+            if journey.state == "waiting" and not journey.exported_at:
+                journey.next_step = _("Download the exact document to sign.")
+            elif journey.state == "waiting":
+                journey.next_step = _(
+                    "Complete the signature with the provider, then upload the result.",
+                )
+            elif journey.state == "imported":
+                journey.next_step = _("The returned document is ready to be checked.")
+            elif journey.state == "validated":
+                journey.next_step = _("The external signature was accepted.")
+            elif journey.state == "rejected":
+                journey.next_step = _(
+                    "The returned document was not accepted. Review the reason.",
+                )
+            else:
+                journey.next_step = _("This external signing task is closed.")
 
     @api.model_create_multi
     def create(self, vals_list):
