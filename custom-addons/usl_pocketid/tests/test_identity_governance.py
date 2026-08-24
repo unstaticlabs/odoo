@@ -499,6 +499,7 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         user_count = self.env["res.users"].with_context(
             active_test=False,
         ).search_count([])
+        configured_write_date = self.user.write_date
         self.env["res.users"]._usl_pocketid_apply_user_configuration(
             configuration,
             break_glass_password="safe-local-password-12345",
@@ -509,6 +510,11 @@ class TestPocketIDIdentityGovernance(TransactionCase):
                 active_test=False,
             ).search_count([]),
             user_count,
+        )
+        self.assertEqual(
+            self.user.write_date,
+            configured_write_date,
+            "Reapplying an unchanged Pocket ID profile must not rewrite its user",
         )
 
     def test_strict_configuration_refuses_unclassified_human_users(self):

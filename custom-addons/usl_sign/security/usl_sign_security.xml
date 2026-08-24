@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_privilege" model="res.groups.privilege">
+        <field name="name">USL Sign</field>
+        <field name="category_id" ref="base.module_category_productivity"/>
+    </record>
+
+    <record id="group_sign_user" model="res.groups">
+        <field name="name">Sign user</field>
+        <field name="privilege_id" ref="sign_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('sign_oca.sign_oca_group_user'))]"/>
+    </record>
+    <record id="group_sign_template_manager" model="res.groups">
+        <field name="name">Template manager</field>
+        <field name="privilege_id" ref="sign_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="group_sign_trust_override" model="res.groups">
+        <field name="name">Trust-level override</field>
+        <field name="privilege_id" ref="sign_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="group_sign_identity_reviewer" model="res.groups">
+        <field name="name">Identity reviewer</field>
+        <field name="privilege_id" ref="sign_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_sign_evidence_reviewer" model="res.groups">
+        <field name="name">Evidence reviewer</field>
+        <field name="privilege_id" ref="sign_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_sign_admin" model="res.groups">
+        <field name="name">Sign administrator</field>
+        <field name="privilege_id" ref="sign_privilege"/>
+        <field name="implied_ids" eval="[
+            (4, ref('group_sign_template_manager')),
+            (4, ref('group_sign_trust_override')),
+            (4, ref('group_sign_identity_reviewer')),
+            (4, ref('group_sign_evidence_reviewer')),
+            (4, ref('sign_oca.sign_oca_group_admin'))
+        ]"/>
+    </record>
+
+    <record id="request_company" model="ir.rule">
+        <field name="name">Signature requests: allowed companies</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="request_user_manage" model="ir.rule">
+        <field name="name">Signature users: requester, coordinator or signer</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="domain_force">['|', '|', ('user_id', '=', user.id), ('coordinator_ids', 'in', [user.id]), ('signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="request_admin_all" model="ir.rule">
+        <field name="name">Signature administrators: company requests</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_admin'))]"/>
+    </record>
+    <record id="request_trust_override_all" model="ir.rule">
+        <field name="name">Trust-level reviewers: company requests</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_trust_override'))]"/>
+    </record>
+    <record id="request_evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company requests</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+
+    <record id="signer_company" model="ir.rule">
+        <field name="name">Signature recipients: allowed companies</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
+        <field name="domain_force">[('request_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="signer_user_manage" model="ir.rule">
+        <field name="name">Signature users: recipients on managed requests</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
+        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="signer_trust_override_all" model="ir.rule">
+        <field name="name">Trust-level reviewers: recipients on company requests</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_trust_override'))]"/>
+    </record>
+    <record id="signer_evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: recipients on company requests</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_request_signer"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+
+    <record id="template_company" model="ir.rule">
+        <field name="name">Signature templates: allowed companies</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_template"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="template_item_company" model="ir.rule">
+        <field name="name">Signature template fields: allowed companies</field>
+        <field name="model_id" ref="sign_oca.model_sign_oca_template_item"/>
+        <field name="domain_force">[('template_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="template_role_company" model="ir.rule">
+        <field name="name">Signature template role colors: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_template_role"/>
+        <field name="domain_force">[('template_id.company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="policy_company" model="ir.rule">
+        <field name="name">Signature policies: company or global</field>
+        <field name="model_id" ref="model_usl_sign_policy"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="evidence_company" model="ir.rule">
+        <field name="name">Signature evidence: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_evidence"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="evidence_user_non_authentication" model="ir.rule">
+        <field name="name">Signature users: non-sensitive evidence</field>
+        <field name="model_id" ref="model_usl_sign_evidence"/>
+        <field name="domain_force">[('kind', '!=', 'authentication'), '|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company signature evidence</field>
+        <field name="model_id" ref="model_usl_sign_evidence"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+    <record id="event_company" model="ir.rule">
+        <field name="name">Signature events: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_event"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="event_participant" model="ir.rule">
+        <field name="name">Signature events: request participants</field>
+        <field name="model_id" ref="model_usl_sign_event"/>
+        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="event_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company signature events</field>
+        <field name="model_id" ref="model_usl_sign_event"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+    <record id="validation_company" model="ir.rule">
+        <field name="name">Signature validations: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_validation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="validation_participant" model="ir.rule">
+        <field name="name">Signature validations: request participants</field>
+        <field name="model_id" ref="model_usl_sign_validation"/>
+        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="validation_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company signature validations</field>
+        <field name="model_id" ref="model_usl_sign_validation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+    <record id="document_company" model="ir.rule">
+        <field name="name">Signature source documents: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_request_document"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="document_participant" model="ir.rule">
+        <field name="name">Signature source documents: request participants</field>
+        <field name="model_id" ref="model_usl_sign_request_document"/>
+        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="document_admin_all" model="ir.rule">
+        <field name="name">Signature administrators: company source documents</field>
+        <field name="model_id" ref="model_usl_sign_request_document"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_admin'))]"/>
+    </record>
+    <record id="template_document_company" model="ir.rule">
+        <field name="name">Signature template documents: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_template_document"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="enrollment_company" model="ir.rule">
+        <field name="name">Strong signer enrolments: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_enrollment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="enrollment_own_identity" model="ir.rule">
+        <field name="name">Signing identities: own identity</field>
+        <field name="model_id" ref="model_usl_sign_enrollment"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="enrollment_reviewer_all" model="ir.rule">
+        <field name="name">Identity reviewers: company identities</field>
+        <field name="model_id" ref="model_usl_sign_enrollment"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_identity_reviewer'))]"/>
+    </record>
+    <record id="ceremony_company" model="ir.rule">
+        <field name="name">Strong signature ceremonies: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_ceremony"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="provider_company" model="ir.rule">
+        <field name="name">External providers: company or global</field>
+        <field name="model_id" ref="model_usl_sign_external_provider"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="journey_company" model="ir.rule">
+        <field name="name">External signature journeys: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_external_journey"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="journey_participant" model="ir.rule">
+        <field name="name">External signature journeys: request participants</field>
+        <field name="model_id" ref="model_usl_sign_external_journey"/>
+        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('request_id.signer_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_user'))]"/>
+    </record>
+    <record id="journey_admin_all" model="ir.rule">
+        <field name="name">Signature administrators: company external journeys</field>
+        <field name="model_id" ref="model_usl_sign_external_journey"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_admin'))]"/>
+    </record>
+    <record id="approval_company" model="ir.rule">
+        <field name="name">Odoo approvals: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_approval"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="approval_event_company" model="ir.rule">
+        <field name="name">Decision events: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_approval_event"/>
+        <field name="domain_force">[('approval_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="approval_response_company" model="ir.rule">
+        <field name="name">Decision responses: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_approval_response"/>
+        <field name="domain_force">[('approval_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="daily_manifest_company" model="ir.rule">
+        <field name="name">Daily Sign manifests: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="daily_manifest_entry_company" model="ir.rule">
+        <field name="name">Daily Sign manifest entries: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest_entry"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="daily_manifest_receipt_company" model="ir.rule">
+        <field name="name">OpenTimestamps receipts: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_daily_manifest_receipt"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="service_health_company" model="ir.rule">
+        <field name="name">Signing capability status: allowed companies</field>
+        <field name="model_id" ref="model_usl_sign_service_health"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="approval_participants" model="ir.rule">
+        <field name="name">Decisions: requester or decision-maker</field>
+        <field name="model_id" ref="model_usl_sign_approval"/>
+        <field name="domain_force">['|', ('requested_by_id', '=', user.id), ('approver_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="approval_event_participants" model="ir.rule">
+        <field name="name">Decision events: requester or decision-maker</field>
+        <field name="model_id" ref="model_usl_sign_approval_event"/>
+        <field name="domain_force">['|', ('approval_id.requested_by_id', '=', user.id), ('approval_id.approver_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="approval_response_participants" model="ir.rule">
+        <field name="name">Decision responses: requester or decision-maker</field>
+        <field name="model_id" ref="model_usl_sign_approval_response"/>
+        <field name="domain_force">['|', ('approval_id.requested_by_id', '=', user.id), ('approval_id.approver_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="approval_admin_all" model="ir.rule">
+        <field name="name">Sign administrators: company decisions</field>
+        <field name="model_id" ref="model_usl_sign_approval"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_admin'))]"/>
+    </record>
+    <record id="approval_event_admin_all" model="ir.rule">
+        <field name="name">Sign administrators: company decision events</field>
+        <field name="model_id" ref="model_usl_sign_approval_event"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_admin'))]"/>
+    </record>
+    <record id="approval_response_admin_all" model="ir.rule">
+        <field name="name">Sign administrators: company decision responses</field>
+        <field name="model_id" ref="model_usl_sign_approval_response"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_admin'))]"/>
+    </record>
+    <record id="approval_evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company decisions</field>
+        <field name="model_id" ref="model_usl_sign_approval"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+    <record id="approval_event_evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company decision events</field>
+        <field name="model_id" ref="model_usl_sign_approval_event"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+    <record id="approval_response_evidence_reviewer_all" model="ir.rule">
+        <field name="name">Evidence reviewers: company decision responses</field>
+        <field name="model_id" ref="model_usl_sign_approval_response"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_sign_evidence_reviewer'))]"/>
+    </record>
+
+    <record id="sign_oca.sign_oca_request_rule_user_read" model="ir.rule">
+        <field name="domain_force">['|', '|', ('user_id', '=', user.id), ('coordinator_ids', 'in', [user.id]), ('signer_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+    <record id="sign_oca.sign_oca_request_signer_rule_base_user_read" model="ir.rule">
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+    </record>
+    <record id="sign_oca.sign_oca_request_signer_rule_user_read" model="ir.rule">
+        <field name="domain_force">['|', '|', ('request_id.user_id', '=', user.id), ('request_id.coordinator_ids', 'in', [user.id]), ('partner_id', '=', user.partner_id.id)]</field>
+    </record>
+    <record id="sign_oca.sign_oca_request_rule_manager_read" model="ir.rule">
+        <field name="groups" eval="[(6, 0, [ref('group_sign_admin')])]"/>
+    </record>
+    <record id="sign_oca.sign_oca_request_signer_rule_manager_read" model="ir.rule">
+        <field name="groups" eval="[(6, 0, [ref('group_sign_admin')])]"/>
+    </record>
+</odoo>

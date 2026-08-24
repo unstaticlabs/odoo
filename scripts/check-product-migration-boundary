@@ -182,6 +182,14 @@ if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
     errors.append("The platform restoration harness lacks its project guard.")
 
 runtime_modules = {
+    PRODUCT_ADDONS / "usl_sign": (
+        "usl.sign.restore",
+        "usl_sign_restore",
+        "sign-restore",
+        "sign-migration",
+        "rebuild_source_",
+        "/mnt/sign-migration-addons",
+    ),
     PRODUCT_ADDONS / "usl_project": (
         "usl.project.restore",
         "rebuild_source_",

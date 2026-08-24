@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="secure_company_brand" name="Secure company signing brand">
+        <header class="usl-sign-brand">
+            <div class="usl-sign-brand__identity">
+                <span class="usl-sign-brand__mark" aria-hidden="true">
+                    <i class="fa fa-shield"/>
+                </span>
+                <span>
+                    <span class="usl-sign-brand__product">Document signing</span>
+                    <strong class="usl-sign-brand__company" t-out="company.name"/>
+                </span>
+            </div>
+            <span class="usl-sign-security-pill">
+                <i class="fa fa-lock" aria-hidden="true"/>
+                Protected session
+            </span>
+        </header>
+    </template>
+
+    <!--
+        Odoo 19 passes layout fragments as t-call attributes. Keep this local
+        wrapper around OCA Sign so the upstream module remains untouched while
+        its portal application receives its assets and bootstrap code.
+    -->
+    <template id="portal_sign_document" name="Company signing document">
+        <t t-set="head">
+            <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+            <meta name="robots" content="noindex,nofollow"/>
+            <t t-call-assets="oca_sign.assets_frontend_sign" t-js="false"/>
+            <t t-call-assets="oca_sign.assets_frontend_sign" t-css="false"/>
+            <script type="text/javascript">
+                odoo.define("usl_sign.document_portal", ["@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm"], function (require) {
+                    const { initDocumentToSign } = require("@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm");
+                    initDocumentToSign(document, <t t-out="json.dumps(sign_oca_backend_info)"/>)
+                        .then(() =&gt; document.getElementById("usl_sign_loading")?.remove())
+                        .catch(() =&gt; {
+                            const status = document.getElementById("usl_sign_loading");
+                            if (status) {
+                                status.classList.add("alert", "alert-danger");
+                                status.textContent = "The signing session could not be loaded. Refresh the page or ask the sender for a new invitation.";
+                            }
+                        });
+                });
+            </script>
+        </t>
+        <t t-call="web.layout"
+           html_data="{'lang': sign_oca_backend_info['lang']}"
+           head="head"
+           body_classname.f="o_web_client o_portal_sign_document_body">
+            <main id="usl_sign_loading" class="container py-5" role="status" aria-live="polite">
+                <p>Opening your document…</p>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_sign_unavailable" name="Signing link unavailable">
+        <t t-call="portal.frontend_layout">
+            <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            <main class="usl-sign-public-page">
+                <section class="usl-sign-public-card usl-sign-public-card--compact">
+                    <span class="usl-sign-result-icon usl-sign-result-icon--warning" aria-hidden="true">
+                        <i class="fa fa-link"/>
+                    </span>
+                    <p class="usl-sign-eyebrow">Document signing</p>
+                    <h1>This link is no longer available</h1>
+                    <p class="usl-sign-lead">It may have expired, already been used, or been cancelled.</p>
+                    <p class="usl-sign-muted mb-0">Ask the sender for a new invitation if you still need to sign.</p>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_sign_start" name="Review signature request">
+        <t t-call="portal.frontend_layout">
+            <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            <main class="usl-sign-public-page">
+                <section class="usl-sign-public-card">
+                    <t t-set="company" t-value="signer.request_id.company_id"/>
+                    <t t-call="usl_sign.secure_company_brand"/>
+                    <div class="usl-sign-public-card__body">
+                        <p class="usl-sign-eyebrow">Signature requested</p>
+                        <h1 t-out="signer.request_id.name"/>
+                        <p class="usl-sign-lead">
+                            <t t-out="signer.request_id.company_id.name"/> has asked you to review and sign this document.
+                        </p>
+                        <dl class="usl-sign-summary">
+                            <div><dt>Signing as</dt><dd t-out="signer.partner_id.name"/></div>
+                            <div><dt>Your role</dt><dd t-out="signer.role_id.name"/></div>
+                            <div><dt>Signing level</dt><dd t-out="requested_trust_display"/></div>
+                            <div t-if="signer.request_id.expires_at"><dt>Complete by</dt><dd t-out="signer.request_id.expires_at"/></div>
+                        </dl>
+                        <div class="usl-sign-assurance-row" aria-label="Signing protections">
+                            <span><i class="fa fa-eye" aria-hidden="true"/> Review before signing</span>
+                            <span><i class="fa fa-check-circle" aria-hidden="true"/> Explicit consent</span>
+                            <span><i class="fa fa-shield" aria-hidden="true"/> Validation and proof</span>
+                        </div>
+                        <a class="usl-sign-button usl-sign-button--wide" t-att-href="'/sign/session/%s/%s?review=1' % (signer.id, access_token)">
+                            Review document
+                            <i class="fa fa-arrow-right" aria-hidden="true"/>
+                        </a>
+                        <p class="usl-sign-action-note">Nothing is signed until you review the document and confirm.</p>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_sign_result" name="Signature result">
+        <t t-call="portal.frontend_layout">
+            <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            <main class="usl-sign-public-page">
+                <section class="usl-sign-public-card usl-sign-public-card--compact">
+                    <t t-if="result_company">
+                        <t t-set="company" t-value="result_company"/>
+                        <t t-call="usl_sign.secure_company_brand"/>
+                    </t>
+                    <div class="usl-sign-public-card__body usl-sign-public-card__body--centered">
+                        <t t-if="successful">
+                            <span class="usl-sign-result-icon usl-sign-result-icon--success" aria-hidden="true"><i class="fa fa-check"/></span>
+                            <p class="usl-sign-eyebrow">Signature received</p>
+                            <h1>You’re done</h1>
+                            <p t-if="result_request_name" class="usl-sign-lead">Your signature was recorded for <strong t-out="result_request_name"/>.</p>
+                            <p t-else="" class="usl-sign-lead">Your signature was recorded.</p>
+                            <p class="usl-sign-muted mb-0">When everyone has signed, the final document and its proof will be validated and archived.</p>
+                        </t>
+                        <t t-elif="declined">
+                            <span class="usl-sign-result-icon usl-sign-result-icon--neutral" aria-hidden="true"><i class="fa fa-ban"/></span>
+                            <p class="usl-sign-eyebrow">Response received</p>
+                            <h1>You declined this document</h1>
+                            <p class="usl-sign-muted mb-0">The sender can see your reason and will decide what happens next.</p>
+                        </t>
+                        <t t-else="">
+                            <span class="usl-sign-result-icon usl-sign-result-icon--danger" aria-hidden="true"><i class="fa fa-exclamation"/></span>
+                            <p class="usl-sign-eyebrow">Not completed</p>
+                            <h1>No signature was applied</h1>
+                            <p class="usl-sign-muted mb-0">Return to your invitation and try again, or contact the sender.</p>
+                        </t>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_sign_email_otp" name="Signing email verification">
+        <t t-call="portal.frontend_layout">
+            <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            <main class="usl-sign-public-page">
+                <section class="usl-sign-public-card usl-sign-public-card--compact">
+                    <t t-set="company" t-value="signer.request_id.company_id"/>
+                    <t t-call="usl_sign.secure_company_brand"/>
+                    <div class="usl-sign-public-card__body">
+                        <p class="usl-sign-eyebrow">Confirm your email</p>
+                        <h1>Check your inbox</h1>
+                        <p class="usl-sign-lead">Enter the 8-digit code sent to <strong t-out="signer.partner_id.email"/>.</p>
+                        <div t-if="error" class="usl-sign-inline-status usl-sign-inline-status--danger" role="alert" t-out="error"/>
+                        <form method="post" class="usl-sign-code-form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <label for="usl_email_otp">Verification code</label>
+                            <input id="usl_email_otp" name="code" class="usl-sign-code-input" inputmode="numeric" pattern="[0-9]{8}" autocomplete="one-time-code" maxlength="8" required="required" autofocus="autofocus" placeholder="00000000"/>
+                            <button type="submit" class="usl-sign-button usl-sign-button--wide">Continue</button>
+                        </form>
+                        <p class="usl-sign-action-note">The code expires in 10 minutes. Do not share it.</p>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+
+    <template id="strong_sign_page" name="Strong personal signature">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex,nofollow"/>
+                <title>Review and sign · <t t-out="signer.request_id.company_id.name"/></title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body class="usl-sign-secure-body">
+                <main id="usl_strong_sign"
+                      class="usl-sign-shell"
+                      data-phase="review"
+                      t-att-data-signer-id="signer.id"
+                      t-att-data-access-token="access_token"
+                      t-att-data-certificate-subject="certificate_subject">
+                    <t t-set="company" t-value="signer.request_id.company_id"/>
+                    <t t-call="usl_sign.secure_company_brand"/>
+
+                    <section class="usl-sign-hero">
+                        <div>
+                            <p class="usl-sign-eyebrow">Strong personal signature</p>
+                            <h1>Review and confirm your signature</h1>
+                            <p class="usl-sign-lead"><t t-out="signer.request_id.company_id.name"/> will verify your identity with Pocket ID, then protect and validate this exact document.</p>
+                        </div>
+                        <ol class="usl-sign-steps" aria-label="Signing progress">
+                            <li data-step="review" class="is-current"><span>1</span>Review</li>
+                            <li data-step="identity"><span>2</span>Confirm identity</li>
+                            <li data-step="complete"><span>3</span>Complete</li>
+                        </ol>
+                    </section>
+
+                    <section class="usl-sign-card usl-sign-document-card">
+                        <header class="usl-sign-document-card__header">
+                            <div>
+                                <p class="usl-sign-eyebrow">Document</p>
+                                <h2 t-out="signer.request_id.name"/>
+                                <p class="usl-sign-document-meta">Signing as <strong t-out="signer.partner_id.name"/> · <span t-out="signer.role_id.name"/></p>
+                            </div>
+                            <span class="usl-sign-level-badge">Strong personal</span>
+                        </header>
+                        <iframe class="usl-sign-document" t-att-src="'/sign_oca/content/%s/%s' % (signer.id, access_token)" title="Document to review"/>
+                    </section>
+
+                    <section class="usl-sign-action-card">
+                        <label class="usl-sign-consent" for="usl_strong_consent">
+                            <input id="usl_strong_consent" type="checkbox"/>
+                            <span>
+                                <strong>I have reviewed this document and agree to sign it.</strong>
+                                <small>I authorize my personal electronic signature using my Pocket ID passkey.</small>
+                            </span>
+                        </label>
+                        <button id="usl_strong_sign_button" class="usl-sign-button usl-sign-button--wide" type="button" disabled="disabled">
+                            <span class="usl-sign-button__spinner" aria-hidden="true"/>
+                            <i class="fa fa-shield" aria-hidden="true"/>
+                            <span class="usl-sign-button__label">Confirm identity and sign</span>
+                        </button>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID opens briefly to confirm your passkey. The document never leaves this page.</p>
+                        <div id="usl_strong_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
+                            <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
+                            <span><strong data-status-title=""/><small data-status-message=""/></span>
+                            <button class="usl-sign-cancel-attempt" type="button" data-cancel-attempt="" hidden="hidden">Cancel</button>
+                        </div>
+                    </section>
+
+                    <div class="usl-sign-assurance-row usl-sign-assurance-row--secure" aria-label="Signature protections">
+                        <span><i class="fa fa-key" aria-hidden="true"/> One-use browser key</span>
+                        <span><i class="fa fa-file-pdf-o" aria-hidden="true"/> Bound to this PDF</span>
+                        <span><i class="fa fa-check-circle" aria-hidden="true"/> Independently validated</span>
+                    </div>
+
+                    <details class="usl-sign-technical-details">
+                        <summary>Signature and document details</summary>
+                        <p><strong>Document fingerprint</strong><code class="usl-sign-hash" t-out="signer.request_id.current_hash"/></p>
+                        <p>This journey is designed for advanced-signature requirements. Formal classification remains subject to independent legal and security review.</p>
+                    </details>
+                </main>
+                <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
+            </body>
+        </html>
+    </template>
+
+    <template id="strong_enrollment_page" name="Strong signer enrolment">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex,nofollow"/>
+                <title>Set up strong signatures · <t t-out="enrollment.company_id.name"/></title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body class="usl-sign-secure-body">
+                <main id="usl_strong_enrollment"
+                      class="usl-sign-shell usl-sign-shell--compact"
+                      data-phase="review"
+                      t-att-data-enrollment-id="enrollment.id"
+                      t-att-data-enrollment-token="enrollment_token">
+                    <t t-set="company" t-value="enrollment.company_id"/>
+                    <t t-call="usl_sign.secure_company_brand"/>
+                    <section class="usl-sign-public-card__body">
+                        <p class="usl-sign-eyebrow">Strong signature identity</p>
+                        <h1>Connect your Pocket ID</h1>
+                        <p class="usl-sign-lead">Confirm the account you’ll use when <t t-out="enrollment.company_id.name"/> asks for a strong personal signature.</p>
+                        <dl class="usl-sign-summary">
+                            <div><dt>Identity</dt><dd t-out="enrollment.partner_id.name"/></div>
+                            <div><dt>Next step</dt><dd>Review by <t t-out="enrollment.company_id.name"/></dd></div>
+                        </dl>
+                        <ol class="usl-sign-steps usl-sign-steps--enrollment" aria-label="Identity setup progress">
+                            <li data-step="review" class="is-current"><span>1</span>Connect account</li>
+                            <li data-step="identity"><span>2</span>Identity review</li>
+                            <li data-step="complete"><span>3</span>Ready to sign</li>
+                        </ol>
+                        <button id="usl_enroll_button" class="usl-sign-button usl-sign-button--wide" type="button">
+                            <span class="usl-sign-button__spinner" aria-hidden="true"/>
+                            <i class="fa fa-shield" aria-hidden="true"/>
+                            <span class="usl-sign-button__label">Connect Pocket ID</span>
+                        </button>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> A protected Pocket ID window will open. This does not sign a document.</p>
+                        <div id="usl_enroll_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
+                            <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
+                            <span><strong data-status-title=""/><small data-status-message=""/></span>
+                            <button class="usl-sign-cancel-attempt" type="button" data-cancel-attempt="" hidden="hidden">Cancel</button>
+                        </div>
+                        <div class="usl-sign-privacy-note">
+                            <i class="fa fa-lock" aria-hidden="true"/>
+                            <p><strong>Your passkeys stay with Pocket ID.</strong> <t t-out="enrollment.company_id.name"/>'s document signing application keeps only the verified account link and reviewer decision—never your passkey credentials.</p>
+                        </div>
+                    </section>
+                </main>
+                <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
+            </body>
+        </html>
+    </template>
+
+    <template id="pocketid_callback_result" name="Pocket ID authorization result">
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex,nofollow"/>
+                <title>Identity confirmation</title>
+                <t t-call-assets="usl_sign.assets_strong" t-js="false"/>
+            </head>
+            <body class="usl-sign-secure-body usl-sign-callback-body">
+                <main id="usl_pocketid_callback"
+                      class="usl-sign-callback"
+                      t-att-data-successful="'true' if successful else 'false'">
+                    <span t-if="successful" class="usl-sign-result-icon usl-sign-result-icon--success usl-sign-result-icon--animated" aria-hidden="true"><i class="fa fa-check"/></span>
+                    <span t-else="" class="usl-sign-result-icon usl-sign-result-icon--danger" aria-hidden="true"><i class="fa fa-exclamation"/></span>
+                    <p class="usl-sign-eyebrow" t-out="company_name or 'Document signing'"/>
+                    <t t-if="successful and callback_purpose == 'enrollment'">
+                        <h1>Account connected</h1>
+                        <p>Your identity is ready for review. Returning you to the setup page…</p>
+                    </t>
+                    <t t-elif="successful">
+                        <h1>Identity confirmed</h1>
+                        <p>Returning to your document to complete the signature…</p>
+                    </t>
+                    <t t-else="">
+                        <h1>Confirmation stopped</h1>
+                        <p>No signature was applied. Return to the document and try again.</p>
+                    </t>
+                    <button id="usl_callback_close" class="usl-sign-button usl-sign-button--quiet" type="button">Return to document</button>
+                </main>
+                <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
+            </body>
+        </html>
+    </template>
+</odoo>
