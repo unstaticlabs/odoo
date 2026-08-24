@@ -1,0 +1,14 @@
+{
+  "candidate_fingerprint": "CHANGE_ME_APPROVED_64_HEX_FINGERPRINT",
+  "external_pocket_state_after_sha256": "CHANGE_ME_64_HEX_READ_ONLY_STATE_DIGEST",
+  "external_pocket_state_before_sha256": "CHANGE_ME_SAME_64_HEX_READ_ONLY_STATE_DIGEST",
+  "journeys": [
+    {"name": "odoo_administrator", "status": "passed"},
+    {"name": "odoo_collaborator", "status": "passed"},
+    {"name": "accounting_read_only", "status": "passed"},
+    {"name": "multi_company_isolation", "status": "passed"},
+    {"name": "paperless_documents", "status": "passed"}
+  ],
+  "schema": "usl-production-browser-journeys-v1",
+  "status": "passed"
+}

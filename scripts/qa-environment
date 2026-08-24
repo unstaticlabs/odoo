@@ -83,6 +83,7 @@ timing_dir="$ROOT/artifacts/migration/private/qa-runs"
 mkdir -p "$timing_dir"
 timing_file="$timing_dir/${COMPOSE_PROJECT_NAME}-$(date -u +%Y%m%dT%H%M%SZ).tsv"
 report_file="${timing_file%.tsv}.json"
+hydration_controls_file="${timing_file%.tsv}-hydration.json"
 run_started="$(date +%s)"
 cache_result="not-applicable"
 : > "$timing_file"
@@ -103,7 +104,7 @@ stage() {
 
 write_report() {
   local outcome="$1"
-  python3 - "$timing_file" "$report_file" "$profile" "$COMPOSE_PROJECT_NAME" "$run_started" "$outcome" "${qa_seed_manifest:-}" "$cache_result" <<'PY'
+  python3 - "$timing_file" "$report_file" "$profile" "$COMPOSE_PROJECT_NAME" "$run_started" "$outcome" "${qa_seed_manifest:-}" "$cache_result" "$hydration_controls_file" <<'PY'
 import json
 import sys
 import time
@@ -126,10 +127,13 @@ if sys.argv[7]:
     manifest = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8"))
     payload.update({
         "downloaded_bytes": sum(item["size"] for item in manifest["artifacts"].values()),
-        "ocr_submissions": 0,
         "reused_document_roots": manifest["qualification"]["paperless_documents"],
         "seed_fingerprint": manifest["fingerprint"],
     })
+if Path(sys.argv[9]).is_file():
+    hydration = json.loads(Path(sys.argv[9]).read_text(encoding="utf-8"))
+    payload["hydration_controls"] = hydration
+    payload["ocr_submissions"] = hydration["ocr_submissions"]
 Path(sys.argv[2]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 PY
 }
@@ -156,7 +160,8 @@ verify_seed() {
   if ! scripts/qa_seed.py verify \
     --root "$ROOT" --seed-dir "$qa_seed_dir" \
     --source-dump "${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}/dump.sql" \
-    --runtime-json "$runtime_json" >/dev/null; then
+    --runtime-json "$runtime_json" \
+    --commit "$(git rev-parse HEAD)" >/dev/null; then
     rm -f "$runtime_json"
     printf '\nBlocked: the shared QA seed is incompatible with this source or runtime.\n' >&2
     printf 'No containers or data volumes were changed.\n' >&2
@@ -167,12 +172,26 @@ verify_seed() {
 }
 
 hydrate_seed() {
-  local odoo_volume paperless_export_volume
+  local after_queue after_tasks before_queue before_tasks db_container
+  local odoo_volume paperless_export_volume restore_jobs
 
   "${compose[@]}" up -d --wait db
   "${compose[@]}" exec -T db createdb -U odoo odoo_dev
-  "${compose[@]}" exec -T db pg_restore -U odoo -d odoo_dev \
-    --no-owner --no-privileges < "$qa_seed_dir/odoo.dump"
+  restore_jobs="${USL_QA_PG_RESTORE_JOBS:-4}"
+  if [[ ! "$restore_jobs" =~ ^[1-8]$ ]]; then
+    printf 'USL_QA_PG_RESTORE_JOBS must be between 1 and 8.\n' >&2
+    return 2
+  fi
+  db_container="$("${compose[@]}" ps -q db)"
+  docker cp "$qa_seed_dir/odoo.dump" \
+    "$db_container:/tmp/usl-qa-seed.dump"
+  "${compose[@]}" exec -T -e RESTORE_JOBS="$restore_jobs" db sh -ec '
+    trap '\''rm -f /tmp/usl-qa-seed.dump'\'' EXIT
+    pg_restore -U odoo -d odoo_dev --exit-on-error \
+      --jobs="$RESTORE_JOBS" --no-owner --no-privileges \
+      /tmp/usl-qa-seed.dump
+    vacuumdb -U odoo -d odoo_dev --analyze-in-stages
+  '
 
   odoo_volume="${COMPOSE_PROJECT_NAME}_odoo-data"
   docker volume create \
@@ -193,10 +212,95 @@ hydrate_seed() {
     alpine:3.24.1 sh -ec 'mkdir -p /export/qa-seed && cp -a /seed/. /export/qa-seed/'
   "${compose[@]}" --profile paperless up -d --wait paperless-webserver
   "${compose[@]}" stop paperless-webserver
+  before_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
+  before_tasks="$(
+    "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
+      python manage.py shell -c \
+      'from django_celery_results.models import TaskResult; print(TaskResult.objects.count())' \
+      | tail -n 1
+  )"
   "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
     document_importer --no-progress-bar /usr/src/paperless/export/qa-seed
+  after_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
+  after_tasks="$(
+    "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
+      python manage.py shell -c \
+      'from django_celery_results.models import TaskResult; print(TaskResult.objects.count())' \
+      | tail -n 1
+  )"
+  if [[ "$after_queue" != "$before_queue" || "$after_tasks" != "$before_tasks" ]]; then
+    printf 'QA seed hydration submitted Paperless background/OCR work; refusing cache.\n' >&2
+    printf 'Queue: %s -> %s; task results: %s -> %s\n' \
+      "$before_queue" "$after_queue" "$before_tasks" "$after_tasks" >&2
+    return 1
+  fi
   "${compose[@]}" --profile paperless up -d --wait paperless-webserver
   "${compose[@]}" exec -T paperless-webserver python manage.py document_sanity_checker
+  python3 - "$hydration_controls_file" "$before_queue" "$after_queue" \
+    "$before_tasks" "$after_tasks" <<'PY'
+import json
+import sys
+from pathlib import Path
+Path(sys.argv[1]).write_text(json.dumps({
+    "broker_queue_after": int(sys.argv[3]),
+    "broker_queue_before": int(sys.argv[2]),
+    "ocr_submissions": 0,
+    "task_results_after": int(sys.argv[5]),
+    "task_results_before": int(sys.argv[4]),
+}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+}
+
+verify_hydrated_controls() {
+  local actual_accounting actual_documents actual_paperless
+  actual_accounting="$("${compose[@]}" exec -T db psql -X -qAt -U odoo \
+    -d odoo_dev -c "
+      SELECT json_build_object(
+        'move_count', (SELECT count(*) FROM account_move),
+        'move_line_count', (SELECT count(*) FROM account_move_line),
+        'partial_reconcile_count', (SELECT count(*) FROM account_partial_reconcile),
+        'full_reconcile_count', (SELECT count(*) FROM account_full_reconcile),
+        'posted_debit', (SELECT COALESCE(sum(l.debit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted'),
+        'posted_credit', (SELECT COALESCE(sum(l.credit),0)::text FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE m.state='posted')
+      )::text")"
+  actual_documents="$("${compose[@]}" exec -T db psql -X -qAt -U odoo \
+    -d odoo_dev -c "
+      SELECT json_build_object(
+        'odoo_document_count', (SELECT count(*) FROM usl_document),
+        'active_link_count', (SELECT count(*) FROM usl_document_link WHERE active)
+      )::text")"
+  actual_paperless="$(
+    "${compose[@]}" exec -T paperless-webserver python manage.py shell -c \
+      'from documents.models import Document; print(Document.objects.count())' \
+      | tail -n 1
+  )"
+  python3 - "$qa_seed_manifest" "$hydration_controls_file" \
+    "$actual_accounting" "$actual_documents" "$actual_paperless" <<'PY'
+import json
+import sys
+from pathlib import Path
+manifest = json.load(open(sys.argv[1], encoding="utf-8"))
+qualification = manifest["qualification"]
+actual = {
+    "accounting": json.loads(sys.argv[3]),
+    "documents": json.loads(sys.argv[4]),
+    "paperless_document_count": int(sys.argv[5]),
+}
+expected = {
+    "accounting": qualification["accounting"]["controls"],
+    "documents": qualification["documents"]["controls"],
+    "paperless_document_count": qualification["documents"]["paperless_document_count"],
+}
+if actual != expected:
+    raise SystemExit(
+        "Hydrated QA controls differ from the sealed seed: "
+        + json.dumps({"actual": actual, "expected": expected}, sort_keys=True),
+    )
+path = Path(sys.argv[2])
+hydration = json.loads(path.read_text(encoding="utf-8"))
+hydration.update({"controls": actual, "controls_match": True})
+path.write_text(json.dumps(hydration, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
 }
 
 clean_install() {
@@ -242,6 +346,8 @@ case "$profile" in
     stage "hydrate qualified seed" hydrate_seed
     stage "upgrade and finalize current branch" \
       env USL_QA_DATA_PROFILE=full scripts/target-finalize
+    stage "verify sealed hydration controls and zero OCR" \
+      verify_hydrated_controls
     stage "multi-company acceptance" make \
       COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME" accounting-multicompany-acceptance
     ;;

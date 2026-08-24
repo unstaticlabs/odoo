@@ -16,6 +16,20 @@ SERVICE ?=
 CONFIRM ?=
 PROFILE ?= full
 SOURCE_SHA ?=
+SOURCE_DIR ?=
+CANDIDATE ?=
+FINGERPRINT ?=
+ENV_FILE ?=
+IDENTITY_POLICY ?=
+JOURNEY_EVIDENCE ?=
+OUTPUT_ROOT ?=
+
+define require_cutover_inputs
+if [ -z "$(strip $(ENV_FILE))" ] || [ -z "$(strip $(CANDIDATE))" ] || [ -z "$(strip $(FINGERPRINT))" ]; then \
+	printf 'ENV_FILE=<mode-0600-env>, CANDIDATE=<dir> and FINGERPRINT=<approved> are required.\n' >&2; \
+	exit 2; \
+fi
+endef
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
 .PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link repair-pocket-id configure-pocket-id paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-resume qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
@@ -30,6 +44,7 @@ SOURCE_SHA ?=
 .PHONY: accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external
 .PHONY: accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests
 .PHONY: user-docs-deps user-docs-serve user-docs-build action-helpers french-translations expense-batch-qa-bootstrap
+.PHONY: migration-candidate-build migration-candidate-verify migration-candidate-status production-cutover-preflight production-cutover-stage production-cutover-configure production-cutover-gate production-cutover-admit production-cutover-reset
 
 help:
 	@printf '%s\n' \
@@ -62,6 +77,10 @@ help:
 	  '  make qa-cache-resume                Revalidate Accounting and resume a failed refresh' \
 	  '  make migrate-production SOURCE_SHA=<sha256>' \
 	  '                                      Authoritative full-source production migration' \
+	  '  make migration-candidate-build SOURCE_DIR=<final-source>' \
+	  '                                      Seal sanitized Odoo/Paperless production assets' \
+	  '  make migration-candidate-status SOURCE_DIR=<final-source>' \
+	  '                                      Verify the current private candidate' \
 	  '  make target-reconstruct-product     Fresh reconstruction of shipped product scopes' \
 	  '  make target-reconstruct-reuse-documents' \
 	  '                                      Reuse verified Paperless ingestion in development' \
@@ -93,6 +112,12 @@ help-advanced:
 	  '  make user-docs-build                Render and validate user documentation' \
 	  '  make qa-cache-prune CONFIRM=qa-seeds' \
 	  '                                      Remove superseded private QA seeds' \
+	  '  make production-cutover-preflight ENV_FILE=<0600-env> CANDIDATE=<dir> FINGERPRINT=<approved>' \
+	  '  make production-cutover-stage ...   Restore into fresh dedicated volumes, no OCR' \
+	  '  make production-cutover-configure IDENTITY_POLICY=<0600-json> ...' \
+	  '  make production-cutover-gate JOURNEY_EVIDENCE=<0600-json> ...' \
+	  '  make production-cutover-admit ...   Admit and permanently disable candidate reset' \
+	  '  make production-cutover-reset ...   Pre-admission candidate-owned reset only' \
 	  '' \
 	  'All historical target names remain available; inspect Makefile for exact stages.'
 
@@ -173,6 +198,44 @@ qa-cache-prune:
 
 expense-batch-qa-bootstrap:
 	$(ODOO_DEV) bootstrap-expense-batch-qa
+
+migration-candidate-build:
+	@if [ -z "$(strip $(SOURCE_DIR))" ]; then printf 'Usage: make migration-candidate-build SOURCE_DIR=<final-source> [OUTPUT_ROOT=<private-dir>]\n' >&2; exit 2; fi
+	@scripts/migration-candidate build "$(SOURCE_DIR)" $(if $(strip $(OUTPUT_ROOT)),"$(OUTPUT_ROOT)",)
+
+migration-candidate-verify:
+	@if [ -z "$(strip $(CANDIDATE))" ] || [ -z "$(strip $(FINGERPRINT))" ] || [ -z "$(strip $(SOURCE_DIR))" ]; then printf 'Usage: make migration-candidate-verify CANDIDATE=<dir> FINGERPRINT=<approved> SOURCE_DIR=<final-source>\n' >&2; exit 2; fi
+	@scripts/migration-candidate verify "$(CANDIDATE)" "$(FINGERPRINT)" "$(SOURCE_DIR)"
+
+migration-candidate-status:
+	@if [ -z "$(strip $(SOURCE_DIR))" ]; then printf 'Usage: make migration-candidate-status SOURCE_DIR=<final-source> [CANDIDATE=<dir>]\n' >&2; exit 2; fi
+	@scripts/migration-candidate status $(if $(strip $(CANDIDATE)),"$(CANDIDATE)","") "$(SOURCE_DIR)"
+
+production-cutover-preflight:
+	@$(call require_cutover_inputs)
+	@scripts/production-cutover preflight "$(ENV_FILE)" "$(CANDIDATE)" "$(FINGERPRINT)"
+
+production-cutover-stage:
+	@$(call require_cutover_inputs)
+	@scripts/production-cutover stage "$(ENV_FILE)" "$(CANDIDATE)" "$(FINGERPRINT)"
+
+production-cutover-configure:
+	@$(call require_cutover_inputs)
+	@if [ -z "$(strip $(IDENTITY_POLICY))" ]; then printf 'IDENTITY_POLICY=<mode-0600-json> is required.\n' >&2; exit 2; fi
+	@scripts/production-cutover configure "$(ENV_FILE)" "$(CANDIDATE)" "$(IDENTITY_POLICY)" "$(FINGERPRINT)"
+
+production-cutover-gate:
+	@$(call require_cutover_inputs)
+	@if [ -z "$(strip $(JOURNEY_EVIDENCE))" ]; then printf 'JOURNEY_EVIDENCE=<mode-0600-json> is required.\n' >&2; exit 2; fi
+	@scripts/production-cutover gate "$(ENV_FILE)" "$(CANDIDATE)" "$(JOURNEY_EVIDENCE)" "$(FINGERPRINT)"
+
+production-cutover-admit:
+	@$(call require_cutover_inputs)
+	@scripts/production-cutover admit "$(ENV_FILE)" "$(CANDIDATE)" --confirm "$(FINGERPRINT)"
+
+production-cutover-reset:
+	@$(call require_cutover_inputs)
+	@scripts/production-cutover reset "$(ENV_FILE)" "$(CANDIDATE)" --confirm "$(FINGERPRINT)"
 
 target-finalize:
 	scripts/target-finalize
