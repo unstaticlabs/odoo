@@ -334,6 +334,8 @@ run_stage "restore identities" scripts/identity-restore all
 stop_product
 run_stage "restore product data" scripts/product-restore all
 stop_product
+run_stage "restore B2C commerce evidence" scripts/b2c-restore all
+stop_product
 run_stage "restore HR" scripts/hr-restore all
 stop_product
 run_stage "restore Projects" env PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all

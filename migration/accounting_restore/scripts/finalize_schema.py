@@ -6,6 +6,7 @@ from psycopg2 import sql
 
 MIGRATION_MODULES = {
     "usl_accounting_restore",
+    "usl_b2c_restore",
     "usl_hr_restore",
     "usl_identity_restore",
     "usl_product_restore",

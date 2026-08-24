@@ -401,6 +401,16 @@ product-migration-source-boundary:
 product-migration-boundary: product-migration-source-boundary
 	scripts/check-product-database-boundary
 
+.PHONY: b2c-restore b2c-restore-validate b2c-restore-finalize
+b2c-restore:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/b2c-restore all
+
+b2c-restore-validate:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/b2c-restore validate
+
+b2c-restore-finalize:
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) scripts/b2c-restore finalize
+
 accounting-multicompany-acceptance:
 	docker compose -p $(COMPOSE_PROJECT) exec -T \
 		-e USL_EINVOICE_LIVE_ENABLED=0 \

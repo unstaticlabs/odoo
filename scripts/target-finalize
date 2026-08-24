@@ -35,6 +35,7 @@ esac
 product_modules=(
   rebuild_account_migration
   usl_accounting
+  usl_b2c
   usl_documents
   usl_documents_accounting
   usl_expense_batch
@@ -69,6 +70,7 @@ docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
 # Validate the upgraded current-branch registry, not the schema captured in a
 # seed or left by the preceding migration stage.
 scripts/accounting-restore product-validate
+scripts/b2c-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
 scripts/platform-billing-restore product-validate
