@@ -19,6 +19,7 @@ from ..policy import (
     ID_TOKEN_SESSION_KEY,
     LOGIN_POLICY_PARAMETER,
     LOGIN_POLICY_SSO_ONLY,
+    emergency_window_active,
 )
 
 
@@ -253,7 +254,16 @@ class TestPocketIDHttpLogin(HttpCase):
                 "odoo.addons.usl_pocketid.policy._PROCESS_STARTED_AT",
                 now,
             ),
+            patch(
+                "odoo.addons.usl_pocketid.controllers.main.emergency_window_active",
+                wraps=emergency_window_active,
+            ),
+            patch(
+                "odoo.addons.usl_pocketid.models.res_users.emergency_window_active",
+                wraps=emergency_window_active,
+            ),
         ):
+            self.assertTrue(emergency_window_active())
             page = self.url_open("/usl/emergency-login")
             self.assertEqual(page.status_code, 200)
             document = html.fromstring(page.content)
