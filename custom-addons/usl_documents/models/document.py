@@ -4123,19 +4123,34 @@ class UslDocument(models.Model):
             [
                 ("user_id", "=", self.env.user.id),
                 ("active", "=", True),
-                ("sync_state", "=", "synchronized"),
             ],
             limit=1,
         )
+        if not mapping:
+            raise UserError(
+                _(
+                    "Paperless access is not set up for your account. You can "
+                    "still preview and download this document in Odoo. Ask a "
+                    "Documents administrator if you need Paperless access.",
+                ),
+            )
         if (
-            self.permission_sync_state != "synchronized"
-            or not mapping
+            mapping.sync_state != "synchronized"
             or not mapping._identity_is_safe()
         ):
             raise UserError(
                 _(
-                    "Open in Paperless is blocked until your individual archive "
-                    "identity and this document's permissions are synchronized.",
+                    "Your Paperless access needs attention. You can still preview "
+                    "and download this document in Odoo. Ask a Documents "
+                    "administrator to review your access.",
+                ),
+            )
+        if self.permission_sync_state != "synchronized":
+            raise UserError(
+                _(
+                    "Paperless access for this document needs attention. Use the "
+                    "Odoo preview for now, or ask a Documents administrator to "
+                    "retry access synchronization.",
                 ),
             )
         return {
