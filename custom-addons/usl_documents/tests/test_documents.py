@@ -4870,11 +4870,33 @@ class TestDocuments(TransactionCase):
             111,
             permission_sync_state="failed",
         )
-        self.assertFalse(document.paperless_url)
+        self._verified_mapping(
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 84,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        )
+        self.assertFalse(document.with_user(self.manager).paperless_url)
         with self.assertRaisesRegex(
-            Exception, "blocked until your individual archive identity",
+            UserError, "access for this document needs attention",
         ):
-            document.action_open_paperless()
+            document.with_user(self.manager).action_open_paperless()
+
+    def test_paperless_deep_link_explains_missing_personal_access(self):
+        self.env["ir.config_parameter"].sudo().set_str(
+            "usl_documents.paperless_public_url", "https://documents.example.test",
+        )
+        document = self._document(184)
+
+        self.assertFalse(document.with_user(self.user).paperless_url)
+        with self.assertRaisesRegex(UserError, "not set up for your account"):
+            document.with_user(self.user).action_open_paperless()
+        form_arch = self.env.ref(
+            "usl_documents.view_usl_document_form",
+        ).arch_db
+        self.assertIn('invisible="not paperless_url"', form_arch)
 
     def test_deep_link_requires_current_users_verified_individual_mapping(self):
         self.env["ir.config_parameter"].sudo().set_str(

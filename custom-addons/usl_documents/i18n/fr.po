@@ -3112,6 +3112,24 @@ msgstr ""
 "individuelle et les autorisations de ce document soient synchronisées."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless access is not set up for your account. You can still preview and download this document in Odoo. Ask a Documents administrator if you need Paperless access."
+msgstr "L’accès à Paperless n’est pas configuré pour votre compte. Vous pouvez toujours prévisualiser et télécharger ce document dans Odoo. Demandez l’accès à un administrateur de Documents si vous en avez besoin."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Your Paperless access needs attention. You can still preview and download this document in Odoo. Ask a Documents administrator to review your access."
+msgstr "Votre accès à Paperless nécessite une intervention. Vous pouvez toujours prévisualiser et télécharger ce document dans Odoo. Demandez à un administrateur de Documents de vérifier votre accès."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless access for this document needs attention. Use the Odoo preview for now, or ask a Documents administrator to retry access synchronization."
+msgstr "L’accès à ce document dans Paperless nécessite une intervention. Utilisez la prévisualisation Odoo pour le moment ou demandez à un administrateur de Documents de relancer la synchronisation des accès."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid "Open preview"
 msgstr "Ouvrir l'aperçu"
