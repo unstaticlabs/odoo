@@ -4,7 +4,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${USL_SIGN_POCKETID_ENV_FILE:-$ROOT/.sign-pocketid-qa.env}"
 SECRET_ROOT="${USL_SIGN_POCKETID_SECRET_ROOT:-$ROOT/.secrets/sign-pocketid-qa}"
-PROJECT="usl-sign-pocketid-qa"
+PROJECT="${USL_SIGN_POCKETID_PROJECT:-usl-sign-pocketid-qa}"
+ODOO_PORT="${USL_SIGN_POCKETID_ODOO_PORT:-16669}"
+GEVENT_PORT="${USL_SIGN_POCKETID_GEVENT_PORT:-16672}"
+POCKET_PORT="${USL_SIGN_POCKETID_POCKET_PORT:-16411}"
+PAPERLESS_PORT="${USL_SIGN_POCKETID_PAPERLESS_PORT:-16810}"
+ODOO_HOSTNAME="${USL_SIGN_POCKETID_ODOO_HOSTNAME:-odoo-sign-qa.localhost}"
+POCKET_HOSTNAME="${USL_SIGN_POCKETID_POCKET_HOSTNAME:-pocket-id-sign-qa.localhost}"
+QA_READY_MARKER="$SECRET_ROOT/qa-bootstrap-complete"
 PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
 COMPOSE_FILES=(
   -f "$ROOT/compose.yaml"
@@ -15,12 +22,12 @@ COMPOSE_FILES=(
 bootstrap_environment() {
   USL_POCKET_ID_DEV_COMPOSE_PROJECT="$PROJECT" \
   USL_POCKET_ID_DEV_ODOO_DB=odoo_dev \
-  USL_POCKET_ID_DEV_ODOO_PORT=16669 \
-  USL_POCKET_ID_DEV_GEVENT_PORT=16672 \
-  USL_POCKET_ID_DEV_POCKET_PORT=16411 \
-  USL_POCKET_ID_DEV_ODOO_HOSTNAME=odoo-sign-qa.localhost \
-  USL_POCKET_ID_DEV_POCKET_HOSTNAME=pocket-id-sign-qa.localhost \
-  USL_POCKET_ID_DEV_PAPERLESS_URL=http://127.0.0.1:16810 \
+  USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_PORT" \
+  USL_POCKET_ID_DEV_GEVENT_PORT="$GEVENT_PORT" \
+  USL_POCKET_ID_DEV_POCKET_PORT="$POCKET_PORT" \
+  USL_POCKET_ID_DEV_ODOO_HOSTNAME="$ODOO_HOSTNAME" \
+  USL_POCKET_ID_DEV_POCKET_HOSTNAME="$POCKET_HOSTNAME" \
+  USL_POCKET_ID_DEV_PAPERLESS_URL="http://127.0.0.1:$PAPERLESS_PORT" \
     python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
 }
 
@@ -45,7 +52,7 @@ load_environment() {
     printf 'Refusing the canonical Compose project.\n' >&2
     return 2
   fi
-  export PAPERLESS_HTTP_PORT=16810
+  export PAPERLESS_HTTP_PORT="$PAPERLESS_PORT"
   export USL_SIGN_SECRET_ROOT="$SECRET_ROOT"
   export USL_SIGN_STEP_CA_DIR="$SECRET_ROOT/step-ca"
   export USL_SIGN_DSS_SECRET_DIR="$SECRET_ROOT/dss"
@@ -53,7 +60,9 @@ load_environment() {
   export USL_SIGN_STEP_CA_ENV_FILE="$SECRET_ROOT/step-ca.env"
   export USL_SIGN_DSS_ENV_FILE="$SECRET_ROOT/dss.env"
   export USL_SIGN_ODOO_ENV_FILE="$SECRET_ROOT/odoo.env"
-  export ODOO_IMAGE="${ODOO_IMAGE:-$PROJECT-odoo:latest}"
+  # Custom add-ons are mounted from this worktree. Reuse the pinned base image
+  # when available; rebuilding it adds no source freshness and wastes several GB.
+  export ODOO_IMAGE="${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}"
   COMPOSE=(
     docker compose
     -p "$PROJECT"
@@ -77,7 +86,7 @@ assert_ports_available() {
     return
   fi
   local port
-  for port in 16411 16669 16672 16810; do
+  for port in "$POCKET_PORT" "$ODOO_PORT" "$GEVENT_PORT" "$PAPERLESS_PORT"; do
     if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
       printf 'Refusing occupied Sign QA port: %s.\n' "$port" >&2
       return 2
@@ -115,6 +124,40 @@ initialize_odoo() {
     --database=odoo_dev < "$ROOT/scripts/odoo/pocket_id_configure.py"
 }
 
+prepare_fresh_qa_database() {
+  if [[ -f "$QA_READY_MARKER" ]]; then
+    return
+  fi
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" exec -T db sh -c \
+    'dropdb --if-exists --force -U "$POSTGRES_USER" odoo_dev'
+  "${COMPOSE[@]}" --profile init run --rm --entrypoint sh init-db -c '
+    directory=/var/lib/odoo/filestore/odoo_dev
+    if [ -d "$directory" ]; then
+      find "$directory" -mindepth 1 -delete
+      rmdir "$directory"
+    fi
+  '
+}
+
+prepare_fresh_qa_project() {
+  if [[ -f "$QA_READY_MARKER" ]]; then
+    return
+  fi
+  # This project and every volume it owns are worktree-specific. Removing them
+  # here guarantees that the review tenant is built from modules, never a dump.
+  "${COMPOSE[@]}" down --volumes --remove-orphans
+}
+
+seed_qa() {
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    < "$ROOT/scripts/odoo/sign_qa_bootstrap.py"
+}
+
 configure_paperless() {
   "${COMPOSE[@]}" --profile paperless run --rm paperless-access-init >/dev/null
   local setup token service_user_id
@@ -145,18 +188,39 @@ configure_paperless() {
 
 start() {
   bootstrap
+  prepare_fresh_qa_project
   assert_ports_available
-  "${COMPOSE[@]}" build odoo pocket-id usl-sign-dss
+  docker image inspect "$ODOO_IMAGE" >/dev/null 2>&1 || "${COMPOSE[@]}" build odoo
+  docker image inspect usl-pocket-id-sign:v2.12.0-fresh-passkey >/dev/null 2>&1 \
+    || "${COMPOSE[@]}" build pocket-id
+  docker image inspect "${USL_SIGN_DSS_IMAGE:-usl-sign-dss:6.4}" >/dev/null 2>&1 \
+    || "${COMPOSE[@]}" build usl-sign-dss
   "${COMPOSE[@]}" --profile sign --profile paperless up -d \
     db pocket-id usl-sign-step-ca usl-sign-dss \
     paperless-webserver
   provision_pocket
+  prepare_fresh_qa_database
   initialize_odoo
   configure_paperless
+  seed_qa
+  touch "$QA_READY_MARKER"
   "${COMPOSE[@]}" --profile sign --profile paperless up -d --wait odoo
   printf '\nOdoo: %s/web/login?db=odoo_dev\n' "$ODOO_PUBLIC_BASE_URL"
   printf 'Pocket ID: %s\n' "$POCKET_ID_APP_URL"
   printf 'Paperless: %s\n' "$PAPERLESS_PUBLIC_URL"
+}
+
+review_info() {
+  load_environment
+  printf 'Compose project: %s\nDatabase: odoo_dev\n\n' "$PROJECT"
+  "${COMPOSE[@]}" ps
+  printf '\nOdoo login: %s/web/login?db=odoo_dev\n' "$ODOO_PUBLIC_BASE_URL"
+  printf 'Sign home after login: %s/odoo\n' "$ODOO_PUBLIC_BASE_URL"
+  printf 'Pocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Paperless: %s\n' "$PAPERLESS_PUBLIC_URL"
+  printf '\nReview users:\n'
+  printf '  Valentin — requester, template manager, evidence reviewer, administrator\n'
+  printf '  Roger (roger@unstaticlabs.com) — signer and decision-maker\n'
 }
 
 stop() {
@@ -183,7 +247,9 @@ test_stack() {
   "${COMPOSE[@]}" up -d --wait db
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
     'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
-  "${COMPOSE[@]}" --profile test build test
+  local test_image="${PROJECT}-test:latest"
+  docker image inspect "$test_image" >/dev/null 2>&1 \
+    || "${COMPOSE[@]}" --profile test build test
   "${COMPOSE[@]}" --profile test --profile sign run --rm \
     -e ODOO_INIT_DB="$database" \
     -e ODOO_DB_FILTER="^${database}$" \
@@ -314,6 +380,7 @@ strong_acceptance() {
 case "${1:-help}" in
   bootstrap) bootstrap ;;
   start) start ;;
+  info) review_info ;;
   stop) stop ;;
   status) status ;;
   logs) logs "$@" ;;
@@ -331,10 +398,11 @@ case "${1:-help}" in
   help|*)
     printf '%s\n' \
       'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|opentimestamps-live-smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
+      '       scripts/sign-pocketid-stack info' \
       '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
       '       scripts/sign-pocketid-stack test [ODOO_TEST_TAGS]' \
       '       scripts/sign-pocketid-stack strong-acceptance-review ENROLMENT_ID [RUN_ID]' \
       '       scripts/sign-pocketid-stack strong-acceptance-verify REQUEST_ID' \
-      'This helper owns only project usl-sign-pocketid-qa and its isolated volumes.'
+      "This helper owns only Compose project $PROJECT and its isolated volumes."
     ;;
 esac

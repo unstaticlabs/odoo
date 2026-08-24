@@ -287,7 +287,27 @@ def _write_new_env(path: Path) -> None:
 
 class PocketIDAPI:
     def __init__(self, values: dict[str, str]) -> None:
-        self.base_url = values["POCKET_ID_APP_URL"].rstrip("/")
+        public_url = values["POCKET_ID_APP_URL"].rstrip("/")
+        parsed_url = urllib.parse.urlsplit(public_url)
+        # Browsers and curl treat every *.localhost name as loopback, while
+        # Python's system resolver does not on every macOS configuration. The
+        # administrative API is host-local in development, so use its explicit
+        # loopback address without changing the public OIDC issuer URL.
+        if parsed_url.hostname and SAFE_LOCALHOST_PATTERN.fullmatch(
+            parsed_url.hostname,
+        ):
+            port = f":{parsed_url.port}" if parsed_url.port else ""
+            self.base_url = urllib.parse.urlunsplit(
+                (
+                    parsed_url.scheme,
+                    f"127.0.0.1{port}",
+                    parsed_url.path,
+                    parsed_url.query,
+                    parsed_url.fragment,
+                ),
+            )
+        else:
+            self.base_url = public_url
         self.api_key = values["POCKET_ID_STATIC_API_KEY"]
 
     def request(
@@ -332,13 +352,16 @@ class PocketIDAPI:
             ) from error
 
     def wait_until_ready(self) -> None:
-        for _attempt in range(40):
+        timeout_seconds = 60
+        for _attempt in range(timeout_seconds * 2):
             try:
                 self.request("GET", "/api/users?pagination%5Blimit%5D=100")
                 return
             except PocketIDError:
                 time.sleep(0.5)
-        raise PocketIDError("Pocket ID did not become API-ready within 20 seconds.")
+        raise PocketIDError(
+            f"Pocket ID did not become API-ready within {timeout_seconds} seconds.",
+        )
 
 
 def _paginated_data(payload: object, label: str) -> list[dict[str, object]]:
