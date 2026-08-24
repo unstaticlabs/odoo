@@ -308,7 +308,7 @@ print(
                     (
                         row["id"],
                         row["service_type"],
-                        row["expense_policy"],
+                        row["reinvoice_policy"],
                         row["invoice_policy"],
                     )
                     for row in source["templates"]

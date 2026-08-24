@@ -72,7 +72,7 @@ class ProductSourceReader:
                            type, service_tracking, default_code, name,
                            description, description_purchase, description_sale,
                            list_price, volume, weight, sale_ok, purchase_ok,
-                           active, can_be_expensed, service_type, expense_policy,
+                           active, can_be_expensed, service_type, reinvoice_policy,
                            invoice_policy, is_storable, create_date, write_date
                       FROM product_template
                      ORDER BY id
@@ -334,7 +334,13 @@ class UslProductRestoreRun(models.Model):
                     "description_sale",
                 ),
             )
-            product = product or template.product_variant_id
+            product = product or template.with_context(
+                active_test=False,
+            ).product_variant_id
+            if not product:
+                raise RuntimeError(
+                    f"Product template {row['id']} has no native variant",
+                )
             product.write(
                 {
                     "default_code": source_product["default_code"],
