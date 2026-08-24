@@ -303,8 +303,6 @@ class SignRequest(models.Model):
             lambda sign_request: sign_request.state not in TERMINAL_REQUEST_STATES,
         )
         sign_request = active[:1] or requests[:1]
-        trust_labels = dict(TRUST_LEVELS)
-
         def content_url(field_name, filename):
             if not filename:
                 return False
@@ -320,12 +318,10 @@ class SignRequest(models.Model):
             "request_id": sign_request.id,
             "request_name": sign_request.name,
             "state": sign_request.state,
-            "state_label": dict(
-                sign_request._fields["state"]._description_selection(self.env),
-            ).get(sign_request.state, sign_request.state),
+            "state_label": sign_request.lifecycle_stage_label,
             "next_step": sign_request.next_step,
-            "requested_trust": trust_labels.get(sign_request.requested_trust),
-            "achieved_trust": trust_labels.get(sign_request.achieved_trust)
+            "requested_trust": sign_request.requested_trust_short,
+            "achieved_trust": sign_request.achieved_trust_short
             if sign_request.achieved_trust
             else False,
             "archive_state": dict(
@@ -373,6 +369,7 @@ class SignRequest(models.Model):
         "signer_ids.state",
         "signer_ids.sequence",
         "signer_ids.partner_id.name",
+        "signatory_data",
     )
     @api.depends_context("lang")
     def _compute_next_step(self):
@@ -398,6 +395,13 @@ class SignRequest(models.Model):
             "action_required": _("This request needs attention before it can continue."),
         }
         for request in self:
+            if request.state == "draft":
+                request.next_step = (
+                    _("Check the signing fields, then continue.")
+                    if request.signatory_data
+                    else _("Place the fields the signer needs to complete.")
+                )
+                continue
             if request.state in {"sent", "viewed", "partial"}:
                 waiting = request.signer_ids.filtered(
                     lambda signer: signer.state not in {"signed", "declined"},
@@ -449,13 +453,23 @@ class SignRequest(models.Model):
             "expired": "closed",
             "cancelled": "closed",
         }
-        stage_labels = {
+        status_labels = {
             "draft": _("Draft"),
-            "ready": _("Ready"),
+            "ready": _("Ready to send"),
             "sent": _("Sent"),
-            "progress": _("In progress"),
-            "checks": _("Finishing"),
-            "closed": _("Done"),
+            "viewed": _("In progress"),
+            "partial": _("In progress"),
+            "waiting_enrollment": _("Waiting for identity setup"),
+            "waiting_external": _("With external provider"),
+            "signed_to_import": _("Ready to check"),
+            "validating": _("Checking result"),
+            "evidence_incomplete": _("Final storage needs attention"),
+            "action_required": _("Needs attention"),
+            "validation_failed": _("Result rejected"),
+            "completed": _("Completed"),
+            "declined": _("Declined"),
+            "expired": _("Expired"),
+            "cancelled": _("Cancelled"),
         }
         trust_labels = {
             "standard": _("Standard"),
@@ -465,7 +479,10 @@ class SignRequest(models.Model):
         for request in self:
             stage = stage_by_state.get(request.state, "progress")
             request.lifecycle_stage = stage
-            request.lifecycle_stage_label = stage_labels[stage]
+            request.lifecycle_stage_label = status_labels.get(
+                request.state,
+                _("In progress"),
+            )
             total = len(request.signer_ids)
             signed = len(request.signer_ids.filtered(lambda signer: signer.state == "signed"))
             request.signer_progress = (
@@ -502,7 +519,7 @@ class SignRequest(models.Model):
                 )
             elif request.state == "validation_failed":
                 request.blocking_summary = _(
-                    "The signed document failed verification. Open Final document for details.",
+                    "The signed document failed verification. Open Result & proof for details.",
                 )
             else:
                 request.blocking_summary = request.next_step or ""
@@ -2619,6 +2636,10 @@ class SignRequestSigner(models.Model):
         string="Overall status",
         readonly=True,
     )
+    personal_status = fields.Char(
+        compute="_compute_personal_status",
+        string="Your status",
+    )
     request_due_at = fields.Datetime(
         related="request_id.expires_at",
         string="Due",
@@ -2629,6 +2650,34 @@ class SignRequestSigner(models.Model):
         string="Trust",
         readonly=True,
     )
+
+    @api.depends("state", "request_id.state")
+    @api.depends_context("lang")
+    def _compute_personal_status(self):
+        request_labels = {
+            "completed": _("Signed"),
+            "declined": _("Closed after a decline"),
+            "expired": _("Expired"),
+            "cancelled": _("Cancelled"),
+            "validation_failed": _("Result needs review"),
+        }
+        signer_labels = {
+            "signed": _("Signed"),
+            "declined": _("Declined"),
+            "expired": _("Expired"),
+            "cancelled": _("Cancelled"),
+        }
+        for signer in self:
+            if signer.state in signer_labels:
+                signer.personal_status = signer_labels[signer.state]
+            elif signer.state in {"notified", "viewed", "authorized"}:
+                signer.personal_status = _("Ready to sign")
+            elif signer.request_id.state in request_labels:
+                signer.personal_status = request_labels[signer.request_id.state]
+            elif signer.request_id.state in {"sent", "viewed", "partial"}:
+                signer.personal_status = _("Waiting for your turn")
+            else:
+                signer.personal_status = _("Not sent yet")
 
     def action_open_request(self):
         self.ensure_one()

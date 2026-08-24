@@ -1,6 +1,6 @@
 # Sign validation and release-readiness report
 
-Status date: 2026-08-24
+Status date: 2026-08-25
 
 ## Outcome
 
@@ -41,12 +41,12 @@ menus, included in the dashboard, or seeded in QA.
 - **Requests:** Open Requests contains only requests owned or coordinated by
   the current user. The form leads with people, signing method, deadline,
   progress and one next action. Verification and file fingerprints stay in a
-  reviewer-only disclosure under Final document.
+  reviewer-only disclosure under Result & proof.
 - **My Signatures:** the native list includes both pending and historical
   signer records. Filters separate Ready to sign, Waiting for my turn, Signed
   by me, Completed, Closed and due-dated items without hiding history by
   default.
-- **Configuration:** user-facing signer roles are now **Field Groups** and
+- **Configuration:** user-facing signer roles are now **Signing Roles** and
   explain that they assign template fields to people. Person-selection rules
   are guided, while linked-record expressions stay in an administrator-only
   advanced section. Identity reviews, signing policies, external providers,
@@ -63,6 +63,15 @@ menus, included in the dashboard, or seeded in QA.
   saas-19.3's `BinaryValue` wrapper to the base64 contract expected by
   `usl_documents`. This fixes the case where signing and validation succeeded
   but Paperless finalization left the request in Evidence incomplete.
+- **Journey language:** signer-facing lists now distinguish personal status
+  from overall request status. Closed requests retain Completed, Declined,
+  Expired, Cancelled or Result rejected instead of collapsing to Done. Strong
+  and external journeys use short action-led phases, and protocol details stay
+  behind reviewer or security disclosures.
+- **Paperless retrieval:** the external Paperless action is offered only when
+  the current user's archive identity and this document's permission are both
+  synchronized. Authorized Odoo preview and download remain available, so a
+  user is never sent to an archive page that will reject them.
 
 ## Trust and evidence behavior
 
@@ -91,6 +100,16 @@ menus, included in the dashboard, or seeded in QA.
 
 The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
+
+- after the 2026-08-25 journey-language pass, four focused backend tests for
+  My Signatures statuses/actions, terminal request presentation, external
+  next-step gating and configuration guidance passed with zero failures and
+  zero errors. The first focused status test correctly exposed that its setup
+  had not made the signer eligible; the presentation rule was fixed to use the
+  controlled signer state and the rerun passed;
+- clean Sign boundary and reproducible browser-worker/private-key checks
+  passed again; Python compilation, `git diff --check`, and French catalogue
+  validation across 13 maintained catalogues also passed;
 
 - clean `usl_sign` installation and focused QA bootstrap from module state,
   with `--without-demo` and no SQL dump;

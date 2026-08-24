@@ -21,7 +21,7 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_create_invitation" type="object" string="Send Pocket ID invitation" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_create_invitation" type="object" string="Send setup invitation" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <button name="action_confirm_identity" type="object" string="Approve identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <button name="action_open_revoke" type="object" string="Revoke identity" invisible="state == 'revoked'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
@@ -32,13 +32,13 @@
                         <h1><field name="partner_id"/></h1>
                     </div>
                     <div class="alert alert-info" role="status" invisible="state != 'pending_pocket'">
-                        <strong>Next: connect Pocket ID.</strong> Send the invitation so this person can confirm their Pocket ID account.
+                        <strong>Next: connect the signing identity.</strong> Send the invitation so this person can connect their Pocket ID account.
                     </div>
                     <div class="alert alert-warning" role="status" invisible="state != 'pending_review'">
                         <strong>Next: review the identity.</strong> Check that the Pocket ID account belongs to this person and that your organization already knows them.
                     </div>
                     <div class="alert alert-success" role="status" invisible="state != 'active'">
-                        <strong>Ready for Strong personal signing.</strong> Pocket ID will ask for a passkey every time this person signs.
+                        <strong>Ready for Strong personal signing.</strong> Pocket ID will ask for a fresh confirmation every time this person signs.
                     </div>
                     <div class="alert alert-danger" role="status" invisible="state != 'revoked'">
                         <strong>This identity link is revoked.</strong> It cannot authorize new Strong signatures. Completed documents remain valid and unchanged.
@@ -108,7 +108,7 @@
         <field name="search_view_id" ref="sign_enrollment_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No signer identities to review</p>
-            <p>Create one for an employee, contractor, or recurring partner your organization already knows. Pocket ID will manage their passkeys.</p>
+            <p>Create one for an employee, contractor, or recurring partner your organization already knows. Pocket ID manages the account security; your organization reviews the identity link.</p>
         </field>
     </record>
 </odoo>

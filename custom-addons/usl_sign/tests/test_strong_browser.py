@@ -302,13 +302,13 @@ class TestSignBrowserJourneys(HttpCase):
                 const formText = form.textContent.replace(/\\s+/g, " ").trim();
                 for (const expected of [
                     {json.dumps(request_name)},
-                    "People",
+                    "Signers",
                     "Signing method",
                     "Deadline",
                     "Status",
                     "Overview",
                     "Files",
-                    "Final document",
+                    "Result & proof",
                 ]) {{
                     if (!formText.includes(expected)) {{
                         throw new Error(`Request review is missing: ${{expected}}`);
@@ -423,9 +423,9 @@ class TestSignBrowserJourneys(HttpCase):
         response = self.url_open(urlsplit(action["url"]).path)
         self.assertEqual(response.status_code, 200)
         page = response.text
-        self.assertIn("Connect your Pocket ID", page)
+        self.assertIn("Connect your signing identity", page)
         self.assertIn(self.company.name, page)
-        self.assertIn("never your passkey credentials", page)
+        self.assertIn("Your account stays under your control", page)
         self.assertIn("Secure signing", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertEqual(response.headers["Cache-Control"], "no-store, max-age=0")
@@ -505,9 +505,9 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertEqual(response.status_code, 200)
         page = response.text
         self.assertIn(self.company.name, page)
-        self.assertIn("Review and confirm your signature", page)
-        self.assertIn("Sign with Pocket ID", page)
-        self.assertIn("Pocket ID will ask for your passkey", page)
+        self.assertIn("Confirm this signature", page)
+        self.assertIn("Confirm and sign", page)
+        self.assertIn("Pocket ID will ask you to confirm it’s you", page)
         self.assertNotIn("Exact document SHA-256", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertIn("frame-ancestors 'none'", response.headers["Content-Security-Policy"])
