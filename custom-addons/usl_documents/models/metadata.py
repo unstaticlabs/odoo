@@ -228,10 +228,19 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
                     if key in self._local_write_fields()
                 },
             )
-            cached = super(
-                UslPaperlessMetadataMixin,
-                self.sudo().with_context(usl_documents_cache_write=True),
-            ).create(cache_values)
+            cached = self.sudo().with_context(active_test=False).search(
+                [("paperless_id", "=", cache_values["paperless_id"])],
+                limit=1,
+            )
+            if cached:
+                cached.with_context(usl_documents_cache_write=True).write(
+                    cache_values,
+                )
+            else:
+                cached = super(
+                    UslPaperlessMetadataMixin,
+                    self.sudo().with_context(usl_documents_cache_write=True),
+                ).create(cache_values)
             records |= cached.with_env(self.env)
         return records
 

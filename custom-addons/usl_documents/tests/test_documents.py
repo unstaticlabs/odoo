@@ -117,6 +117,28 @@ class TestDocuments(TransactionCase):
         self.assertTrue(document.exists())
         self.assertEqual(document.link_ids, second)
 
+    def test_company_neutral_record_uses_document_legal_company(self):
+        self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
+        shared_partner = self.env["res.partner"].create({
+            "name": "Shared archive correspondent",
+            "company_id": False,
+        })
+        manager_env = self.env(
+            user=self.manager,
+            context={
+                **self.env.context,
+                "allowed_company_ids": [self.company_a.id, self.company_b.id],
+            },
+        )
+        document = self._document(307, company_id=self.company_b.id).with_env(
+            manager_env,
+        )
+
+        link = document.link_to_record("res.partner", shared_partner.id)
+
+        self.assertEqual(link.company_id, self.company_b)
+        self.assertEqual(link.document_id.company_id, self.company_b)
+
     def test_added_date_prefers_attributed_submission_history(self):
         document = self._document(
             100,
@@ -833,6 +855,38 @@ class TestDocuments(TransactionCase):
         self.assertEqual(
             self.env["usl.paperless.tag"].with_context(active_test=False).search_count(
                 [("paperless_id", "=", 305)],
+            ),
+            1,
+        )
+
+    def test_metadata_create_adopts_recycled_identity_after_archive_reset(self):
+        previous = self.env["usl.paperless.tag"].sudo().with_context(
+            usl_documents_cache_write=True,
+        ).create(
+            {
+                "name": "Previous contextual tag",
+                "paperless_id": 306,
+                "active": False,
+            },
+        )
+        response = {
+            "id": 306,
+            "name": "Accounting",
+            "owner": None,
+            "matching_algorithm": 6,
+            "document_count": 0,
+        }
+        with patch.object(PaperlessClient, "create_metadata", return_value=response):
+            current = self.env["usl.paperless.tag"].create(
+                {"name": "Accounting", "matching_algorithm": "6"},
+            )
+
+        self.assertEqual(current, previous)
+        self.assertTrue(current.active)
+        self.assertEqual(current.name, "Accounting")
+        self.assertEqual(
+            self.env["usl.paperless.tag"].with_context(active_test=False).search_count(
+                [("paperless_id", "=", 306)],
             ),
             1,
         )

@@ -3085,7 +3085,11 @@ class UslDocumentLink(models.Model):
         if not record:
             raise ValidationError(_("The target Odoo record no longer exists."))
         record.check_access("read")
-        company = getattr(record, "company_id", False) or self.env.company
+        company = (
+            getattr(record, "company_id", False)
+            or document.company_id
+            or self.env.company
+        )
         if res_model == "res.company":
             company = record
         if company not in self.env.user.company_ids:
