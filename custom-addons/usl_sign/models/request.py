@@ -2137,7 +2137,7 @@ class SignRequest(models.Model):
 
     def _reconcile_archive(self):
         for request in self:
-            operation = request.archive_operation_id
+            operation = request.sudo().archive_operation_id
             if operation and operation.state == "processing":
                 try:
                     operation.poll()

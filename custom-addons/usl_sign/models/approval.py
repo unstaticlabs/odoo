@@ -203,7 +203,7 @@ class SignApproval(models.Model):
         for approval in approvals:
             approval._validate_participants_and_record()
             if not approval.response_ids:
-                self.env["usl.sign.approval.response"].with_context(
+                self.env["usl.sign.approval.response"].sudo().with_context(
                     usl_sign_decision_response_create=INTERNAL_OPERATION,
                 ).create(
                     [
@@ -597,7 +597,7 @@ class SignApproval(models.Model):
 
     def _reconcile_archive(self):
         for approval in self:
-            operation = approval.archive_operation_id
+            operation = approval.sudo().archive_operation_id
             if operation and operation.state == "processing":
                 try:
                     operation.poll()
@@ -780,10 +780,10 @@ class SignApproval(models.Model):
         if not internal and {"record_ref", "company_id", "approver_ids"}.intersection(values):
             self._validate_participants_and_record()
             for approval in self:
-                approval.response_ids.with_context(
+                approval.response_ids.sudo().with_context(
                     usl_sign_decision_response_create=INTERNAL_OPERATION,
                 ).unlink()
-                self.env["usl.sign.approval.response"].with_context(
+                self.env["usl.sign.approval.response"].sudo().with_context(
                     usl_sign_decision_response_create=INTERNAL_OPERATION,
                 ).create(
                     [

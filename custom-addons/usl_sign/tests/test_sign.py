@@ -1432,6 +1432,74 @@ class TestCleanUslSign(TransactionCase):
         with self.assertRaises(AccessError):
             approval.unlink()
 
+    def test_sign_user_creates_and_reassigns_protected_decision_responses(self):
+        approval = self.env["usl.sign.approval"].with_user(self.sign_user).create(
+            {
+                "name": "Review synthetic supplier onboarding",
+                "record_ref": f"res.partner,{self.partner_one.id}",
+                "approver_ids": [(6, 0, [self.sign_user.id])],
+            },
+        )
+        self.assertEqual(approval.response_ids.user_id, self.sign_user)
+
+        approval.with_user(self.sign_user).write(
+            {"approver_ids": [(6, 0, [self.sign_admin.id])]},
+        )
+        self.assertEqual(approval.response_ids.user_id, self.sign_admin)
+        with self.assertRaisesRegex(AccessError, "created with the request"):
+            self.env["usl.sign.approval.response"].with_user(
+                self.sign_user,
+            ).create(
+                {"approval_id": approval.id, "user_id": self.sign_user.id},
+            )
+
+    def test_decision_maker_reconciles_service_owned_archive_operation(self):
+        approval = self.env["usl.sign.approval"].with_user(self.sign_user).create(
+            {
+                "name": "Archive a synthetic decision proof",
+                "record_ref": f"res.partner,{self.partner_one.id}",
+                "approver_ids": [(6, 0, [self.sign_user.id])],
+            },
+        )
+        document = self.env["usl.document"].sudo().create(
+            {
+                "name": "Archived decision proof",
+                "paperless_id": 990003,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_generated",
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "Archive decision proof",
+                "state": "archived",
+                "checksum": "a" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "document_id": document.id,
+                "source": "odoo_generated",
+            },
+        )
+        approval.sudo()._operational_write(
+            {
+                "state": "finalizing",
+                "outcome": "approved",
+                "proof_status": "valid",
+                "archive_status": "processing",
+                "archive_operation_id": operation.id,
+                "receipt_sha256": "b" * 64,
+            },
+        )
+
+        approval.with_user(self.sign_user)._reconcile_archive()
+
+        self.assertEqual(approval.state, "completed")
+        self.assertEqual(approval.archive_status, "archived")
+        self.assertEqual(approval.archive_document_id, document)
+
     def test_service_status_reports_ready_missing_and_partial_capabilities(self):
         health = self.env["usl.sign.service.health"]._ensure_company(self.company)
         checked = health.filtered(lambda row: row.code in {"standard", "strong", "qualified"})

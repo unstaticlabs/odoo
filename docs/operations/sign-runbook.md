@@ -30,44 +30,40 @@ The pinned components are:
 - pyHanko 0.36.2 in the DSS container for independent cross-validation;
 - veraPDF in the DSS container for PDF/A dossier validation.
 
-For the worktree-isolated Pocket ID Sign QA environment, run:
+For a lightweight QA tenant tied to the current worktree, run:
 
 ```shell
-scripts/sign-pocketid-stack bootstrap
-scripts/sign-pocketid-stack start
-scripts/sign-pocketid-stack status
-scripts/sign-pocketid-stack test-pocket
-scripts/sign-pocketid-stack test
-scripts/sign-pocketid-stack smoke
-USL_SIGN_OTS_LIVE_SMOKE=1 scripts/sign-pocketid-stack opentimestamps-live-smoke
-scripts/sign-pocketid-stack archive-acceptance
-scripts/sign-pocketid-stack passkey-acceptance
-scripts/sign-pocketid-stack strong-acceptance
+scripts/sign-qa-stack start
+scripts/sign-qa-stack info
+scripts/sign-qa-stack status
+scripts/sign-qa-stack test /usl_sign
+scripts/sign-qa-stack smoke
+scripts/sign-qa-stack stop
 ```
 
-This creates project `usl-sign-pocketid-qa`, its own `odoo_dev` database,
-volumes, OIDC clients and ignored secret root. It exposes Odoo on port 16669,
-Pocket ID on 16411 and Paperless on 16810; it never shares the canonical
-tenant. The Sign authorization client is restricted to its own `usl-signers`
-group rather than inheriting ordinary Odoo access. Its generic
-`requiresFreshPasskey` policy is enabled and Pocket ID advertises the matching
-discovery capability; no USL-specific authorization parameter controls the
-security decision. The dedicated Sign client also disables refresh-token
-issuance. `test-pocket` verifies the strict Pocket
-patch, `test` runs the Odoo and browser suites in a disposable database, and
-`smoke` exercises the local CA, DSS, pyHanko, veraPDF, replay and alteration
-checks. `archive-acceptance` proves real Paperless archive, checksum reuse,
-failure gating and recovery. `passkey-acceptance` creates a disposable Chrome
-profile and virtual platform passkey, then proves that two back-to-back Sign
-authorizations each require a WebAuthn assertion and produce a fresh
-`amr=["phr"]` ID token without a refresh token. `strong-acceptance` drives the
-complete isolated journey with a virtual
-platform authenticator: Pocket-backed enrolment, reviewer confirmation,
-document-bound browser key, fresh authorization, step-ca issuance, personal
-PAdES, DSS validation, network key-material inspection, evidence dossier,
-Paperless archival and the final completion gate. It complements, but does not
-replace, the real-platform-authenticator check below. For the ordinary local
-Sign services, run:
+The wrapper derives a stable slot from the worktree path and creates a uniquely
+named Compose project, port block, database volume, filestore, Pocket ID
+tenant, CA/DSS secrets and Paperless volumes. It validates the ports before the
+first start. The initial start creates `odoo_dev --without-demo` and runs the
+focused synthetic bootstrap; it never imports an SQL dump, filestore or shared
+volume. Custom add-ons remain bind-mounted, while the Odoo runtime image is
+content-addressed from its dependency inputs so unchanged images are reused.
+
+`info` prints the resolved project, URLs and review users. `test` uses a
+separate disposable database and headless/synthetic authenticators only.
+`smoke` exercises the local CA, DSS, key separation, pyHanko, deterministic
+PDF/A-3 dossier, veraPDF, replay and alteration checks. `stop` leaves all
+project volumes intact, so the same `start` command brings the tenant back.
+Remove project volumes only when deliberately requesting a new clean seed.
+
+The lower-level `scripts/sign-pocketid-stack` helper remains available for
+Pocket patch, archive and virtual-authenticator acceptance. Those commands may
+create browser sessions and should not be used during unattended manual QA.
+The dedicated Sign client is restricted to its own `usl-signers` group,
+requires fresh passkey authentication, advertises the matching discovery
+capability and issues no refresh token.
+
+For the ordinary local Sign services, run:
 
 ```shell
 scripts/sign-services-bootstrap

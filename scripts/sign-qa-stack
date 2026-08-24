@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SLOT="${USL_SIGN_QA_SLOT:-$(basename "$(dirname "$ROOT")")}" 
+SLOT_DEFAULT="$(basename "$(dirname "$ROOT")")"
+SLOT="${USL_SIGN_QA_SLOT:-$SLOT_DEFAULT}"
 if [[ ! "$SLOT" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   printf 'USL_SIGN_QA_SLOT must contain only lowercase letters, numbers, and hyphens.\n' >&2
   exit 2

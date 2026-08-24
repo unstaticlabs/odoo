@@ -902,7 +902,7 @@ class SignDailyManifest(models.Model):
 
     def _reconcile_timestamp_archive(self):
         self.ensure_one()
-        operation = self.archive_operation_id
+        operation = self.sudo().archive_operation_id
         if operation and operation.state == "processing":
             try:
                 operation.poll()
