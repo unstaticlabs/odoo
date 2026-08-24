@@ -59,7 +59,7 @@
     <t t-name="usl_sign.StandardSignatureDialog" t-inherit="web.SignatureDialog" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('mt16') and hasclass('small')]" position="replace">
             <div class="mt16 small">
-                By adopting this signature, I confirm that it represents my electronic signature for this document. The sender’s signing application records consent and validation evidence. This Standard signature is not described as advanced, qualified, certified, or automatically equivalent to a handwritten signature.
+                By continuing, I agree to sign this document electronically. The final record includes my consent and the document checks. This is a Standard electronic signature with reinforced evidence—not a qualified signature.
             </div>
         </xpath>
     </t>

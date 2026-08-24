@@ -184,8 +184,8 @@
                     <section class="usl-sign-hero">
                         <div>
                             <p class="usl-sign-eyebrow">Strong personal signature</p>
-                            <h1>Review and confirm your signature</h1>
-                            <p class="usl-sign-lead">Pocket ID will ask for your passkey. <t t-out="signer.request_id.company_id.name"/> will then add and check your signature.</p>
+                            <h1>Confirm this signature</h1>
+                            <p class="usl-sign-lead">Review the document first. When you’re ready, Pocket ID will ask you to confirm it’s you.</p>
                         </div>
                         <ol class="usl-sign-steps" aria-label="Signing progress">
                             <li data-step="review" class="is-current"><span>1</span>Review</li>
@@ -211,15 +211,15 @@
                             <input id="usl_strong_consent" type="checkbox"/>
                             <span>
                                 <strong>I have reviewed this document and agree to sign it.</strong>
-                                <small>Pocket ID will ask you to confirm with your passkey.</small>
+                                <small>Your confirmation applies only to this document.</small>
                             </span>
                         </label>
                         <button id="usl_strong_sign_button" class="usl-sign-button usl-sign-button--wide" type="button" disabled="disabled">
                             <span class="usl-sign-button__spinner" aria-hidden="true"/>
                             <i class="fa fa-shield" aria-hidden="true"/>
-                            <span class="usl-sign-button__label">Sign with Pocket ID</span>
+                            <span class="usl-sign-button__label">Confirm and sign</span>
                         </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID will open in a small window.</p>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> A secure Pocket ID window will open.</p>
                         <div id="usl_strong_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
                             <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
                             <span><strong data-status-title=""/><small data-status-message=""/></span>
@@ -230,7 +230,7 @@
                     <details class="usl-sign-technical-details">
                         <summary>Security details</summary>
                         <p><strong>Document fingerprint</strong><code class="usl-sign-hash" t-out="signer.request_id.current_hash"/></p>
-                        <p>A one-use key created in this browser is bound to this exact PDF. The completed signature is checked before it is accepted.</p>
+                        <p>This browser creates a one-use signing key for this exact PDF. The key is never sent to <t t-out="signer.request_id.company_id.name"/>, and the result is checked before it is accepted.</p>
                         <p>This method is designed for advanced-signature requirements. Formal classification still requires independent legal and security review.</p>
                     </details>
                 </main>
@@ -258,8 +258,8 @@
                     <t t-call="usl_sign.secure_company_brand"/>
                     <section class="usl-sign-public-card__body">
                         <p class="usl-sign-eyebrow">Strong signature identity</p>
-                        <h1>Connect your Pocket ID</h1>
-                        <p class="usl-sign-lead">Confirm the account you’ll use when <t t-out="enrollment.company_id.name"/> asks for a strong personal signature.</p>
+                        <h1>Connect your signing identity</h1>
+                        <p class="usl-sign-lead">Choose the Pocket ID account you’ll use when <t t-out="enrollment.company_id.name"/> asks for a strong personal signature.</p>
                         <dl class="usl-sign-summary">
                             <div><dt>Identity</dt><dd t-out="enrollment.partner_id.name"/></div>
                             <div><dt>Next step</dt><dd>Review by <t t-out="enrollment.company_id.name"/></dd></div>
@@ -282,7 +282,7 @@
                         </div>
                         <div class="usl-sign-privacy-note">
                             <i class="fa fa-lock" aria-hidden="true"/>
-                            <p><strong>Your passkeys stay with Pocket ID.</strong> <t t-out="enrollment.company_id.name"/>'s document signing application keeps only the verified account link and reviewer decision—never your passkey credentials.</p>
+                            <p><strong>Your account stays under your control.</strong> Pocket ID keeps your passkeys. <t t-out="enrollment.company_id.name"/> stores only the account link and its review decision.</p>
                         </div>
                     </section>
                 </main>

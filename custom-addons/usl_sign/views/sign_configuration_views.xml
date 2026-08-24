@@ -9,11 +9,11 @@
             <xpath expr="//sheet" position="replace">
                 <sheet>
                     <div class="alert alert-info" role="status">
-                        <strong>Field groups tell Sign which fields belong to each person.</strong>
+                        <strong>A signing role groups the fields completed by one person.</strong>
                         Use short names such as Client, Employee, or Company representative. You choose the actual person when you send a document.
                     </div>
                     <div class="oe_title">
-                        <label for="name" string="Field group name"/>
+                        <label for="name" string="Signing role"/>
                         <h1><field name="name" placeholder="Example: Client"/></h1>
                     </div>
                     <group>
@@ -53,8 +53,8 @@
         <field name="priority">20</field>
         <field name="arch" type="xml">
             <xpath expr="//list" position="replace">
-                <list string="Field Groups">
-                    <field name="name" string="Field group"/>
+                <list string="Signing Roles">
+                    <field name="name" string="Signing role"/>
                     <field name="partner_selection_policy" string="Person"/>
                     <field name="default_partner_id" string="Preselected person" optional="show"/>
                 </list>
@@ -70,7 +70,7 @@
         <field name="arch" type="xml">
             <xpath expr="//search" position="replace">
                 <search>
-                    <field name="name" string="Field group"/>
+                    <field name="name" string="Signing role"/>
                     <field name="partner_selection_policy" string="Person"/>
                     <filter name="chosen_each_time" string="Chosen for each request" domain="[('partner_selection_policy', '=', 'empty')]"/>
                     <filter name="preselected" string="Preselected person" domain="[('partner_selection_policy', '=', 'default')]"/>
@@ -81,10 +81,10 @@
     </record>
 
     <record id="sign_oca.sign_oca_role_act_window" model="ir.actions.act_window">
-        <field name="name">Field Groups</field>
+        <field name="name">Signing Roles</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Create a field group</p>
-            <p>A field group connects fields in a template with the person who will complete them. Start with a simple name such as Client or Company representative.</p>
+            <p class="o_view_nocontent_smiling_face">Create a signing role</p>
+            <p>A signing role connects template fields with the person who will complete them. Start with a simple name such as Client or Company representative.</p>
         </field>
     </record>
 </odoo>
