@@ -7,6 +7,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from odoo.addons.usl_project_restore.models.restore import ProjectSourceReader
+from odoo.tools import html2plaintext, html_sanitize
 
 
 source_options = {
@@ -157,6 +158,11 @@ def canonical_digest(rows):
             sort_keys=True,
         ).encode(),
     ).hexdigest()
+
+
+def normalized_message_body(value):
+    """Compare the rendered text preserved by the native 19.3 sanitizer."""
+    return html2plaintext(html_sanitize(str(value or ""))).strip()
 
 
 def source_id(record):
@@ -488,7 +494,7 @@ for row in source["messages"]:
                 "email_from": row["email_from"],
                 "message_id": row["message_id"],
                 "reply_to": row["reply_to"],
-                "body": row["body"] or "",
+                "body": normalized_message_body(row["body"]),
                 "internal": row["is_internal"],
                 "date": row["date"],
                 "recipients": sorted(
@@ -518,7 +524,7 @@ for row in source["messages"]:
                 "email_from": message.email_from,
                 "message_id": message.message_id,
                 "reply_to": message.reply_to,
-                "body": message.body or "",
+                "body": normalized_message_body(message.body),
                 "internal": message.is_internal,
                 "date": message.date,
                 "recipients": sorted(
