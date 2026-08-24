@@ -6,7 +6,7 @@ import json
 run = env["usl.hr.restore.run"].sudo().search([], order="id desc", limit=1)
 assert run and run.status == "passed"
 models = (
-    "hr.contract.type", "hr.department", "hr.departure.reason", "hr.employee",
+    "hr.employee.type", "hr.department", "hr.departure.reason", "hr.employee",
     "hr.job", "hr.payroll.structure.type", "hr.resume.line.type", "hr.skill",
     "hr.skill.level", "hr.skill.type", "hr.version", "hr.work.location",
     "resource.calendar", "resource.calendar.attendance", "resource.resource",

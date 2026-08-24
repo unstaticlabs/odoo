@@ -16,9 +16,9 @@ class ResourceResource(models.Model):
     _inherit = ["resource.resource", "usl.accounting.restore.source.mixin"]
 
 
-class HrContractType(models.Model):
-    _name = "hr.contract.type"
-    _inherit = ["hr.contract.type", "usl.accounting.restore.source.mixin"]
+class HrEmployeeType(models.Model):
+    _name = "hr.employee.type"
+    _inherit = ["hr.employee.type", "usl.accounting.restore.source.mixin"]
 
 
 class HrDepartment(models.Model):

@@ -67,7 +67,7 @@ def traced(model, rows):
 datasets = {
     "calendars": "resource.calendar",
     "attendances": "resource.calendar.attendance",
-    "contract_types": "hr.contract.type",
+    "employee_types": "hr.employee.type",
     "departments": "hr.department",
     "departure_reasons": "hr.departure.reason",
     "jobs": "hr.job",
@@ -167,7 +167,9 @@ for row in source["attendances"]:
     )
 
 localized_catalogs = {
-    "contract_types": ("name", ("code",), (("country_id", "res.country"),)),
+    "employee_types": (
+        "name", ("code", "sequence"), (("country_id", "res.country"),),
+    ),
     "departure_reasons": ("name", ("sequence", "active"), (("country_id", "res.country"),)),
     "skill_types": ("name", ("sequence", "color", "levels_count", "active", "is_certification"), ()),
     "skills": ("name", ("sequence",), (("skill_type_id", "hr.skill.type"),)),
@@ -215,12 +217,12 @@ for row in source["jobs"]:
     record = mapped["jobs"][row["id"]]
     source_rows.append(
         ("job_rel", row["id"], row["company_id"], row["department_id"],
-         row["contract_type_id"], row["recruiter_id"]),
+         row["employee_type_id"], row["recruiter_id"]),
     )
     target_rows.append(
         ("job_rel", row["id"], record.company_id.rebuild_source_id or None,
          record.department_id.rebuild_source_id or None,
-         record.contract_type_id.rebuild_source_id or None,
+         record.employee_type_id.rebuild_source_id or None,
          record.recruiter_id.rebuild_source_id or None),
     )
 
@@ -284,10 +286,11 @@ for row in source["resources"]:
 employee_scalar_fields = (
     "name", "work_phone", "mobile_phone", "work_email", "legal_name",
     "private_phone", "private_email", "lang", "place_of_birth", "permit_no",
-    "visa_no", "certificate", "study_field", "study_school", "emergency_contact",
-    "emergency_phone", "barcode", "pin", "private_car_plate", "birthday",
+    "visa_no", "certificate", "study_field", "emergency_contact",
+    "emergency_phone", "barcode", "pin", "birthday",
     "visa_expire", "work_permit_expiration_date", "employee_properties", "active",
     "birthday_public_display", "work_permit_scheduled_activity", "hourly_cost", "color",
+    "id_card_name", "driving_license_name", "first_contract_date",
 )
 day_fields = (
     "monday_location_id", "tuesday_location_id", "wednesday_location_id",
@@ -342,11 +345,11 @@ version_scalar_fields = (
     "name", "identification_id", "passport_id", "sex", "private_street",
     "private_street2", "private_city", "private_zip", "distance_home_work",
     "km_home_work", "children", "distance_home_work_unit", "marital",
-    "spouse_complete_name", "employee_type", "job_title", "date_version",
+    "spouse_complete_name", "job_title", "date_version",
     "passport_expiration_date", "spouse_birthdate", "contract_date_start",
     "contract_date_end", "trial_date_end", "additional_note", "wage", "active",
     "is_custom_job_title", "is_flexible", "is_fully_flexible",
-    "last_modified_date", "tz", "hours_per_week", "hours_per_day",
+    "last_modified_date", "tz", "hours_per_week", "hours_per_day", "fixed_term",
 )
 employee_rows = {row["id"]: row for row in source["employees"]}
 resource_rows = {row["id"]: row for row in source["resources"]}
@@ -361,7 +364,8 @@ for row in source["versions"]:
         "department": row["department_id"], "job": row["job_id"],
         "address": row["address_id"], "work_location": row["work_location_id"],
         "calendar": row["resource_calendar_id"], "contract_template": row["contract_template_id"],
-        "structure_type": row["structure_type_id"], "contract_type": row["contract_type_id"],
+        "structure_type": row["structure_type_id"],
+        "employee_type_id": row["employee_type_id"],
         "hr_responsible": row["hr_responsible_id"],
     }
     source_item["tz"] = row["tz"] or (
@@ -387,7 +391,7 @@ for row in source["versions"]:
         "calendar": record.resource_calendar_id.rebuild_source_id or None,
         "contract_template": record.contract_template_id.rebuild_source_id or None,
         "structure_type": record.structure_type_id.rebuild_source_id or None,
-        "contract_type": record.contract_type_id.rebuild_source_id or None,
+        "employee_type_id": record.employee_type_id.rebuild_source_id or None,
         "hr_responsible": record.hr_responsible_id.rebuild_source_id,
     }
     source_rows.append(source_item)

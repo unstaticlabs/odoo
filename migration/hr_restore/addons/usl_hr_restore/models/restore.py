@@ -63,9 +63,10 @@ class HrSourceReader:
                        duration_based, create_date, write_date
                   FROM resource_calendar_attendance ORDER BY id
             """,
-            "contract_types": """
-                SELECT id, country_id, code, name, create_date, write_date
-                  FROM hr_contract_type ORDER BY id
+            "employee_types": """
+                SELECT id, country_id, code, name, sequence,
+                       create_date, write_date
+                  FROM hr_employee_type ORDER BY id
             """,
             "departments": """
                 SELECT id, company_id, parent_id, manager_id, color,
@@ -80,7 +81,7 @@ class HrSourceReader:
             """,
             "jobs": """
                 SELECT id, sequence, no_of_recruitment, recruiter_id,
-                       department_id, company_id, contract_type_id, name,
+                       department_id, company_id, employee_type_id, name,
                        description, requirements, active, create_date, write_date
                   FROM hr_job ORDER BY id
             """,
@@ -125,9 +126,9 @@ class HrSourceReader:
                        country_of_birth, parent_id, coach_id, color, name,
                        work_phone, mobile_phone, work_email, legal_name,
                        private_phone, private_email, lang, place_of_birth,
-                       permit_no, visa_no, certificate, study_field, study_school,
+                       permit_no, visa_no, certificate, study_field,
                        emergency_contact, emergency_phone, barcode, pin,
-                       private_car_plate, birthday, visa_expire,
+                       birthday, visa_expire,
                        work_permit_expiration_date, salary_distribution,
                        employee_properties, active, birthday_public_display,
                        work_permit_scheduled_activity, contract_template_id,
@@ -137,6 +138,7 @@ class HrSourceReader:
                        sunday_location_id, expense_manager_id,
                        hr_employee_folder_id, hr_employee_contract_folder_id,
                        x_tese_is_linked, x_tese_payslip_count,
+                       id_card_name, driving_license_name, first_contract_date,
                        create_date, write_date
                   FROM hr_employee ORDER BY id
             """,
@@ -145,16 +147,16 @@ class HrSourceReader:
                        country_id, private_state_id, private_country_id,
                        distance_home_work, km_home_work, children, department_id,
                        job_id, address_id, work_location_id, resource_calendar_id,
-                       contract_template_id, structure_type_id, contract_type_id,
+                       contract_template_id, structure_type_id, employee_type_id,
                        hr_responsible_id, name, identification_id, passport_id,
                        sex, private_street, private_street2, private_city,
                        private_zip, distance_home_work_unit, marital,
-                       spouse_complete_name, employee_type, job_title,
+                       spouse_complete_name, job_title,
                        date_version, passport_expiration_date, spouse_birthdate,
                        contract_date_start, contract_date_end, trial_date_end,
                        additional_note, wage, active, is_custom_job_title,
                        is_flexible, is_fully_flexible, last_modified_date,
-                       departure_id, tz, hours_per_week, hours_per_day,
+                       departure_id, tz, hours_per_week, hours_per_day, fixed_term,
                        x_tese_is_linked, create_date, write_date
                   FROM hr_version ORDER BY id
             """,
@@ -186,7 +188,7 @@ class HrSourceReader:
                   FROM ir_model_data
                  WHERE model IN (
                     'res.country', 'res.country.state', 'resource.calendar',
-                    'hr.contract.type', 'hr.departure.reason',
+                    'hr.employee.type', 'hr.departure.reason',
                     'hr.payroll.structure.type', 'hr.resume.line.type',
                     'hr.skill', 'hr.skill.level', 'hr.skill.type'
                  )
@@ -454,17 +456,22 @@ class UslHrRestoreRun(models.Model):
             )
             all_attendances._compute_day_period()
 
-        contract_types = {}
-        for row in source["contract_types"]:
+        employee_types = {}
+        for row in source["employee_types"]:
             name = self._text(row["name"])
             country = self._reference(xmlids, "res.country", row["country_id"])
-            contract_types[row["id"]] = self._upsert(
-                "hr.contract.type", row,
-                {"name": name, "code": row["code"], "country_id": country.id},
+            employee_types[row["id"]] = self._upsert(
+                "hr.employee.type", row,
+                {
+                    "name": name,
+                    "code": row["code"],
+                    "country_id": country.id,
+                    "sequence": row["sequence"],
+                },
                 [("name", "=", name), ("country_id", "=", country.id)],
-                self._source_xmlid(xmlids, "hr.contract.type", row["id"]),
+                self._source_xmlid(xmlids, "hr.employee.type", row["id"]),
             )
-            self._write_french(contract_types[row["id"]], row, ("name",))
+            self._write_french(employee_types[row["id"]], row, ("name",))
 
         departure_reasons = {}
         for row in source["departure_reasons"]:
@@ -614,9 +621,9 @@ class UslHrRestoreRun(models.Model):
                     "recruiter_id": users.get(row["recruiter_id"]).id if row["recruiter_id"] else False,
                     "department_id": departments.get(row["department_id"]).id if row["department_id"] else False,
                     "company_id": company.id if company else False,
-                    "contract_type_id": (
-                        contract_types[row["contract_type_id"]].id
-                        if row["contract_type_id"] else False
+                    "employee_type_id": (
+                        employee_types[row["employee_type_id"]].id
+                        if row["employee_type_id"] else False
                     ),
                     "description": row["description"],
                     "requirements": row["requirements"],
@@ -639,6 +646,20 @@ class UslHrRestoreRun(models.Model):
             user = users.get(row["user_id"])
             work_contact = partners.get(row["work_contact_id"])
             employee = self._traced("hr.employee", row["id"])
+            if not employee and user:
+                # Odoo creates one employee per allowed company when an
+                # existing user is enabled for multi-company use. Adopt that
+                # native shell instead of creating a duplicate employee.
+                employee = self.env["hr.employee"].sudo().with_context(
+                    active_test=False,
+                ).search(
+                    [
+                        ("user_id", "=", user.id),
+                        ("company_id", "=", company.id),
+                        ("rebuild_source_id", "=", False),
+                    ],
+                    limit=1,
+                )
             if not employee:
                 employee = self.env["hr.employee"].sudo().with_context(
                     tracking_disable=True, mail_create_nolog=True,
@@ -733,9 +754,9 @@ class UslHrRestoreRun(models.Model):
                         payroll_types[row["structure_type_id"]].id
                         if row["structure_type_id"] else False
                     ),
-                    "contract_type_id": (
-                        contract_types[row["contract_type_id"]].id
-                        if row["contract_type_id"] else False
+                    "employee_type_id": (
+                        employee_types[row["employee_type_id"]].id
+                        if row["employee_type_id"] else False
                     ),
                     "hr_responsible_id": users[row["hr_responsible_id"]].id,
                     "name": row["name"],
@@ -749,7 +770,6 @@ class UslHrRestoreRun(models.Model):
                     "distance_home_work_unit": row["distance_home_work_unit"],
                     "marital": row["marital"],
                     "spouse_complete_name": row["spouse_complete_name"],
-                    "employee_type": row["employee_type"],
                     "job_title": row["job_title"],
                     "date_version": row["date_version"],
                     "passport_expiration_date": row["passport_expiration_date"],
@@ -770,6 +790,7 @@ class UslHrRestoreRun(models.Model):
                     "is_custom_job_title": row["is_custom_job_title"],
                     "hours_per_week": row["hours_per_week"],
                     "hours_per_day": row["hours_per_day"],
+                    "fixed_term": row["fixed_term"],
                 },
             )
 
@@ -809,12 +830,10 @@ class UslHrRestoreRun(models.Model):
                     "visa_no": row["visa_no"],
                     "certificate": row["certificate"],
                     "study_field": row["study_field"],
-                    "study_school": row["study_school"],
                     "emergency_contact": row["emergency_contact"],
                     "emergency_phone": row["emergency_phone"],
                     "barcode": row["barcode"],
                     "pin": row["pin"],
-                    "private_car_plate": row["private_car_plate"],
                     "birthday": row["birthday"],
                     "visa_expire": row["visa_expire"],
                     "work_permit_expiration_date": row["work_permit_expiration_date"],
@@ -829,6 +848,8 @@ class UslHrRestoreRun(models.Model):
                         if row["contract_template_id"] else False
                     ),
                     "hourly_cost": row["hourly_cost"],
+                    "id_card_name": row["id_card_name"],
+                    "driving_license_name": row["driving_license_name"],
                     "expense_manager_id": (
                         users[row["expense_manager_id"]].id
                         if row["expense_manager_id"] else False
@@ -914,7 +935,7 @@ class UslHrRestoreRun(models.Model):
         mappings = {
             "resource.calendar": (calendars, source["calendars"]),
             "resource.calendar.attendance": (attendances, source["attendances"]),
-            "hr.contract.type": (contract_types, source["contract_types"]),
+            "hr.employee.type": (employee_types, source["employee_types"]),
             "hr.department": (departments, source["departments"]),
             "hr.departure.reason": (departure_reasons, source["departure_reasons"]),
             "hr.job": (jobs, source["jobs"]),
@@ -934,7 +955,7 @@ class UslHrRestoreRun(models.Model):
         counts = {
             "calendars": len(calendars),
             "attendances": len(attendances),
-            "contract_types": len(contract_types),
+            "employee_types": len(employee_types),
             "departments": len(departments),
             "departure_reasons": len(departure_reasons),
             "jobs": len(jobs),
