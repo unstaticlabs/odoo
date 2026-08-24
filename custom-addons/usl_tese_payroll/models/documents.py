@@ -4,6 +4,19 @@ from odoo import fields, models
 class UslTesePayslip(models.Model):
     _inherit = "usl.tese.payslip"
 
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "tese_payroll_evidence",
+            "confidentiality": "hr",
+            "accounting_evidence": True,
+        }
+
     def _document_related_records(self, attachment=None):
         self.ensure_one()
         records = super()._document_related_records(attachment)

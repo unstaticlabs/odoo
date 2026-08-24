@@ -286,6 +286,10 @@
                 <field name="record_name"/>
                 <field name="res_model"/>
                 <field name="company_id"/>
+                <field name="document_role"/>
+                <field name="archive_mode" optional="hide"/>
+                <field name="attachment_origin" optional="hide"/>
+                <field name="policy_reason" optional="hide"/>
                 <field name="version_id"/>
                 <field name="linked_by_id"/>
                 <field name="linked_at"/>
@@ -309,6 +313,11 @@
                         <field name="res_model"/>
                         <field name="res_id"/>
                         <field name="company_id"/>
+                        <field name="document_role" readonly="1"/>
+                        <field name="policy_role"/>
+                        <field name="archive_mode"/>
+                        <field name="attachment_origin"/>
+                        <field name="policy_reason"/>
                         <field name="version_id"/>
                         <field name="linked_by_id"/>
                         <field name="linked_at"/>
@@ -349,6 +358,10 @@
                 <field name="state"/>
                 <field name="user_id"/>
                 <field name="company_id"/>
+                <field name="archive_mode" optional="show"/>
+                <field name="document_role" optional="show"/>
+                <field name="attachment_origin" optional="show"/>
+                <field name="policy_reason" optional="show"/>
                 <field name="document_id"/>
                 <field name="review_reason" optional="show"/>
                 <field name="retry_count" optional="hide"/>

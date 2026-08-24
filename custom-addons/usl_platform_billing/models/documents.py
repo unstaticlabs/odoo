@@ -18,6 +18,19 @@ class UslPlatformBillingPlatform(models.Model):
         "usl.document.link.mixin",
     ]
 
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "platform_configuration_evidence",
+            "confidentiality": "accounting",
+            "accounting_evidence": True,
+        }
+
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
         values = super()._document_archive_context(attachment)
@@ -37,6 +50,19 @@ class UslPlatformBillingPlatform(models.Model):
 class UslPlatformBillingSession(models.Model):
     _name = "usl.platform.billing.session"
     _inherit = ["usl.platform.billing.session", "usl.document.link.mixin"]
+
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "platform_session_evidence",
+            "confidentiality": "accounting",
+            "accounting_evidence": True,
+        }
 
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
@@ -62,6 +88,19 @@ class UslPlatformBillingSession(models.Model):
 class UslPlatformBillingPayout(models.Model):
     _name = "usl.platform.billing.payout"
     _inherit = ["usl.platform.billing.payout", "usl.document.link.mixin"]
+
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "platform_payout_evidence",
+            "confidentiality": "accounting",
+            "accounting_evidence": True,
+        }
 
     def _document_related_records(self, attachment=None):
         self.ensure_one()

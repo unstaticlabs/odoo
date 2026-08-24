@@ -84,8 +84,36 @@ class DocumentLinkMixin(models.AbstractModel):
     def _document_archive_policy(self, attachment):
         """Return the stable archive policy for one native attachment."""
         self.ensure_one()
+        origin = (
+            attachment.usl_documents_origin
+            if attachment and "usl_documents_origin" in attachment._fields
+            else self.env.context.get(
+                "usl_documents_policy_origin",
+                "documents_workspace",
+            )
+        )
+        if origin == "generated_transient":
+            return {
+                "archive_mode": "never",
+                "document_role": "background",
+                "policy_reason": "transient_generated_output",
+                "confidentiality": "internal",
+                "accounting_evidence": False,
+                "access_scope": "linked_record",
+            }
+        if origin == "generated_final":
+            return {
+                "archive_mode": "automatic",
+                "document_role": "evidence",
+                "policy_reason": "final_generated_output",
+                "confidentiality": "internal",
+                "accounting_evidence": True,
+                "access_scope": "linked_record",
+            }
         return {
-            "archive": True,
+            "archive_mode": "automatic",
+            "document_role": "library",
+            "policy_reason": "business_record_default",
             "confidentiality": "internal",
             "accounting_evidence": False,
             "access_scope": "linked_record",
@@ -102,6 +130,14 @@ class DocumentLinkMixin(models.AbstractModel):
         company = self._document_company()
         return {
             **policy,
+            "attachment_origin": (
+                attachment.usl_documents_origin
+                if attachment and "usl_documents_origin" in attachment._fields
+                else self.env.context.get(
+                    "usl_documents_policy_origin",
+                    "documents_workspace",
+                )
+            ),
             "company_id": company.id,
             "tags": [],
             "entity_tags": [],
@@ -152,6 +188,7 @@ class DocumentLinkMixin(models.AbstractModel):
         operation = self.env["usl.document.operation"].queue_attachment(
             attachment,
             source=source,
+            force_on_request=True,
         )
         if not operation:
             raise UserError(_("This attachment is not eligible for archival."))
@@ -165,6 +202,19 @@ class DocumentLinkMixin(models.AbstractModel):
 class AccountMove(models.Model):
     _name = "account.move"
     _inherit = ["account.move", "usl.document.link.mixin"]
+
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "accounting_move_evidence",
+            "confidentiality": "accounting",
+            "accounting_evidence": True,
+        }
 
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
@@ -200,6 +250,19 @@ class HrExpense(models.Model):
     _name = "hr.expense"
     _inherit = ["hr.expense", "usl.document.link.mixin"]
 
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "expense_evidence",
+            "confidentiality": "accounting",
+            "accounting_evidence": True,
+        }
+
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
         values = super()._document_archive_context(attachment)
@@ -226,6 +289,23 @@ class ResPartner(models.Model):
     _name = "res.partner"
     _inherit = ["res.partner", "usl.document.link.mixin"]
 
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if (
+            policy["archive_mode"] != "never"
+            and policy.get("document_role") != "evidence"
+            and attachment
+            and attachment.usl_documents_origin == "chatter"
+        ):
+            policy.update(
+                {
+                    "archive_mode": "on_request",
+                    "document_role": "library",
+                    "policy_reason": "contact_chatter_on_request",
+                },
+            )
+        return policy
+
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
         values = super()._document_archive_context(attachment)
@@ -237,6 +317,23 @@ class ResCompany(models.Model):
     _name = "res.company"
     _inherit = ["res.company", "usl.document.link.mixin"]
 
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if (
+            policy["archive_mode"] != "never"
+            and policy.get("document_role") != "evidence"
+            and attachment
+            and attachment.usl_documents_origin == "chatter"
+        ):
+            policy.update(
+                {
+                    "archive_mode": "on_request",
+                    "document_role": "library",
+                    "policy_reason": "company_chatter_on_request",
+                },
+            )
+        return policy
+
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
         values = super()._document_archive_context(attachment)
@@ -247,6 +344,39 @@ class ResCompany(models.Model):
 class ProjectProject(models.Model):
     _name = "project.project"
     _inherit = ["project.project", "usl.document.link.mixin"]
+
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never" or policy["document_role"] == "evidence":
+            return policy
+        origin = (
+            attachment.usl_documents_origin
+            if attachment
+            else self.env.context.get(
+                "usl_documents_policy_origin",
+                "documents_workspace",
+            )
+        )
+        if origin == "chatter":
+            return {
+                **policy,
+                "archive_mode": "on_request",
+                "document_role": "library",
+                "policy_reason": "project_chatter_on_request",
+            }
+        if origin == "documents_workspace":
+            return {
+                **policy,
+                "archive_mode": "automatic",
+                "document_role": "library",
+                "policy_reason": "project_documents_upload",
+            }
+        return {
+            **policy,
+            "archive_mode": "automatic",
+            "document_role": "background",
+            "policy_reason": "project_direct_attachment",
+        }
 
     def _document_archive_context(self, attachment=None):
         self.ensure_one()
@@ -277,6 +407,13 @@ class ProjectProject(models.Model):
 class ProjectTask(models.Model):
     _name = "project.task"
     _inherit = ["project.task", "usl.document.link.mixin"]
+
+    def _document_archive_policy(self, attachment):
+        return (
+            self.project_id._document_archive_policy(attachment)
+            if self.project_id
+            else super()._document_archive_policy(attachment)
+        )
 
     def _document_related_records(self, attachment=None):
         self.ensure_one()
@@ -318,9 +455,16 @@ class HrEmployee(models.Model):
     _inherit = ["hr.employee", "usl.document.link.mixin"]
 
     def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
         return {
-            **super()._document_archive_policy(attachment),
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "employee_evidence",
             "confidentiality": "hr",
+            "accounting_evidence": True,
         }
 
     def _document_archive_context(self, attachment=None):
@@ -333,6 +477,19 @@ class HrEmployee(models.Model):
 class AccountPayment(models.Model):
     _name = "account.payment"
     _inherit = ["account.payment", "usl.document.link.mixin"]
+
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        if policy["archive_mode"] == "never":
+            return policy
+        return {
+            **policy,
+            "archive_mode": "mandatory",
+            "document_role": "evidence",
+            "policy_reason": "payment_evidence",
+            "confidentiality": "accounting",
+            "accounting_evidence": True,
+        }
 
     def _document_related_records(self, attachment=None):
         self.ensure_one()
@@ -374,7 +531,9 @@ class IrAttachment(models.Model):
             ).exists()
             if not record:
                 raise UserError(_("The attachment's business record no longer exists."))
-            operations |= attachment._queue_usl_documents_archive()
+            operations |= attachment._queue_usl_documents_archive(
+                force_on_request=True,
+            )
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",

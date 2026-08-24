@@ -25,6 +25,31 @@ CONFIDENTIALITIES = [
     ("private", "Creator private"),
 ]
 
+ARCHIVE_MODES = [
+    ("mandatory", "Mandatory retention"),
+    ("automatic", "Automatic"),
+    ("on_request", "Keep on request"),
+    ("never", "Excluded"),
+]
+
+DOCUMENT_ROLES = [
+    ("evidence", "Evidence"),
+    ("library", "Library"),
+    ("background", "Background"),
+]
+
+ATTACHMENT_ORIGINS = [
+    ("documents_workspace", "Documents workspace"),
+    ("direct_record", "Direct record upload"),
+    ("chatter", "Chatter"),
+    ("portal", "Portal"),
+    ("generated_final", "Generated final output"),
+    ("generated_transient", "Generated transient output"),
+    ("external_paperless", "External Paperless intake"),
+    ("migration", "Migration"),
+    ("backfill", "Backfill"),
+]
+
 
 class UslDocument(models.Model):
     _name = "usl.document"
@@ -94,6 +119,24 @@ class UslDocument(models.Model):
         help=(
             "Linked-record documents are visible only to Documents users who can "
             "read at least one active related Odoo record."
+        ),
+    )
+    intake_role = fields.Selection(
+        DOCUMENT_ROLES,
+        required=True,
+        default="background",
+        index=True,
+        readonly=True,
+        help=(
+            "Odoo presentation role captured when the Paperless root entered "
+            "Documents. Business relationships carry their own role."
+        ),
+    )
+    is_prominent = fields.Boolean(
+        compute="_compute_is_prominent",
+        help=(
+            "Prominent roots may appear in Home and My library. Background-only "
+            "roots remain available from business context and archive search."
         ),
     )
     permitted_user_ids = fields.Many2many(
@@ -276,6 +319,18 @@ class UslDocument(models.Model):
     def _compute_link_count(self):
         for document in self:
             document.link_count = len(document._accessible_active_links())
+
+    @api.depends("intake_role", "link_ids.active", "link_ids.document_role")
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_is_prominent(self):
+        for document in self:
+            accessible_roles = document._accessible_active_links().mapped(
+                "document_role",
+            )
+            document.is_prominent = (
+                document.intake_role in {"evidence", "library"}
+                or bool({"evidence", "library"}.intersection(accessible_roles))
+            )
 
     def _accessible_active_links(self):
         """Return links whose target record is readable by the current user."""
@@ -690,6 +745,7 @@ class UslDocument(models.Model):
             "permitted_user_ids",
             "retention_hold",
             "deletion_reason",
+            "intake_role",
         }
         cache_fields = {
             "name",
@@ -1589,6 +1645,8 @@ class UslDocument(models.Model):
             "filename": item.original_filename,
             "mime_type": item.mime_type,
             "source": item.source,
+            "intake_role": item.intake_role,
+            "is_prominent": item.is_prominent,
             "current_version": item.current_version_label,
             "version_count": len(item.version_ids),
             "link_count": item.link_count,
@@ -2136,6 +2194,7 @@ class UslDocument(models.Model):
                         "model_label": self.env["ir.model"]._get(link.res_model).name,
                         "res_id": link.res_id,
                         "company": link.company_id.display_name,
+                        "document_role": link.document_role,
                         "linked_by": link.linked_by_id.display_name,
                         "linked_at": link.linked_at,
                         "version_id": link.version_id,
@@ -2445,8 +2504,14 @@ class UslDocument(models.Model):
         if not self.env.su and company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
         archive_context = (
-            source_record._document_archive_context(
-                operation.source_attachment_id if operation else None,
+            (
+                operation.context_json
+                if operation and operation.context_json
+                else source_record.with_context(
+                    usl_documents_policy_origin="documents_workspace",
+                )._document_archive_context(
+                    operation.source_attachment_id if operation else None,
+                )
             )
             if source_record
             else {
@@ -2454,6 +2519,10 @@ class UslDocument(models.Model):
                 "confidentiality": confidentiality,
                 "accounting_evidence": False,
                 "access_scope": "company",
+                "archive_mode": "automatic",
+                "document_role": "library",
+                "attachment_origin": "documents_workspace",
+                "policy_reason": "generic_documents_upload",
                 "tags": [],
                 "entity_tags": [],
                 "tag_record_ids": [],
@@ -2463,7 +2532,11 @@ class UslDocument(models.Model):
         )
         confidentiality = archive_context.get("confidentiality") or confidentiality
         checksum = hashlib.sha256(content).hexdigest()
-        metadata_hash = self._archive_metadata_hash(archive_context)
+        metadata_hash = (
+            operation.metadata_hash
+            if operation and operation.metadata_hash
+            else self._archive_metadata_hash(archive_context)
+        )
         retry_operation = self.env["usl.document.operation"].search(
             [
                 ("checksum", "=", checksum),
@@ -2487,6 +2560,7 @@ class UslDocument(models.Model):
                 archive_context = self._prepare_archive_context(
                     source_record,
                     operation.source_attachment_id if operation else None,
+                    context=archive_context,
                 )
             if matching_version:
                 archive_context = {
@@ -2541,6 +2615,7 @@ class UslDocument(models.Model):
             archive_context = self._prepare_archive_context(
                 source_record,
                 operation.source_attachment_id if operation else None,
+                context=archive_context,
             )
         remote_candidates = self._paperless().search(
             "", page=1, page_size=2, filters={"checksum": checksum},
@@ -2629,6 +2704,16 @@ class UslDocument(models.Model):
                     archive_context.get("accounting_evidence"),
                 ),
                 "access_scope": archive_context.get("access_scope") or "linked_record",
+                "archive_mode": archive_context.get("archive_mode") or "automatic",
+                "document_role": archive_context.get("document_role") or "library",
+                "attachment_origin": (
+                    archive_context.get("attachment_origin")
+                    or "documents_workspace"
+                ),
+                "policy_reason": (
+                    archive_context.get("policy_reason")
+                    or "generic_documents_upload"
+                ),
                 "context_json": archive_context,
                 "error_message": _(
                     "Identical content exists outside your authorized Odoo archive "
@@ -2664,6 +2749,14 @@ class UslDocument(models.Model):
             "source": source,
             "accounting_evidence": bool(archive_context.get("accounting_evidence")),
             "access_scope": archive_context.get("access_scope") or "linked_record",
+            "archive_mode": archive_context.get("archive_mode") or "automatic",
+            "document_role": archive_context.get("document_role") or "library",
+            "attachment_origin": (
+                archive_context.get("attachment_origin") or "documents_workspace"
+            ),
+            "policy_reason": (
+                archive_context.get("policy_reason") or "generic_documents_upload"
+            ),
             "context_json": archive_context,
             "retry_of_id": retry_operation.id,
             "retry_count": (retry_operation.retry_count + 1)
@@ -2704,13 +2797,27 @@ class UslDocument(models.Model):
             % {"document": filename},
         }
 
-    def link_to_record(self, res_model, res_id, version_id=None):
+    def link_to_record(
+        self,
+        res_model,
+        res_id,
+        version_id=None,
+        *,
+        archive_mode="automatic",
+        policy_role="library",
+        attachment_origin="documents_workspace",
+        policy_reason="manual_documents_link",
+    ):
         self.ensure_one()
         return self.env["usl.document.link"].create_for_record(
             self,
             res_model,
             int(res_id),
             version_id=version_id,
+            archive_mode=archive_mode,
+            policy_role=policy_role,
+            attachment_origin=attachment_origin,
+            policy_reason=policy_reason,
         )
 
     def upload_new_version(
@@ -2770,6 +2877,10 @@ class UslDocument(models.Model):
                 )
                 else "odoo_upload",
                 "target_document_id": self.id,
+                "archive_mode": "automatic",
+                "document_role": self.intake_role or "library",
+                "attachment_origin": "documents_workspace",
+                "policy_reason": "document_version_update",
             },
         )
         try:
@@ -3288,12 +3399,69 @@ class UslDocumentLink(models.Model):
         help="Paperless version that supports this business record, when legally relevant.",
         readonly=True,
     )
+    archive_mode = fields.Selection(
+        ARCHIVE_MODES,
+        required=True,
+        default="automatic",
+        readonly=True,
+        index=True,
+    )
+    policy_role = fields.Selection(
+        DOCUMENT_ROLES,
+        required=True,
+        default="library",
+        readonly=True,
+        index=True,
+        help="Document role resolved by the business archive policy.",
+    )
+    document_role = fields.Selection(
+        DOCUMENT_ROLES,
+        required=True,
+        default="library",
+        tracking=True,
+        index=True,
+        help=(
+            "Current Odoo presentation role. Promotion or demotion changes only "
+            "this relationship and never uploads another Paperless file."
+        ),
+    )
+    attachment_origin = fields.Selection(
+        ATTACHMENT_ORIGINS,
+        required=True,
+        default="migration",
+        readonly=True,
+        index=True,
+    )
+    policy_reason = fields.Char(
+        required=True,
+        default="legacy_relationship_backfill_pending",
+        readonly=True,
+        index=True,
+    )
     active = fields.Boolean(default=True, tracking=True)
 
     _record_link_unique = models.Constraint(
         "UNIQUE(document_id, res_model, res_id)",
         "This archived document is already linked to that Odoo record.",
     )
+
+    @api.model_create_multi
+    def create(self, values_list):
+        protected = {
+            "archive_mode",
+            "policy_role",
+            "document_role",
+            "attachment_origin",
+            "policy_reason",
+        }
+        if any(protected.intersection(values) for values in values_list) and not (
+            self.env.su
+            and self.env.context.get("usl_documents_link_policy_write")
+        ):
+            raise AccessError(
+                _("Document relationship policy can only change through Documents."),
+            )
+        return super().create(values_list)
 
     @api.model
     def _allowed_models(self):
@@ -3309,7 +3477,18 @@ class UslDocumentLink(models.Model):
         }
 
     @api.model
-    def create_for_record(self, document, res_model, res_id, version_id=None):
+    def create_for_record(
+        self,
+        document,
+        res_model,
+        res_id,
+        version_id=None,
+        *,
+        archive_mode="automatic",
+        policy_role="library",
+        attachment_origin="documents_workspace",
+        policy_reason="manual_documents_link",
+    ):
         document.ensure_one()
         document.check_access("write")
         allow_trashed_link = (
@@ -3352,10 +3531,25 @@ class UslDocumentLink(models.Model):
             ("res_id", "=", res_id),
         ], limit=1)
         if existing:
+            diagnostics = {}
             if not existing.active:
-                existing.sudo().write({"active": True})
+                diagnostics["active"] = True
             if version_id and not existing.version_id:
-                existing.sudo().write({"version_id": str(version_id)})
+                diagnostics["version_id"] = str(version_id)
+            if existing.policy_reason == "legacy_relationship_backfill_pending":
+                diagnostics.update(
+                    {
+                        "archive_mode": archive_mode,
+                        "policy_role": policy_role,
+                        "document_role": policy_role,
+                        "attachment_origin": attachment_origin,
+                        "policy_reason": policy_reason,
+                    },
+                )
+            if diagnostics:
+                existing.sudo().with_context(
+                    usl_documents_link_policy_write=True,
+                ).write(diagnostics)
             if not self.env.context.get("usl_documents_defer_access_sync"):
                 document._recompute_linked_record_access(sync_permissions=True)
             return existing
@@ -3366,7 +3560,9 @@ class UslDocumentLink(models.Model):
                     "review_state": "classified",
                 },
             )
-        link = self.sudo().create(
+        link = self.sudo().with_context(
+            usl_documents_link_policy_write=True,
+        ).create(
             {
                 "document_id": document.id,
                 "res_model": res_model,
@@ -3387,6 +3583,11 @@ class UslDocumentLink(models.Model):
                     ].paperless_version_id
                     or False
                 ),
+                "archive_mode": archive_mode,
+                "policy_role": policy_role,
+                "document_role": policy_role,
+                "attachment_origin": attachment_origin,
+                "policy_reason": policy_reason,
             },
         )
         if not self.env.context.get("usl_documents_defer_access_sync"):
@@ -3431,6 +3632,20 @@ class UslDocumentLink(models.Model):
         return result
 
     def write(self, values):
+        protected = {
+            "archive_mode",
+            "policy_role",
+            "document_role",
+            "attachment_origin",
+            "policy_reason",
+        }
+        if protected.intersection(values) and not (
+            self.env.su
+            and self.env.context.get("usl_documents_link_policy_write")
+        ):
+            raise AccessError(
+                _("Document relationship policy can only change through Documents."),
+            )
         documents = self.mapped("document_id") if "active" in values else self.env[
             "usl.document"
         ]
@@ -3690,6 +3905,10 @@ class UslDocumentOperation(models.Model):
                             "access_scope": (
                                 getattr(operation, "access_scope", False)
                                 or "company"
+                            ),
+                            "intake_role": (
+                                getattr(operation, "document_role", False)
+                                or "background"
                             ),
                             "review_state": "classified",
                             "submitted_by_id": operation.user_id.id,

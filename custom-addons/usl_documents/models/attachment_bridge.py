@@ -5,9 +5,23 @@ import re
 from datetime import timedelta
 
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
+from .document import ARCHIVE_MODES, ATTACHMENT_ORIGINS, DOCUMENT_ROLES
 from .paperless_client import PaperlessError, PaperlessUnavailable
+
+ORIGIN_CAPTURE_TOKEN = object()
+
+ATTACHMENT_LEDGER_STATES = [
+    ("unresolved", "Policy not resolved"),
+    ("pending", "Archive pending"),
+    ("archived_evidence", "Archived evidence"),
+    ("archived_library", "Archived library"),
+    ("archived_background", "Archived background"),
+    ("native_only_on_request", "Native only — keep on request"),
+    ("explicitly_excluded", "Explicitly excluded"),
+    ("blocked_failure", "Blocked failure"),
+]
 
 
 class DocumentContextTag(models.Model):
@@ -218,9 +232,9 @@ class UslDocument(models.Model):
         )
 
     @api.model
-    def _prepare_archive_context(self, source_record, attachment=None):
+    def _prepare_archive_context(self, source_record, attachment=None, *, context=None):
         source_record.ensure_one()
-        context = source_record._document_archive_context(attachment)
+        context = context or source_record._document_archive_context(attachment)
         company = self.env["res.company"].browse(context["company_id"]).exists()
         tags = self.env["usl.paperless.tag"]
         for name in context.get("tags") or []:
@@ -251,6 +265,17 @@ class UslDocument(models.Model):
     def _apply_archive_context(self, context, *, submitted_by=None):
         for document in self:
             actor = submitted_by or self.env.user
+            incoming_role = context.get("document_role") or "background"
+            if not context.get("related_records") and incoming_role in {
+                "evidence",
+                "library",
+            }:
+                role_rank = {"background": 0, "library": 1, "evidence": 2}
+                if role_rank[incoming_role] > role_rank[document.intake_role]:
+                    document.sudo().with_context(
+                        usl_documents_policy_write=True,
+                        skip_permission_invalidation=True,
+                    ).write({"intake_role": incoming_role})
             for target in context.get("related_records") or []:
                 record = self.env[target["model"]].with_user(actor).browse(
                     int(target["id"]),
@@ -362,6 +387,19 @@ class UslDocument(models.Model):
                     target["model"],
                     int(target["id"]),
                     version_id=target.get("version_id"),
+                    archive_mode=context.get("archive_mode") or "automatic",
+                    policy_role=(
+                        target.get("document_role")
+                        or context.get("document_role")
+                        or "library"
+                    ),
+                    attachment_origin=(
+                        context.get("attachment_origin") or "migration"
+                    ),
+                    policy_reason=(
+                        context.get("policy_reason")
+                        or "legacy_relationship_backfill_pending"
+                    ),
                 )
             document._recompute_linked_record_access(sync_permissions=True)
         return True
@@ -385,6 +423,19 @@ class UslDocument(models.Model):
                     target["model"],
                     int(target["id"]),
                     version_id=target.get("version_id"),
+                    archive_mode=context.get("archive_mode") or "automatic",
+                    policy_role=(
+                        target.get("document_role")
+                        or context.get("document_role")
+                        or "library"
+                    ),
+                    attachment_origin=(
+                        context.get("attachment_origin") or "migration"
+                    ),
+                    policy_reason=(
+                        context.get("policy_reason")
+                        or "legacy_relationship_backfill_pending"
+                    ),
                 )
             document.sudo().with_context(
                 usl_documents_cache_write=True,
@@ -410,23 +461,91 @@ class IrAttachment(models.Model):
         r"^dbfamilycid\d+\.(?:gif|jpe?g|png|webp)$",
         re.IGNORECASE,
     )
+    usl_documents_origin = fields.Selection(
+        ATTACHMENT_ORIGINS,
+        string="Documents origin",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    usl_documents_archive_mode = fields.Selection(
+        ARCHIVE_MODES,
+        string="Documents archive mode",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    usl_documents_document_role = fields.Selection(
+        DOCUMENT_ROLES,
+        string="Documents role",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    usl_documents_policy_reason = fields.Char(
+        string="Documents policy reason",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    usl_documents_ledger_state = fields.Selection(
+        ATTACHMENT_LEDGER_STATES,
+        string="Documents ledger state",
+        readonly=True,
+        copy=False,
+        default="unresolved",
+        index=True,
+    )
+
+    @api.model
+    def _usl_documents_policy_fields(self):
+        return {
+            "usl_documents_origin",
+            "usl_documents_archive_mode",
+            "usl_documents_document_role",
+            "usl_documents_policy_reason",
+            "usl_documents_ledger_state",
+        }
+
+    @api.model
+    def _usl_documents_trusted_origin(self):
+        if self.env.context.get("usl_documents_origin_token") is not ORIGIN_CAPTURE_TOKEN:
+            return False
+        origin = self.env.context.get("usl_documents_attachment_origin")
+        return origin if origin in dict(ATTACHMENT_ORIGINS) else False
+
+    def _usl_documents_default_origin(self):
+        self.ensure_one()
+        return self._usl_documents_trusted_origin() or (
+            "portal" if self.env.user.share else "direct_record"
+        )
 
     @api.model_create_multi
     def create(self, values_list):
+        if not self._usl_documents_trusted_origin():
+            protected = self._usl_documents_policy_fields()
+            values_list = [
+                {
+                    key: value
+                    for key, value in values.items()
+                    if key not in protected
+                }
+                for values in values_list
+            ]
         attachments = super().create(values_list)
         attachments._queue_usl_documents_archive()
         return attachments
 
-    def _usl_documents_archive_eligibility(self):
+    def _usl_documents_technical_exclusion(self):
         self.ensure_one()
         if self.type != "binary" or not self.res_model or not self.res_id:
-            return False, "not_a_stored_business_file"
+            return "not_a_stored_business_file"
         if self.res_field:
-            return False, "binary_or_image_field"
+            return "binary_or_image_field"
         if self.res_model not in self.env["usl.document.link"]._allowed_models():
-            return False, "unsupported_business_model"
+            return "unsupported_business_model"
         if not self.file_size or not self.checksum:
-            return False, "empty_or_unreadable"
+            return "empty_or_unreadable"
         name = str(self.name or "").strip()
         normalized_name = name.casefold()
         suffix = f".{normalized_name.rsplit('.', 1)[-1]}" if "." in normalized_name else ""
@@ -434,30 +553,118 @@ class IrAttachment(models.Model):
             # Paperless intentionally supports document formats it can consume.
             # Keep other authoritative evidence on the native business record and
             # classify it explicitly instead of feeding a permanent retry loop.
-            return False, "unsupported_archive_format"
+            return "unsupported_archive_format"
         if self._usl_documents_inline_image_name.fullmatch(name):
-            return False, "inline_message_image"
+            return "inline_message_image"
         if str(self.mimetype or "").casefold().startswith("image/") and self.file_size <= 512:
             # Real evidence cannot be meaningfully inspected at this size. These
             # are mail-client tracking pixels and disposable placeholder images.
-            return False, "inline_or_placeholder_image"
+            return "inline_or_placeholder_image"
         record = self.env[self.res_model].browse(self.res_id).exists()
         if not record:
-            return False, "missing_business_record"
-        policy = record._document_archive_policy(self)
-        if not policy.get("archive", True):
-            return False, policy.get("reason") or "record_policy"
+            return "missing_business_record"
+        return False
+
+    def _usl_documents_capture_policy(
+        self,
+        *,
+        origin=None,
+        refresh=False,
+        exclusion_reason=None,
+    ):
+        self.ensure_one()
+        origin = origin or self.usl_documents_origin or self._usl_documents_default_origin()
+        if origin not in dict(ATTACHMENT_ORIGINS):
+            raise UserError(_("The attachment origin is not supported."))
+        if refresh or self.usl_documents_origin != origin:
+            self.sudo().with_context(
+                usl_documents_attachment_policy_write=True,
+            ).write({"usl_documents_origin": origin})
+
+        exclusion_reason = exclusion_reason or self._usl_documents_technical_exclusion()
+        if exclusion_reason:
+            policy = {
+                "archive_mode": "never",
+                "document_role": "background",
+                "policy_reason": exclusion_reason,
+            }
+        else:
+            record = self.env[self.res_model].browse(self.res_id).exists()
+            policy = record._document_archive_policy(self)
+        archive_mode = policy.get("archive_mode")
+        document_role = policy.get("document_role")
+        policy_reason = str(policy.get("policy_reason") or "").strip()
+        if (
+            archive_mode not in dict(ARCHIVE_MODES)
+            or document_role not in dict(DOCUMENT_ROLES)
+            or not policy_reason
+        ):
+            raise UserError(_("The business record returned an incomplete archive policy."))
+        ledger_state = {
+            "mandatory": "pending",
+            "automatic": "pending",
+            "on_request": "native_only_on_request",
+            "never": "explicitly_excluded",
+        }[archive_mode]
+        values = {
+            "usl_documents_origin": origin,
+            "usl_documents_archive_mode": archive_mode,
+            "usl_documents_document_role": document_role,
+            "usl_documents_policy_reason": policy_reason,
+            "usl_documents_ledger_state": ledger_state,
+        }
+        if refresh or any(self[field] != value for field, value in values.items()):
+            self.sudo().with_context(
+                usl_documents_attachment_policy_write=True,
+            ).write(values)
+        return {
+            **policy,
+            "archive_mode": archive_mode,
+            "document_role": document_role,
+            "policy_reason": policy_reason,
+            "attachment_origin": origin,
+        }
+
+    def _usl_documents_archive_eligibility(
+        self,
+        *,
+        force_on_request=False,
+        origin=None,
+        refresh=False,
+        exclusion_reason=None,
+    ):
+        self.ensure_one()
+        policy = self._usl_documents_capture_policy(
+            origin=origin,
+            refresh=refresh,
+            exclusion_reason=exclusion_reason,
+        )
+        if policy["archive_mode"] == "never":
+            return False, policy["policy_reason"]
+        if policy["archive_mode"] == "on_request" and not force_on_request:
+            return False, "on_request"
         return True, False
 
-    def _queue_usl_documents_archive(self):
+    def _queue_usl_documents_archive(
+        self,
+        *,
+        force_on_request=False,
+        origin=None,
+        refresh=False,
+    ):
         if self.env.context.get("usl_documents_skip_attachment_queue"):
             return self.env["usl.document.operation"]
         queued = self.env["usl.document.operation"]
         for attachment in self:
-            eligible, _reason = attachment._usl_documents_archive_eligibility()
+            eligible, _reason = attachment._usl_documents_archive_eligibility(
+                force_on_request=force_on_request,
+                origin=origin,
+                refresh=refresh,
+            )
             if eligible:
                 queued |= self.env["usl.document.operation"].queue_attachment(
                     attachment,
+                    force_on_request=force_on_request,
                 )
         return queued
 
@@ -467,19 +674,57 @@ class IrAttachment(models.Model):
         return result
 
     def write(self, values):
+        protected = self._usl_documents_policy_fields().intersection(values)
+        internal_policy_write = (
+            self.env.su
+            and self.env.context.get("usl_documents_attachment_policy_write")
+        )
+        if protected and not internal_policy_write:
+            raise AccessError(
+                _("Attachment archive policy can only change through Documents."),
+            )
         archive_target_changed = bool(
             {"raw", "res_model", "res_id", "res_field"}.intersection(
                 values,
             ),
         )
+        policy_target_changed = bool(
+            {"res_model", "res_id", "res_field"}.intersection(values),
+        )
         result = super().write(values)
-        if archive_target_changed:
-            self._queue_usl_documents_archive()
+        if archive_target_changed and not internal_policy_write:
+            self._queue_usl_documents_archive(refresh=policy_target_changed)
         return result
+
+    def action_keep_in_documents(self):
+        operations = self.env["usl.document.operation"]
+        for attachment in self:
+            attachment.check_access("read")
+            operations |= attachment._queue_usl_documents_archive(
+                force_on_request=True,
+            )
+        if not operations:
+            raise UserError(_("This file cannot be kept in Documents."))
+        return operations
 
 
 class MailThread(models.AbstractModel):
     _inherit = "mail.thread"
+
+    def message_post(self, **kwargs):
+        if kwargs.get("attachments") and (
+            self.env.context.get("usl_documents_origin_token")
+            is not ORIGIN_CAPTURE_TOKEN
+        ):
+            origin = "portal" if self.env.user.share else "chatter"
+            return super(
+                MailThread,
+                self.with_context(
+                    usl_documents_origin_token=ORIGIN_CAPTURE_TOKEN,
+                    usl_documents_attachment_origin=origin,
+                ),
+            ).message_post(**kwargs)
+        return super().message_post(**kwargs)
 
     def _message_post_after_hook(self, message, msg_values):
         result = super()._message_post_after_hook(message, msg_values)
@@ -502,6 +747,12 @@ class MailThread(models.AbstractModel):
                     ("state", "=", "pending"),
                 ],
             ).unlink()
+            for attachment in inline:
+                attachment._usl_documents_capture_policy(
+                    origin=attachment.usl_documents_origin or "chatter",
+                    refresh=True,
+                    exclusion_reason="inline_message_image",
+                )
         (attachments - inline)._queue_usl_documents_archive()
         return result
 
@@ -540,6 +791,33 @@ class UslDocumentOperation(models.Model):
         "ir.attachment", readonly=True, index=True, ondelete="set null",
     )
     source_attachment_checksum = fields.Char(readonly=True, index=True)
+    archive_mode = fields.Selection(
+        ARCHIVE_MODES,
+        required=True,
+        default="automatic",
+        readonly=True,
+        index=True,
+    )
+    document_role = fields.Selection(
+        DOCUMENT_ROLES,
+        required=True,
+        default="library",
+        readonly=True,
+        index=True,
+    )
+    attachment_origin = fields.Selection(
+        ATTACHMENT_ORIGINS,
+        required=True,
+        default="migration",
+        readonly=True,
+        index=True,
+    )
+    policy_reason = fields.Char(
+        required=True,
+        default="legacy_operation_backfill_pending",
+        readonly=True,
+        index=True,
+    )
     metadata_hash = fields.Char(readonly=True, index=True)
     context_json = fields.Json(readonly=True)
     accounting_evidence = fields.Boolean(readonly=True)
@@ -563,6 +841,8 @@ class UslDocumentOperation(models.Model):
 
     def write(self, values):
         result = super().write(values)
+        if "state" in values:
+            self._sync_source_attachment_ledger()
         if values.get("state") == "archived":
             for operation in self.filtered("source_attachment_id"):
                 superseded = self.sudo().search(
@@ -586,12 +866,44 @@ class UslDocumentOperation(models.Model):
                     )
         return result
 
+    def _sync_source_attachment_ledger(self):
+        for operation in self.filtered("source_attachment_id"):
+            ledger_state = {
+                "pending": "pending",
+                "uploading": "pending",
+                "processing": "pending",
+                "archived": f"archived_{operation.document_role}",
+                "duplicate": "blocked_failure",
+                "failed": "blocked_failure",
+            }[operation.state]
+            operation.source_attachment_id.sudo().with_context(
+                usl_documents_attachment_policy_write=True,
+            ).write({"usl_documents_ledger_state": ledger_state})
+        return True
+
     @api.model
-    def queue_attachment(self, attachment, *, source="odoo_attachment"):
+    def queue_attachment(
+        self,
+        attachment,
+        *,
+        source="odoo_attachment",
+        force_on_request=False,
+    ):
         attachment.ensure_one()
-        eligible, _reason = attachment._usl_documents_archive_eligibility()
+        eligible, _reason = attachment._usl_documents_archive_eligibility(
+            force_on_request=force_on_request,
+        )
         if not eligible:
             return self.browse()
+        record = self.env[attachment.res_model].browse(attachment.res_id).exists()
+        context = {
+            **record._document_archive_context(attachment),
+            "archive_mode": attachment.usl_documents_archive_mode,
+            "document_role": attachment.usl_documents_document_role,
+            "attachment_origin": attachment.usl_documents_origin,
+            "policy_reason": attachment.usl_documents_policy_reason,
+        }
+        metadata_hash = self.env["usl.document"]._archive_metadata_hash(context)
         existing = self.sudo().search(
             [
                 ("source_attachment_id", "=", attachment.id),
@@ -600,6 +912,17 @@ class UslDocumentOperation(models.Model):
             limit=1,
         )
         if existing:
+            if existing.policy_reason == "legacy_operation_backfill_pending":
+                existing.sudo().write(
+                    {
+                        "archive_mode": attachment.usl_documents_archive_mode,
+                        "document_role": attachment.usl_documents_document_role,
+                        "attachment_origin": attachment.usl_documents_origin,
+                        "policy_reason": attachment.usl_documents_policy_reason,
+                        "context_json": context,
+                        "metadata_hash": metadata_hash,
+                    },
+                )
             if source != "odoo_attachment" and existing.source == "odoo_attachment":
                 existing.sudo().write({"source": source})
             if existing.state == "failed":
@@ -613,10 +936,11 @@ class UslDocumentOperation(models.Model):
                         "acknowledged_at": False,
                     },
                 )
+            elif existing.state == "archived":
+                existing._sync_source_attachment_ledger()
+            else:
+                existing._sync_source_attachment_ledger()
             return existing
-        record = self.env[attachment.res_model].browse(attachment.res_id).exists()
-        context = record._document_archive_context(attachment)
-        metadata_hash = self.env["usl.document"]._archive_metadata_hash(context)
         previous = self.sudo().search(
             [
                 ("source_attachment_id", "=", attachment.id),
@@ -626,7 +950,7 @@ class UslDocumentOperation(models.Model):
             order="id desc",
             limit=1,
         )
-        return self.sudo().create(
+        operation = self.sudo().create(
             {
                 "name": attachment.name or _("Untitled attachment"),
                 "state": "pending",
@@ -641,12 +965,18 @@ class UslDocumentOperation(models.Model):
                 "source": source,
                 "source_attachment_id": attachment.id,
                 "source_attachment_checksum": attachment.checksum,
+                "archive_mode": attachment.usl_documents_archive_mode,
+                "document_role": attachment.usl_documents_document_role,
+                "attachment_origin": attachment.usl_documents_origin,
+                "policy_reason": attachment.usl_documents_policy_reason,
                 "metadata_hash": metadata_hash,
                 "context_json": context,
                 "target_document_id": previous.document_id.id or False,
                 "user_id": attachment.create_uid.id or self.env.user.id,
             },
         )
+        operation._sync_source_attachment_ledger()
+        return operation
 
     def _process_native_attachment(self):
         self.ensure_one()
@@ -682,13 +1012,16 @@ class UslDocumentOperation(models.Model):
                         },
                     )
                     return False
-                raw_context = source_record._document_archive_context(attachment)
-                metadata_hash = self.env["usl.document"]._archive_metadata_hash(
-                    raw_context,
+                raw_context = self.context_json or source_record._document_archive_context(
+                    attachment,
                 )
+                metadata_hash = self.metadata_hash or self.env[
+                    "usl.document"
+                ]._archive_metadata_hash(raw_context)
                 archive_context = self.env["usl.document"]._prepare_archive_context(
                     source_record,
                     attachment,
+                    context=raw_context,
                 )
                 task_id = self.env["usl.document"]._paperless().update_version(
                     self.target_document_id.paperless_id,
@@ -728,10 +1061,12 @@ class UslDocumentOperation(models.Model):
                     },
                 )
                 return False
-            raw_context = source_record._document_archive_context(attachment)
-            metadata_hash = self.env["usl.document"]._archive_metadata_hash(
-                raw_context,
+            raw_context = self.context_json or source_record._document_archive_context(
+                attachment,
             )
+            metadata_hash = self.metadata_hash or self.env[
+                "usl.document"
+            ]._archive_metadata_hash(raw_context)
             trashed, _matching_version = self.env[
                 "usl.document"
             ]._find_archive_fingerprint(
@@ -744,6 +1079,7 @@ class UslDocumentOperation(models.Model):
                 archive_context = self.env["usl.document"]._prepare_archive_context(
                     source_record,
                     attachment,
+                    context=raw_context,
                 )
                 trashed._register_trashed_archive_context(
                     archive_context,
@@ -867,7 +1203,10 @@ class UslDocumentOperation(models.Model):
         )
         queued = self.browse()
         for attachment in attachments:
-            queued |= attachment._queue_usl_documents_archive()
+            queued |= attachment._queue_usl_documents_archive(
+                origin=attachment.usl_documents_origin or "backfill",
+                refresh=not bool(attachment.usl_documents_origin),
+            )
         return {
             "scanned": len(attachments),
             "queued": len(queued),
