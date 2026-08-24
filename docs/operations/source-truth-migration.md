@@ -66,12 +66,14 @@ deferred. The strict `gate` remains the acceptance test for any future claim
 that every source application has been delivered.
 
 The August 2026 source also contains configured Inventory, Manufacturing and
-Quality applications, but no stock moves, pickings, quants, manufacturing
-orders, bills of materials or quality alerts. Their warehouse, route, location,
-valuation and quality configuration is classified as the deferred
-`inventory_manufacturing` scope. Product and accounting records continue
-through their implemented stages; the Distribution must not claim operational
-Inventory parity until that scope has its own translation and validation.
+Quality applications, but no stock moves, move lines, pickings, quants,
+valuation layers, manufacturing orders, bills of materials, quality points or
+quality checks. Product restoration now translates and validates the one
+warehouse, 23 locations, six routes, seven rules, 11 operation types, costing
+configuration, and these exact zero transaction baselines. This completes the
+source `inventory_manufacturing` scope without claiming that unrecorded physical
+stock is zero. An approved dated physical count remains an external release
+input and may only become a native opening inventory adjustment.
 
 Restore the source first with the same isolated project when necessary:
 
@@ -171,16 +173,32 @@ populated persistent models and 93 populated relation or unmapped tables. It
 verified 2,591 referenced filestore objects across 2,029 files without an
 integrity error.
 
-Accounting, global identity, Product Master, HR, Projects, Paie TESE, Platform
-Billing and the Paperless Documents archive have implemented translation
-stages. The current Distribution-scope gate passes. The strict production gate
-remains blocked—correctly—on collaboration history, 115 attachment actions,
+Accounting, global identity, Product Master, Inventory/Manufacturing
+configuration, B2C commerce, HR, Projects, Paie TESE, Platform Billing and the
+Paperless Documents archive have implemented translation stages. The current
+Distribution-scope gate passes. The strict production gate remains
+blocked—correctly—on collaboration history, remaining attachment actions,
 Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
-source AI configuration and Inventory, Manufacturing and Quality
-configuration. These are explicit gaps, not silently copied or represented as
-full parity. The latter scope currently
-contains configuration only: the source has no stock moves, pickings, quants,
-manufacturing orders, bills of materials or quality alerts.
+and source AI configuration. These are explicit gaps, not silently copied or
+represented as full parity. The separate physical opening-stock evidence item
+also remains blocking for B2C operational release even though it is not a fact
+contained in the source database.
+
+### B2C commerce stage
+
+B2C runs after Accounting and Product restoration. It parses 39 checksum-locked
+archive files directly from the read-only source filestore, creates canonical
+commerce records and immutable restricted evidence, and treats final Documents
+links as independently reviewable coverage. The source has zero native sales,
+payments and stock operations, so the stage does not manufacture any. It
+fingerprints Accounting, reconciliations, bank data, native payment records,
+Sales, Purchase, Stock and product cost history before and after import.
+
+The current archive baseline is 304 canonical orders, 235 Etsy line rows, 1,821
+payment/refund/fee events, 261 fulfilment/COGS rows, 59 pending aliases and 80
+monthly session scopes. Repeat import must preserve those counts and the same
+protected fingerprint. Detailed file and column dispositions live in
+`migration/b2c_restore/source-field-matrix.md`.
 
 ### Platform Billing stage
 

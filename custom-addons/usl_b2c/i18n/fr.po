@@ -1,0 +1,2795 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_b2c
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-24 21:06+0000\n"
+"PO-Revision-Date: 2026-08-24 21:15+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "A B2C accounting session must start on the first day of a month."
+msgstr "Une session comptable B2C doit commencer le premier jour du mois."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_channel_company_code_unique
+msgid "A B2C channel code must be unique per company."
+msgstr "Un code de canal B2C doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_provider_evidence_company_evidence_key_unique
+msgid "A B2C provider evidence key must be unique per company."
+msgstr "Une clé de preuve de prestataire B2C doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_channel_company_analytic_unique
+msgid "A Channel analytic account can be linked only once per company."
+msgstr ""
+"Un compte analytique du plan Canal ne peut être lié qu’une seule fois par "
+"société."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/product_alias.py:0
+msgid "A SKU alias requires a source SKU or listing identifier."
+msgstr "Un alias de SKU nécessite un SKU source ou un identifiant d’annonce."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/order.py:0
+msgid "A canonical B2C order can have only one primary source."
+msgstr ""
+"Une commande B2C canonique ne peut avoir qu’une seule source principale."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_order_company_canonical_key_unique
+msgid "A canonical B2C order key must be unique per company."
+msgstr "Une clé de commande B2C canonique doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_accounting_session_company_session_key_unique
+msgid "A monthly B2C accounting session scope must be unique per company."
+msgstr ""
+"Un périmètre de session comptable B2C mensuelle doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_fulfilment_event_company_provider_event_key_unique
+msgid "A provider fulfilment key must be unique per company."
+msgstr ""
+"Une clé de traitement logistique du prestataire doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_order_source_company_source_key_unique
+msgid "A provider order source key must be unique per company."
+msgstr ""
+"Une clé de source de commande du prestataire doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_payment_event_company_provider_event_key_unique
+msgid "A provider payment/refund/fee key must be unique per company."
+msgstr ""
+"Une clé de paiement, remboursement ou frais du prestataire doit être unique "
+"par société."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/event.py:0
+msgid "A refund event amount must be zero or negative."
+msgstr "Le montant d’un remboursement doit être nul ou négatif."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/product_alias.py:0
+msgid "A rejected SKU alias cannot retain a verified product."
+msgstr "Un alias de SKU rejeté ne peut pas conserver un produit vérifié."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_order_line_order_line_key_unique
+msgid "A source order line can be recorded only once on a canonical order."
+msgstr ""
+"Une ligne de commande source ne peut être enregistrée qu’une seule fois sur "
+"une commande canonique."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/order.py:0
+msgid "A verified B2C line mapping requires a product."
+msgstr "Une correspondance de ligne B2C vérifiée nécessite un produit."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/product_alias.py:0
+msgid "A verified SKU alias requires a product."
+msgstr "Un alias de SKU vérifié nécessite un produit."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__account_move_id
+msgid "Account Move"
+msgstr "Écriture comptable"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__account_move_line_id
+msgid "Account Move Line"
+msgstr "Ligne d'écriture comptable"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__account_payment_id
+msgid "Account Payment"
+msgstr "Paiement comptable"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__accounting_link_ids
+msgid "Accounting Evidence"
+msgstr "justificatif comptable"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__accounting_link_coverage_percent
+msgid "Accounting Link Coverage Percent"
+msgstr "Taux de couverture des liens comptables"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__accounting_link_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__accounting_link_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__accounting_link_state
+msgid "Accounting Link State"
+msgstr "État du lien comptable"
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_accounting
+msgid "Accounting Sessions"
+msgstr "Sessions comptables"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__accounting_link_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__accounting_link_ids
+msgid "Accounting and Bank Evidence"
+msgstr "Preuves comptables et bancaires"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_accounting_link
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_accounting_links
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Accounting and Bank Links"
+msgstr "Liens comptables et bancaires"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_needaction
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_needaction
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_needaction
+msgid "Action Needed"
+msgstr "Nécessite une action"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_ids
+msgid "Activities"
+msgstr "Activités"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_exception_decoration
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_exception_decoration
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Indicateur d’exception d’activité"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_plans_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_plans_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plans d'activité"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_state
+msgid "Activity State"
+msgstr "Statut de l'activité"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_type_icon
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_type_icon
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Icône de type d'activité"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__adjustment
+msgid "Adjustment"
+msgstr "Ajustement"
+
+#. module: usl_b2c
+#: model:res.groups,name:usl_b2c.group_b2c_manager
+msgid "Administrator"
+msgstr "Administrateur"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Affected Order Lines"
+msgstr "Lignes de commande concernées"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__alias_id
+msgid "Alias"
+msgstr "Alias"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__alias_key
+msgid "Alias Key"
+msgstr "Clé d’alias"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__amount
+msgid "Amount"
+msgstr "Montant"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__amount_completeness
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__amount_completeness
+msgid "Amount Completeness"
+msgstr "Complétude des montants"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Amounts and Coverage"
+msgstr "Montants et couverture"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "An accounting link requires a B2C business record."
+msgstr "Un lien comptable nécessite un enregistrement métier B2C."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "An accounting link requires a native or attachment target."
+msgstr "Un lien comptable nécessite une cible native ou une pièce jointe."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_product_alias_company_alias_key_unique
+msgid "An external product/SKU alias must be unique per company."
+msgstr "Un alias externe de produit ou de SKU doit être unique par société."
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics
+msgid "Analytics"
+msgstr "Analytique"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_opening_stock_state__approved
+msgid "Approved count received"
+msgstr "Comptage approuvé reçu"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_channel_form
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_catalog_classification__capability_test
+msgid "Archived capability test"
+msgstr "Test de capacité archivé"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__attachment_id
+msgid "Attachment"
+msgstr "Pièce jointe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_attachment_count
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_attachment_count
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__authorized
+msgid "Authorized"
+msgstr "Autorisé"
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_root
+msgid "B2C"
+msgstr "B2C"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_accounting_link
+msgid "B2C Accounting and Bank Evidence Link"
+msgstr "Lien B2C vers une preuve comptable ou bancaire"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+msgid "B2C Business Record"
+msgstr "Enregistrement métier B2C"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_graph
+msgid "B2C COGS by Month and Provider"
+msgstr "CMV B2C par mois et prestataire"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_product_product__b2c_catalog_classification
+#: model:ir.model.fields,field_description:usl_b2c.field_product_template__b2c_catalog_classification
+msgid "B2C Catalog Classification"
+msgstr "Classement du catalogue B2C"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_channel
+msgid "B2C Commercial Channel"
+msgstr "Canal commercial B2C"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_product_product__b2c_fulfilment_mode
+#: model:ir.model.fields,field_description:usl_b2c.field_product_template__b2c_fulfilment_mode
+msgid "B2C Fulfilment Mode"
+msgstr "Mode de traitement logistique B2C"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_pivot
+msgid "B2C Fulfilment and COGS"
+msgstr "Traitement logistique et CMV B2C"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_fulfilment_event
+msgid "B2C Fulfilment and COGS Event"
+msgstr "Événement de traitement logistique et de CMV B2C"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
+msgid "B2C Operations"
+msgstr "Opérations B2C"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_order_line
+msgid "B2C Order Line"
+msgstr "Ligne de commande B2C"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_pivot
+msgid "B2C Order Revenue and Coverage"
+msgstr "Chiffre d’affaires et couverture des commandes B2C"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_order_source
+msgid "B2C Order Source Evidence"
+msgstr "Preuve de source de commande B2C"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_payment_event
+msgid "B2C Payment, Refund and Fee Event"
+msgstr "Événement B2C de paiement, remboursement ou frais"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_pivot
+msgid "B2C Payments, Refunds and Fees"
+msgstr "Paiements, remboursements et frais B2C"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_graph
+msgid "B2C Refunds and Fees by Month"
+msgstr "Remboursements et frais B2C par mois"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_graph
+msgid "B2C Revenue by Month and Channel"
+msgstr "Chiffre d’affaires B2C par mois et canal"
+
+#. module: usl_b2c
+#: model:res.groups.privilege,name:usl_b2c.res_groups_privilege_b2c
+msgid "B2C Sales and Inventory"
+msgstr "Ventes et stocks B2C"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_pivot
+msgid "B2C Units and Evidenced Line Revenue"
+msgstr "Unités B2C et chiffre d’affaires justifié par ligne"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_graph
+msgid "B2C Units by Product / SKU"
+msgstr "Unités B2C par produit ou SKU"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/product.py:0
+msgid "B2C product classification fields may not be empty."
+msgstr "Les champs de classement B2C du produit ne peuvent pas être vides."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/event.py:0 code:addons/usl_b2c/models/order.py:0
+msgid "B2C refunds must be stored as negative amounts."
+msgstr ""
+"Les remboursements B2C doivent être enregistrés comme montants négatifs."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__bank
+msgid "Bank"
+msgstr "Banque"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__bank_link_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__bank_link_state
+msgid "Bank Link State"
+msgstr "État du lien bancaire"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__bank_statement_line_id
+msgid "Bank Transaction"
+msgstr "Transaction bancaire"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_state__blocked
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__review_state__blocked
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__review_state__blocked
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__review_state__blocked
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Blocked"
+msgstr "Bloqué"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_form
+msgid "Business Scope"
+msgstr "Périmètre métier"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__cogs
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+msgid "COGS"
+msgstr "Coût des marchandises vendues"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__state__cancelled
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__cancelled
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__cancelled
+msgid "Cancelled"
+msgstr "Annulé"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_order
+msgid "Canonical B2C Order"
+msgstr "Commande B2C canonique"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Canonical Business Identity"
+msgstr "Identité métier canonique"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__canonical_key
+msgid "Canonical Key"
+msgstr "Clé canonique"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_order
+msgid "Canonical Orders"
+msgstr "Commandes canoniques"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__captured
+msgid "Captured"
+msgstr "Capturé"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__channel_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__channel_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__channel_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__channel_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__channel_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__channel_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__channel_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_search
+msgid "Channel"
+msgstr "Chaîne"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__analytic_account_id
+msgid "Channel Analytic Account"
+msgstr "Compte analytique Canal"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__chargeback
+msgid "Chargeback"
+msgstr "Rétrofacturation"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__clearing
+msgid "Clearing"
+msgstr "Compte de passage"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__code
+msgid "Code"
+msgstr "Code"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__cogs_amount
+msgid "Cogs Amount"
+msgstr "Montant du CMV"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__cogs_company_amount
+msgid "Cogs Company Amount"
+msgstr "Montant du CMV en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_channel
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_channels
+msgid "Commercial Channels"
+msgstr "Canaux commerciaux"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_channel_form
+msgid "Commercial-channel operating notes…"
+msgstr "Notes d’exploitation du canal commercial…"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__company_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__company_amount
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+msgid "Company Amount"
+msgstr "Montant dans la devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_list
+msgid "Company COGS"
+msgstr "CMV en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__company_cogs_amount
+msgid "Company Cogs Amount"
+msgstr "Montant du CMV en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__company_currency_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__company_currency_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__company_currency_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__company_currency_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Company Currency"
+msgstr "Devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_form
+msgid "Company Currency and Evidence"
+msgstr "Devise de la société et preuves"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_form
+msgid "Company Currency and Native Links"
+msgstr "Devise de la société et liens natifs"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+msgid "Company Fees"
+msgstr "Frais en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+msgid "Company Net"
+msgstr "Net en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+msgid "Company Refunds"
+msgstr "Remboursements en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_list
+msgid "Company Revenue"
+msgstr "Chiffre d’affaires en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Company-Currency Metrics"
+msgstr "Indicateurs en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__evidenced_conversion_rate
+msgid "Company-currency units evidenced for one transaction-currency unit."
+msgstr ""
+"Unités en devise de la société justifiées pour une unité en devise de "
+"transaction."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__completeness_state__complete
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__amount_completeness__complete
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__amount_completeness__complete
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__completeness_state__complete
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__completeness_state__complete
+msgid "Complete"
+msgstr "Terminer"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__completeness_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__completeness_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__completeness_state
+msgid "Completeness State"
+msgstr "État de complétude"
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_configuration
+msgid "Configuration"
+msgstr "Configuration"
+
+#. module: usl_b2c
+#: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_channel
+msgid "Configure a commercial B2C channel"
+msgstr "Configurer un canal commercial B2C"
+
+#. module: usl_b2c
+#: model:res.groups,comment:usl_b2c.group_b2c_manager
+msgid ""
+"Configure channels, govern mappings and evidence, and unlock accounting "
+"sessions."
+msgstr ""
+"Configurer les canaux, gouverner les correspondances et les preuves, et "
+"déverrouiller les sessions comptables."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__confirmed
+msgid "Confirmed"
+msgstr "Confirmé"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__contains_pii
+msgid "Contains Pii"
+msgstr "Contient des données personnelles"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__conversion_evidence
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__conversion_evidence
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__conversion_evidence
+msgid "Conversion Evidence"
+msgstr "Preuve de conversion"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__conversion_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__conversion_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__conversion_state
+msgid "Conversion State"
+msgstr "État de conversion"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_form
+msgid "Cost and VAT Evidence"
+msgstr "Preuves de coût et de TVA"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__country_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__country_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+msgid "Country"
+msgstr "Pays"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Coverage"
+msgstr "Couverture"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Coverage Controls"
+msgstr "Contrôles de couverture"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__create_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__create_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__company_currency_id
+msgid "Currency"
+msgstr "Devise"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Currency Evidence"
+msgstr "Preuve de conversion de devise"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_current_stock
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics_current_stock
+msgid "Current Stock"
+msgstr "Stock actuel"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Dates and Scope"
+msgstr "Dates et périmètre"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__default_fulfilment_mode
+msgid "Default Fulfilment Mode"
+msgstr "Mode de traitement logistique par défaut"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__deposit
+msgid "Deposit"
+msgstr "Dépôt"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__destination_country_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+msgid "Destination Country"
+msgstr "Pays de destination"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__digitalization_cost_amount
+msgid "Digitalization Cost Amount"
+msgstr "Montant des frais de numérisation"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__discount_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__discount_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__discount_amount
+msgid "Discount Amount"
+msgstr "Montant de la remise"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__discount_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__discount_company_amount
+msgid "Discount Company Amount"
+msgstr "Remise en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__display_name
+#: model:ir.model.fields,field_description:usl_b2c.field_product_template__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__document_link_state
+msgid "Document Link State"
+msgstr "État du lien documentaire"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: usl_b2c
+#: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_channel
+msgid "Each channel links to the Accounting-owned analytic Channel plan."
+msgstr ""
+"Chaque canal est lié au plan analytique Canal géré par la Comptabilité."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__etsy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__etsy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__etsy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__etsy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__etsy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__etsy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__etsy
+msgid "Etsy"
+msgstr "Etsy"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__event_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__event_date
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Event Date"
+msgstr "Date de l’événement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__event_type
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Event Type"
+msgstr "Type d’événement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__evidence_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__evidence_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__evidence_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__evidence_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__evidence_id
+msgid "Evidence"
+msgstr "Justificatifs"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__evidence_key
+msgid "Evidence Key"
+msgstr "Clé des justificatifs"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__evidence_note
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__evidence_note
+msgid "Evidence Note"
+msgstr "Note justificative"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__evidenced_conversion_rate
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__evidenced_conversion_rate
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__evidenced_conversion_rate
+msgid "Evidenced Conversion Rate"
+msgstr "Taux de conversion justifié"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_channel__analytic_account_id
+msgid "Existing Accounting-owned analytic account in the Channel plan."
+msgstr "Compte analytique existant du plan Canal géré par la Comptabilité."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+msgid "Explain the business evidence supporting or rejecting this link…"
+msgstr "Expliquez la preuve métier qui justifie ou rejette ce lien…"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_product_alias
+msgid "External B2C Product and SKU Alias"
+msgstr "Alias externe de produit et de SKU B2C"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_checkout_session_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_checkout_session_id
+msgid "External Checkout Session"
+msgstr "Session de paiement externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__external_display_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_display_id
+msgid "External Display"
+msgstr "Référence d’affichage externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__external_fulfilment_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_fulfilment_id
+msgid "External Fulfilment"
+msgstr "Traitement logistique externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__external_line_id
+msgid "External Line"
+msgstr "Ligne externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__external_listing_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_listing_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__external_listing_id
+msgid "External Listing"
+msgstr "Annonce externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__external_order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__external_order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_order_id
+msgid "External Order"
+msgstr "Commande externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_original_payment_id
+msgid "External Original Payment"
+msgstr "Paiement initial externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_payment_intent_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_payment_intent_id
+msgid "External Payment Intent"
+msgstr "Intention de paiement externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_payout_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_payout_id
+msgid "External Payout"
+msgstr "Versement externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__external_printful_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_printful_id
+msgid "External Printful"
+msgstr "Identifiant Printful externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_refund_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_refund_id
+msgid "External Refund"
+msgstr "Remboursement externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_session_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_session_id
+msgid "External Session"
+msgstr "Session externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__external_transaction_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__external_transaction_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__external_transaction_id
+msgid "External Transaction"
+msgstr "Transaction externe"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__failed
+msgid "Failed"
+msgstr "Échec"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__fee
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__fee
+msgid "Fee"
+msgstr "Frais"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__fee_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__fee_amount
+msgid "Fee Amount"
+msgstr "Montant des frais"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__fee_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__fee_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__fee_company_amount
+msgid "Fee Company Amount"
+msgstr "Frais en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Fees"
+msgstr "Frais"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_follower_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_follower_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_follower_ids
+msgid "Followers"
+msgstr "Abonnés"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_partner_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_partner_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnés (Partenaires)"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__activity_type_icon
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__activity_type_icon
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Icône Font Awesome par ex. fa-tasks"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__state__fulfilled
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__fulfilled
+msgid "Fulfilled"
+msgstr "Traitée"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_form
+msgid "Fulfilment"
+msgstr "Traitement logistique"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__fulfilment_date
+msgid "Fulfilment Date"
+msgstr "Date de traitement logistique"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__fulfilment_event_id
+msgid "Fulfilment Event"
+msgstr "Événement de traitement logistique"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__fulfilment_event_ids
+msgid "Fulfilment Events"
+msgstr "Événements de traitement logistique"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__fulfilment_link_state
+msgid "Fulfilment Link State"
+msgstr "État du lien de traitement logistique"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__fulfilment_mode
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__fulfilment_mode
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+msgid "Fulfilment Mode"
+msgstr "Mode de traitement logistique"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_fulfilment_analytics
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_fulfilment_event
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics_cogs
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_fulfilments
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Fulfilment and COGS"
+msgstr "Traitement logistique et CMV"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+msgid "Gross Margin"
+msgstr "Marge brute"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__gross_margin_company_amount
+msgid "Gross Margin Company Amount"
+msgstr "Marge brute en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__has_message
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__has_message
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__has_message
+msgid "Has Message"
+msgstr "A un message"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__completeness_state__header_only
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__amount_completeness__header_only
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__amount_completeness__header_only
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__completeness_state__header_only
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__completeness_state__header_only
+msgid "Header only"
+msgstr "En-tête uniquement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__id
+#: model:ir.model.fields,field_description:usl_b2c.field_product_template__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_exception_icon
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_exception_icon
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_exception_icon
+msgid "Icon"
+msgstr "Icône"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__activity_exception_icon
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__activity_exception_icon
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icône pour indiquer une activité d'exception."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__message_needaction
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__message_needaction
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si coché, de nouveaux messages demandent votre attention."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__message_has_error
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__message_has_sms_error
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__message_has_error
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__message_has_sms_error
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__message_has_error
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si coché, certains messages ont une erreur de livraison."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Immutable"
+msgstr "Immuable"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+msgid "Immutable Native Evidence"
+msgstr "Preuve native immuable"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_provider_evidence__payload_json
+msgid ""
+"Immutable provider-business payload retained only when a source column has "
+"no typed destination. It is excluded from analytics."
+msgstr ""
+"Charge utile métier immuable du prestataire, conservée lorsqu’une colonne "
+"source n’a pas de destination typée. Elle est exclue des analyses."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__origin__imported
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__origin__imported
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__origin__imported
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__origin__imported
+msgid "Imported"
+msgstr "Importé"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+msgid "Incomplete"
+msgstr "Incomplet"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "Incomplete Coverage"
+msgstr "Couverture incomplète"
+
+#. module: usl_b2c
+#: model:res.groups,comment:usl_b2c.group_b2c_reader
+msgid ""
+"Inspect B2C commerce, mappings, sessions and linked business evidence "
+"without changing them."
+msgstr ""
+"Consulter les opérations B2C, les correspondances, les sessions et les "
+"preuves métier liées sans les modifier."
+
+#. module: usl_b2c
+#: model:res.groups,comment:usl_b2c.group_b2c_sensitive_evidence
+msgid ""
+"Inspect access-scoped provider payloads that can contain customer personal "
+"data."
+msgstr ""
+"Consulter les charges utiles des prestataires à accès restreint pouvant "
+"contenir des données personnelles de clients."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_is_follower
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_is_follower
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_is_follower
+msgid "Is Follower"
+msgstr "Est un abonné"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__is_primary
+msgid "Is Primary"
+msgstr "Source principale"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__write_uid
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__write_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__source_provider
+msgid "Leave empty for all commerce and processor providers."
+msgstr ""
+"Laissez vide pour inclure tous les prestataires de commerce et de paiement."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__channel_id
+msgid "Leave empty for the complete company/channel perimeter."
+msgstr ""
+"Laissez vide pour inclure tout le périmètre de la société et des canaux."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__medusa_legacy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__medusa_legacy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__medusa_legacy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__medusa_legacy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__medusa_legacy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__medusa_legacy
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__medusa_legacy
+msgid "Legacy Goodboys / Medusa"
+msgstr "Ancien Goodboys / Medusa"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_catalog_classification__legacy
+msgid "Legacy catalog"
+msgstr "Ancien catalogue"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__line_key
+msgid "Line Key"
+msgstr "Clé de ligne"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__line_revenue_company_amount
+msgid "Line Revenue Company Amount"
+msgstr "Chiffre d’affaires de ligne en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__line_revenue_coverage_percent
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__line_revenue_coverage_percent
+msgid "Line Revenue Coverage Percent"
+msgstr "Taux de couverture du chiffre d’affaires par les lignes"
+
+#. module: usl_b2c
+#: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_order_line_analytics
+msgid ""
+"Line-grain measures never include unallocated header revenue. Use Canonical "
+"Orders for total revenue and coverage."
+msgstr ""
+"Les mesures au niveau des lignes n’incluent jamais le chiffre d’affaires "
+"d’en-tête non ventilé. Utilisez Commandes canoniques pour le chiffre "
+"d’affaires total et sa couverture."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__link_key
+msgid "Link Key"
+msgstr "Clé de lien"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__link_state
+msgid "Link State"
+msgstr "État du lien"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__link_type
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
+msgid "Link Type"
+msgstr "Type de lien"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Links in a locked B2C session are immutable."
+msgstr "Les liens d’une session B2C verrouillée sont immuables."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Lock Session"
+msgstr "Verrouiller la session"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__state__locked
+msgid "Locked"
+msgstr "Verrouillé"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__locked_at
+msgid "Locked At"
+msgstr "Verrouillée le"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Locked B2C accounting sessions are immutable."
+msgstr "Les sessions comptables B2C verrouillées sont immuables."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__locked_by_id
+msgid "Locked By"
+msgstr "Verrouillée par"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__origin__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__origin__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__origin__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__origin__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__manual
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__manual
+msgid "Manual"
+msgstr "Manuel"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+msgid "Mapping"
+msgstr "Correspondance"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__mapping_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__mapping_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__mapping_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__mapping_state
+msgid "Mapping State"
+msgstr "État de la correspondance"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_search
+msgid "Mapping Status"
+msgstr "Statut de la correspondance"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Mark Reviewed"
+msgstr "Marquer comme révisé"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__medusa
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__medusa
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__medusa
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__medusa
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__medusa
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__medusa
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__medusa
+msgid "Medusa"
+msgstr "Medusa"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_has_error
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_has_error
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_has_error
+msgid "Message Delivery error"
+msgstr "Erreur d'envoi du message"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_ids
+msgid "Messages"
+msgstr "Messages"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_channel__default_fulfilment_mode__mixed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__fulfilment_mode__mixed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_mode__mixed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_fulfilment_mode__mixed
+msgid "Mixed"
+msgstr "Mélangé"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Month"
+msgstr "Mois"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_accounting_session
+msgid "Monthly Accounting Sessions"
+msgstr "Sessions comptables mensuelles"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_accounting_session
+msgid "Monthly B2C Accounting Session"
+msgstr "Session comptable B2C mensuelle"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Monthly Scope"
+msgstr "Périmètre mensuel"
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_accounting_sessions
+msgid "Monthly Sessions"
+msgstr "Sessions mensuelles"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__my_activity_date_deadline
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__my_activity_date_deadline
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "Échéance de mon activité"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__account_payment_id
+msgid "Native Account Payment"
+msgstr "Paiement comptable natif"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__payment_transaction_id
+msgid "Native Payment Transaction"
+msgstr "Transaction de paiement native"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__purchase_order_id
+msgid "Native Purchase Order"
+msgstr "Commande fournisseur native"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__sale_order_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Native Sale Order"
+msgstr "Commande client native"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__stock_move_id
+msgid "Native Stock Move"
+msgstr "Mouvement de stock natif"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__stock_picking_id
+msgid "Native Stock Picking"
+msgstr "Transfert de stock natif"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_form
+msgid "Native and Accounting Links"
+msgstr "Liens natifs et comptables"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+msgid "Net"
+msgstr "Net"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__net_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__net_amount
+msgid "Net Amount"
+msgstr "Montant net"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__net_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__net_company_amount
+msgid "Net Company Amount"
+msgstr "Montant net en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_date_deadline
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_date_deadline
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Échéance de l'activité à venir"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_summary
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_summary
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_summary
+msgid "Next Activity Summary"
+msgstr "Résumé de l'activité suivante"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_type_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_type_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_type_id
+msgid "Next Activity Type"
+msgstr "Type d'activités à venir"
+
+#. module: usl_b2c
+#: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_current_stock
+msgid ""
+"No native stock quantity is evidenced yet. Enter only an approved dated "
+"opening inventory adjustment."
+msgstr ""
+"Aucune quantité de stock native n’est encore justifiée. Saisissez uniquement "
+"un ajustement d’inventaire d’ouverture daté et approuvé."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_channel__default_fulfilment_mode__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__accounting_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__conversion_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__fulfilment_mode__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__order_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__accounting_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__bank_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__conversion_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__document_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_mode__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__mapping_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__payment_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__mapping_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__accounting_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__bank_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__conversion_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__mapping_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__order_link_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__mapping_state__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_fulfilment_mode__not_applicable
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_opening_stock_state__not_applicable
+msgid "Not applicable"
+msgstr "Non applicable"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_opening_stock_state__not_evidenced
+msgid "Not evidenced"
+msgstr "Non justifié"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__notes
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__notes
+msgid "Notes"
+msgstr "Notes"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Notes and Support"
+msgstr "Notes et justificatifs"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_needaction_counter
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_needaction_counter
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Nombre d'actions"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_has_error_counter
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_has_error_counter
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_has_error_counter
+msgid "Number of errors"
+msgstr "Nombre d'erreurs"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__message_needaction_counter
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__message_needaction_counter
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Nombre de messages nécessitant une action"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__message_has_error_counter
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__message_has_error_counter
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages avec des erreurs d'envoi"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__occurred_at
+msgid "Occurred At"
+msgstr "Survenu le"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Only a B2C manager can unlock a session."
+msgstr "Seul un responsable B2C peut déverrouiller une session."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Only draft B2C accounting sessions can be deleted."
+msgstr ""
+"Seules les sessions comptables B2C en brouillon peuvent être supprimées."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "Open"
+msgstr "Ouvert"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_product_product__b2c_opening_stock_state
+#: model:ir.model.fields,field_description:usl_b2c.field_product_template__b2c_opening_stock_state
+msgid "Opening Stock Evidence"
+msgstr "Justificatif du stock d’ouverture"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_opening_stock_state__entered
+msgid "Opening adjustment entered"
+msgstr "Ajustement d’ouverture saisi"
+
+#. module: usl_b2c
+#: model:res.groups,comment:usl_b2c.group_b2c_operator
+msgid "Operate B2C records and native Sales, Inventory and Purchase workflows."
+msgstr ""
+"Gérer les enregistrements B2C et les flux natifs de Ventes, Stocks et Achats."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_catalog_classification__operational
+msgid "Operational catalog"
+msgstr "Catalogue opérationnel"
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_operations
+msgid "Operations"
+msgstr "Opérations"
+
+#. module: usl_b2c
+#: model:res.groups,name:usl_b2c.group_b2c_operator
+msgid "Operator"
+msgstr "Opérateur"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__order_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__order_id
+msgid "Order"
+msgstr "Commander"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__order_count
+msgid "Order Count"
+msgstr "Nombre de commandes"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__order_date
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__order_date
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+msgid "Order Date"
+msgstr "Date de la commande"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__line_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__line_ids
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Order Lines"
+msgstr "Lignes de commande"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__order_link_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__order_link_state
+msgid "Order Link State"
+msgstr "État du lien de commande"
+
+#. module: usl_b2c
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_orders
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+msgid "Orders"
+msgstr "Commandes"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__origin
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__origin
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__origin
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__origin
+msgid "Origin"
+msgstr "Origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__origin_country_codes
+msgid "Origin Country Codes"
+msgstr "Codes des pays d’origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__original_country
+msgid "Original Country"
+msgstr "Pays d’origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__original_name
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__original_name
+msgid "Original Name"
+msgstr "Nom d’origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__original_event_id
+msgid "Original Payment Event"
+msgstr "Événement de paiement initial"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__original_provider_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__original_provider_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__original_provider_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__original_provider_state
+msgid "Original Provider State"
+msgstr "État d’origine du prestataire"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+msgid "Original SKU"
+msgstr "SKU d’origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__original_sku
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__original_sku
+msgid "Original Sku"
+msgstr "SKU d’origine"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Original Source Fact"
+msgstr "Fait source d’origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__original_variation
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__original_variation
+msgid "Original Variation"
+msgstr "Déclinaison d’origine"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__other
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__other
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__other
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__other
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__other
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__other
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__other
+msgid "Other"
+msgstr "Autre"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Overlapping Sources"
+msgstr "Sources qui se recoupent"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_channel__default_fulfilment_mode__own_stock
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__fulfilment_mode__own_stock
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_mode__own_stock
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_fulfilment_mode__own_stock
+msgid "Own stock"
+msgstr "Stock propre"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__accounting_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__completeness_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__order_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__accounting_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__amount_completeness__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__bank_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__document_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__mapping_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__payment_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__amount_completeness__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__mapping_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__completeness_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__accounting_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__bank_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__completeness_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__mapping_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__order_link_state__partial
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__mapping_state__partial
+msgid "Partial"
+msgstr "Partiel"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__state__partially_fulfilled
+msgid "Partially fulfilled"
+msgstr "Partiellement traitée"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__partially_refunded
+msgid "Partially refunded"
+msgstr "Partiellement remboursée"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__payload_digest
+msgid "Payload Digest"
+msgstr "Empreinte de la charge utile"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__payload_json
+msgid "Payload Json"
+msgstr "Charge utile JSON"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__payment
+msgid "Payment"
+msgstr "Paiement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__payment_date
+msgid "Payment Date"
+msgstr "Date de règlement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__payment_event_id
+msgid "Payment Event"
+msgstr "Événement de paiement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__payment_link_state
+msgid "Payment Link State"
+msgstr "État du lien de paiement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__payment_transaction_id
+msgid "Payment Transaction"
+msgstr "Transaction de paiement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__payment_event_ids
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+msgid "Payment and Refund Events"
+msgstr "Événements de paiement et de remboursement"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_payment_event
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_payments
+msgid "Payments, Refunds and Fees"
+msgstr "Paiements, remboursements et frais"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__payout
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__payout
+msgid "Payout"
+msgstr "Versement"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__accounting_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__order_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__review_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__accounting_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__bank_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__document_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__mapping_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__payment_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__review_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__mapping_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__accounting_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__bank_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__mapping_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__order_link_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__review_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__mapping_state__pending
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_search
+msgid "Pending"
+msgstr "En attente"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__pending_conversion_count
+msgid "Pending Conversion Count"
+msgstr "Nombre de conversions en attente"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__pending_link_count
+msgid "Pending Link Count"
+msgstr "Nombre de liens en attente"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__pending_mapping_count
+msgid "Pending Mapping Count"
+msgstr "Nombre de correspondances en attente"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Pending Review"
+msgstr "En attente d'examen"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__conversion_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__conversion_state__pending
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__conversion_state__pending
+msgid "Pending evidence"
+msgstr "Preuve en attente"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__period_end
+msgid "Period End"
+msgstr "Fin de période"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__period_start
+msgid "Period Start"
+msgstr "Début de période"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__printful
+msgid "Printful"
+msgstr "Printful"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_channel__default_fulfilment_mode__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__fulfilment_mode__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_mode__printful
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_fulfilment_mode__printful
+msgid "Printful / POD"
+msgstr "Printful / impression à la demande"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__conversion_state__processor_evidenced
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__conversion_state__processor_evidenced
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__conversion_state__processor_evidenced
+msgid "Processor evidenced"
+msgstr "Justifié par le prestataire de paiement"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_product_template
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__product_id
+msgid "Product"
+msgstr "Produit"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__product_cost_amount
+msgid "Product Cost Amount"
+msgstr "Montant du coût produit"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_product_alias
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_mappings
+msgid "Product and SKU Mappings"
+msgstr "Correspondances des produits et SKU"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_search
+msgid "Provider"
+msgstr "Fournisseur"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__provider_event_key
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__provider_event_key
+msgid "Provider Event Key"
+msgstr "Clé d’événement du prestataire"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_form
+msgid "Provider Identity"
+msgstr "Identité du prestataire"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__provider_payload_digest
+msgid "Provider Payload Digest"
+msgstr "Empreinte de la charge utile du prestataire"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_form
+msgid "Provider and Order"
+msgstr "Prestataire et commande"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__quantity
+msgid "Quantity"
+msgstr "Quantité"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__rating_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__rating_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__rating_ids
+msgid "Ratings"
+msgstr "Évaluations"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/evidence.py:0
+msgid "Raw provider evidence can only be created by the governed importer."
+msgstr ""
+"Les preuves brutes du prestataire ne peuvent être créées que par "
+"l’importateur gouverné."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/evidence.py:0
+msgid "Raw provider evidence is immutable."
+msgstr "Les preuves brutes du prestataire sont immuables."
+
+#. module: usl_b2c
+#: model:res.groups,name:usl_b2c.group_b2c_reader
+msgid "Read-only reviewer"
+msgstr "Réviseur en lecture seule"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__pending_conversion_count
+msgid ""
+"Records whose transaction-currency value cannot yet be represented as an "
+"evidenced historical company-currency value."
+msgstr ""
+"Enregistrements dont la valeur en devise de transaction ne peut pas encore "
+"être représentée par une valeur historique justifiée en devise de la société."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Refresh Evidenced Totals"
+msgstr "Actualiser les totaux justifiés"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Refresh the session before reviewing it."
+msgstr "Actualisez la session avant de la vérifier."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__refreshed_at
+msgid "Refreshed At"
+msgstr "Actualisé à"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__refund
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__refund
+msgid "Refund"
+msgstr "Note de crédit"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__refund_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__refund_amount
+msgid "Refund Amount"
+msgstr "Montant du remboursement"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__refund_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__refund_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__refund_company_amount
+msgid "Refund Company Amount"
+msgstr "Remboursement en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__refund_date
+msgid "Refund Date"
+msgstr "Date du remboursement"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__state__refunded
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__refunded
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__refunded
+msgid "Refunded"
+msgstr "Remboursé"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/event.py:0
+msgid "Refunded fulfilment/COGS events must be negative."
+msgstr ""
+"Les événements remboursés de traitement logistique ou de CMV doivent être "
+"négatifs."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Refunds"
+msgstr "Notes de crédit"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_payment_analytics
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics_payments
+msgid "Refunds and Fees"
+msgstr "Remboursements et frais"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Reject"
+msgstr "Rejeter"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__accounting_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__order_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__accounting_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__bank_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__document_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__mapping_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__payment_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__mapping_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__accounting_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__bank_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__mapping_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__order_link_state__rejected
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__mapping_state__rejected
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_search
+msgid "Rejected"
+msgstr "Rejeté"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Reset to Pending"
+msgstr "Remettre en attente"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__activity_user_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__activity_user_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__activity_user_id
+msgid "Responsible User"
+msgstr "Utilisateur responsable"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__conversion_state__restored_historical_rate
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__conversion_state__restored_historical_rate
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__conversion_state__restored_historical_rate
+msgid "Restored historical rate"
+msgstr "Taux historique restauré"
+
+#. module: usl_b2c
+#: model:ir.model,name:usl_b2c.model_b2c_provider_evidence
+msgid "Restricted B2C Provider Business Evidence"
+msgstr "Preuve métier restreinte d’un prestataire B2C"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_provider_evidence
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_provider_evidence
+msgid "Restricted Provider Evidence"
+msgstr "Preuves restreintes des prestataires"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__revenue
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+msgid "Revenue"
+msgstr "Revenus"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__revenue_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__revenue_amount
+msgid "Revenue Amount"
+msgstr "Montant du chiffre d’affaires"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__revenue_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__revenue_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__revenue_company_amount
+msgid "Revenue Company Amount"
+msgstr "Chiffre d’affaires en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_order_analytics
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics_orders
+msgid "Revenue, Orders and Coverage"
+msgstr "Chiffre d’affaires, commandes et couverture"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Review"
+msgstr "Vérifier"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_note
+msgid "Review Note"
+msgstr "Note de vérification"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__review_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__review_state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__review_state
+msgid "Review State"
+msgstr "État de révision"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
+msgid "Review Status"
+msgstr "Statut de la revue"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Review the session before locking it."
+msgstr "Vérifiez la session avant de la verrouiller."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_state__reviewed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__state__reviewed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__review_state__reviewed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__review_state__reviewed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__review_state__reviewed
+msgid "Reviewed"
+msgstr "Vérifié"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__reviewed_at
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__reviewed_at
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__reviewed_at
+msgid "Reviewed At"
+msgstr "Vérifié le"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__reviewed_by_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__reviewed_by_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__reviewed_by_id
+msgid "Reviewed By"
+msgstr "Vérifiée par"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Reviewed Mapping"
+msgstr "Correspondance vérifiée"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__revolut
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__revolut
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__revolut
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__revolut
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__revolut
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__revolut
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__revolut
+msgid "Revolut Merchant"
+msgstr "Revolut Merchant"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__message_has_sms_error
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__message_has_sms_error
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Erreur d'envoi SMS"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__sale_order_id
+msgid "Sale Order"
+msgstr "Commande client"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__conversion_state__not_needed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__conversion_state__not_needed
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__conversion_state__not_needed
+msgid "Same currency"
+msgstr "Même devise"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__schema_digest
+msgid "Schema Digest"
+msgstr "Empreinte du schéma"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/product_alias.py:0
+msgid "Select the verified product before verifying this alias."
+msgstr "Sélectionnez le produit vérifié avant de valider cet alias."
+
+#. module: usl_b2c
+#: model:res.groups,name:usl_b2c.group_b2c_sensitive_evidence
+msgid "Sensitive provider evidence"
+msgstr "Preuves sensibles des prestataires"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_channel__sequence
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__sequence
+msgid "Sequence"
+msgstr "Séquence"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__session_id
+msgid "Session"
+msgstr "Session"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__accounting_link_ids
+msgid "Session Accounting Evidence"
+msgstr "Preuves comptables de la session"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__session_key
+msgid "Session Key"
+msgstr "Clé de session"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__settled
+msgid "Settled"
+msgstr "Soldée"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__shipping_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__shipping_amount
+msgid "Shipping Amount"
+msgstr "Montant de la livraison"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__shipping_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__shipping_company_amount
+msgid "Shipping Company Amount"
+msgstr "Livraison en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__shipping_cost_amount
+msgid "Shipping Cost Amount"
+msgstr "Montant des frais de livraison"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__attachment_id
+msgid "Source Attachment"
+msgstr "Pièce jointe source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__source_checksum
+msgid "Source Checksum"
+msgstr "Somme de contrôle de la source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__source_record_ids
+msgid "Source Evidence"
+msgstr "Preuve source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__source_name
+msgid "Source Name"
+msgstr "Nom de source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__source_precedence
+msgid "Source Precedence"
+msgstr "Priorité de la source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__source_provider
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_provider_evidence__source_provider
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+msgid "Source Provider"
+msgstr "Prestataire source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_source__source_record_key
+msgid "Source Record Key"
+msgstr "Clé d’enregistrement source"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__state
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__state
+msgid "State"
+msgstr "État"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "State why this mapping is verified or rejected…"
+msgstr "Indiquez pourquoi cette correspondance est vérifiée ou rejetée…"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "Status"
+msgstr "Statut"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__activity_state
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__activity_state
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Statut basé sur les activités\n"
+"En retard : l'échéance est déjà dépassée\n"
+"Aujourd'hui : la date d'activité est aujourd'hui\n"
+"Planifié : activités futures."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__stock_move_id
+msgid "Stock Move"
+msgstr "Mouvement de stock"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_stock_moves
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics_stock_moves
+msgid "Stock Movements"
+msgstr "Mouvements de stock"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__stock_picking_id
+msgid "Stock Picking"
+msgstr "Transfert de stock"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__stripe
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__source_provider__stripe
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__source_provider__stripe
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__source_provider__stripe
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__source_provider__stripe
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__source_provider__stripe
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_provider_evidence__source_provider__stripe
+msgid "Stripe"
+msgstr "Stripe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__subtotal_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__subtotal_amount
+msgid "Subtotal Amount"
+msgstr "Montant hors taxes"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__subtotal_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__subtotal_company_amount
+msgid "Subtotal Company Amount"
+msgstr "Montant hors taxes en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__suggested_product_id
+msgid "Suggested Product"
+msgstr "Produit suggéré"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__suggested_product_id
+msgid "Suggestions are advisory only and never verify a mapping automatically."
+msgstr ""
+"Les suggestions sont uniquement indicatives et ne valident jamais "
+"automatiquement une correspondance."
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__supplier_cost
+msgid "Supplier cost"
+msgstr "Coût fournisseur"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__supporting_attachment_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__supporting_attachment_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__supporting_attachment_id
+msgid "Supporting Attachment"
+msgstr "Pièce jointe justificative"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_type__supporting
+msgid "Supporting evidence"
+msgstr "Justificatif"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__origin__synchronized
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__origin__synchronized
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__origin__synchronized
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__origin__synchronized
+msgid "Synchronized"
+msgstr "Synchronisé"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__event_type__tax
+msgid "Tax"
+msgstr "Taxe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__tax_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__tax_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__tax_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__tax_amount
+msgid "Tax Amount"
+msgstr "Taxe"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__tax_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__tax_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__tax_company_amount
+msgid "Tax Company Amount"
+msgstr "Taxe en devise de la société"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "The accounting line does not belong to the selected move."
+msgstr "La ligne comptable n’appartient pas à l’écriture sélectionnée."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/channel.py:0
+msgid "The analytic account must belong to the Channel plan."
+msgstr "Le compte analytique doit appartenir au plan Canal."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/order.py:0
+msgid "The line product must match the verified SKU alias."
+msgstr "Le produit de la ligne doit correspondre à l’alias de SKU vérifié."
+
+#. module: usl_b2c
+#: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_stock_moves
+msgid ""
+"The restored source baseline is zero historical stock moves. Future native "
+"operations appear here."
+msgstr ""
+"La référence source restaurée est de zéro mouvement de stock historique. Les "
+"futures opérations natives apparaîtront ici."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_accounting_link_company_link_key_unique
+msgid "The same B2C accounting evidence link cannot be recorded twice."
+msgstr ""
+"Le même lien vers une preuve comptable B2C ne peut pas être enregistré deux "
+"fois."
+
+#. module: usl_b2c
+#: model:ir.model.constraint,message:usl_b2c.constraint_b2c_provider_evidence_company_payload_unique
+msgid "The same provider-business payload cannot be retained twice."
+msgstr ""
+"La même charge utile métier du prestataire ne peut pas être conservée deux "
+"fois."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_product_product__b2c_opening_stock_state
+#: model:ir.model.fields,help:usl_b2c.field_product_template__b2c_opening_stock_state
+msgid ""
+"The source contains no stock history. Storable products remain not evidenced "
+"until an approved dated count is entered through a native inventory "
+"adjustment."
+msgstr ""
+"La source ne contient aucun historique de stock. Les produits stockables "
+"restent non justifiés jusqu’à la saisie d’un comptage daté et approuvé au "
+"moyen d’un ajustement d’inventaire natif."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.product_template_form_b2c
+msgid ""
+"The source has no stock moves or quants. Physical opening stock remains a "
+"blocking, not-evidenced release item until an approved dated count is "
+"entered through a native inventory adjustment."
+msgstr ""
+"La source ne contient aucun mouvement ni quant de stock. Le stock physique "
+"d’ouverture reste un point de blocage non justifié jusqu’à la saisie d’un "
+"comptage daté et approuvé au moyen d’un ajustement d’inventaire natif."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_provider_evidence_form
+msgid ""
+"This immutable provider payload can contain customer personal data. It is "
+"access-scoped and excluded from analytics."
+msgstr ""
+"Cette charge utile immuable du prestataire peut contenir des données "
+"personnelles de clients. Son accès est restreint et elle est exclue des "
+"analyses."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__total_amount
+msgid "Total Amount"
+msgstr "Montant total"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__total_company_amount
+msgid "Total Company Amount"
+msgstr "Montant total en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_list
+msgid "Transaction Amount"
+msgstr "Montant de la transaction"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_list
+msgid "Transaction COGS"
+msgstr "CMV de la transaction"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__currency_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__currency_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__currency_id
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__currency_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_form
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_payment_event_search
+msgid "Transaction Currency"
+msgstr "Devise de transaction"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_form
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_list
+msgid "Transaction Revenue"
+msgstr "Chiffre d’affaires de la transaction"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__activity_exception_decoration
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__activity_exception_decoration
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Type d'activité d'exception enregistrée."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_list
+msgid "Unallocated"
+msgstr "Non ventilé"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__unallocated_revenue_company_amount
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__unallocated_revenue_company_amount
+msgid "Unallocated Revenue Company Amount"
+msgstr "Chiffre d’affaires non ventilé en devise de la société"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_catalog_classification__unclassified
+msgid "Unclassified"
+msgstr "Non classé"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order_line__unit_price
+msgid "Unit Price"
+msgstr "Prix unitaire"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_list
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_list
+msgid "Units"
+msgstr "Unité(s)"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__units_sold
+msgid "Units Sold"
+msgstr "Unités vendues"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_order_line_analytics
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_analytics_units
+msgid "Units and SKU Coverage"
+msgstr "Unités et couverture des SKU"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_channel__default_fulfilment_mode__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__completeness_state__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__fulfilment_mode__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__state__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__amount_completeness__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_mode__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__state__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__amount_completeness__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_source__completeness_state__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__completeness_state__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__state__unknown
+#: model:ir.model.fields.selection,name:usl_b2c.selection__product_template__b2c_fulfilment_mode__unknown
+msgid "Unknown"
+msgstr "Inconnu"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_search
+msgid "Unknown / Partial COGS"
+msgstr "CMV inconnu ou partiel"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__unknown_amount_company_amount
+msgid "Unknown Amount Company Amount"
+msgstr "Montant inconnu en devise de la société"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Unlock"
+msgstr "Débloquer"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Unlock the session before refreshing it."
+msgstr "Déverrouillez la session avant de l’actualiser."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_search
+msgid "Unmapped"
+msgstr "Sans correspondance"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__sale_order_id
+msgid ""
+"Used only when a real native sale order exists; imports never manufacture "
+"one."
+msgstr ""
+"Utilisé uniquement lorsqu’une véritable commande client native existe ; les "
+"imports n’en fabriquent jamais."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_fulfilment_event_list
+msgid "VAT Evidence"
+msgstr "Preuve de TVA"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__vat_amount
+msgid "Vat Amount"
+msgstr "Montant de TVA"
+
+#. module: usl_b2c
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_link__link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__accounting_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_fulfilment_event__order_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__accounting_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__bank_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__document_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__fulfilment_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__mapping_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order__payment_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_order_line__mapping_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__accounting_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__bank_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__mapping_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_payment_event__order_link_state__verified
+#: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_product_alias__mapping_state__verified
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_search
+msgid "Verified"
+msgstr "Vérifié"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__product_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_order_line_search
+msgid "Verified Product"
+msgstr "Produit vérifié"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+msgid "Verify"
+msgstr "Vérifier"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Verify Mapping"
+msgstr "Vérifier la correspondance"
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__website_message_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__website_message_ids
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__website_message_ids
+msgid "Website Messages"
+msgstr "Messages du site web"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__website_message_ids
+#: model:ir.model.fields,help:usl_b2c.field_b2c_order__website_message_ids
+#: model:ir.model.fields,help:usl_b2c.field_b2c_product_alias__website_message_ids
+msgid "Website communication history"
+msgstr "Historique de communication du site web"
