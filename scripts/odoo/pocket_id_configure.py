@@ -28,9 +28,20 @@ def configure(env):
     apply_changes = _is_enabled("USL_POCKET_ID_APPLY")
     try:
         env["auth.oauth.provider"]._usl_pocketid_apply_environment()
+        public_base_url = os.getenv("USL_POCKET_ID_ODOO_BASE_URL", "").strip().rstrip("/")
+        if public_base_url:
+            parameters = env["ir.config_parameter"].sudo()
+            parameters.set_str("web.base.url", public_base_url)
+            parameters.set_str("web.base.url.freeze", "True")
         users = env["res.users"].with_context(
             usl_documents_defer_user_access_sync=True,
         )
+        if not apply_changes:
+            # The dry run is rolled back, but Paperless permission updates are
+            # external side effects and cannot be rolled back with PostgreSQL.
+            # Keep those hooks disabled while still exercising all Odoo-side
+            # validation and access-policy writes in the transaction.
+            users = users.with_context(usl_documents_user_access_no_sync=True)
         summary = users._usl_pocketid_apply_user_configuration(
             user_configuration,
             break_glass_password=break_glass_password,

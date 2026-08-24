@@ -261,6 +261,30 @@ configure_documents_runtime() {
     < "$ROOT/scripts/odoo/documents_runtime_config.py"
 }
 
+import_french_catalogues() {
+  local modules_csv="$1"
+  local module
+  local -a catalogues=()
+  local -a modules=()
+  IFS=',' read -r -a modules <<< "$modules_csv"
+  for module in "${modules[@]}"; do
+    if [[ -f "$ROOT/custom-addons/$module/i18n/fr.po" ]]; then
+      catalogues+=("/mnt/custom-addons/$module/i18n/fr.po")
+    fi
+  done
+  if ((${#catalogues[@]} == 0)); then
+    return 0
+  fi
+  "${COMPOSE[@]}" --profile init run --rm \
+    -e ODOO_INIT_DB="$ODOO_INIT_DB" \
+    init-db odoo i18n import \
+    --config=/etc/odoo/odoo.conf \
+    --database="$ODOO_INIT_DB" \
+    --overwrite \
+    --language=fr \
+    "${catalogues[@]}"
+}
+
 configure_odoo() {
   local module="${1:-usl_pocketid}"
   local skip_paperless="${2:-0}"
@@ -332,22 +356,28 @@ configure_odoo() {
     --config=/etc/odoo/odoo.conf \
     --database="$ODOO_INIT_DB" \
     "${module_args[@]}" \
+    --load-language=fr \
+    --i18n-overwrite \
     --without-demo=true \
     --stop-after-init \
     --log-level=warn; then
-    if [[ "$apply_identity_policy" == "0" ]]; then
-      status=0
-    elif run_policy 0; then
-      if run_policy 1; then
-        if run_policy 0; then
-          if [[ "$skip_paperless" == 1 ]]; then
-            printf 'Paperless identity synchronization skipped for partial QA.\n'
-          else
-            if configure_documents_runtime; then
-              sync_paperless_identities 0 || status=$?
+    if import_french_catalogues "$modules_csv"; then
+      if [[ "$apply_identity_policy" == "0" ]]; then
+        status=0
+      elif run_policy 0; then
+        if run_policy 1; then
+          if run_policy 0; then
+            if [[ "$skip_paperless" == 1 ]]; then
+              printf 'Paperless identity synchronization skipped for partial QA.\n'
             else
-              status=$?
+              if configure_documents_runtime; then
+                sync_paperless_identities 0 || status=$?
+              else
+                status=$?
+              fi
             fi
+          else
+            status=$?
           fi
         else
           status=$?

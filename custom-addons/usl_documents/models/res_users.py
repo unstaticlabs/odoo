@@ -68,6 +68,7 @@ class ResUsers(models.Model):
             user.id: user.has_group("usl_documents.group_documents_manager")
             for user in tracked
         }
+        before_active = {user.id: user.active for user in tracked}
         result = super().write(values)
         access_after = (
             self._documents_access_fingerprint() if access_change_requested else {}
@@ -96,15 +97,22 @@ class ResUsers(models.Model):
                 for user in tracked
             ),
         )
-        if {"group_ids", "active"}.intersection(values):
-            # A role change can alter Paperless change permission without
-            # changing the Odoo read set. Re-evaluate every root visible before
-            # or after so manager/edit grants are revoked fail-closed as well.
+        manager_or_active_changed = tracked.filtered(
+            lambda user: (
+                before_manager[user.id]
+                != user.has_group("usl_documents.group_documents_manager")
+                or before_active[user.id] != user.active
+            ),
+        )
+        if manager_or_active_changed:
+            # An effective manager or active-state change can alter Paperless
+            # permissions without changing the Odoo read set.  A no-op group
+            # command must not enqueue an update for every visible document.
             changed_ids.update(
                 set().union(
                     *(
                         before[user.id] | after[user.id]
-                        for user in tracked
+                        for user in manager_or_active_changed
                     ),
                 ),
             )
