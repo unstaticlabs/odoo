@@ -909,6 +909,8 @@ msgstr "Retire cette dépense de la note pour permettre sa correction individuel
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid "Group the selected expenses without submitting, posting, or paying them."
 msgstr "Regroupe les dépenses sélectionnées sans les soumettre, les comptabiliser ni les payer."
+
+#. module: usl_expense_batch
 msgid "Add to a Batch"
 msgstr "Ajouter à un lot de dépenses"
 

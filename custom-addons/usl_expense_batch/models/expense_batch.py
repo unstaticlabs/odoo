@@ -320,6 +320,7 @@ class UslExpenseBatch(models.Model):
     @api.depends(
         "expense_ids.account_move_id",
         "expense_ids.account_move_id.state",
+        "expense_ids.account_move_id.line_ids.debit",
         "expense_ids.total_amount",
     )
     def _compute_accounting_reconciliation(self):
@@ -336,7 +337,12 @@ class UslExpenseBatch(models.Model):
                 batch.accounting_difference = 0.0
                 continue
             expected_total = sum(accounted.mapped("total_amount"))
-            ledger_total = sum(accounted.account_move_id.line_ids.mapped("debit"))
+            ledger_total = sum(
+                self.env["account.move.line"]
+                .sudo()
+                .search([("move_id", "in", accounted.account_move_id.ids)])
+                .mapped("debit"),
+            )
             difference = batch.currency_id.round(ledger_total - expected_total)
             batch.accounting_difference = difference
             batch.accounting_reconciliation_state = (

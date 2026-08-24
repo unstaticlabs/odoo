@@ -511,6 +511,7 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(employee_paid.account_move_id.ref, batch.name)
         self.assertEqual(batch.state, "posted")
         self.assertEqual(batch.accounting_reconciliation_state, "matched")
+        self.assertEqual(batch.accounting_difference, 0.0)
 
     def test_employee_cannot_set_general_ledger_override(self):
         batch = self._batch(self._expense("Canada access", amount=57))
