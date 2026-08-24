@@ -12,7 +12,7 @@
                 <field name="document_category" string="Document type"/>
                 <field name="signer_type" string="Signer relationship"/>
                 <field name="risk_level" string="Risk"/>
-                <field name="recommendation" string="Recommended level"/>
+                <field name="recommendation" string="Signing method"/>
                 <field name="active" string="Enabled"/>
             </list>
         </field>
@@ -24,9 +24,9 @@
             <form>
                 <sheet>
                     <div class="alert alert-info" role="status">
-                        Trust rules recommend a signing level while a requester prepares a document. They guide the choice; they do not make a legal classification or silently lower a requested level.
+                        Signing policies recommend the right method while someone prepares a document. The requester still sees the recommendation and controls the final choice when permitted.
                     </div>
-                    <div class="oe_title"><p class="text-muted mb-1">Trust recommendation rule</p><h1><field name="name" placeholder="Example: Routine supplier agreements"/></h1></div>
+                    <div class="oe_title"><p class="text-muted mb-1">Signing policy</p><h1><field name="name" placeholder="Example: Routine supplier agreements"/></h1></div>
                     <group>
                         <group string="When this policy applies">
                             <field name="active" string="Enabled"/>
@@ -38,16 +38,16 @@
                             <field name="risk_level" string="Risk"/>
                             <field name="formal_qes_required" string="Formal QES required"/>
                         </group>
-                        <group string="Recommended journey">
-                            <field name="recommendation" string="Recommended level"/>
+                        <group string="What Sign recommends">
+                            <field name="recommendation" string="Signing method"/>
                             <field name="default_authentication" string="Default signer verification" invisible="recommendation != 'standard'"/>
                             <field name="expiration_days" string="Request expires after"/>
                             <field name="reminder_days" string="First reminder after"/>
                             <field name="max_reminders" string="Maximum reminders"/>
                         </group>
                     </group>
-                    <group string="Guidance shown to requesters">
-                        <field name="reason" string="Why this level"/>
+                    <group string="What requesters see">
+                        <field name="reason" string="Why this method"/>
                         <field name="consequence" string="What it means"/>
                     </group>
                 </sheet>
@@ -55,12 +55,12 @@
         </field>
     </record>
     <record id="sign_policy_action" model="ir.actions.act_window">
-        <field name="name">Trust Rules</field>
+        <field name="name">Signing Policies</field>
         <field name="res_model">usl.sign.policy</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Create a reviewed trust rule</p>
-            <p>A rule turns document type, signer relationship, and risk into a clear Standard, Strong personal, or Qualified external recommendation shown before sending.</p>
+            <p class="o_view_nocontent_smiling_face">Create a signing policy</p>
+            <p>Use document type, signer relationship, and business risk to recommend Standard, Strong personal, or Qualified external signing.</p>
         </field>
     </record>
 </odoo>

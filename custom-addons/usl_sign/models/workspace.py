@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
@@ -171,12 +173,12 @@ class SignStart(models.TransientModel):
     _name = "usl.sign.start"
     _description = "Start a signature request"
     signature_source = fields.Selection(
-        [("template", "Use a template"), ("upload", "Upload a PDF")],
+        [("upload", "Upload a PDF"), ("template", "Use a template")],
         string="Starting point",
-        default="template",
+        default="upload",
         required=True,
     )
-    name = fields.Char(string="Request name", required=True)
+    name = fields.Char(string="Document name")
     template_id = fields.Many2one(
         "sign.oca.template",
         string="Template",
@@ -184,6 +186,12 @@ class SignStart(models.TransientModel):
     )
     document_data = fields.Binary(string="PDF")
     document_filename = fields.Char()
+    signer_partner_id = fields.Many2one(
+        "res.partner",
+        string="Signer",
+        domain="[('email', '!=', False)]",
+    )
+    message = fields.Text(string="Message")
     record_ref = fields.Reference(selection="_record_models", string="Linked record")
     company_id = fields.Many2one(
         "res.company",
@@ -199,6 +207,11 @@ class SignStart(models.TransientModel):
     def _onchange_template_id(self):
         if self.template_id and not self.name:
             self.name = self.template_id.name
+
+    @api.onchange("document_filename")
+    def _onchange_document_filename(self):
+        if self.document_filename and not self.name:
+            self.name = Path(self.document_filename).stem.replace("_", " ").strip()
 
     def action_continue(self):
         self.ensure_one()
@@ -224,22 +237,38 @@ class SignStart(models.TransientModel):
         if not self.document_data or not self.document_filename:
             msg = "Upload the PDF that needs signatures."
             raise ValidationError(msg)
+        if not self.signer_partner_id:
+            msg = "Choose who should sign this document."
+            raise ValidationError(msg)
+        if not self.signer_partner_id.email:
+            msg = "Add an email address for the signer before continuing."
+            raise ValidationError(msg)
+        request_name = (
+            self.name
+            or Path(self.document_filename).stem.replace("_", " ").strip()
+            or "Document for signature"
+        )
         request = self.env["sign.oca.request"].create(
             {
-                "name": self.name,
+                "name": request_name,
                 "company_id": self.company_id.id,
                 "data": self.document_data,
                 "filename": self.document_filename,
                 "record_ref": f"{self.record_ref._name},{self.record_ref.id}"
                 if self.record_ref
                 else False,
+                "responsible_message": self.message,
+                "signer_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "partner_id": self.signer_partner_id.id,
+                            "role_id": self.env.ref("sign_oca.sign_role_customer").id,
+                            "sequence": 10,
+                        },
+                    ),
+                ],
             },
         )
-        return {
-            "type": "ir.actions.act_window",
-            "name": request.name,
-            "res_model": request._name,
-            "res_id": request.id,
-            "views": [(False, "form")],
-            "target": "current",
-        }
+        return request.configure()

@@ -241,6 +241,26 @@ status() {
   "${COMPOSE[@]}" ps
 }
 
+upgrade_qa() {
+  bootstrap
+  "${COMPOSE[@]}" up -d --wait \
+    db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver
+  "${COMPOSE[@]}" stop odoo
+  if ! "${COMPOSE[@]}" --profile init run --rm \
+    -e ODOO_INIT_DB=odoo_dev \
+    init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database=odoo_dev \
+    --update=usl_sign \
+    --without-demo=true \
+    --stop-after-init \
+    --log-level=warn; then
+    "${COMPOSE[@]}" up -d --wait odoo
+    return 1
+  fi
+  "${COMPOSE[@]}" up -d --wait odoo
+}
+
 logs() {
   load_environment
   shift
@@ -394,6 +414,7 @@ case "${1:-help}" in
   info) review_info ;;
   stop) stop ;;
   status) status ;;
+  upgrade) upgrade_qa ;;
   logs) logs "$@" ;;
   test) test_stack "$@" ;;
   test-pocket) test_pocket_patch ;;
@@ -408,7 +429,7 @@ case "${1:-help}" in
   strong-acceptance) strong_acceptance ;;
   help|*)
     printf '%s\n' \
-      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|logs [SERVICE]|test|test-pocket|smoke|opentimestamps-live-smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
+      'Usage: scripts/sign-pocketid-stack bootstrap|start|stop|status|upgrade|logs [SERVICE]|test|test-pocket|smoke|opentimestamps-live-smoke|configure-paperless|archive-acceptance|passkey-acceptance|strong-acceptance' \
       '       scripts/sign-pocketid-stack info' \
       '       scripts/sign-pocketid-stack strong-acceptance-prepare [RUN_ID] [virtual|real_platform]' \
       '       scripts/sign-pocketid-stack test [ODOO_TEST_TAGS]' \

@@ -48,6 +48,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
         super.setup(...arguments);
         this.notification = useService("notification");
+        this.actionService = useService("action");
         this.editor = useState({
             loading: true,
             libraryOpen: true,
@@ -105,6 +106,29 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
 
     get isEditable() {
         return !this.info.readonly && !this.editor.conflict;
+    }
+
+    get finishLabel() {
+        return this.info.editor_mode === "request" ? _t("Continue") : _t("Done");
+    }
+
+    async finishEditing() {
+        await this.commandQueue;
+        if (this.editor.error || this.editor.conflict) {
+            this.notification.add(_t("Fix the save problem before continuing."), {
+                type: "warning",
+            });
+            return;
+        }
+        const resModel = this.props.action.params?.res_model || this.res_model;
+        const resId = this.props.action.params?.res_id || this.res_id;
+        return this.actionService.doAction({
+            type: "ir.actions.act_window",
+            res_model: resModel,
+            res_id: resId,
+            views: [[false, "form"]],
+            target: "current",
+        });
     }
 
     role(roleId) {
