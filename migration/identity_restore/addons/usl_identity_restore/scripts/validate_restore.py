@@ -23,6 +23,8 @@ def normalized(value):
 def normalized_partner_field(field_name, value):
     if field_name in {"partner_latitude", "partner_longitude"} and not value:
         return "0"
+    if field_name in {"supplier_rank", "customer_rank"} and value is None:
+        return 0
     return normalized(value)
 
 

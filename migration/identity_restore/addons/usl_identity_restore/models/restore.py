@@ -402,6 +402,12 @@ class UslIdentityRestoreRun(models.Model):
             target_user = resolved_users.get(partner_to_user.get(row["id"]))
             partner = target_user.partner_id if target_user else self._traced("res.partner", row["id"])
             values = {field_name: row.get(field_name) for field_name in partner_fields}
+            # SaaS 19.3 can retain NULL ranks on archived technical partners,
+            # while Community stores the native zero default.  This carries no
+            # customer or supplier semantics, so make the translation explicit.
+            for rank_field in ("supplier_rank", "customer_rank"):
+                if values[rank_field] is None:
+                    values[rank_field] = 0
             values.update(
                 {
                     "company_id": companies.get(row["company_id"]).id if row["company_id"] else False,
