@@ -1,5 +1,3 @@
-import base64
-import binascii
 import hashlib
 import re
 import uuid
@@ -9,6 +7,7 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.pdf import PdfReader
 
+from ..services import field_content, field_value
 from .constants import INTERNAL_OPERATION
 
 EDITOR_ROLE_COLORS = (
@@ -36,6 +35,24 @@ FIELD_PRESENTATION = {
     "checkbox": {"icon": "fa-check-square", "width": 4.5, "height": 4.5},
     "text": {"icon": "fa-font", "width": 28.0, "height": 5.0},
 }
+
+
+class SignRole(models.Model):
+    _inherit = "sign.oca.role"
+
+    partner_selection_policy = fields.Selection(
+        selection=[
+            ("empty", "Choose for each request"),
+            ("default", "Preselect one person"),
+            ("expression", "Use the linked business record"),
+        ],
+        required=True,
+        default="empty",
+        help=(
+            "Controls whether the person is chosen while preparing each request, "
+            "preselected, or derived from the linked Odoo record."
+        ),
+    )
 
 
 def _field_kind(field):
@@ -107,7 +124,7 @@ class SignTemplate(models.Model):
     description = fields.Text(translate=True)
     default_document_category = fields.Selection(
         [
-            ("internal_decision", "Internal decision"),
+            ("internal_decision", "Corporate decision document"),
             ("routine_agreement", "Routine agreement"),
             ("employment", "Employment document"),
             ("intellectual_property", "Intellectual property"),
@@ -205,8 +222,8 @@ class SignTemplate(models.Model):
                 msg = "Every template document must have a PDF filename."
                 raise ValidationError(msg)
             try:
-                raw = base64.b64decode(document.get("data") or b"", validate=True)
-            except (binascii.Error, TypeError, ValueError) as error:
+                raw = field_content(document.get("data"), validate=True)
+            except (TypeError, ValueError) as error:
                 msg = "An uploaded PDF is not valid base64."
                 raise ValidationError(msg) from error
             total_size += len(raw)
@@ -220,7 +237,7 @@ class SignTemplate(models.Model):
                     "is_annex": sequence > 1,
                     "name": re.sub(r"(?i)\.pdf$", "", filename).strip() or filename,
                     "filename": filename,
-                    "data": base64.b64encode(raw),
+                    "data": field_value(raw),
                 },
             )
         primary = prepared[0]
@@ -249,12 +266,9 @@ class SignTemplate(models.Model):
     @api.depends("data")
     def _compute_document_sha256(self):
         for template in self:
-            # ``web_save`` reads Binary fields with ``bin_size=True``. A
-            # stored compute may therefore run after create with a display
-            # size (for example ``6.5 KB``) instead of the base64 payload.
             document_data = template.with_context(bin_size=False).data
             template.document_sha256 = (
-                hashlib.sha256(base64.b64decode(document_data)).hexdigest()
+                hashlib.sha256(field_content(document_data)).hexdigest()
                 if document_data
                 else False
             )
@@ -412,7 +426,7 @@ class SignTemplate(models.Model):
         self.ensure_one()
         try:
             page_count = len(
-                PdfReader(BytesIO(base64.b64decode(self.with_context(bin_size=False).data))).pages,
+                PdfReader(BytesIO(field_content(self.with_context(bin_size=False).data))).pages,
             )
         except Exception as error:
             msg = "Upload a readable PDF before editing its fields."
@@ -607,7 +621,7 @@ class SignTemplate(models.Model):
         if self.policy_id.company_id and self.policy_id.company_id != self.company_id:
             msg = "The signing policy belongs to another company."
             raise ValidationError(msg)
-        raw = base64.b64decode(self.data or b"")
+        raw = field_content(self.data)
         try:
             page_count = len(PdfReader(BytesIO(raw)).pages)
         except Exception as error:

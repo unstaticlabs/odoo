@@ -1,10 +1,10 @@
-import base64
 import hashlib
 from urllib.parse import urlsplit
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
+from ..services import field_content
 from .constants import INTERNAL_OPERATION
 
 
@@ -233,7 +233,7 @@ class SignExternalJourney(models.Model):
         if not self.imported_pdf or not self.proof_package:
             msg = "Import both the signed PDF and the provider proof package."
             raise ValidationError(msg)
-        raw = base64.b64decode(self.imported_pdf)
+        raw = field_content(self.imported_pdf)
         if not raw.startswith(b"%PDF-"):
             msg = "The imported signed document must be a PDF."
             raise ValidationError(msg)

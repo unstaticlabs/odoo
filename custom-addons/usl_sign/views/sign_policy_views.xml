@@ -23,7 +23,10 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="alert alert-info" role="status">
+                        Trust rules recommend a signing level while a requester prepares a document. They guide the choice; they do not make a legal classification or silently lower a requested level.
+                    </div>
+                    <div class="oe_title"><p class="text-muted mb-1">Trust recommendation rule</p><h1><field name="name" placeholder="Example: Routine supplier agreements"/></h1></div>
                     <group>
                         <group string="When this policy applies">
                             <field name="active" string="Enabled"/>
@@ -52,8 +55,12 @@
         </field>
     </record>
     <record id="sign_policy_action" model="ir.actions.act_window">
-        <field name="name">Signing Policies</field>
+        <field name="name">Trust Rules</field>
         <field name="res_model">usl.sign.policy</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a reviewed trust rule</p>
+            <p>A rule turns document type, signer relationship, and risk into a clear Standard, Strong personal, or Qualified external recommendation shown before sending.</p>
+        </field>
     </record>
 </odoo>

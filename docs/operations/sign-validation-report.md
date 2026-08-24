@@ -1,179 +1,158 @@
-# USL Sign validation and release-readiness report
+# Sign validation and release-readiness report
 
 Status date: 2026-08-24
 
 ## Outcome
 
-The current feature tip delivers one Odoo-native signing product on the pinned
-OCA Sign foundation. It closes the creation, editor, request, signer, decision,
-service-health, evidence and recovery journeys without modifying vendored OCA
-source. Pocket ID owns passkeys; Odoo owns workflow, consent, document binding,
-identity review, evidence and archival; EU DSS remains the authoritative PAdES
-construction and validation engine.
+This feature delivers a document-first, Odoo-native signing application on the
+local `19-usl` saas-19.3 baseline `e3b64c209ac`. It extends the pinned OCA Sign
+module without modifying its source. Odoo owns the workflow and structured
+evidence, EU DSS owns PAdES construction and validation, Pocket ID owns
+passkeys, `step-ca` issues short-lived document certificates, and Paperless
+stores the durable dossier.
 
-The final product model exposes only Standard, Strong personal and Qualified
-external document signing. Internal Decision requests are attributable Odoo
-decisions with their own signed and archived proof; they are never presented as
-electronic signatures.
+The installed application exposes Standard, Strong personal and Qualified
+external document signing. The earlier internal business-decision experiment
+is deliberately dormant: its Python and XML source is retained for later
+product evaluation, but it is not imported, loaded, granted access, shown in
+menus, included in the dashboard, or seeded in QA.
 
-## Product closure
+## Product changes in this closure
 
-- **Navigation:** Sign opens on the journey landing. Top-level workspaces are
-  Library, Open Requests, My Signatures and Configuration.
-- **Library:** the root opens native OCA Templates. Users can upload or drop one
-  or more PDFs, create one atomic envelope and enter the editor immediately.
-  Completed Documents and Decisions are separate native Library entries.
-- **Template editor:** typed fields, stable signer colors, explicit roles,
-  click/right-click/palette placement, whole-field movement, bounded resize,
-  keyboard actions, ordered autosave, rollback, undo/redo and immutable template
-  versions remain in the focused `usl_sign` extension.
-- **Requests:** concise lifecycle, signer progress, requested/achieved trust,
-  blocker, proof and archive summaries lead to the next safe action. Completion
-  still requires every signature, independent validation, complete evidence and
+- **Navigation:** Sign opens on the dashboard. The only document workspaces are
+  **Request Signature → Templates**, **Open Requests**, **Completed**, and
+  **My Signatures**, followed by role-aware **Configuration**.
+- **Dashboard:** the action uses Odoo's content scroller and remains usable when
+  its cards exceed the viewport. It focuses on documents to sign, requests to
+  prepare, problems to resolve, requests waiting on others, and recent results.
+- **Templates:** the default workspace is the native OCA kanban. Upload and
+  empty-space drop create one validated template envelope and open the editor.
+  Native cards, prepare/use, duplicate, archive and immutable-version behavior
+  remain available.
+- **Editor:** the palette crash caused by stale drag state is fixed. Palette
+  click, drag and right-click use one placement command. A field can be moved
+  from its entire body, while its explicit controls retain their own actions.
+  The adapter handles pointer cancellation, iframe reload and normalized page
+  coordinates.
+- **Requests:** Open Requests contains only requests owned or coordinated by
+  the current user. The form leads with state, progress, next action, requested
+  trust, due date, proof and archive status; technical material stays under
+  Proof & Validation.
+- **My Signatures:** the native list includes both pending and historical
+  signer records. Filters separate Ready to sign, Waiting for my turn, Signed
+  by me, Completed, Closed and due-dated items without hiding history by
+  default.
+- **Configuration:** signer roles now explain that a role is a document slot,
+  show how the person is selected, and keep linked-record expressions in an
+  administrator-only advanced section. Identity reviews, trust rules, qualified
+  providers and daily proofs each include purpose, safe defaults and next-step
+  guidance.
+- **Signing Readiness:** the former settings redirect is replaced by a native,
+  company-aware capability workspace. Standard, Strong, Qualified external,
+  Daily proof and optional TSA report Ready, Degraded, Not configured,
+  Unreachable or Action required with a safe result, latency, version and next
+  action. Credentials are never persisted.
+- **saas-19.3 compatibility:** binary fields use the new binary wrapper API,
+  downloads use `ir.binary` streams, and business-record form integration uses
+  the new renderer contract.
+
+## Trust and evidence behavior
+
+- Standard is labelled **Standard electronic signature with reinforced
+  evidence.** It captures consent and authentication evidence, freezes and
+  hashes the request, applies the local platform PAdES seal, validates the
+  persisted bytes independently, and archives a complete dossier.
+- Strong is labelled **Strong personal signature — designed for
+  advanced-signature requirements.** Every ceremony requires fresh Pocket ID
+  passkey authentication and binds the signer, request, exact PDF, consent,
+  CSR/public key, policy, nonce and expiry. The browser worker's
+  `extractable:false` document key never reaches Odoo.
+- Qualified external is provider-neutral. Export or provider navigation never
+  completes a request; the imported PDF must pass DSS revision, signer, chain,
+  qualified-provider and achieved-level validation.
+- A request completes only after all expected signatures, authoritative DSS
+  validation, complementary pyHanko agreement, complete evidence and
   checksum-confirmed Paperless archival.
-- **Standard:** signer-specific links, typed fields, consent, authentication,
-  immutable hashes, local platform PAdES seal, DSS validation, completion
-  certificate and dossier archival.
-- **Strong personal:** Pocket ID fresh passkey authorization, a browser-worker
-  non-exportable document key, document-bound challenge, short-lived step-ca
-  certificate, DSS personal PAdES and evidence archival.
-- **Qualified external:** provider-neutral export/wait/import flow. DSS must
-  prove the exact exported revision, signer and requested qualified level.
-- **Service Status:** a company-aware administrator workspace reports Standard,
-  Strong, Qualified external, Daily proof and optional TSA capabilities as
-  Ready, Degraded, Not configured, Unreachable or Action required. It persists
-  only safe operational results.
-- **Decision proof:** Any-one and Everyone-must-approve rules produce an
-  append-only decision history, canonical signed manifest, validated PDF/A-3
-  receipt and checksum-idempotent Paperless archive. Proof failure retains the
-  outcome and exposes recovery.
-- **Daily proof:** closed UTC-day manifests chain per company and list the exact
-  request/decision hashes. OpenTimestamps anchoring is asynchronous and does not
-  block signature or decision completion.
+- Closed UTC-day manifests chain per company and list each completed request's
+  event head, final PDF hash, dossier hash and completion event. OpenTimestamps
+  anchoring is asynchronous and never delays request completion. Confirmation
+  means existence no later than the verified Bitcoin block time; it is not the
+  signing time, RFC 3161, signer identity, a qualified timestamp or QES.
 
-## Security and legal position
+## Reproduced validation on this tip
 
-- Pocket ID receives only a binding digest, never a document.
-- Every Strong authorization binds signer, enrolment, request, role, exact PDF
-  hashes, consent, CSR/public key, policy, nonce and expiry.
-- Fresh `amr=["phr"]` authentication is required; OTP, replay, stale ceremony
-  and different-document use fail closed.
-- The ECDSA document key is created `extractable:false` in an isolated browser
-  worker. Odoo receives only the CSR/public key and signature value.
-- Public Strong pages use a strict CSP without analytics or unrelated bundles.
-- Platform-seal, manifest-signing, CA, mTLS, OIDC and Paperless secrets remain
-  outside Git and Odoo settings fields.
-- Standard is labelled “Standard electronic signature with reinforced
-  evidence.” Strong remains “Strong personal signature — designed for
-  advanced-signature requirements.” No formal AES, qualified or handwritten-
-  equivalent claim is made for local signatures.
-- OpenTimestamps proves that the signed manifest and listed hashes existed no
-  later than a verified Bitcoin block time. It is not an exact signing time,
-  RFC 3161 timestamp, signer identity, qualified timestamp or QES.
+The following checks were run on the saas-19.3 worktree without a physical
+authenticator:
 
-## Evidence and archival
+- clean `usl_sign` installation and focused QA bootstrap from module state,
+  with `--without-demo` and no SQL dump;
+- backend `TestCleanUslSign`: 49 post-tests, with Odoo reporting 51 total tests,
+  zero failures and zero errors;
+- desktop frontend: 15 tests and 65 assertions, all passed;
+- mobile frontend: 15 tests and 65 assertions, all passed;
+- six headless browser journeys covering the native template workspace,
+  requester preparation/send/monitoring, Standard public signing and archival,
+  Pocket ID enrolment presentation, Strong signing presentation, and the Sign
+  dashboard/Start flow. Five passed in the combined run; the dashboard test
+  then exposed a faulty no-overflow assumption, was corrected, and passed in a
+  focused rerun on Chrome 151;
+- XML syntax, Python compilation, shell syntax and `git diff --check`;
+- French catalogue format and product-language checks for all maintained USL
+  catalogues. New navigation, role and readiness terms were reviewed manually;
+  untranslated active terms continue to use Odoo's English fallback rather
+  than unreviewed machine translation.
 
-Odoo retains structured operational state and the source/frozen/final PDFs,
-annexes, page map, fields, roles, policies, signer identity, authentication,
-consent, hashes, append-only event chain, certificates, DSS reports, pyHanko
-result, completion certificate and signed manifest. The deterministic PDF/A-3
-dossier embeds the durable artifacts, is validated with veraPDF, platform-
-sealed and archived through the checksum-idempotent `usl_documents` Paperless
-operation.
+The exact release-gate and final QA deployment results are recorded in the
+feature handoff. The final source gates passed: clean Sign product boundary,
+reproducible browser-worker/private-key boundary, product/migration source
+boundary, Python compilation, XML parsing, shell syntax, French catalogue
+validation, and `git diff --check`. The canonical database half of the
+product/migration boundary intentionally refuses to run from a linked
+worktree; no canonical database was opened from this feature checkout.
 
-Daily manifests are signed with a key distinct from the PDF platform-seal key.
-Odoo retains the original and upgraded portable `.ots` receipts. Confirmation
-requires agreement between Blockstream and mempool.space, local raw-header hash
-calculation, protocol attestation verification and six confirmations. The
-confirmed daily proof receives its own sealed PDF/A-3 dossier and Paperless
-record; existing request dossiers are not rewritten.
-
-## Reproduced validation
-
-The final current-worktree run passed:
-
-- `scripts/sign-qa-stack test /usl_sign`
-  - Odoo reported 73 `usl_sign` tests and 6 `web` tests.
-  - 67 post-tests completed with zero failures and zero errors.
-  - Desktop frontend: 13 tests, 57 assertions.
-  - Mobile frontend: 13 tests, 57 assertions.
-  - Headless requester, Standard signer, focused Strong page and native landing
-    journeys completed without a physical authenticator.
-- `scripts/sign-qa-stack smoke`
-  - mTLS CA/DSS, signing-key separation, constrained certificate issuance,
-    DSS/pyHanko agreement, deterministic PDF/A-3, veraPDF, sealing, replay and
-    alteration checks passed.
-- `make sign-product-validate product-migration-boundary`
-  - Clean Sign provider/legacy residue boundary passed.
-  - Browser-worker reproducibility and private-key boundary passed.
-  - Product/migration boundary passed.
-- `docker exec -i usl-sign-0a32-qa-odoo-1 python3 - /mnt/custom-addons <
-  scripts/check_fr_translations.py`
-  - All 11 French product catalogues passed.
-- Fresh QA bootstrap
-  - Created a new `odoo_dev --without-demo` database from module state.
-  - Generated and archived one synthetic completed Decision proof through the
-    real local DSS and Paperless services.
-  - Seeded four templates and focused open journey records.
-  - Odoo, Pocket ID, step-ca, DSS, Paperless and their databases report healthy.
-
-The QA bootstrap found and closed two permission-boundary defects before this
-final run: internal Decision participant rows could not be reconciled by a Sign
-user, and a decision-maker could not read the service-owned Paperless operation
-while finalizing proof. The fix keeps the underlying models protected and uses
-elevated access only inside the constructed internal workflow. Dedicated
-regression tests cover both cases.
+The final `usl-sign-0a32-qa` tenant was rebuilt from empty project-scoped
+PostgreSQL, Odoo filestore, Pocket ID and Paperless volumes. It installed
+`usl_sign` on `odoo_dev` with `--without-demo`, configured the dedicated
+Pocket ID and Paperless service identities, and seeded only focused synthetic
+document-signing examples. No SQL dump or copied filestore was used. All
+containers reached healthy state. The non-biometric service smoke then passed
+CA, DSS, separate manifest signing, pyHanko cross-validation, deterministic
+PDF/A-3 dossier, veraPDF, platform sealing, replay, and alteration checks.
 
 The expected registry warning about replacing OCA's coarse request state
-selection remains. This is deliberate because the product requires the exact
-final lifecycle and no OCA vendored source is changed.
-
-## Isolated manual-QA tenant
-
-The running project is `usl-sign-0a32-qa`. It uses new project-scoped database,
-filestore, Pocket ID, CA/DSS, Paperless and secret resources. It was initialized
-without a dump or copied volume. Source add-ons are bind-mounted from this
-worktree and the reusable runtime image is content-addressed from dependency
-inputs.
-
-- Odoo: `http://odoo-sign-0a32-qa.localhost:17408`
-- Pocket ID: `http://pocket-id-sign-0a32-qa.localhost:19408`
-- Paperless: `http://127.0.0.1:20408`
-- Database: `odoo_dev`
-
-The focused seed contains Valentin as requester/administrator, Roger as signer
-and decision-maker, four practical templates, a ready Routine Agreement, a
-Strong enrolment-blocked request, a Qualified external waiting request, a
-pending decision and a genuinely finalized synthetic decision proof. It does
-not contain fabricated completed signatures.
+selection remains deliberate: the product requires the exact lifecycle and
+does not alter OCA source.
 
 ## Prior real-device evidence
 
-The merged Pocket ID feature branch previously completed a real Chrome 150 on
-macOS 26.6 Touch ID journey. It reached `completed`, confirmed fresh
-`amr=["phr"]`, validated PAdES Baseline B through DSS, archived complete
-evidence in Paperless, cleared ceremony secrets and found no private JWK,
-PKCS#8, seed or private `CryptoKey` in automated traffic inspection.
+The merged Pocket ID work previously completed one real Chrome 150/macOS 26.6
+Touch ID journey. It reached Completed, confirmed fresh `amr=["phr"]`, produced
+a ten-minute personal certificate, validated PAdES Baseline B in DSS, archived
+complete evidence in Paperless, cleared ceremony secrets, and found no private
+JWK, PKCS#8, seed or private `CryptoKey` in automated traffic inspection.
 
-That remains architectural evidence, not a fresh acceptance of this current
-presentation and closure tip. No Touch ID request was made in this run.
+That remains architectural evidence, not a fresh acceptance of this UI tip.
+No Touch ID or other physical-authenticator prompt was triggered during this
+closure.
 
-## Genuine limitations
+## Genuine release limitations
 
-- Independent legal and security audits remain required before a formal
-  Advanced Electronic Signature classification.
-- The real-device result reached PAdES Baseline B. No independent RFC 3161 TSA
-  was configured, so PAdES-T/LT is not demonstrated.
-- Real-device acceptance covers Chrome/macOS/Touch ID only. Safari, Firefox,
-  Face ID and Windows Hello still require separate acceptance.
+- Formal Advanced Electronic Signature classification still requires
+  independent legal and security audits.
+- The real-device result achieved PAdES Baseline B. PAdES-T/LT remains
+  unproven until an independent RFC 3161 TSA and revocation material are
+  configured and accepted.
+- Real-device coverage currently includes Chrome/macOS/Touch ID only. Safari,
+  Firefox, Face ID and Windows Hello require separate acceptance.
 - No real qualified-provider sample was available for external QES acceptance.
-- Final human visual acceptance is required for the current desktop/mobile
-  presentation, responsiveness and manual drag/drop feel.
-- OpenTimestamps aggregation normally takes hours. No live Bitcoin confirmation
-  is claimed by this final run; deterministic fake calendars and explorers
-  cover the protocol and recovery paths.
-- Public-explorer verification is weaker than a local Bitcoin Core node. The
-  portable `.ots` proof remains independently verifiable later.
+- OpenTimestamps aggregation normally takes hours. Automated deterministic
+  calendar/explorer tests cover confirmation and recovery; this run does not
+  claim a new live Bitcoin confirmation.
+- Two-public-explorer verification is weaker than a local Bitcoin Core node,
+  though the retained `.ots` receipt remains portable for later independent
+  verification.
 - Browser-worker termination cannot prove physical memory zeroization.
-- Fresh-passkey enforcement remains a tracked Pocket ID patch until released
-  upstream (`pocket-id/pocket-id#1654`).
+- Fresh-passkey enforcement remains a tracked Pocket ID patch until its
+  upstream behavior is released.
+- Final visual and tactile acceptance of the current desktop/mobile UI belongs
+  to the manual QA tenant; automated checks do not substitute for that review.

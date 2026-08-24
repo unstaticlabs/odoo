@@ -1,11 +1,11 @@
 """Review the Pocket identity and prepare a real Strong signing session."""
 
-import base64
 import json
 import os
 from io import BytesIO
 
 from odoo.tools.pdf import PdfWriter
+from odoo.addons.usl_sign.services import field_value
 
 
 enrollment_id = int(os.environ.get("USL_SIGN_ACCEPTANCE_ENROLLMENT_ID", "0"))
@@ -49,7 +49,7 @@ run_id = os.environ.get("USL_SIGN_ACCEPTANCE_RUN_ID", "qa")
 sign_request = env["sign.oca.request"].with_user(reviewer).create(
     {
         "name": f"QA Pocket Strong agreement {run_id}",
-        "data": base64.b64encode(pdf),
+        "data": field_value(pdf),
         "filename": f"qa-pocket-strong-{run_id}.pdf",
         "company_id": env.company.id,
         "user_id": reviewer.id,

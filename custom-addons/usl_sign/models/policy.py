@@ -16,7 +16,7 @@ class SignPolicy(models.Model):
     version = fields.Char(required=True, default="1")
     document_category = fields.Selection(
         [
-            ("internal_decision", "Internal decision"),
+            ("internal_decision", "Corporate decision document"),
             ("routine_agreement", "Routine agreement"),
             ("employment", "Employment document"),
             ("intellectual_property", "Intellectual property"),

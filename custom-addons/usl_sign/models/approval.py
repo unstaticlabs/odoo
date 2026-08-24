@@ -6,9 +6,17 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from ..services import DSSServiceError
+from ..services import DSSServiceError, field_value
 from .constants import INTERNAL_OPERATION
 
+
+# DORMANT PRODUCT CODE
+# --------------------
+# The document-signing product does not expose internal Decision requests. The
+# model is deliberately retained for a possible separately reviewed product,
+# but its views, menus, start flow, access rights, fixtures, and user guidance
+# are not loaded by ``usl_sign``. Do not make it reachable without an explicit
+# product/security review and dedicated activation module.
 
 DECISION_STATES = [
     ("draft", "Draft"),
@@ -389,13 +397,13 @@ class SignApproval(models.Model):
             validation_name = f"{approval.name}-decision-validation.json"
             approval._operational_write(
                 {
-                    "signed_manifest": base64.b64encode(envelope),
+                    "signed_manifest": field_value(envelope),
                     "signed_manifest_filename": manifest_name,
                     "signed_manifest_sha256": hashlib.sha256(envelope).hexdigest(),
-                    "receipt_data": base64.b64encode(receipt),
+                    "receipt_data": field_value(receipt),
                     "receipt_filename": receipt_name,
                     "receipt_sha256": hashlib.sha256(receipt).hexdigest(),
-                    "validation_report": base64.b64encode(
+                    "validation_report": field_value(
                         json.dumps(validation, sort_keys=True, indent=2).encode(),
                     ),
                     "validation_report_filename": validation_name,

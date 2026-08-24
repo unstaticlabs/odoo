@@ -360,8 +360,12 @@
 }
 
 .usl_sign_workspace {
-    min-height: 100%;
     background: var(--o-gray-100, #f8f9fa);
+}
+
+.usl_sign_workspace > .o_content {
+    min-height: 0;
+    overscroll-behavior: contain;
 }
 
 .usl_sign_workspace .container-xxl {
