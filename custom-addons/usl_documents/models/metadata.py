@@ -309,7 +309,11 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
                     paperless_id,
                     {"owner": None},
                 )
-            record = self.sudo().search(
+            # Paperless identifiers may be reused after a deliberate archive
+            # reset.  Include inactive cache rows so the newly returned
+            # metadata reactivates the stable Odoo record instead of violating
+            # the unique Paperless identity constraint.
+            record = self.sudo().with_context(active_test=False).search(
                 [("paperless_id", "=", paperless_id)], limit=1,
             )
             values = self._cache_values(payload)

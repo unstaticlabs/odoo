@@ -805,6 +805,38 @@ class TestDocuments(TransactionCase):
         )
         self.assertEqual(document.tag_ids, child)
 
+    def test_catalog_sync_reactivates_cached_identity_after_archive_reset(self):
+        tag = self.env["usl.paperless.tag"].sudo().with_context(
+            usl_documents_cache_write=True,
+        ).create(
+            {
+                "name": "Previous archive tag",
+                "paperless_id": 305,
+                "active": False,
+            },
+        )
+        payload = {
+            "id": 305,
+            "name": "Current archive tag",
+            "owner": None,
+            "matching_algorithm": 6,
+            "document_count": 1,
+        }
+        client = PaperlessClient(self.env)
+        client.owner_user_id = 3
+        with patch.object(client, "list_metadata", return_value=[payload]):
+            count = self.env["usl.paperless.tag"].synchronize_catalog(client=client)
+
+        self.assertEqual(count, 1)
+        self.assertTrue(tag.active)
+        self.assertEqual(tag.name, "Current archive tag")
+        self.assertEqual(
+            self.env["usl.paperless.tag"].with_context(active_test=False).search_count(
+                [("paperless_id", "=", 305)],
+            ),
+            1,
+        )
+
     def test_document_users_manage_metadata_but_cannot_delete_it(self):
         response = {
             "id": 304,
