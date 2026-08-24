@@ -3892,6 +3892,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
     import_script.write_text(
         "\n".join([
             "import json",
+            "import time",
+            "import_started = time.monotonic()",
             "run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL complete source-faithful product snapshot',",
             "    'mode': 'exact_ledger_replay',",
@@ -3901,6 +3903,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.3',",
             f"    'target_database': {DEV_QA_DB!r},",
             "})",
+            "stage_started = time.monotonic()",
             "stats = run.run_exact_ledger_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_3',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -3912,6 +3915,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_company_ids': [1, 8],",
             "    'preserve_business_documents': True,",
             "})",
+            "exact_replay_seconds = time.monotonic() - stage_started",
             "expense_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native expenses',",
             "    'mode': 'exact_ledger_replay',",
@@ -3921,6 +3925,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.3',",
             f"    'target_database': {DEV_QA_DB!r},",
             "})",
+            "stage_started = time.monotonic()",
             "expense_stats = expense_run.run_source_faithful_expense_materialization_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_3',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -3933,6 +3938,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "})",
             "expense_batch_transition = expense_run.run_expense_batch_transition()",
             "expense_batch_transition_rerun = expense_run.run_expense_batch_transition()",
+            "expense_replay_seconds = time.monotonic() - stage_started",
             "asset_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native assets',",
             "    'mode': 'exact_ledger_replay',",
@@ -3942,6 +3948,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.3',",
             f"    'target_database': {DEV_QA_DB!r},",
             "})",
+            "stage_started = time.monotonic()",
             "asset_stats = asset_run.run_native_asset_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_3',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -3954,6 +3961,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'opening_depreciation_date': '2025-09-30',",
             "    'use_exact_imported_moves': True,",
             "})",
+            "asset_replay_seconds = time.monotonic() - stage_started",
             "currency_rate_cron = env.ref(",
             "    'rebuild_account_migration.ir_cron_rebuild_currency_rate_provider',",
             ")",
@@ -4081,6 +4089,29 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'asset_run_id': asset_run.id,",
             "    'asset_run_status': asset_run.status,",
             "    'asset_stats': asset_stats,",
+            "    'performance': {",
+            "        'schema': 'usl-accounting-import-run-performance-v1',",
+            "        'duration_seconds': time.monotonic() - import_started,",
+            "        'exact_ledger': stats.get('performance', {}),",
+            "        'stages': [",
+            "            {",
+            "                'name': 'exact ledger replay',",
+            "                'duration_seconds': exact_replay_seconds,",
+            "                'move_count': stats.get('source_move_count', 0),",
+            "                'move_line_count': stats.get('source_move_line_count', 0),",
+            "            },",
+            "            {",
+            "                'name': 'expenses',",
+            "                'duration_seconds': expense_replay_seconds,",
+            "                'expense_count': expense_stats.get('source_expense_count', 0),",
+            "            },",
+            "            {",
+            "                'name': 'assets',",
+            "                'duration_seconds': asset_replay_seconds,",
+            "                'asset_count': asset_stats.get('source_asset_count', 0),",
+            "            },",
+            "        ],",
+            "    },",
             "    'users': {",
             "        'manager': {",
             "            'id': manager_user.id,",
@@ -4175,6 +4206,13 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         message = "Product source-snapshot import failed. See the private artifact."
         raise HarnessError(message)
     payload = json.loads(marker)
+    analyze_started = time.monotonic()
+    psql_exec(
+        DEV_QA_DB,
+        "ANALYZE account_move, account_move_line, account_partial_reconcile, "
+        "account_full_reconcile, account_analytic_line, ir_attachment;",
+    )
+    analyze_seconds = time.monotonic() - analyze_started
     stats = payload["stats"]
     expected = {
         "source_move_count": source_profile["source_move_count"],
@@ -4353,6 +4391,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "status": "passed" if all(checks.values()) else "failed",
         "classification": "COMPLETE_SOURCE_FAITHFUL_PRODUCT_IMPORT",
         "database": DEV_QA_DB,
+        "source_dump_sha256": dump_sha,
         "date_from": USL_BENCHMARK_START,
         "date_to": source_date_to,
         "run_id": payload["run_id"],
@@ -4370,6 +4409,16 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "expense_batch_transition": transition,
         "expense_batch_transition_rerun": transition_rerun,
         "asset_statistics": payload["asset_stats"],
+        "performance": {
+            **payload["performance"],
+            "stages": [
+                *payload["performance"]["stages"],
+                {
+                    "name": "post-import analyze",
+                    "duration_seconds": analyze_seconds,
+                },
+            ],
+        },
         "users": payload["users"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
