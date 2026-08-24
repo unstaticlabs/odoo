@@ -32,7 +32,7 @@ ingestion. Received PDFs and generated searchable representations must preview
 as valid PDFs; other supported formats must return a non-empty preview whose
 media type is recorded in evidence. The successful path asserts that
 Odoo's attachment count does not increase, except for three qualified source
-formats rejected by Paperless 3.0.4: one generated FEC ZIP, one accounting XML,
+formats rejected by Paperless 3.0.5: one generated FEC ZIP, one accounting XML,
 and one calendar evidence file. Each exact authoritative source remains an
 operational Odoo attachment while Paperless holds a checksum-linked,
 deterministic, searchable PDF representation. The Documents migration never
@@ -104,10 +104,13 @@ unchanged.
 The canonical fresh path remains:
 
 ```bash
-make target-reconstruct
+make migrate-production SOURCE_SHA=<exact dump SHA-256>
 ```
 
-It resets Paperless and proves a complete ingestion from nothing. Repeated
+It resets Paperless and proves a complete ingestion from nothing, but proceeds
+only when the source-wide and attachment gates are complete. To reconstruct
+the currently shipped product scopes during development, use
+`make target-reconstruct-product`. Repeated
 development runs of the same qualified input may use:
 
 ```bash

@@ -105,6 +105,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("allowed_company_ids=target_companies.ids", restore)
         self.assertIn("documents_model.with_env(admin.env)", restore)
         self.assertIn('item["document"].with_env(admin.env)', restore)
+        self.assertNotIn("QUALIFIED_SOURCE", restore)
+        self.assertIn('SOURCE_DUMP_SHA256 = os.environ["DOCUMENTS_SOURCE_DUMP_SHA256"]', restore)
+        self.assertIn("source contains unsupported Documents URL references", restore)
 
     def test_fast_qa_verifies_seed_before_reset_and_uses_official_importer(self):
         script = QA_SCRIPT.read_text(encoding="utf-8")
@@ -127,6 +130,33 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("documents-smoke", target)
         self.assertIn("Paperless checkpoint reuse is only valid", target)
         self.assertIn('USL_QA_DATA_PROFILE="$qa_profile"', target)
+
+    def test_production_migration_is_source_wide_fresh_and_confirmed(self):
+        target = TARGET_SCRIPT.read_text(encoding="utf-8")
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        qa = QA_SCRIPT.read_text(encoding="utf-8")
+        preprod = (ROOT / "scripts/preprod-release").read_text(encoding="utf-8")
+
+        self.assertIn('migration_purpose="${USL_MIGRATION_PURPOSE:-production}"', target)
+        self.assertIn("source_gate=gate", target)
+        self.assertIn("attachment_gate=gate", target)
+        self.assertIn("USL_MIGRATION_CONFIRM_SOURCE_SHA", target)
+        self.assertLess(
+            target.index('scripts/migration-source-truth "$source_gate"'),
+            target.index("scripts/accounting-compat dev-reset"),
+        )
+        self.assertLess(
+            target.index('scripts/attachment-ledger "$attachment_gate"'),
+            target.index("scripts/accounting-compat dev-reset"),
+        )
+        self.assertIn("migrate-production:", makefile)
+        self.assertIn('USL_MIGRATION_CONFIRM_SOURCE_SHA="$(SOURCE_SHA)"', makefile)
+        self.assertIn("USL_MIGRATION_PURPOSE=development", qa)
+        self.assertIn("USL_MIGRATION_PURPOSE=production", preprod)
+        self.assertIn('stage "multi-company acceptance"', qa)
+
+        finalizer = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
+        self.assertIn("scripts/platform-billing-restore product-validate", finalizer)
 
     def test_seed_pruning_requires_confirmation_and_preserves_current(self):
         seed = SEED_SCRIPT.read_text(encoding="utf-8")

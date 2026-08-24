@@ -112,9 +112,10 @@ One row may require both an operational Odoo copy and a Paperless archive copy;
 the ledger records both rather than incorrectly treating this legally useful
 duplication as a migration duplicate.
 
-For the current source, all 2,322 attachment rows are classified and all 2,312
-stored references pass path, size, and SHA-1 compatibility checks. There are no
-unowned rows. Accounting and Projects already restore their scoped evidence.
+For the current 24 August 2026 source, all 2,601 attachment rows are classified
+and all 2,591 stored references pass path, size, and SHA-1 compatibility
+checks. There are no unowned rows. Accounting and Projects already restore
+their scoped evidence.
 Identity, Product Master, and HR restore all 32 high-resolution user-authored
 images byte-for-byte through native ORM fields; Odoo regenerates their smaller
 variants. The Documents stage archives every legacy Documents original and
@@ -125,18 +126,23 @@ their own stages pass.
 
 ## Deterministic reconstruction
 
-`make target-reconstruct` restores the source package, runs the current
-Distribution gate, creates a clean target, replays Accounting, installs the
+`make migrate-production SOURCE_SHA=<exact-dump-sha256>` restores the source
+package, runs the strict source-wide and attachment gates, creates a clean
+target, replays Accounting, installs the
 Documents security model, restores identity, Product, HR, Projects, Paie TESE
 and Platform Billing, rebuilds the Paperless archive, removes every temporary
 migration module and its allow-listed physical provenance columns, then
 applies target-only configuration. It is blocked while any shipped scope is
 incomplete. The strict
-whole-source gate separately prevents this product claim from being mistaken
-for delivery of every Online application.
+whole-source gate runs before the target reset. The command refuses a partial
+profile, checkpoint reuse, a dirty checkout or an unconfirmed source package.
+It therefore cannot report a production migration while any Online scope or
+attachment still lacks a final disposition.
 
-The fresh command deliberately resets Paperless and is the authoritative
-final-migration proof. Development may instead run
+The production command deliberately resets Paperless and is the authoritative
+final-migration proof. Development may run `make target-reconstruct-product`
+for a fresh reconstruction of the scopes currently shipped by the
+Distribution, or
 `make target-reconstruct-reuse-documents`: it rebuilds `odoo_dev` but retains
 the already qualified Paperless archive when its private checkpoint proves the
 runtime compatibility contract and archive-root state are unchanged. A newer
@@ -159,19 +165,20 @@ and validation.
 
 ## Current audited perimeter
 
-For source dump `395cc8b950b592035fed41dedf0072f3487e18f10b4010f939331a5e5b51e69f`,
-exported on 18 August 2026, the audit found 228 populated persistent models and
-91 populated relation or unmapped tables. It verified 2,503 referenced
-filestore objects across 1,935 files without an integrity error.
+For source dump `0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`,
+exported on 24 August 2026 from Odoo Online `saas~19.3`, the audit found 232
+populated persistent models and 93 populated relation or unmapped tables. It
+verified 2,591 referenced filestore objects across 2,029 files without an
+integrity error.
 
 Accounting, global identity, Product Master, HR, Projects, Paie TESE, Platform
 Billing and the Paperless Documents archive have implemented translation
-stages. The current Distribution gate passes. The strict whole-source gate
-remains blocked—correctly—on collaboration history, unscoped attachments,
+stages. The current Distribution-scope gate passes. The strict production gate
+remains blocked—correctly—on collaboration history, 115 attachment actions,
 Knowledge, Sign, user preferences, sales/marketing configuration, Studio data,
-source AI configuration and the newly populated Inventory, Manufacturing and
-Quality configuration. These are explicit future product scopes, not silently
-copied or represented as current product parity. The latter scope currently
+source AI configuration and Inventory, Manufacturing and Quality
+configuration. These are explicit gaps, not silently copied or represented as
+full parity. The latter scope currently
 contains configuration only: the source has no stock moves, pickings, quants,
 manufacturing orders, bills of materials or quality alerts.
 
@@ -219,7 +226,7 @@ Documents accounting extension is revalidated. It is not a filestore copy:
   supported formats must return a non-empty typed preview; API v10 and actual
   permission read-back must pass, and successful
   runs may not add an Odoo binary attachment;
-- the three qualified text containers rejected by Paperless 3.0.4—the generated
+- the three qualified text containers rejected by Paperless 3.0.5—the generated
   FEC ZIP, an accounting XML, and calendar evidence—remain byte-for-byte Odoo
   operational attachments and are checksum-linked to deterministic, searchable
   PDF archive representations;
@@ -241,7 +248,8 @@ The checkpoint contains hashes and counts only, is ignored by Git, and is
 atomically replaced only after a complete successful Documents validation.
 It never bypasses the importer or becomes product database state.
 
-The qualified 18 August 2026 full import and validation baseline reconciled
+The qualified 18 August 2026 full import and validation baseline for the prior
+dump reconciled
 657 source Documents identities and 9 unassigned evidence files into 638
 checksum roots, with 0 failures and 2 source roots in Trash. It restored 863 exact
 business relationships (427 accounting entries, 411 Contacts, 15 employees,

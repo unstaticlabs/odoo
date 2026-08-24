@@ -43,7 +43,7 @@ permissions |= Permission.objects.filter(
     codename="view_user",
 )
 if permissions.count() != len(codenames) + 1:
-    raise RuntimeError("Paperless 3.0.4 migration permissions are incompatible")
+    raise RuntimeError("Paperless 3.0.5 migration permissions are incompatible")
 user.save()
 user.user_permissions.set(permissions)
 token, _created = Token.objects.get_or_create(user=user)

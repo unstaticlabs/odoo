@@ -63,24 +63,6 @@ SOURCE_TAG_PALETTE = (
     "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc949",
     "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab", "#2b8cbe", "#31a354",
 )
-QUALIFIED_SOURCE = {
-    "dump_sha256": "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f",
-    "documents": 665,
-    "folders": 88,
-    "tags": 56,
-    "tag_relations": 445,
-    "accesses": 728,
-    "unassigned": 9,
-    "document_groups": 5,
-    "url_references": 1,
-    "account_folder_settings": 46,
-    "account_folder_setting_tags": 45,
-    "hr_contract_tags": 1,
-    "checksum_groups": 645,
-    "employee_folder_mappings": 3,
-    "project_folder_mappings": 18,
-    "classification_partners": 4,
-}
 QUALIFIED_SEARCHABLE_DERIVATIVES = {
     388: {"mime_type": "application/zip", "kind": "FEC ZIP"},
     546: {"mime_type": "text/plain", "kind": "accounting XML"},
@@ -275,27 +257,14 @@ def read_source():
         "project_folder_mappings": project_folder_mappings,
         "classification_partners": classification_partners,
     }
-    if QUALIFIED_SOURCE["dump_sha256"] != SOURCE_DUMP_SHA256:
-        fail(
-            "this migration contract has not qualified source dump "
-            f"{SOURCE_DUMP_SHA256}",
-        )
-    for key in (
-        "documents", "folders", "tags", "tag_relations", "accesses",
-        "unassigned", "document_groups", "url_references",
-        "account_folder_settings", "account_folder_setting_tags",
-        "hr_contract_tags", "employee_folder_mappings",
-        "project_folder_mappings", "classification_partners",
-    ):
-        if len(source[key]) != QUALIFIED_SOURCE[key]:
-            fail(
-                f"qualified source {key} changed: expected "
-                f"{QUALIFIED_SOURCE[key]}, got {len(source[key])}",
-            )
-    if source["url_references"][0]["xmlid"] != (
-        "documents.documents_attachment_video_documents"
-    ):
-        fail("the only source URL reference is not the qualified upstream tutorial")
+    if not source["documents"]:
+        fail("the source Documents perimeter is unexpectedly empty")
+    unexpected_urls = [
+        item for item in source["url_references"]
+        if item["xmlid"] != "documents.documents_attachment_video_documents"
+    ]
+    if unexpected_urls:
+        fail("the source contains unsupported Documents URL references")
     return source
 
 
@@ -492,7 +461,7 @@ def source_truth_payload(group):
 def searchable_archive_pdf(content, source_item):
     """Create a deterministic searchable PDF for a qualified text container.
 
-    Paperless 3.0.4 rejects these three source formats. Their exact originals
+    Paperless 3.0.5 rejects these three source formats. Their exact originals
     remain operational Odoo attachments; Paperless receives an explicitly
     labelled searchable representation for preview and discovery.
     """
@@ -660,7 +629,7 @@ def ensure_operational_source_attachment(group, content, company, target):
                     f"Authoritative {qualification['kind']} retained from Odoo "
                     "Online. Paperless stores a checksum-linked searchable PDF "
                     "representation because the source format is not accepted by "
-                    "Paperless 3.0.4."
+                    "Paperless 3.0.5."
                 ),
                 "rebuild_import_note": (
                     "Exact authoritative source retained; searchable representation "
@@ -726,11 +695,6 @@ parameters.set_int("usl_documents.paperless_trash_retention_days", 36500)
 
 source = read_source()
 all_groups = group_source(source)
-if len(all_groups) != QUALIFIED_SOURCE["checksum_groups"]:
-    fail(
-        "qualified source checksum groups changed: expected "
-        f"{QUALIFIED_SOURCE['checksum_groups']}, got {len(all_groups)}",
-    )
 groups = select_groups(all_groups, SOURCE_PROFILE, SOURCE_LIMIT)
 if not groups:
     fail(f"source profile {SOURCE_PROFILE} selected no document groups")
@@ -1540,7 +1504,7 @@ for (view_users, change_users), grouped_documents in permission_groups.items():
     result = payload.get("result") if isinstance(payload, dict) else payload
     if result != "OK":
         fail(
-            "Paperless 3.0.4 returned an incompatible bulk-permission response: "
+            "Paperless 3.0.5 returned an incompatible bulk-permission response: "
             f"{result!r}",
         )
     print(

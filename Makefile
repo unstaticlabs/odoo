@@ -15,9 +15,10 @@ MODULE ?=
 SERVICE ?=
 CONFIRM ?=
 PROFILE ?= full
+SOURCE_SHA ?=
 
 .PHONY: product-restore product-restore-install product-restore-import product-restore-validate product-restore-finalize hr-restore hr-restore-install hr-restore-import hr-restore-validate hr-restore-finalize documents-restore documents-restore-install documents-restore-import documents-restore-validate documents-restore-serve documents-restore-status
-.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-prune target-finalize target-reconstruct target-reconstruct-reuse-documents oca-addons-sync
+.PHONY: help help-advanced doctor status dev deploy rebuild logs stop dev-reclaim login-link paperless-users disable-tours qa qa-cache-status qa-cache-refresh qa-cache-prune target-finalize target-reconstruct target-reconstruct-product target-reconstruct-reuse-documents migrate-production oca-addons-sync
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
@@ -57,7 +58,9 @@ help:
 	  '  make qa PROFILE=clean-install       Clean product plus self-contained fixtures' \
 	  '  make qa-cache-status                Check shared cache compatibility' \
 	  '  make qa-cache-refresh               Full fresh migration and atomic cache refresh' \
-	  '  make target-reconstruct             Full fresh deterministic reconstruction' \
+	  '  make migrate-production SOURCE_SHA=<sha256>' \
+	  '                                      Authoritative full-source production migration' \
+	  '  make target-reconstruct-product     Fresh reconstruction of shipped product scopes' \
 	  '  make target-reconstruct-reuse-documents' \
 	  '                                      Reuse verified Paperless ingestion in development' \
 	  '' \
@@ -150,7 +153,7 @@ qa-cache-status:
 	@COMPOSE_PROJECT_NAME= scripts/qa-seed status
 
 qa-cache-refresh:
-	@USL_QA_DATA_PROFILE=full USL_QA_SEED_REFRESH=1 scripts/target-reconstruct
+	@USL_MIGRATION_PURPOSE=qa-cache USL_QA_DATA_PROFILE=full USL_QA_SEED_REFRESH=1 scripts/target-reconstruct
 
 qa-cache-prune:
 	@USL_QA_SEED_PRUNE_CONFIRM="$(CONFIRM)" COMPOSE_PROJECT_NAME= scripts/qa-seed prune
@@ -159,10 +162,26 @@ target-finalize:
 	scripts/target-finalize
 
 target-reconstruct:
-	scripts/target-reconstruct
+	@printf 'target-reconstruct is the production migration path.\n'
+	@printf 'Use: make migrate-production SOURCE_SHA=<exact dump SHA-256>\n'
+	@exit 2
+
+migrate-production:
+	@if [ -z "$(strip $(SOURCE_SHA))" ]; then \
+		printf 'Usage: make migrate-production SOURCE_SHA=<exact dump SHA-256>\n' >&2; \
+		exit 2; \
+	fi
+	USL_MIGRATION_PURPOSE=production \
+		USL_MIGRATION_CONFIRM_SOURCE_SHA="$(SOURCE_SHA)" \
+		USL_QA_DATA_PROFILE=full scripts/target-reconstruct
+
+target-reconstruct-product:
+	USL_MIGRATION_PURPOSE=development USL_QA_DATA_PROFILE=full \
+		scripts/target-reconstruct
 
 target-reconstruct-reuse-documents:
-	USL_RECONSTRUCT_REUSE_DOCUMENTS=1 scripts/target-reconstruct
+	USL_MIGRATION_PURPOSE=development USL_RECONSTRUCT_REUSE_DOCUMENTS=1 \
+		scripts/target-reconstruct
 
 migration-source-inventory:
 	scripts/migration-source-truth inventory

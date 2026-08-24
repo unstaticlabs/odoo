@@ -213,7 +213,7 @@ and leaves an auditable Odoo tombstone rather than converting the item into an
 unexplained missing reference.
 
 When Trash is initiated from Odoo, the detail shows the initiating Odoo user
-and time. Paperless 3.0.4's supported Trash response provides `deleted_at` but
+and time. Paperless 3.0.5's supported Trash response provides `deleted_at` but
 does not identify the deleting user; a direct Paperless action is therefore
 labelled honestly as moved in Paperless with the actor unavailable, rather
 than guessing an audit identity.

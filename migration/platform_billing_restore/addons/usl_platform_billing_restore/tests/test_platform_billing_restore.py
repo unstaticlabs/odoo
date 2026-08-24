@@ -7,9 +7,8 @@ from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.usl_platform_billing_restore.models.restore import (
-    APPROVED_SOURCE_DUMP_SHA256S,
     BOOTSTRAP_SHA256,
-    SOURCE_DUMP_SHA256,
+    validate_source_identity,
 )
 
 
@@ -311,19 +310,26 @@ class TestPlatformBillingRestore(AccountTestInvoicingCommon):
         )
         return run, run.restore_from_payload(payload)
 
-    def test_evidence_hashes_are_complete_sha256_values(self):
+    def test_source_identity_is_dump_bound_without_a_hardcoded_export(self):
         self.assertEqual(len(BOOTSTRAP_SHA256), 64)
-        self.assertEqual(len(SOURCE_DUMP_SHA256), 64)
+        first = "a" * 64
+        second = "b" * 64
         self.assertEqual(
-            SOURCE_DUMP_SHA256,
-            "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f",
+            validate_source_identity(
+                {"source_dump_sha256": first, "snapshot": f"source-{first[:12]}"},
+            ),
+            first,
         )
         self.assertEqual(
-            APPROVED_SOURCE_DUMP_SHA256S,
-            {
-                "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f",
-            },
+            validate_source_identity(
+                {"source_dump_sha256": second, "snapshot": f"source-{second[:12]}"},
+            ),
+            second,
         )
+        with self.assertRaisesRegex(RuntimeError, "not dump-bound"):
+            validate_source_identity(
+                {"source_dump_sha256": first, "snapshot": "source-wrong"},
+            )
 
     def test_restore_links_history_and_is_idempotent(self):
         payload = self._payload()

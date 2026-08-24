@@ -3,7 +3,6 @@
 import json
 
 from odoo.addons.usl_platform_billing_restore.models.restore import (
-    APPROVED_SOURCE_DUMP_SHA256S,
     BOOTSTRAP_SHA256,
     PlatformBillingSourceReader,
     canonical_digest,
@@ -19,7 +18,8 @@ run = env["usl.platform.billing.restore.run"].sudo().search(
 )
 assert run and run.status == "passed", "Latest platform billing restore did not pass."
 assert run.bootstrap_sha256 == BOOTSTRAP_SHA256
-assert options["source_dump_sha256"] in APPROVED_SOURCE_DUMP_SHA256S
+assert len(options["source_dump_sha256"]) == 64
+assert options["snapshot"] == f"source-{options['source_dump_sha256'][:12]}"
 assert run.source_dump_sha256 == options["source_dump_sha256"]
 assert source["counts"]["platforms"] >= 4
 assert source["counts"]["sessions"] >= 3

@@ -116,7 +116,7 @@ require_target_database() {
       usl_cli_blocked \
         "Target database $ODOO_INIT_DB does not exist in Compose project $COMPOSE_PROJECT_NAME." \
         "Deploy updates an existing reconstructed target; it cannot recreate source accounting data." \
-        "Run: make target-reconstruct" \
+        "Run: make target-reconstruct-product" \
         "For unchanged Paperless inputs, run: make target-reconstruct-reuse-documents"
     return 2
   fi

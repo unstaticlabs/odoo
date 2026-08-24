@@ -22,8 +22,12 @@ reset target → install temporary importer → import → validate
 Run the complete lifecycle with:
 
 ```bash
-make target-reconstruct
+make migrate-production SOURCE_SHA=<exact dump SHA-256>
 ```
+
+For a local reconstruction limited to currently shipped product scopes, use
+`make target-reconstruct-product`. Only the production command is source-wide
+migration evidence.
 
 For focused development of this importer:
 

@@ -23,7 +23,8 @@ Temporary mapping records make the import repeatable. Finalization uninstalls
 the migration module and removes those mappings, run records, issues and XML
 IDs while retaining native business records.
 
-The canonical `make target-reconstruct` command runs the stages in this order:
+The production `make migrate-production SOURCE_SHA=<sha256>` command runs the
+stages in this order:
 
 1. restore and validate the source database through the Accounting harness;
 2. complete and validate the source-faithful Accounting import, leaving its
@@ -98,7 +99,7 @@ For the normal disposable developer/QA database, use the single canonical
 pipeline:
 
 ```bash
-make target-reconstruct
+make target-reconstruct-product
 ```
 
 The following stage commands are for focused migration development only. They

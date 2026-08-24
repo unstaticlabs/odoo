@@ -272,7 +272,8 @@ for dependency direction, ownership policy and future extraction rules.
 
 One-off Accounting, identity, Product, HR, Projects, Paie TESE, Platform
 Billing and Documents restoration lives under `migration/`.
-The normal Odoo service cannot load that path. `make target-reconstruct` loads
+The normal Odoo service cannot load that path. The production migration and
+`make target-reconstruct-product` load
 the temporary importer through a dedicated service, validates the restored
 facts, uninstalls it, and refuses the target unless the normal product registry
 is free of migration models, fields, views and XML IDs.
@@ -405,8 +406,8 @@ make help-advanced                # migration, validation and specialized QA
 `make deploy` updates an existing `odoo_dev`; it never creates an empty
 replacement when reconstructed data is missing. `make doctor` reports
 `Target: present` when deployment is safe. If it reports `Target: missing`,
-use the qualified QA seed with `make qa` or perform the authoritative fresh
-migration with `make target-reconstruct` before deploying add-on changes.
+use the qualified QA seed with `make qa` or reconstruct the shipped product
+scope with `make target-reconstruct-product` before deploying add-on changes.
 
 For branch and worktree QA, choose the smallest honest data profile:
 
@@ -458,7 +459,8 @@ scripts/documents-stack qa up         # isolated Odoo/Paperless/Pocket QA stack
 scripts/documents-stack qa bootstrap  # idempotent synthetic Documents archive
 make documents-restore                # isolated Documents migration rehearsal
 scripts/target-finalize               # apply target-only config after migration
-scripts/target-reconstruct            # rebuild canonical data and target config
+make migrate-production SOURCE_SHA=<sha256> # full-source, fresh production migration
+make target-reconstruct-product       # rebuild current product scopes from source
 make target-reconstruct-reuse-documents # rebuild Odoo; reuse verified Paperless ingestion
 scripts/migration-source-truth inventory # audit all populated source perimeters
 scripts/odoo-dev ruff custom-addons
@@ -473,21 +475,26 @@ make dev       # start the existing environment
 make deploy    # apply ordinary custom add-on changes
 make rebuild   # rebuild images, then deploy
 make target-finalize    # reapply identities, permissions and target config
-make target-reconstruct # recreate odoo_dev from the dump, then finalize it
+make target-reconstruct-product # recreate product scopes, then finalize odoo_dev
 make target-reconstruct-reuse-documents
                         # same Odoo rebuild; skip unchanged Paperless OCR safely
 ```
 
-`make target-reconstruct` is always the fresh, release-equivalent path and
-reprocesses Paperless. During repeated development runs against unchanged
-inputs, `make target-reconstruct-reuse-documents` retains the existing
+`make migrate-production SOURCE_SHA=<exact dump SHA-256>` is the authoritative
+fresh path. It requires a clean checkout, the full profile, fresh Paperless
+ingestion, the source-wide coverage gate and the complete attachment ledger.
+It stops before resetting `odoo_dev` if any populated Online scope has no final
+treatment. During repeated development runs against unchanged inputs,
+`make target-reconstruct-reuse-documents` retains the existing
 Paperless volumes, verifies their private content-addressed checkpoint, and
 then reruns the complete Documents importer to rebuild Odoo links and verify
 every original, preview and permission. A newer dump or compatible importer
 change is reconciled incrementally, so only new binaries are ingested. A
-changed Paperless/OCR contract or archive drift rejects reuse; run the normal
-fresh command to rebuild and reseal the checkpoint. Pre-production release
-qualification always forces the fresh path.
+changed Paperless/OCR contract or archive drift rejects reuse. The separate
+`make target-reconstruct-product` command performs a fresh reconstruction of
+the scopes currently shipped by the Distribution, but is not full-source
+production evidence. Pre-production qualification uses the strict production
+path.
 
 The same-project checkpoint is retained as an advanced diagnostic. Normal
 worktree QA uses `make qa`: the qualified Paperless export is imported into new
@@ -541,7 +548,7 @@ COMPOSE_PROJECT=usl-odoo-preprod-9642 \
 ODOO_HTTP_PORT=18669 ODOO_GEVENT_PORT=18672 \
 POCKET_ID_HTTP_PORT=11411 PAPERLESS_HTTP_PORT=18010 \
 USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
-make target-reconstruct
+make target-reconstruct-product
 ```
 
 Pocket ID secrets and immutable test subjects are checkout-local by default.
@@ -556,7 +563,7 @@ at `^odoo_dev$`, provision stable local identities, and reapply the governed
 Odoo policy when configuration or modules are updated.
 
 Source parity and target configuration remain separate stages. The Online dump
-has no Pocket ID state, so `scripts/target-reconstruct` validates Accounting,
+has no Pocket ID state, so the reconstruction orchestrator validates Accounting,
 installs Documents security before restoring identities, restores Product,
 HR, Projects, Paie TESE and Platform Billing, rebuilds the Paperless archive,
 and finalizes every temporary migration module out of the product. Its final

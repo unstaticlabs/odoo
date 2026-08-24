@@ -2,6 +2,7 @@ import hashlib
 import html
 import json
 import os
+import re
 from collections import Counter, defaultdict
 from decimal import Decimal
 
@@ -15,12 +16,6 @@ from odoo.tools import float_compare, float_is_zero
 RESTORE_REVISION = 2
 BOOTSTRAP_SHA256 = (
     "a7617a282cb812ae051f41b5a6c15047c950bf3e8b85ef3a4014757345053791"
-)
-SOURCE_DUMP_SHA256 = (
-    "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
-)
-APPROVED_SOURCE_DUMP_SHA256S = frozenset(
-    {SOURCE_DUMP_SHA256},
 )
 TRACE_MODELS = {
     "company": ("res.company", "res.company"),
@@ -37,6 +32,18 @@ TRACE_MODELS = {
     ),
     "attachment": ("ir.attachment", "ir.attachment"),
 }
+
+
+def validate_source_identity(options):
+    """Require a real SHA-256 and a snapshot derived from that exact dump."""
+    source_dump_sha256 = options.get("source_dump_sha256", "")
+    if not re.fullmatch(r"[0-9a-f]{64}", source_dump_sha256):
+        message = "The Platform Billing source dump SHA-256 is invalid."
+        raise RuntimeError(message)
+    if options.get("snapshot") != f"source-{source_dump_sha256[:12]}":
+        message = "The Platform Billing source snapshot is not dump-bound."
+        raise RuntimeError(message)
+    return source_dump_sha256
 
 
 def _normalized(value):
@@ -1579,13 +1586,7 @@ class UslPlatformBillingRestoreRun(models.Model):
 
     @classmethod
     def restore_from_source(cls, env, options):
-        source_dump_sha256 = options.get(
-            "source_dump_sha256",
-            SOURCE_DUMP_SHA256,
-        )
-        if source_dump_sha256 not in APPROVED_SOURCE_DUMP_SHA256S:
-            message = "The Platform Billing source dump SHA-256 is not approved."
-            raise RuntimeError(message)
+        source_dump_sha256 = validate_source_identity(options)
         payload = PlatformBillingSourceReader(options).read()
         run = env["usl.platform.billing.restore.run"].create(
             {
@@ -1871,7 +1872,7 @@ def default_source_options():
         ),
         "source_dump_sha256": os.getenv(
             "PLATFORM_BILLING_SOURCE_DUMP_SHA256",
-            SOURCE_DUMP_SHA256,
+            "",
         ),
         "bootstrap_sha256": os.getenv(
             "PLATFORM_BILLING_BOOTSTRAP_SHA256",

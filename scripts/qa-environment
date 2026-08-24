@@ -242,10 +242,13 @@ case "$profile" in
     stage "hydrate qualified seed" hydrate_seed
     stage "upgrade and finalize current branch" \
       env USL_QA_DATA_PROFILE=full scripts/target-finalize
+    stage "multi-company acceptance" make \
+      COMPOSE_PROJECT="$COMPOSE_PROJECT_NAME" accounting-multicompany-acceptance
     ;;
   no-documents|documents-smoke)
     stage "source reconstruction ($profile)" \
-      env USL_QA_DATA_PROFILE="$profile" scripts/target-reconstruct
+      env USL_MIGRATION_PURPOSE=development \
+      USL_QA_DATA_PROFILE="$profile" scripts/target-reconstruct
     ;;
   clean-install)
     stage "clean product installation" clean_install

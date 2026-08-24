@@ -276,8 +276,14 @@ clean_install_product() {
 
 reconstruct_target() {
   require_qualified_identity
+  local source_dump source_sha256
   export ODOO_MAX_CRON_THREADS=0
-  USL_RECONSTRUCT_REUSE_DOCUMENTS=0 release_helper scripts/target-reconstruct
+  source_dump="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}/dump.sql"
+  source_sha256="$(shasum -a 256 "$source_dump" | awk '{print $1}')"
+  USL_MIGRATION_PURPOSE=production \
+    USL_MIGRATION_CONFIRM_SOURCE_SHA="$source_sha256" \
+    USL_RECONSTRUCT_REUSE_DOCUMENTS=0 \
+    release_helper scripts/target-reconstruct
   database_identity 1 > "$ROOT/artifacts/release/database-identity.json"
 }
 

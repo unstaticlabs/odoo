@@ -82,7 +82,8 @@ doctor() {
           ;;
         missing)
           printf '  The %s database is missing; deploy cannot recreate source data.\n' "$DEV_DB"
-          printf '  Reconstruct it from the current dump with: make target-reconstruct\n'
+          printf '  Reconstruct shipped product scopes with: make target-reconstruct-product\n'
+          printf '  Final migration uses: make migrate-production SOURCE_SHA=<sha256>\n'
           ;;
         not-running)
           printf '  The database service is stopped; run make dev to inspect the target.\n'

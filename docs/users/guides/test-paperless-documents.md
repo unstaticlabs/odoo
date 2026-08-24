@@ -337,7 +337,7 @@ edit/download actions are unavailable, and an authorized **Restore**
 action returns the same stable identity and links.
 
 If the move happens directly in Paperless, Odoo can display Paperless's
-deletion time, but Paperless 3.0.4 does not return the deleting user through its
+deletion time, but Paperless 3.0.5 does not return the deleting user through its
 supported API. Odoo says that the actor was not provided rather than guessing.
 
 Administrators see **Delete permanently** in Trash. It stays disabled with a

@@ -81,7 +81,7 @@ USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
   '/rebuild_account_migration:TestFrenchEinvoiceReception'
 
 USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
-  make target-reconstruct
+  make target-reconstruct-product
 
 USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
   make deploy
@@ -107,7 +107,7 @@ negative tests. They are not test failures.
 
 ## Canonical reconstruction and parity
 
-`make target-reconstruct` rebuilt the single canonical developer/QA database,
+`make target-reconstruct-product` rebuilt the single canonical developer/QA database,
 `odoo_dev`, from the preserved Online source. It also completed the downstream
 Projects restoration and removed its temporary migration module.
 

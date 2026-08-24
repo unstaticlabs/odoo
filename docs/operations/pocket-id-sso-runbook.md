@@ -111,7 +111,7 @@ canonical pipeline keeps two explicit layers:
 Run the complete lifecycle with:
 
 ```bash
-make target-reconstruct
+make target-reconstruct-product
 ```
 
 That shorthand owns the default project only in the main checkout. In a linked

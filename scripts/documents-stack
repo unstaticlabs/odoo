@@ -119,8 +119,8 @@ validate_config() {
     printf 'E-reporting live safety flag is not disabled.\n' >&2
     return 1
   }
-  grep -Fq "ghcr.io/paperless-ngx/paperless-ngx:3.0.4" <<<"$config" || {
-    printf 'Paperless 3.0.4 is not exactly pinned.\n' >&2
+  grep -Fq "ghcr.io/paperless-ngx/paperless-ngx:3.0.5" <<<"$config" || {
+    printf 'Paperless 3.0.5 is not exactly pinned.\n' >&2
     return 1
   }
   grep -Fq "ghcr.io/pocket-id/pocket-id:v2.13.0@sha256:c9c1d7b70006968d673a1073df048a3fdec73ccb54e182320b56bb911340f6f1" <<<"$config" || {

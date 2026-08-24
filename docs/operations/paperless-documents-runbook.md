@@ -107,10 +107,10 @@ does not require a Paperless login.
 ## Qualified versions and health
 
 The exact qualified Paperless image is
-`ghcr.io/paperless-ngx/paperless-ngx:3.0.4` (qualified digest
-`sha256:3838b9a4260d23acc5bb63aed407138435e70b56e5806f4baa350ca184e57582`).
+`ghcr.io/paperless-ngx/paperless-ngx:3.0.5` (qualified digest
+`sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`).
 It was qualified against REST API v10. PostgreSQL is 16-bookworm, Valkey is
-8.1.3-alpine, Gotenberg is 8.34, and Tika is 3.2.3.0-full. Never replace a pin
+8.1.3-alpine, Gotenberg is 8.35, and Tika is 3.3.1.0-full. Never replace a pin
 with `latest` or let an image pull become an implicit upgrade.
 
 Compose health checks cover Odoo, Odoo PostgreSQL, Paperless web/worker,
@@ -287,7 +287,7 @@ artifacts after recording the result. Set
 then remove the preserved project and artifacts explicitly.
 
 Pre-production uses the corresponding `documents-preprod-*` targets after
-preflight. The real-service acceptance verifies Paperless 3.0.4/API v10,
+preflight. The real-service acceptance verifies Paperless 3.0.5/API v10,
 asynchronous upload, OCR-only search, current and historical checksum duplicate
 reuse, live tag/correspondent creation, multi-term matching expressions,
 original and processed downloads, multi-link/unlink, generated-output
@@ -345,7 +345,7 @@ creating a new document with the same title. Paperless automatic expiry is
 effectively disabled with the deployment's 100-year delay so that it cannot
 bypass these gates.
 
-Paperless 3.0.4 reports the Trash timestamp but not the deleting identity
+Paperless 3.0.5 reports the Trash timestamp but not the deleting identity
 through its supported Trash/history APIs. Odoo therefore records exact
 attribution for Odoo-origin actions and an explicit unknown Paperless actor for
 direct archive actions. Do not substitute container logs or an administrator

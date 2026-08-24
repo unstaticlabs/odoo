@@ -25,6 +25,13 @@ schema, records release identity and starts the no-bind-mount runtime. The final
 release gate also requires each enabled Documents persona to complete the
 individual Paperless identity handshake described below.
 
+Reconstruction derives and confirms the exact dump SHA-256 internally, then
+uses the same strict production migration path as
+`make migrate-production SOURCE_SHA=<sha256>`. It stops before resetting the
+target unless every populated Online scope and attachment has a completed
+disposition. A product-scope reconstruction or cached QA seed is never accepted
+as pre-production migration evidence.
+
 Evidence is written below ignored `artifacts/release/`. The command refuses a
 dirty Git tree, a foreign Compose working directory, an untagged or `latest`
 image, an incomplete source package, an OCA pin mismatch, installed migration

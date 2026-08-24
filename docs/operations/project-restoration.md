@@ -169,7 +169,7 @@ For the canonical production-shaped `odoo_dev` target, prefer the complete
 repository workflow:
 
 ```bash
-make target-reconstruct
+make migrate-production SOURCE_SHA=<exact-dump-sha256>
 ```
 
 It runs Accounting reconstruction and parity first, then this Projects

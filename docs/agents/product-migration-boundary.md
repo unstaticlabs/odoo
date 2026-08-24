@@ -74,8 +74,11 @@ does not depend on either temporary importer.
 - Import logs and parity evidence belong in private external artifacts, not in
   the delivered database or repository.
 - Apply environment-specific target configuration only after source parity and
-  migration finalization. For local development, `make target-reconstruct`
-  ends with Pocket ID target finalization on canonical `odoo_dev`.
+  migration finalization. For local development,
+  `make target-reconstruct-product` ends with Pocket ID target finalization on
+  canonical `odoo_dev`. Only `make migrate-production SOURCE_SHA=<sha256>` may
+  claim source-wide production migration; it requires the strict source and
+  attachment gates before the target reset.
 
 ## Alternatives considered
 

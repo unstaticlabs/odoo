@@ -74,7 +74,7 @@ unexpired retention date, and preserves a tombstone with attribution after
 Paperless removes the bytes.
 
 Odoo-origin Trash actions record the initiating Odoo user and time. For a
-direct Paperless action, Paperless 3.0.4 supplies the deletion time but not the
+direct Paperless action, Paperless 3.0.5 supplies the deletion time but not the
 actor through its supported API; the archive record must state that limitation
 and must not infer a person. Permanent deletion remains blocked until every
 Odoo evidence relationship has been removed explicitly.

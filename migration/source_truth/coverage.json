@@ -29,12 +29,12 @@
     "attachments": {
       "status": "incomplete",
       "disposition": "translated",
-      "evidence": "the complete attachment ledger integrity-checks and assigns all 2,322 rows; Accounting, Projects, native identity/product/HR images, all legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, signing, Knowledge, preference, and AI actions remain gated"
+      "evidence": "the dump-bound attachment ledger integrity-checks and classifies every source attachment; Accounting, Projects, native identity/product/HR images, legacy Documents originals, and unassigned enterprise evidence are restored, while collaboration, signing, Knowledge, preference, and AI actions remain gated"
     },
     "documents": {
       "status": "implemented",
       "disposition": "archive",
-      "evidence": "the dump-qualified Paperless 3.0.4/API v10 stage restores 567 source document identities and nine unassigned evidence files into 548 checksum-stable archive roots, verifies originals, previews, metadata, links and object permissions, and produces identical evidence on replay"
+      "evidence": "the dump-bound Paperless 3.0.5/API v10 stage restores every classified Documents identity and unassigned evidence file into checksum-stable archive roots, verifies originals, previews, metadata, links and object permissions, and produces identical evidence on replay"
     },
     "knowledge": {
       "status": "incomplete",

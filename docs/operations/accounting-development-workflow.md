@@ -49,16 +49,25 @@ Online dump → Accounting import/parity → Documents product/security
 → Pocket/Odoo/Paperless identities and target configuration
 ```
 
-Run the authoritative path from the main checkout with
-`make target-reconstruct`. It always rebuilds Paperless from source and is the
-only path used for final migration and release qualification.
+Run the authoritative path from the main checkout with the exact SHA-256 shown
+by `make migration-source-inventory`:
+
+```bash
+make migrate-production SOURCE_SHA=<exact-dump-sha256>
+```
+
+It always rebuilds Paperless from source. Before changing `odoo_dev`, it
+requires a clean checkout and proves that every populated source scope and
+every attachment has a completed final disposition. This is the only path
+accepted for final migration and release qualification.
 
 Normal branch/worktree QA uses `make qa`. It verifies a sealed host-local seed,
 restores independent Odoo/Paperless volumes, upgrades the current branch,
 recreates Pocket and Paperless identities, and reruns product boundaries.
 Create or replace that seed from the main checkout with
-`make qa-cache-refresh`; publication is atomic and occurs only after the full
-fresh reconstruction and target finalization pass. The manifest binds the seed
+`make qa-cache-refresh`; publication is atomic and occurs only after a fresh
+reconstruction of all currently shipped product scopes and target finalization
+pass. The manifest binds the seed
 to source dump and filestore digests, migration code, resolved image IDs, OCR
 settings, archive digests and product module versions.
 
@@ -68,7 +77,9 @@ sample, or `PROFILE=clean-install` for product installability with only
 self-contained synthetic fixtures. Source-template TESE and settlement
 fixtures remain separate explicit QA commands. Partial profiles
 are recorded in `usl.qa.data_profile`, included in timing evidence, and rejected
-by pre-production gates. They retain the complete Accounting ledger. The older
+by pre-production gates. They retain the complete Accounting ledger.
+`make target-reconstruct-product` is the uncached fresh developer path for the
+currently shipped product perimeter. The older
 `target-reconstruct-reuse-documents` command remains a same-project diagnostic.
 Superseded private seeds are retained for rollback until an operator runs
 `make qa-cache-prune CONFIRM=qa-seeds`; the current qualified seed is preserved.
@@ -78,6 +89,12 @@ and added only after the imported business state passes its controls. This
 final step also creates governed Paperless users, maps them to existing Odoo
 users by immutable Pocket subject, and synchronizes document-object access; it
 never imports Online credentials or user-session state.
+Every reconstruction writes a dump-bound run record below ignored
+`artifacts/migration/private/runs/`. It records purpose, source SHA-256, Git
+commit, migration-code digest, ordered stage outcomes, duration, source
+coverage and attachment-ledger evidence. A failed run remains visible and
+cannot be confused with a qualified production migration.
+
 The canonical command validates and restores the current local dump into the
 isolated read-only source service, refreshes source controls and extraction,
 then resets `odoo_dev`; it does not depend on a previously running source
@@ -152,7 +169,8 @@ and explicit automated browser tours continue to work. Run
 The doctor also verifies that `odoo_dev` exists when PostgreSQL is running.
 Deployment is an update operation, not a reconstruction shortcut: if the
 target is missing it stops before provisioning the surrounding services and
-points to `make target-reconstruct` or the verified Paperless-reuse variant.
+points to `make target-reconstruct-product` or the verified Paperless-reuse
+variant.
 
 The canonical Compose project belongs exclusively to this main checkout.
 When `make doctor` reports foreign or mixed ownership, ordinary commands stop

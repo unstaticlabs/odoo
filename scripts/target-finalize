@@ -71,6 +71,7 @@ docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
 scripts/accounting-restore product-validate
 scripts/project-restore product-validate
 scripts/tese-restore product-validate
+scripts/platform-billing-restore product-validate
 scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
 

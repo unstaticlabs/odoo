@@ -44,6 +44,63 @@ case "$qa_profile" in
     ;;
 esac
 
+migration_purpose="${USL_MIGRATION_PURPOSE:-production}"
+case "$migration_purpose" in
+  production)
+    if [[ "$qa_profile" != full ]]; then
+      printf 'Production migration requires the complete full profile.\n' >&2
+      exit 2
+    fi
+    if [[ "${USL_RECONSTRUCT_REUSE_DOCUMENTS:-0}" != 0 ]]; then
+      printf 'Production migration cannot reuse a mutable Documents checkpoint.\n' >&2
+      exit 2
+    fi
+    if [[ "${USL_QA_SEED_REFRESH:-0}" != 0 ]]; then
+      printf 'Production migration and QA seed publication are separate operations.\n' >&2
+      exit 2
+    fi
+    if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+      printf 'Production migration requires a clean tracked working tree.\n' >&2
+      exit 2
+    fi
+    source_gate=gate
+    attachment_gate=gate
+    ;;
+  qa-cache)
+    if [[ "$qa_profile" != full || "${USL_QA_SEED_REFRESH:-0}" != 1 ]]; then
+      printf 'QA cache refresh requires the full profile and seed publication.\n' >&2
+      exit 2
+    fi
+    source_gate=product-gate
+    attachment_gate=inventory
+    ;;
+  development)
+    source_gate=product-gate
+    attachment_gate=inventory
+    ;;
+  *)
+    printf 'USL_MIGRATION_PURPOSE must be production, qa-cache, or development.\n' >&2
+    exit 2
+    ;;
+esac
+
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
+source_dump="$source_dump_dir/dump.sql"
+if [[ ! -f "$source_dump" || ! -d "$source_dump_dir/filestore" ]]; then
+  printf 'Migration source package is incomplete: %s\n' "$source_dump_dir" >&2
+  exit 2
+fi
+source_sha256="$(shasum -a 256 "$source_dump" | awk '{print $1}')"
+if [[ "$migration_purpose" == production ]]; then
+  expected_source_sha256="${USL_MIGRATION_CONFIRM_SOURCE_SHA:-}"
+  if [[ "$expected_source_sha256" != "$source_sha256" ]]; then
+    printf 'Production migration requires confirmation of the exact source package.\n' >&2
+    printf 'Source SHA-256: %s\n' "$source_sha256" >&2
+    printf 'Retry with SOURCE_SHA=%s make migrate-production\n' "$source_sha256" >&2
+    exit 2
+  fi
+fi
+
 reuse_documents="${USL_RECONSTRUCT_REUSE_DOCUMENTS:-0}"
 if [[ "$qa_profile" != full && "$reuse_documents" == 1 ]]; then
   printf 'Paperless checkpoint reuse is only valid for the full profile.\n' >&2
@@ -67,12 +124,18 @@ case "$reuse_documents" in
 esac
 
 export ACCOUNTING_COMPAT_COMPOSE_PROJECT="${ACCOUNTING_COMPAT_COMPOSE_PROJECT:-$compose_project}"
-timing_dir="$ROOT/artifacts/migration/private/qa-runs"
+timing_dir="$ROOT/artifacts/migration/private/runs"
 mkdir -p "$timing_dir"
 timing_tsv="$timing_dir/${compose_project}-reconstruct-$(date -u +%Y%m%dT%H%M%SZ).tsv"
 timing_json="${timing_tsv%.tsv}.json"
 : > "$timing_tsv"
 run_started="$(date +%s)"
+run_started_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git_commit="$(git rev-parse HEAD)"
+migration_code_sha256="$(
+  PYTHONPATH="$ROOT" python3 -c \
+    'from pathlib import Path; from scripts.qa_seed import migration_digest; print(migration_digest(Path.cwd()))'
+)"
 seed_pending=0
 
 run_stage() {
@@ -89,24 +152,70 @@ run_stage() {
 
 write_timing() {
   local outcome="$1"
-  python3 - "$timing_tsv" "$timing_json" "$qa_profile" "$reuse_documents" "$run_started" "$outcome" "$ROOT" <<'PY'
+  python3 - "$timing_tsv" "$timing_json" "$qa_profile" "$reuse_documents" "$run_started" "$outcome" "$ROOT" "$migration_purpose" "$source_sha256" "$git_commit" "$run_started_iso" "$compose_project" "$migration_code_sha256" <<'PY'
+import hashlib
 import json
 import sys
 import time
 from pathlib import Path
+
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 stages = []
 for row in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
     name, duration, status = row.split("\t")
     stages.append({"duration_seconds": int(duration), "name": name, "status": int(status)})
 payload = {
+    "schema": "usl-production-migration-run-v1",
     "cache": "same-project-checkpoint" if sys.argv[4] == "1" else "miss-fresh",
+    "compose_project": sys.argv[12],
     "duration_seconds": int(time.time()) - int(sys.argv[5]),
+    "finished_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "git_commit": sys.argv[10],
+    "migration_code_sha256": sys.argv[13],
     "outcome": sys.argv[6],
     "profile": sys.argv[3],
+    "purpose": sys.argv[8],
+    "source_dump_sha256": sys.argv[9],
+    "started_at": sys.argv[11],
     "stages": stages,
-    "validation_level": "canonical-full" if sys.argv[3] == "full" else "partial",
+    "validation_level": (
+        "production-source-wide"
+        if sys.argv[8] == "production"
+        else "canonical-full"
+        if sys.argv[3] == "full"
+        else "partial"
+    ),
 }
+source_evidence = Path(sys.argv[7]) / "artifacts/migration/private" / (
+    "source-" + sys.argv[9][:12]
+)
+inventory_path = source_evidence / "source-truth-inventory.json"
+if inventory_path.is_file():
+    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    payload["source_coverage"] = {
+        "blocking": inventory.get("blocking", {}),
+        "complete": inventory.get("summary", {}).get("complete", False),
+        "evidence": str(inventory_path),
+        "evidence_sha256": sha256(inventory_path),
+        "summary": inventory.get("summary", {}),
+    }
+ledger_path = source_evidence / "attachment-disposition-ledger.json"
+if ledger_path.is_file():
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    payload["attachment_coverage"] = {
+        "blocking": ledger.get("blocking", {}),
+        "complete": ledger.get("summary", {}).get("complete", False),
+        "evidence": str(ledger_path),
+        "evidence_sha256": sha256(ledger_path),
+        "summary": ledger.get("summary", {}),
+    }
 evidence = sorted(
     Path(sys.argv[7]).glob("accounting_compat/private/snapshots/*/evidence/documents-restore-*.json"),
     key=lambda path: path.stat().st_mtime,
@@ -146,9 +255,9 @@ stop_product() {
 start_target_database
 stop_product
 run_stage "restore source database" scripts/accounting-compat source-restore
-run_stage "source product gate" scripts/migration-source-truth product-gate
+run_stage "source coverage gate" scripts/migration-source-truth "$source_gate"
+run_stage "attachment disposition gate" scripts/attachment-ledger "$attachment_gate"
 run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
-run_stage "refresh source database" scripts/accounting-compat source-restore
 run_stage "source accounting controls" scripts/accounting-compat source-controls
 run_stage "extract accounting source" scripts/accounting-compat extract
 run_stage "reset target database" scripts/accounting-compat dev-reset
@@ -206,6 +315,10 @@ case "$seed_refresh" in
 esac
 
 run_stage "apply target configuration" env USL_QA_DATA_PROFILE="$qa_profile" scripts/target-finalize
+if [[ "$qa_profile" == full ]]; then
+  run_stage "multi-company acceptance" make \
+    COMPOSE_PROJECT="$compose_project" accounting-multicompany-acceptance
+fi
 if [[ "$seed_refresh" == 1 ]]; then
   run_stage "publish qualified QA seed" scripts/qa-seed publish
   seed_pending=0
@@ -213,5 +326,6 @@ fi
 
 write_timing passed
 trap - EXIT
-printf '\nReconstruction complete: profile=%s.\n' "$qa_profile"
+printf '\nReconstruction complete: purpose=%s profile=%s.\n' \
+  "$migration_purpose" "$qa_profile"
 printf 'Timing evidence: %s\n' "$timing_json"

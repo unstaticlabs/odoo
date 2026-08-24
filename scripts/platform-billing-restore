@@ -11,9 +11,8 @@ require_isolated_project="${PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT:-${ODOO_DE
 target_database="${PLATFORM_BILLING_TARGET_DATABASE:-odoo_dev}"
 test_database="${PLATFORM_BILLING_TEST_DATABASE:-odoo_test_platform_billing_restore}"
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
-default_dump_sha="0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
-approved_dump_shas=("$default_dump_sha")
-source_dump_sha="$default_dump_sha"
+source_dump_sha=""
+source_snapshot=""
 migration_addons_path="/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/platform-billing-migration-addons"
 
 if [[ -z "$compose_project" ]]; then
@@ -76,20 +75,8 @@ require_source() {
         echo "Source dump or filestore is missing under $source_dump_dir."
         exit 2
     fi
-    local actual_dump_sha
-    actual_dump_sha="$(shasum -a 256 "$source_dump_dir/dump.sql" | cut -d ' ' -f 1)"
-    local approved=0 approved_sha
-    for approved_sha in "${approved_dump_shas[@]}"; do
-        if [[ "$actual_dump_sha" == "$approved_sha" ]]; then
-            approved=1
-            break
-        fi
-    done
-    if (( ! approved )); then
-        echo "Source dump SHA-256 mismatch: $actual_dump_sha"
-        exit 2
-    fi
-    source_dump_sha="$actual_dump_sha"
+    source_dump_sha="$(shasum -a 256 "$source_dump_dir/dump.sql" | cut -d ' ' -f 1)"
+    source_snapshot="source-${source_dump_sha:0:12}"
     if ! compose ps --status running --services | grep -qx accounting-source-db; then
         echo "The dedicated accounting-source-db service is not running."
         echo "Restore it through the isolated Accounting reconstruction first."
@@ -166,7 +153,7 @@ run_shell() {
         -e PLATFORM_BILLING_SOURCE_DB_USER="${PLATFORM_BILLING_SOURCE_DB_USER:-odoo}" \
         -e PLATFORM_BILLING_SOURCE_DB_PASSWORD="${PLATFORM_BILLING_SOURCE_DB_PASSWORD:-odoo}" \
         -e PLATFORM_BILLING_SOURCE_DATABASE="${PLATFORM_BILLING_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
-        -e PLATFORM_BILLING_SOURCE_SNAPSHOT="${PLATFORM_BILLING_SOURCE_SNAPSHOT:-odoo-online-saas-19.3-platform-billing}" \
+        -e PLATFORM_BILLING_SOURCE_SNAPSHOT="${PLATFORM_BILLING_SOURCE_SNAPSHOT:-$source_snapshot}" \
         -e PLATFORM_BILLING_SOURCE_DUMP_SHA256="$source_dump_sha" \
         -e "PLATFORM_BILLING_EVIDENCE_PATH=$evidence_path" \
         platform-billing-migration \
