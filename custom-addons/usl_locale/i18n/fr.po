@@ -30,6 +30,11 @@ msgstr "Utiliser la couleur automatique"
 
 #. module: usl_locale
 #: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
+msgid "Remove the custom color and use the stable automatic company color."
+msgstr "Supprime la couleur personnalisée et rétablit la couleur automatique stable de la société."
+
+#. module: usl_locale
+#: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
 msgid "Assigned automatically"
 msgstr "Attribuée automatiquement"
 

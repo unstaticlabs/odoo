@@ -12,6 +12,7 @@
                     <button name="action_use_automatic_usl_ui_theme_color"
                             type="object"
                             string="Use automatic color"
+                            title="Remove the custom color and use the stable automatic company color."
                             class="btn-link"
                             invisible="not usl_ui_theme_color"/>
                     <span class="text-muted" invisible="usl_ui_theme_color">
