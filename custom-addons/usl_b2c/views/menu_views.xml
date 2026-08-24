@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_b2c_order_analytics" model="ir.actions.act_window">
+        <field name="name">Revenue, Orders and Coverage</field>
+        <field name="res_model">b2c.order</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="view_b2c_order_search"/>
+    </record>
+    <record id="action_b2c_payment_analytics" model="ir.actions.act_window">
+        <field name="name">Refunds and Fees</field>
+        <field name="res_model">b2c.payment.event</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="view_b2c_payment_event_search"/>
+    </record>
+    <record id="action_b2c_fulfilment_analytics" model="ir.actions.act_window">
+        <field name="name">Fulfilment and COGS</field>
+        <field name="res_model">b2c.fulfilment.event</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="view_b2c_fulfilment_event_search"/>
+    </record>
+    <record id="action_b2c_current_stock" model="ir.actions.act_window">
+        <field name="name">Current Stock</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="domain">[('location_id.usage', '=', 'internal')]</field>
+        <field name="context">{'search_default_internal_loc': 1}</field>
+        <field name="help" type="html"><p>No native stock quantity is evidenced yet. Enter only an approved dated opening inventory adjustment.</p></field>
+    </record>
+    <record id="action_b2c_stock_moves" model="ir.actions.act_window">
+        <field name="name">Stock Movements</field>
+        <field name="res_model">stock.move</field>
+        <field name="view_mode">pivot,graph,list,form</field>
+        <field name="domain">[('state', '=', 'done')]</field>
+        <field name="context">{'pivot_measures': ['quantity', '__count__']}</field>
+        <field name="help" type="html"><p>The restored source baseline is zero historical stock moves. Future native operations appear here.</p></field>
+    </record>
+
+    <menuitem id="menu_b2c_root" name="B2C" sequence="35" groups="usl_b2c.group_b2c_reader"/>
+    <menuitem id="menu_b2c_orders" name="Orders" parent="menu_b2c_root" action="action_b2c_order" sequence="10"/>
+
+    <menuitem id="menu_b2c_operations" name="Operations" parent="menu_b2c_root" sequence="20"/>
+    <menuitem id="menu_b2c_payments" name="Payments, Refunds and Fees" parent="menu_b2c_operations" action="action_b2c_payment_event" sequence="10"/>
+    <menuitem id="menu_b2c_fulfilments" name="Fulfilment and COGS" parent="menu_b2c_operations" action="action_b2c_fulfilment_event" sequence="20"/>
+    <menuitem id="menu_b2c_mappings" name="Product and SKU Mappings" parent="menu_b2c_operations" action="action_b2c_product_alias" sequence="30"/>
+
+    <menuitem id="menu_b2c_accounting" name="Accounting Sessions" parent="menu_b2c_root" sequence="30"/>
+    <menuitem id="menu_b2c_accounting_sessions" name="Monthly Sessions" parent="menu_b2c_accounting" action="action_b2c_accounting_session" sequence="10"/>
+    <menuitem id="menu_b2c_accounting_links" name="Accounting and Bank Links" parent="menu_b2c_accounting" action="action_b2c_accounting_link" sequence="20"/>
+
+    <menuitem id="menu_b2c_analytics" name="Analytics" parent="menu_b2c_root" sequence="40"/>
+    <menuitem id="menu_b2c_analytics_orders" name="Revenue, Orders and Coverage" parent="menu_b2c_analytics" action="action_b2c_order_analytics" sequence="10"/>
+    <menuitem id="menu_b2c_analytics_units" name="Units and SKU Coverage" parent="menu_b2c_analytics" action="action_b2c_order_line_analytics" sequence="20"/>
+    <menuitem id="menu_b2c_analytics_payments" name="Refunds and Fees" parent="menu_b2c_analytics" action="action_b2c_payment_analytics" sequence="30"/>
+    <menuitem id="menu_b2c_analytics_cogs" name="Fulfilment and COGS" parent="menu_b2c_analytics" action="action_b2c_fulfilment_analytics" sequence="40"/>
+    <menuitem id="menu_b2c_analytics_stock_moves" name="Stock Movements" parent="menu_b2c_analytics" action="action_b2c_stock_moves" sequence="50"/>
+    <menuitem id="menu_b2c_analytics_current_stock" name="Current Stock" parent="menu_b2c_analytics" action="action_b2c_current_stock" sequence="60"/>
+
+    <menuitem id="menu_b2c_configuration" name="Configuration" parent="menu_b2c_root" sequence="90" groups="usl_b2c.group_b2c_manager"/>
+    <menuitem id="menu_b2c_channels" name="Commercial Channels" parent="menu_b2c_configuration" action="action_b2c_channel" sequence="10"/>
+    <menuitem id="menu_b2c_provider_evidence" name="Restricted Provider Evidence" parent="menu_b2c_configuration" action="action_b2c_provider_evidence" sequence="90" groups="usl_b2c.group_b2c_sensitive_evidence"/>
+</odoo>

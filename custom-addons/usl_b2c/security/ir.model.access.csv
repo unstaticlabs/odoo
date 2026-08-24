@@ -1,0 +1,38 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_b2c_channel_reader,b2c channel reader,model_b2c_channel,group_b2c_reader,1,0,0,0
+access_b2c_channel_operator,b2c channel operator,model_b2c_channel,group_b2c_operator,1,0,0,0
+access_b2c_channel_manager,b2c channel manager,model_b2c_channel,group_b2c_manager,1,1,1,1
+access_b2c_order_reader,b2c order reader,model_b2c_order,group_b2c_reader,1,0,0,0
+access_b2c_order_operator,b2c order operator,model_b2c_order,group_b2c_operator,1,1,1,0
+access_b2c_order_manager,b2c order manager,model_b2c_order,group_b2c_manager,1,1,1,1
+access_b2c_order_line_reader,b2c order line reader,model_b2c_order_line,group_b2c_reader,1,0,0,0
+access_b2c_order_line_operator,b2c order line operator,model_b2c_order_line,group_b2c_operator,1,1,1,0
+access_b2c_order_line_manager,b2c order line manager,model_b2c_order_line,group_b2c_manager,1,1,1,1
+access_b2c_order_source_reader,b2c order source reader,model_b2c_order_source,group_b2c_reader,1,0,0,0
+access_b2c_order_source_operator,b2c order source operator,model_b2c_order_source,group_b2c_operator,1,1,1,0
+access_b2c_order_source_manager,b2c order source manager,model_b2c_order_source,group_b2c_manager,1,1,1,1
+access_b2c_payment_event_reader,b2c payment event reader,model_b2c_payment_event,group_b2c_reader,1,0,0,0
+access_b2c_payment_event_operator,b2c payment event operator,model_b2c_payment_event,group_b2c_operator,1,1,1,0
+access_b2c_payment_event_manager,b2c payment event manager,model_b2c_payment_event,group_b2c_manager,1,1,1,1
+access_b2c_fulfilment_event_reader,b2c fulfilment event reader,model_b2c_fulfilment_event,group_b2c_reader,1,0,0,0
+access_b2c_fulfilment_event_operator,b2c fulfilment event operator,model_b2c_fulfilment_event,group_b2c_operator,1,1,1,0
+access_b2c_fulfilment_event_manager,b2c fulfilment event manager,model_b2c_fulfilment_event,group_b2c_manager,1,1,1,1
+access_b2c_product_alias_reader,b2c product alias reader,model_b2c_product_alias,group_b2c_reader,1,0,0,0
+access_b2c_product_alias_operator,b2c product alias operator,model_b2c_product_alias,group_b2c_operator,1,1,1,0
+access_b2c_product_alias_manager,b2c product alias manager,model_b2c_product_alias,group_b2c_manager,1,1,1,1
+access_b2c_accounting_session_reader,b2c accounting session reader,model_b2c_accounting_session,group_b2c_reader,1,0,0,0
+access_b2c_accounting_session_operator,b2c accounting session operator,model_b2c_accounting_session,group_b2c_operator,1,1,1,0
+access_b2c_accounting_session_manager,b2c accounting session manager,model_b2c_accounting_session,group_b2c_manager,1,1,1,1
+access_b2c_accounting_link_reader,b2c accounting link reader,model_b2c_accounting_link,group_b2c_reader,1,0,0,0
+access_b2c_accounting_link_operator,b2c accounting link operator,model_b2c_accounting_link,group_b2c_operator,1,1,1,0
+access_b2c_accounting_link_manager,b2c accounting link manager,model_b2c_accounting_link,group_b2c_manager,1,1,1,1
+access_b2c_provider_evidence_reader,b2c provider evidence reader,model_b2c_provider_evidence,group_b2c_reader,1,0,0,0
+access_b2c_provider_evidence_manager,b2c provider evidence manager,model_b2c_provider_evidence,group_b2c_sensitive_evidence,1,0,0,0
+access_b2c_sale_order_reader,b2c native sale order reader,sale.model_sale_order,group_b2c_reader,1,0,0,0
+access_b2c_sale_order_line_reader,b2c native sale order line reader,sale.model_sale_order_line,group_b2c_reader,1,0,0,0
+access_b2c_purchase_order_reader,b2c native purchase order reader,purchase.model_purchase_order,group_b2c_reader,1,0,0,0
+access_b2c_purchase_order_line_reader,b2c native purchase order line reader,purchase.model_purchase_order_line,group_b2c_reader,1,0,0,0
+access_b2c_stock_picking_reader,b2c native stock picking reader,stock.model_stock_picking,group_b2c_reader,1,0,0,0
+access_b2c_stock_move_reader,b2c native stock move reader,stock.model_stock_move,group_b2c_reader,1,0,0,0
+access_b2c_stock_quant_reader,b2c native stock quant reader,stock.model_stock_quant,group_b2c_reader,1,0,0,0
+access_b2c_payment_transaction_reader,b2c native payment transaction reader,payment.model_payment_transaction,group_b2c_reader,1,0,0,0
