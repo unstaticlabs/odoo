@@ -8,7 +8,7 @@
                         <div>
                             <p class="text-uppercase text-muted fw-semibold small mb-1">Document signing</p>
                             <h1 class="h2 mb-1">What needs your attention?</h1>
-                            <p class="text-muted mb-0">Sign, prepare, monitor, or retrieve trusted documents.</p>
+                            <p class="text-muted mb-0">Send documents for signature and follow what happens next.</p>
                         </div>
                         <button t-if="state.data.can_start" type="button" class="btn btn-primary" t-on-click="start">
                             <i class="fa fa-plus me-2"/>Start
@@ -18,7 +18,7 @@
                         <i class="fa fa-spinner fa-spin me-2"/>Loading your work…
                     </div>
                     <div t-elif="state.error" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
-                        <span>Your Sign workspace could not be loaded.</span>
+                        <span>This page could not be loaded.</span>
                         <button type="button" class="btn btn-sm btn-outline-danger" t-on-click="load">Retry</button>
                     </div>
                     <div t-else="" class="row g-4">

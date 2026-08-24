@@ -173,12 +173,12 @@
                 message: "Nothing was signed or changed. You can start again whenever you’re ready.",
             },
             timeout: {
-                title: "Confirmation timed out",
-                message: "Nothing was signed. Start again to receive a fresh, protected session.",
+                title: "Time ran out",
+                message: "Nothing was signed. Try again when you’re ready.",
             },
             network: {
                 title: "Connection interrupted",
-                message: "Check your connection, then try again. No unconfirmed signature is accepted.",
+                message: "Check your connection, then try again.",
             },
             browser_key: {
                 title: "This browser could not prepare the signature",
@@ -188,8 +188,8 @@
                 title: journey === "enrollment" ? "Account not connected" : "Signature not completed",
                 message:
                     journey === "enrollment"
-                        ? "The protected confirmation could not finish. Try again or contact the sender."
-                        : "No unvalidated signature was accepted. Reload the document and try again.",
+                        ? "Pocket ID could not be connected. Try again or contact the sender."
+                        : "Your signature could not be completed. Reload the document and try again.",
             },
         };
         return failures[code] || failures.service;
@@ -276,7 +276,7 @@
                 navigatePocketID(popup, started.authorization_url);
                 setPhase(container, "identity", {
                     title: "Confirm in Pocket ID",
-                    message: "Use your passkey in the protected window.",
+                    message: "Use your passkey in the Pocket ID window.",
                 });
                 const result = await poll(
                     `${base}/status`,
@@ -345,8 +345,8 @@
                 popup = openPocketID();
                 setButtonBusy(button, true, "Preparing…");
                 setPhase(container, "preparing", {
-                    title: "Preparing a protected signature",
-                    message: "A one-use signing key is being created in this browser.",
+                    title: "Preparing your signature",
+                    message: "Keep this page open.",
                 });
                 ceremonyWorker = workerClient();
                 const generated = await ceremonyWorker.call("generate", {
@@ -361,7 +361,7 @@
                 setButtonBusy(button, true, "Waiting for Pocket ID…");
                 setPhase(container, "identity", {
                     title: "Confirm in Pocket ID",
-                    message: "Use your passkey in the protected window. This confirms you—not the document content.",
+                    message: "Use your passkey in the Pocket ID window.",
                 });
                 const authorization = await poll(
                     `${base}/status`,
@@ -377,16 +377,16 @@
                 }
                 setButtonBusy(button, true, "Applying signature…");
                 setPhase(container, "signing", {
-                    title: "Identity confirmed",
-                    message: "Applying your personal signature to the exact document you reviewed.",
+                    title: "Adding your signature",
+                    message: "This usually takes only a moment.",
                 });
                 const signed = await ceremonyWorker.call("sign", {
                     dataToSign: authorization.data_to_sign,
                 });
                 setButtonBusy(button, true, "Validating…");
                 setPhase(container, "validating", {
-                    title: "Checking the completed document",
-                    message: "The signature and document integrity are being independently validated.",
+                    title: "Checking the result",
+                    message: "Please keep this page open.",
                 });
                 let result;
                 try {
@@ -409,10 +409,10 @@
                 ceremonyWorker = null;
                 setPhase(container, "success", {
                     tone: "success",
-                    title: "Signature complete",
-                    message: "Your validated result has been recorded.",
+                    title: "Signed",
+                    message: "Your signature has been saved.",
                 });
-                setButtonBusy(button, true, "Signature complete");
+                setButtonBusy(button, true, "Signed");
                 await delay(450);
                 active = false;
                 window.location.assign(result.redirect);
@@ -434,7 +434,7 @@
         });
 
         setPhase(container, "review");
-        setButtonBusy(button, false, "Confirm identity and sign");
+        setButtonBusy(button, false, "Sign with Pocket ID");
         button.disabled = !consent.checked;
         container.dataset.ready = "true";
     }

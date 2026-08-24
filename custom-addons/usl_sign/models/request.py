@@ -14,12 +14,14 @@ from reportlab.pdfgen import canvas
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request as http_request
+from odoo.tools.misc import format_datetime
 from odoo.tools.pdf import PdfReader, PdfWriter
 
 from ..services import (
     DSSClient,
     DSSRejectedError,
     DSSServiceError,
+    base64_text,
     field_content,
     field_value,
 )
@@ -227,16 +229,20 @@ class SignRequest(models.Model):
             ("ready", "Ready"),
             ("sent", "Sent"),
             ("progress", "In progress"),
-            ("checks", "Final checks"),
-            ("closed", "Completed or closed"),
+            ("checks", "Finishing"),
+            ("closed", "Done"),
         ],
         compute="_compute_workspace_presentation",
     )
     lifecycle_stage_label = fields.Char(compute="_compute_workspace_presentation")
     signer_progress = fields.Char(compute="_compute_workspace_presentation")
     requested_trust_short = fields.Char(compute="_compute_workspace_presentation")
+    recommended_trust_short = fields.Char(compute="_compute_workspace_presentation")
     achieved_trust_short = fields.Char(compute="_compute_workspace_presentation")
     blocking_summary = fields.Char(compute="_compute_workspace_presentation")
+    signing_method_summary = fields.Char(compute="_compute_workspace_presentation")
+    due_date_summary = fields.Char(compute="_compute_workspace_presentation")
+    has_signing_fields = fields.Boolean(compute="_compute_workspace_presentation")
     can_coordinate = fields.Boolean(compute="_compute_user_capabilities")
     can_send = fields.Boolean(compute="_compute_user_capabilities")
     last_error = fields.Text(readonly=True, copy=False)
@@ -371,17 +377,17 @@ class SignRequest(models.Model):
     @api.depends_context("lang")
     def _compute_next_step(self):
         messages = {
-            "draft": _("Complete the request and inspect the trust recommendation."),
-            "ready": _("Send the frozen request."),
-            "waiting_enrollment": _("Complete strong-signer enrolment."),
-            "waiting_external": _("Complete the qualified journey and import the result."),
-            "signed_to_import": _("Validate the imported signed document."),
-            "validating": _("Independent signature validation is running."),
-            "evidence_incomplete": _("Finish or retry durable Paperless archival."),
+            "draft": _("Add the fields people need to complete."),
+            "ready": _("Review the request, then send it."),
+            "waiting_enrollment": _("A signer needs to finish identity setup."),
+            "waiting_external": _("Waiting for the signed document from the external provider."),
+            "signed_to_import": _("Check the imported signed document."),
+            "validating": _("Checking the signed document."),
+            "evidence_incomplete": _("The signed document is safe, but final storage needs attention."),
             "validation_failed": _(
-                "Inspect validation evidence and create a replacement request.",
+                "The signed document did not pass its checks. Review the issue before continuing.",
             ),
-            "completed": _("No further action is required."),
+            "completed": _("The final document is ready."),
             "declined": _(
                 "The signer declined; decide whether to create a replacement.",
             ),
@@ -389,7 +395,7 @@ class SignRequest(models.Model):
                 "Create a replacement request if signatures are still needed.",
             ),
             "cancelled": _("This request is closed."),
-            "action_required": _("Resolve the recorded recovery action."),
+            "action_required": _("This request needs attention before it can continue."),
         }
         for request in self:
             if request.state in {"sent", "viewed", "partial"}:
@@ -407,7 +413,7 @@ class SignRequest(models.Model):
                         count=len(waiting),
                     )
                 else:
-                    request.next_step = _("Run the final checks.")
+                    request.next_step = _("Finishing the signed document.")
                 continue
             request.next_step = messages.get(request.state, request.last_error or "")
 
@@ -419,6 +425,9 @@ class SignRequest(models.Model):
         "signer_ids.signed_on",
         "last_error",
         "recovery_action",
+        "recommended_trust",
+        "expires_at",
+        "signatory_data",
     )
     @api.depends_context("lang")
     def _compute_workspace_presentation(self):
@@ -445,8 +454,8 @@ class SignRequest(models.Model):
             "ready": _("Ready"),
             "sent": _("Sent"),
             "progress": _("In progress"),
-            "checks": _("Final checks"),
-            "closed": _("Completed or closed"),
+            "checks": _("Finishing"),
+            "closed": _("Done"),
         }
         trust_labels = {
             "standard": _("Standard"),
@@ -465,13 +474,38 @@ class SignRequest(models.Model):
                 else _("No signers")
             )
             request.requested_trust_short = trust_labels.get(request.requested_trust, "")
-            request.achieved_trust_short = trust_labels.get(request.achieved_trust, "")
-            request.blocking_summary = (
-                request.recovery_action
-                or request.last_error
-                or request.next_step
-                or ""
+            request.recommended_trust_short = trust_labels.get(
+                request.recommended_trust,
+                "",
             )
+            request.achieved_trust_short = trust_labels.get(request.achieved_trust, "")
+            request.has_signing_fields = bool(request.signatory_data)
+            request.due_date_summary = (
+                format_datetime(self.env, request.expires_at)
+                if request.expires_at
+                else _("No deadline")
+            )
+            request.signing_method_summary = {
+                "standard": _(
+                    "A private signing link, clear consent, and a complete record of what happened.",
+                ),
+                "strong_personal": _(
+                    "The signer confirms with Pocket ID and adds a personal digital signature.",
+                ),
+                "qualified_external": _(
+                    "A qualified provider signs the document; the result is checked here before completion.",
+                ),
+            }.get(request.requested_trust, "")
+            if request.state == "evidence_incomplete" and request.archive_status == "failed":
+                request.blocking_summary = _(
+                    "The document is signed and valid, but its final copy could not be stored. Try again.",
+                )
+            elif request.state == "validation_failed":
+                request.blocking_summary = _(
+                    "The signed document failed verification. Open Final document for details.",
+                )
+            else:
+                request.blocking_summary = request.next_step or ""
 
     def _user_can_coordinate(self):
         self.ensure_one()
@@ -559,6 +593,21 @@ class SignRequest(models.Model):
         raise AccessError(
             "Internal Decision requests are not part of the document-signing product.",
         )
+
+    def action_open_signing_method(self):
+        self.ensure_one()
+        self._check_owner_access()
+        if self.state != "draft":
+            msg = "The signing method is fixed after the request is prepared."
+            raise ValidationError(msg)
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Signing method"),
+            "res_model": "usl.sign.request.method",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {"default_request_id": self.id},
+        }
 
     def _append_event(self, event_type, **values):
         self.ensure_one()
@@ -2014,7 +2063,7 @@ class SignRequest(models.Model):
                     .with_company(request.company_id)
                     .upload_from_odoo(
                         request.dossier_filename,
-                        request.dossier_data,
+                        base64_text(field_content(request.dossier_data)),
                         "application/pdf",
                         res_model=request._name,
                         res_id=request.id,

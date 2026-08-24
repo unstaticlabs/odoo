@@ -7,10 +7,10 @@ import {useService} from "@web/core/utils/hooks";
 
 const LANDING_SECTIONS = [
     ["sign_now", _t("Sign now"), _t("Documents waiting for your signature"), "fa-pencil"],
-    ["prepare", _t("Prepare and send"), _t("Drafts and ready requests you manage"), "fa-paper-plane"],
-    ["issues", _t("Resolve issues"), _t("Requests that cannot move forward"), "fa-exclamation-triangle"],
-    ["waiting", _t("Waiting on others"), _t("Requests progressing without your action"), "fa-clock-o"],
-    ["completed", _t("Recently completed"), _t("Validated and archived results"), "fa-folder-open"],
+    ["prepare", _t("Prepare and send"), _t("Documents you are getting ready"), "fa-paper-plane"],
+    ["issues", _t("Needs attention"), _t("Documents waiting for a fix or setup step"), "fa-exclamation-triangle"],
+    ["waiting", _t("Waiting on others"), _t("Documents currently with signers"), "fa-clock-o"],
+    ["completed", _t("Recently completed"), _t("Final documents ready to retrieve"), "fa-folder-open"],
 ];
 
 export class SignLanding extends Component {

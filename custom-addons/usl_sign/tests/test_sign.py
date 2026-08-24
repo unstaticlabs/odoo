@@ -352,7 +352,10 @@ class TestCleanUslSign(TransactionCase):
         wizard._refresh_usl_journey()
         self.assertEqual(wizard.recommended_trust, "standard")
         self.assertEqual(wizard.requested_trust, "standard")
-        self.assertIn("reinforced evidence", wizard.journey_availability)
+        self.assertEqual(
+            wizard.journey_availability,
+            "Ready. Each signer receives a private link to review and sign.",
+        )
         action = wizard.generate()
         self.assertEqual(action["type"], "ir.actions.act_window")
         request = self.env["sign.oca.request"].browse(action["res_id"])
@@ -1149,10 +1152,12 @@ class TestCleanUslSign(TransactionCase):
             ],
         )
         archive_call_users = []
+        archive_payloads = []
 
         def archive_upload(documents, *args, **kwargs):
-            del args, kwargs
+            del kwargs
             archive_call_users.append(documents.env.user.id)
+            archive_payloads.append(args[1])
             result = next(archive_results)
             if isinstance(result, Exception):
                 raise result
@@ -1193,6 +1198,14 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(
             set(archive_call_users),
             {self.env.ref("base.user_root").id},
+        )
+        self.assertTrue(all(isinstance(payload, str) for payload in archive_payloads))
+        self.assertTrue(
+            all(
+                base64.b64decode(payload, validate=True)
+                == field_content(request.dossier_data)
+                for payload in archive_payloads
+            ),
         )
         self.assertTrue(request.completed_at)
         self.assertEqual(request.evidence_status, "complete")
@@ -1393,6 +1406,41 @@ class TestCleanUslSign(TransactionCase):
         ]:
             self.assertIn(f'name="{filter_name}"', search_arch)
 
+    def test_one_off_upload_starts_with_a_signer_and_opens_field_placement(self):
+        start = self.env["usl.sign.start"].with_user(self.sign_user).create(
+            {
+                "document_data": field_value(self.pdf),
+                "document_filename": "routine_agreement.pdf",
+                "signer_partner_id": self.partner_one.id,
+                "message": "Please review and sign.",
+            },
+        )
+        self.assertEqual(start.signature_source, "upload")
+        action = start.action_continue()
+        request = self.env["sign.oca.request"].search(
+            [("name", "=", "routine agreement"), ("user_id", "=", self.sign_user.id)],
+            limit=1,
+        )
+        self.assertTrue(request)
+        self.assertEqual(action["tag"], "usl_sign_request_configure")
+        self.assertEqual(request.requested_trust, "standard")
+        self.assertEqual(request.signer_ids.partner_id, self.partner_one)
+        self.assertEqual(request.signer_ids.role_id, self.role_customer)
+        self.assertEqual(request.responsible_message, "Please review and sign.")
+
+    def test_signing_method_is_changed_through_a_focused_permission_gate(self):
+        request = self._request(user_id=self.sign_user.id)
+        action = request.with_user(self.sign_user).action_open_signing_method()
+        self.assertEqual(action["res_model"], "usl.sign.request.method")
+        method = self.env["usl.sign.request.method"].with_user(self.sign_user).create(
+            {"request_id": request.id},
+        )
+        self.assertEqual(method.requested_trust, "standard")
+        method.requested_trust = "strong_personal"
+        method.override_reason = "This agreement needs a known signer."
+        with self.assertRaisesRegex(AccessError, "permission to override"):
+            method.action_apply()
+
     def test_configuration_guidance_uses_business_facing_role_and_capability_copy(self):
         role_labels = dict(
             self.env["sign.oca.role"]._fields[
@@ -1405,12 +1453,20 @@ class TestCleanUslSign(TransactionCase):
         self.assertFalse(self.env.ref("sign_oca.sign_oca_field_menu").active)
         self.assertEqual(
             self.env.ref("usl_sign.sign_service_status_action").name,
-            "Signing Readiness",
+            "System Status",
         )
         health = self.env["usl.sign.service.health"]._ensure_company(self.company)
         self.assertTrue(all(health.mapped("purpose")))
         self.assertTrue(all(health.mapped("checks")))
         self.assertTrue(health.filtered(lambda row: row.code == "rfc3161").is_optional)
+        standard = health.filtered(lambda row: row.code == "standard")
+        standard.with_context(usl_sign_health_write=INTERNAL_OPERATION).write(
+            {"name": "Old technical label", "sequence": 999},
+        )
+        refreshed = self.env["usl.sign.service.health"]._ensure_company(self.company)
+        standard = refreshed.filtered(lambda row: row.code == "standard")
+        self.assertEqual(standard.name, "Standard documents")
+        self.assertEqual(standard.sequence, 10)
 
     def test_service_status_reports_ready_missing_and_partial_capabilities(self):
         health = self.env["usl.sign.service.health"]._ensure_company(self.company)
@@ -1763,8 +1819,11 @@ class TestCleanUslSign(TransactionCase):
                 "document_id": archived.id,
                 "message": "Checksum-identical dossier reused.",
             },
-        ):
+        ) as upload:
             self.assertTrue(manifest._archive_timestamp_dossier())
+        archived_payload = upload.call_args.args[1]
+        self.assertIsInstance(archived_payload, str)
+        self.assertEqual(base64.b64decode(archived_payload, validate=True), dossier)
         self.assertEqual(manifest.archive_status, "archived")
         self.assertEqual(manifest.archive_document_id, archived)
 
