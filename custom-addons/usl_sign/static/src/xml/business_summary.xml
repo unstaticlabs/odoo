@@ -21,13 +21,13 @@
                 <span><strong>Next:</strong> <t t-out="state.summary.next_step"/></span>
                 <span><strong>Requested:</strong> <t t-out="state.summary.requested_trust"/></span>
                 <span t-if="state.summary.achieved_trust"><strong>Achieved:</strong> <t t-out="state.summary.achieved_trust"/></span>
-                <span><strong>Archive:</strong> <t t-out="state.summary.archive_state"/></span>
+                <span><strong>Storage:</strong> <t t-out="state.summary.archive_state"/></span>
             </div>
             <div class="usl-sign-business-summary__actions">
-                <button type="button" class="btn btn-sm btn-primary" t-on-click="openRequest">Open request</button>
-                <a t-if="state.summary.final_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.final_url">Final PDF</a>
-                <a t-if="state.summary.certificate_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.certificate_url">Certificate</a>
-                <a t-if="state.summary.evidence_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.evidence_url">Evidence</a>
+                <button type="button" class="btn btn-sm btn-primary" t-on-click="openRequest">View request</button>
+                <a t-if="state.summary.final_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.final_url">Signed PDF</a>
+                <a t-if="state.summary.certificate_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.certificate_url">Completion certificate</a>
+                <a t-if="state.summary.evidence_url" class="btn btn-sm btn-outline-secondary" t-att-href="state.summary.evidence_url">Proof record</a>
             </div>
         </section>
     </t>
