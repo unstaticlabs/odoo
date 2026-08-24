@@ -1017,6 +1017,7 @@ class TestCleanUslSign(TransactionCase):
 
         self.assertEqual(request.state, "waiting_external")
         self.assertEqual(journey.state, "waiting")
+        self.assertEqual(journey.next_step, "Download the exact document to sign.")
         self.assertTrue(journey.signer_summary.startswith("1. Camille Signer"))
         self.assertEqual(
             journey.action_open_details()["views"][0][0],
@@ -1037,6 +1038,10 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(first_export["target"], "download")
         self.assertEqual(second_export["url"], first_export["url"])
         self.assertEqual(journey.exported_at, first_exported_at)
+        self.assertEqual(
+            journey.next_step,
+            "Complete the signature with the provider, then upload the result.",
+        )
         self.assertEqual(
             len(request.event_ids.filtered(lambda event: event.event_type == "external_document_exported")),
             1,
@@ -1427,6 +1432,62 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(request.signer_ids.partner_id, self.partner_one)
         self.assertEqual(request.signer_ids.role_id, self.role_customer)
         self.assertEqual(request.responsible_message, "Please review and sign.")
+
+    def test_my_signatures_uses_human_statuses_and_clear_actions(self):
+        request = self._request(user_id=self.sign_user.id)
+        signer = request.signer_ids
+        self.assertEqual(signer.personal_status, "Not sent yet")
+
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"state": "sent"},
+        )
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"state": "notified"},
+        )
+        signer.invalidate_recordset(["state", "is_allow_signature", "personal_status"])
+        self.assertEqual(signer.personal_status, "Ready to sign")
+
+        view_arch = self.env.ref("usl_sign.my_signature_list_usl").arch
+        self.assertIn('name="personal_status"', view_arch)
+        self.assertIn('string="Review and sign"', view_arch)
+        self.assertIn('string="View result"', view_arch)
+        self.assertNotIn('string="Your signature"', view_arch)
+
+        role_action = self.env.ref("sign_oca.sign_oca_role_act_window")
+        role_menu = self.env.ref("sign_oca.sign_oca_role_menu")
+        self.assertEqual(role_action.name, "Signing Roles")
+        self.assertEqual(role_menu.name, "Signing Roles")
+
+    def test_request_status_summary_never_calls_a_failed_or_closed_request_done(self):
+        request = self._request(
+            user_id=self.sign_user.id,
+            record_ref=f"res.partner,{self.partner_one.id}",
+        )
+        summary = self.env["sign.oca.request"].with_user(
+            self.sign_user,
+        ).get_business_record_summary("res.partner", self.partner_one.id)
+        self.assertEqual(summary["state_label"], "Draft")
+        self.assertEqual(summary["requested_trust"], "Standard")
+        expected = {
+            "ready": "Ready to send",
+            "waiting_enrollment": "Waiting for identity setup",
+            "waiting_external": "With external provider",
+            "signed_to_import": "Ready to check",
+            "validating": "Checking result",
+            "evidence_incomplete": "Final storage needs attention",
+            "action_required": "Needs attention",
+            "validation_failed": "Result rejected",
+            "completed": "Completed",
+            "declined": "Declined",
+            "expired": "Expired",
+            "cancelled": "Cancelled",
+        }
+        for state, label in expected.items():
+            request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+                {"state": state},
+            )
+            self.assertEqual(request.lifecycle_stage_label, label)
+            self.assertNotEqual(request.lifecycle_stage_label, "Done")
 
     def test_signing_method_is_changed_through_a_focused_permission_gate(self):
         request = self._request(user_id=self.sign_user.id)

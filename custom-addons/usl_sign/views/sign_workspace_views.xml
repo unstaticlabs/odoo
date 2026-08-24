@@ -12,21 +12,23 @@
                 <sheet>
                     <field name="company_id" invisible="1"/>
                     <div class="oe_title">
-                        <h2>Send a document for signature</h2>
-                        <p class="text-muted">Upload a PDF, choose the signer, then place the fields they need to complete.</p>
+                        <h2>Request signatures</h2>
+                        <p class="text-muted">Start with a PDF or a reusable template.</p>
                     </div>
                     <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1" class="mb-3"/>
-                    <group invisible="signature_source != 'upload'">
-                        <field name="document_data" filename="document_filename" required="signature_source == 'upload'"/>
+                    <group string="1. Choose the document" invisible="signature_source != 'upload'">
+                        <field name="document_data" filename="document_filename" string="PDF to sign" required="signature_source == 'upload'"/>
                         <field name="document_filename" invisible="1"/>
-                        <field name="signer_partner_id" required="signature_source == 'upload'" options="{'no_quick_create': true}" placeholder="Search for a contact or create one"/>
-                        <field name="message" placeholder="Optional note shown to the signer"/>
                     </group>
-                    <group invisible="signature_source != 'template'">
+                    <group string="2. Choose the signer" invisible="signature_source != 'upload'">
+                        <field name="signer_partner_id" string="Who should sign?" required="signature_source == 'upload'" options="{'no_quick_create': true}" placeholder="Search for a contact or create one"/>
+                        <field name="message" string="Message" placeholder="Optional note shown with the invitation"/>
+                    </group>
+                    <group string="Choose a template" invisible="signature_source != 'template'">
                         <field name="template_id" required="signature_source == 'template'" options="{'no_create': true}"/>
                     </group>
                     <details class="mt-3">
-                        <summary class="text-muted">More options</summary>
+                        <summary class="text-muted">Link this request to an Odoo record</summary>
                         <group class="mt-2">
                             <field name="name" placeholder="Defaults to the PDF or template name"/>
                             <field name="record_ref"/>
@@ -34,7 +36,7 @@
                     </details>
                 </sheet>
                 <footer>
-                    <button name="action_continue" type="object" string="Add signing fields" class="btn-primary" invisible="signature_source != 'upload'"/>
+                    <button name="action_continue" type="object" string="Place signing fields" class="btn-primary" invisible="signature_source != 'upload'"/>
                     <button name="action_continue" type="object" string="Choose signers" class="btn-primary" invisible="signature_source != 'template'"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
