@@ -139,6 +139,10 @@ class PaperlessClient:
                     _("Paperless does not support required API version %s.")
                     % self.API_VERSION,
                 ) from error
+            if error.code == 503:
+                raise PaperlessUnavailable(
+                    _("Paperless search is temporarily unavailable."),
+                ) from error
             raise PaperlessError(
                 _("Paperless request failed (%(status)s): %(detail)s")
                 % {"status": error.code, "detail": payload},
@@ -374,6 +378,55 @@ class PaperlessClient:
             query["query" if full_text else "text"] = text
         query.update(filters or {})
         return self._request("GET", "/api/documents/", query=query)[0]
+
+    def semantic_search(self, text, *, document_ids, limit=50, facets=None):
+        """Search Paperless vectors inside an explicit Odoo-authorized scope."""
+        scope = sorted({int(document_id) for document_id in document_ids})
+        if not scope:
+            return {"results": [], "warnings": []}
+        allowed_facets = {
+            "tag_ids",
+            "correspondent_ids",
+            "document_type_ids",
+            "created_after",
+            "created_before",
+        }
+        unsupported_facets = set(facets or {}) - allowed_facets
+        if unsupported_facets:
+            raise PaperlessError(_("Unsupported semantic search facet."))
+        bounded_limit = min(50, max(1, int(limit)))
+        candidates = {}
+        warnings = []
+        # The distribution endpoint caps one explicit service scope at 10,000
+        # roots. Chunk larger authorized populations and merge comparable cosine
+        # similarities; no request ever widens to an unscoped service search.
+        for offset in range(0, len(scope), 10000):
+            body = {
+                "query": str(text or ""),
+                "limit": bounded_limit,
+                "document_ids": scope[offset : offset + 10000],
+            }
+            body.update(facets or {})
+            payload = self._request(
+                "POST",
+                "/api/documents/semantic_search/",
+                body=body,
+            )[0]
+            warnings.extend(payload.get("warnings") or [])
+            for item in payload.get("results") or []:
+                document_id = int(item["id"])
+                existing = candidates.get(document_id)
+                if existing is None or float(item.get("similarity") or 0) > float(
+                    existing.get("similarity") or 0,
+                ):
+                    candidates[document_id] = item
+        results = sorted(
+            candidates.values(),
+            key=lambda item: (-float(item.get("similarity") or 0), int(item["id"])),
+        )[:bounded_limit]
+        for rank, item in enumerate(results, start=1):
+            item["rank"] = rank
+        return {"results": results, "warnings": warnings}
 
     def get_document(self, document_id, *, version_id=None):
         query = {"version": version_id} if version_id else None
