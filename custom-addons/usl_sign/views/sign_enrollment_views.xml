@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_enrollment_list" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.list</field>
+        <field name="model">usl.sign.enrollment</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'active'" decoration-danger="state == 'revoked'">
+                <field name="partner_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="relationship_basis"/>
+                <field name="state"/>
+                <field name="reviewer_id"/>
+                <field name="pocket_display_name"/>
+                <field name="pocket_subject_fingerprint" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="sign_enrollment_form" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.form</field>
+        <field name="model">usl.sign.enrollment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_create_invitation" type="object" string="Invite to Connect Pocket ID" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_confirm_identity" type="object" string="Confirm Pocket ID Identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_open_revoke" type="object" string="Revoke Enrolment" invisible="state == 'revoked'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="partner_id"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="relationship_basis" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                            <field name="relationship_reference" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                            <field name="policy_version" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                            <field name="review_note" readonly="state not in ['pending_pocket', 'pending_review']"/>
+                        </group>
+                        <group>
+                            <field name="reviewer_id"/>
+                            <field name="reviewed_at"/>
+                            <field name="pocket_display_name" invisible="not pocket_subject"/>
+                            <field name="pocket_email" invisible="not pocket_subject"/>
+                            <field name="pocket_subject_fingerprint" invisible="not pocket_subject"/>
+                            <field name="pocket_linked_at" invisible="not pocket_subject"/>
+                            <field name="pocket_last_authorized_at" invisible="not pocket_subject"/>
+                            <field name="revoked_at" invisible="not revoked_at"/>
+                            <field name="revocation_reason" invisible="not revocation_reason"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status">
+                        Pocket ID owns passkey registration, recovery and credential revocation. Odoo keeps only the Pocket ID identity link and the reviewer decision. Revoking this enrolment immediately blocks Strong signing without affecting completed documents.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sign_enrollment_revoke_wizard_form" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.revoke.wizard.form</field>
+        <field name="model">usl.sign.enrollment.revoke.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Revoke Strong Signer Enrolment">
+                <group>
+                    <field name="enrollment_id"/>
+                    <field name="reason" placeholder="Record why this identity enrolment is revoked."/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Revoke" class="btn-danger"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="sign_enrollment_action" model="ir.actions.act_window">
+        <field name="name">Strong Signer Enrolments</field>
+        <field name="res_model">usl.sign.enrollment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

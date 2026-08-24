@@ -4622,6 +4622,26 @@ class TestDocuments(TransactionCase):
             },
         )
 
+    def test_noop_group_write_does_not_enqueue_permission_refresh(self):
+        self._document(990413)
+        self._verified_mapping(
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 33,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "set_document_permissions",
+            return_value={},
+        ) as permission_call:
+            self.user.write(
+                {"group_ids": [Command.link(self.env.ref("base.group_user").id)]},
+            )
+        permission_call.assert_not_called()
+
     def test_manager_role_loss_revokes_paperless_change_permission(self):
         document = self._document(414)
         manager_group = self.env.ref("usl_documents.group_documents_manager")

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sign_template_form_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.form.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_mark_ready" type="object" string="Review and Publish" class="btn-primary" invisible="preparation_status == 'ready' or has_requests" groups="usl_sign.group_sign_template_manager"/>
+                <button name="action_new_version" type="object" string="Create New Version" invisible="preparation_status != 'ready' and not has_requests" groups="usl_sign.group_sign_template_manager"/>
+            </xpath>
+            <xpath expr="//button[@name='configure']" position="attributes">
+                <attribute name="string">Place Fields</attribute>
+                <attribute name="groups">usl_sign.group_sign_template_manager</attribute>
+            </xpath>
+            <xpath expr="//group/field[@name='name']" position="after">
+                <field name="description"/>
+                <field name="default_document_category"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version"/>
+                <field name="previous_version_id" invisible="not previous_version_id"/>
+                <field name="preparation_status" widget="badge"/>
+                <field name="preparation_note" invisible="not preparation_note"/>
+                <field name="document_sha256" readonly="1" groups="usl_sign.group_sign_evidence_reviewer"/>
+                <field name="policy_id"/>
+                <field name="default_trust" readonly="1"/>
+                <field name="signing_order"/>
+                <field name="expiration_days"/>
+                <field name="reminder_days"/>
+                <field name="max_reminders"/>
+                <field name="active"/>
+                <field name="has_requests" invisible="1"/>
+            </xpath>
+            <xpath expr="//page[@name='items']" position="before">
+                <page string="Documents and annexes" name="usl_template_documents">
+                    <field name="document_ids" readonly="has_requests or preparation_status == 'ready'">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="is_annex"/>
+                            <field name="name"/>
+                            <field name="filename"/>
+                            <field name="data" filename="filename"/>
+                            <field name="source_sha256" optional="hide" readonly="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_template_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.list.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version"/>
+                <field name="preparation_status"/>
+                <field name="policy_id"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_template_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.kanban.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="js_class">usl_sign_template_kanban</attribute>
+            </xpath>
+            <xpath expr="//kanban/field[@name='create_uid']" position="before">
+                <field name="company_id"/>
+                <field name="version"/>
+                <field name="preparation_status"/>
+                <field name="default_trust"/>
+            </xpath>
+            <xpath expr="//field[@name='display_name']" position="after">
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                    <span class="badge text-bg-light">v<field name="version"/></span>
+                    <field name="preparation_status" widget="badge"/>
+                    <field name="default_trust" widget="badge"/>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='configure']" position="attributes">
+                <attribute name="string">Prepare</attribute>
+            </xpath>
+            <xpath expr="//button[@name='%(sign_oca.sign_oca_template_generate_act_window)d' and not(@context)]" position="attributes">
+                <attribute name="string">Use template</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_oca.sign_oca_template_act_window" model="ir.actions.act_window">
+        <field name="name">Templates</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload a PDF to create a reusable template</p>
+            <p>Drop one or more PDFs here, assign signer roles and fields, then publish the template when it is ready.</p>
+        </field>
+    </record>
+</odoo>
