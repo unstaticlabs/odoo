@@ -152,7 +152,7 @@ correspondent, type, or other user metadata.
 
 | Checkpoint | Required outcome | Current status |
 |---|---|---|
-| A — policy engine | origin, mode, role, deterministic operation/link diagnostics, adapters, idempotent retry/backfill | planned |
+| A — policy engine | origin, mode, role, deterministic operation/link diagnostics, adapters, idempotent retry/backfill | validated 2026-08-24 |
 | B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | Ollama qualified; Paperless API/index planned |
 | C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | planned |
 | D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | isolated Worker running; endpoint planned |
@@ -167,12 +167,47 @@ hybrid recall at 5 of at least 90%, no exact-identifier regression, no Gemini
 call from search/index/MCP, independent restoration without OCR or embedding
 rebuild, and clean Odoo and MCP worktrees.
 
-## Known pre-implementation gaps
+## Checkpoint A evidence — Documents policy engine
 
-- Current attachments have technical eligibility plus a Boolean archive
-  decision, but no persisted origin, archive mode, document role, or reason.
-- Direct and chatter project attachments currently take the same automatic
-  path.
+Validated commits:
+
+- `59657818445` — persisted origin, archive mode, policy/current role, reason,
+  operation/link diagnostics, access-sensitive root prominence, ledger state,
+  migration initialization, and business-context adapters;
+- `17f0b7f58e9` — policy, idempotency, composite identity, adapter, forgery,
+  exclusion, and permission-sensitive prominence tests.
+
+The selected bridge keeps native uploads synchronous only to Odoo. Paperless,
+OCR, embeddings, and optional generative providers remain outside the upload
+transaction. Trusted chatter/portal origins are captured at the existing mail
+controller and `message_post` boundaries without an Odoo core patch. Client
+context cannot forge a trusted origin or write policy diagnostics.
+
+Validation used only the scoped Compose project. The first combined run found
+one ledger transition defect: a successfully queued on-request attachment
+remained labelled native-only. The implementation was fixed centrally, the
+exact regression passed, and the complete gate then passed with 184 tests,
+zero failures, and zero errors:
+
+```text
+usl_documents                 123 tests
+usl_expense_batch              15 tests
+usl_platform_billing           33 tests
+usl_tese_payroll               25 tests
+combined gate                 184 tests, 0 failed, 0 errors
+```
+
+An additional focused negative test proves that a user cannot receive a
+prominent Home/library classification from an evidence relationship whose
+target record they cannot read. Clean module installation, update, repeated
+update, scoped Ruff, Python compilation, XML parsing, and `git diff --check`
+all exited successfully. Ruff's formatter check still reports legacy
+whole-file formatting drift in four large pre-existing modules; it was not
+applied because doing so would create unrelated formatting churn. The lint
+check for all changed implementation files passes.
+
+## Remaining gaps after Checkpoint A
+
 - Existing links cannot be promoted or demoted independently of the Paperless
   root.
 - Home/Recent does not yet suppress background-only roots.
