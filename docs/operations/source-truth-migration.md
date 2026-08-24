@@ -1,5 +1,10 @@
 # Source-truth migration
 
+Final source freeze, portable candidate compilation and cut-over are documented
+in [Portable production migration candidate](portable-production-migration.md).
+Candidate build remains blocked until this inventory and the attachment ledger
+both report complete whole-source coverage.
+
 The migration tool is a maintained repository deliverable under `migration/`
 and `scripts/`. It is not part of the Odoo Community product, is not present on
 the normal add-ons path, and must leave no migration models, menus, fields, or

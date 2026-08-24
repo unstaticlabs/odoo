@@ -1,5 +1,14 @@
 # Backup and recovery runbook
 
+## Portable candidate versus admitted backup
+
+The private portable migration candidate is restart material only before
+admission. See
+[Portable production migration candidate](portable-production-migration.md).
+After admission, candidate reset is permanently disabled; use the coordinated
+Odoo/Paperless backup procedure below. Pocket ID remains independently operated
+and is never restored from an application candidate.
+
 ## Recovery objective
 
 USL must be able to restore a coherent Odoo service containing the database, documents and required configuration to an understood point in time.
