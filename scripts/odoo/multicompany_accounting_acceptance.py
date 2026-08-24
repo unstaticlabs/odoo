@@ -382,7 +382,12 @@ if media_company:
             expense.message_main_attachment_id = receipt
             expense.action_submit()
             expense._do_approve()
-            expense._post_without_wizard()
+            post_action = expense.action_post()
+            if post_action:
+                post_wizard = media_env["hr.expense.post.wizard"].with_context(
+                    post_action["context"],
+                ).browse(post_action["res_id"])
+                post_wizard.action_post_entry()
 
             summary["journeys"] = {
                 "company": media_company.name,
