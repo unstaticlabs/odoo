@@ -399,6 +399,34 @@ class TestProjectRestore(TransactionCase):
         run.restore_from_payload(payload, filestore="/tmp")
         return run
 
+    def test_restore_removes_only_untouched_native_onboarding_todos(self):
+        user = self.env.user
+        localized = user.with_context(lang=user.lang or self.env.user.lang)
+        body = localized.env["ir.qweb"]._render(
+            "project_todo.todo_user_onboarding",
+            {"object": user},
+            minimal_qcontext=True,
+            raise_if_not_found=False,
+        )
+        values = {
+            "name": localized.env._("Welcome %s!", user.name),
+            "description": body,
+            "user_ids": [Command.set(user.ids)],
+        }
+        generated = (
+            self.env["project.task"]
+            .sudo()
+            .with_context(mail_auto_subscribe_no_notify=True)
+            .create(values)
+        )
+        edited = generated.copy({"description": "<p>Kept by the user</p>"})
+
+        self._run(self._payload())
+
+        self.assertFalse(generated.exists())
+        self.assertTrue(edited.exists())
+        self.assertEqual(edited.description, "<p>Kept by the user</p>")
+
     def test_restore_preserves_relationships_and_is_idempotent(self):
         payload = self._payload()
         first = self._run(deepcopy(payload))
