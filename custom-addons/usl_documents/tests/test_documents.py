@@ -2665,7 +2665,7 @@ class TestDocuments(TransactionCase):
         )
         search.assert_called_once()
         self.assertEqual(search.call_args.args[0], "quarterly archive phrase")
-        self.assertTrue(search.call_args.kwargs["full_text"])
+        self.assertFalse(search.call_args.kwargs["full_text"])
 
         with patch.object(
             PaperlessClient,
@@ -2686,6 +2686,150 @@ class TestDocuments(TransactionCase):
             [item["id"] for item in linked_label["documents"]],
             [first.id],
         )
+
+    def test_hybrid_search_scopes_semantics_before_retrieval_and_fuses_ranks(self):
+        first = self._document(2282, name="Lexical only")
+        overlap = self._document(2283, name="Both retrieval paths")
+        semantic = self._document(2284, name="Semantic only")
+        self._document(2285, name="Other company", company_id=self.company_b.id)
+        with (
+            patch.object(
+                PaperlessClient,
+                "search",
+                return_value={
+                    "count": 2,
+                    "next": None,
+                    "results": [{"id": 2282}, {"id": 2283}],
+                },
+            ) as lexical_search,
+            patch.object(
+                PaperlessClient,
+                "semantic_search",
+                return_value={
+                    "results": [
+                        {"id": 2284, "similarity": 0.9},
+                        {"id": 2283, "similarity": 0.8},
+                    ],
+                    "warnings": [],
+                },
+            ) as semantic_search,
+        ):
+            ids, truncated, warnings = (
+                self.env["usl.document"]
+                .with_user(self.user)
+                ._hybrid_search_ids("renewal obligations")
+            )
+
+        self.assertEqual(
+            ids,
+            [overlap.paperless_id, first.paperless_id, semantic.paperless_id],
+        )
+        self.assertFalse(truncated)
+        self.assertEqual(warnings, [])
+        scope = semantic_search.call_args.kwargs["document_ids"]
+        self.assertEqual(set(scope), {2282, 2283, 2284})
+        self.assertNotIn(2285, scope)
+        self.assertEqual(
+            lexical_search.call_args.kwargs["filters"]["id__in"],
+            "2282,2283,2284",
+        )
+
+    def test_empty_authorized_scope_never_queries_paperless_search(self):
+        documents = self.env["usl.document"]
+        with patch.object(PaperlessClient, "search") as search:
+            ids, truncated = documents._permission_scoped_paperless_search_ids(
+                "private",
+                [],
+            )
+        self.assertEqual(ids, [])
+        self.assertFalse(truncated)
+        search.assert_not_called()
+
+    def test_large_lexical_scope_is_chunked_and_rank_interleaved(self):
+        documents = self.env["usl.document"]
+
+        def scoped_results(_query, *, filters, **_kwargs):
+            first_id = int(filters["id__in"].split(",", 1)[0])
+            return [first_id, first_id + 1], False
+
+        with patch.object(
+            PaperlessClient,
+            "search",
+            side_effect=lambda query, **kwargs: {
+                "count": 2,
+                "next": None,
+                "results": [
+                    {"id": document_id}
+                    for document_id in scoped_results(query, **kwargs)[0]
+                ],
+            },
+        ) as search:
+            ids, truncated = documents._permission_scoped_paperless_search_ids(
+                "evidence",
+                range(1, 1002),
+            )
+
+        self.assertEqual(search.call_count, 3)
+        self.assertEqual(ids, [1, 501, 1001, 2, 502, 1002])
+        self.assertFalse(truncated)
+
+    def test_exact_identifier_search_preserves_lexical_order(self):
+        documents = self.env["usl.document"]
+        fused = documents._fuse_search_rankings(
+            [2301, 2302, 2303],
+            [2303, 2304, 2302],
+            "INV-2026-000123",
+        )
+        self.assertEqual(fused, [2301, 2302, 2303, 2304])
+
+    def test_embedding_outage_returns_lexical_results_with_warning(self):
+        first = self._document(2311, name="Lexical fallback")
+        with (
+            patch.object(
+                PaperlessClient,
+                "search",
+                return_value={
+                    "count": 1,
+                    "next": None,
+                    "results": [{"id": first.paperless_id}],
+                },
+            ),
+            patch.object(
+                PaperlessClient,
+                "semantic_search",
+                side_effect=PaperlessUnavailable("offline"),
+            ),
+        ):
+            result = self.env["usl.document"].workspace_data(
+                workspace="all",
+                search_domain=[["all_text", "ilike", "fallback concept"]],
+            )
+
+        self.assertEqual([item["id"] for item in result["documents"]], [first.id])
+        self.assertFalse(result["degraded"])
+        self.assertEqual(result["warnings"][0]["code"], "semantic_unavailable")
+
+    def test_semantic_only_mode_does_not_call_lexical_search(self):
+        document = self._document(2321, name="Semantic mode")
+        with (
+            patch.object(PaperlessClient, "search") as lexical_search,
+            patch.object(
+                PaperlessClient,
+                "semantic_search",
+                return_value={
+                    "results": [{"id": document.paperless_id, "similarity": 0.9}],
+                    "warnings": [],
+                },
+            ),
+        ):
+            ids, truncated, warnings = self.env[
+                "usl.document"
+            ]._hybrid_search_ids("approximate meaning", mode="semantic")
+
+        self.assertEqual(ids, [document.paperless_id])
+        self.assertFalse(truncated)
+        self.assertEqual(warnings, [])
+        lexical_search.assert_not_called()
 
     def test_workspace_validates_and_applies_every_native_list_order(self):
         tag_a = self._tag(2190, "Alpha")
@@ -3760,6 +3904,80 @@ class TestDocuments(TransactionCase):
 
 @tagged("post_install", "-at_install", "usl_documents")
 class TestPaperlessClientContract(TransactionCase):
+    def test_simple_text_search_does_not_use_advanced_query_syntax(self):
+        client = PaperlessClient(self.env)
+        with patch.object(
+            client,
+            "_request",
+            return_value=({"count": 0, "results": []}, {}),
+        ) as request:
+            client.search("actions avant la livraison d'octobre")
+
+        self.assertEqual(
+            request.call_args.kwargs["query"],
+            {
+                "page": 1,
+                "page_size": 50,
+                "text": "actions avant la livraison d'octobre",
+            },
+        )
+
+    def test_semantic_search_never_sends_an_unscoped_service_request(self):
+        client = PaperlessClient(self.env)
+        with patch.object(client, "_request") as request:
+            empty = client.semantic_search("meaning", document_ids=[])
+        self.assertEqual(empty, {"results": [], "warnings": []})
+        request.assert_not_called()
+
+    def test_semantic_search_chunks_large_authorized_scopes(self):
+        client = PaperlessClient(self.env)
+
+        def response(_method, _path, *, body):
+            document_id = body["document_ids"][0]
+            return (
+                {
+                    "results": [
+                        {
+                            "id": document_id,
+                            "rank": 1,
+                            "similarity": float(document_id),
+                        },
+                    ],
+                    "warnings": [],
+                },
+                {},
+            )
+
+        with patch.object(client, "_request", side_effect=response) as request:
+            result = client.semantic_search(
+                "meaning",
+                document_ids=range(1, 10002),
+                limit=5,
+            )
+        self.assertEqual(request.call_count, 2)
+        self.assertEqual(
+            len(request.call_args_list[0].kwargs["body"]["document_ids"]),
+            10000,
+        )
+        self.assertEqual(
+            request.call_args_list[1].kwargs["body"]["document_ids"],
+            [10001],
+        )
+        self.assertEqual([item["id"] for item in result["results"]], [10001, 1])
+
+    def test_semantic_facets_cannot_override_authorized_scope(self):
+        client = PaperlessClient(self.env)
+        with (
+            patch.object(client, "_request") as request,
+            self.assertRaises(PaperlessError),
+        ):
+            client.semantic_search(
+                "meaning",
+                document_ids=[1],
+                facets={"document_ids": [2]},
+            )
+        request.assert_not_called()
+
     def test_multipart_headers_reject_filename_and_content_type_injection(self):
         self.assertEqual(
             PaperlessClient._multipart_filename('invoice"\r\nX-Evil: yes.pdf'),
