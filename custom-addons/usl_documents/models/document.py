@@ -81,7 +81,18 @@ class UslDocument(models.Model):
         index=True,
         tracking=True,
     )
-    accounting_evidence = fields.Boolean(index=True, tracking=True)
+    accounting_evidence = fields.Boolean(
+        index=True,
+        tracking=True,
+        help=(
+            "Mark this document as supporting evidence for bookkeeping, tax, "
+            "or audit work. With Accounting evidence privacy, it becomes "
+            "available read-only to Accounting Evidence Readers. The document "
+            "is also easier to retrieve in accounting filters and is put on "
+            "retention hold if Paperless reports it in Trash. Changing this "
+            "setting resynchronizes archive permissions."
+        ),
+    )
     review_state = fields.Selection(
         [
             ("needs_attention", "Needs attention"),
@@ -106,7 +117,13 @@ class UslDocument(models.Model):
         required=True,
         default="available",
         index=True,
+        readonly=True,
         tracking=True,
+        help=(
+            "Updated automatically from Paperless processing, reconciliation, "
+            "trash and restore operations, and permission checks. It cannot be "
+            "changed manually."
+        ),
     )
     original_filename = fields.Char(readonly=True)
     mime_type = fields.Char(readonly=True)
