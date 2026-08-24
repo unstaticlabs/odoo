@@ -352,6 +352,15 @@ start_runtime() {
   printf 'Documents: %s\n' "$PAPERLESS_PUBLIC_URL"
 }
 
+start_odoo_runtime() {
+  require_target_database
+  provision
+  "${COMPOSE[@]}" up -d --wait db pocket-id odoo
+  printf '\nPocket ID: %s\n' "$POCKET_ID_APP_URL"
+  printf 'Odoo: %s/web/login?db=%s\n' "$ODOO_PUBLIC_BASE_URL" "$ODOO_INIT_DB"
+  printf 'Documents: intentionally unavailable in this partial QA profile\n'
+}
+
 one_time_link() {
   local username="${1:?Usage: scripts/pocket-id-dev one-time-link USER}"
   start_idp
@@ -439,6 +448,9 @@ case "${1:-help}" in
   start-runtime)
     start_runtime
     ;;
+  start-odoo-runtime)
+    start_odoo_runtime
+    ;;
   one-time-link)
     one_time_link "${2:-}"
     ;;
@@ -481,6 +493,7 @@ Commands:
                              Finalize partial QA without starting Paperless
   sync-paperless-users       Reconcile governed Odoo and Paperless identities
   start-runtime              Start Odoo, Pocket ID, and Paperless for odoo_dev
+  start-odoo-runtime         Start Odoo and Pocket ID without Paperless
   one-time-link USER         Generate a one-hour link for any Pocket ID user
   set-disabled USER BOOL     Enable or disable a named Pocket ID user
   set-profile USER EMAIL NAME

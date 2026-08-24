@@ -75,6 +75,15 @@ scripts/platform-billing-restore product-validate
 scripts/check-product-migration-boundary
 scripts/check-product-database-boundary
 
+# The product validators intentionally use the base Compose service and may
+# recreate Odoo without the Pocket ID environment overlay.  Always finish by
+# restoring the governed SSO runtime that operators will actually use.
+if [[ "$qa_profile" == no-documents ]]; then
+  scripts/pocket-id-dev start-odoo-runtime
+else
+  scripts/pocket-id-dev start-runtime
+fi
+
 printf '\nCanonical target finalized: odoo_dev\n'
 if [[ "$qa_profile" != full ]]; then
   printf 'QA profile: %s (partial; not valid release evidence)\n' "$qa_profile"
