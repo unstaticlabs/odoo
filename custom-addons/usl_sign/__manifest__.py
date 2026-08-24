@@ -31,6 +31,7 @@
         "views/sign_external_views.xml",
         "views/sign_approval_views.xml",
         "views/sign_daily_manifest_views.xml",
+        "views/sign_service_status_views.xml",
         "views/sign_portal_templates.xml",
         "views/res_config_settings_views.xml",
         "views/res_partner_views.xml",
@@ -41,16 +42,19 @@
         "web.assets_backend": [
             "usl_sign/static/src/js/business_summary.esm.js",
             "usl_sign/static/src/js/workspace.esm.js",
+            "usl_sign/static/src/js/template_library.esm.js",
             "usl_sign/static/src/js/editor_utils.esm.js",
             "usl_sign/static/src/js/configure_patch.esm.js",
             "usl_sign/static/src/xml/business_summary.xml",
             "usl_sign/static/src/xml/workspace.xml",
+            "usl_sign/static/src/xml/template_library.xml",
             "usl_sign/static/src/xml/configure_patch.xml",
             "usl_sign/static/src/scss/sign.scss",
         ],
         "web.assets_unit_tests": [
             "usl_sign/static/tests/editor_utils.test.js",
             "usl_sign/static/tests/editor_interactions.test.js",
+            "usl_sign/static/tests/template_library.test.js",
             "usl_sign/static/tests/workspace.test.js",
         ],
         "web.assets_tests": [

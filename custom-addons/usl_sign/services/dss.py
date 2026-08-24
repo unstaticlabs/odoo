@@ -163,7 +163,7 @@ class DSSClient:
                         or "application/octet-stream",
                         "relationship": artifact.get("relationship") or "Supplement",
                         "description": artifact.get("description")
-                        or "USL Sign evidence artifact",
+                        or "Document signing evidence artifact",
                     }
                     for artifact in artifacts
                 ],

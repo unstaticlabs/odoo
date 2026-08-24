@@ -6,3 +6,5 @@ def post_init_hook(env):
             "sign_opentimestamps_enabled": True,
         },
     )
+    for company in env["res.company"].search([]):
+        env["usl.sign.service.health"]._ensure_company(company)

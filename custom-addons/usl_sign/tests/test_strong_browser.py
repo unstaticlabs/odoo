@@ -356,8 +356,8 @@ class TestSignBrowserJourneys(HttpCase):
             ],
         )
 
-    def test_library_tabs_in_web_client(self):
-        action = self.env.ref("usl_sign.sign_library_action")
+    def test_native_library_opens_on_creation_first_templates(self):
+        action = self.env.ref("sign_oca.sign_oca_template_act_window")
         self.browser_js(
             f"/odoo/action-{action.id}",
             """
@@ -372,28 +372,30 @@ class TestSignBrowserJourneys(HttpCase):
                     }
                     throw new Error(message);
                 };
-                const tabs = Array.from(document.querySelectorAll(".usl_sign_library .nav-link"));
-                if (tabs.length !== 2 || tabs[0].textContent.trim() !== "Templates") {
-                    throw new Error("The Library does not open on Templates.");
-                }
-                if (tabs[1].textContent.trim() !== "Completed Documents") {
-                    throw new Error("The completed-document tab is missing.");
-                }
-                tabs[1].click();
-                await waitFor(
-                    () => tabs[1].classList.contains("active")
-                        && !document.querySelector(".usl_sign_workspace_state"),
-                    "The Completed Documents tab did not load.",
+                const upload = await waitFor(
+                    () => Array.from(document.querySelectorAll("button")).find(
+                        (button) => button.textContent.trim() === "Upload PDF",
+                    ),
+                    "The primary Upload PDF action is missing.",
                 );
-                if (!document.querySelector(".usl_sign_library_search")) {
-                    throw new Error("The Library search is missing.");
+                if (!upload.classList.contains("btn-primary")) {
+                    throw new Error("Upload PDF is not the primary Library action.");
+                }
+                for (const label of ["Completed documents", "Decisions"]) {
+                    if (!Array.from(document.querySelectorAll("button")).some(
+                        (button) => button.textContent.trim() === label,
+                    )) {
+                        throw new Error(`The Library action is missing: ${label}`);
+                    }
+                }
+                if (!document.querySelector(".o_kanban_renderer")) {
+                    throw new Error("Library is not using the native template kanban.");
                 }
                 console.log("test successful");
             })();
             """,
             ready=(
-                "document.querySelectorAll('.usl_sign_library .nav-link').length === 2 && "
-                "!document.querySelector('.usl_sign_workspace_state')"
+                "Boolean(document.querySelector('.o_kanban_renderer'))"
             ),
             login=self.workspace_user.login,
             timeout=60,

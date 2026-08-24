@@ -263,16 +263,9 @@ msgstr "Examinez les preuves de validation et créez une nouvelle demande."
 #. module: usl_sign
 #. odoo-javascript
 #: code:addons/usl_sign/static/src/xml/workspace.xml:0
-#: model:ir.actions.client,name:usl_sign.sign_library_action
 #: model:ir.ui.menu,name:usl_sign.sign_library_menu
 msgid "Library"
 msgstr "Bibliothèque"
-
-#. module: usl_sign
-#. odoo-javascript
-#: code:addons/usl_sign/static/src/xml/workspace.xml:0
-msgid "Library sections"
-msgstr "Sections de la bibliothèque"
 
 #. module: usl_sign
 #: model:ir.actions.act_window,name:usl_sign.my_signatures_action

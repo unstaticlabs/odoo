@@ -31,10 +31,8 @@
                     </setting>
                 </block>
                 <block title="Strong personal signature" name="sign_strong">
-                    <setting string="Pocket ID passkey authorization" help="The dedicated Pocket ID Sign client, signer group and fresh-passkey requirement are environment-managed. Pocket ID owns credentials; Odoo owns consent and document binding.">
-                        <field name="sign_services_ready" readonly="1"/>
-                        <field name="sign_services_message" readonly="1"/>
-                        <button name="action_test_sign_services" type="object" string="Test local signing services" class="btn-link"/>
+                    <setting string="Signing service readiness" help="Inspect Standard, Strong personal, qualified validation, archival, and timestamp capabilities without exposing credentials.">
+                        <button name="action_open_sign_service_status" type="object" string="Open Service Status" class="btn-link"/>
                     </setting>
                 </block>
             </xpath>

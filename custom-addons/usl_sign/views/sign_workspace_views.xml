@@ -4,11 +4,6 @@
         <field name="name">Sign</field>
         <field name="tag">usl_sign.landing</field>
     </record>
-    <record id="sign_library_action" model="ir.actions.client">
-        <field name="name">Library</field>
-        <field name="tag">usl_sign.library</field>
-    </record>
-
     <record id="sign_start_form" model="ir.ui.view">
         <field name="name">usl.sign.start.form</field>
         <field name="model">usl.sign.start</field>
@@ -33,6 +28,11 @@
                     </group>
                     <group invisible="request_type != 'decision'">
                         <field name="approver_ids" widget="many2many_tags" required="request_type == 'decision'"/>
+                        <field name="decision_rule" required="request_type == 'decision'"/>
+                        <field name="due_date"/>
+                        <div class="alert alert-info" role="status" colspan="2">
+                            A decision request records who approved or rejected, signs its event history, generates a validated PDF proof, and archives it. It is useful when the business decision needs evidence but the document itself does not need a signature.
+                        </div>
                     </group>
                 </sheet>
                 <footer>

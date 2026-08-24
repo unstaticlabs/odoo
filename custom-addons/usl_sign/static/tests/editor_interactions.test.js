@@ -16,10 +16,18 @@ const TEXT_FIELD = {
 function editorFixture() {
     const translationsWereLoaded = translatedTerms[translationLoaded];
     translatedTerms[translationLoaded] = true;
-    const page = document.createElement("div");
+    const iframe = document.createElement("iframe");
+    document.body.append(iframe);
+    iframe.getBoundingClientRect = () => ({
+        left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100,
+    });
+    const iframeDocument = iframe.contentDocument;
+    const page = iframeDocument.createElement("div");
     page.className = "page";
     page.dataset.pageNumber = "1";
-    page.getBoundingClientRect = () => ({left: 0, top: 0, width: 200, height: 100});
+    page.getBoundingClientRect = () => ({
+        left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100,
+    });
     const item = {
         id: 42,
         name: "Text",
@@ -34,7 +42,7 @@ function editorFixture() {
         height: 5,
     };
     const fixture = {
-        iframe: {el: {contentDocument: document}},
+        iframe: {el: iframe},
         info: {
             readonly: false,
             revision: 1,
@@ -44,6 +52,8 @@ function editorFixture() {
         },
         editor: {
             selectedItemId: false,
+            selectedRoleId: ROLE_ONE.id,
+            selectedFieldId: TEXT_FIELD.id,
             contextPlacement: false,
             pending: 0,
             saveStatus: "saved",
@@ -66,13 +76,13 @@ function editorFixture() {
         },
         refreshSelection: UslSignTemplateEditor.prototype.refreshSelection,
     };
-    document.body.append(page);
+    iframeDocument.body.append(page);
     return {
         fixture,
         item,
         page,
         cleanup() {
-            page.remove();
+            iframe.remove();
             translatedTerms[translationLoaded] = translationsWereLoaded;
         },
     };
@@ -132,6 +142,42 @@ test("pointer movement is normalized to page percentages and saved once", () => 
     });
     expect(element.style.left).toBe("15%");
     expect(element.style.top).toBe("30%");
+    cleanup();
+});
+
+test("palette drag crosses the same-origin iframe through the controlled pointer bridge", () => {
+    const {fixture, cleanup} = editorFixture();
+    const created = [];
+    fixture.createField = (values) => created.push(values);
+    const button = document.createElement("button");
+    document.body.append(button);
+
+    UslSignTemplateEditor.prototype.onPalettePointerDown.call(
+        fixture,
+        {
+            button: 0,
+            clientX: 5,
+            clientY: 5,
+            pointerId: 7,
+            currentTarget: button,
+            preventDefault() {},
+        },
+        TEXT_FIELD
+    );
+    window.dispatchEvent(
+        new PointerEvent("pointermove", {clientX: 55, clientY: 35, pointerId: 7})
+    );
+    window.dispatchEvent(
+        new PointerEvent("pointerup", {clientX: 55, clientY: 35, pointerId: 7})
+    );
+
+    expect(created).toHaveLength(1);
+    expect(created[0].field_id).toBe(TEXT_FIELD.id);
+    expect(created[0].role_id).toBe(ROLE_ONE.id);
+    expect(created[0].page).toBe(1);
+    expect(created[0].position_x).toBeGreaterThan(0);
+    expect(created[0].position_y).toBeGreaterThan(0);
+    button.remove();
     cleanup();
 });
 

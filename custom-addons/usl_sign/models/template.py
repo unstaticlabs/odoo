@@ -1,4 +1,5 @@
 import base64
+import binascii
 import hashlib
 import re
 import uuid
@@ -149,6 +150,7 @@ class SignTemplate(models.Model):
     has_requests = fields.Boolean(compute="_compute_has_requests")
     editor_revision = fields.Integer(default=1, required=True, copy=False, readonly=True)
     editor_operation_log = fields.Json(default=dict, copy=False, readonly=True)
+    upload_operation_uuid = fields.Char(readonly=True, copy=False, index=True)
     editor_role_ids = fields.One2many(
         "usl.sign.template.role", "template_id", string="Editor role colors", copy=True,
     )
@@ -160,6 +162,79 @@ class SignTemplate(models.Model):
         ],
         compute="_compute_default_trust",
     )
+
+    _upload_operation_unique = models.Constraint(
+        "UNIQUE(upload_operation_uuid)",
+        "A template upload operation may only be applied once.",
+    )
+
+    @api.model
+    def create_from_documents(self, documents, operation_uuid, company_id=None):
+        """Create one draft envelope from browser-uploaded PDFs, atomically."""
+        if not self.env.user.has_group("usl_sign.group_sign_template_manager"):
+            msg = "Only a Sign template manager can upload reusable templates."
+            raise AccessError(msg)
+        operation_uuid = _validate_editor_uuid(operation_uuid)
+        existing = self.search(
+            [("upload_operation_uuid", "=", operation_uuid)],
+            limit=1,
+        )
+        if existing:
+            return existing.configure()
+        if not isinstance(documents, list) or not 1 <= len(documents) <= 20:
+            msg = "Choose between one and twenty PDF documents."
+            raise ValidationError(msg)
+        company = self.env.company
+        if company_id:
+            company = self.env["res.company"].browse(int(company_id)).exists()
+            if not company or company not in self.env.user.company_ids:
+                msg = "You cannot create a template for this company."
+                raise AccessError(msg)
+        maximum = self.env["ir.config_parameter"].sudo().get_int(
+            "usl_sign.max_template_upload_bytes",
+            50 * 1024 * 1024,
+        )
+        prepared = []
+        total_size = 0
+        for sequence, document in enumerate(documents, start=1):
+            if not isinstance(document, dict):
+                msg = "The uploaded document description is invalid."
+                raise ValidationError(msg)
+            filename = (document.get("name") or "").strip()
+            if not filename or len(filename) > 255 or not filename.lower().endswith(".pdf"):
+                msg = "Every template document must have a PDF filename."
+                raise ValidationError(msg)
+            try:
+                raw = base64.b64decode(document.get("data") or b"", validate=True)
+            except (binascii.Error, TypeError, ValueError) as error:
+                msg = "An uploaded PDF is not valid base64."
+                raise ValidationError(msg) from error
+            total_size += len(raw)
+            if total_size > maximum:
+                msg = "The template envelope exceeds the configured upload limit."
+                raise ValidationError(msg)
+            self.env["usl.sign.request.document"]._validate_pdf(raw)
+            prepared.append(
+                {
+                    "sequence": sequence * 10,
+                    "is_annex": sequence > 1,
+                    "name": re.sub(r"(?i)\.pdf$", "", filename).strip() or filename,
+                    "filename": filename,
+                    "data": base64.b64encode(raw),
+                },
+            )
+        primary = prepared[0]
+        template = self.create(
+            {
+                "name": primary["name"],
+                "filename": primary["filename"],
+                "data": primary["data"],
+                "company_id": company.id,
+                "upload_operation_uuid": operation_uuid,
+                "document_ids": [(0, 0, values) for values in prepared],
+            },
+        )
+        return template.configure()
 
     @api.depends("policy_id", "policy_id.recommendation")
     def _compute_default_trust(self):

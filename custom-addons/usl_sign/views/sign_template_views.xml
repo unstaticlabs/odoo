@@ -60,4 +60,40 @@
             </xpath>
         </field>
     </record>
+    <record id="sign_template_kanban_usl" model="ir.ui.view">
+        <field name="name">sign.oca.template.kanban.usl</field>
+        <field name="model">sign.oca.template</field>
+        <field name="inherit_id" ref="sign_oca.sign_oca_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="js_class">usl_sign_template_kanban</attribute>
+            </xpath>
+            <xpath expr="//kanban/field[@name='create_uid']" position="before">
+                <field name="company_id"/>
+                <field name="version"/>
+                <field name="preparation_status"/>
+                <field name="default_trust"/>
+            </xpath>
+            <xpath expr="//field[@name='display_name']" position="after">
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                    <span class="badge text-bg-light">v<field name="version"/></span>
+                    <field name="preparation_status" widget="badge"/>
+                    <field name="default_trust" widget="badge"/>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='configure']" position="attributes">
+                <attribute name="string">Prepare</attribute>
+            </xpath>
+            <xpath expr="//button[@name='%(sign_oca.sign_oca_template_generate_act_window)d' and not(@context)]" position="attributes">
+                <attribute name="string">Use template</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sign_oca.sign_oca_template_act_window" model="ir.actions.act_window">
+        <field name="name">Templates</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Upload a PDF to create a reusable template</p>
+            <p>Drop one or more PDFs here, assign signer roles and fields, then publish the template when it is ready.</p>
+        </field>
+    </record>
 </odoo>

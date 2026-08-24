@@ -186,6 +186,12 @@ class TestCleanUslSign(TransactionCase):
             groups="usl_sign.group_sign_evidence_reviewer",
             company_id=cls.company.id,
         )
+        cls.sign_admin = new_test_user(
+            cls.env,
+            login="usl-sign-admin",
+            groups="usl_sign.group_sign_admin",
+            company_id=cls.company.id,
+        )
         cls.policy = cls.env.ref("usl_sign.policy_routine_standard")
 
     def _request(self, *, partners=None, roles=None, **values):
@@ -1340,7 +1346,7 @@ class TestCleanUslSign(TransactionCase):
             "strong_signature_attempt_cancelled",
         )
 
-    def test_approval_decisions_and_events_are_attributable_and_immutable(self):
+    def test_decision_proof_is_attributable_validated_and_archived(self):
         approval = self.env["usl.sign.approval"].create(
             {
                 "name": "Approve routine internal decision",
@@ -1349,14 +1355,205 @@ class TestCleanUslSign(TransactionCase):
                 "policy_version": "2026.1",
             },
         )
-        approval.with_user(self.sign_user).action_reject("Business owner declined.")
-        self.assertEqual(approval.state, "rejected")
-        self.assertEqual(approval.decision_by_id, self.sign_user)
-        self.assertEqual(approval.event_ids.mapped("event_type"), ["requested", "rejected"])
+        archived = self.env["usl.document"].sudo().create(
+            {
+                "name": "Decision proof",
+                "paperless_id": 990002,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_generated",
+            },
+        )
+        approval.action_send()
+        with (
+            patch.object(
+                type(self.env["sign.oca.request"]),
+                "_sign_dss_client",
+                return_value=FakeDSS(),
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "upload_from_odoo",
+                autospec=True,
+                return_value={"state": "duplicate", "document_id": archived.id},
+            ),
+        ):
+            approval.with_user(self.sign_user)._record_response(
+                "rejected",
+                "Business owner declined.",
+            )
+        self.assertEqual(approval.state, "completed")
+        self.assertEqual(approval.outcome, "rejected")
+        self.assertEqual(approval.outcome_by_id, self.sign_user)
+        self.assertEqual(approval.proof_status, "valid")
+        self.assertEqual(approval.archive_status, "archived")
+        self.assertTrue(approval.receipt_sha256)
+        approval.event_ids.verify_chain()
+        self.assertEqual(
+            approval.event_ids.mapped("event_type"),
+            [
+                "created",
+                "sent",
+                "rejected",
+                "outcome_recorded",
+                "proof_validated",
+                "archive_queued",
+                "completed",
+            ],
+        )
+        class Tomorrow(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                tomorrow = datetime.now(UTC) + timedelta(days=1)
+                return tomorrow if tz else tomorrow.replace(tzinfo=None)
+
+        with (
+            patch("odoo.addons.usl_sign.models.daily_manifest.datetime", Tomorrow),
+            patch(
+                "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
+                return_value=FakeDSS(),
+            ),
+        ):
+            manifest = self.env["usl.sign.daily.manifest"].build_for_day(
+                self.company,
+                fields.Date.today(),
+            )
+        entry = manifest.entry_ids.filtered(lambda item: item.approval_id == approval)
+        self.assertEqual(entry.record_type, "decision")
+        self.assertEqual(entry.decision_outcome, "rejected")
+        self.assertEqual(entry.decision_receipt_sha256, approval.receipt_sha256)
+        self.assertEqual(
+            entry.decision_manifest_sha256,
+            approval.signed_manifest_sha256,
+        )
         with self.assertRaises(AccessError):
             approval.event_ids[-1].write({"reason": "changed"})
         with self.assertRaises(AccessError):
             approval.unlink()
+
+    def test_service_status_reports_ready_missing_and_partial_capabilities(self):
+        health = self.env["usl.sign.service.health"]._ensure_company(self.company)
+        checked = health.filtered(lambda row: row.code in {"standard", "strong", "qualified"})
+        model_type = type(health)
+        with (
+            patch.object(
+                model_type,
+                "_dss",
+                return_value={"engineVersion": "6.4", "qualifiedTrustReady": True},
+            ),
+            patch.object(
+                model_type,
+                "_paperless",
+                return_value={"server_version": "2.18"},
+            ),
+            patch.object(model_type, "_pocket", return_value={"fresh": True}),
+            patch.object(model_type, "_step_ca", return_value={"status": "UP"}),
+        ):
+            checked.with_user(self.sign_admin)._refresh_checks()
+        self.assertEqual(set(checked.mapped("status")), {"ready"})
+        self.assertTrue(all(checked.mapped("checked_at")))
+
+        standard = health.filtered(lambda row: row.code == "standard")
+        with (
+            patch.object(model_type, "_dss", return_value={"engineVersion": "6.4"}),
+            patch.object(model_type, "_paperless", return_value=False),
+        ):
+            standard.with_user(self.sign_admin)._refresh_checks()
+        self.assertEqual(standard.status, "not_configured")
+        self.assertEqual(standard.diagnostic_code, "paperless_not_configured")
+
+        qualified = health.filtered(lambda row: row.code == "qualified")
+        with (
+            patch.object(
+                model_type,
+                "_dss",
+                return_value={"engineVersion": "6.4", "qualifiedTrustReady": False},
+            ),
+            patch.object(
+                model_type,
+                "_paperless",
+                return_value={"server_version": "2.18"},
+            ),
+        ):
+            qualified.with_user(self.sign_admin)._refresh_checks()
+        self.assertEqual(qualified.status, "action_required")
+        self.assertEqual(qualified.diagnostic_code, "qualified_trust_unavailable")
+
+    def test_service_status_fails_closed_for_stale_cron_and_other_company(self):
+        health_model = self.env["usl.sign.service.health"]
+        health = health_model._ensure_company(self.company)
+        daily = health.filtered(lambda row: row.code == "daily_proof")
+        manifest_cron = self.env.ref("usl_sign.ir_cron_sign_daily_event_heads")
+        manifest_cron.active = False
+        model_type = type(health)
+        with (
+            patch.object(model_type, "_dss", return_value={"engineVersion": "6.4"}),
+            patch.object(
+                model_type,
+                "_paperless",
+                return_value={"server_version": "2.18"},
+            ),
+        ):
+            daily.with_user(self.sign_admin)._refresh_checks()
+        self.assertEqual(daily.status, "action_required")
+        self.assertEqual(daily.diagnostic_code, "daily_proof_cron_unhealthy")
+
+        other_company = self.env["res.company"].create({"name": "Other Sign Company"})
+        other = health_model._ensure_company(other_company)[0]
+        self.assertFalse(
+            health_model.with_user(self.sign_admin).search(
+                [("company_id", "=", other_company.id)],
+            ),
+        )
+        with self.assertRaises(AccessError):
+            other.with_user(self.sign_admin).action_refresh()
+
+    def test_template_upload_creates_one_atomic_multi_pdf_envelope(self):
+        manager_templates = self.env["sign.oca.template"].with_user(
+            self.template_manager,
+        )
+        operation_uuid = str(uuid.uuid4())
+        action = manager_templates.create_from_documents(
+            [
+                {"name": "Routine Agreement.pdf", "data": base64.b64encode(self.pdf)},
+                {"name": "Annex.pdf", "data": base64.b64encode(_pdf(2))},
+            ],
+            operation_uuid,
+        )
+        template = self.env["sign.oca.template"].search(
+            [("upload_operation_uuid", "=", operation_uuid)],
+        )
+        self.assertEqual(len(template), 1)
+        self.assertEqual(len(template.document_ids), 2)
+        self.assertEqual(template.document_ids.mapped("is_annex"), [False, True])
+        self.assertEqual(action["tag"], "usl_sign_template_configure")
+        duplicate_action = manager_templates.create_from_documents(
+            [{"name": "Ignored.pdf", "data": base64.b64encode(self.pdf)}],
+            operation_uuid,
+        )
+        self.assertEqual(duplicate_action["tag"], "usl_sign_template_configure")
+        self.assertEqual(
+            self.env["sign.oca.template"].search_count(
+                [("upload_operation_uuid", "=", operation_uuid)],
+            ),
+            1,
+        )
+
+    def test_template_upload_rejects_whole_envelope_when_one_pdf_is_invalid(self):
+        operation_uuid = str(uuid.uuid4())
+        before = self.env["sign.oca.template"].search_count([])
+        with self.assertRaises(ValidationError):
+            self.env["sign.oca.template"].with_user(
+                self.template_manager,
+            ).create_from_documents(
+                [
+                    {"name": "Good.pdf", "data": base64.b64encode(self.pdf)},
+                    {"name": "Broken.pdf", "data": base64.b64encode(b"not-a-pdf")},
+                ],
+                operation_uuid,
+            )
+        self.assertEqual(self.env["sign.oca.template"].search_count([]), before)
 
     def test_daily_event_head_manifest_is_signed_and_immutable(self):
         request = self._request()

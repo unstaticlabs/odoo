@@ -1,13 +1,5 @@
-from urllib.parse import quote
-
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
-
-TRUST_SHORT_LABELS = {
-    "standard": "Standard",
-    "strong_personal": "Strong personal",
-    "qualified_external": "Qualified external",
-}
 
 
 class SignWorkspace(models.AbstractModel):
@@ -100,18 +92,22 @@ class SignWorkspace(models.AbstractModel):
                 },
             }
 
-        def approval_item(approval):
+        def decision_item(decision):
             return {
-                "id": approval.id,
-                "model": approval._name,
-                "title": approval.name,
-                "subtitle": approval.record_ref.display_name if approval.record_ref else "",
-                "status": "Decision requested",
-                "progress": approval.requested_by_id.name,
-                "next_step": "Approve or reject",
-                "due": False,
-                "trust": "Odoo decision",
-                "action": {"type": "open", "model": approval._name, "id": approval.id},
+                "id": decision.id,
+                "model": decision._name,
+                "title": decision.name,
+                "subtitle": decision.record_ref.display_name if decision.record_ref else "",
+                "status": dict(
+                    decision._fields["outcome"]._description_selection(self.env),
+                ).get(decision.outcome),
+                "progress": decision.response_progress,
+                "next_step": decision.next_step,
+                "due": fields.Date.to_string(decision.due_date)
+                if decision.due_date
+                else False,
+                "trust": "Decision proof",
+                "action": {"type": "open", "model": decision._name, "id": decision.id},
             }
 
         sections = {
@@ -123,8 +119,12 @@ class SignWorkspace(models.AbstractModel):
             ),
             "decide": self._section(
                 "usl.sign.approval",
-                [("state", "=", "pending"), ("approver_ids", "in", [self.env.user.id])],
-                approval_item,
+                [
+                    ("state", "=", "waiting"),
+                    ("response_ids.user_id", "=", self.env.user.id),
+                    ("response_ids.state", "=", "pending"),
+                ],
+                decision_item,
                 order="create_date desc, id desc",
             ),
             "prepare": self._section(
@@ -189,164 +189,39 @@ class SignWorkspace(models.AbstractModel):
                 order="completed_at desc, id desc",
             ),
         }
+        decision_issues = self._section(
+            "usl.sign.approval",
+            [
+                ("state", "=", "action_required"),
+                "|",
+                ("requested_by_id", "=", self.env.user.id),
+                ("approver_ids", "in", [self.env.user.id]),
+            ],
+            decision_item,
+            order="write_date desc, id desc",
+        )
+        sections["issues"]["count"] += decision_issues["count"]
+        sections["issues"]["items"] = (
+            sections["issues"]["items"] + decision_issues["items"]
+        )[:6]
+        completed_decisions = self._section(
+            "usl.sign.approval",
+            [
+                ("state", "=", "completed"),
+                "|",
+                ("requested_by_id", "=", self.env.user.id),
+                ("approver_ids", "in", [self.env.user.id]),
+            ],
+            decision_item,
+            order="completed_at desc, id desc",
+        )
+        sections["completed"]["count"] += completed_decisions["count"]
+        sections["completed"]["items"] = (
+            sections["completed"]["items"] + completed_decisions["items"]
+        )[:6]
         return {
             "can_start": self.env.user.has_group("usl_sign.group_sign_user"),
             "sections": sections,
-        }
-
-    @api.model
-    def _download_url(self, record, field_name, filename):
-        if not filename or not record[field_name]:
-            return False
-        return (
-            f"/web/content/{record._name}/{record.id}/{field_name}/"
-            f"{quote(filename)}?download=true"
-        )
-
-    @api.model
-    def get_library(self, section="templates", search="", offset=0, limit=24):
-        self._check_access()
-        if section not in {"templates", "completed"}:
-            msg = "Choose Templates or Completed Documents."
-            raise ValidationError(msg)
-        offset = max(0, int(offset or 0))
-        limit = min(50, max(1, int(limit or 24)))
-        search = (search or "").strip()[:100]
-        if section == "templates":
-            domain = [("active", "=", True)]
-            if search:
-                domain.append(("name", "ilike", search))
-            model = self.env["sign.oca.template"]
-            total = model.search_count(domain)
-            templates = model.search(
-                domain,
-                order="preparation_status desc, write_date desc, id desc",
-                offset=offset,
-                limit=limit,
-            )
-            category_labels = dict(
-                model._fields["default_document_category"]._description_selection(
-                    self.env,
-                ),
-            )
-            status_labels = dict(
-                model._fields["preparation_status"]._description_selection(self.env),
-            )
-            items = [
-                {
-                    "id": template.id,
-                    "title": template.name,
-                    "description": template.description or "",
-                    "category": category_labels.get(template.default_document_category),
-                    "company": template.company_id.name,
-                    "version": template.version,
-                    "owner": template.create_uid.name,
-                    "trust": TRUST_SHORT_LABELS.get(template.default_trust, "Standard"),
-                    "status": status_labels.get(template.preparation_status),
-                    "ready": template.preparation_status == "ready",
-                    "usage": template.request_count,
-                }
-                for template in templates
-            ]
-        else:
-            domain = self._completed_domain()
-            if search:
-                domain.append(("name", "ilike", search))
-            model = self.env["sign.oca.request"]
-            total = model.search_count(domain)
-            requests = model.search(
-                domain,
-                order="completed_at desc, id desc",
-                offset=offset,
-                limit=limit,
-            )
-            items = [
-                self._completed_library_item(request)
-                for request in requests
-            ]
-        return {
-            "section": section,
-            "items": items,
-            "total": total,
-            "offset": offset,
-            "limit": limit,
-        }
-
-    @api.model
-    def _completed_library_item(self, request):
-        proof_labels = dict(
-            request._fields["evidence_status"]._description_selection(self.env),
-        )
-        archive_labels = dict(
-            request._fields["archive_status"]._description_selection(self.env),
-        )
-        timestamp_labels = dict(
-            request._fields["daily_timestamp_status"]._description_selection(self.env),
-        )
-        can_review = self.env.user.has_group("usl_sign.group_sign_evidence_reviewer")
-        manifest = request.daily_timestamp_manifest_id if can_review else False
-        confirmed_receipt = manifest.confirmed_receipt_id if manifest else False
-        return {
-            "id": request.id,
-            "title": request.name,
-            "record": request.record_ref.display_name if request.record_ref else "",
-            "completed": fields.Datetime.to_string(request.completed_at)
-            if request.completed_at
-            else False,
-            "signers": ", ".join(request.signer_ids.mapped("partner_id.name")),
-            "trust": request.achieved_trust_short,
-            "proof": proof_labels.get(request.evidence_status),
-            "archive": archive_labels.get(request.archive_status),
-            "timestamp": timestamp_labels.get(request.daily_timestamp_status)
-            or "Not scheduled",
-            "timestamp_message": request.daily_timestamp_message or "",
-            "timestamp_manifest_id": manifest.id if manifest else False,
-            "timestamp_manifest_url": self._download_url(
-                manifest,
-                "signed_envelope",
-                manifest.signed_envelope_filename,
-            )
-            if manifest
-            else False,
-            "timestamp_pending_receipt_url": self._download_url(
-                manifest.initial_receipt_id,
-                "data",
-                manifest.initial_receipt_id.name,
-            )
-            if manifest and manifest.initial_receipt_id
-            else False,
-            "timestamp_receipt_url": self._download_url(
-                confirmed_receipt,
-                "data",
-                confirmed_receipt.name,
-            )
-            if confirmed_receipt
-            else False,
-            "timestamp_report_url": self._download_url(
-                manifest,
-                "verification_report",
-                manifest.verification_report_filename,
-            )
-            if manifest
-            else False,
-            "timestamp_dossier_url": self._download_url(
-                manifest,
-                "proof_dossier",
-                manifest.proof_dossier_filename,
-            )
-            if manifest
-            else False,
-            "final_url": self._download_url(
-                request, "final_data", request.final_filename,
-            ),
-            "certificate_url": self._download_url(
-                request,
-                "completion_certificate",
-                request.completion_filename,
-            ),
-            "dossier_url": self._download_url(
-                request, "dossier_data", request.dossier_filename,
-            ),
         }
 
 
@@ -380,9 +255,15 @@ class SignStart(models.TransientModel):
     record_ref = fields.Reference(selection="_record_models", string="Linked record")
     approver_ids = fields.Many2many(
         "res.users",
-        string="Approvers",
+        string="Decision-makers",
         domain="[('share', '=', False), ('company_ids', 'in', company_id)]",
     )
+    decision_rule = fields.Selection(
+        [("any", "Any one decides"), ("all", "Everyone must approve")],
+        default="any",
+        required=True,
+    )
+    due_date = fields.Date(string="Due date")
     company_id = fields.Many2one(
         "res.company",
         required=True,
@@ -410,6 +291,8 @@ class SignStart(models.TransientModel):
                     "company_id": self.company_id.id,
                     "record_ref": f"{self.record_ref._name},{self.record_ref.id}",
                     "approver_ids": [(6, 0, self.approver_ids.ids)],
+                    "decision_rule": self.decision_rule,
+                    "due_date": self.due_date,
                 },
             )
             return {

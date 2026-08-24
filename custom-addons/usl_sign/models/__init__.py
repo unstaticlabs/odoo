@@ -11,6 +11,7 @@ from . import (
     pocketid,
     policy,
     request,
+    service_status,
     template,
     wizard,
     workspace,

@@ -285,8 +285,55 @@ class SignRequest(models.Model):
             order="create_date desc, id desc",
             limit=20,
         )
-        if not requests:
+        decisions = self.env["usl.sign.approval"].search(
+            [("record_ref", "=", f"{res_model},{target.id}")],
+            order="create_date desc, id desc",
+            limit=20,
+        )
+        if not requests and not decisions:
             return False
+        if not requests:
+            active_decisions = decisions.filtered(
+                lambda decision: decision.state != "completed",
+            )
+            decision = active_decisions[:1] or decisions[:1]
+
+            def decision_content_url(field_name, filename):
+                if not filename or not decision[field_name]:
+                    return False
+                return (
+                    f"/web/content/{decision._name}/{decision.id}/{field_name}/"
+                    f"{quote(filename)}?download=true"
+                )
+
+            return {
+                "kind": "decision",
+                "record_model": decision._name,
+                "record_id": decision.id,
+                "request_name": decision.name,
+                "state": decision.state,
+                "state_label": dict(
+                    decision._fields["state"]._description_selection(self.env),
+                ).get(decision.state, decision.state),
+                "next_step": decision.next_step,
+                "requested_trust": "Attributable business decision",
+                "achieved_trust": dict(
+                    decision._fields["outcome"]._description_selection(self.env),
+                ).get(decision.outcome),
+                "archive_state": dict(
+                    decision._fields["archive_status"]._description_selection(
+                        self.env,
+                    ),
+                ).get(decision.archive_status),
+                "final_url": decision_content_url(
+                    "receipt_data", decision.receipt_filename,
+                ),
+                "certificate_url": False,
+                "evidence_url": decision_content_url(
+                    "signed_manifest", decision.signed_manifest_filename,
+                ),
+                "total_requests": len(decisions),
+            }
         active = requests.filtered(
             lambda sign_request: sign_request.state not in TERMINAL_REQUEST_STATES,
         )
@@ -302,6 +349,9 @@ class SignRequest(models.Model):
             )
 
         return {
+            "kind": "signature",
+            "record_model": sign_request._name,
+            "record_id": sign_request.id,
             "request_id": sign_request.id,
             "request_name": sign_request.name,
             "state": sign_request.state,
@@ -1694,7 +1744,7 @@ class SignRequest(models.Model):
         _width, height = A4
         pdf.setTitle(f"Completion certificate - {self.name}")
         pdf.setFont("Helvetica-Bold", 18)
-        pdf.drawString(50, height - 60, "USL Sign completion certificate")
+        pdf.drawString(50, height - 60, f"{self.company_id.name} completion certificate")
         pdf.setFont("Helvetica", 10)
         lines = [
             f"Request: {self.name}",
@@ -1987,7 +2037,7 @@ class SignRequest(models.Model):
                 },
             )
         result = self._sign_dss_client().build_dossier(
-            title=f"USL Sign evidence dossier - {self.name}",
+            title=f"{self.company_id.name} signing evidence - {self.name}",
             summary=[
                 f"Company: {self.company_id.name}",
                 f"Requested trust: {trust_labels.get(self.requested_trust, self.requested_trust)}",

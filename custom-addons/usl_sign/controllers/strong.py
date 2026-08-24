@@ -41,7 +41,7 @@ def _canonical_json(value):
 
 
 def _personal_certificate_subject(signer):
-    return f"USL Sign Personal: {signer.partner_id.name}".replace(",", " ")
+    return f"Personal document signature: {signer.partner_id.name}".replace(",", " ")
 
 
 def _fresh_passkey_claims_summary(claims, *, transaction_created, now=None):

@@ -29,7 +29,10 @@ access_sign_external_provider_user,sign.external.provider.user,model_usl_sign_ex
 access_sign_external_provider_admin,sign.external.provider.admin,model_usl_sign_external_provider,group_sign_admin,1,1,1,1
 access_sign_external_journey_user,sign.external.journey.user,model_usl_sign_external_journey,group_sign_user,1,1,1,0
 access_sign_external_import_user,sign.external.import.user,model_usl_sign_external_import_wizard,group_sign_user,1,1,1,1
-access_sign_approval_user,sign.approval.user,model_usl_sign_approval,base.group_user,1,1,1,0
+access_sign_approval_participant,sign.approval.participant,model_usl_sign_approval,base.group_user,1,0,0,0
+access_sign_approval_user,sign.approval.user,model_usl_sign_approval,group_sign_user,1,1,1,0
+access_sign_approval_admin,sign.approval.admin,model_usl_sign_approval,group_sign_admin,1,1,1,0
+access_usl_sign_approval_response_user,usl.sign.approval.response user,model_usl_sign_approval_response,base.group_user,1,0,0,0
 access_sign_request_log_reviewer,sign.request.log.reviewer,sign_oca.model_sign_oca_request_log,group_sign_evidence_reviewer,1,0,0,0
 access_usl_sign_approval_event_user,usl.sign.approval.event user,model_usl_sign_approval_event,base.group_user,1,0,0,0
 access_usl_sign_approval_decision_wizard_user,usl.sign.approval.decision.wizard user,model_usl_sign_approval_decision_wizard,base.group_user,1,1,1,1
@@ -40,3 +43,4 @@ access_usl_sign_daily_manifest_entry_admin,usl.sign.daily.manifest.entry admin,m
 access_usl_sign_daily_manifest_receipt_reviewer,usl.sign.daily.manifest.receipt reviewer,model_usl_sign_daily_manifest_receipt,group_sign_evidence_reviewer,1,0,0,0
 access_usl_sign_daily_manifest_receipt_admin,usl.sign.daily.manifest.receipt admin,model_usl_sign_daily_manifest_receipt,group_sign_admin,1,0,0,0
 access_usl_sign_start_user,usl.sign.start user,model_usl_sign_start,group_sign_user,1,1,1,1
+access_usl_sign_service_health_admin,usl.sign.service.health admin,model_usl_sign_service_health,group_sign_admin,1,0,0,0

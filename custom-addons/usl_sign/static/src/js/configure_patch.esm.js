@@ -67,6 +67,8 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         this.undoStack = [];
         this.redoStack = [];
         this.pageListeners = [];
+        this.activeManipulation = false;
+        this.activePaletteDrag = false;
         this.beforeUnload = (event) => {
             if (this.editor.pending || this.editor.error) {
                 event.preventDefault();
@@ -79,6 +81,8 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
             for (const cleanup of this.pageListeners) {
                 cleanup();
             }
+            this.activeManipulation?.cancel();
+            this.activePaletteDrag?.cancel();
         });
     }
 
@@ -218,6 +222,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                     border-radius: 4px; background: var(--usl-role-tint); color: #17202a;
                     cursor: pointer; display: flex; align-items: center; min-height: 24px;
                     overflow: visible; z-index: 80;
+                    user-select: none; -webkit-user-select: none;
                 }
                 .o_sign_oca_field.usl_sign_selected { outline: 3px solid rgba(113,75,103,.32); outline-offset: 2px; z-index: 82; }
                 .o_sign_oca_field { cursor: move; touch-action: none; }
@@ -381,13 +386,40 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
         event.preventDefault();
         event.stopPropagation();
+        this.activeManipulation?.cancel();
         const before = editableItemValues(item);
-        const page = event.currentTarget.closest(".page");
+        const element = this.items[item.id];
+        const page = element?.closest(".page");
+        if (!page) {
+            return;
+        }
         const rectangle = page.getBoundingClientRect();
         const origin = {x: event.clientX, y: event.clientY};
+        const pointerId = event.pointerId;
+        const captureTarget = event.currentTarget;
+        const iframeWindow = this.iframe.el.contentWindow;
+        const iframeDocument = this.iframe.el.contentDocument;
+        let active = true;
+        let changed = false;
+
+        const iframePoint = (pointerEvent) => {
+            if (pointerEvent.target?.ownerDocument === iframeDocument) {
+                return {x: pointerEvent.clientX, y: pointerEvent.clientY};
+            }
+            const iframeRectangle = this.iframe.el.getBoundingClientRect();
+            return {
+                x: pointerEvent.clientX - iframeRectangle.left,
+                y: pointerEvent.clientY - iframeRectangle.top,
+            };
+        };
         const move = (pointerEvent) => {
-            const deltaX = ((pointerEvent.clientX - origin.x) * 100) / rectangle.width;
-            const deltaY = ((pointerEvent.clientY - origin.y) * 100) / rectangle.height;
+            if (!active || pointerEvent.pointerId !== pointerId) {
+                return;
+            }
+            pointerEvent.preventDefault();
+            const point = iframePoint(pointerEvent);
+            const deltaX = ((point.x - origin.x) * 100) / rectangle.width;
+            const deltaY = ((point.y - origin.y) * 100) / rectangle.height;
             if (mode === "move") {
                 item.position_x = clamp(before.position_x + deltaX, 0, 100 - before.width);
                 item.position_y = clamp(before.position_y + deltaY, 0, 100 - before.height);
@@ -399,19 +431,51 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 left: `${item.position_x}%`, top: `${item.position_y}%`,
                 width: `${item.width}%`, height: `${item.height}%`,
             });
+            changed = true;
         };
-        const up = () => {
-            const document = this.iframe.el.contentDocument;
-            document.removeEventListener("pointermove", move);
-            document.removeEventListener("pointerup", up);
-            document.removeEventListener("pointercancel", up);
+        const cleanup = () => {
+            captureTarget.removeEventListener("pointermove", move);
+            captureTarget.removeEventListener("pointerup", up);
+            captureTarget.removeEventListener("pointercancel", cancel);
+            captureTarget.removeEventListener("lostpointercapture", lostCapture);
+            iframeWindow.removeEventListener("pointermove", move);
+            iframeWindow.removeEventListener("pointerup", up);
+            iframeWindow.removeEventListener("pointercancel", cancel);
+            window.removeEventListener("pointermove", move, true);
+            window.removeEventListener("pointerup", up, true);
+            window.removeEventListener("pointercancel", cancel, true);
+            window.removeEventListener("blur", cancel);
+            if (captureTarget.hasPointerCapture?.(pointerId)) {
+                captureTarget.releasePointerCapture(pointerId);
+            }
+            if (this.activeManipulation?.pointerId === pointerId) {
+                this.activeManipulation = false;
+            }
+        };
+        const restore = () => {
+            Object.assign(item, before);
+            Object.assign(element.style, {
+                left: `${before.position_x}%`, top: `${before.position_y}%`,
+                width: `${before.width}%`, height: `${before.height}%`,
+            });
+        };
+        const finish = (cancelled = false) => {
+            if (!active) {
+                return;
+            }
+            active = false;
+            cleanup();
+            if (cancelled) {
+                restore();
+                return;
+            }
             const after = editableItemValues(item);
-            if (
+            if (!changed || (
                 before.position_x === after.position_x &&
                 before.position_y === after.position_y &&
                 before.width === after.width &&
                 before.height === after.height
-            ) {
+            )) {
                 return;
             }
             const values = mode === "move"
@@ -422,10 +486,39 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 : {width: before.width, height: before.height};
             this.updateField(item, values, inverse);
         };
-        const document = this.iframe.el.contentDocument;
-        document.addEventListener("pointermove", move);
-        document.addEventListener("pointerup", up, {once: true});
-        document.addEventListener("pointercancel", up, {once: true});
+        const up = (pointerEvent) => {
+            if (pointerEvent.pointerId === pointerId) {
+                finish(false);
+            }
+        };
+        const cancel = (pointerEvent) => {
+            if (pointerEvent.pointerId === undefined || pointerEvent.pointerId === pointerId) {
+                finish(true);
+            }
+        };
+        const lostCapture = () => finish(false);
+        captureTarget.addEventListener("pointermove", move);
+        captureTarget.addEventListener("pointerup", up);
+        captureTarget.addEventListener("pointercancel", cancel);
+        captureTarget.addEventListener("lostpointercapture", lostCapture);
+        iframeWindow.addEventListener("pointermove", move);
+        iframeWindow.addEventListener("pointerup", up);
+        iframeWindow.addEventListener("pointercancel", cancel);
+        window.addEventListener("pointermove", move, true);
+        window.addEventListener("pointerup", up, true);
+        window.addEventListener("pointercancel", cancel, true);
+        window.addEventListener("blur", cancel);
+        try {
+            captureTarget.setPointerCapture?.(pointerId);
+        } catch (error) {
+            // Browsers may reject capture when the pointer ended while the PDF
+            // iframe was reloading. Window-level listeners still complete the
+            // command safely in that case.
+            if (error.name !== "NotFoundError") {
+                throw error;
+            }
+        }
+        this.activeManipulation = {pointerId, cancel: () => finish(true)};
     }
 
     onFieldKeydown(event, item) {
@@ -470,17 +563,49 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         if (!this.isEditable || event.button !== 0) {
             return;
         }
+        event.preventDefault();
+        this.activePaletteDrag?.cancel();
         const start = {x: event.clientX, y: event.clientY};
         const button = event.currentTarget;
+        const pointerId = event.pointerId;
         let dragged = false;
-        button.setPointerCapture(event.pointerId);
+        let active = true;
+        try {
+            button.setPointerCapture?.(pointerId);
+        } catch (error) {
+            if (error.name !== "NotFoundError") {
+                throw error;
+            }
+        }
         const move = (pointerEvent) => {
+            if (!active || pointerEvent.pointerId !== pointerId) {
+                return;
+            }
             dragged ||= Math.hypot(pointerEvent.clientX - start.x, pointerEvent.clientY - start.y) > 6;
         };
-        const up = (pointerEvent) => {
+        const cleanup = () => {
             button.removeEventListener("pointermove", move);
             button.removeEventListener("pointerup", up);
-            if (!dragged) {
+            button.removeEventListener("pointercancel", cancel);
+            button.removeEventListener("lostpointercapture", lostCapture);
+            window.removeEventListener("pointermove", move, true);
+            window.removeEventListener("pointerup", up, true);
+            window.removeEventListener("pointercancel", cancel, true);
+            window.removeEventListener("blur", cancel);
+            if (button.hasPointerCapture?.(pointerId)) {
+                button.releasePointerCapture(pointerId);
+            }
+            if (this.activePaletteDrag?.pointerId === pointerId) {
+                this.activePaletteDrag = false;
+            }
+        };
+        const finish = (pointerEvent, cancelled = false) => {
+            if (!active) {
+                return;
+            }
+            active = false;
+            cleanup();
+            if (cancelled || !dragged) {
                 return;
             }
             pointerEvent.preventDefault();
@@ -510,8 +635,26 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 height: field.default_height,
             });
         };
+        const up = (pointerEvent) => {
+            if (pointerEvent.pointerId === pointerId) {
+                finish(pointerEvent);
+            }
+        };
+        const cancel = (pointerEvent) => {
+            if (pointerEvent.pointerId === undefined || pointerEvent.pointerId === pointerId) {
+                finish(pointerEvent, true);
+            }
+        };
+        const lostCapture = (pointerEvent) => finish(pointerEvent, !dragged);
         button.addEventListener("pointermove", move);
-        button.addEventListener("pointerup", up, {once: true});
+        button.addEventListener("pointerup", up);
+        button.addEventListener("pointercancel", cancel);
+        button.addEventListener("lostpointercapture", lostCapture);
+        window.addEventListener("pointermove", move, true);
+        window.addEventListener("pointerup", up, true);
+        window.addEventListener("pointercancel", cancel, true);
+        window.addEventListener("blur", cancel);
+        this.activePaletteDrag = {pointerId, cancel: () => finish(event, true)};
     }
 
     contextCreate() {

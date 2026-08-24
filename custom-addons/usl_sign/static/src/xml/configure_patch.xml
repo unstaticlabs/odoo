@@ -117,7 +117,7 @@
                                 <div class="fw-bold"><i t-attf-class="fa #{fieldIcon(selectedItem)} me-2"/><t t-out="selectedItem.name"/></div>
                                 <div class="small text-muted">Field settings</div>
                             </div>
-                            <button type="button" class="btn-close" aria-label="Close inspector" t-on-click="closeInspector"/>
+                            <button type="button" class="btn-close" aria-label="Close inspector" t-on-click.stop="() => this.closeInspector()"></button>
                         </div>
                         <div class="usl_sign_panel_section">
                             <label class="form-label" for="usl_sign_field_type">Field type</label>
@@ -157,7 +157,7 @@
                     <t t-elif="editor.contextPlacement">
                         <div class="usl_sign_panel_header">
                             <div><div class="fw-bold">Add field here</div><div class="small text-muted">Page <t t-out="editor.contextPlacement.page"/></div></div>
-                            <button type="button" class="btn-close" aria-label="Cancel placement" t-on-click="cancelContextPlacement"/>
+                            <button type="button" class="btn-close" aria-label="Cancel placement" t-on-click.stop="() => this.cancelContextPlacement()"></button>
                         </div>
                         <div class="usl_sign_panel_section">
                             <label class="form-label">Field type</label>

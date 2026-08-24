@@ -75,6 +75,7 @@ class SignDailyManifest(models.Model):
     payload_sha256 = fields.Char(required=True, readonly=True, index=True)
     event_count = fields.Integer(required=True, readonly=True)
     request_count = fields.Integer(required=True, readonly=True)
+    decision_count = fields.Integer(required=True, readonly=True, default=0)
     entry_ids = fields.One2many(
         "usl.sign.daily.manifest.entry", "manifest_id", readonly=True,
     )
@@ -213,7 +214,9 @@ class SignDailyManifest(models.Model):
             )
             entries.append(
                 {
+                    "record_type": "signature",
                     "request_id": sign_request.id,
+                    "approval_id": None,
                     "request_reference": sign_request.name,
                     "event_sequence": day_head.sequence,
                     "event_hash": day_head.event_hash,
@@ -230,24 +233,83 @@ class SignDailyManifest(models.Model):
                     "completed_at": fields.Datetime.to_string(sign_request.completed_at)
                     if completed_before_end
                     else None,
+                    "decision_manifest_sha256": None,
+                    "decision_receipt_sha256": None,
+                    "decision_outcome": None,
                 },
             )
-        return events, sorted(entries, key=lambda row: row["request_id"])
+        decision_events = self.env["usl.sign.approval.event"].sudo().search(
+            [
+                ("company_id", "=", company.id),
+                ("occurred_at", ">=", start),
+                ("occurred_at", "<", end),
+            ],
+            order="approval_id, sequence",
+        )
+        for approval in decision_events.mapped("approval_id"):
+            approval.event_ids.verify_chain()
+            day_events = decision_events.filtered(
+                lambda event: event.approval_id == approval,
+            )
+            day_head = day_events[-1:]
+            completion = approval.event_ids.filtered(
+                lambda event: event.event_type == "completed"
+                and event.occurred_at < end,
+            )[-1:]
+            completed_before_end = bool(
+                approval.completed_at and approval.completed_at < end,
+            )
+            entries.append(
+                {
+                    "record_type": "decision",
+                    "request_id": None,
+                    "approval_id": approval.id,
+                    "request_reference": approval.name,
+                    "event_sequence": day_head.sequence,
+                    "event_hash": day_head.event_hash,
+                    "chain_head_sequence": day_head.sequence,
+                    "chain_head_hash": day_head.event_hash,
+                    "final_sha256": None,
+                    "dossier_sha256": None,
+                    "completion_event_sequence": completion.sequence or None,
+                    "completion_event_hash": completion.event_hash or None,
+                    "completed_at": fields.Datetime.to_string(approval.completed_at)
+                    if completed_before_end
+                    else None,
+                    "decision_manifest_sha256": approval.signed_manifest_sha256
+                    if completed_before_end
+                    else None,
+                    "decision_receipt_sha256": approval.receipt_sha256
+                    if completed_before_end
+                    else None,
+                    "decision_outcome": approval.outcome
+                    if completed_before_end
+                    else None,
+                },
+            )
+        return len(events) + len(decision_events), sorted(
+            entries,
+            key=lambda row: (row["record_type"], row["request_reference"], row.get("request_id") or row.get("approval_id")),
+        )
 
     @api.model
     def _canonical_payload(self, company, manifest_date, previous):
-        events, entries = self._manifest_entries(company, manifest_date)
+        event_count, entries = self._manifest_entries(company, manifest_date)
+        requests = [entry for entry in entries if entry["record_type"] == "signature"]
+        decisions = [entry for entry in entries if entry["record_type"] == "decision"]
         payload = {
-            "format": "usl-sign-daily-evidence-manifest-v2",
+            "format": "usl-sign-daily-evidence-manifest-v3",
             "company_id": company.id,
             "manifest_date": fields.Date.to_string(manifest_date),
             "time_basis": "closed-utc-day",
             "previous_manifest_sha256": previous.signed_envelope_sha256 or None,
-            "event_count": len(events),
-            "request_count": len(entries),
-            "requests": entries,
+            "event_count": event_count,
+            "request_count": len(requests),
+            "decision_count": len(decisions),
+            "requests": requests,
+            "decisions": decisions,
         }
-        return self._canonical_json(payload), len(events), entries
+        return self._canonical_json(payload), event_count, entries
 
     @staticmethod
     def _signed_envelope(raw, signed):
@@ -304,7 +366,12 @@ class SignDailyManifest(models.Model):
             "payload_filename": f"sign-evidence-{day}-manifest-payload.json",
             "payload_sha256": hashlib.sha256(raw).hexdigest(),
             "event_count": event_count,
-            "request_count": len(entries),
+            "request_count": len(
+                [entry for entry in entries if entry["record_type"] == "signature"],
+            ),
+            "decision_count": len(
+                [entry for entry in entries if entry["record_type"] == "decision"],
+            ),
             "state": "failed",
             "anchoring_status": "action_required",
             "failure_code": "manifest_signing_not_attempted",
@@ -343,12 +410,7 @@ class SignDailyManifest(models.Model):
             [
                 {
                     "manifest_id": manifest.id,
-                    "request_id": entry["request_id"],
-                    **{
-                        key: value
-                        for key, value in entry.items()
-                        if key != "request_id"
-                    },
+                    **entry,
                 }
                 for entry in entries
             ],
@@ -415,13 +477,23 @@ class SignDailyManifest(models.Model):
                 else:
                     start_day += timedelta(days=1)
             else:
-                earliest = self.env["usl.sign.event"].sudo().search(
+                earliest_signature = self.env["usl.sign.event"].sudo().search(
                     [("company_id", "=", company.id)],
                     order="occurred_at, id",
                     limit=1,
                 )
+                earliest_decision = self.env["usl.sign.approval.event"].sudo().search(
+                    [("company_id", "=", company.id)],
+                    order="occurred_at, id",
+                    limit=1,
+                )
+                first_dates = [
+                    event.occurred_at.date()
+                    for event in (earliest_signature, earliest_decision)
+                    if event.occurred_at
+                ]
                 start_day = min(
-                    earliest.occurred_at.date() if earliest else closed_day,
+                    min(first_dates) if first_dates else closed_day,
                     closed_day,
                 )
             current = start_day
@@ -730,7 +802,8 @@ class SignDailyManifest(models.Model):
             summary=[
                 f"Company: {self.company_id.name}",
                 f"Closed UTC day: {self.manifest_date}",
-                f"Requests covered: {self.request_count}",
+                f"Signature requests covered: {self.request_count}",
+                f"Decision proofs covered: {self.decision_count}",
                 f"Events covered: {self.event_count}",
                 f"Signed manifest SHA-256: {self.signed_envelope_sha256}",
                 f"Bitcoin block: {self.bitcoin_block_height} ({self.bitcoin_block_hash})",
@@ -957,7 +1030,7 @@ class SignDailyManifest(models.Model):
 class SignDailyManifestEntry(models.Model):
     _name = "usl.sign.daily.manifest.entry"
     _description = "Immutable Daily Signature Manifest Entry"
-    _order = "manifest_id, request_id"
+    _order = "manifest_id, record_type, request_reference"
 
     manifest_id = fields.Many2one(
         "usl.sign.daily.manifest", required=True, index=True, ondelete="cascade",
@@ -965,8 +1038,16 @@ class SignDailyManifestEntry(models.Model):
     company_id = fields.Many2one(
         related="manifest_id.company_id", store=True, index=True,
     )
+    record_type = fields.Selection(
+        [("signature", "Signed document"), ("decision", "Decision proof")],
+        required=True,
+        readonly=True,
+    )
     request_id = fields.Many2one(
-        "sign.oca.request", required=True, index=True, ondelete="restrict",
+        "sign.oca.request", index=True, ondelete="restrict",
+    )
+    approval_id = fields.Many2one(
+        "usl.sign.approval", string="Decision", index=True, ondelete="restrict",
     )
     request_reference = fields.Char(required=True, readonly=True)
     event_sequence = fields.Integer(required=True, readonly=True)
@@ -978,11 +1059,42 @@ class SignDailyManifestEntry(models.Model):
     completion_event_sequence = fields.Integer(readonly=True)
     completion_event_hash = fields.Char(readonly=True)
     completed_at = fields.Datetime(readonly=True)
+    decision_manifest_sha256 = fields.Char(readonly=True)
+    decision_receipt_sha256 = fields.Char(readonly=True)
+    decision_outcome = fields.Selection(
+        [
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
+            ("cancelled", "Cancelled"),
+        ],
+        readonly=True,
+    )
 
     _manifest_request_unique = models.Constraint(
         "UNIQUE(manifest_id, request_id)",
         "A request can occur only once in a daily evidence manifest.",
     )
+    _manifest_decision_unique = models.Constraint(
+        "UNIQUE(manifest_id, approval_id)",
+        "A decision can occur only once in a daily evidence manifest.",
+    )
+
+    @api.constrains("record_type", "request_id", "approval_id")
+    def _check_record_binding(self):
+        for entry in self:
+            valid = (
+                entry.record_type == "signature"
+                and entry.request_id
+                and not entry.approval_id
+            ) or (
+                entry.record_type == "decision"
+                and entry.approval_id
+                and not entry.request_id
+            )
+            if not valid:
+                raise ValidationError(
+                    "A daily evidence entry must identify exactly one matching record.",
+                )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -1236,6 +1348,95 @@ class SignRequestTimestampProof(models.Model):
             "proof_dossier",
             manifest.proof_dossier_filename,
         )
+
+
+class SignDecisionTimestampProof(models.Model):
+    _inherit = "usl.sign.approval"
+
+    daily_manifest_entry_ids = fields.One2many(
+        "usl.sign.daily.manifest.entry", "approval_id", readonly=True,
+    )
+    daily_timestamp_manifest_id = fields.Many2one(
+        "usl.sign.daily.manifest",
+        compute="_compute_decision_daily_timestamp_proof",
+        compute_sudo=True,
+    )
+    daily_timestamp_status = fields.Selection(
+        [
+            ("scheduled", "Scheduled"),
+            ("pending", "Awaiting confirmation"),
+            ("confirmed", "Confirmed"),
+            ("action_required", "Action required"),
+        ],
+        compute="_compute_decision_daily_timestamp_proof",
+        compute_sudo=True,
+    )
+    daily_timestamp_message = fields.Char(
+        compute="_compute_decision_daily_timestamp_proof",
+        compute_sudo=True,
+    )
+
+    @api.depends(
+        "state",
+        "completed_at",
+        "company_id.sign_opentimestamps_enabled",
+        "daily_manifest_entry_ids.completion_event_hash",
+        "daily_manifest_entry_ids.manifest_id.anchoring_status",
+        "daily_manifest_entry_ids.manifest_id.bitcoin_block_time",
+    )
+    def _compute_decision_daily_timestamp_proof(self):
+        for decision in self:
+            entries = decision.daily_manifest_entry_ids.filtered(
+                "completion_event_hash",
+            ).sorted(
+                lambda entry: (entry.manifest_id.manifest_date, entry.id),
+                reverse=True,
+            )
+            manifest = entries[:1].manifest_id
+            decision.daily_timestamp_manifest_id = manifest
+            if manifest:
+                decision.daily_timestamp_status = manifest.anchoring_status
+                if manifest.anchoring_status == "confirmed":
+                    decision.daily_timestamp_message = _(
+                        "Confirmed — existed no later than %(time)s",
+                        time=fields.Datetime.to_string(manifest.bitcoin_block_time),
+                    )
+                elif manifest.anchoring_status == "pending":
+                    decision.daily_timestamp_message = _(
+                        "Awaiting Bitcoin confirmation",
+                    )
+                elif manifest.anchoring_status == "action_required":
+                    decision.daily_timestamp_message = _(
+                        "Timestamp proof requires review",
+                    )
+                else:
+                    decision.daily_timestamp_message = _(
+                        "Scheduled for daily proof",
+                    )
+            elif (
+                decision.state == "completed"
+                and decision.company_id.sign_opentimestamps_enabled
+            ):
+                decision.daily_timestamp_status = "scheduled"
+                decision.daily_timestamp_message = _("Scheduled for daily proof")
+            else:
+                decision.daily_timestamp_status = False
+                decision.daily_timestamp_message = False
+
+    def action_open_daily_timestamp_proof(self):
+        self.ensure_one()
+        if not self.env.user.has_group("usl_sign.group_sign_evidence_reviewer"):
+            raise AccessError("Evidence reviewer access is required.")
+        if not self.daily_timestamp_manifest_id:
+            raise UserError("This decision has not reached its daily proof yet.")
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "usl.sign.daily.manifest",
+            "res_id": self.daily_timestamp_manifest_id.id,
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "current",
+        }
 
 
 class SignDocumentLink(models.Model):

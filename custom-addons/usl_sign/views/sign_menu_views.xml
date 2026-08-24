@@ -35,9 +35,13 @@
 
     <record id="sign_service_status_action" model="ir.actions.act_window">
         <field name="name">Service Status</field>
-        <field name="res_model">res.config.settings</field>
-        <field name="view_mode">form</field>
-        <field name="context">{'module': 'usl_sign', 'bin_size': False}</field>
+        <field name="res_model">usl.sign.service.health</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="context">{'search_default_company': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Check signing capabilities</p>
+            <p>Use Refresh all to inspect the current company's signing, validation, archival, identity, and timestamp services.</p>
+        </field>
     </record>
     <record id="my_sign_identity_action" model="ir.actions.act_window">
         <field name="name">Signing Identities</field>
@@ -50,7 +54,10 @@
         </field>
     </record>
 
-    <menuitem id="sign_library_menu" name="Library" parent="sign_oca.sign_oca_root_menu" action="sign_library_action" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_menu" name="Library" parent="sign_oca.sign_oca_root_menu" action="sign_oca.sign_oca_template_act_window" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_templates_menu" name="Templates" parent="sign_library_menu" action="sign_oca.sign_oca_template_act_window" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_completed_menu" name="Completed Documents" parent="sign_library_menu" action="completed_documents_action" sequence="20" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_library_decisions_menu" name="Decisions" parent="sign_library_menu" action="completed_decisions_action" sequence="30" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="open_requests_menu" name="Open Requests" parent="sign_oca.sign_oca_root_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>
     <menuitem id="my_signatures_menu" name="My Signatures" parent="sign_oca.sign_oca_root_menu" action="my_signatures_action" sequence="30" groups="usl_sign.group_sign_user"/>
 

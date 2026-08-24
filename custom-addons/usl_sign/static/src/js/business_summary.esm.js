@@ -11,14 +11,12 @@ export class UslSignBusinessSummary extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.state = useState({loading: true, summary: false, error: false});
+        this.state = useState({summary: false});
         onWillStart(() => this.load(this.props));
         onWillUpdateProps((nextProps) => this.load(nextProps));
     }
 
     async load(props) {
-        this.state.loading = true;
-        this.state.error = false;
         try {
             this.state.summary = await this.orm.call(
                 "sign.oca.request",
@@ -27,9 +25,6 @@ export class UslSignBusinessSummary extends Component {
             );
         } catch {
             this.state.summary = false;
-            this.state.error = true;
-        } finally {
-            this.state.loading = false;
         }
     }
 
@@ -39,8 +34,8 @@ export class UslSignBusinessSummary extends Component {
         }
         this.action.doAction({
             type: "ir.actions.act_window",
-            res_model: "sign.oca.request",
-            res_id: this.state.summary.request_id,
+            res_model: this.state.summary.record_model,
+            res_id: this.state.summary.record_id,
             views: [[false, "form"]],
             target: "current",
         });
