@@ -3,6 +3,12 @@
 import json
 
 
+MIGRATION_TABLES = (
+    "usl_project_restore_issue",
+    "usl_project_restore_run",
+)
+
+
 def business_counts():
     return {
         "projects": env["project.project"]
@@ -50,6 +56,16 @@ if not latest_run or latest_run.status != "passed" or blocking_issues:
 before = business_counts()
 module.button_immediate_uninstall()
 env.cr.commit()
+
+# Odoo deliberately preserves model tables when uninstalling a module.  These
+# two tables contain only one-shot reconstruction evidence, which belongs in
+# the external migration artifacts after finalization.  Drop the exact known
+# tables explicitly so the delivered product database contains no migration
+# schema residue.  The issue table must go first because it references the run.
+for table_name in MIGRATION_TABLES:
+    env.cr.execute(f'DROP TABLE IF EXISTS "{table_name}"')  # noqa: S608
+env.cr.commit()
+
 after = business_counts()
 if after != before:
     raise RuntimeError(
