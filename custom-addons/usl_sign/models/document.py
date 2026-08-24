@@ -1,4 +1,3 @@
-import base64
 import hashlib
 from io import BytesIO
 
@@ -8,6 +7,7 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.pdf import PdfReader, PdfWriter
 
+from ..services import field_content
 from .constants import MUTABLE_REQUEST_STATES
 
 
@@ -84,7 +84,7 @@ class SignRequestDocument(models.Model):
             msg = "Documents are frozen once a request is sent."
             raise ValidationError(msg)
         for values in vals_list:
-            raw = base64.b64decode(values.get("data") or b"")
+            raw = field_content(values.get("data"))
             self._validate_pdf(raw)
             values["source_sha256"] = hashlib.sha256(raw).hexdigest()
         return super().create(vals_list)
@@ -99,7 +99,7 @@ class SignRequestDocument(models.Model):
             msg = "Documents are frozen once a request is sent."
             raise ValidationError(msg)
         if "data" in values:
-            raw = base64.b64decode(values["data"] or b"")
+            raw = field_content(values["data"])
             self._validate_pdf(raw)
             values["source_sha256"] = hashlib.sha256(raw).hexdigest()
         return super().write(values)
@@ -143,7 +143,7 @@ class SignRequestDocument(models.Model):
         page_number = 1
         page_map = []
         for document in documents:
-            raw = base64.b64decode(document.data)
+            raw = field_content(document.data)
             reader = PdfReader(BytesIO(raw))
             start = page_number
             for page in reader.pages:
@@ -193,7 +193,7 @@ class SignTemplateDocument(models.Model):
             msg = "Published or used templates are immutable; create a new version."
             raise ValidationError(msg)
         for values in vals_list:
-            raw = base64.b64decode(values.get("data") or b"")
+            raw = field_content(values.get("data"))
             SignRequestDocument._validate_pdf(raw)
             values["source_sha256"] = hashlib.sha256(raw).hexdigest()
         return super().create(vals_list)
@@ -206,7 +206,7 @@ class SignTemplateDocument(models.Model):
             msg = "Published or used templates are immutable; create a new version."
             raise ValidationError(msg)
         if "data" in values:
-            raw = base64.b64decode(values["data"] or b"")
+            raw = field_content(values["data"])
             SignRequestDocument._validate_pdf(raw)
             values["source_sha256"] = hashlib.sha256(raw).hexdigest()
         return super().write(values)

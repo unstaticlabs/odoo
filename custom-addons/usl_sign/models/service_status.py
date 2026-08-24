@@ -17,6 +17,34 @@ CAPABILITIES = (
     ("rfc3161", "Independent RFC 3161 timestamp", 50),
 )
 
+CAPABILITY_GUIDANCE = {
+    "standard": (
+        "Send routine documents and produce a sealed, independently validated result.",
+        "Checks DSS PDF services, the platform seal, validation, and Paperless archival.",
+        False,
+    ),
+    "strong": (
+        "Use a fresh Pocket ID passkey to authorize a personal document signature.",
+        "Checks Pocket ID, the short-lived certificate authority, DSS, and Paperless.",
+        False,
+    ),
+    "qualified": (
+        "Import and verify a qualified signature completed with an external provider.",
+        "Checks DSS trusted-list validation and Paperless archival.",
+        False,
+    ),
+    "daily_proof": (
+        "Anchor each closed day's completed-document hashes to Bitcoin.",
+        "Checks manifest signing, OpenTimestamps scheduling, recent jobs, and proof archival.",
+        False,
+    ),
+    "rfc3161": (
+        "Add an independent timestamp directly to a PDF signature when configured.",
+        "Optional. Checks whether an external RFC 3161 timestamp authority is enabled.",
+        True,
+    ),
+}
+
 
 class SignServiceHealth(models.Model):
     _name = "usl.sign.service.health"
@@ -52,11 +80,25 @@ class SignServiceHealth(models.Model):
     checked_by_id = fields.Many2one("res.users", readonly=True, ondelete="set null")
     next_action = fields.Char(readonly=True)
     diagnostic_code = fields.Char(readonly=True)
+    purpose = fields.Char(compute="_compute_guidance")
+    checks = fields.Char(compute="_compute_guidance")
+    is_optional = fields.Boolean(compute="_compute_guidance")
 
     _company_code_unique = models.Constraint(
         "UNIQUE(company_id, code)",
         "A company can have only one status row per signing capability.",
     )
+
+    @api.depends("code")
+    def _compute_guidance(self):
+        for record in self:
+            purpose, checks, optional = CAPABILITY_GUIDANCE.get(
+                record.code,
+                ("Signing capability.", "Checks its configured dependencies.", False),
+            )
+            record.purpose = purpose
+            record.checks = checks
+            record.is_optional = optional
 
     @api.model
     def _check_admin(self):

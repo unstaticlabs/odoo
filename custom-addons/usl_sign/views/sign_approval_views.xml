@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!--
+        DORMANT: this file is intentionally not loaded by the module manifest.
+        Internal Decision requests are outside the current document-signing
+        product. Activation requires a separate product and security review.
+    -->
     <record id="sign_approval_search" model="ir.ui.view">
         <field name="name">usl.sign.approval.search</field>
         <field name="model">usl.sign.approval</field>

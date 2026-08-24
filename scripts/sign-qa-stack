@@ -32,4 +32,12 @@ export USL_SIGN_POCKETID_POCKET_HOSTNAME="${USL_SIGN_POCKETID_POCKET_HOSTNAME:-p
 # while unchanged worktrees reuse the cached image safely.
 export ODOO_IMAGE="${ODOO_IMAGE:-usl-sign-qa-odoo:${RUNTIME_FINGERPRINT}}"
 
+if [[ "${1:-}" == "login-link" ]]; then
+  username="${2:?Usage: scripts/sign-qa-stack login-link USER [TTL]}"
+  ttl="${3:-1h}"
+  exec python3 "$ROOT/scripts/pocket_id_dev.py" \
+    --env-file "$USL_SIGN_POCKETID_ENV_FILE" \
+    one-time-link "$username" --ttl "$ttl"
+fi
+
 exec "$ROOT/scripts/sign-pocketid-stack" "$@"

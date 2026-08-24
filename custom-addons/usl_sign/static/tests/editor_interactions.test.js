@@ -62,6 +62,10 @@ function editorFixture() {
         },
         isEditable: true,
         items: {},
+        activePaletteDrag: null,
+        activeManipulation: null,
+        cancelPaletteDrag: UslSignTemplateEditor.prototype.cancelPaletteDrag,
+        cancelManipulation: UslSignTemplateEditor.prototype.cancelManipulation,
         role(roleId) {
             return this.info.roles.find((role) => role.id === Number(roleId));
         },
@@ -106,6 +110,33 @@ test("the whole PDF field starts movement and remains selectable", () => {
     expect(fixture.editor.selectedItemId).toBe(item.id);
     expect(element.classList.contains("usl_sign_selected")).toBe(true);
     expect(page.querySelectorAll(".o_sign_oca_field").length).toBe(1);
+    cleanup();
+});
+
+test("field movement safely clears missing and stale manipulation state", () => {
+    const {fixture, item, page, cleanup} = editorFixture();
+    const element = document.createElement("div");
+    page.append(element);
+    fixture.items[item.id] = element;
+
+    for (const staleState of [null, false, {}]) {
+        fixture.activeManipulation = staleState;
+        expect(() => UslSignTemplateEditor.prototype.startManipulation.call(
+            fixture,
+            {
+                button: 0,
+                pointerId: 27,
+                clientX: 20,
+                clientY: 10,
+                currentTarget: element,
+                preventDefault() {},
+                stopPropagation() {},
+            },
+            item,
+            "move"
+        )).not.toThrow();
+        fixture.cancelManipulation();
+    }
     cleanup();
 });
 
@@ -177,6 +208,32 @@ test("palette drag crosses the same-origin iframe through the controlled pointer
     expect(created[0].page).toBe(1);
     expect(created[0].position_x).toBeGreaterThan(0);
     expect(created[0].position_y).toBeGreaterThan(0);
+    button.remove();
+    cleanup();
+});
+
+test("starting a palette drag safely clears missing and stale drag state", () => {
+    const {fixture, cleanup} = editorFixture();
+    const button = document.createElement("button");
+    document.body.append(button);
+
+    for (const staleState of [null, false, {}]) {
+        fixture.activePaletteDrag = staleState;
+        expect(() => UslSignTemplateEditor.prototype.onPalettePointerDown.call(
+            fixture,
+            {
+                button: 0,
+                clientX: 5,
+                clientY: 5,
+                pointerId: 17,
+                currentTarget: button,
+                preventDefault() {},
+            },
+            TEXT_FIELD
+        )).not.toThrow();
+        fixture.cancelPaletteDrag();
+    }
+
     button.remove();
     cleanup();
 });
