@@ -7,12 +7,39 @@ cd "$ROOT"
 ENVIRONMENT="${1:-qa}"
 case "$ENVIRONMENT" in
   qa)
-    ENV_FILE="$ROOT/deploy/documents/qa.env"
-    SSO_ENV_FILE="$ROOT/.documents-qa-sso.env"
-    python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
+    qa_override="${USL_DOCUMENTS_QA_ISOLATED_OVERRIDE:-0}"
+    case "$qa_override" in
+      0|1) ;;
+      *)
+        printf 'USL_DOCUMENTS_QA_ISOLATED_OVERRIDE must be 0 or 1.\n' >&2
+        exit 2
+        ;;
+    esac
+    if [[ "$qa_override" = 0 ]] \
+      && [[ -n "${USL_DOCUMENTS_QA_ENV:-}" \
+        || -n "${USL_DOCUMENTS_QA_SSO_ENV:-}" \
+        || -n "${USL_DOCUMENTS_QA_PROJECT:-}" \
+        || -n "${USL_DOCUMENTS_QA_DB:-}" ]]; then
+      printf 'QA scope overrides require USL_DOCUMENTS_QA_ISOLATED_OVERRIDE=1.\n' >&2
+      exit 2
+    fi
+    ENV_FILE="${USL_DOCUMENTS_QA_ENV:-$ROOT/deploy/documents/qa.env}"
+    SSO_ENV_FILE="${USL_DOCUMENTS_QA_SSO_ENV:-$ROOT/.documents-qa-sso.env}"
+    [[ -f "$ENV_FILE" ]] || {
+      printf 'Documents QA environment is missing: %s\n' "$ENV_FILE" >&2
+      exit 2
+    }
+    if [[ -n "${USL_DOCUMENTS_QA_SSO_ENV:-}" ]]; then
+      [[ -f "$SSO_ENV_FILE" ]] || {
+        printf 'Documents QA SSO environment is missing: %s\n' "$SSO_ENV_FILE" >&2
+        exit 2
+      }
+    else
+      python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
+    fi
     OVERRIDE="$ROOT/compose.documents.qa.yaml"
-    SOURCE_PROJECT="codex-paperless-docs"
-    SOURCE_DATABASE="odoo_usl_documents_test"
+    SOURCE_PROJECT="${USL_DOCUMENTS_QA_PROJECT:-codex-paperless-docs}"
+    SOURCE_DATABASE="${USL_DOCUMENTS_QA_DB:-odoo_usl_documents_test}"
     ;;
   preprod)
     ENV_FILE="${USL_DOCUMENTS_PREPROD_ENV:-}"
@@ -142,6 +169,7 @@ RESTORE_PAPERLESS_TRASH_VOLUME="${RESTORE_PROJECT}_paperless-trash"
 restore_source() {
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
   ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
+  ODOO_DB_NAME="$SOURCE_DATABASE" \
   ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
   PAPERLESS_PUBLIC_URL="$SOURCE_PAPERLESS_PUBLIC_URL" \
@@ -154,6 +182,7 @@ restore_source() {
   "${SOURCE[@]}" run --rm --no-deps paperless-access-init
   ODOO_HTTP_PORT="$SOURCE_ODOO_HTTP_PORT" \
   ODOO_GEVENT_PORT="$SOURCE_ODOO_GEVENT_PORT" \
+  ODOO_DB_NAME="$SOURCE_DATABASE" \
   ODOO_DB_FILTER="^${SOURCE_DATABASE}$" \
   PAPERLESS_HTTP_PORT="$SOURCE_PAPERLESS_HTTP_PORT" \
   PAPERLESS_PUBLIC_URL="$SOURCE_PAPERLESS_PUBLIC_URL" \
@@ -252,6 +281,7 @@ EXPECTED_PERMISSION_SYNC_FAILURES="$(
 export ODOO_HTTP_PORT="${USL_DOCUMENTS_RESTORE_ODOO_HTTP_PORT:-18180}"
 export ODOO_GEVENT_PORT="${USL_DOCUMENTS_RESTORE_ODOO_GEVENT_PORT:-18172}"
 export PAPERLESS_HTTP_PORT="${USL_DOCUMENTS_RESTORE_PAPERLESS_HTTP_PORT:-8020}"
+export ODOO_DB_NAME="$RESTORED_DATABASE"
 export ODOO_DB_FILTER="^${RESTORED_DATABASE}$"
 export ODOO_INIT_DB="$RESTORED_DATABASE"
 export PAPERLESS_PUBLIC_URL="http://127.0.0.1:${PAPERLESS_HTTP_PORT}"

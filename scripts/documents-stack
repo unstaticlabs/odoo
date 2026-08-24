@@ -20,12 +20,39 @@ shift $(( $# >= 2 ? 2 : $# ))
 
 case "$ENVIRONMENT" in
   qa)
-    ENV_FILE="$ROOT/deploy/documents/qa.env"
-    SSO_ENV_FILE="$ROOT/.documents-qa-sso.env"
-    python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
+    qa_override="${USL_DOCUMENTS_QA_ISOLATED_OVERRIDE:-0}"
+    case "$qa_override" in
+      0|1) ;;
+      *)
+        printf 'USL_DOCUMENTS_QA_ISOLATED_OVERRIDE must be 0 or 1.\n' >&2
+        exit 2
+        ;;
+    esac
+    if [[ "$qa_override" = 0 ]] \
+      && [[ -n "${USL_DOCUMENTS_QA_ENV:-}" \
+        || -n "${USL_DOCUMENTS_QA_SSO_ENV:-}" \
+        || -n "${USL_DOCUMENTS_QA_PROJECT:-}" \
+        || -n "${USL_DOCUMENTS_QA_DB:-}" ]]; then
+      printf 'QA scope overrides require USL_DOCUMENTS_QA_ISOLATED_OVERRIDE=1.\n' >&2
+      exit 2
+    fi
+    ENV_FILE="${USL_DOCUMENTS_QA_ENV:-$ROOT/deploy/documents/qa.env}"
+    SSO_ENV_FILE="${USL_DOCUMENTS_QA_SSO_ENV:-$ROOT/.documents-qa-sso.env}"
+    [[ -f "$ENV_FILE" ]] || {
+      printf 'Documents QA environment is missing: %s\n' "$ENV_FILE" >&2
+      exit 2
+    }
+    if [[ -n "${USL_DOCUMENTS_QA_SSO_ENV:-}" ]]; then
+      [[ -f "$SSO_ENV_FILE" ]] || {
+        printf 'Documents QA SSO environment is missing: %s\n' "$SSO_ENV_FILE" >&2
+        exit 2
+      }
+    else
+      python3 "$ROOT/scripts/documents_sso_env.py" "$SSO_ENV_FILE" >/dev/null
+    fi
     OVERRIDE="$ROOT/compose.documents.qa.yaml"
-    PROJECT="codex-paperless-docs"
-    DATABASE="odoo_usl_documents_test"
+    PROJECT="${USL_DOCUMENTS_QA_PROJECT:-codex-paperless-docs}"
+    DATABASE="${USL_DOCUMENTS_QA_DB:-odoo_usl_documents_test}"
     ;;
   preprod)
     ENV_FILE="${USL_DOCUMENTS_PREPROD_ENV:-}"
@@ -156,18 +183,30 @@ validate_config() {
     qa_paperless_port="$(
       sed -n 's/^PAPERLESS_HTTP_PORT=//p' "$ENV_FILE" | tail -n 1
     )"
-    [[ "$qa_odoo_port" = "18080" \
-      && "$qa_gevent_port" = "18072" \
-      && "$qa_paperless_port" = "18010" ]] || {
-      printf '%s\n' \
-        'Documents QA must use its isolated ports: Odoo 18080/18072 and Paperless 18010.' >&2
-      return 1
-    }
-    grep -Fqx 'PAPERLESS_PUBLIC_BASE_URL=http://127.0.0.1:18010' \
-      "$SSO_ENV_FILE" || {
-      printf 'Documents QA Paperless SSO callback must use isolated port 18010.\n' >&2
-      return 1
-    }
+    if [[ "${USL_DOCUMENTS_QA_ISOLATED_OVERRIDE:-0}" = 1 ]]; then
+      [[ "$qa_odoo_port" =~ ^[0-9]+$ \
+        && "$qa_gevent_port" =~ ^[0-9]+$ \
+        && "$qa_paperless_port" =~ ^[0-9]+$ \
+        && "$qa_odoo_port" = "${ODOO_HTTP_PORT:-$qa_odoo_port}" \
+        && "$qa_gevent_port" = "${ODOO_GEVENT_PORT:-$qa_gevent_port}" \
+        && "$qa_paperless_port" = "${PAPERLESS_HTTP_PORT:-$qa_paperless_port}" ]] || {
+        printf 'Overridden Documents QA ports must be explicit, numeric, and scope-matched.\n' >&2
+        return 1
+      }
+    else
+      [[ "$qa_odoo_port" = "18080" \
+        && "$qa_gevent_port" = "18072" \
+        && "$qa_paperless_port" = "18010" ]] || {
+        printf '%s\n' \
+          'Documents QA must use its isolated ports: Odoo 18080/18072 and Paperless 18010.' >&2
+        return 1
+      }
+      grep -Fqx 'PAPERLESS_PUBLIC_BASE_URL=http://127.0.0.1:18010' \
+        "$SSO_ENV_FILE" || {
+        printf 'Documents QA Paperless SSO callback must use isolated port 18010.\n' >&2
+        return 1
+      }
+    fi
   fi
   if [[ "$ENVIRONMENT" = "preprod" ]]; then
     if [[ "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \

@@ -468,6 +468,29 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         )
         self.assertNotIn("|| true", restore_source)
         self.assertIn("if ! restore_source; then", recovery)
+        self.assertIn('ODOO_DB_NAME="$SOURCE_DATABASE"', restore_source)
+        self.assertIn('export ODOO_DB_NAME="$RESTORED_DATABASE"', recovery)
+
+    def test_documents_qa_scope_overrides_are_explicit_and_shared(self):
+        stack = (ROOT / "scripts" / "documents-stack").read_text(
+            encoding="utf-8",
+        )
+        recovery = (ROOT / "scripts" / "documents-recovery-test").read_text(
+            encoding="utf-8",
+        )
+
+        for script in (stack, recovery):
+            with self.subTest(script=script[:40]):
+                self.assertIn("USL_DOCUMENTS_QA_ISOLATED_OVERRIDE", script)
+                self.assertIn("USL_DOCUMENTS_QA_ENV", script)
+                self.assertIn("USL_DOCUMENTS_QA_SSO_ENV", script)
+                self.assertIn("USL_DOCUMENTS_QA_PROJECT", script)
+                self.assertIn("USL_DOCUMENTS_QA_DB", script)
+                self.assertIn(
+                    "QA scope overrides require "
+                    "USL_DOCUMENTS_QA_ISOLATED_OVERRIDE=1.",
+                    script,
+                )
 
 
 if __name__ == "__main__":
