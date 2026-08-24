@@ -1887,6 +1887,15 @@ class RebuildAccountImportRun(models.Model):
         company and range keeps the import compatible with targets where the
         localization already installed the French hierarchy.
         """
+        if not self._source_table_exists(conn, "account_group"):
+            target_companies = self.env["res.company"].browse(
+                [company.id for company in companies.values()],
+            )
+            self.env[
+                "account.group"
+            ]._ensure_french_compatibility_groups(target_companies)
+            return {}
+
         rows = self._fetchall(
             conn,
             """
@@ -2949,9 +2958,16 @@ class RebuildAccountImportRun(models.Model):
         state. Target-only operational defaults are reported separately and do
         not weaken the source mapping checks.
         """
+        account_group_count_sql = (
+            """(SELECT COUNT(*)
+                      FROM account_group model
+                     WHERE model.company_id = company.id)"""
+            if self._source_table_exists(conn, "account_group")
+            else "0::bigint"
+        )
         source_rows = self._fetchall(
             conn,
-            """
+            f"""
             SELECT company.id AS company_id,
                    currency.name AS currency_name,
                    fiscal_country.code AS fiscal_country_code,
@@ -2969,9 +2985,7 @@ class RebuildAccountImportRun(models.Model):
                       FROM account_payment_method_line_res_company_rel relation
                      WHERE relation.res_company_id = company.id)
                        AS expense_allowed_payment_method_line_count,
-                   (SELECT COUNT(*)
-                      FROM account_group model
-                     WHERE model.company_id = company.id) AS account_group_count,
+                   {account_group_count_sql} AS account_group_count,
                    (SELECT COUNT(*)
                       FROM account_account_res_company_rel relation
                      WHERE relation.res_company_id = company.id) AS account_count,

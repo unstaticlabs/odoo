@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.3.1.7.1",
+    "version": "saas~19.3.1.7.2",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -39,4 +39,5 @@
     },
     "application": False,
     "installable": True,
+    "post_init_hook": "post_init_hook",
 }

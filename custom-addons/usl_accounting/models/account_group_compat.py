@@ -6,10 +6,15 @@ existing USL report definitions and reconstructed history.  Keep that model at
 the distribution boundary until OCA adopts the native account hierarchy.
 """
 
+import csv
+
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from odoo.fields import Domain
-from odoo.tools import SQL
+from odoo.tools import SQL, file_open
+
+
+FRENCH_GROUPS_CSV = "usl_accounting/data/account_group_fr_compat.csv"
 
 
 class AccountGroup(models.Model):
@@ -51,6 +56,60 @@ class AccountGroup(models.Model):
         "char_length(COALESCE(code_prefix_end, '')))",
         "The length of the starting and the ending code prefix must be the same",
     )
+
+    @api.model
+    def _ensure_french_compatibility_groups(self, companies=None):
+        """Install the last official prefix taxonomy for French companies.
+
+        saas~19.3 removed ``account.group`` and does not populate the native
+        parent-account hierarchy for the French chart.  Pinned OCA reports
+        still require the former prefix taxonomy.  Keep that compatibility
+        data deterministic and company-scoped without presenting it as
+        migrated source truth.
+        """
+        companies = companies or self.env["res.company"].sudo().search([])
+        companies = companies.sudo().mapped("root_id").filtered(
+            lambda company: (
+                company.account_fiscal_country_id or company.country_id
+            ).code == "FR"
+        )
+        if not companies:
+            return self.browse()
+
+        with file_open(FRENCH_GROUPS_CSV, "r") as source:
+            definitions = list(csv.DictReader(source))
+
+        Group = self.sudo().with_context(delay_account_group_sync=True)
+        groups = self.browse()
+        for company in companies:
+            existing = {
+                (group.code_prefix_start, group.code_prefix_end): group
+                for group in Group.search([("company_id", "=", company.id)])
+            }
+            for definition in definitions:
+                prefix = definition["code_prefix_start"]
+                key = (prefix, prefix)
+                group = existing.get(key)
+                if not group:
+                    group = Group.create({
+                        "name": definition["name"],
+                        "code_prefix_start": prefix,
+                        "code_prefix_end": prefix,
+                        "company_id": company.id,
+                    })
+                    french_name = definition.get("name@fr")
+                    if french_name:
+                        group.update_field_translations(
+                            "name",
+                            {"fr_FR": french_name},
+                        )
+                    existing[key] = group
+                groups |= group
+
+        groups.with_context(
+            delay_account_group_sync=False,
+        )._adapt_parent_account_group(companies)
+        return groups
 
     @api.depends("code_prefix_start")
     def _compute_code_prefix_end(self):
@@ -230,3 +289,19 @@ class AccountAccount(models.Model):
         )
         for account in accounts_with_code:
             account.group_id = group_by_code.get(account.code)
+
+
+class ResCompany(models.Model):
+    _inherit = "res.company"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        companies = super().create(vals_list)
+        self.env["account.group"]._ensure_french_compatibility_groups(companies)
+        return companies
+
+    def write(self, vals):
+        result = super().write(vals)
+        if {"country_id", "account_fiscal_country_id"} & vals.keys():
+            self.env["account.group"]._ensure_french_compatibility_groups(self)
+        return result

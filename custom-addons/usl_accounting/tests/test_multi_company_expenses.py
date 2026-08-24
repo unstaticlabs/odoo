@@ -109,6 +109,34 @@ class TestMultiCompanyExpenses(TransactionCase):
 
 @tagged("post_install", "-at_install", "usl_accounting")
 class TestMultiCompanyOperationalSetup(TransactionCase):
+    def test_french_account_groups_are_company_scoped_and_idempotent(self):
+        company = self.env["res.company"].create({
+            "name": "French hierarchy company",
+            "currency_id": self.env.company.currency_id.id,
+            "account_fiscal_country_id": self.env.ref("base.fr").id,
+        })
+        Group = self.env["account.group"].sudo()
+        groups = Group.search([("company_id", "=", company.id)])
+
+        self.assertEqual(len(groups), 171)
+        capital = groups.filtered(
+            lambda group: group.code_prefix_start == "101"
+        )
+        self.assertEqual(capital.parent_id.code_prefix_start, "10")
+        self.assertEqual(
+            capital._fields["name"]._get_stored_translations(capital)["fr_FR"],
+            "Capital",
+        )
+
+        capital.name = "Reviewed capital label"
+        Group._ensure_french_compatibility_groups(company)
+
+        self.assertEqual(
+            Group.search_count([("company_id", "=", company.id)]),
+            171,
+        )
+        self.assertEqual(capital.name, "Reviewed capital label")
+
     def test_incomplete_accounting_company_gets_idempotent_native_journals(self):
         company = self.env["res.company"].create({
             "name": "Imported bank-only company",
@@ -189,4 +217,7 @@ class TestMultiCompanyOperationalSetup(TransactionCase):
         self.assertFalse(self.env["account.account"].with_company(company).search([
             ("company_ids", "in", company.id),
             ("code", "in", ["401000", "411000"]),
+        ]))
+        self.assertFalse(self.env["account.group"].search([
+            ("company_id", "=", company.id),
         ]))

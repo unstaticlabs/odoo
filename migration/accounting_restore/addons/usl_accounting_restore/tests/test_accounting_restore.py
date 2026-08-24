@@ -5668,6 +5668,32 @@ class TestRebuildAccountMigration(TransactionCase):
             "Capital et réserves",
         )
 
+    def test_account_group_import_uses_distribution_taxonomy_on_saas_19_3(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "19.3 account hierarchy",
+            "source_snapshot_id": "unit-account-groups-19-3",
+        })
+        source_company_id = 990003
+        with patch.object(
+            type(import_run),
+            "_source_table_exists",
+            return_value=False,
+        ):
+            result = import_run._account_group_map(
+                object(),
+                {"source_company_ids": [source_company_id]},
+                {source_company_id: self.company},
+            )
+
+        self.assertEqual(result, {})
+        if (
+            self.company.account_fiscal_country_id or self.company.country_id
+        ).code == "FR":
+            self.assertTrue(self.env["account.group"].search([
+                ("company_id", "=", self.company.root_id.id),
+                ("code_prefix_start", "=", "101"),
+            ], limit=1))
+
     def test_journal_replay_preserves_payment_method_lines_when_currency_is_unchanged(self):
         usd = self.env.ref("base.USD")
         journal = self.env["account.journal"].create({
