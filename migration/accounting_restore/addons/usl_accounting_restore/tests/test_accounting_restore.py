@@ -104,6 +104,225 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         return message.as_bytes()
 
+    def test_expense_batch_transition_is_deterministic_and_preserves_history(self):
+        mission_account = self._account(
+            "625600",
+            "Missions",
+            "expense",
+        )
+        product_values = {
+            "can_be_expensed": True,
+            "property_account_expense_id": mission_account.id,
+        }
+        transport = self.env["product.product"].create({
+            **product_values,
+            "name": "Transport & Accommodation",
+            "default_code": "TRANS",
+        })
+        meals = self.env["product.product"].create({
+            **product_values,
+            "name": "Meals",
+            "default_code": "FOOD",
+        })
+        foreign_meals = self.env["product.product"].create({
+            **product_values,
+            "name": "Meals & Invitations (Abroad)",
+            "default_code": "FOOD",
+        })
+        gift = self.env["product.product"].create({
+            **product_values,
+            "name": "Gifts – Non-deductible VAT",
+            "default_code": "GIFT_NOVAT",
+        })
+        trip_products = self.env["product.product"]
+        for code, name in (
+            ("AUS26", "Australia 2026"),
+            ("CA26", "Canada 2026"),
+            ("LPASUM26", "LPA Pride May 2026"),
+            ("BCN2602", "BCN February 2026"),
+        ):
+            trip_products |= self.env["product.product"].create({
+                **product_values,
+                "name": name,
+                "default_code": code,
+            })
+        canada = trip_products.filtered(lambda product: product.default_code == "CA26")
+        project_plan = self.env["account.analytic.plan"].search([
+            ("name", "=", "Projet"),
+        ], limit=1) or self.env["account.analytic.plan"].create({"name": "Projet"})
+        epic_plan = self.env["account.analytic.plan"].search([
+            ("name", "=", "Epic"),
+        ], limit=1) or self.env["account.analytic.plan"].create({"name": "Epic"})
+        project = self.env["account.analytic.account"].search([
+            ("name", "=", "SBFH prod"),
+            ("plan_id", "=", project_plan.id),
+        ], limit=1) or self.env["account.analytic.account"].create({
+            "name": "SBFH prod",
+            "plan_id": project_plan.id,
+        })
+        epic = self.env["account.analytic.account"].search([
+            ("name", "=", "Canada 2026"),
+            ("plan_id", "=", epic_plan.id),
+        ], limit=1) or self.env["account.analytic.account"].create({
+            "name": "Canada 2026",
+            "plan_id": epic_plan.id,
+        })
+        employee = self.env["hr.employee"].create({
+            "name": "Canada migration employee",
+            "company_id": self.company.id,
+        })
+        france = self.env.ref("base.fr")
+        united_states = self.env.ref("base.us")
+        self.company.account_fiscal_country_id = france
+
+        def purchase_tax(name, country):
+            tax_group = self.env["account.tax.group"].create({
+                "name": f"{name} group",
+                "company_id": self.company.id,
+                "country_id": country.id,
+            })
+            return self.env["account.tax"].create({
+                "name": name,
+                "type_tax_use": "purchase",
+                "amount": 10,
+                "company_id": self.company.id,
+                "country_id": country.id,
+                "tax_group_id": tax_group.id,
+            })
+
+        compatible_tax = purchase_tax("Canada transition FR tax", france)
+        incompatible_tax = purchase_tax(
+            "Canada transition US tax",
+            united_states,
+        )
+        transport.supplier_taxes_id = [
+            Command.set((compatible_tax | incompatible_tax).ids),
+        ]
+
+        def expense(name, state="draft"):
+            record = self.env["hr.expense"].create({
+                "name": name,
+                "date": fields.Date.from_string("2026-07-10"),
+                "employee_id": employee.id,
+                "company_id": self.company.id,
+                "product_id": canada.id,
+                "payment_mode": "own_account",
+                "total_amount_currency": 50,
+            })
+            if state == "refused":
+                record.sudo().approval_state = "refused"
+            return record
+
+        uber = expense("[CA26] Uber Toronto")
+        meal = expense("Repas en mission")
+        present = expense("Cadeau collaborateur")
+        ambiguous = expense("Dépense à revoir")
+        historical = expense("Canada historical refusal", state="refused")
+        historical_signature = (
+            historical.product_id,
+            historical.account_id,
+            historical.analytic_distribution,
+            historical.state,
+        )
+        run = self.env["rebuild.account.import.run"].create({
+            "name": "Expense Batch transition test",
+        })
+
+        result = run.run_expense_batch_transition()
+        self.assertEqual(result["candidate_draft_count"], 4)
+        self.assertEqual(result["reclassified_expense_count"], 3)
+        self.assertEqual(result["created_batch_count"], 1)
+        self.assertEqual(result["batched_expense_count"], 4)
+        self.assertEqual(result["newly_batched_expense_count"], 4)
+        self.assertEqual(result["normalized_inherited_count"], 0)
+        self.assertEqual(result["normalized_incompatible_tax_count"], 4)
+        self.assertEqual(result["exception_expense_count"], 0)
+        self.assertEqual(result["cleaned_context_message_count"], 0)
+        self.assertEqual(result["migration_summary_message_count"], 1)
+        self.assertEqual(result["ambiguous_count"], 1)
+        self.assertTrue(result["historical_unchanged"])
+        self.assertEqual(uber.product_id, transport)
+        self.assertEqual(uber.tax_ids, compatible_tax)
+        self.assertFalse(
+            uber.expense_batch_id.expense_ids.filtered(
+                lambda expense: incompatible_tax in expense.tax_ids,
+            ),
+        )
+        self.assertEqual(meal.product_id, foreign_meals)
+        self.assertNotEqual(meal.product_id, meals)
+        self.assertEqual(present.product_id, gift)
+        self.assertEqual(ambiguous.product_id, canada)
+        batch = uber.expense_batch_id
+        self.assertEqual(batch, meal.expense_batch_id)
+        self.assertEqual(batch, present.expense_batch_id)
+        self.assertEqual(batch, ambiguous.expense_batch_id)
+        self.assertEqual(batch.account_override_id, mission_account)
+        self.assertEqual(
+            batch.analytic_distribution,
+            {f"{project.id},{epic.id}": 100.0},
+        )
+        self.assertEqual(
+            set(batch.expense_ids.mapped("account_context_source")),
+            {"batch"},
+        )
+        self.assertEqual(
+            set(batch.expense_ids.mapped("analytic_context_source")),
+            {"batch"},
+        )
+        self.assertEqual(batch.exception_count, 0)
+        migration_messages = batch.message_ids.filtered(
+            lambda message: "Canada draft transition prepared" in (message.body or ""),
+        )
+        self.assertEqual(len(migration_messages), 1)
+        self.assertFalse(
+            batch.message_ids.filtered(
+                lambda message: "Shared context revision" in (message.body or ""),
+            ),
+        )
+        self.assertEqual(
+            historical_signature,
+            (
+                historical.product_id,
+                historical.account_id,
+                historical.analytic_distribution,
+                historical.state,
+            ),
+        )
+        self.assertFalse(any(trip_products.product_tmpl_id.mapped("active")))
+
+        uber.with_context(usl_batch_context_internal=True).write({
+            "account_context_source": "explicit",
+            "analytic_context_source": "explicit",
+        })
+        self.assertEqual(uber.batch_context_status, "inherited")
+        rerun = run.run_expense_batch_transition()
+        self.assertEqual(rerun["candidate_draft_count"], 0)
+        self.assertEqual(rerun["reclassified_expense_count"], 0)
+        self.assertEqual(rerun["created_batch_count"], 0)
+        self.assertEqual(rerun["archived_trip_product_count"], 0)
+        self.assertEqual(rerun["ambiguous_count"], 0)
+        self.assertEqual(rerun["normalized_inherited_count"], 1)
+        self.assertEqual(rerun["normalized_incompatible_tax_count"], 0)
+        self.assertEqual(rerun["migration_summary_message_count"], 0)
+        self.assertTrue(rerun["historical_unchanged"])
+        self.assertEqual(uber.account_context_source, "batch")
+        self.assertEqual(uber.analytic_context_source, "batch")
+        self.assertEqual(len(migration_messages.exists()), 1)
+
+        for _index in range(2):
+            batch.message_post(
+                body=(
+                    "Shared context revision 1 applied to 1 expense(s); "
+                    "0 explicit exception(s) were preserved and 0 later-stage "
+                    "expense(s) were skipped."
+                ),
+            )
+        cleanup = run.run_expense_batch_transition()
+        self.assertEqual(cleanup["cleaned_context_message_count"], 2)
+        self.assertEqual(cleanup["normalized_incompatible_tax_count"], 0)
+        self.assertEqual(cleanup["migration_summary_message_count"], 0)
+        self.assertEqual(len(migration_messages.exists()), 1)
+
     def test_historical_no_entry_payment_is_native_and_immutable(self):
         journal = self._journal("bank")
         method_line = journal.inbound_payment_method_line_ids[:1]
@@ -2928,7 +3147,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_account_migration.menu_rebuild_account_review_issues_priority",
         )
         hygiene_action = self.env.ref(
-            "rebuild_account_migration.action_rebuild_account_hygiene",
+            "rebuild_account_migration.action_open_current_company_hygiene",
         )
         hygiene_client_action = self.env.ref(
             "rebuild_account_migration.action_open_current_company_hygiene",
@@ -2943,8 +3162,12 @@ class TestRebuildAccountMigration(TransactionCase):
             hygiene_menu.parent_id,
             self.env.ref("account.account_audit_control_menu"),
         )
+        self.assertEqual(hygiene_action.tag, "rebuild_accounting_hygiene")
+        hygiene_window_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_hygiene",
+        )
         self.assertEqual(
-            [tuple(view) for view in hygiene_action.views],
+            [tuple(view) for view in hygiene_window_action.views],
             [
                 (
                     self.env.ref(

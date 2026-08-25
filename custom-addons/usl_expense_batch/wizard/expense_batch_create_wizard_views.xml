@@ -10,6 +10,7 @@
                 <field name="currency_id" invisible="1"/>
                 <field name="draft_count" invisible="1"/>
                 <field name="draft_incomplete_count" invisible="1"/>
+                <field name="candidate_count" invisible="1"/>
                 <div class="alert alert-warning" role="alert" invisible="incomplete_count == 0">
                     <strong>
                         <field name="incomplete_count" class="oe_inline"/>
@@ -17,10 +18,23 @@
                     </strong>
                     You can create the batch now; only incomplete draft expenses block submission.
                 </div>
+                <div class="alert alert-info" role="status" invisible="candidate_count == 0">
+                    <strong>
+                        <field name="candidate_count" class="oe_inline"/>
+                        existing Batch candidate(s).
+                    </strong>
+                    Select one below before creating a duplicate.
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not duplicate_batch_warning">
+                    <field name="duplicate_batch_warning" nolabel="1"/>
+                </div>
                 <group>
                     <group string="Claim">
-                        <field name="name" required="1" placeholder="e.g. Toronto trip — June/July 2026"/>
-                        <field name="purpose" required="1" placeholder="Common business purpose and review context"/>
+                        <field name="mode" widget="radio"/>
+                        <field name="batch_id" required="mode == 'existing'" invisible="mode != 'existing'"/>
+                        <field name="context_type" invisible="mode != 'new'"/>
+                        <field name="name" required="mode == 'new'" invisible="mode != 'new'" placeholder="e.g. SBFH — Canada 2026"/>
+                        <field name="purpose" required="mode == 'new'" invisible="mode != 'new'" placeholder="Common business purpose and review context"/>
                         <field name="main_analytic_activity" readonly="1"/>
                     </group>
                     <group string="Preview">
@@ -38,6 +52,21 @@
                                invisible="incomplete_count == 0"/>
                     </group>
                 </group>
+                <group string="Shared context" invisible="mode != 'new'">
+                    <field name="analytic_distribution"
+                           widget="analytic_distribution"
+                           groups="analytic.group_analytic_accounting"/>
+                    <field name="account_override_id"
+                           groups="hr_expense.group_hr_expense_manager,account.group_account_manager"/>
+                </group>
+                <div class="alert alert-secondary" role="status">
+                    <strong><field name="context_change_count" class="oe_inline"/> line(s)</strong>
+                    will receive shared context;
+                    <strong><field name="context_exception_count" class="oe_inline"/> explicit exception(s)</strong>
+                    will be preserved; and
+                    <strong><field name="context_skipped_count" class="oe_inline"/> later-stage line(s)</strong>
+                    will keep their existing accounting.
+                </div>
                 <field name="expense_ids" nolabel="1"
                        domain="[('state', 'in', ['draft', 'approved', 'posted']), ('expense_batch_id', '=', False)]">
                     <list create="false" edit="false" delete="true"
@@ -60,17 +89,52 @@
                 </field>
                 <footer>
                     <button name="action_create_and_submit"
-                            string="Submit batch"
+                            string="Create and submit"
                             type="object"
                             class="btn-primary"
                             data-hotkey="q"
                             title="Create the batch and send only its draft expenses for manager approval. This does not post or pay them."
                             invisible="draft_incomplete_count != 0 or draft_count == 0"/>
                     <button name="action_create_batch"
-                            string="Create batch"
+                            string="Add to Batch"
                             type="object"
                             title="Group the selected expenses without submitting, posting, or paying them."
                             class="btn-secondary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_expense_batch_context_apply_wizard_form" model="ir.ui.view">
+        <field name="name">usl.expense.batch.context.apply.wizard.form</field>
+        <field name="model">usl.expense.batch.context.apply.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Apply shared Batch context">
+                <field name="batch_id" invisible="1"/>
+                <field name="expected_revision" invisible="1"/>
+                <div class="alert alert-info" role="status">
+                    <field name="preview_line" nolabel="1"/>
+                </div>
+                <group>
+                    <field name="changed_count"/>
+                    <field name="unchanged_count"/>
+                    <field name="exception_count"/>
+                    <field name="skipped_count"/>
+                </group>
+                <field name="force_expense_ids"
+                       widget="many2many_tags"
+                       groups="hr_expense.group_hr_expense_manager,account.group_account_manager"/>
+                <div class="alert alert-warning" role="alert" invisible="not force_expense_ids">
+                    The selected expense exceptions will be replaced. Their previous values remain in the audit trail and are restored only when they still match the last Batch-applied value.
+                </div>
+                <footer>
+                    <button name="action_apply"
+                            string="Apply shared context"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"
+                            title="Apply the current Batch accounting context to draft expenses. Explicit line exceptions remain unchanged unless selected above."/>
                     <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
                 </footer>
             </form>

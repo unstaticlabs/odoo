@@ -85,7 +85,7 @@ Employee expense claims remain in the separate **Expenses** application.
 
 Select the **Expenses** app title for **My Expenses**, the individual expense
 evidence and workflow list. The navbar links directly to **Expenses to
-Process** and **Expense Batches**, followed by **Reporting** and
+Process** and **Expense Batches** (**Lots de dépenses** in French), followed by **Reporting** and
 **Configuration**. It deliberately has no redundant **My Expenses** menu
 group. The list shows **Attachment status**, each expense's normal status and
 its optional **Expense Batch** link without a permanent **Batch readiness**
@@ -95,15 +95,17 @@ The default **Not in a batch** filter keeps the working list limited to
 expenses that can still be grouped; remove it to review historical batched
 expenses. Use **Ready to submit**, **Needs information** and **Already in a
 batch** for more specific review. Select one or more unbatched Draft, Approved
-or Posted expenses, then use the single **Create expense batch** action. The
-former automatic **Submit ready expenses** action is not part of the product.
-The preview shows aggregate readiness, attachment and expense statuses, and
-missing information before the batch is saved or its Draft lines are
-submitted. Both completion actions close the preview and refresh the list.
+or Posted expenses, then use **Add to a Batch**. For a multi-selection it is
+the primary contextual action without removing native submission actions. The
+create-or-select preview ranks compatible Batches, shows readiness, payer
+split, warnings and context impact before anything is saved. Both completion
+actions close the preview and refresh the list.
 
-Managers use **Expense Batches** to review the shared purpose, period, totals,
-analytic context and individual evidence. Accounting entries retain a direct
-link back to the batch and its expenses.
+Managers use **Expense Batches** to review purpose, totals, dates, payer split,
+interactive shared analytics, Product breakdown and individual evidence. A
+small line indicator explains the exact missing information, warning or real
+context difference. Accounting entries retain a direct link back to the Batch
+and its expenses.
 
 ## Action explanations
 

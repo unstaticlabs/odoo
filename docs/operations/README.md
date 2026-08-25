@@ -14,6 +14,7 @@ These runbooks define the required operational outcomes for a dependable self-ho
 - [B2C migration and reconciliation](b2c-migration.md)
 - [B2C operator and accounting-session workflow](b2c-operations.md)
 - [B2C QA guide](b2c-qa.md)
+- [Expense Batch transition](expense-batch-transition.md)
 - [Restore Paie TESE from Odoo Online](tese-restoration.md)
 - [Activate French electronic-invoice reception](activate-french-electronic-invoicing.md)
 - [Restore historical platform billing](platform-billing-migration.md)

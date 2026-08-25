@@ -16,6 +16,7 @@ These documents define the accounting truths that implementations and migrations
 - [Fiscal-year boundary contract](fiscal-year-boundaries.md)
 - [Exchange gain/loss entry-direction guard](exchange-direction-guard.md)
 - [Analytic pivot reporting](analytic-pivot-reporting.md)
+- [Expense Batch accounting and reporting](expense-batch-accounting.md)
 - [French electronic-invoicing reception readiness](french-electronic-invoicing-readiness.md)
 - [French electronic-invoicing validation evidence](french-electronic-invoicing-validation.md)
 - [Bank Matching Rule discovery](bank-matching-rule-discovery.md)

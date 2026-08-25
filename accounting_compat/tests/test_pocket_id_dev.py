@@ -202,6 +202,10 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         script = (ROOT / "scripts" / "target-reconstruct").read_text(
             encoding="utf-8",
         )
+        execution = script.split(
+            'run_stage "target identity preflight"',
+            1,
+        )[1]
         ordered_steps = [
             "scripts/accounting-compat dev-reset",
             "scripts/accounting-compat dev-import",
@@ -211,7 +215,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "scripts/platform-billing-restore all",
             "scripts/target-finalize",
         ]
-        positions = [script.index(step) for step in ordered_steps]
+        positions = []
+        cursor = 0
+        for step in ordered_steps:
+            position = execution.index(step, cursor)
+            positions.append(position)
+            cursor = position + len(step)
 
         self.assertEqual(positions, sorted(positions))
         self.assertGreaterEqual(script.count("stop_product"), 5)
@@ -254,6 +263,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "Linked-worktree Pocket ID bootstrap requires",
             script,
         )
+        self.assertIn("Use the configured QA environment with:", script)
+        self.assertIn(
+            "make COMPOSE_PROJECT=%s login-link USER=%s",
+            script,
+        )
+        self.assertIn('POCKET_ID_LOGIN_HINT_USER="$username"', script)
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
         self.assertIn('module_args+=("--init=', script)

@@ -3,11 +3,12 @@
     <t t-name="usl_expense_batch.ListButtons"
        t-inherit="hr_expense.ListButtons"
        t-inherit-mode="extension">
-        <xpath expr="//button[@t-if='displaySubmit()']" position="replace">
-            <button t-if="displayCreateExpenseBatch()"
-                    class="d-none d-md-block btn btn-primary text-nowrap"
-                    t-on-click="onOpenExpenseBatchWizard">
-                Create expense batch
+        <xpath expr="//button[@t-if='this.displaySubmit()']" position="before">
+            <button t-if="this.displayCreateExpenseBatch()"
+                    t-att-class="{'btn-primary': this.batchActionIsPrimary(), 'btn-secondary': !this.batchActionIsPrimary()}"
+                    class="d-none d-md-block btn text-nowrap"
+                    t-on-click="() => this.onOpenExpenseBatchWizard()">
+                Add to a Batch
             </button>
         </xpath>
     </t>

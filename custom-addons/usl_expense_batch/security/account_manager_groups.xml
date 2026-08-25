@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Accounting Managers own the accounting review and posting side of the
+         Batch workflow. Reuse Odoo's native Expense Manager permission checks
+         instead of maintaining a parallel approval privilege. -->
+    <record id="account.group_account_manager" model="res.groups">
+        <field name="implied_ids"
+               eval="[(4, ref('hr_expense.group_hr_expense_manager'))]"/>
+    </record>
+</odoo>

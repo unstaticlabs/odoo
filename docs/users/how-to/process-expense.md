@@ -51,9 +51,11 @@ does not show a permanent readiness column: use **Ready to submit** or
 creation preview.
 
 Select explicit, related Draft, Approved or Posted expenses and choose
-**Create expense batch**. This is the only list action; there is no automatic
-**Submit ready expenses** shortcut. Creating the batch alone does not submit,
-post or pay anything. **Submit batch** advances only its Draft expenses.
+**Add to a Batch** (**Ajouter à un lot de dépenses** in French). The preview proposes compatible existing Batches before a
+new one, shows the mixed-payer split and explains which draft values inherit
+shared analytics or accounting context. Explicit line exceptions are
+preserved. Adding alone does not submit, post or pay anything; the explicit
+create-and-submit choice advances only ready Draft expenses.
 
 See [Expense Batches](../guides/expense-batches.md) for the employee, manager
 and accounting workflow.

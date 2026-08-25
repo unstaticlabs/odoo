@@ -18,6 +18,10 @@ export function canCreateExpenseBatch(records) {
     );
 }
 
+export function batchActionIsPrimary(records) {
+    return canCreateExpenseBatch(records) && records.length > 1;
+}
+
 export async function refreshExpenseList(controller) {
     await controller.model.root.load();
     controller.render(true);
@@ -26,6 +30,10 @@ export async function refreshExpenseList(controller) {
 patch(ExpenseListController.prototype, {
     displayCreateExpenseBatch() {
         return canCreateExpenseBatch(this.model.root.selection);
+    },
+
+    batchActionIsPrimary() {
+        return batchActionIsPrimary(this.model.root.selection);
     },
 
     async onOpenExpenseBatchWizard() {

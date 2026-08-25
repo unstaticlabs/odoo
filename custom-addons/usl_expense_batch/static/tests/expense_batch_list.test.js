@@ -1,9 +1,11 @@
 import { expect, test } from "@odoo/hoot";
 
 import {
+    batchActionIsPrimary,
     canCreateExpenseBatch,
     refreshExpenseList,
 } from "../src/js/expense_batch_list";
+import { attentionIconClass } from "../src/js/expense_batch_attention_field";
 
 function record(state, expenseBatchId = false) {
     return {
@@ -35,6 +37,14 @@ test("batch creation accepts only unbatched eligible expense states", () => {
     );
 });
 
+test("batch assignment is primary only for eligible multi-selection", () => {
+    expect(batchActionIsPrimary([record("draft")])).toBe(false);
+    expect(batchActionIsPrimary([record("draft"), record("draft")])).toBe(true);
+    expect(batchActionIsPrimary([record("draft"), record("submitted")])).toBe(
+        false
+    );
+});
+
 test("closing the batch wizard reloads and renders the expense list", async () => {
     const controller = {
         model: {
@@ -52,4 +62,9 @@ test("closing the batch wizard reloads and renders the expense list", async () =
     await refreshExpenseList(controller);
 
     expect.verifySteps(["load", "render:true"]);
+});
+
+test("attention indicator stays compact and distinguishes warnings from locks", () => {
+    expect(attentionIconClass("warning")).toInclude("text-warning");
+    expect(attentionIconClass("info")).toInclude("fa-lock");
 });

@@ -3792,6 +3792,17 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                   AND expense.date BETWEEN DATE '2024-01-10'
                                        AND source_end.date_to
             ),
+            'source_canada_draft_expense_count', (
+                SELECT count(*)
+                FROM hr_expense expense
+                JOIN product_product product
+                  ON product.id = expense.product_id
+                WHERE expense.company_id = 1
+                  AND expense.state = 'draft'
+                  AND product.default_code = 'CA26'
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
+            ),
             'source_expense_split_count', (
                 SELECT count(*)
                 FROM hr_expense expense
@@ -3920,6 +3931,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             f"    'date_to': {source_date_to!r},",
             "    'source_company_ids': [1],",
             "})",
+            "expense_batch_transition = expense_run.run_expense_batch_transition()",
+            "expense_batch_transition_rerun = expense_run.run_expense_batch_transition()",
             "asset_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native assets',",
             "    'mode': 'exact_ledger_replay',",
@@ -4063,6 +4076,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'expense_run_id': expense_run.id,",
             "    'expense_run_status': expense_run.status,",
             "    'expense_stats': expense_stats,",
+            "    'expense_batch_transition': expense_batch_transition,",
+            "    'expense_batch_transition_rerun': expense_batch_transition_rerun,",
             "    'asset_run_id': asset_run.id,",
             "    'asset_run_status': asset_run.status,",
             "    'asset_stats': asset_stats,",
@@ -4165,6 +4180,9 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "source_move_count": source_profile["source_move_count"],
         "imported_move_line_count": source_profile["source_move_line_count"],
         "source_expense_count": source_profile["source_expense_count"],
+        "source_canada_draft_expense_count": source_profile[
+            "source_canada_draft_expense_count"
+        ],
         "source_asset_count": source_profile["source_asset_count"],
         "source_posted_asset_move_count": (
             source_profile["source_posted_asset_move_count"]
@@ -4176,6 +4194,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         for key, expected_value in expected.items()
         if key not in {
             "source_expense_count",
+            "source_canada_draft_expense_count",
             "source_asset_count",
             "source_posted_asset_move_count",
         }
@@ -4239,6 +4258,43 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         and payload["expense_stats"]["expense_bank_matches"][
             "legacy_target_schema"
         ]["absent"]
+    )
+    transition = payload["expense_batch_transition"]
+    transition_rerun = payload["expense_batch_transition_rerun"]
+    source_canada_draft_count = source_profile[
+        "source_canada_draft_expense_count"
+    ]
+    expected_ambiguous = [{
+        "name": "Zen Kyoto — Canada 2026 — 18,08 CAD / 11,18 EUR",
+        "reason": "description_not_confidently_mapped",
+    }]
+    actual_ambiguous = [
+        {
+            "name": example["name"],
+            "reason": example["reason"],
+        }
+        for example in transition["ambiguous_examples"]
+    ]
+    checks["expense_batch_transition_matches"] = (
+        transition["candidate_draft_count"] == source_canada_draft_count
+        and transition["reclassified_expense_count"]
+        == source_canada_draft_count - len(expected_ambiguous)
+        and transition["created_batch_count"] == 1
+        and transition["batched_expense_count"] == source_canada_draft_count
+        and transition["newly_batched_expense_count"]
+        == source_canada_draft_count
+        and transition["incomplete_expense_count"] == 4
+        and transition["ambiguous_count"] == len(expected_ambiguous)
+        and actual_ambiguous == expected_ambiguous
+        and transition["archived_trip_product_count"] == 4
+        and transition["archived_trip_product_codes"]
+        == ["AUS26", "BCN2602", "CA26", "LPASUM26"]
+        and transition["historical_unchanged"] is True
+        and transition_rerun["candidate_draft_count"] == 0
+        and transition_rerun["reclassified_expense_count"] == 0
+        and transition_rerun["created_batch_count"] == 0
+        and transition_rerun["archived_trip_product_count"] == 0
+        and transition_rerun["historical_unchanged"] is True
     )
     checks["native_expense_url_evidence_matches"] = (
         query_json(
@@ -4311,6 +4367,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "checks": checks,
         "statistics": stats,
         "expense_statistics": payload["expense_stats"],
+        "expense_batch_transition": transition,
+        "expense_batch_transition_rerun": transition_rerun,
         "asset_statistics": payload["asset_stats"],
         "users": payload["users"],
     }
