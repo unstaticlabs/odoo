@@ -129,7 +129,12 @@
                     The selected expense exceptions will be replaced. Their previous values remain in the audit trail and are restored only when they still match the last Batch-applied value.
                 </div>
                 <footer>
-                    <button name="action_apply" string="Apply shared context" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button name="action_apply"
+                            string="Apply shared context"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"
+                            title="Apply the current Batch accounting context to draft expenses. Explicit line exceptions remain unchanged unless selected above."/>
                     <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
                 </footer>
             </form>

@@ -1049,6 +1049,10 @@ msgid "Apply shared context"
 msgstr "Appliquer le contexte commun"
 
 #. module: usl_expense_batch
+msgid "Apply the current Batch accounting context to draft expenses. Explicit line exceptions remain unchanged unless selected above."
+msgstr "Appliquer le contexte comptable actuel du lot aux dépenses en brouillon. Les exceptions explicites des lignes restent inchangées sauf si elles sont sélectionnées ci-dessus."
+
+#. module: usl_expense_batch
 msgid "Changed Count"
 msgstr "Lignes modifiées"
 

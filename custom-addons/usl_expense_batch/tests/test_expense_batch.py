@@ -791,6 +791,14 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertIn("does not post", submit.get("title").lower())
         self.assertIn("expense_count == 0", submit.get("invisible"))
 
+        context_wizard = self.env.ref(
+            "usl_expense_batch.view_expense_batch_context_apply_wizard_form",
+        )._get_combined_arch()
+        apply_context = context_wizard.xpath(
+            "//button[@name='action_apply']",
+        )[0]
+        self.assertIn("Explicit line exceptions", apply_context.get("title"))
+
         wizard_form = self.env.ref(
             "usl_expense_batch.view_expense_batch_create_wizard_form",
         )._get_combined_arch()
