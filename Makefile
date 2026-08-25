@@ -22,6 +22,7 @@ SOURCE_SHA ?=
 .PHONY: project-restore project-restore-install project-restore-import project-restore-validate project-restore-finalize project-product-validate
 .PHONY: migration-source-inventory migration-source-gate attachment-ledger attachment-ledger-gate identity-restore identity-restore-install identity-restore-import identity-restore-validate identity-restore-finalize
 .PHONY: documents-qa-build documents-qa-up documents-qa-update documents-qa-bootstrap documents-qa-status documents-qa-test documents-qa-test-pocket documents-qa-test-js documents-qa-acceptance documents-qa-recovery-test documents-preprod-config documents-preprod-preflight documents-preprod-up documents-preprod-acceptance documents-preprod-recovery-test documents-acceptance documents-recovery-test
+.PHONY: documents-release-build documents-release-verify documents-release-restore documents-release-accept documents-release-publish
 .PHONY: accounting-restore-finalize accounting-product-validate accounting-restore-tests
 .PHONY: tese-restore tese-restore-install tese-restore-import tese-restore-validate tese-restore-idempotence tese-restore-finalize tese-product-validate tese-qa-bootstrap
 .PHONY: platform-billing-restore platform-billing-restore-install platform-billing-restore-import platform-billing-restore-validate platform-billing-restore-idempotence platform-billing-restore-finalize platform-billing-product-validate platform-billing-restore-test
@@ -313,6 +314,21 @@ documents-acceptance:
 
 documents-recovery-test:
 	USL_DOCUMENTS_SYNTHETIC_RECOVERY=1 scripts/documents-recovery-test qa
+
+documents-release-build:
+	scripts/documents-release-bundle build "$(SOURCE_DIR)"
+
+documents-release-verify:
+	scripts/documents-release-bundle verify "$(BUNDLE)"
+
+documents-release-restore:
+	scripts/documents-release-bundle restore "$(BUNDLE)" --project "$(PROJECT)"
+
+documents-release-accept:
+	scripts/documents-release-bundle accept "$(BUNDLE)"
+
+documents-release-publish:
+	scripts/documents-release-bundle publish "$(BUNDLE)" "$(DESTINATION)"
 
 oca-addons-sync:
 	scripts/sync-oca-addons

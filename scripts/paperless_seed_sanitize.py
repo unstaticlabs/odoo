@@ -21,6 +21,7 @@ FORBIDDEN_MODELS = {
 }
 REMOVED_CREDENTIAL_MODELS = {
     "authtoken.token",
+    "paperless_personal_ai.personalaiprofile",
     "sessions.session",
 }
 

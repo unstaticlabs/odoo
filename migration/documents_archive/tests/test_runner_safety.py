@@ -18,6 +18,7 @@ PAPERLESS_MIGRATION_ACCESS_CLEANUP = (
     ROOT
     / "migration/documents_archive/scripts/paperless_migration_access_cleanup.py"
 )
+RELEASE_INVENTORY = ROOT / "scripts/odoo/documents_release_inventory.py"
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -105,6 +106,22 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("user.is_active = False", cleanup)
         self.assertIn("user.is_superuser = False", cleanup)
         self.assertIn("trap deprovision_archive_identity EXIT", runner)
+
+    def test_release_inventory_fails_closed_on_every_queue_and_boundary_counter(self):
+        inventory = RELEASE_INVENTORY.read_text(encoding="utf-8")
+
+        for name in (
+            "eligible_attachment_pending",
+            "eligible_attachment_unresolved",
+            "odoo_operations_failed",
+            "odoo_operations_pending",
+            "odoo_operations_processing",
+            "permission_failures",
+            "migration_module_residue",
+        ):
+            self.assertIn(name, inventory)
+        self.assertIn('USL_RELEASE_REQUIRE_COMPLETE") == "1"', inventory)
+        self.assertNotIn("paperless_token\"", inventory.split("print(", 1)[-1])
 
     def test_checkpoint_reuse_is_explicit_and_fail_closed(self):
         script = SCRIPT.read_text(encoding="utf-8")
