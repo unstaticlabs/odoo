@@ -767,6 +767,13 @@ class TestExpenseBatch(TestExpenseCommon):
         )
         self.assertEqual(analytic_fields[0].get("widget"), "analytic_distribution")
         self.assertNotEqual(analytic_fields[0].get("invisible"), "1")
+        context_period = batch_form.xpath(
+            "//group[@string='Shared context']/div[@name='context_period']",
+        )
+        self.assertEqual(
+            context_period[0].xpath("./field/@name"),
+            ["context_date_from", "context_date_to"],
+        )
         remove_actions = expense_lines.xpath(
             "./button[@name='action_return_from_batch']",
         )

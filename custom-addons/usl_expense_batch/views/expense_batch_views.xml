@@ -159,8 +159,19 @@
                                groups="base.group_multi_company"
                                readonly="state != 'draft'"/>
                         <field name="context_type" readonly="state != 'draft'"/>
-                        <field name="context_date_from" readonly="state != 'draft'"/>
-                        <field name="context_date_to" readonly="state != 'draft'"/>
+                        <newline/>
+                        <label for="context_date_from" string="Context period"/>
+                        <div name="context_period" class="o_row">
+                            <field name="context_date_from"
+                                   nolabel="1"
+                                   readonly="state != 'draft'"/>
+                            <i class="fa fa-long-arrow-right mx-2"
+                               aria-label="To"
+                               title="To"/>
+                            <field name="context_date_to"
+                                   nolabel="1"
+                                   readonly="state != 'draft'"/>
+                        </div>
                         <field name="analytic_distribution"
                                widget="analytic_distribution"
                                readonly="state != 'draft'"

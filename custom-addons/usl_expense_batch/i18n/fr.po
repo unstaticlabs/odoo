@@ -1013,6 +1013,10 @@ msgid "Context Revision"
 msgstr "Révision du contexte"
 
 #. module: usl_expense_batch
+msgid "Context period"
+msgstr "Période du contexte"
+
+#. module: usl_expense_batch
 msgid "First expense"
 msgstr "Première dépense"
 
