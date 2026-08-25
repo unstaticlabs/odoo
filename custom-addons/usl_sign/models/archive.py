@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class UslDocumentLink(models.Model):
@@ -47,7 +48,15 @@ class SignRequestArchive(models.Model):
     archive_last_error = fields.Text(readonly=True, copy=False)
 
     def action_retry_archive(self):
+        self._check_prepare_access()
         for request in self:
+            if (
+                request.state != "evidence_incomplete"
+                or request.archive_status != "failed"
+            ):
+                raise ValidationError(
+                    "Final storage can only be retried after an archival failure.",
+                )
             request._archive_dossier(force=True)
         return True
 
