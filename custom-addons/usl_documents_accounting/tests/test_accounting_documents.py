@@ -62,6 +62,16 @@ class TestAccountingDocumentContexts(TransactionCase):
             self.assertNotIn("Evidence", arch)
             self.assertNotIn("action_open_archived_documents", arch)
 
+    def test_bank_statement_uses_one_first_class_documents_entry_point(self):
+        arch = self.env.ref(
+            "usl_documents_accounting.view_bank_statement_review_documents",
+        ).arch_db
+
+        self.assertIn("Official statement", arch)
+        self.assertIn('name="bank_evidence_document_id"', arch)
+        self.assertNotIn('string="Archive"', arch)
+        self.assertNotIn('name="action_open_documents_workspace"', arch)
+
     def _bank_evidence_fixture(self):
         company = self.env.company
         banking_tag = (
@@ -234,7 +244,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertEqual(statement.accepted_evidence_id, source_file)
         statement.invalidate_recordset()
         self.assertFalse(statement.can_certify)
-        self.assertIn("archive failure", statement.review_blocking_reason)
+        self.assertIn("not available in Documents", statement.review_blocking_reason)
 
     def test_exact_archive_version_is_pinned_before_certification(self):
         statement, source_file, content = self._bank_evidence_fixture()
@@ -271,12 +281,20 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertEqual(link.version_id, "bank-version-1")
         statement.invalidate_recordset()
         self.assertTrue(statement.can_certify)
-        action = statement.action_open_evidence()
-        self.assertIn(
-            f"/usl_documents/{document.id}/download?original=1",
-            action["url"],
+        self.assertEqual(statement.bank_evidence_document_id, document)
+        self.assertEqual(
+            statement.bank_evidence_document_version,
+            "bank-version-1",
         )
-        self.assertIn("version=bank-version-1", action["url"])
+        action = statement.action_open_evidence()
+        self.assertEqual(action["tag"], "usl_documents.workspace")
+        self.assertEqual(action["params"]["initial_document_id"], document.id)
+        self.assertEqual(
+            action["params"]["initial_version_id"],
+            "bank-version-1",
+        )
+        self.assertEqual(action["params"]["res_model"], statement._name)
+        self.assertEqual(action["params"]["res_id"], statement.id)
 
         account_only = new_test_user(
             self.env,
@@ -286,9 +304,10 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertTrue(
             account_only.has_group("usl_documents.group_documents_accountant"),
         )
-        self.assertIn(
-            f"/usl_documents/{document.id}/download",
-            statement.with_user(account_only).action_open_evidence()["url"],
+        self.assertEqual(
+            statement.with_user(account_only)
+            .action_open_evidence()["params"]["initial_document_id"],
+            document.id,
         )
         evidence_reader = new_test_user(
             self.env,
@@ -298,9 +317,10 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "usl_documents.group_documents_accountant"
             ),
         )
-        self.assertIn(
-            f"/usl_documents/{document.id}/download",
-            statement.with_user(evidence_reader).action_open_evidence()["url"],
+        self.assertEqual(
+            statement.with_user(evidence_reader)
+            .action_open_evidence()["params"]["initial_document_id"],
+            document.id,
         )
         ordinary_user = new_test_user(
             self.env,

@@ -768,6 +768,74 @@ test("selected document survives a reload after the host router normalizes the U
     ).toBe("12");
 });
 
+test("a business action opens its exact governed document version", async () => {
+    const document = {
+        id: 88,
+        name: "Official bank statement",
+        paperless_id: 188,
+        date: "2026-07-31",
+        company: "USL",
+        review_state: "reviewed",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "Shine",
+        document_type: "Bank statement",
+        tags: [],
+        link_count: 1,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", ({ args }) => {
+        expect(args).toEqual([88]);
+        return {
+            ...document,
+            can_edit: false,
+            can_change_links: false,
+            can_manage: false,
+            links: [],
+            versions: [
+                {
+                    id: 18,
+                    paperless_version_id: "certified-3",
+                    label: "Certified original",
+                    is_current: true,
+                    is_received_original: true,
+                    preview_url:
+                        "/usl_documents/88/preview?version=certified-3",
+                    original_url:
+                        "/usl_documents/88/download?original=1&version=certified-3",
+                    archive_url:
+                        "/usl_documents/88/download?original=0&version=certified-3",
+                },
+            ],
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: {
+            action: action({
+                res_model: "account.bank.statement",
+                res_id: 44,
+                linked_filter: true,
+                initial_document_id: 88,
+                initial_version_id: "certified-3",
+            }),
+        },
+    });
+    await animationFrame();
+
+    expect(".o_usl_detail_title").toHaveText("Official bank statement");
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_document")
+    ).toBe("88");
+    expect(
+        new URL(browser.location.href).searchParams.get("usl_version")
+    ).toBe("certified-3");
+});
+
 test("top tag shortcuts compose with native search facets", async () => {
     const tags = [
         { id: 21, name: "Tax & reporting", color: "#31a354" },

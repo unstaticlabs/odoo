@@ -72,6 +72,50 @@ msgid "Archived"
 msgstr "Archivé"
 
 #. module: usl_documents_accounting
+msgid "Archived version"
+msgstr "Version archivée"
+
+#. module: usl_documents_accounting
+msgid "Official version"
+msgstr "Version officielle"
+
+#. module: usl_documents_accounting
+msgid "Documents status"
+msgstr "État dans Documents"
+
+#. module: usl_documents_accounting
+msgid "Documents issue"
+msgstr "Problème Documents"
+
+#. module: usl_documents_accounting
+msgid "Documents record"
+msgstr "Document"
+
+#. module: usl_documents_accounting
+msgid "Not in Documents"
+msgstr "Absent de Documents"
+
+#. module: usl_documents_accounting
+msgid "Waiting for Documents"
+msgstr "En attente de Documents"
+
+#. module: usl_documents_accounting
+msgid "Filing in Documents"
+msgstr "Classement dans Documents"
+
+#. module: usl_documents_accounting
+msgid "Available"
+msgstr "Disponible"
+
+#. module: usl_documents_accounting
+msgid "Documents unavailable"
+msgstr "Documents indisponible"
+
+#. module: usl_documents_accounting
+msgid "Needs attention"
+msgstr "Action requise"
+
+#. module: usl_documents_accounting
 msgid "Archiving"
 msgstr "Archivage en cours"
 
@@ -94,6 +138,38 @@ msgstr "Documents : archiver les relevés bancaires acceptés"
 #. module: usl_documents_accounting
 msgid "Not sent"
 msgstr "Non envoyé"
+
+#. module: usl_documents_accounting
+msgid "Official statement"
+msgstr "Relevé officiel"
+
+#. module: usl_documents_accounting
+msgid "File in Documents"
+msgstr "Classer dans Documents"
+
+#. module: usl_documents_accounting
+msgid "Retry Documents filing"
+msgstr "Réessayer le classement Documents"
+
+#. module: usl_documents_accounting
+msgid "File the official statement in Documents before certification."
+msgstr "Classez le relevé officiel dans Documents avant la certification."
+
+#. module: usl_documents_accounting
+msgid "The official statement is not available in Documents. Retry filing before certification."
+msgstr "Le relevé officiel n’est pas disponible dans Documents. Réessayez son classement avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Documents has not verified a version with the exact official statement checksum."
+msgstr "Documents n’a pas vérifié de version correspondant exactement à l’empreinte du relevé officiel."
+
+#. module: usl_documents_accounting
+msgid "Documents stored the original but could not synchronize its accounting access."
+msgstr "Documents a conservé l’original mais n’a pas pu synchroniser son accès comptable."
+
+#. module: usl_documents_accounting
+msgid "This statement is already linked to another Documents record. A Documents administrator must resolve it."
+msgstr "Ce relevé est déjà lié à un autre document. Un administrateur Documents doit résoudre ce problème."
 
 #. module: usl_documents_accounting
 msgid "Paperless Archive Error"

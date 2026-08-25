@@ -10,18 +10,34 @@ class AccountBankStatement(models.Model):
     _name = "account.bank.statement"
     _inherit = ["account.bank.statement", "usl.document.link.mixin"]
 
+    bank_evidence_document_id = fields.Many2one(
+        "usl.document",
+        string="Documents record",
+        related="accepted_evidence_id.paperless_document_id",
+        readonly=True,
+    )
+    bank_evidence_document_version = fields.Char(
+        string="Official version",
+        related="accepted_evidence_id.paperless_version",
+        readonly=True,
+    )
+
     bank_evidence_archive_state = fields.Selection(
         [
-            ("not_requested", "Not sent"),
-            ("pending", "Waiting for archive"),
-            ("processing", "Archiving"),
-            ("archived", "Archived"),
-            ("unavailable", "Archive unavailable"),
-            ("failed", "Archive failed"),
+            ("not_requested", "Not in Documents"),
+            ("pending", "Waiting for Documents"),
+            ("processing", "Filing in Documents"),
+            ("archived", "Available"),
+            ("unavailable", "Documents unavailable"),
+            ("failed", "Needs attention"),
         ],
+        string="Documents status",
         compute="_compute_bank_evidence_archive",
     )
-    bank_evidence_archive_error = fields.Char(compute="_compute_bank_evidence_archive")
+    bank_evidence_archive_error = fields.Char(
+        string="Documents issue",
+        compute="_compute_bank_evidence_archive",
+    )
 
     @api.depends(
         "accepted_evidence_id.paperless_archive_state",
@@ -106,8 +122,22 @@ class AccountBankStatement(models.Model):
         integrity_error = evidence._paperless_integrity_error()
         if integrity_error:
             raise UserError(integrity_error)
-        version = evidence._paperless_version_record()
-        return version.action_download_original()
+        document = evidence.paperless_document_id
+        document.check_access("read")
+        # The action definition itself is system metadata. Evidence access was
+        # already checked on the governed Documents record above.
+        action = (
+            self.env.ref("usl_documents.action_documents_workspace").sudo().read()[0]
+        )
+        action["params"] = {
+            "res_model": self._name,
+            "res_id": self.id,
+            "record_name": self.display_name,
+            "linked_filter": True,
+            "initial_document_id": document.id,
+            "initial_version_id": evidence.paperless_version,
+        }
+        return action
 
 
 class AccountBankIngestionFile(models.Model):
@@ -327,13 +357,16 @@ class AccountBankIngestionFile(models.Model):
     def _paperless_integrity_error(self):
         self.ensure_one()
         if self.paperless_archive_state == "failed":
-            return _("Resolve the Documents archive failure before certification.")
+            return _(
+                "The official statement is not available in Documents. "
+                "Retry filing before certification."
+            )
         if self.paperless_archive_state in ("not_requested", "pending", "processing"):
-            return _("Archive the official statement in Documents before certification.")
+            return _("File the official statement in Documents before certification.")
         document = self.paperless_document_id.sudo()
         if not document or not self.paperless_version or not self._paperless_version_record():
             return _(
-                "Documents has not verified an archived version with the exact official "
+                "Documents has not verified a version with the exact official "
                 "statement checksum.",
             )
         if document.company_id != self.company_id:
@@ -455,7 +488,7 @@ class AccountBankIngestionFile(models.Model):
         if links and any(link.document_id != document for link in links):
             raise UserError(
                 _(
-                    "This statement is already linked to another Documents archive "
+                    "This statement is already linked to another Documents "
                     "record. A Documents administrator must resolve it.",
                 ),
             )
@@ -481,7 +514,7 @@ class AccountBankIngestionFile(models.Model):
         if document.permission_sync_state != "synchronized":
             raise UserError(
                 _(
-                    "Documents archived the original but could not synchronize its "
+                    "Documents stored the original but could not synchronize its "
                     "accounting access.",
                 ),
             )

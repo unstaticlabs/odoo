@@ -561,9 +561,15 @@ export class DocumentsWorkspaceView extends Component {
             this.searchModel.applySearch(restored.nativeSearch);
         }
         this.initialDocumentId =
-            urlState.documentId || Number(restored.selectedDocumentId) || null;
+            Number(params.initial_document_id) ||
+            urlState.documentId ||
+            Number(restored.selectedDocumentId) ||
+            null;
         this.initialVersionId =
-            urlState.versionId || this.stringValue(restored.selectedVersionId) || null;
+            this.stringValue(params.initial_version_id) ||
+            urlState.versionId ||
+            this.stringValue(restored.selectedVersionId) ||
+            null;
         this.hasLocalListHistory = false;
         this.closingDetail = false;
         this.recordContextKey = this.recordContext
