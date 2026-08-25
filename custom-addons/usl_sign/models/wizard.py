@@ -60,7 +60,7 @@ class SignTemplateGenerate(models.TransientModel):
         readonly=True,
     )
     request_name = fields.Char(
-        string="Request name",
+        string="Document name",
         default=_default_request_name,
     )
     record_ref = fields.Reference(
@@ -89,18 +89,25 @@ class SignTemplateGenerate(models.TransientModel):
         ],
         default="occasional",
         required=True,
+        string="Relationship to signer",
     )
     risk_level = fields.Selection(
         [("low", "Low"), ("material", "Material"), ("maximum", "Maximum")],
         default="low",
         required=True,
+        string="Business risk",
     )
     requires_signed_pdf = fields.Boolean(default=True)
     formal_qes_required = fields.Boolean(string="A formal QES is required")
     policy_id = fields.Many2one("usl.sign.policy", readonly=True)
-    recommended_trust = fields.Selection(SHORT_TRUST_LEVELS, readonly=True)
+    recommended_trust = fields.Selection(
+        SHORT_TRUST_LEVELS,
+        string="Recommended method",
+        readonly=True,
+    )
     requested_trust = fields.Selection(
         SHORT_TRUST_LEVELS,
+        string="Signing method",
         required=True,
         default="standard",
     )
@@ -108,7 +115,7 @@ class SignTemplateGenerate(models.TransientModel):
     recommendation_consequence = fields.Text(readonly=True)
     override_reason = fields.Text()
     approval_recommended = fields.Boolean(readonly=True)
-    journey_availability = fields.Text(readonly=True)
+    journey_availability = fields.Text(string="Before you continue", readonly=True)
     external_provider_id = fields.Many2one(
         "usl.sign.external.provider",
         domain="[('active', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
@@ -316,14 +323,24 @@ class SignRequestMethod(models.TransientModel):
             ("occasional", "Occasional external signer"),
         ],
         required=True,
+        string="Relationship to signer",
     )
     risk_level = fields.Selection(
         [("low", "Low"), ("material", "Material"), ("maximum", "Maximum")],
         required=True,
+        string="Business risk",
     )
     formal_qes_required = fields.Boolean()
-    requested_trust = fields.Selection(SHORT_TRUST_LEVELS, required=True)
-    recommended_trust = fields.Selection(SHORT_TRUST_LEVELS, readonly=True)
+    requested_trust = fields.Selection(
+        SHORT_TRUST_LEVELS,
+        string="Signing method",
+        required=True,
+    )
+    recommended_trust = fields.Selection(
+        SHORT_TRUST_LEVELS,
+        string="Recommended method",
+        readonly=True,
+    )
     recommendation_reason = fields.Text(readonly=True)
     override_reason = fields.Text()
     selected_method_summary = fields.Char(

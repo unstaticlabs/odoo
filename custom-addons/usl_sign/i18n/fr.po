@@ -2180,6 +2180,110 @@ msgid "Your status"
 msgstr "Votre statut"
 
 #. module: usl_sign
+msgid "All"
+msgstr "Tous"
+
+#. module: usl_sign
+msgid "Briefly explain why you cannot sign"
+msgstr "Expliquez brièvement pourquoi vous ne pouvez pas signer"
+
+#. module: usl_sign
+msgid "By continuing, I agree to sign this document electronically. The record will include my consent and the completed document."
+msgstr "En continuant, j’accepte de signer ce document électroniquement. Le dossier conservera mon consentement et le document final."
+
+#. module: usl_sign
+msgid "Complete the required fields, then confirm below."
+msgstr "Remplissez les champs obligatoires, puis confirmez ci-dessous."
+
+#. module: usl_sign
+msgid "Confirm consent and submit my signature"
+msgstr "Confirmer mon consentement et envoyer ma signature"
+
+#. module: usl_sign
+msgid "Decline"
+msgstr "Refuser"
+
+#. module: usl_sign
+msgid "Decline document"
+msgstr "Refuser le document"
+
+#. module: usl_sign
+msgid "I reviewed this document and agree to sign it electronically."
+msgstr "J’ai vérifié ce document et j’accepte de le signer électroniquement."
+
+#. module: usl_sign
+msgid "Keep reviewing"
+msgstr "Continuer la vérification"
+
+#. module: usl_sign
+msgid "My Signing Identity"
+msgstr "Mon identité de signature"
+
+#. module: usl_sign
+msgid "Only the assigned signer can open this signing identity."
+msgstr "Seul le signataire désigné peut ouvrir cette identité de signature."
+
+#. module: usl_sign
+msgid "Only the assigned signer can open this signing journey."
+msgstr "Seul le signataire désigné peut ouvrir ce parcours de signature."
+
+#. module: usl_sign
+msgid "Pocket ID is connected. Confirm that this account belongs to the known person, then approve or revoke the identity link."
+msgstr "Pocket ID est connecté. Vérifiez que ce compte appartient à la personne connue, puis approuvez ou révoquez le lien d’identité."
+
+#. module: usl_sign
+msgid "Protected session"
+msgstr "Session protégée"
+
+#. module: usl_sign
+msgid "Reason"
+msgstr "Motif"
+
+#. module: usl_sign
+msgid "Review signing identity for %(name)s"
+msgstr "Vérifier l’identité de signature de %(name)s"
+
+#. module: usl_sign
+msgid "Secure document signing"
+msgstr "Signature sécurisée de documents"
+
+#. module: usl_sign
+msgid "Set up strong signatures for %(company)s"
+msgstr "Configurer les signatures renforcées pour %(company)s"
+
+#. module: usl_sign
+msgid "Share and send"
+msgstr "Partager et envoyer"
+
+#. module: usl_sign
+msgid "Stored"
+msgstr "Stocké"
+
+#. module: usl_sign
+msgid "The invitation will be sent to %(email)s."
+msgstr "L’invitation sera envoyée à %(email)s."
+
+#. module: usl_sign
+msgid "The sender will see your reason and the request will stop."
+msgstr "L’expéditeur verra votre motif et la demande sera arrêtée."
+
+#. module: usl_sign
+msgid "Verified"
+msgstr "Vérifié"
+
+#. module: usl_sign
+msgid "Waiting for me"
+msgstr "En attente de moi"
+
+#. module: usl_sign
+msgid "request_id.state"
+msgstr "État de la demande"
+
+#. module: usl_sign
+msgid "state"
+msgstr "État"
+
+#. module: usl_sign
 msgid "What happens next"
 msgstr "Suite"
 

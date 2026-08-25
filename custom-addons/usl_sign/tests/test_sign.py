@@ -1741,6 +1741,70 @@ class TestCleanUslSign(TransactionCase):
 
         completed_action = self.env.ref("usl_sign.completed_documents_action")
         self.assertIn("managed_by_current_user", completed_action.domain)
+        completed_list = self.env.ref("usl_sign.sign_request_completed_list_usl")
+        self.assertIn('string="Open signed PDF"', completed_list.arch)
+        self.assertIn('name="completed_at"', completed_list.arch)
+        self.assertIn('name="completed_proof_label"', completed_list.arch)
+        self.assertIn('name="completed_storage_label"', completed_list.arch)
+        self.assertNotIn('name="expires_at"', completed_list.arch)
+
+        template_cards = self.env.ref("usl_sign.sign_template_kanban_usl").arch
+        for label in ["Place fields", "Use template", "New version", "Sign myself"]:
+            self.assertIn(f'string="{label}"', template_cards)
+        for legacy_label in [">Configure<", ">Send<", ">Sign Now<"]:
+            self.assertNotIn(legacy_label, template_cards)
+        self.assertIn("signer_role_count != 1", template_cards)
+
+        template_form = self.env.ref("usl_sign.sign_template_form_usl").arch
+        self.assertIn('string="Place fields"', template_form)
+        self.assertIn('string="Review and publish"', template_form)
+        self.assertIn('string="Use template"', template_form)
+        self.assertIn("This summary is read-only", template_form)
+        self.assertNotIn('field name="position_x"', template_form)
+
+    def test_dashboard_dates_are_localized_for_people(self):
+        request = self._request(user_id=self.sign_user.id)
+        request.expires_at = fields.Datetime.from_string("2026-09-23 20:20:27")
+        item = self.env["usl.sign.workspace"].with_user(self.sign_user)._request_item(
+            request.with_user(self.sign_user),
+        )
+        self.assertTrue(item["due"])
+        self.assertNotEqual(item["due"], "2026-09-23 20:20:27")
+        self.assertNotIn(":27", item["due"])
+
+    def test_identity_and_external_journeys_use_business_language(self):
+        enrollment = self.env["usl.sign.enrollment"].new(
+            {
+                "state": "active",
+                "relationship_basis": "employee",
+            },
+        )
+        self.assertEqual(
+            dict(enrollment._fields["state"]._description_selection(self.env))["active"],
+            "Ready",
+        )
+        self.assertEqual(
+            dict(
+                enrollment._fields["relationship_basis"]._description_selection(
+                    self.env,
+                ),
+            )["employee"],
+            "Employee",
+        )
+        enrollment_list = self.env.ref("usl_sign.sign_enrollment_list").arch
+        for label in ["Person", "Known as", "Status", "Reviewed by"]:
+            self.assertIn(f'string="{label}"', enrollment_list)
+
+        request_form = self.env.ref("usl_sign.sign_request_form_usl").arch
+        self.assertIn('string="Continue"', request_form)
+        self.assertIn("Uploading it starts verification", request_form)
+        external_form = self.env.ref("usl_sign.sign_external_journey_form").arch
+        for label in [
+            "1. Download document",
+            "2. Open signing provider",
+            "3. Upload signed result",
+        ]:
+            self.assertIn(f'string="{label}"', external_form)
 
     def test_internal_signer_dashboard_and_result_do_not_expose_other_signer_rows(self):
         internal_signer = new_test_user(

@@ -165,6 +165,7 @@ class SignTemplate(models.Model):
         "usl.sign.template.document", "template_id", string="Documents and annexes",
     )
     has_requests = fields.Boolean(compute="_compute_has_requests")
+    signer_role_count = fields.Integer(compute="_compute_signer_role_count")
     editor_revision = fields.Integer(default=1, required=True, copy=False, readonly=True)
     editor_operation_log = fields.Json(default=dict, copy=False, readonly=True)
     upload_operation_uuid = fields.Char(readonly=True, copy=False, index=True)
@@ -179,6 +180,11 @@ class SignTemplate(models.Model):
         ],
         compute="_compute_default_trust",
     )
+
+    @api.depends("item_ids.role_id")
+    def _compute_signer_role_count(self):
+        for template in self:
+            template.signer_role_count = len(template.item_ids.role_id)
 
     _upload_operation_unique = models.Constraint(
         "UNIQUE(upload_operation_uuid)",

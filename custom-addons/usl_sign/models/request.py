@@ -259,7 +259,7 @@ class SignRequest(models.Model):
             ("sent", "Sent"),
             ("progress", "In progress"),
             ("checks", "Finishing"),
-            ("closed", "Done"),
+            ("closed", "Closed"),
         ],
         compute="_compute_workspace_presentation",
     )
@@ -268,6 +268,8 @@ class SignRequest(models.Model):
     requested_trust_short = fields.Char(compute="_compute_workspace_presentation")
     recommended_trust_short = fields.Char(compute="_compute_workspace_presentation")
     achieved_trust_short = fields.Char(compute="_compute_workspace_presentation")
+    completed_proof_label = fields.Char(compute="_compute_workspace_presentation")
+    completed_storage_label = fields.Char(compute="_compute_workspace_presentation")
     blocking_summary = fields.Char(compute="_compute_workspace_presentation")
     signing_method_summary = fields.Char(compute="_compute_workspace_presentation")
     due_date_summary = fields.Char(compute="_compute_workspace_presentation")
@@ -461,6 +463,8 @@ class SignRequest(models.Model):
         "state",
         "requested_trust",
         "achieved_trust",
+        "validation_status",
+        "archive_status",
         "signer_ids.state",
         "signer_ids.signed_on",
         "last_error",
@@ -533,9 +537,19 @@ class SignRequest(models.Model):
                 "",
             )
             request.achieved_trust_short = trust_labels.get(request.achieved_trust, "")
+            request.completed_proof_label = (
+                _("Verified")
+                if request.validation_status == "valid"
+                else _("Needs attention")
+            )
+            request.completed_storage_label = (
+                _("Stored")
+                if request.archive_status == "archived"
+                else _("Needs attention")
+            )
             request.has_signing_fields = bool(request.signatory_data)
             request.due_date_summary = (
-                format_datetime(self.env, request.expires_at)
+                format_datetime(self.env, request.expires_at, dt_format="short")
                 if request.expires_at
                 else _("No deadline")
             )

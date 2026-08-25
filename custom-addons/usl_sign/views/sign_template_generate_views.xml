@@ -14,16 +14,16 @@
                     <field name="company_id" invisible="1"/>
                     <field name="sign_now" invisible="1"/>
                     <div class="oe_title mb-3"><p class="text-muted mb-1">Using <field name="template_id" readonly="1" class="d-inline"/></p><h2><field name="request_name" placeholder="Document name" required="1"/></h2></div>
-                    <h3 class="h5">Who will sign?</h3>
-                    <p class="text-muted">Choose one person for each part of the document.</p>
+                    <h3 class="h5">1. Choose the people</h3>
+                    <p class="text-muted">Assign one person to each part of the document. Every row is required.</p>
                     <field name="signer_ids" nolabel="1">
                         <list editable="bottom" create="0" delete="0"><field name="role_id" string="Signing role" force_save="1"/><field name="partner_id" string="Person"/></list>
                     </field>
-                    <separator string="Signing method"/>
+                    <h3 class="h5 mt-4">2. Confirm the signing method</h3>
                     <div class="card bg-light border-0 mb-3 usl_sign_method_recommendation"><div class="card-body p-3">
                         <div class="row g-3 align-items-center">
                             <div class="col-12 col-md-5">
-                                <div class="text-muted small mb-1">Recommended method</div>
+                                <div class="text-muted small mb-1">Recommended</div>
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white border text-primary flex-shrink-0 usl_sign_method_icon"><i class="fa fa-shield" title="Recommended method" aria-hidden="true"/></span>
                                     <field name="recommended_trust" nolabel="1" readonly="1" class="fw-semibold"/>
@@ -31,7 +31,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-md-7">
-                                <div class="text-muted small mb-1">Availability</div>
+                                <div class="text-muted small mb-1">Before you continue</div>
                                 <div class="d-flex align-items-start gap-2">
                                     <i class="fa fa-info-circle text-muted mt-1 flex-shrink-0" title="Availability" aria-hidden="true"/>
                                     <field name="journey_availability" nolabel="1" readonly="1" class="text-body"/>
@@ -39,13 +39,16 @@
                             </div>
                         </div>
                     </div></div>
-                    <group>
-                        <field name="requested_trust" string="Use"/>
-                        <field name="external_provider_id" invisible="requested_trust != 'qualified_external'"/>
-                        <field name="override_reason" invisible="requested_trust == recommended_trust" required="requested_trust != recommended_trust"/>
-                    </group>
-                    <separator string="Message"/>
-                    <field name="message" nolabel="1" placeholder="Add a short reason or instruction (optional)."/>
+                    <label for="requested_trust" string="Signing method" class="o_form_label fw-semibold"/>
+                    <field name="requested_trust" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                    <div class="card mt-3" invisible="requested_trust != 'qualified_external'"><div class="card-body">
+                        <field name="external_provider_id" string="Qualified provider" required="requested_trust == 'qualified_external'"/>
+                    </div></div>
+                    <div class="card border-warning mt-3" invisible="requested_trust == recommended_trust"><div class="card-body">
+                        <field name="override_reason" string="Why choose a different method?" required="requested_trust != recommended_trust" placeholder="Record why the recommendation is not right for this document."/>
+                    </div></div>
+                    <h3 class="h5 mt-4">3. Add a message</h3>
+                    <field name="message" nolabel="1" placeholder="Optional note shown with the invitation."/>
                     <details class="mt-3">
                         <summary class="text-muted">More options</summary>
                         <group class="mt-2">
@@ -62,7 +65,7 @@
                     </details>
                 </sheet>
                 <footer>
-                    <button name="generate" string="Continue" class="btn-primary" type="object"/>
+                    <button name="generate" string="Review request" class="btn-primary" type="object"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
