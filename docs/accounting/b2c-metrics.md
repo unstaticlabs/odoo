@@ -13,10 +13,14 @@ B2C reports separate grains so a join cannot duplicate totals:
 | Stock | native `stock.move` and `stock.quant` | done movement quantity and current on-hand quantity | source baseline is zero; opening count is not evidenced |
 
 Order revenue is not reconstructed from line detail. Etsy lines cover item
-revenue only; Medusa headers may have no lines. The order reports therefore own
+revenue only. A separately checksum-locked Medusa sold-items export now provides
+222 lines for all 96 current Medusa orders, but it has no immutable provider
+line IDs and its line sums do not always equal header totals. The 35 remaining
+legacy-only Medusa orders still have headers only. Order reports therefore own
 total revenue. SKU drill-down is explicitly “evidenced line revenue” and shows
-`line_revenue_coverage_percent` plus unallocated header revenue. It must never
-be labelled total revenue when coverage is below 100%.
+`line_revenue_coverage_percent` plus positive or negative unallocated header
+revenue. It must never be labelled total revenue when coverage is not exactly
+100%.
 
 ## Amount and margin rules
 

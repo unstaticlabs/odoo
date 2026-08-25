@@ -84,6 +84,19 @@ MEDUSA_HEADER = (
     "Total",
     "Currency Code",
 )
+MEDUSA_ITEMS_HEADER = (
+    "order_number",
+    "date",
+    "order_status",
+    "customer_email",
+    "currency",
+    "sku",
+    "product",
+    "variant",
+    "quantity",
+    "unit_price",
+    "line_total",
+)
 REVOLUT_HEADER = (
     "payment_id",
     "type",
@@ -246,6 +259,12 @@ EXPECTED_ARCHIVE_BASELINE = {
     "medusa_current_currencies": {"EUR": 67, "GBP": 16, "USD": 13},
     "medusa_current_legacy_overlap": 41,
     "medusa_current_orders": 96,
+    "medusa_item_exact_catalog_matches": 9,
+    "medusa_item_nonblank_sku_rows": 138,
+    "medusa_item_orders": 96,
+    "medusa_item_rows": 222,
+    "medusa_item_skus": 50,
+    "medusa_item_units": "225",
     "printful_completed_rows": 247,
     "printful_refund_rows": 14,
     "printful_rows": 261,
@@ -281,9 +300,9 @@ def digest(value):
     ).hexdigest()
 
 
-def load_csv(name, checksum, content, expected_header):
+def load_csv(name, checksum, content, expected_header, *, delimiter=","):
     text = content.decode("utf-8-sig")
-    reader = csv.DictReader(io.StringIO(text, newline=""))
+    reader = csv.DictReader(io.StringIO(text, newline=""), delimiter=delimiter)
     actual = tuple(reader.fieldnames or ())
     if actual != tuple(expected_header):
         raise ValueError(f"{name} schema changed: {actual!r} != {tuple(expected_header)!r}")
@@ -367,7 +386,12 @@ def normalize_order_id(value):
     return (value or "").strip().lstrip("#").strip()
 
 
-def build_canonical_orders(etsy_documents, legacy_document, medusa_document):
+def build_canonical_orders(
+    etsy_documents,
+    legacy_document,
+    medusa_document,
+    medusa_items_document,
+):
     orders = {}
     sources = []
     lines = []
@@ -430,10 +454,17 @@ def build_canonical_orders(etsy_documents, legacy_document, medusa_document):
 
     legacy_ids = set(orders)
     current_ids = set()
+    medusa_display_ids = {}
     for row in medusa_document.rows:
         original_id = row["Order_ID"].strip()
         external_id = normalize_order_id(original_id)
         current_ids.add(external_id)
+        display_id = row["Display_ID"].strip()
+        if not display_id:
+            raise ValueError(f"Medusa order {external_id} has a blank display identifier")
+        if display_id in medusa_display_ids:
+            raise ValueError(f"Duplicate Medusa display identifier {display_id}")
+        medusa_display_ids[display_id] = external_id
         order = ensure(
             external_id,
             "medusa",
@@ -459,6 +490,64 @@ def build_canonical_orders(etsy_documents, legacy_document, medusa_document):
             },
         )
         sources.append((external_id, "medusa", medusa_document, (row,), original_id))
+
+    medusa_item_groups = defaultdict(list)
+    for row in medusa_items_document.rows:
+        display_id = row["order_number"].strip()
+        external_id = medusa_display_ids.get(display_id)
+        if not external_id:
+            raise ValueError(
+                f"Medusa sold item references unknown display identifier {display_id!r}",
+            )
+        order = orders[external_id]
+        line_currency = row["currency"].strip().upper()
+        if line_currency != order["currency"]:
+            raise ValueError(
+                f"Medusa sold item currency changed for display identifier {display_id}",
+            )
+        line_date = parsed_datetime(row["date"])
+        if not line_date or line_date.date() != order["order_date"].date():
+            raise ValueError(
+                f"Medusa sold item date changed for display identifier {display_id}",
+            )
+        order["amount_completeness"] = "partial"
+        medusa_item_groups[external_id].append(row)
+        lines.append(
+            {
+                "provider": "medusa",
+                "external_order_id": external_id,
+                "external_line_id": "",
+                "external_transaction_id": "",
+                "external_listing_id": "",
+                "original_sku": row["sku"].strip(),
+                "original_name": row["product"].strip() or "Unnamed Medusa item",
+                "original_variation": row["variant"],
+                "quantity": quantity(row["quantity"]),
+                "unit_price": money(row["unit_price"], default=Decimal("0")),
+                "discount": Decimal("0"),
+                "shipping": Decimal("0"),
+                "tax": Decimal("0"),
+                "revenue": money(row["line_total"], default=Decimal("0")),
+                "document": medusa_items_document,
+                "row": row,
+            },
+        )
+    missing_item_orders = set(medusa_display_ids.values()) - set(medusa_item_groups)
+    if missing_item_orders:
+        raise ValueError(
+            "Medusa sold items do not cover every current order: "
+            f"{sorted(missing_item_orders)!r}",
+        )
+    for external_id, rows in sorted(medusa_item_groups.items()):
+        sources.append(
+            (
+                external_id,
+                "medusa",
+                medusa_items_document,
+                tuple(rows),
+                external_id,
+            ),
+        )
 
     etsy_groups = defaultdict(list)
     for document in etsy_documents:
@@ -494,6 +583,7 @@ def build_canonical_orders(etsy_documents, legacy_document, medusa_document):
             source_groups[key][1].append(row)
             lines.append(
                 {
+                    "provider": "etsy",
                     "external_order_id": external_id,
                     "external_line_id": row["Transaction ID"].strip(),
                     "external_transaction_id": row["Transaction ID"].strip(),
@@ -763,8 +853,13 @@ def archive_baseline(
     payout_document,
     catalog_skus,
 ):
-    etsy_skus = {
-        line["original_sku"] for line in canonical["lines"] if line["original_sku"]
+    etsy_lines = [line for line in canonical["lines"] if line["provider"] == "etsy"]
+    medusa_lines = [
+        line for line in canonical["lines"] if line["provider"] == "medusa"
+    ]
+    etsy_skus = {line["original_sku"] for line in etsy_lines if line["original_sku"]}
+    medusa_skus = {
+        line["original_sku"] for line in medusa_lines if line["original_sku"]
     }
     statement_types = Counter(
         row["Type"]
@@ -778,9 +873,9 @@ def archive_baseline(
     ]
     baseline = {
         "canonical_orders": len(canonical["orders"]),
-        "etsy_item_rows": len(canonical["lines"]),
+        "etsy_item_rows": len(etsy_lines),
         "etsy_order_units": str(
-            sum((line["quantity"] for line in canonical["lines"]), Decimal("0")),
+            sum((line["quantity"] for line in etsy_lines), Decimal("0")),
         ),
         "etsy_orders": len(canonical["etsy_ids"]),
         "etsy_sku_exact_catalog_matches": len(etsy_skus & set(catalog_skus)),
@@ -799,6 +894,18 @@ def archive_baseline(
             canonical["current_ids"] & canonical["legacy_ids"],
         ),
         "medusa_current_orders": len(canonical["current_ids"]),
+        "medusa_item_exact_catalog_matches": len(medusa_skus & set(catalog_skus)),
+        "medusa_item_nonblank_sku_rows": sum(
+            bool(line["original_sku"]) for line in medusa_lines
+        ),
+        "medusa_item_orders": len(
+            {line["external_order_id"] for line in medusa_lines},
+        ),
+        "medusa_item_rows": len(medusa_lines),
+        "medusa_item_skus": len(medusa_skus),
+        "medusa_item_units": str(
+            sum((line["quantity"] for line in medusa_lines), Decimal("0")),
+        ),
         "printful_completed_rows": sum(
             row["status"] == "Completed" for row in printful_rows
         ),

@@ -513,6 +513,7 @@ services:
       USL_EINVOICE_LIVE_ENABLED: 0
       USL_EREPORTING_LIVE_ENABLED: 0
       B2C_EVIDENCE_DIR: /mnt/b2c-evidence
+      B2C_SUPPLEMENTAL_EVIDENCE_DIR: /mnt/b2c-evidence/source
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf

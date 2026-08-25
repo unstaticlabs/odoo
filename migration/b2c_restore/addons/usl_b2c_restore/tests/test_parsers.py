@@ -5,6 +5,7 @@ from odoo.tests import BaseCase, tagged
 
 from odoo.addons.usl_b2c_restore.parsers import (
     ETSY_STATEMENT_HEADER,
+    MEDUSA_ITEMS_HEADER,
     archive_baseline,
     build_canonical_orders,
     load_csv,
@@ -29,6 +30,7 @@ class TestB2cSourceParsers(BaseCase):
             cls.documents["etsy_items"],
             cls.documents["medusa_legacy"][0],
             cls.documents["medusa"][0],
+            cls.documents["medusa_items"][0],
         )
         cls.etsy_events = parse_etsy_statement_events(
             cls.documents["etsy_statement"],
@@ -54,6 +56,17 @@ class TestB2cSourceParsers(BaseCase):
                 "synthetic",
                 f"{changed_header}\n".encode(),
                 ETSY_STATEMENT_HEADER,
+            )
+        changed_medusa_header = ";".join(
+            (*MEDUSA_ITEMS_HEADER[:-1], "renamed_line_total"),
+        )
+        with self.assertRaisesRegex(ValueError, "schema changed"):
+            load_csv(
+                "changed-medusa-items.csv",
+                "synthetic",
+                f"{changed_medusa_header}\n".encode(),
+                MEDUSA_ITEMS_HEADER,
+                delimiter=";",
             )
 
     def test_archive_baseline_and_multicurrency(self):
@@ -86,15 +99,18 @@ class TestB2cSourceParsers(BaseCase):
         )
 
     def test_etsy_order_statement_linkage_and_sku_mapping_stays_pending(self):
-        self.assertEqual(len(self.canonical["lines"]), 235)
+        etsy_lines = [
+            line for line in self.canonical["lines"] if line["provider"] == "etsy"
+        ]
+        self.assertEqual(len(etsy_lines), 235)
         self.assertEqual(len(self.canonical["etsy_ids"]), 173)
         self.assertEqual(
-            sum((line["quantity"] for line in self.canonical["lines"]), Decimal()),
+            sum((line["quantity"] for line in etsy_lines), Decimal()),
             237,
         )
         original_skus = {
             line["original_sku"]
-            for line in self.canonical["lines"]
+            for line in etsy_lines
             if line["original_sku"]
         }
         self.assertEqual(len(original_skus), 56)
@@ -114,7 +130,7 @@ class TestB2cSourceParsers(BaseCase):
             ),
         )
 
-    def test_medusa_precedence_and_missing_line_coverage(self):
+    def test_medusa_precedence_and_supplemental_line_coverage(self):
         self.assertEqual(len(self.canonical["legacy_ids"]), 249)
         self.assertEqual(len(self.canonical["current_ids"]), 96)
         overlap = self.canonical["legacy_ids"] & self.canonical["current_ids"]
@@ -129,8 +145,47 @@ class TestB2cSourceParsers(BaseCase):
         self.assertTrue(
             all(
                 self.canonical["orders"][external_id]["amount_completeness"]
-                == "header_only"
+                == "partial"
                 for external_id in current_only
+            ),
+        )
+        medusa_lines = [
+            line for line in self.canonical["lines"] if line["provider"] == "medusa"
+        ]
+        self.assertEqual(len(medusa_lines), 222)
+        self.assertEqual(
+            sum((line["quantity"] for line in medusa_lines), Decimal()),
+            225,
+        )
+        self.assertEqual(
+            len({line["external_order_id"] for line in medusa_lines}),
+            96,
+        )
+        self.assertTrue(all(not line["external_line_id"] for line in medusa_lines))
+        self.assertEqual(sum(bool(line["original_sku"]) for line in medusa_lines), 138)
+        self.assertEqual(
+            len({line["original_sku"] for line in medusa_lines if line["original_sku"]}),
+            50,
+        )
+        example = [
+            line
+            for line in medusa_lines
+            if line["external_order_id"] == "order_01KWQF6Y14CCS8WSGGDNFFBXT1"
+        ]
+        self.assertEqual(len(example), 2)
+        self.assertEqual(sum((line["quantity"] for line in example), Decimal()), 3)
+        self.assertEqual(sum((line["revenue"] for line in example), Decimal()), 111)
+        legacy_only = (
+            self.canonical["legacy_ids"]
+            - self.canonical["current_ids"]
+            - self.canonical["etsy_ids"]
+        )
+        self.assertEqual(len(legacy_only), 35)
+        self.assertTrue(
+            all(
+                self.canonical["orders"][external_id]["amount_completeness"]
+                == "header_only"
+                for external_id in legacy_only
             ),
         )
 

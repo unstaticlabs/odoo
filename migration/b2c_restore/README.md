@@ -6,6 +6,11 @@ is not on the delivered add-ons path. See
 the runbook and [`source-field-matrix.md`](source-field-matrix.md) for the
 archive contract.
 
-The stage accepts only the locked source dump and attachment manifest, reads it
-with `accounting_source_ro`, writes private evidence below ignored `artifacts/`,
-and removes its entire registry/database footprint during finalization.
+The stage accepts the locked source dump/attachment manifest as primary truth
+and one explicitly declared post-dump Medusa sold-items export. The supplemental
+file must be placed privately at
+`artifacts/b2c-restore/source/medusa-sold-items-2026-08-05.csv`; its filename,
+size, SHA-1, SHA-256, schema and row baselines are all blocking checks. The
+stage reads the Odoo source with `accounting_source_ro`, writes private evidence
+below ignored `artifacts/`, and removes its entire registry/database footprint
+during finalization.

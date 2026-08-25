@@ -227,11 +227,14 @@ payments and stock operations, so the stage does not manufacture any. It
 fingerprints Accounting, reconciliations, bank data, native payment records,
 Sales, Purchase, Stock and product cost history before and after import.
 
-The current archive baseline is 304 canonical orders, 235 Etsy line rows, 1,821
-payment/refund/fee events, 261 fulfilment/COGS rows, 59 pending aliases and 80
-monthly session scopes. Repeat import must preserve those counts and the same
-protected fingerprint. Detailed file and column dispositions live in
-`migration/b2c_restore/source-field-matrix.md`.
+The current evidence baseline is 304 canonical orders, 235 Etsy line rows plus
+222 separately checksum-locked Medusa sold-item rows, 1,821
+payment/refund/fee events, 261 fulfilment/COGS rows, 109 pending aliases and 80
+monthly session scopes. The Odoo Online dump and its filestore remain primary;
+the Medusa sold-item file is explicitly post-dump supplemental provider
+evidence and never masquerades as a source-database record. Repeat import must
+preserve those counts and the same protected fingerprint. Detailed file and
+column dispositions live in `migration/b2c_restore/source-field-matrix.md`.
 
 ### Platform Billing stage
 

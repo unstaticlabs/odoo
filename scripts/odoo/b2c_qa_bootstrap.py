@@ -53,7 +53,7 @@ counts = {
 if profile != "clean-install":
     expected = {
         "orders": 304,
-        "order_lines": 235,
+        "order_lines": 457,
         "payment_events": 1821,
         "fulfilments": 261,
         "sessions": 80,

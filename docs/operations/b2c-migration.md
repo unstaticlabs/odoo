@@ -1,5 +1,17 @@
 # B2C migration and reconciliation
 
+## Required source inputs
+
+The Odoo Online dump and filestore remain the primary source and must match the
+locked dump SHA-256. Current Medusa headers exist there, but Medusa sold-item
+detail does not. Before running the stage, place the separately supplied
+provider export at
+`artifacts/b2c-restore/source/medusa-sold-items-2026-08-05.csv`. This private,
+Git-ignored file must match SHA-256
+`e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a`.
+Missing or changed supplemental evidence is blocking; it is never silently
+treated as an empty line set.
+
 ## Safety and stage order
 
 The one-shot add-on is available only at

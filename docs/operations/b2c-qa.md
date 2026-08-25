@@ -25,7 +25,9 @@ reconstruction digest.
 Sign in as Valentin and confirm the B2C manager role. Check:
 
 - 304 canonical orders and overlap evidence on an Etsy order;
-- 235 Etsy line rows, 237 units, and pending original SKU aliases;
+- 235 Etsy rows/237 units plus 222 Medusa rows/225 units, with pending
+  original SKU aliases and no fabricated Medusa provider line IDs;
+- two Medusa lines on display order `1617586399`, with quantities two and one;
 - separate payment/refund/fee and fulfilment/COGS pivots;
 - a Stripe record with blank row ID but a stable unique evidence key;
 - a Revolut refund linked to its original payment;

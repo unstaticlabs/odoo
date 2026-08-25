@@ -12,6 +12,7 @@ from .parsers import (
     ETSY_STATEMENT_HEADER,
     LEGACY_MEDUSA_HEADER,
     MEDUSA_HEADER,
+    MEDUSA_ITEMS_HEADER,
     REVOLUT_HEADER,
     STRIPE_PAYMENT_HEADER,
     STRIPE_PAYOUT_HEADER,
@@ -22,11 +23,14 @@ EXPECTED_DUMP_SHA256 = "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c06
 SOURCE_FILESTORE = Path(
     os.getenv("B2C_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
 ).resolve()
+SUPPLEMENTAL_EVIDENCE_DIR = Path(
+    os.getenv("B2C_SUPPLEMENTAL_EVIDENCE_DIR", "/mnt/b2c-evidence/source"),
+).resolve()
 
 
 @dataclass(frozen=True)
 class SourceFile:
-    attachment_id: int
+    attachment_id: int | None
     name: str
     store_fname: str
     checksum: str
@@ -83,11 +87,29 @@ SOURCE_FILES = tuple(
     SourceFile(3189, "Stripe Tax Invoice LWA02EXD-2026-06.pdf", "6b/6b28c52436d4c9bf8d214910b58ce810731633c7", "6b28c52436d4c9bf8d214910b58ce810731633c7", 31412, "application/pdf", "supporting_pdf"),
 )
 
+SUPPLEMENTAL_SOURCE_FILES = (
+    SourceFile(
+        None,
+        "medusa-sold-items-2026-08-05.csv",
+        "medusa-sold-items-2026-08-05.csv",
+        "c40c79abf63639456c230d330e76aa30824151c8",
+        24822,
+        "text/csv",
+        "medusa_items",
+    ),
+)
+SUPPLEMENTAL_SHA256 = {
+    "medusa-sold-items-2026-08-05.csv": (
+        "e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a"
+    ),
+}
+
 CSV_HEADERS = {
     "etsy_statement": ETSY_STATEMENT_HEADER,
     "etsy_items": ETSY_ITEMS_HEADER,
     "medusa_legacy": LEGACY_MEDUSA_HEADER,
     "medusa": MEDUSA_HEADER,
+    "medusa_items": MEDUSA_ITEMS_HEADER,
     "revolut": REVOLUT_HEADER,
     "stripe_payout": STRIPE_PAYOUT_HEADER,
     "stripe_payment": STRIPE_PAYMENT_HEADER,
@@ -112,20 +134,35 @@ class B2cSourceReader:
         self.options = options or source_options()
 
     def _content(self, source_file):
-        path = (SOURCE_FILESTORE / source_file.store_fname).resolve()
-        if SOURCE_FILESTORE not in path.parents or not path.is_file():
+        source_root = (
+            SOURCE_FILESTORE
+            if source_file.attachment_id is not None
+            else SUPPLEMENTAL_EVIDENCE_DIR
+        )
+        path = (source_root / source_file.store_fname).resolve()
+        if source_root not in path.parents or not path.is_file():
+            source_label = (
+                f"attachment {source_file.attachment_id}"
+                if source_file.attachment_id is not None
+                else f"supplemental file {source_file.name}"
+            )
             raise RuntimeError(
-                f"B2C source attachment {source_file.attachment_id} is missing or unsafe",
+                f"B2C source {source_label} is missing or unsafe",
             )
         content = path.read_bytes()
         if len(content) != source_file.file_size:
             raise RuntimeError(
-                f"B2C source attachment {source_file.attachment_id} size changed",
+                f"B2C source file {source_file.name} size changed",
             )
         checksum = hashlib.sha1(content, usedforsecurity=False).hexdigest()
         if checksum != source_file.checksum:
             raise RuntimeError(
-                f"B2C source attachment {source_file.attachment_id} checksum changed",
+                f"B2C source file {source_file.name} SHA-1 changed",
+            )
+        expected_sha256 = SUPPLEMENTAL_SHA256.get(source_file.name)
+        if expected_sha256 and hashlib.sha256(content).hexdigest() != expected_sha256:
+            raise RuntimeError(
+                f"B2C supplemental source file {source_file.name} SHA-256 changed",
             )
         return content
 
@@ -188,7 +225,7 @@ class B2cSourceReader:
 
         files = []
         documents = defaultdict(list)
-        for source_file in SOURCE_FILES:
+        for source_file in (*SOURCE_FILES, *SUPPLEMENTAL_SOURCE_FILES):
             content = self._content(source_file)
             sha256 = hashlib.sha256(content).hexdigest()
             descriptor = {
@@ -204,6 +241,7 @@ class B2cSourceReader:
                         sha256,
                         content,
                         CSV_HEADERS[source_file.kind],
+                        delimiter=";" if source_file.kind == "medusa_items" else ",",
                     ),
                 )
         return {

@@ -18,6 +18,7 @@ support a reviewed link but is never applied automatically.
 | Etsy sold items, 2024–2026 | 3 | 235 | 173 canonical orders, 235 lines, 237 units and SKU/listing aliases |
 | Legacy Goodboys/Medusa | 1 | 249 | umbrella order headers; lowest precedence |
 | Current Medusa | 1 | 96 | richer order/payment/fulfilment headers; 41 overlap legacy |
+| Supplemental Medusa sold items, through 5 Aug 2026 | 1 | 222 | line detail for all 96 current Medusa orders; 225 units; file/row identity because provider line IDs are absent |
 | Stripe payouts | 1 | 8 | payout events |
 | Stripe unified payments | 1 | 149 | payment/refund/fee events; 72 blank row IDs remain distinct |
 | Revolut Merchant | 1 | 318 | 311 payments and seven linked refunds |
@@ -75,8 +76,35 @@ catalog SKUs, so every mapping begins pending.
 | `Order status`, `Fulfillment Status`, `Payment Status` | order state is typed from Order status; all three original values remain evidence; fulfilment/payment values are link candidates only |
 | `Date` | typed order date |
 | `Shipping Country Code` | typed country where a unique native country exists |
-| `Subtotal`, `Shipping Total`, `Discount Total`, `Tax Total`, `Total`, `Currency Code` | typed transaction amounts/currency; discount is normalized negative; header-only completeness prevents line fabrication |
+| `Subtotal`, `Shipping Total`, `Discount Total`, `Tax Total`, `Total`, `Currency Code` | typed transaction amounts/currency; discount is normalized negative; order totals remain header-owned and are never replaced by line sums |
 | `Customer First name`, `Customer Last name`, `Customer Email`, `Customer ID`, `Shipping Address 1`, `Shipping Address 2`, `Shipping City`, `Shipping Postal Code`, `Shipping Region ID` | restricted PII evidence only; no guessed partner |
+
+## Supplemental Medusa sold-item schema
+
+The Odoo Online dump remains authoritative for native and archived records. It
+contains the 96 current Medusa headers but not their line export. The separately
+supplied provider export `medusa-sold-items-2026-08-05.csv` is therefore
+classified as post-dump supplemental business evidence. Its SHA-256 is
+`e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a`.
+The importer requires that exact private file under
+`artifacts/b2c-restore/source/`; it is ignored by Git and never committed.
+
+| Columns | Disposition |
+| --- | --- |
+| `order_number` | exact join to the current Medusa `Display_ID`; an unknown, blank, duplicate or uncovered display ID aborts |
+| `date`, `currency` | must agree with the authoritative Medusa order header; disagreement aborts |
+| `product`, `variant`, `quantity`, `unit_price`, `line_total` | typed original line name/variation, units, unit price and evidenced line amount |
+| `sku` | typed original SKU; a pending alias is created when nonblank; an exact Odoo SKU may be suggested but is never verified automatically |
+| `order_status` | restricted provider evidence; it does not override the header-owned canonical state |
+| `customer_email` | restricted PII evidence only |
+
+The locked baseline is 222 rows, 96 orders, 225 units, 138 rows with a
+nonblank SKU and 50 distinct SKUs. Nine SKUs exactly match the restored Odoo
+catalogue and remain pending suggestions. All 222 rows lack immutable provider
+line IDs, so idempotency uses the checksum-locked file plus row number and does
+not collapse the one genuine duplicate business row. Line sums are preserved
+as evidenced; they are not forced to equal header totals and never overwrite
+order-level revenue, shipping, discounts or tax.
 
 ## Stripe payout schema
 

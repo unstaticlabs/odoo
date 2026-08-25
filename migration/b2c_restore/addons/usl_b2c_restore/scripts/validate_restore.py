@@ -22,6 +22,7 @@ canonical = build_canonical_orders(
     documents["etsy_items"],
     documents["medusa_legacy"][0],
     documents["medusa"][0],
+    documents["medusa_items"][0],
 )
 etsy_events = parse_etsy_statement_events(documents["etsy_statement"])
 stripe_events = parse_stripe_events(
@@ -63,26 +64,50 @@ assert counts == {
     for key in counts
 }
 assert counts["orders"] == 304
-assert counts["order_lines"] == 235
+assert counts["order_lines"] == 457
 assert counts["payment_events"] == 1346 + 149 + 8 + 318
 assert counts["fulfilments"] == 261
-assert counts["evidence"] == 2671
+assert counts["evidence"] == 2893
 
 assert env["b2c.order"].sudo().search_count(
     domain + [("source_provider", "=", "etsy")],
 ) == 173
 assert env["b2c.order"].sudo().search_count(
     domain + [("amount_completeness", "=", "header_only")],
-) > 0
+) == 35
 assert env["b2c.order"].sudo().search_count(
     domain + [("currency_id", "=", False)],
 ) > 0
 assert env["b2c.order.line"].sudo().search_count(
     domain + [("mapping_state", "=", "pending"), ("product_id", "=", False)],
-) == 235
+) == 457
 assert env["b2c.product.alias"].sudo().search_count(
     domain + [("mapping_state", "=", "verified")],
 ) == 0
+assert env["b2c.product.alias"].sudo().search_count(
+    domain + [("mapping_state", "=", "pending")],
+) == 109
+assert env["b2c.product.alias"].sudo().search_count(
+    domain
+    + [
+        ("source_provider", "=", "medusa"),
+        ("suggested_product_id", "!=", False),
+        ("mapping_state", "=", "pending"),
+    ],
+) == 9
+assert env["b2c.order.line"].sudo().search_count(
+    domain
+    + [
+        ("source_provider", "=", "medusa"),
+        ("external_line_id", "=", False),
+    ],
+) == 222
+example = env["b2c.order"].sudo().search(
+    domain + [("external_display_id", "=", "1617586399")],
+)
+assert len(example) == 1
+assert len(example.line_ids) == 2
+assert Decimal(str(sum(example.line_ids.mapped("quantity")))) == Decimal("3")
 
 stripe_domain = domain + [("source_provider", "=", "stripe")]
 assert env["b2c.payment.event"].sudo().search_count(

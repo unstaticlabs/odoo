@@ -16,7 +16,7 @@ from odoo.addons.usl_b2c_restore.parsers import (
 )
 from odoo.addons.usl_b2c_restore.source import B2cSourceReader
 
-RESTORE_REVISION = 1
+RESTORE_REVISION = 2
 
 
 class UslB2cRestoreRun(models.Model):
@@ -240,7 +240,12 @@ class UslB2cRestoreRun(models.Model):
     ):
         source_file = descriptor["source"]
         payload_digest = digest([row_key, payload])
-        key = f"{source_file.attachment_id}:{row_key}:{payload_digest}"
+        namespace = (
+            str(source_file.attachment_id)
+            if source_file.attachment_id is not None
+            else f"file:{descriptor['sha256']}"
+        )
+        key = f"{namespace}:{row_key}:{payload_digest}"
         evidence = (
             self.env["b2c.provider.evidence"]
             .sudo()
@@ -253,6 +258,7 @@ class UslB2cRestoreRun(models.Model):
             "etsy_items": "etsy",
             "etsy_statement": "etsy",
             "medusa": "medusa",
+            "medusa_items": "medusa",
             "medusa_legacy": "medusa_legacy",
             "printful": "printful",
             "revolut": "revolut",
@@ -441,6 +447,7 @@ class UslB2cRestoreRun(models.Model):
             documents["etsy_items"],
             documents["medusa_legacy"][0],
             documents["medusa"][0],
+            documents["medusa_items"][0],
         )
         etsy_events = parse_etsy_statement_events(documents["etsy_statement"])
         stripe_events = parse_stripe_events(
@@ -554,7 +561,10 @@ class UslB2cRestoreRun(models.Model):
                     }[provider],
                     "is_primary": is_primary,
                     "completeness_state": (
-                        "partial" if provider == "etsy" else "header_only"
+                        "partial"
+                        if descriptors[document.name]["source"].kind
+                        in {"etsy_items", "medusa_items"}
+                        else "header_only"
                     ),
                     "provider_payload_digest": digest(
                         [evidence.payload_digest for evidence in evidence_records],
@@ -578,36 +588,73 @@ class UslB2cRestoreRun(models.Model):
                 order.order_date,
                 contains_pii=True,
             )
-            alias_domain = [
-                ("company_id", "=", company.id),
-                ("channel_id", "=", channels["etsy"].id),
-                ("source_provider", "=", "etsy"),
-                ("original_sku", "=", line["original_sku"] or False),
-                ("external_listing_id", "=", line["external_listing_id"] or False),
-            ]
-            alias = self.env["b2c.product.alias"].sudo().search(alias_domain, limit=1)
-            alias_values = {
-                "company_id": company.id,
-                "channel_id": channels["etsy"].id,
-                "source_provider": "etsy",
-                "original_sku": line["original_sku"] or False,
-                "original_name": line["original_name"],
-                "original_variation": line["original_variation"],
-                "external_listing_id": line["external_listing_id"] or False,
-                "mapping_state": "pending",
-                "product_id": False,
-                "suggested_product_id": False,
-                "evidence_id": evidence.id,
-                "evidence_note": (
-                    "No exact source SKU matched the restored Odoo catalogue; "
-                    "manual review is required."
-                ),
-            }
-            if alias:
-                alias.write(alias_values)
-            else:
-                alias = self.env["b2c.product.alias"].sudo().create(alias_values)
-            target_aliases[alias.alias_key] = alias
+            alias = self.env["b2c.product.alias"]
+            if line["original_sku"] or line["external_listing_id"]:
+                exact_product = self.env["product.product"]
+                if line["original_sku"]:
+                    exact_matches = (
+                        self.env["product.product"]
+                        .sudo()
+                        .with_context(active_test=False)
+                        .search(
+                            [("default_code", "=", line["original_sku"])],
+                            limit=2,
+                        )
+                    )
+                    if len(exact_matches) == 1:
+                        exact_product = exact_matches
+                alias_domain = [
+                    ("company_id", "=", company.id),
+                    ("channel_id", "=", order.channel_id.id),
+                    ("source_provider", "=", line["provider"]),
+                    ("original_sku", "=", line["original_sku"] or False),
+                    (
+                        "external_listing_id",
+                        "=",
+                        line["external_listing_id"] or False,
+                    ),
+                ]
+                alias = (
+                    self.env["b2c.product.alias"]
+                    .sudo()
+                    .search(alias_domain, limit=1)
+                )
+                common_alias_values = {
+                    "company_id": company.id,
+                    "channel_id": order.channel_id.id,
+                    "source_provider": line["provider"],
+                    "original_sku": line["original_sku"] or False,
+                    "original_name": line["original_name"],
+                    "original_variation": line["original_variation"],
+                    "external_listing_id": line["external_listing_id"] or False,
+                    "evidence_id": evidence.id,
+                }
+                pending_alias_values = {
+                    **common_alias_values,
+                    "mapping_state": "pending",
+                    "product_id": False,
+                    "suggested_product_id": exact_product.id or False,
+                    "evidence_note": (
+                        "An exact restored Odoo catalogue SKU is suggested; "
+                        "manual verification is still required."
+                        if exact_product
+                        else "No exact source SKU matched the restored Odoo catalogue; "
+                        "manual review is required."
+                    ),
+                }
+                if alias:
+                    alias.write(
+                        common_alias_values
+                        if alias.mapping_state in {"verified", "rejected"}
+                        else pending_alias_values,
+                    )
+                else:
+                    alias = (
+                        self.env["b2c.product.alias"]
+                        .sudo()
+                        .create(pending_alias_values)
+                    )
+                target_aliases[alias.alias_key] = alias
 
             line_key = digest(
                 [document.checksum, line["row"]["_row_number"], line["external_line_id"]],
@@ -647,9 +694,9 @@ class UslB2cRestoreRun(models.Model):
                     line["tax"] if currency == company.currency_id else 0
                 ),
                 "revenue_company_amount": company_amount,
-                "product_id": False,
-                "alias_id": alias.id,
-                "mapping_state": "pending",
+                "product_id": alias.product_id.id if alias else False,
+                "alias_id": alias.id if alias else False,
+                "mapping_state": alias.mapping_state if alias else "pending",
                 "amount_completeness": "partial",
                 "evidence_id": evidence.id,
             }

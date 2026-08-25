@@ -41,8 +41,9 @@ Three credible treatments were reviewed:
 
 The source confirms that B is the only lossless safe option: native Sales,
 Purchase, Payment, and Stock transaction counts are all zero; Etsy and Medusa
-overlap; current Medusa lacks complete lines; and processor exports span
-multiple currencies.
+overlap; current Medusa line evidence lacks immutable provider line IDs and
+does not fully allocate every header amount; 35 legacy-only orders remain
+header-only; and processor exports span multiple currencies.
 
 ## Native and custom choices
 
