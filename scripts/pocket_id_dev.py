@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 import re
@@ -81,10 +82,33 @@ SAFE_PROJECT_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 SAFE_LOCALHOST_PATTERN = re.compile(
     r"^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*localhost$",
 )
+SAFE_TAILSCALE_HOST_PATTERN = re.compile(
+    r"^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+ts\.net$",
+)
+TAILSCALE_NETWORK = ipaddress.ip_network("100.64.0.0/10")
 
 
 class PocketIDError(RuntimeError):
     """A safe Pocket ID provisioning error."""
+
+
+def _is_private_qa_hostname(hostname: str) -> bool:
+    if SAFE_TAILSCALE_HOST_PATTERN.fullmatch(hostname):
+        return True
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        return False
+    return (
+        address.version == 4
+        and not address.is_unspecified
+        and not address.is_multicast
+        and (
+            address.is_loopback
+            or address.is_private
+            or address in TAILSCALE_NETWORK
+        )
+    )
 
 
 def _read_env(
@@ -209,6 +233,7 @@ def _write_new_env(path: Path) -> None:
         "USL_POCKET_ID_DEV_POCKET_HOSTNAME",
         "pocket-id.localhost",
     ).strip()
+    private_qa = os.getenv("USL_POCKET_ID_DEV_PRIVATE_QA") == "1"
     prosper_odoo_email = os.getenv(
         "USL_POCKET_ID_DEV_PROSPER_ODOO_EMAIL",
         "",
@@ -227,12 +252,41 @@ def _write_new_env(path: Path) -> None:
     if len(set(ports)) != len(ports):
         raise PocketIDError("Local service ports must be distinct.")
     for hostname in (odoo_hostname, pocket_hostname):
-        if not SAFE_LOCALHOST_PATTERN.fullmatch(hostname):
-            raise PocketIDError("Local service hostnames must use .localhost.")
+        if SAFE_LOCALHOST_PATTERN.fullmatch(hostname):
+            continue
+        if not private_qa or not _is_private_qa_hostname(hostname):
+            raise PocketIDError(
+                "Local service hostnames must use .localhost unless explicit "
+                "private QA uses a private IPv4 address or Tailscale DNS name.",
+            )
     paperless_public_url = os.getenv(
         "USL_POCKET_ID_DEV_PAPERLESS_URL",
         "http://paperless.localhost:8010",
     ).strip()
+    parsed_paperless_url = urllib.parse.urlsplit(paperless_public_url)
+    paperless_hostname = parsed_paperless_url.hostname or ""
+    if (
+        parsed_paperless_url.scheme not in {"http", "https"}
+        or not paperless_hostname
+        or parsed_paperless_url.username
+        or parsed_paperless_url.password
+        or (
+            not SAFE_LOCALHOST_PATTERN.fullmatch(paperless_hostname)
+            and (not private_qa or not _is_private_qa_hostname(paperless_hostname))
+        )
+    ):
+        raise PocketIDError(
+            "Paperless public URL must use HTTP(S) on localhost or the "
+            "explicit private QA host.",
+        )
+    paperless_allowed_hosts = [
+        "localhost",
+        "127.0.0.1",
+        "paperless-webserver",
+        "paperless.localhost",
+    ]
+    if paperless_hostname not in paperless_allowed_hosts:
+        paperless_allowed_hosts.append(paperless_hostname)
     values = {
         "COMPOSE_PROJECT_NAME": project_name,
         "ODOO_DB_FILTER": f"^{database}$",
@@ -244,9 +298,7 @@ def _write_new_env(path: Path) -> None:
         "PAPERLESS_PUBLIC_BASE_URL": paperless_public_url,
         "PAPERLESS_PUBLIC_URL": paperless_public_url,
         "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "http",
-        "PAPERLESS_ALLOWED_HOSTS": (
-            "localhost,127.0.0.1,paperless-webserver,paperless.localhost"
-        ),
+        "PAPERLESS_ALLOWED_HOSTS": ",".join(paperless_allowed_hosts),
         "PAPERLESS_CORS_ALLOWED_HOSTS": paperless_public_url,
         "PAPERLESS_CSRF_TRUSTED_ORIGINS": paperless_public_url,
         "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
