@@ -111,10 +111,10 @@ The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
 - the final isolated `scripts/sign-qa-stack test /usl_sign` run installed the
-  module from clean state and completed 77 post-test entries with zero failures
-  and zero errors. Odoo's per-module statistics reported 83 Sign tests plus the
+  module from clean state and completed 82 post-test entries with zero failures
+  and zero errors. Odoo's per-module statistics reported 88 Sign tests plus the
   six web-suite wrappers;
-- desktop and mobile frontend suites each passed 15 tests and 65 assertions.
+- desktop and mobile frontend suites each passed 16 tests and 68 assertions.
   They cover the stale palette-drag regression, whole-field movement, the
   iframe pointer bridge, autosave rollback, template upload, dashboard
   scrolling and action routing;
