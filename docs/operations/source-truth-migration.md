@@ -182,6 +182,15 @@ pass a dedicated `COMPOSE_PROJECT` and non-conflicting published ports. Every
 reconstruction helper verifies existing containers' Compose project and
 working-directory labels before stopping or changing them.
 
+Before any source restore or target reset, reconstruction also inspects the
+shared Docker runtime. Production rejects every foreign running Compose
+project. Development is fail-closed when Docker has less than 12 GiB and a
+foreign project is running, because an 8 GiB shared VM demonstrably OOM-killed
+the otherwise qualified atomic Accounting import. The preflight never stops a
+foreign project. Its owner must quiesce it or the host must allocate more
+Docker memory. `USL_MIGRATION_ALLOW_CONCURRENT_DOCKER=1` is an explicit
+development-only escape hatch and is forbidden in production.
+
 Every stage must be idempotent and must bind its run to `source-<first 12
 characters of dump SHA-256>`. Project restoration previously used a constant
 snapshot label; it now derives that identity from `dump.sql` for both import

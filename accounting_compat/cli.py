@@ -204,6 +204,30 @@ class HarnessError(RuntimeError):
     pass
 
 
+def classify_product_import_failure(returncode: int, output: str) -> dict[str, str]:
+    """Classify failed imports without misreporting host exhaustion as bad data."""
+    killed = returncode in {-9, 137} or bool(
+        re.search(r"(?:^|\n)Killed\s*$", output.rstrip()),
+    )
+    if killed:
+        return {
+            "classification": "MIGRATION_RESOURCE_EXHAUSTION",
+            "failure_mode": "process_killed",
+            "recovery": (
+                "Restore Docker capacity, reset the candidate-owned target database, "
+                "and rerun the atomic import; do not reuse the interrupted target."
+            ),
+        }
+    return {
+        "classification": "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
+        "failure_mode": "import_command_failed",
+        "recovery": (
+            "Inspect the private output, correct the migration defect, reset the "
+            "candidate-owned target database, and rerun the atomic import."
+        ),
+    }
+
+
 @dataclass
 class SourcePackage:
     path: Path
@@ -4189,21 +4213,31 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                 "REBUILD_REPLACEMENT_IMPORT_RESULT=",
             )
     if result.returncode or not marker:
+        combined_output = result.stdout + result.stderr
+        failure = classify_product_import_failure(
+            result.returncode,
+            combined_output,
+        )
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
             "stage": "dev-import",
             "status": "failed",
-            "classification": "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
+            **failure,
             "database": DEV_QA_DB,
             "exit_code": result.returncode,
-            "output_tail": (result.stdout + result.stderr)[-12000:],
+            "output_tail": combined_output[-12000:],
         }
         write_json(
             PRIVATE_ARTIFACTS / "dev-import-status.json",
             status,
         )
-        message = "Product source-snapshot import failed. See the private artifact."
+        message = (
+            "Product source-snapshot import was killed by resource exhaustion; "
+            "the interrupted target must be reset before retry."
+            if failure["classification"] == "MIGRATION_RESOURCE_EXHAUSTION"
+            else "Product source-snapshot import failed. See the private artifact."
+        )
         raise HarnessError(message)
     payload = json.loads(marker)
     analyze_started = time.monotonic()

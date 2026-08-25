@@ -84,7 +84,8 @@ source perimeter as whole-source production evidence.
 3. Compute and record both digests. Do not reuse the rehearsal SHA after source
    activity continued.
 4. From clean `19-usl`, use a new isolated migration Compose project and the
-   final source SHA:
+   final source SHA. The production resource preflight requires a dedicated
+   Docker runtime; it reports foreign Compose projects but never stops them:
 
 ```bash
 export COMPOSE_PROJECT_NAME=usl-odoo-migration-final-YYYYMMDD
