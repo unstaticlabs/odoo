@@ -5,7 +5,7 @@ import re
 from datetime import timedelta
 
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .document import ARCHIVE_MODES, ATTACHMENT_ORIGINS, DOCUMENT_ROLES
 from .paperless_client import PaperlessError, PaperlessUnavailable
@@ -697,6 +697,8 @@ class IrAttachment(models.Model):
         return result
 
     def action_keep_in_documents(self):
+        if not self.env.user.has_group("usl_documents.group_documents_user"):
+            raise AccessError(_("Documents access is required to keep this file."))
         operations = self.env["usl.document.operation"]
         for attachment in self:
             attachment.check_access("read")
@@ -706,6 +708,42 @@ class IrAttachment(models.Model):
         if not operations:
             raise UserError(_("This file cannot be kept in Documents."))
         return operations
+
+    @api.model
+    def get_keep_in_documents_states(self, attachment_ids):
+        if not self.env.user.has_group("usl_documents.group_documents_user"):
+            return {}
+        try:
+            normalized_ids = list(
+                dict.fromkeys(
+                    int(item) for item in (attachment_ids or []) if int(item) > 0
+                ),
+            )[:200]
+        except (TypeError, ValueError) as error:
+            raise ValidationError(_("Invalid attachment selection.")) from error
+        states = {}
+        for attachment in self.browse(normalized_ids).exists():
+            try:
+                attachment.check_access("read")
+            except AccessError:
+                continue
+            if (
+                attachment.usl_documents_archive_mode == "on_request"
+                and attachment.usl_documents_ledger_state
+                == "native_only_on_request"
+            ):
+                states[str(attachment.id)] = "available"
+        return states
+
+    def action_keep_in_documents_from_ui(self):
+        self.ensure_one()
+        operation = self.action_keep_in_documents()
+        return {
+            "attachment_id": self.id,
+            "operation_id": operation.id,
+            "state": operation.state,
+            "message": _("This file will be kept in Documents."),
+        }
 
 
 class MailThread(models.AbstractModel):

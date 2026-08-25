@@ -1279,13 +1279,26 @@ class UslDocumentSmartView(models.Model):
         index=True,
     )
     user_id = fields.Many2one("res.users", index=True, ondelete="cascade")
+    group_ids = fields.Many2many(
+        "res.groups",
+        "usl_document_smart_view_group_rel",
+        "view_id",
+        "group_id",
+        string="Visible to groups",
+        help="Leave empty for every Documents user.",
+    )
     system_rule = fields.Selection(
         [
             ("all", "All accessible documents"),
+            ("home", "Home"),
+            ("library", "My library"),
             ("attention", "Needs review"),
             ("recent", "Recently added"),
             ("accounting", "Accounting evidence"),
+            ("projects", "Projects"),
             ("hr", "HR restricted"),
+            ("inbox", "Inbox / To classify"),
+            ("archive_search", "Archive search"),
             ("trash", "Trash"),
             ("metadata", "Paperless metadata"),
             ("saved", "Saved filters"),
@@ -1471,24 +1484,62 @@ class UslDocumentSmartView(models.Model):
     def accessible_views(self):
         return self.search(
             [
+                "&",
+                "&",
                 ("active", "=", True),
                 "|",
                 ("scope", "=", "shared"),
                 ("user_id", "=", self.env.user.id),
+                "|",
+                ("group_ids", "=", False),
+                ("group_ids", "in", self.env.user.group_ids.ids),
             ],
         )
 
     def document_domain(self):
         self.ensure_one()
-        if self.system_rule == "attention":
+        if self.system_rule == "home":
+            cutoff = fields.Datetime.now() - timedelta(days=max(1, self.days or 30))
+            domain = [
+                "&",
+                ("is_prominent", "=", True),
+                "|",
+                "|",
+                "|",
+                ("is_starred", "=", True),
+                ("recently_opened", "=", True),
+                ("review_state", "=", "needs_attention"),
+                ("archive_added_at", ">=", cutoff),
+            ]
+        elif self.system_rule == "library":
+            domain = [("is_in_my_library", "=", True)]
+        elif self.system_rule == "attention":
             domain = [("review_state", "=", "needs_attention")]
         elif self.system_rule == "recent":
             cutoff = fields.Datetime.now() - timedelta(days=max(1, self.days or 30))
             domain = [("archive_added_at", ">=", cutoff)]
         elif self.system_rule == "accounting":
             domain = [("accounting_evidence", "=", True)]
+        elif self.system_rule == "projects":
+            domain = [
+                (
+                    "id",
+                    "in",
+                    list(
+                        self.env["usl.document"]._accessible_project_document_ids(),
+                    ),
+                ),
+            ]
         elif self.system_rule == "hr":
             domain = [("confidentiality", "=", "hr")]
+        elif self.system_rule == "inbox":
+            domain = [
+                ("source", "=", "paperless"),
+                ("review_state", "=", "needs_attention"),
+                ("intake_role", "=", "background"),
+            ]
+        elif self.system_rule == "archive_search":
+            domain = []
         elif self.system_rule == "saved":
             domain = []
             if self.tag_ids:
@@ -1523,11 +1574,16 @@ class UslDocumentSmartView(models.Model):
         quick_filters = self.quick_filter_ids.filtered("active")
         if not quick_filters:
             defaults = {
+                "home": ["needs_review", "last_30_days"],
+                "library": ["my_uploads", "group_document_type"],
                 "attention": ["needs_review", "unlinked"],
                 "recent": ["last_30_days", "group_document_month"],
                 "accounting": ["group_correspondent", "group_document_type"],
+                "projects": ["group_document_month", "group_document_type"],
                 "metadata": ["group_correspondent", "group_document_type"],
                 "hr": ["group_employee", "group_document_month"],
+                "inbox": ["needs_review", "unlinked"],
+                "archive_search": ["group_company", "group_document_type"],
                 "trash": ["group_document_type", "group_correspondent"],
                 "all": ["my_uploads", "unlinked", "group_company"],
             }

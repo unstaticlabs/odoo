@@ -2,6 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_usl_document_user,usl.document.user,model_usl_document,group_documents_user,1,1,0,0
 access_usl_document_accountant,usl.document.accountant,model_usl_document,group_documents_accountant,1,0,0,0
 access_usl_document_manager,usl.document.manager,model_usl_document,group_documents_manager,1,1,0,0
+access_usl_document_user_state_user,usl.document.user.state.user,model_usl_document_user_state,group_documents_user,1,0,0,0
 access_usl_document_version_user,usl.document.version.user,model_usl_document_version,group_documents_user,1,0,0,0
 access_usl_document_version_accountant,usl.document.version.accountant,model_usl_document_version,group_documents_accountant,1,0,0,0
 access_usl_document_version_manager,usl.document.version.manager,model_usl_document_version,group_documents_manager,1,0,0,0

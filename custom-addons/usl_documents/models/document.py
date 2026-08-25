@@ -135,9 +135,30 @@ class UslDocument(models.Model):
     )
     is_prominent = fields.Boolean(
         compute="_compute_is_prominent",
+        search="_search_is_prominent",
         help=(
             "Prominent roots may appear in Home and My library. Background-only "
             "roots remain available from business context and archive search."
+        ),
+    )
+    is_starred = fields.Boolean(
+        string="Starred for me",
+        compute="_compute_personal_workspace_state",
+        search="_search_is_starred",
+        help="Private Odoo preference; it does not change Paperless metadata.",
+    )
+    recently_opened = fields.Boolean(
+        string="Recently opened by me",
+        compute="_compute_personal_workspace_state",
+        search="_search_recently_opened",
+    )
+    is_in_my_library = fields.Boolean(
+        string="In my library",
+        compute="_compute_is_in_my_library",
+        search="_search_is_in_my_library",
+        help=(
+            "Documents uploads, accessible library relationships, and documents "
+            "starred by the current user."
         ),
     )
     permitted_user_ids = fields.Many2many(
@@ -332,6 +353,138 @@ class UslDocument(models.Model):
                 document.intake_role in {"evidence", "library"}
                 or bool({"evidence", "library"}.intersection(accessible_roles))
             )
+
+    @api.depends_context("uid")
+    def _compute_personal_workspace_state(self):
+        states = self.env["usl.document.user.state"].sudo().search(
+            [
+                ("user_id", "=", self.env.user.id),
+                ("document_id", "in", self.ids),
+            ],
+        )
+        by_document = {state.document_id.id: state for state in states}
+        cutoff = fields.Datetime.now() - timedelta(days=30)
+        for document in self:
+            state = by_document.get(document.id)
+            document.is_starred = bool(state and state.starred)
+            document.recently_opened = bool(
+                state and state.last_opened_at and state.last_opened_at >= cutoff,
+            )
+
+    @api.depends("intake_role", "link_ids.active", "link_ids.document_role")
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_is_in_my_library(self):
+        starred_document_ids = set(
+            self.env["usl.document.user.state"].sudo().search(
+                [
+                    ("user_id", "=", self.env.user.id),
+                    ("document_id", "in", self.ids),
+                    ("starred", "=", True),
+                ],
+            ).mapped("document_id").ids,
+        )
+        for document in self:
+            accessible_roles = document._accessible_active_links().mapped(
+                "document_role",
+            )
+            document.is_in_my_library = (
+                document.intake_role == "library"
+                or "library" in accessible_roles
+                or document.id in starred_document_ids
+            )
+
+    @api.model
+    def _accessible_role_document_ids(self, roles):
+        """Resolve role visibility through the target record's native ACLs."""
+        accessible_ids = set(self.search([]).ids)
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("document_id", "in", list(accessible_ids)),
+                ("active", "=", True),
+                ("document_role", "in", list(roles)),
+            ],
+        )
+        visible_ids = set()
+        for link in links:
+            if link.res_model not in self.env:
+                continue
+            record = self.env[link.res_model].browse(link.res_id).exists()
+            if not record:
+                continue
+            try:
+                record.check_access("read")
+            except AccessError:
+                continue
+            visible_ids.add(link.document_id.id)
+        return visible_ids
+
+    @api.model
+    def _accessible_project_document_ids(self):
+        visible_ids = set()
+        for document in self.search([]):
+            if document._accessible_active_links().filtered(
+                lambda link: link.res_model in {"project.project", "project.task"},
+            ):
+                visible_ids.add(document.id)
+        return visible_ids
+
+    @api.model
+    def _search_boolean_ids(self, operator, value, matching_ids):
+        if operator not in ("=", "!=") or value not in (True, False):
+            raise ValidationError(_("Unsupported personal Documents filter."))
+        positive = (operator == "=" and value) or (operator == "!=" and not value)
+        return [("id", "in" if positive else "not in", list(matching_ids))]
+
+    @api.model
+    def _search_is_prominent(self, operator, value):
+        matching_ids = set(
+            self.search([("intake_role", "in", ("evidence", "library"))]).ids,
+        )
+        matching_ids.update(
+            self._accessible_role_document_ids({"evidence", "library"}),
+        )
+        return self._search_boolean_ids(operator, value, matching_ids)
+
+    @api.model
+    def _personal_state_document_ids(self, domain):
+        return set(
+            self.env["usl.document.user.state"].sudo().search(
+                [("user_id", "=", self.env.user.id), *domain],
+            ).mapped("document_id").ids,
+        )
+
+    @api.model
+    def _search_is_starred(self, operator, value):
+        return self._search_boolean_ids(
+            operator,
+            value,
+            self._personal_state_document_ids([("starred", "=", True)]),
+        )
+
+    @api.model
+    def _search_recently_opened(self, operator, value):
+        return self._search_boolean_ids(
+            operator,
+            value,
+            self._personal_state_document_ids(
+                [
+                    (
+                        "last_opened_at",
+                        ">=",
+                        fields.Datetime.now() - timedelta(days=30),
+                    ),
+                ],
+            ),
+        )
+
+    @api.model
+    def _search_is_in_my_library(self, operator, value):
+        matching_ids = set(self.search([("intake_role", "=", "library")]).ids)
+        matching_ids.update(self._accessible_role_document_ids({"library"}))
+        matching_ids.update(
+            self._personal_state_document_ids([("starred", "=", True)]),
+        )
+        return self._search_boolean_ids(operator, value, matching_ids)
 
     def _accessible_active_links(self):
         """Return links whose target record is readable by the current user."""
@@ -1834,6 +1987,8 @@ class UslDocument(models.Model):
             "source": item.source,
             "intake_role": item.intake_role,
             "is_prominent": item.is_prominent,
+            "is_starred": item.is_starred,
+            "is_in_my_library": item.is_in_my_library,
             "current_version": item.current_version_label,
             "version_count": len(item.version_ids),
             "link_count": item.link_count,
@@ -1858,7 +2013,7 @@ class UslDocument(models.Model):
         self,
         *,
         query="",
-        workspace="recent",
+        workspace="home",
         page=1,
         page_size=24,
         company_id=None,
@@ -1885,17 +2040,30 @@ class UslDocument(models.Model):
         sort="recent",
         order_by=None,
         search_mode="hybrid",
+        background_mode="include",
     ):
         page = max(1, int(page))
         page_size = min(100, max(1, int(page_size)))
         if search_mode not in ("hybrid", "exact", "semantic"):
             raise ValidationError(_("Unsupported archive search mode."))
+        if background_mode not in ("include", "exclude", "only"):
+            raise ValidationError(_("Unsupported archive visibility filter."))
         smart_views = self.env["usl.document.smart.view"].accessible_views()
         selected_view = smart_views.filtered(
             lambda item: (item.key or f"view:{item.id}") == workspace,
         )[:1]
+        if not selected_view and workspace in {"all", "attention", "recent"}:
+            # Preserve stable API and saved-session keys that predate the
+            # reduced primary navigation. Record rules still scope every
+            # result; these diagnostic/legacy views are simply not advertised.
+            selected_view = self.env["usl.document.smart.view"].sudo().with_context(
+                active_test=False,
+            ).search(
+                [("key", "=", workspace)],
+                limit=1,
+            )
         if not selected_view:
-            selected_view = smart_views.filtered(lambda item: item.key == "recent")[:1]
+            selected_view = smart_views.filtered(lambda item: item.key == "home")[:1]
         domain = list(selected_view.document_domain()) if selected_view else []
         if search_domain:
             if not isinstance(search_domain, list):
@@ -1951,6 +2119,40 @@ class UslDocument(models.Model):
             if linked_record and not (linked_model or linked_id):
                 linked_model, linked_id = linked_record.split(":", 1)
             sort = saved.get("sort") or sort
+        archive_search_requested = any(
+            (
+                query,
+                search_domain,
+                company_id,
+                tag_ids,
+                correspondent_id,
+                document_type_id,
+                date_from,
+                date_to,
+                added_from,
+                added_to,
+                source,
+                confidentiality,
+                review_state,
+                linked_state,
+                linked_model,
+                linked_id,
+                mapped_partner_id,
+                paperless_id,
+                custom_field_id,
+                custom_field_value,
+            ),
+        )
+        if (
+            selected_view
+            and selected_view.system_rule == "archive_search"
+            and not archive_search_requested
+        ):
+            domain.append(("id", "=", 0))
+        if background_mode == "exclude":
+            domain.append(("is_prominent", "=", True))
+        elif background_mode == "only":
+            domain.append(("is_prominent", "=", False))
         if company_id:
             domain.append(("company_id", "=", int(company_id)))
         if paperless_id:
@@ -2173,6 +2375,7 @@ class UslDocument(models.Model):
             "degraded": False,
             "warnings": search_warnings,
             "search_mode": search_mode,
+            "background_mode": background_mode,
             "truncated": truncated,
             "companies": [
                 {"id": company.id, "name": company.display_name}
@@ -2410,6 +2613,132 @@ class UslDocument(models.Model):
             },
         )
         return values
+
+    def action_set_starred(self, starred):
+        self.ensure_one()
+        self.check_access("read")
+        starred = bool(starred)
+        states = self.env["usl.document.user.state"].sudo()
+        state = states.search(
+            [
+                ("document_id", "=", self.id),
+                ("user_id", "=", self.env.user.id),
+            ],
+            limit=1,
+        )
+        if state:
+            state.write({"starred": starred})
+        elif starred:
+            states.create(
+                {
+                    "document_id": self.id,
+                    "user_id": self.env.user.id,
+                    "starred": True,
+                },
+            )
+        return {"document_id": self.id, "is_starred": starred}
+
+    def action_mark_opened(self):
+        self.ensure_one()
+        self.check_access("read")
+        states = self.env["usl.document.user.state"].sudo()
+        state = states.search(
+            [
+                ("document_id", "=", self.id),
+                ("user_id", "=", self.env.user.id),
+            ],
+            limit=1,
+        )
+        values = {"last_opened_at": fields.Datetime.now()}
+        if state:
+            state.write(values)
+        else:
+            states.create(
+                {
+                    "document_id": self.id,
+                    "user_id": self.env.user.id,
+                    **values,
+                },
+            )
+        return True
+
+    def _presentation_role_target(self, *, promote, res_model=None, res_id=None):
+        self.ensure_one()
+        links = self._accessible_active_links()
+        if res_model or res_id:
+            if not res_model or not res_id:
+                raise ValidationError(_("Choose one complete Odoo relationship."))
+            links = links.filtered(
+                lambda link: (
+                    link.res_model == res_model and link.res_id == int(res_id)
+                ),
+            )
+            if not links:
+                raise AccessError(_("That Odoo relationship is not accessible."))
+            return "link", links[:1]
+        desired_role = "background" if promote else "library"
+        candidates = links.filtered(lambda link: link.document_role == desired_role)
+        if len(candidates) == 1:
+            return "link", candidates
+        if self.intake_role in {"background", "library"}:
+            return "intake", self
+        if candidates:
+            raise UserError(
+                _("Open the linked Odoo record to choose which relationship to change."),
+            )
+        return "intake", self
+
+    def action_set_library_visibility(
+        self,
+        promote,
+        res_model=None,
+        res_id=None,
+    ):
+        """Change Odoo presentation only; never touch the archived binary."""
+        self.ensure_one()
+        self.check_access("write")
+        if self.availability_state != "available":
+            raise UserError(_("Only an available document can change library visibility."))
+        promote = bool(promote)
+        target_kind, target = self._presentation_role_target(
+            promote=promote,
+            res_model=res_model,
+            res_id=res_id,
+        )
+        role = "library" if promote else "background"
+        current_role = target.document_role if target_kind == "link" else self.intake_role
+        if current_role == "evidence":
+            raise UserError(_("Required evidence cannot be removed from Documents Home."))
+        if current_role != role:
+            if target_kind == "link":
+                target.sudo().with_context(
+                    usl_documents_link_policy_write=True,
+                ).write({"document_role": role})
+                relationship = _("the link to %(record)s", record=target.record_name)
+            else:
+                self.sudo().with_context(
+                    usl_documents_policy_write=True,
+                    skip_permission_invalidation=True,
+                ).write({"intake_role": role})
+                relationship = _("the archive intake relationship")
+            self.message_post(
+                body=(
+                    _(
+                        "%(user)s added %(relationship)s to My library. "
+                        "The archived file and its versions were unchanged.",
+                        user=self.env.user.display_name,
+                        relationship=relationship,
+                    )
+                    if promote
+                    else _(
+                        "%(user)s removed %(relationship)s from My library. "
+                        "The business link, archived file, and versions were kept.",
+                        user=self.env.user.display_name,
+                        relationship=relationship,
+                    )
+                ),
+            )
+        return self.document_detail(self.id)
 
     @api.model
     def integrity_manifest(self, backup_id=None):
@@ -3570,6 +3899,32 @@ class UslDocumentVersion(models.Model):
     def action_restore_as_current(self):
         self.ensure_one()
         return self.document_id.restore_version(self.paperless_version_id)
+
+
+class UslDocumentUserState(models.Model):
+    _name = "usl.document.user.state"
+    _description = "Private Documents Workspace State"
+    _order = "last_opened_at desc, id desc"
+
+    document_id = fields.Many2one(
+        "usl.document",
+        required=True,
+        index=True,
+        ondelete="cascade",
+    )
+    user_id = fields.Many2one(
+        "res.users",
+        required=True,
+        index=True,
+        ondelete="cascade",
+    )
+    starred = fields.Boolean(index=True)
+    last_opened_at = fields.Datetime(index=True)
+
+    _document_user_unique = models.Constraint(
+        "UNIQUE(document_id, user_id)",
+        "A user may have only one private state per document.",
+    )
 
 
 class UslDocumentLink(models.Model):

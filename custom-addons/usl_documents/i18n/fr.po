@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~19.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 22:35+0000\n"
-"PO-Revision-Date: 2026-08-04 22:35+0000\n"
+"POT-Creation-Date: 2026-08-24 23:28+0000\n"
+"PO-Revision-Date: 2026-08-25 01:34+0200\n"
 "Last-Translator: Unstatic Labs\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -19,16 +19,24 @@ msgstr ""
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
-msgid "%(count)s attachment(s) sent to Paperless. Odoo copies were retained."
-msgstr ""
-"%(count)s Pièces jointes envoyées à Paperless. Les copies Odoo ont été "
-"conservées."
+msgid ""
+"%(count)s attachment(s) will be checked in the background. Odoo files remain "
+"available while Paperless processes them."
+msgstr "Le traitement de %(count)s pièce(s) jointe(s) sera vérifié en arrière-plan. Les fichiers Odoo restent disponibles pendant leur traitement par Paperless."
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "%(identity)s: %(error)s"
 msgstr "%(identity)s : %(error)s"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"%(user)s added %(relationship)s to My library. The archived file and its "
+"versions were unchanged."
+msgstr "%(user)s a ajouté %(relationship)s à Ma bibliothèque. Le fichier archivé et ses versions sont restés inchangés."
 
 #. module: usl_documents
 #. odoo-python
@@ -41,24 +49,52 @@ msgstr ""
 "Odoo actives %(count)s ont été conservées."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"%(user)s removed %(relationship)s from My library. The business link, "
+"archived file, and versions were kept."
+msgstr "%(user)s a retiré %(relationship)s de Ma bibliothèque. Le lien métier, le fichier archivé et ses versions ont été conservés."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid ""
 "<b>Learn automatically</b> uses Paperless’s local classifier.\n"
-"                        Correctly tag reviewed documents and remove inbox tags; Paperless\n"
-"                        retrains periodically and learns when to apply this tag."
+"                        Correctly tag reviewed documents and remove inbox "
+"tags; Paperless\n"
+"                        retrains periodically and learns when to apply this "
+"tag."
 msgstr ""
-"<b>Apprentissage automatique</b> utilise le moteur de classement local de Paperless.\n"
-"                        Étiquetez correctement les documents vérifiés et retirez-les de la boîte de réception ; Paperless\n"
-"                        réentraîne périodiquement son modèle et apprend quand appliquer cette étiquette."
+"<b>Apprentissage automatique</b> utilise le moteur de classement local de "
+"Paperless.\n"
+"                        Étiquetez correctement les documents vérifiés et "
+"retirez-les de la boîte de réception ; Paperless\n"
+"                        réentraîne périodiquement son modèle et apprend "
+"quand appliquer cette étiquette."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.account_payment_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+msgid "<span class=\"o_stat_text\">Documents</span>"
+msgstr "<span class=\"o_stat_text\">Documents</span>"
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid ""
 "<strong>Document access needs attention.</strong>\n"
-"                        <span>The file is blocked until its archive access can be verified.</span>"
+"                        <span>The file is blocked until its archive access "
+"can be verified.</span>"
 msgstr ""
-"<strong>L’accès aux documents nécessite une attention particulière.</strong>\n"
-"                        <span>Le fichier est bloqué jusqu'à ce que son accès aux archives puisse être vérifié.</span>"
+"<strong>L’accès aux documents nécessite une attention particulière.</"
+"strong>\n"
+"                        <span>Le fichier est bloqué jusqu'à ce que son accès "
+"aux archives puisse être vérifié.</span>"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -105,25 +141,45 @@ msgid "A Paperless saved view may only be mapped once."
 msgstr "Une vue enregistrée Paperless ne peut être associé qu'une seule fois."
 
 #. module: usl_documents
+#: model:ir.model.constraint,message:usl_documents.constraint_usl_document_context_tag_entity_unique
+msgid "A business entity can have only one stable archive tag per namespace."
+msgstr "Une entité métier ne peut avoir qu’une seule étiquette d’archive stable par espace de noms."
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "A classified document must belong to a legal company."
 msgstr "Un document classifié doit appartenir à une société légale."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "A contextual document tag is incomplete."
+msgstr "Une étiquette contextuelle de document est incomplète."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_smart_view_form
 msgid ""
 "A document appears when it matches the configured Paperless\n"
-"                        metadata. Archive-native views are available in both applications."
+"                        metadata. Archive-native views are available in both "
+"applications."
 msgstr ""
-"Un document apparaît lorsqu’il correspond aux métadonnées Paperless configurées.\n"
-"                        Les vues natives de l’archive sont disponibles dans les deux applications."
+"Un document apparaît lorsqu’il correspond aux métadonnées Paperless "
+"configurées.\n"
+"                        Les vues natives de l’archive sont disponibles dans "
+"les deux applications."
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "A document title is required."
 msgstr "Le titre du document est obligatoire."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "A related business record no longer exists."
+msgstr "Un enregistrement métier associé n’existe plus."
 
 #. module: usl_documents
 #. odoo-python
@@ -153,12 +209,23 @@ msgid "A shared Documents view key must be unique."
 msgstr "Une clé d’affichage Documents partagés doit être unique."
 
 #. module: usl_documents
+#: model:ir.model.constraint,message:usl_documents.constraint_usl_document_user_state_document_user_unique
+msgid "A user may have only one private state per document."
+msgstr "Un utilisateur ne peut avoir qu’un seul état privé par document."
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "A version cannot be restored while the document is unavailable."
 msgstr ""
 "Une version ne peut pas être restaurée tant que le document n'est pas "
 "disponible."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__access_scope
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__access_scope
+msgid "Access Scope"
+msgstr "Périmètre d’accès"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -181,10 +248,18 @@ msgstr "L’accès nécessite une attention particulière"
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Access was not changed because Paperless could not safely revoke one or more "
+"document permissions."
+msgstr "L’accès n’a pas été modifié car Paperless n’a pas pu révoquer en toute sécurité une ou plusieurs autorisations du document."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/res_users.py:0
 msgid ""
-"Access was not changed because Paperless could not safely revoke one or more"
-" document permissions. Retry after restoring the archive service."
+"Access was not changed because Paperless could not safely revoke one or more "
+"document permissions. Retry after restoring the archive service."
 msgstr ""
 "L'accès n'a pas été modifié car Paperless n'a ​​pas pu révoquer en toute "
 "sécurité une ou plusieurs autorisations de document. Réessayez après avoir "
@@ -197,6 +272,7 @@ msgstr "Comptabilité"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__accounting_evidence
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__accounting_evidence
 #: model:res.groups.privilege,name:usl_documents.res_groups_privilege_document_evidence
 msgid "Accounting Evidence"
 msgstr "justificatif comptable"
@@ -231,6 +307,7 @@ msgid "Action Needed"
 msgstr "Nécessite une action"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__active
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__active
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__active
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__active
@@ -271,12 +348,23 @@ msgstr "Icône de type d'activité"
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid ""
 "Add as many terms or phrases as needed. <b>Any word</b> matches\n"
-"                        one line; <b>All words</b> requires every line. Exact, regex,\n"
-"                        and fuzzy methods use the full expression shown above."
+"                        one line; <b>All words</b> requires every line. "
+"Exact, regex,\n"
+"                        and fuzzy methods use the full expression shown "
+"above."
 msgstr ""
-"Ajoutez autant de termes ou d'expressions que nécessaire. <b>N'importe quel mot</b> matchs\n"
-"                        une ligne ; <b>Tous les mots</b> nécessite chaque ligne. Exact, regex,\n"
-"                        et les méthodes floues utilisent l'expression complète indiquée ci-dessus."
+"Ajoutez autant de termes ou d'expressions que nécessaire. <b>N'importe quel "
+"mot</b> matchs\n"
+"                        une ligne ; <b>Tous les mots</b> nécessite chaque "
+"ligne. Exact, regex,\n"
+"                        et les méthodes floues utilisent l'expression "
+"complète indiquée ci-dessus."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Add to My library"
+msgstr "Ajouter à Ma bibliothèque"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_tag__is_inbox_tag
@@ -341,8 +429,8 @@ msgstr "Tous les documents accessibles"
 
 #. module: usl_documents
 #: model:usl.document.smart.view,name:usl_documents.smart_view_all
-msgid "All documents"
-msgstr "Tous les documents"
+msgid "All archived"
+msgstr "Toutes les archives"
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_paperless_correspondent__matching_algorithm__2
@@ -383,6 +471,19 @@ msgstr "Apparence"
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Apply current Odoo access rights to this document in Paperless."
+msgstr ""
+"Applique à ce document dans Paperless les droits d’accès actuels d’Odoo."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid "Apply the fail-closed Paperless workflow used to protect new documents."
+msgstr ""
+"Applique le flux Paperless à accès restreint qui protège les nouveaux "
+"documents."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid "Approve deletion"
 msgstr "Approuver la suppression"
 
@@ -390,8 +491,16 @@ msgstr "Approuver la suppression"
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "Approve permanent deletion and record a reason first."
+msgstr "Approuvez la suppression permanente et enregistrez d’abord une raison."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid ""
+"Approve permanent deletion using the recorded reason. The file is not "
+"deleted yet."
 msgstr ""
-"Approuvez la suppression permanente et enregistrez d’abord une raison."
+"Autorise la suppression définitive avec le motif enregistré. Le fichier "
+"n’est pas encore supprimé."
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__archive_checksum
@@ -400,50 +509,33 @@ msgid "Archive Checksum"
 msgstr "Somme de contrôle des archives"
 
 #. module: usl_documents
-#: model:ir.actions.server,name:usl_documents.action_archive_attachments_in_paperless
-msgid "Archive in Paperless"
-msgstr "Archiver dans Paperless"
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__archive_mode
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__archive_mode
+msgid "Archive Mode"
+msgstr "Mode d’archivage"
 
 #. module: usl_documents
-#: model:ir.actions.server,name:usl_documents.action_archive_attachments_in_paperless
-msgid "Retry Documents archiving"
-msgstr "Relancer l’archivage dans Documents"
-
-#. module: usl_documents
-#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__document_archive_pending_count
-msgid "Documents processing"
-msgstr "Documents en cours de traitement"
-
-#. module: usl_documents
-#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__document_archive_failure_count
-msgid "Document archive issues"
-msgstr "Documents à vérifier"
-
-#. module: usl_documents
-#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__access_scope__linked_record
-msgid "Linked record access"
-msgstr "Accès selon les enregistrements liés"
-
-#. module: usl_documents
-#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__access_scope__company
-msgid "Company policy"
-msgstr "Politique de la société"
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
-msgid "to review"
-msgstr "à vérifier"
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
-msgid "processing"
-msgstr "en cours"
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__pending
+msgid "Archive pending"
+msgstr "Archivage en attente"
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
-msgid "Archive request created"
-msgstr "Demande d’archivage créée"
+msgid "Archive retry queued"
+msgstr "Nouvelle tentative d’archivage planifiée"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__archive_search
+#: model:usl.document.smart.view,name:usl_documents.smart_view_archive_search
+msgid "Archive search"
+msgstr "Recherche dans les archives"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Archive search matching"
+msgstr "Mode de recherche dans les archives"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -481,6 +573,7 @@ msgstr "Mixin de lien de document archivé"
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_account_bank_statement_line__archived_document_count
 #: model:ir.model.fields,field_description:usl_documents.field_account_move__archived_document_count
+#: model:ir.model.fields,field_description:usl_documents.field_account_payment__archived_document_count
 #: model:ir.model.fields,field_description:usl_documents.field_hr_employee__archived_document_count
 #: model:ir.model.fields,field_description:usl_documents.field_hr_expense__archived_document_count
 #: model:ir.model.fields,field_description:usl_documents.field_project_project__archived_document_count
@@ -500,13 +593,27 @@ msgid "Archived Odoo attachment"
 msgstr "Pièce jointe Odoo archivée"
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__archived_background
+msgid "Archived background"
+msgstr "Document de contexte archivé"
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
-msgid ""
-"Archived document cache records can only be created by synchronization."
+msgid "Archived document cache records can only be created by synchronization."
 msgstr ""
-"Les enregistrements du cache de documents archivés ne peuvent être créés que"
-" par synchronisation."
+"Les enregistrements du cache de documents archivés ne peuvent être créés que "
+"par synchronisation."
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__archived_evidence
+msgid "Archived evidence"
+msgstr "Justificatif archivé"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__archived_library
+msgid "Archived library"
+msgstr "Document de bibliothèque archivé"
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_quick_filter__sort_direction_1__asc
@@ -527,6 +634,30 @@ msgid "Attachment Count"
 msgstr "Nombre de pièces jointes"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__attachment_origin
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__attachment_origin
+msgid "Attachment Origin"
+msgstr "Origine de la pièce jointe"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Attachment archive policy can only change through Documents."
+msgstr "La politique d’archivage de la pièce jointe ne peut être modifiée que depuis Documents."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__attempt_count
+msgid "Attempt Count"
+msgstr "Nombre de tentatives"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_archive_mode__automatic
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__archive_mode__automatic
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__archive_mode__automatic
+msgid "Automatic"
+msgstr "Automatique"
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_document_type_form
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
@@ -542,8 +673,8 @@ msgid ""
 "Automatic learns from existing documents. The other options apply the "
 "matching pattern directly."
 msgstr ""
-"Apprend automatiquement à partir des documents existants. Les autres options"
-" appliquent directement le modèle correspondant."
+"Apprend automatiquement à partir des documents existants. Les autres options "
+"appliquent directement le modèle correspondant."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
@@ -578,9 +709,56 @@ msgid "Available tag filters"
 msgstr "Filtres de balises disponibles"
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__backfill
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__backfill
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__backfill
+msgid "Backfill"
+msgstr "Rattrapage"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_document_role__background
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__intake_role__background
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__document_role__background
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__policy_role__background
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__document_role__background
+msgid "Background"
+msgstr "Contexte"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Background document visibility"
+msgstr "Visibilité des documents de contexte"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Background files"
+msgstr "Fichiers de contexte"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid ""
+"Background files stay out of Home and My library unless you\n"
+"                            promote or star them."
+msgstr "Les fichiers de contexte restent exclus de l’Accueil et de Ma bibliothèque tant que vous ne les promouvez pas ou ne les marquez pas d’une étoile."
+
+#. module: usl_documents
 #: model:usl.document.smart.view,name:usl_documents.smart_view_banking
 msgid "Banking"
 msgstr "Bancaire"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Best match"
+msgstr "Meilleure correspondance"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__blocked_failure
+msgid "Blocked failure"
+msgstr "Échec bloquant"
 
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document__retention_hold
@@ -605,6 +783,18 @@ msgstr "Annuler"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Card view"
 msgstr "Vue carte"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__chatter
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__chatter
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__chatter
+msgid "Chatter"
+msgstr "Fil de discussion"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid "Check that Odoo can reach the configured Paperless service."
+msgstr "Vérifie qu’Odoo peut joindre le service Paperless configuré."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -663,6 +853,12 @@ msgstr "Choisissez le fichier à réessayer"
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
+msgid "Choose one complete Odoo relationship."
+msgstr "Choisissez une seule relation Odoo complète."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
 msgid "Choose the legal company before completing the review."
 msgstr "Choisissez la société juridique avant de terminer l’examen."
 
@@ -699,6 +895,11 @@ msgid "Close"
 msgstr "Fermer"
 
 #. module: usl_documents
+#: model:ir.model,name:usl_documents.model_project_collaborator
+msgid "Collaborators in project shared"
+msgstr "Collaborateurs du projet partagé"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_tag__color
 msgid "Color"
 msgstr "Couleur"
@@ -714,6 +915,7 @@ msgstr "Liste compacte"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 #: model:ir.model,name:usl_documents.model_res_company
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__company_id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__company_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__company_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__company_id
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_quick_filter__group_by_1__company_id
@@ -725,6 +927,12 @@ msgstr "Liste compacte"
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Company"
 msgstr "Société"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__access_scope__company
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__access_scope__company
+msgid "Company policy"
+msgstr "Politique de la société"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__confidentiality
@@ -743,6 +951,11 @@ msgid "Configuration"
 msgstr "Configuration"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Confirm that the document and its archive access have been reviewed."
+msgstr "Confirme que le document et ses accès d’archive ont été vérifiés."
+
+#. module: usl_documents
 #: model:ir.model,name:usl_documents.model_res_partner
 msgid "Contact"
 msgstr "Contact"
@@ -751,6 +964,11 @@ msgstr "Contact"
 #: model:ir.model.fields,help:usl_documents.field_res_config_settings__paperless_url
 msgid "Container-network URL used only by the Odoo server."
 msgstr "Réseau de conteneurs URL utilisé uniquement par le serveur Odoo."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__context_json
+msgid "Context Json"
+msgstr "Contexte JSON"
 
 #. module: usl_documents
 #: model:usl.document.smart.view,name:usl_documents.smart_view_contracts
@@ -792,10 +1010,12 @@ msgstr "Créé à"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__create_uid
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__create_uid
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__create_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__create_uid
@@ -806,10 +1026,12 @@ msgstr "Créé par"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__create_date
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__create_date
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__create_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__create_date
@@ -829,6 +1051,13 @@ msgstr "Créateur privé"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Current"
 msgstr "Actuel"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document_link__document_role
+msgid ""
+"Current Odoo presentation role. Promotion or demotion changes only this "
+"relationship and never uploads another Paperless file."
+msgstr "Rôle de présentation Odoo actuel. La promotion ou la rétrogradation modifie uniquement cette relation et ne téléverse jamais un autre fichier dans Paperless."
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__current_version_label
@@ -882,6 +1111,13 @@ msgid "Delete permanently"
 msgstr "Supprimer définitivement"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "Delete the approved file from Paperless and keep an Odoo audit record."
+msgstr ""
+"Supprime le fichier autorisé de Paperless et conserve une trace d’audit dans "
+"Odoo."
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__deletion_approved_at
 msgid "Deletion Approved At"
 msgstr "Suppression approuvée à"
@@ -912,6 +1148,13 @@ msgid "Diagnostics"
 msgstr "Diagnostics"
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__direct_record
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__direct_record
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__direct_record
+msgid "Direct record upload"
+msgstr "Dépôt direct sur un enregistrement"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Dismiss"
@@ -919,9 +1162,13 @@ msgstr "Annuler"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_account_move__display_name
+#: model:ir.model.fields,field_description:usl_documents.field_account_payment__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_hr_employee__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_hr_expense__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__display_name
+#: model:ir.model.fields,field_description:usl_documents.field_mail_followers__display_name
+#: model:ir.model.fields,field_description:usl_documents.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:usl_documents.field_project_collaborator__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_project_project__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_project_task__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_res_company__display_name
@@ -929,11 +1176,13 @@ msgstr "Annuler"
 #: model:ir.model.fields,field_description:usl_documents.field_res_partner__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_res_users__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__display_name
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__display_name
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_oidc_identity__display_name
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__display_name
@@ -949,6 +1198,7 @@ msgstr "Nom d'affichage"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__document_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__document_id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__document_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__document_id
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_quick_filter__sort_by_1__name
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_quick_filter__sort_by_2__name
@@ -976,6 +1226,11 @@ msgid "Document Date"
 msgstr "Date du document"
 
 #. module: usl_documents
+#: model:ir.model,name:usl_documents.model_mail_followers
+msgid "Document Follower"
+msgstr "Abonné au document"
+
+#. module: usl_documents
 #: model:ir.model,name:usl_documents.model_usl_document_operation
 msgid "Document Ingestion Operation"
 msgstr "Opération d’ingestion de documents"
@@ -984,6 +1239,12 @@ msgstr "Opération d’ingestion de documents"
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_list
 msgid "Document Register"
 msgstr "Registre des documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__document_role
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__document_role
+msgid "Document Role"
+msgstr "Rôle du document"
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_document_type_form
@@ -1010,6 +1271,21 @@ msgstr "Utilisateur du document"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Document access needs attention."
 msgstr "L’accès aux documents nécessite une attention particulière."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_account_bank_statement_line__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_account_move__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_account_payment__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_hr_employee__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_hr_expense__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_project_project__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_project_task__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_res_company__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_res_partner__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_res_users__document_archive_failure_count
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__document_archive_failure_count
+msgid "Document archive issues"
+msgstr "Documents à vérifier"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__archive_text
@@ -1058,6 +1334,17 @@ msgstr "Aperçu du document"
 #: model:ir.ui.menu,name:usl_documents.menu_usl_documents_archive
 msgid "Document register"
 msgstr "Registre documentaire"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Document relationship policy can only change through Documents."
+msgstr "La politique de relation du document ne peut être modifiée que depuis Documents."
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document_link__policy_role
+msgid "Document role resolved by the business archive policy."
+msgstr "Rôle du document déterminé par la politique d’archivage métier."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -1112,14 +1399,7 @@ msgstr ""
 #: model:ir.ui.menu,name:usl_documents.menu_usl_documents_root
 #: model:ir.ui.menu,name:usl_documents.menu_usl_documents_workspace
 #: model:res.groups.privilege,name:usl_documents.res_groups_privilege_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_list
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_document_type_list
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_list
@@ -1137,6 +1417,18 @@ msgid "Documents Smart View"
 msgstr "Vue intelligente des documents"
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Documents access is required to keep this file."
+msgstr "L’accès à Documents est requis pour conserver ce fichier."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__usl_documents_archive_mode
+#: model:ir.model.fields,field_description:usl_documents.field_product_document__usl_documents_archive_mode
+msgid "Documents archive mode"
+msgstr "Mode d’archivage Documents"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Documents are temporarily unavailable"
@@ -1147,11 +1439,68 @@ msgstr "Les documents sont temporairement indisponibles"
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_document_type__accessible_document_count
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_metadata_mixin__accessible_document_count
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_tag__accessible_document_count
-msgid ""
-"Documents carrying this metadata that the current Odoo user may access."
+msgid "Documents carrying this metadata that the current Odoo user may access."
 msgstr ""
 "Documents contenant ces métadonnées auxquels l'utilisateur actuel de Odoo "
 "peut accéder."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__usl_documents_ledger_state
+#: model:ir.model.fields,field_description:usl_documents.field_product_document__usl_documents_ledger_state
+msgid "Documents ledger state"
+msgstr "État du registre Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__usl_documents_origin
+#: model:ir.model.fields,field_description:usl_documents.field_product_document__usl_documents_origin
+msgid "Documents origin"
+msgstr "Origine Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__usl_documents_policy_reason
+#: model:ir.model.fields,field_description:usl_documents.field_product_document__usl_documents_policy_reason
+msgid "Documents policy reason"
+msgstr "Motif de la politique Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_account_bank_statement_line__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_account_move__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_account_payment__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_hr_employee__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_hr_expense__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_project_project__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_project_task__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_res_company__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_res_partner__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_res_users__document_archive_pending_count
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__document_archive_pending_count
+msgid "Documents processing"
+msgstr "Documents en cours de traitement"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__usl_documents_document_role
+#: model:ir.model.fields,field_description:usl_documents.field_product_document__usl_documents_document_role
+msgid "Documents role"
+msgstr "Rôle Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__is_in_my_library
+msgid ""
+"Documents uploads, accessible library relationships, and documents starred "
+"by the current user."
+msgstr "Les dépôts Documents, les relations de bibliothèque accessibles et les documents marqués d’une étoile par l’utilisateur actuel."
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__documents_workspace
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__documents_workspace
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__documents_workspace
+msgid "Documents workspace"
+msgstr "Espace de travail Documents"
+
+#. module: usl_documents
+#: model:ir.actions.server,name:usl_documents.ir_cron_usl_documents_attachment_queue_ir_actions_server
+msgid "Documents: archive Odoo attachments"
+msgstr "Documents : archiver les pièces jointes Odoo"
 
 #. module: usl_documents
 #: model:ir.actions.server,name:usl_documents.ir_cron_usl_documents_sync_ir_actions_server
@@ -1210,8 +1559,8 @@ msgstr "Téléchargez ce PDF consultable"
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Drop a file here or upload one. Paperless will classify it."
-msgstr "Déposez un fichier ici ou téléchargez-en un. Paperless le classera."
+msgid "Drop a file here or upload one to keep it in Documents."
+msgstr "Déposez un fichier ici ou téléversez-en un pour le conserver dans Documents."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -1229,6 +1578,11 @@ msgstr "Duplicata réutilisé"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Earlier versions ("
 msgstr "Versions antérieures ("
+
+#. module: usl_documents
+#: model:ir.model,name:usl_documents.model_mail_thread
+msgid "Email Thread"
+msgstr "Discussion par e-mail"
 
 #. module: usl_documents
 #: model:ir.model,name:usl_documents.model_hr_employee
@@ -1252,6 +1606,15 @@ msgid "Error Message"
 msgstr "Message d'erreur"
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_document_role__evidence
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__intake_role__evidence
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__document_role__evidence
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__policy_role__evidence
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__document_role__evidence
+msgid "Evidence"
+msgstr "Justificatif"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Evidence file:"
@@ -1264,6 +1627,19 @@ msgstr "Dossier de justificatif :"
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_paperless_tag__matching_algorithm__3
 msgid "Exact match"
 msgstr "rapprochement exacte"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Exact words"
+msgstr "Mots exacts"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_archive_mode__never
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__archive_mode__never
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__archive_mode__never
+msgid "Excluded"
+msgstr "Exclu"
 
 #. module: usl_documents
 #. odoo-python
@@ -1279,18 +1655,30 @@ msgstr "Dépense"
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_user_mapping__qa_local_identity
 msgid ""
-"Explicit exception for the isolated QA environment's documented "
-"username/admin test accounts. It is ignored everywhere else."
+"Explicit exception for the isolated QA environment's documented username/"
+"admin test accounts. It is ignored everywhere else."
 msgstr ""
-"Exception explicite pour les comptes de test de nom "
-"d'utilisateur/administrateur documentés de l'environnement QA isolé. Partout"
-" ailleurs, il est ignoré."
+"Exception explicite pour les comptes de test de nom d'utilisateur/"
+"administrateur documentés de l'environnement QA isolé. Partout ailleurs, il "
+"est ignoré."
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__explicitly_excluded
+msgid "Explicitly excluded"
+msgstr "Explicitement exclu"
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__source__paperless
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_version__source__paperless
 msgid "External Paperless ingestion"
 msgstr "Ingestion externe de Paperless"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__external_paperless
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__external_paperless
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__external_paperless
+msgid "External Paperless intake"
+msgstr "Entrée externe Paperless"
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
@@ -1383,8 +1771,8 @@ msgid ""
 "For Any word or All words, enter one word or phrase per line. Odoo writes "
 "the equivalent supported Paperless match expression."
 msgstr ""
-"Pour N’importe quel mot ou Tous les mots, saisissez un mot ou une expression"
-" par ligne. Odoo écrit l'expression de rapprochement Paperless prise en "
+"Pour N’importe quel mot ou Tous les mots, saisissez un mot ou une expression "
+"par ligne. Odoo écrit l'expression de rapprochement Paperless prise en "
 "charge équivalente."
 
 #. module: usl_documents
@@ -1420,6 +1808,20 @@ msgstr "Par exemple : Factures fournisseurs à vérifier"
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_paperless_tag__matching_algorithm__5
 msgid "Fuzzy word"
 msgstr "Mot flou"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__generated_final
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__generated_final
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__generated_final
+msgid "Generated final output"
+msgstr "Sortie finale générée"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__generated_transient
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__generated_transient
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__generated_transient
+msgid "Generated transient output"
+msgstr "Sortie temporaire générée"
 
 #. module: usl_documents
 #. odoo-python
@@ -1508,6 +1910,32 @@ msgid "Healthy — Paperless %(server)s, API %(api)s"
 msgstr "Sain — Paperless %(server)s, API %(api)s"
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Hide"
+msgstr "Masquer"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Hide this failed operation. The document is unchanged."
+msgstr "Masque cette opération en échec. Le document reste inchangé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid ""
+"Hide this relationship from My library without deleting the file or business "
+"link."
+msgstr "Masquez cette relation dans Ma bibliothèque sans supprimer le fichier ni le lien métier."
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__home
+#: model:usl.document.smart.view,name:usl_documents.smart_view_home
+msgid "Home"
+msgstr "Accueil"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__matching_algorithm
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__matching_algorithm
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_metadata_mixin__matching_algorithm
@@ -1517,9 +1945,13 @@ msgstr "Comment les documents correspondent"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_account_move__id
+#: model:ir.model.fields,field_description:usl_documents.field_account_payment__id
 #: model:ir.model.fields,field_description:usl_documents.field_hr_employee__id
 #: model:ir.model.fields,field_description:usl_documents.field_hr_expense__id
 #: model:ir.model.fields,field_description:usl_documents.field_ir_attachment__id
+#: model:ir.model.fields,field_description:usl_documents.field_mail_followers__id
+#: model:ir.model.fields,field_description:usl_documents.field_mail_thread__id
+#: model:ir.model.fields,field_description:usl_documents.field_project_collaborator__id
 #: model:ir.model.fields,field_description:usl_documents.field_project_project__id
 #: model:ir.model.fields,field_description:usl_documents.field_project_task__id
 #: model:ir.model.fields,field_description:usl_documents.field_res_company__id
@@ -1527,11 +1959,13 @@ msgstr "Comment les documents correspondent"
 #: model:ir.model.fields,field_description:usl_documents.field_res_partner__id
 #: model:ir.model.fields,field_description:usl_documents.field_res_users__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link_mixin__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_oidc_identity__id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__id
@@ -1560,6 +1994,16 @@ msgstr "Icône pour indiquer une activité d'exception."
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
+"Identical content and classification are already in Trash. Restore that "
+"document before linking or uploading it again."
+msgstr ""
+"Un contenu et une classification identiques sont déjà dans la corbeille. "
+"Restaurez ce document avant de le lier ou de le téléverser à nouveau."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
 "Identical content exists outside your authorized Odoo archive view, but its "
 "classification fingerprint cannot be verified. A Documents administrator "
 "must classify it before reuse."
@@ -1567,16 +2011,6 @@ msgstr ""
 "Un contenu identique existe en dehors de votre vue d'archive Odoo autorisée, "
 "mais son empreinte de classification ne peut pas être vérifiée. Un "
 "administrateur de Documents doit le classer avant de le réutiliser."
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/document.py:0
-msgid ""
-"Identical content and classification are already in Trash. Restore that "
-"document before linking or uploading it again."
-msgstr ""
-"Un contenu et une classification identiques sont déjà dans la corbeille. "
-"Restaurez ce document avant de le lier ou de le téléverser à nouveau."
 
 #. module: usl_documents
 #. odoo-python
@@ -1623,6 +2057,23 @@ msgid "In Trash"
 msgstr "Dans la corbeille"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__is_in_my_library
+msgid "In my library"
+msgstr "Dans ma bibliothèque"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__inbox
+#: model:usl.document.smart.view,name:usl_documents.smart_view_inbox
+msgid "Inbox / To classify"
+msgstr "Boîte de réception / À classer"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Include"
+msgstr "Inclure"
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_list
 msgid "Individual Paperless Identities"
 msgstr "Identités individuelles Paperless"
@@ -1663,6 +2114,11 @@ msgid "Install or repair policy"
 msgstr "Politique d'installation ou de réparation"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__intake_role
+msgid "Intake Role"
+msgstr "Rôle à l’entrée"
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
 msgid "Integration credential"
 msgstr "Titre d'intégration"
@@ -1683,6 +2139,12 @@ msgstr "Service interne URL"
 #: code:addons/usl_documents/models/document.py:0
 msgid "Invalid Contact filter."
 msgstr "Filtre de contact invalide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Invalid attachment selection."
+msgstr "Sélection de pièce jointe invalide."
 
 #. module: usl_documents
 #. odoo-python
@@ -1762,6 +2224,11 @@ msgid "Is Follower"
 msgstr "Est un abonné"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__is_prominent
+msgid "Is Prominent"
+msgstr "Est mis en avant"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__is_received_original
 msgid "Is Received Original"
 msgstr "Est reçu original"
@@ -1770,6 +2237,20 @@ msgstr "Est reçu original"
 #: model:ir.model,name:usl_documents.model_account_move
 msgid "Journal Entry"
 msgstr "Pièce comptable"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+#: code:addons/usl_documents/static/src/attachment_list_patch.xml:0
+msgid "Keep in Documents"
+msgstr "Conserver dans Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_archive_mode__on_request
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__archive_mode__on_request
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__archive_mode__on_request
+msgid "Keep on request"
+msgstr "Conserver sur demande"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__key
@@ -1798,6 +2279,11 @@ msgid "Last Error"
 msgstr "Dernière erreur"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__last_opened_at
+msgid "Last Opened At"
+msgstr "Dernière ouverture le"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__last_synced_at
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__last_synced_at
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_metadata_mixin__last_synced_at
@@ -1807,10 +2293,12 @@ msgstr "Dernière synchronisation à"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__write_uid
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__write_uid
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__write_uid
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__write_uid
@@ -1821,10 +2309,12 @@ msgstr "Mis à jour par"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__write_date
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__write_date
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__write_date
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__write_date
@@ -1853,6 +2343,20 @@ msgid "Learn automatically"
 msgstr "Apprendre automatiquement"
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document_smart_view__group_ids
+msgid "Leave empty for every Documents user."
+msgstr "Laissez vide pour tous les utilisateurs Documents."
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_document_role__library
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__intake_role__library
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__document_role__library
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__policy_role__library
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__document_role__library
+msgid "Library"
+msgstr "Bibliothèque"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__link_ids
 msgid "Link"
 msgstr "Lien"
@@ -1861,6 +2365,17 @@ msgstr "Lien"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__link_count
 msgid "Link Count"
 msgstr "Nombre de liens"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Link this archived document to the current Odoo record."
+msgstr "Lie ce document archivé à l’enregistrement Odoo actuel."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
+msgid "Link this correspondent to the suggested Odoo contact."
+msgstr "Lie ce correspondant au contact Odoo suggéré."
 
 #. module: usl_documents
 #. odoo-python
@@ -1910,6 +2425,12 @@ msgid "Linked record"
 msgstr "Enregistrement lié"
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__access_scope__linked_record
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__access_scope__linked_record
+msgid "Linked record access"
+msgstr "Accès selon les enregistrements liés"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 #: model:ir.actions.act_window,name:usl_documents.action_usl_document_links
@@ -1929,6 +2450,13 @@ msgstr "Le statut lié prend en charge les valeurs égales et non égales."
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Linked to Odoo"
 msgstr "Lié à Odoo"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__access_scope
+msgid ""
+"Linked-record documents are visible only to Documents users who can read at "
+"least one active related Odoo record."
+msgstr "Les documents liés à des enregistrements ne sont visibles que par les utilisateurs Documents qui peuvent lire au moins un enregistrement Odoo associé actif."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -1964,6 +2492,13 @@ msgstr ""
 "Rend ce fichier actuel en tant que nouvelle version. Rien n'est supprimé."
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_archive_mode__mandatory
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__archive_mode__mandatory
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__archive_mode__mandatory
+msgid "Mandatory retention"
+msgstr "Conservation obligatoire"
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/metadata.py:0
 msgid "Map an Odoo Contact first."
@@ -1988,6 +2523,12 @@ msgid "Mark reviewed"
 msgstr "Mark a évalué"
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Match"
+msgstr "Correspondance"
+
+#. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_correspondent__is_insensitive
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_document_type__is_insensitive
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_metadata_mixin__is_insensitive
@@ -1998,12 +2539,25 @@ msgstr ""
 "manière."
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__review_reason__paperless_trash
+msgid "Matching archive document is in Trash"
+msgstr "Le document correspondant est dans la corbeille"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__rule_lines
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_document_type__rule_lines
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_metadata_mixin__rule_lines
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_tag__rule_lines
 msgid "Matching terms"
 msgstr "Termes correspondants"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Meaning-based matching is temporarily unavailable; exact archive search "
+"remains active."
+msgstr "La recherche par similarité sémantique est temporairement indisponible ; la recherche exacte dans les archives reste active."
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__message_has_error
@@ -2018,11 +2572,25 @@ msgid "Messages"
 msgstr "Messages"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__metadata_hash
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__metadata_hash
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__metadata_hash
+msgid "Metadata Hash"
+msgstr "Empreinte des métadonnées"
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_document_type_form
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid "Method"
 msgstr "Mode"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__migration
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__migration
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__migration
+msgid "Migration"
+msgstr "Migration"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__mime_type
@@ -2053,6 +2621,12 @@ msgstr "Plus d'actions sur les documents"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "More tags ("
 msgstr "Plus de balises ("
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Move this document to Trash without removing its Odoo links."
+msgstr "Déplace ce document dans la corbeille sans supprimer ses liens Odoo."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -2089,6 +2663,12 @@ msgid "My Activity Deadline"
 msgstr "Échéance de mon activité"
 
 #. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__library
+#: model:usl.document.smart.view,name:usl_documents.smart_view_library
+msgid "My library"
+msgstr "Ma bibliothèque"
+
+#. module: usl_documents
 #: model:usl.document.quick.filter,name:usl_documents.quick_filter_my_uploads
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "My uploads"
@@ -2109,6 +2689,11 @@ msgid "Name"
 msgstr "Nom"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__namespace
+msgid "Namespace"
+msgstr "Espace de noms"
+
+#. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document_quick_filter__ir_filter_id
 msgid ""
 "Native Odoo search definition containing the shortcut domain, grouping, and "
@@ -2116,6 +2701,11 @@ msgid ""
 msgstr ""
 "Définition de recherche native Odoo contenant le domaine de raccourci, le "
 "regroupement et le classement."
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__native_only_on_request
+msgid "Native only — keep on request"
+msgstr "Odoo uniquement — conserver sur demande"
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__review_state__needs_attention
@@ -2154,6 +2744,11 @@ msgstr "synthèse de l'activité suivante"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__activity_type_id
 msgid "Next Activity Type"
 msgstr "Type d'activités à venir"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__next_attempt_at
+msgid "Next Attempt At"
+msgstr "Prochaine tentative le"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -2257,6 +2852,13 @@ msgstr ""
 "d'ingestion."
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__intake_role
+msgid ""
+"Odoo presentation role captured when the Paperless root entered Documents. "
+"Business relationships carry their own role."
+msgstr "Rôle de présentation Odoo enregistré lorsque le document racine Paperless est entré dans Documents. Les relations métier possèdent leur propre rôle."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid "Odoo records"
 msgstr "Enregistrements Odoo"
@@ -2310,8 +2912,10 @@ msgid ""
 "                        search bar. Configure reusable shortcuts from\n"
 "                        <b>Configuration &gt; One-click shortcuts</b>."
 msgstr ""
-"Les raccourcis en un clic sont des commandes Odoo facultatives affichées sous le\n"
-"                        barre de recherche. Configurer des raccourcis réutilisables à partir de\n"
+"Les raccourcis en un clic sont des commandes Odoo facultatives affichées "
+"sous le\n"
+"                        barre de recherche. Configurer des raccourcis "
+"réutilisables à partir de\n"
 "                        <b>Configuration &gt; Raccourcis en un clic</b>."
 
 #. module: usl_documents
@@ -2390,8 +2994,7 @@ msgstr "Seul un document dans la corbeille peut être supprimé."
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "Only a document that needs review may be left without a company."
-msgstr ""
-"Seul un document à vérifier peut rester sans société."
+msgstr "Seul un document à vérifier peut rester sans société."
 
 #. module: usl_documents
 #. odoo-python
@@ -2405,6 +3008,18 @@ msgstr ""
 #: code:addons/usl_documents/models/document.py:0
 msgid "Only an available document can be moved to Trash."
 msgstr "Seul un document disponible peut être déplacé vers la corbeille."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Only an available document can change library visibility."
+msgstr "Seule la visibilité d’un document disponible peut être modifiée dans la bibliothèque."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Only background"
+msgstr "Contexte uniquement"
 
 #. module: usl_documents
 #. odoo-python
@@ -2475,8 +3090,8 @@ msgstr "Ouvrir dans Paperless"
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"Open in Paperless is blocked until your individual archive identity and this"
-" document's permissions are synchronized."
+"Open in Paperless is blocked until your individual archive identity and this "
+"document's permissions are synchronized."
 msgstr ""
 "Ouvrir dans Paperless est bloqué jusqu'à ce que votre identité d'archive "
 "individuelle et les autorisations de ce document soient synchronisées."
@@ -2499,6 +3114,32 @@ msgid "Open the authorized document preview in a new tab."
 msgstr "Ouvrez l'aperçu du document autorisé dans un nouvel onglet."
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.account_payment_form_documents
+msgid ""
+"Open the documents linked to this payment and review any archive processing "
+"issue."
+msgstr "Ouvrez les documents liés à ce paiement et examinez tout problème de traitement de l’archive."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+msgid ""
+"Open the documents linked to this record and review any archive processing "
+"issue."
+msgstr "Ouvrez les documents liés à cet enregistrement et examinez tout problème de traitement de l’archive."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Open the linked Odoo record to choose which relationship to change."
+msgstr "Ouvrez l’enregistrement Odoo lié pour choisir la relation à modifier."
+
+#. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_paperless_correspondent__partner_id
 msgid ""
 "Optional business-identity mapping. It does not link documents or grant "
@@ -2515,7 +3156,8 @@ msgid ""
 "                                Leave archive-only correspondents unmapped."
 msgstr ""
 "Facultatif. Le mappage ne lie pas les documents et n'accorde pas l'accès.\n"
-"                                Laissez les correspondants d’archives uniquement non associé."
+"                                Laissez les correspondants d’archives "
+"uniquement non associé."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -2689,8 +3331,8 @@ msgstr "Paperless n'a ​​pas confirmé la restauration de ce document."
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"Paperless document %(paperless_id)s was permanently deleted. Approval: "
-"%(reason)s"
+"Paperless document %(paperless_id)s was permanently deleted. Approval: %"
+"(reason)s"
 msgstr ""
 "Le document Paperless %(paperless_id)s a été définitivement supprimé. "
 "Autorisation : %(reason)s"
@@ -2700,6 +3342,17 @@ msgstr ""
 #: code:addons/usl_documents/models/paperless_client.py:0
 msgid "Paperless does not support required API version %s."
 msgstr "Paperless ne prend pas en charge la version API requise, %s."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Paperless finished processing, but the archived file is not accessible. "
+"Check its archive owner and permissions, then retry."
+msgstr ""
+"Paperless a terminé le traitement, mais le fichier archivé n'est pas "
+"accessible. Vérifiez son propriétaire et ses autorisations d'archive, puis "
+"réessayez."
 
 #. module: usl_documents
 #. odoo-python
@@ -2747,17 +3400,19 @@ msgstr "Paperless n'est pas disponible. Le remplacement n'a pas été archivé."
 #. odoo-python
 #: code:addons/usl_documents/models/paperless_client.py:0
 msgid "Paperless is unavailable. The upload was not archived."
-msgstr ""
-"Paperless n'est pas disponible. Le téléchargement n'a pas été archivé."
+msgstr "Paperless n'est pas disponible. Le téléchargement n'a pas été archivé."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
 msgid ""
 "Paperless learns this correspondent from reviewed, non-inbox\n"
-"                        examples and retrains its local classifier periodically."
+"                        examples and retrains its local classifier "
+"periodically."
 msgstr ""
-"Paperless apprend à reconnaître ce correspondant à partir des documents vérifiés qui ne sont plus dans la boîte de réception.\n"
-"                        Son moteur de classement local est réentraîné périodiquement."
+"Paperless apprend à reconnaître ce correspondant à partir des documents "
+"vérifiés qui ne sont plus dans la boîte de réception.\n"
+"                        Son moteur de classement local est réentraîné "
+"périodiquement."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_document_type_form
@@ -2765,8 +3420,21 @@ msgid ""
 "Paperless learns this type from reviewed, non-inbox examples\n"
 "                        and retrains its local classifier periodically."
 msgstr ""
-"Paperless apprend à reconnaître ce type à partir des documents vérifiés qui ne sont plus dans la boîte de réception.\n"
-"                        Son moteur de classement local est réentraîné périodiquement."
+"Paperless apprend à reconnaître ce type à partir des documents vérifiés qui "
+"ne sont plus dans la boîte de réception.\n"
+"                        Son moteur de classement local est réentraîné "
+"périodiquement."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid ""
+"Paperless matched identical content to an archive document with a different "
+"classification fingerprint. Review the classification before linking it."
+msgstr ""
+"Paperless a associé un contenu identique à un document d'archive dont "
+"l'empreinte de classification est différente. Vérifiez la classification "
+"avant de le lier."
 
 #. module: usl_documents
 #. odoo-python
@@ -2829,6 +3497,12 @@ msgstr "Échec de la requête Paperless (%(status)s) : %(detail)s"
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/paperless_client.py:0
+msgid "Paperless search is temporarily unavailable."
+msgstr "La recherche Paperless est temporairement indisponible."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/paperless_client.py:0
 msgid "Paperless server %(version)s is outside the qualified 3.x series."
 msgstr ""
 "Le serveur Paperless %(version)s ne fait pas partie de la série 3.x "
@@ -2861,8 +3535,8 @@ msgstr "L'utilisateur Paperless %(id)s est %(actual)s et non %(expected)s."
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
 msgid ""
-"Paperless user ID for the non-human integration owner. Do not use a person's"
-" administrator account."
+"Paperless user ID for the non-human integration owner. Do not use a person's "
+"administrator account."
 msgstr ""
 "ID utilisateur Paperless pour le propriétaire de l'intégration non humain. "
 "N'utilisez pas le compte administrateur d'une personne."
@@ -2872,8 +3546,7 @@ msgstr ""
 #: code:addons/usl_documents/models/metadata.py:0
 msgid "Paperless uses unsupported saved-view rules: %s"
 msgstr ""
-"Paperless utilise des règles d'affichage enregistré non prises en charge : "
-"%s"
+"Paperless utilise des règles d'affichage enregistré non prises en charge : %s"
 
 #. module: usl_documents
 #. odoo-python
@@ -2887,8 +3560,8 @@ msgstr ""
 msgid ""
 "Paperless version that supports this business record, when legally relevant."
 msgstr ""
-"Version Paperless qui prend en charge cet enregistrement commercial, lorsque"
-" cela est juridiquement pertinent."
+"Version Paperless qui prend en charge cet enregistrement commercial, lorsque "
+"cela est juridiquement pertinent."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
@@ -2904,6 +3577,11 @@ msgstr "Balise parente"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__partner_mapping_hidden
 msgid "Partner Mapping Hidden"
 msgstr "correspondance des partenaires masquée"
+
+#. module: usl_documents
+#: model:ir.model,name:usl_documents.model_account_payment
+msgid "Payment"
+msgstr "Paiement"
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__permission_sync_state__pending
@@ -2934,6 +3612,15 @@ msgstr "Supprimer définitivement"
 msgid "Permanently delete this archived file? This cannot be undone."
 msgstr ""
 "Supprimer définitivement ce fichier archivé ? Cela ne peut pas être annulé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid ""
+"Permanently delete this file from Paperless and keep an Odoo audit record."
+msgstr ""
+"Supprime définitivement ce fichier de Paperless et conserve une trace "
+"d’audit dans Odoo."
 
 #. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__availability_state__permanently_deleted
@@ -2973,6 +3660,12 @@ msgstr "Les recherches personnelles enregistrées restent privées pour Odoo."
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Platform"
+msgstr "Plateforme"
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/pocketid.py:0
 msgid ""
 "Pocket ID access changed. Verify the individual Paperless identity again "
@@ -2992,14 +3685,39 @@ msgid "Pocket identity"
 msgstr "Identité de poche"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__policy_reason
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__policy_reason
+msgid "Policy Reason"
+msgstr "Motif de la politique"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__policy_role
+msgid "Policy Role"
+msgstr "Rôle de la politique"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_ledger_state__unresolved
+msgid "Policy not resolved"
+msgstr "Politique non déterminée"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__ir_attachment__usl_documents_origin__portal
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_link__attachment_origin__portal
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__attachment_origin__portal
+msgid "Portal"
+msgstr "Portail"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid ""
 "Preview and downloads will return when Paperless is\n"
-"                            available. Odoo links and business records are unaffected."
+"                            available. Odoo links and business records are "
+"unaffected."
 msgstr ""
 "L'aperçu et les téléchargements reviendront lorsque Paperless sera\n"
-"                            disponible. Les liens Odoo et les enregistrements commerciaux ne sont pas affectés."
+"                            disponible. Les liens Odoo et les "
+"enregistrements commerciaux ne sont pas affectés."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -3034,6 +3752,16 @@ msgid "Privacy"
 msgstr "Confidentialité"
 
 #. module: usl_documents
+#: model:ir.model,name:usl_documents.model_usl_document_user_state
+msgid "Private Documents Workspace State"
+msgstr "État privé de l’espace de travail Documents"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__is_starred
+msgid "Private Odoo preference; it does not change Paperless metadata."
+msgstr "Préférence Odoo privée ; elle ne modifie pas les métadonnées Paperless."
+
+#. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document__availability_state__processing
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__state__processing
 msgid "Processing"
@@ -3045,9 +3773,24 @@ msgid "Processing failed"
 msgstr "Échec du traitement"
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
 #: model:ir.model,name:usl_documents.model_project_project
 msgid "Project"
 msgstr "Projet"
+
+#. module: usl_documents
+#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__projects
+#: model:usl.document.smart.view,name:usl_documents.smart_view_projects
+msgid "Projects"
+msgstr "Projets"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__is_prominent
+msgid ""
+"Prominent roots may appear in Home and My library. Background-only roots "
+"remain available from business context and archive search."
+msgstr "Les documents racines mis en avant peuvent apparaître dans l’Accueil et Ma bibliothèque. Les documents racines de contexte restent accessibles depuis leur contexte métier et la recherche dans les archives."
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_user_mapping__qa_local_identity
@@ -3089,6 +3832,11 @@ msgid "Recently added"
 msgstr "Récemment ajouté"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__recently_opened
+msgid "Recently opened by me"
+msgstr "Ouverts récemment par moi"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__record_name
 msgid "Record Name"
 msgstr "Nom de l'enregistrement"
@@ -3108,6 +3856,11 @@ msgid "Regular expression"
 msgstr "Expression régulière"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
+msgid "Reject this suggestion and leave the correspondent unlinked."
+msgstr "Refuse cette suggestion et laisse le correspondant non lié."
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_correspondent__rejected_partner_id
 msgid "Rejected suggestion"
 msgstr "Suggestion rejetée"
@@ -3121,6 +3874,12 @@ msgstr "Supprimez chaque relation Odoo avant la suppression définitive."
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Remove from My library"
+msgstr "Retirer de Ma bibliothèque"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Remove link from this record"
 msgstr "Supprimer le lien de cet enregistrement"
 
@@ -3128,8 +3887,8 @@ msgstr "Supprimer le lien de cet enregistrement"
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"Remove links to records from another company before changing this document's"
-" company."
+"Remove links to records from another company before changing this document's "
+"company."
 msgstr ""
 "Supprimez les liens vers les enregistrements d'une autre société avant de "
 "modifier la société de ce document."
@@ -3141,6 +3900,12 @@ msgid "Remove the %(count)s active Odoo link(s) before permanent deletion."
 msgstr ""
 "Supprimez le(s) lien(s) Odoo actif(s) %(count)s avant la suppression "
 "définitive."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Remove this Odoo link without deleting the archived document."
+msgstr "Supprime ce lien Odoo sans effacer le document archivé."
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__target_document_id
@@ -3158,18 +3923,26 @@ msgid "Required business reason before approval"
 msgstr "Raison commerciale requise avant l'approbation"
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Required evidence cannot be removed from Documents Home."
+msgstr "Un justificatif obligatoire ne peut pas être retiré de l’Accueil Documents."
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Required for the audit trail"
 msgstr "Obligatoire pour la piste d'audit"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__res_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__res_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__res_id
 msgid "Res"
 msgstr "Rés"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__res_model
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__res_model
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__res_model
 msgid "Res Model"
@@ -3207,6 +3980,12 @@ msgstr ""
 "Restaurez ou réparez le document archivé avant de terminer la révision."
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Restore this archived document and keep all Odoo links."
+msgstr "Restaure ce document archivé en conservant tous ses liens Odoo."
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid "Restored from %s"
@@ -3240,9 +4019,19 @@ msgid "Retry Count"
 msgstr "Nombre de tentatives"
 
 #. module: usl_documents
+#: model:ir.actions.server,name:usl_documents.action_archive_attachments_in_paperless
+msgid "Retry Documents archiving"
+msgstr "Relancer l’archivage dans Documents"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__retry_of_id
 msgid "Retry Of"
 msgstr "Réessayer de"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__review_reason
+msgid "Review Reason"
+msgstr "Motif du contrôle"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__review_state
@@ -3287,6 +4076,12 @@ msgid "Save shortcut"
 msgstr "Enregistrer le raccourci"
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Save the current filters as a reusable shortcut."
+msgstr "Enregistre les filtres actuels comme raccourci réutilisable."
+
+#. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_smart_view__system_rule__saved
 msgid "Saved filters"
 msgstr "Filtres enregistrés"
@@ -3295,6 +4090,12 @@ msgstr "Filtres enregistrés"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_quick_filter__ir_filter_id
 msgid "Saved search"
 msgstr "Recherche enregistrée"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Saved searches"
+msgstr "Recherches enregistrées"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -3328,6 +4129,16 @@ msgstr ""
 "Recherchez parmi les valeurs de champ personnalisé Paperless synchronisées."
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid ""
+"Search by words or meaning, or add a company, date, type,\n"
+"                                correspondent, tag, or linked-record facet. "
+"Saved searches\n"
+"                                remain available in the sidebar."
+msgstr "Recherchez par mots ou par sens, ou ajoutez un filtre de société, de date, de type, de correspondant, d’étiquette ou d’enregistrement lié. Les recherches enregistrées restent disponibles dans la barre latérale."
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__all_text
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Search everywhere"
@@ -3344,6 +4155,12 @@ msgstr "Rechercher des balises"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Search tags…"
 msgstr "Rechercher des balises…"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Search the archive"
+msgstr "Rechercher dans les archives"
 
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document__archive_text
@@ -3377,15 +4194,16 @@ msgstr "Utilisateur sécurisé URL"
 #: model:ir.model.fields,help:usl_documents.field_res_config_settings__paperless_public_url
 msgid "Secured user-facing URL used for Open in Paperless."
 msgstr ""
-"URL sécurisée destinée aux utilisateurs pour ouvrir le document dans Paperless."
+"URL sécurisée destinée aux utilisateurs pour ouvrir le document dans "
+"Paperless."
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
 msgid "Select an attachment belonging to a supported business record."
 msgstr ""
-"Sélectionnez une pièce jointe appartenant à un dossier professionnel pris en"
-" charge."
+"Sélectionnez une pièce jointe appartenant à un dossier professionnel pris en "
+"charge."
 
 #. module: usl_documents
 #. odoo-python
@@ -3434,11 +4252,24 @@ msgstr "Afficher dans les vues intelligentes"
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid ""
+"Show this existing archived file in My library without uploading it again."
+msgstr "Affichez ce fichier déjà archivé dans Ma bibliothèque sans le téléverser à nouveau."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid ""
 "Showing the first 50 matches. Refine the search to find\n"
 "                                    another tag."
 msgstr ""
 "Affichage des 50 premiers matchs. Affiner la recherche pour trouver\n"
 "                                    une autre balise."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Similar meaning"
+msgstr "Sens similaire"
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_smart_view_form
@@ -3505,6 +4336,31 @@ msgstr "Trier en troisième par"
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_version__source
 msgid "Source"
 msgstr "Source"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__source_attachment_id
+msgid "Source Attachment"
+msgstr "Pièce jointe source"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__source_attachment_checksum
+msgid "Source Attachment Checksum"
+msgstr "Somme de contrôle de la pièce jointe source"
+
+#. module: usl_documents
+#: model:ir.model,name:usl_documents.model_usl_document_context_tag
+msgid "Stable Business Entity Document Tag"
+msgstr "Étiquette stable de document d’entité métier"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__starred
+msgid "Starred"
+msgstr "Marqué d’une étoile"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__is_starred
+msgid "Starred for me"
+msgstr "Marqué d’une étoile pour moi"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__state
@@ -3587,9 +4443,15 @@ msgid "System Rule"
 msgstr "Règle du système"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__tag_id
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid "Tag"
 msgstr "Étiquette"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__tag_name
+msgid "Tag Name"
+msgstr "Nom de l’étiquette"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__tag_sort_key
@@ -3650,6 +4512,12 @@ msgstr ""
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
+msgid "That Odoo relationship is not accessible."
+msgstr "Cette relation Odoo n’est pas accessible."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
 msgid "That Odoo relationship no longer exists."
 msgstr "Cette relation Odoo n'existe plus."
 
@@ -3676,6 +4544,24 @@ msgstr "Cette version du fichier n'est plus disponible."
 #: code:addons/usl_documents/models/document.py:0
 msgid "That type of Odoo record cannot carry documents."
 msgstr "Ce type d'enregistrement Odoo ne peut pas contenir de documents."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "The Odoo file changed before it was archived."
+msgstr "Le fichier Odoo a été modifié avant son archivage."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "The Odoo file was removed."
+msgstr "Le fichier Odoo a été supprimé."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "The Odoo record was removed before archival."
+msgstr "L’enregistrement Odoo a été supprimé avant l’archivage."
 
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document__trashed_by_label
@@ -3742,15 +4628,33 @@ msgstr ""
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "The attachment archive request is no longer pending."
+msgstr "La demande d’archivage de la pièce jointe n’est plus en attente."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
 msgid "The attachment no longer exists."
 msgstr "La pièce jointe n'existe plus."
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "The attachment origin is not supported."
+msgstr "L’origine de la pièce jointe n’est pas prise en charge."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/business_record.py:0
 msgid "The attachment's business record no longer exists."
 msgstr "Le dossier professionnel de la pièce jointe n'existe plus."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "The business record returned an incomplete archive policy."
+msgstr "L’enregistrement métier a renvoyé une politique d’archivage incomplète."
 
 #. module: usl_documents
 #. odoo-python
@@ -3782,7 +4686,8 @@ msgid ""
 "The current file is shown below. Replacing or restoring a file\n"
 "                            keeps the complete history."
 msgstr ""
-"Le fichier actuel est présenté ci-dessous. Remplacer ou restaurer un fichier\n"
+"Le fichier actuel est présenté ci-dessous. Remplacer ou restaurer un "
+"fichier\n"
 "                            conserve l’historique complet."
 
 #. module: usl_documents
@@ -3793,7 +4698,8 @@ msgid ""
 "                    Smart View remains the Paperless-synchronized base view."
 msgstr ""
 "Les filtres, regroupements et tris actuels sont enregistrés. Le parent\n"
-"                    vue intelligente reste la vue de base synchronisée avec Paperless."
+"                    vue intelligente reste la vue de base synchronisée avec "
+"Paperless."
 
 #. module: usl_documents
 #. odoo-python
@@ -3859,8 +4765,8 @@ msgid ""
 "The identity was not removed because Paperless could not safely revoke "
 "existing document permissions."
 msgstr ""
-"L'identité n'a pas été supprimée car Paperless n'a ​​pas pu révoquer en "
-"toute sécurité les autorisations de document existantes."
+"L'identité n'a pas été supprimée car Paperless n'a ​​pas pu révoquer en toute "
+"sécurité les autorisations de document existantes."
 
 #. module: usl_documents
 #. odoo-python
@@ -3875,8 +4781,8 @@ msgid ""
 "Hidden mappings never grant or reveal Contact access."
 msgstr ""
 "Le Contact associé, lorsqu'il est accessible dans les sociétés de "
-"l'utilisateur actuel. Les mappages masqués n’accordent ni ne révèlent jamais"
-" l’accès aux contacts."
+"l'utilisateur actuel. Les mappages masqués n’accordent ni ne révèlent jamais "
+"l’accès aux contacts."
 
 #. module: usl_documents
 #. odoo-python
@@ -3885,14 +4791,24 @@ msgid ""
 "The mapped Paperless Saved View is private. Make it shared in Paperless or "
 "remap this view."
 msgstr ""
-"La vue enregistrée Paperless associée est privée. Partagez-la dans Paperless"
-" ou associez une autre vue."
+"La vue enregistrée Paperless associée est privée. Partagez-la dans Paperless "
+"ou associez une autre vue."
 
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/metadata.py:0
 msgid "The mapped Paperless saved view no longer exists."
 msgstr "La vue enregistrée Paperless associée n’existe plus."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"The matching archive document is in Trash. Restore it to complete archival; "
+"the native Odoo file remains available."
+msgstr ""
+"Le document d'archive correspondant est dans la corbeille. Restaurez-le pour "
+"terminer l'archivage ; le fichier Odoo reste disponible."
 
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document_quick_filter__filter_domain
@@ -3974,7 +4890,8 @@ msgid ""
 "There are more matches than can be shown safely. Add a filter\n"
 "                            to narrow the result."
 msgstr ""
-"Il y a plus de correspondances qu’on ne peut en montrer en toute sécurité. Ajouter un filtre\n"
+"Il y a plus de correspondances qu’on ne peut en montrer en toute sécurité. "
+"Ajouter un filtre\n"
 "                            pour affiner le résultat."
 
 #. module: usl_documents
@@ -4027,14 +4944,27 @@ msgid "This attachment does not belong to the current record."
 msgstr "Cette pièce jointe n'appartient pas à l'enregistrement courant."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/business_record.py:0
+msgid "This attachment is not eligible for archival."
+msgstr "Cette pièce jointe n’est pas éligible à l’archivage."
+
+#. module: usl_documents
+#: model:ir.model.constraint,message:usl_documents.constraint_usl_document_operation_source_version_unique
+msgid "This attachment version is already queued for archival."
+msgstr "Cette version de la pièce jointe est déjà en attente d’archivage."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
 msgid ""
 "This correspondent already has a Contact mapping outside\n"
-"                                your accessible companies. Ask a Documents administrator\n"
+"                                your accessible companies. Ask a Documents "
+"administrator\n"
 "                                to review it."
 msgstr ""
 "Ce correspondant dispose déjà d'un mapping Contact à l'extérieur\n"
-"                                vos sociétés accessibles. Demandez à un administrateur de documents\n"
+"                                vos sociétés accessibles. Demandez à un "
+"administrateur de documents\n"
 "                                pour le revoir."
 
 #. module: usl_documents
@@ -4060,16 +4990,60 @@ msgid "This document is not linked to an Odoo record yet."
 msgstr "Ce document n'est pas encore lié à un enregistrement Odoo."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "This file cannot be kept in Documents."
+msgstr "Ce fichier ne peut pas être conservé dans Documents."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "This file could not be kept in Documents."
+msgstr "Ce fichier n’a pas pu être conservé dans Documents."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"This file is linked from records suggesting different archive metadata (%s). "
+"Review its classification."
+msgstr "Ce fichier est lié à des enregistrements suggérant des métadonnées d’archive différentes (%s). Vérifiez son classement."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"This file is still attached to an Odoo record, but its matching archive "
+"document is in Trash. Restore it to apply the current classification and "
+"archive access."
+msgstr ""
+"Ce fichier est toujours joint à un enregistrement Odoo, mais le document "
+"d'archive correspondant est dans la corbeille. Restaurez-le pour appliquer "
+"le classement et les accès actuels."
+
+#. module: usl_documents
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "This file will be kept in Documents."
+msgstr "Ce fichier sera conservé dans Documents."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_quick_filter_form
 msgid ""
 "This is the complete one-click shortcut. Filters, grouping, and\n"
-"                        sorting are saved together and compose with the selected Smart\n"
-"                        Views. The Smart View’s Paperless-compatible definition remains\n"
+"                        sorting are saved together and compose with the "
+"selected Smart\n"
+"                        Views. The Smart View’s Paperless-compatible "
+"definition remains\n"
 "                        unchanged."
 msgstr ""
 "Il s'agit du raccourci complet en un clic. Filtres, regroupement et\n"
-"                        le tri est enregistré ensemble et compose avec le Smart sélectionné\n"
-"                        Vues. La définition compatible Paperless du vue intelligente reste\n"
+"                        le tri est enregistré ensemble et compose avec le "
+"Smart sélectionné\n"
+"                        Vues. La définition compatible Paperless du vue "
+"intelligente reste\n"
 "                        inchangé."
 
 #. module: usl_documents
@@ -4127,6 +5101,12 @@ msgstr "Essayez de modifier la recherche ou les filtres."
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Try to load this document from Paperless again."
+msgstr "Tente à nouveau de charger ce document depuis Paperless."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Type"
 msgstr "Type"
 
@@ -4164,6 +5144,18 @@ msgstr "Vue enregistrée sans nom"
 #: code:addons/usl_documents/models/document.py:0
 msgid "Unsupported additional-detail search operator."
 msgstr "Opérateur de recherche de détails supplémentaires non pris en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Unsupported archive search mode."
+msgstr "Mode de recherche dans les archives non pris en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Unsupported archive visibility filter."
+msgstr "Filtre de visibilité des archives non pris en charge."
 
 #. module: usl_documents
 #. odoo-python
@@ -4217,9 +5209,27 @@ msgstr "Filtre de contact associé non pris en charge."
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Unsupported personal Documents filter."
+msgstr "Filtre Documents personnel non pris en charge."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/metadata.py:0
 msgid "Unsupported saved-search value."
 msgstr "Valeur de recherche enregistrée non prise en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/paperless_client.py:0
+msgid "Unsupported semantic search facet."
+msgstr "Facette de recherche sémantique non prise en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Untitled attachment"
+msgstr "Pièce jointe sans titre"
 
 #. module: usl_documents
 #. odoo-python
@@ -4230,13 +5240,6 @@ msgstr "Document sans titre"
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
-#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
 msgid "Upload"
 msgstr "Charger"
 
@@ -4290,7 +5293,8 @@ msgid ""
 "            !! Set the task a high priority\n"
 "            !!! Set the task a urgent priority\n"
 "\n"
-"            Make sure to use the right format and order e.g. Improve the configuration screen #feature #v16 @Mitchell !"
+"            Make sure to use the right format and order e.g. Improve the "
+"configuration screen #feature #v16 @Mitchell !"
 msgstr ""
 "Utilisez ces mots-clés dans le titre pour créer de nouvelles tâches :\n"
 "\n"
@@ -4301,7 +5305,8 @@ msgstr ""
 "    !! Définir la tâche comme priorité élevée  \n"
 "    !!! Définir la tâche comme priorité urgente  \n"
 "\n"
-"    Veillez à utiliser le bon format et l’ordre correct, par exemple : Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+"    Veillez à utiliser le bon format et l’ordre correct, par exemple : "
+"Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
 
 #. module: usl_documents
 #. odoo-javascript
@@ -4323,6 +5328,7 @@ msgstr ""
 #: model:ir.model,name:usl_documents.model_res_users
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__user_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__user_id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_user_state__user_id
 #: model:ir.model.fields,field_description:usl_documents.field_usl_paperless_user_mapping__user_id
 msgid "User"
 msgstr "Utilisateur"
@@ -4334,6 +5340,11 @@ msgid "User access"
 msgstr "Accès utilisateurs"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__permitted_user_ids
+msgid "Users allowed by linked records"
+msgstr "Utilisateurs autorisés par les enregistrements liés"
+
+#. module: usl_documents
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_paperless_user_mapping__sync_state__synchronized
 msgid "Verified"
 msgstr "Vérifié"
@@ -4343,6 +5354,13 @@ msgstr "Vérifié"
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_list
 msgid "Verify identity"
 msgstr "Vérifier l'identité"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_form
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_list
+msgid "Verify this Odoo user and Paperless identity mapping."
+msgstr ""
+"Vérifie l’association entre cet utilisateur Odoo et son identité Paperless."
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_link__version_id
@@ -4359,6 +5377,11 @@ msgstr "Version %s"
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid "Versions"
 msgstr "Versions"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_smart_view__group_ids
+msgid "Visible to groups"
+msgstr "Visible pour les groupes"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__website_message_ids
@@ -4401,8 +5424,8 @@ msgstr "Mots à rechercher"
 #. odoo-python
 #: code:addons/usl_documents/models/res_config_settings.py:0
 msgid ""
-"Workflow %(workflow)s assigns every ingestion channel to service identity "
-"%(owner)s until Odoo synchronizes access."
+"Workflow %(workflow)s assigns every ingestion channel to service identity %"
+"(owner)s until Odoo synchronizes access."
 msgstr ""
 "Le processus %(workflow)s attribue chaque canal d’import à l’identité de "
 "service %(owner)s jusqu’à ce qu’Odoo synchronise les accès."
@@ -4444,16 +5467,40 @@ msgid "You may only remove your own saved views."
 msgstr "Vous ne pouvez supprimer que vos propres vues enregistrées."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "You no longer have access to this document's related record."
+msgstr "Vous n’avez plus accès à l’enregistrement associé à ce document."
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Your Odoo work is still available."
 msgstr "Votre travail Odoo est toujours disponible."
 
 #. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "confidentiality"
+msgstr "confidentialité"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "correspondent"
+msgstr "correspondant"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "document"
 msgstr "document"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "document type"
+msgstr "type de document"
 
 #. module: usl_documents
 #. odoo-python
@@ -4472,10 +5519,12 @@ msgstr "filtre fa"
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid ""
 "from\n"
-"                Paperless. It cannot be restored. Odoo keeps an audit tombstone."
+"                Paperless. It cannot be restored. Odoo keeps an audit "
+"tombstone."
 msgstr ""
 "de\n"
-"                Paperless. Il ne peut pas être restauré. Odoo conserve une trace d’audit."
+"                Paperless. Il ne peut pas être restauré. Odoo conserve une "
+"trace d’audit."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
@@ -4494,10 +5543,46 @@ msgid "of"
 msgstr "de"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.account_payment_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+msgid "processing"
+msgstr "en cours"
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "s"
 msgstr "s"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "the archive intake relationship"
+msgstr "la relation d’entrée dans les archives"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "the link to %(record)s"
+msgstr "le lien vers %(record)s"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.account_payment_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+msgid "to review"
+msgstr "à vérifier"
 
 #. module: usl_documents
 #. odoo-python
@@ -4514,6 +5599,16 @@ msgstr "unnamed"
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
+msgid ""
+"“%(document)s” already contains this exact file and classification; the "
+"existing archive document was reused."
+msgstr ""
+"« %(document)s » contient déjà exactement ce fichier et cette "
+"classification ; le document d'archive existant a été réutilisé."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
 msgid "“%(document)s” already contains this exact file."
 msgstr "« %(document)s » contient déjà exactement ce fichier."
 
@@ -4521,18 +5616,7 @@ msgstr "« %(document)s » contient déjà exactement ce fichier."
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
 msgid ""
-"“%(document)s” already contains this exact file and classification; the "
-"existing archive document was reused."
-msgstr ""
-"« %(document)s » contient déjà exactement ce fichier et cette classification ; "
-"le document d'archive existant a été réutilisé."
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/document.py:0
-msgid ""
-"“%(document)s” is receiving a new version. Earlier versions remain "
-"available."
+"“%(document)s” is receiving a new version. Earlier versions remain available."
 msgstr ""
 "« %(document)s » reçoit une nouvelle version. Les versions antérieures "
 "restent disponibles."
@@ -4561,156 +5645,14 @@ msgstr ""
 "« %(document)s » a été restauré. Ses liens Odoo et son identité d'archive "
 "ont été préservés."
 
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
-msgid "Check that Odoo can reach the configured Paperless service."
-msgstr "Vérifie qu’Odoo peut joindre le service Paperless configuré."
+#~ msgid ""
+#~ "%(count)s attachment(s) sent to Paperless. Odoo copies were retained."
+#~ msgstr ""
+#~ "%(count)s Pièces jointes envoyées à Paperless. Les copies Odoo ont été "
+#~ "conservées."
 
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
-msgid "Apply the fail-closed Paperless workflow used to protect new documents."
-msgstr "Applique le flux Paperless à accès restreint qui protège les nouveaux documents."
+#~ msgid "All documents"
+#~ msgstr "Tous les documents"
 
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
-msgid "Link this correspondent to the suggested Odoo contact."
-msgstr "Lie ce correspondant au contact Odoo suggéré."
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_correspondent_form
-msgid "Reject this suggestion and leave the correspondent unlinked."
-msgstr "Refuse cette suggestion et laisse le correspondant non lié."
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
-msgid "Confirm that the document and its archive access have been reviewed."
-msgstr "Confirme que le document et ses accès d’archive ont été vérifiés."
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
-msgid "Apply current Odoo access rights to this document in Paperless."
-msgstr "Applique à ce document dans Paperless les droits d’accès actuels d’Odoo."
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
-msgid "Approve permanent deletion using the recorded reason. The file is not deleted yet."
-msgstr "Autorise la suppression définitive avec le motif enregistré. Le fichier n’est pas encore supprimé."
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
-msgid "Delete the approved file from Paperless and keep an Odoo audit record."
-msgstr "Supprime le fichier autorisé de Paperless et conserve une trace d’audit dans Odoo."
-
-#. module: usl_documents
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_form
-#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_user_mapping_list
-msgid "Verify this Odoo user and Paperless identity mapping."
-msgstr "Vérifie l’association entre cet utilisateur Odoo et son identité Paperless."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Permanently delete this file from Paperless and keep an Odoo audit record."
-msgstr "Supprime définitivement ce fichier de Paperless et conserve une trace d’audit dans Odoo."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Save the current filters as a reusable shortcut."
-msgstr "Enregistre les filtres actuels comme raccourci réutilisable."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Hide this failed operation. The document is unchanged."
-msgstr "Masque cette opération en échec. Le document reste inchangé."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Try to load this document from Paperless again."
-msgstr "Tente à nouveau de charger ce document depuis Paperless."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Restore this archived document and keep all Odoo links."
-msgstr "Restaure ce document archivé en conservant tous ses liens Odoo."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Move this document to Trash without removing its Odoo links."
-msgstr "Déplace ce document dans la corbeille sans supprimer ses liens Odoo."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Link this archived document to the current Odoo record."
-msgstr "Lie ce document archivé à l’enregistrement Odoo actuel."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Remove this Odoo link without deleting the archived document."
-msgstr "Supprime ce lien Odoo sans effacer le document archivé."
-
-#. module: usl_documents
-#: model:ir.model.fields,field_description:usl_documents.field_usl_document_operation__review_reason
-msgid "Review Reason"
-msgstr "Motif du contrôle"
-
-#. module: usl_documents
-#: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_operation__review_reason__paperless_trash
-msgid "Matching archive document is in Trash"
-msgstr "Le document correspondant est dans la corbeille"
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/document.py:0
-msgid ""
-"Paperless finished processing, but the archived file is not accessible. "
-"Check its archive owner and permissions, then retry."
-msgstr ""
-"Paperless a terminé le traitement, mais le fichier archivé n'est pas "
-"accessible. Vérifiez son propriétaire et ses autorisations d'archive, puis "
-"réessayez."
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/attachment_bridge.py:0
-msgid ""
-"This file is still attached to an Odoo record, but its matching archive "
-"document is in Trash. Restore it to apply the current classification and "
-"archive access."
-msgstr ""
-"Ce fichier est toujours joint à un enregistrement Odoo, mais le document "
-"d'archive correspondant est dans la corbeille. Restaurez-le pour appliquer "
-"le classement et les accès actuels."
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/attachment_bridge.py:0
-msgid ""
-"The matching archive document is in Trash. Restore it to complete archival; "
-"the native Odoo file remains available."
-msgstr ""
-"Le document d'archive correspondant est dans la corbeille. Restaurez-le "
-"pour terminer l'archivage ; le fichier Odoo reste disponible."
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/attachment_bridge.py:0
-msgid "confidentiality"
-msgstr "confidentialité"
-
-#. module: usl_documents
-#. odoo-python
-#: code:addons/usl_documents/models/document.py:0
-msgid ""
-"Paperless matched identical content to an archive document with a different "
-"classification fingerprint. Review the classification before linking it."
-msgstr ""
-"Paperless a associé un contenu identique à un document d'archive dont "
-"l'empreinte de classification est différente. Vérifiez la classification "
-"avant de le lier."
+#~ msgid "Archive in Paperless"
+#~ msgstr "Archiver dans Paperless"

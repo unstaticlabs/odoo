@@ -535,7 +535,7 @@ export class DocumentsWorkspaceView extends Component {
                 restored.selectedVersionId = null;
             }
             if (params.linked_filter) {
-                restored.workspace = "all";
+                restored.workspace = "archive_search";
                 restored.page = 1;
             }
             restored.linkedRecord = params.linked_filter
@@ -580,7 +580,17 @@ export class DocumentsWorkspaceView extends Component {
             searchInput: typeof restored.query === "string" ? restored.query : "",
             searchFocused: false,
             workspace:
-                typeof restored.workspace === "string" ? restored.workspace : "recent",
+                typeof restored.workspace === "string" ? restored.workspace : "home",
+            searchMode: ["hybrid", "exact", "semantic"].includes(
+                restored.searchMode
+            )
+                ? restored.searchMode
+                : "hybrid",
+            backgroundMode: ["include", "exclude", "only"].includes(
+                restored.backgroundMode
+            )
+                ? restored.backgroundMode
+                : "include",
             view: ["cards", "list"].includes(restored.view) ? restored.view : "cards",
             sort: ["recent", "ingested", "date", "title"].includes(restored.sort)
                 ? restored.sort
@@ -619,6 +629,9 @@ export class DocumentsWorkspaceView extends Component {
             failedOperations: [],
             canUpload: false,
             truncated: false,
+            warnings: [],
+            starring: {},
+            changingLibrary: false,
         });
         this.searchReady = false;
         this.metadataSaveQueue = Promise.resolve();
@@ -745,6 +758,49 @@ export class DocumentsWorkspaceView extends Component {
     get activeSmartView() {
         return this.state.smartViews.find(
             (view) => view.key === this.state.workspace
+        );
+    }
+
+    get isArchiveSearchEmpty() {
+        return (
+            this.state.workspace === "archive_search" &&
+            !this.searchModel.facets.length
+        );
+    }
+
+    get selectedRelationshipRole() {
+        if (!this.state.selected) {
+            return null;
+        }
+        if (this.recordContext) {
+            return this.state.selected.links?.find(
+                (link) =>
+                    link.model === this.recordContext.resModel &&
+                    link.res_id === this.recordContext.resId
+            )?.document_role;
+        }
+        const mutableLinks = (this.state.selected.links || []).filter((link) =>
+            ["background", "library"].includes(link.document_role)
+        );
+        if (mutableLinks.length === 1) {
+            return mutableLinks[0].document_role;
+        }
+        return this.state.selected.intake_role;
+    }
+
+    get canPromoteSelected() {
+        return (
+            this.state.selected?.can_edit &&
+            this.state.selected.availability_state === "available" &&
+            this.selectedRelationshipRole === "background"
+        );
+    }
+
+    get canDemoteSelected() {
+        return (
+            this.state.selected?.can_edit &&
+            this.state.selected.availability_state === "available" &&
+            this.selectedRelationshipRole === "library"
         );
     }
 
@@ -1261,6 +1317,8 @@ export class DocumentsWorkspaceView extends Component {
             workspace: this.state.workspace,
             view: this.state.view,
             sort: this.state.sort,
+            searchMode: this.state.searchMode,
+            backgroundMode: this.state.backgroundMode,
             orderBy: this.state.orderBy,
             page: this.state.page,
             ...Object.fromEntries(
@@ -1635,6 +1693,8 @@ export class DocumentsWorkspaceView extends Component {
             sort: this.state.sort,
             order_by: this.state.orderBy,
             search_domain: this.searchModel.domain,
+            search_mode: this.state.searchMode,
+            background_mode: this.state.backgroundMode,
             // Legacy state is migrated into the native SearchModel before the
             // second load. Never apply a second hidden tag condition.
             shortcut_tag_ids: [],
@@ -1779,6 +1839,7 @@ export class DocumentsWorkspaceView extends Component {
                 this.pollOperation(result.active_operation.id);
             }
             this.state.truncated = Boolean(result.truncated);
+            this.state.warnings = result.warnings || [];
             this.state.error = result.error || "";
             this.state.workspace = result.selected_workspace || this.state.workspace;
             if (this.state.selected) {
@@ -2247,7 +2308,7 @@ export class DocumentsWorkspaceView extends Component {
             (item) => item.id !== view.id
         );
         if (this.state.workspace === view.key) {
-            this.state.workspace = "recent";
+            this.state.workspace = "home";
             await this.load();
         }
     }
@@ -2292,6 +2353,16 @@ export class DocumentsWorkspaceView extends Component {
                     ...detail,
                     preview_url: this.documentPreviewUrl(detail),
                 };
+                try {
+                    await this.orm.call(
+                        "usl.document",
+                        "action_mark_opened",
+                        [[document.id]]
+                    );
+                } catch {
+                    // Personal recency is a convenience. It must never block
+                    // authorized archive access or document preview.
+                }
                 this.state.degraded = detail.archive_available === false;
                 if (versionId) {
                     const version = detail.versions?.find(
@@ -2314,6 +2385,83 @@ export class DocumentsWorkspaceView extends Component {
             );
         } finally {
             this.state.selectedLoading = false;
+        }
+    }
+
+    async toggleStar(document) {
+        if (!document?.id || this.state.starring[document.id]) {
+            return;
+        }
+        this.state.starring[document.id] = true;
+        const starred = !document.is_starred;
+        try {
+            await this.orm.call("usl.document", "action_set_starred", [
+                [document.id],
+                starred,
+            ]);
+            for (const item of this.state.documents) {
+                if (item.id === document.id) {
+                    item.is_starred = starred;
+                }
+            }
+            if (this.state.selected?.id === document.id) {
+                this.state.selected.is_starred = starred;
+            }
+            this.notification.add(
+                starred ? "Added to your starred documents." : "Removed from your starred documents.",
+                { type: "success" }
+            );
+            if (["home", "library"].includes(this.state.workspace)) {
+                await this.load();
+            }
+        } catch (error) {
+            this.notification.add(
+                error.data?.message || error.message || "Your star was not saved.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.starring[document.id] = false;
+        }
+    }
+
+    async setLibraryVisibility(promote) {
+        const selected = this.state.selected;
+        if (!selected || this.state.changingLibrary) {
+            return;
+        }
+        this.state.changingLibrary = true;
+        try {
+            const detail = await this.orm.call(
+                "usl.document",
+                "action_set_library_visibility",
+                [[selected.id], promote],
+                this.recordContext
+                    ? {
+                          res_model: this.recordContext.resModel,
+                          res_id: this.recordContext.resId,
+                      }
+                    : {}
+            );
+            this.state.selected = {
+                ...detail,
+                preview_url: this.documentPreviewUrl(detail),
+            };
+            this.notification.add(
+                promote
+                    ? "Added to My library. The archived file was reused."
+                    : "Removed from My library. The archive and business links were kept.",
+                { type: "success" }
+            );
+            await this.load();
+        } catch (error) {
+            this.notification.add(
+                error.data?.message ||
+                    error.message ||
+                    "Library visibility could not be changed.",
+                { type: "danger", sticky: true }
+            );
+        } finally {
+            this.state.changingLibrary = false;
         }
     }
 
