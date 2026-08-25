@@ -138,6 +138,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("USL_RECONSTRUCT_RESUME_ACCOUNTING=1", makefile)
         self.assertIn('run_stage "revalidate reusable accounting"', script)
         self.assertIn("scripts/accounting-compat dev-validate", script)
+        self.assertIn('failed_checks == {"manager_accounting_identity_matches"}', script)
+        self.assertIn('manager.get("target") is None', script)
+        self.assertIn("scripts/hr-restore all", script)
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
 

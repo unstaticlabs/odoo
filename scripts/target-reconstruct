@@ -310,6 +310,51 @@ stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
 }
 
+validate_reusable_accounting() {
+  local validation_status
+  set +e
+  scripts/accounting-compat dev-validate
+  validation_status=$?
+  set -e
+  if ((validation_status == 0)); then
+    return 0
+  fi
+  if ! python3 - "$ROOT/artifacts/accounting-compat/private/dev-validate-status.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+evidence = Path(sys.argv[1])
+if not evidence.is_file():
+    raise SystemExit(1)
+payload = json.loads(evidence.read_text(encoding="utf-8"))
+failed_checks = {
+    name
+    for name, passed in payload.get("critical_checks", {}).items()
+    if not passed
+}
+manager = payload.get("manager_accounting_identity", {})
+repairable = (
+    payload.get("status") == "failed"
+    and payload.get("classification") == "DEV_QA_TARGET_DEFECT"
+    and failed_checks == {"manager_accounting_identity_matches"}
+    and manager.get("source")
+    and manager.get("target") is None
+)
+raise SystemExit(0 if repairable else 1)
+PY
+  then
+    return "$validation_status"
+  fi
+  printf '%s\n' \
+    'Accounting ledger parity passed, but a downstream stage detached the manager HR identity.' \
+    'Replaying the idempotent HR restore before one strict revalidation.'
+  stop_product
+  scripts/hr-restore all
+  stop_product
+  scripts/accounting-compat dev-validate
+}
+
 run_stage "Docker resource preflight" scripts/migration-resource-preflight
 run_stage "target identity preflight" preflight_target_identity
 start_target_database
@@ -322,7 +367,7 @@ run_stage "source accounting controls" scripts/accounting-compat source-controls
 run_stage "extract accounting source" scripts/accounting-compat extract
 if [[ "$resume_accounting" == 1 ]]; then
   stop_product
-  run_stage "revalidate reusable accounting" scripts/accounting-compat dev-validate
+  run_stage "revalidate reusable accounting" validate_reusable_accounting
 else
   run_stage "reset target database" scripts/accounting-compat dev-reset
   stop_product
