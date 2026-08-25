@@ -86,9 +86,9 @@
         <field name="arch" type="xml">
             <form create="0" edit="0" delete="0">
                 <header>
-                    <button name="action_export" type="object" string="Download document" class="btn-primary" invisible="state != 'waiting' or exported_at"/>
-                    <button name="action_open_provider" type="object" string="Open signing provider" class="btn-primary" invisible="state != 'waiting' or not exported_at"/>
-                    <button name="action_open_import" type="object" string="Upload signed result" invisible="state != 'waiting' or not exported_at"/>
+                    <button name="action_export" type="object" string="1. Download document" class="btn-primary" invisible="state != 'waiting' or exported_at"/>
+                    <button name="action_open_provider" type="object" string="2. Open signing provider" class="btn-primary" invisible="state != 'waiting' or not exported_at"/>
+                    <button name="action_open_import" type="object" string="3. Upload signed result" class="btn-primary" invisible="state != 'waiting' or not exported_at"/>
                     <field name="state" widget="statusbar" statusbar_visible="waiting,imported,validated,rejected,cancelled"/>
                 </header>
                 <sheet>

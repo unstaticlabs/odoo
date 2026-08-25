@@ -44,7 +44,7 @@
                         <input id="usl_sign_consent" class="form-check-input" type="checkbox" t-on-change="(ev) => this._onConsentChanged(ev)"/>
                         <span>
                             <strong id="usl_sign_consent_title">Before you sign</strong>
-                            <span>I reviewed this document and consent to use an electronic signature.</span>
+                            <span>I reviewed this document and agree to sign it electronically.</span>
                         </span>
                     </label>
                     <div id="usl_sign_consent_error" class="text-danger small d-none">Consent is required.</div>
@@ -67,7 +67,7 @@
     <t t-name="usl_sign.StandardSignatureDialog" t-inherit="web.SignatureDialog" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('mt16') and hasclass('small')]" position="replace">
             <div class="mt16 small">
-                By continuing, I agree to sign this document electronically. The final record includes my consent and the document checks. This is a Standard electronic signature with reinforced evidence—not a qualified signature.
+                By continuing, I agree to sign this document electronically. The record will include my consent and the completed document.
             </div>
         </xpath>
     </t>
