@@ -72,13 +72,13 @@
                             type="object"
                             class="btn-secondary"
                             title="Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
-                            invisible="state != 'draft' or (not account_override_id and not analytic_distribution)"/>
+                            invisible="state != 'draft' or expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
                     <button name="action_submit"
                             string="Submit batch"
                             type="object"
                             class="oe_highlight"
                             title="Send only the draft expenses in this batch for manager approval. This does not post or pay them."
-                            invisible="state != 'draft'"/>
+                            invisible="state != 'draft' or expense_count == 0"/>
                     <button name="action_approve"
                             string="Approve batch"
                             type="object"

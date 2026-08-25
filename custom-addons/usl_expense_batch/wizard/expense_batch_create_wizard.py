@@ -12,6 +12,7 @@ from odoo.addons.usl_expense_batch.models.hr_expense import (
 class UslExpenseBatchCreateWizard(models.TransientModel):
     _name = "usl.expense.batch.create.wizard"
     _description = "Create Expense Batch"
+    _inherit = ["analytic.mixin"]
 
     name = fields.Char()
     purpose = fields.Text()
@@ -39,7 +40,6 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         default="other",
         required=True,
     )
-    analytic_distribution = fields.Json(string="Shared analytics")
     account_override_id = fields.Many2one(
         "account.account",
         string="Shared expense account",

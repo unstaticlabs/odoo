@@ -81,6 +81,11 @@ class TestExpenseBatch(TestExpenseCommon):
             .action_open_expense_batch_wizard(complete.ids)
         )
         wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertIn("analytic_precision", wizard._fields)
+        self.assertIn(
+            "analytic_precision",
+            wizard.read(["analytic_precision"])[0],
+        )
         self.assertEqual(action["views"], [(False, "form")])
         self.assertEqual(wizard.expense_ids, complete)
         self.assertEqual(wizard.expense_count, 1)
@@ -465,6 +470,10 @@ class TestExpenseBatch(TestExpenseCommon):
             "company_id": self.env.company.id,
             "analytic_distribution": {str(self.analytic_account_1.id): 100},
         })
+        self.assertEqual(existing.state, "draft")
+        self.assertEqual(existing.expense_count, 0)
+        with self.assertRaisesRegex(UserError, "Add at least one expense"):
+            existing.action_submit()
         expense = self._expense("Canada candidate", amount=73)
         candidates = self.env["hr.expense"].get_expense_batch_candidates(
             expense.ids,
@@ -713,9 +722,11 @@ class TestExpenseBatch(TestExpenseCommon):
             "//button[@name='action_open_context_wizard']",
         )[0]
         self.assertIn("Line-specific choices", apply_context.get("title"))
+        self.assertIn("expense_count == 0", apply_context.get("invisible"))
         submit = batch_form.xpath("//button[@name='action_submit']")[0]
         self.assertIn("only the draft expenses", submit.get("title"))
         self.assertIn("does not post", submit.get("title").lower())
+        self.assertIn("expense_count == 0", submit.get("invisible"))
 
         wizard_form = self.env.ref(
             "usl_expense_batch.view_expense_batch_create_wizard_form",
