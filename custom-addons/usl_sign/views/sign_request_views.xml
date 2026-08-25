@@ -260,7 +260,7 @@
                         <h2>Share this request with <field name="recipient_names" readonly="1" class="d-inline"/>?</h2>
                     </div>
                     <p class="mb-2">
-                        These invited people have an Odoo account. They will be able to open this request in <strong>My Signatures</strong> and retrieve the final files after completion.
+                        These invited people have an Odoo account. They will receive a signing activity, can open the request in <strong>My Signatures</strong>, and can retrieve the final files after completion.
                     </p>
                     <p class="text-muted mb-0">
                         They will only see their own signing assignment. Other recipients still use their private signing link.

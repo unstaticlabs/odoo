@@ -39,6 +39,16 @@
         <field name="usl_kind">role</field>
     </record>
 
+    <record id="mail_activity_type_sign_document" model="mail.activity.type">
+        <field name="name">Document signature</field>
+        <field name="summary">Review and sign</field>
+        <field name="icon">fa-pencil-square-o</field>
+        <field name="sequence">1</field>
+        <field name="decoration_type">warning</field>
+        <field name="res_model">sign.oca.request.signer</field>
+        <field name="kpi_provider_visibility">own</field>
+    </record>
+
     <record id="policy_routine_standard" model="usl.sign.policy">
         <field name="name">Routine signing policy</field>
         <field name="sequence">10</field>

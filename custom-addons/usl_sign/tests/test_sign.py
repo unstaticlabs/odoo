@@ -586,6 +586,25 @@ class TestCleanUslSign(TransactionCase):
             usl_sign_share_confirmed=INTERNAL_OPERATION,
         ).action_send()
         signer = request.signer_ids
+        activity_type = self.env.ref("usl_sign.mail_activity_type_sign_document")
+        activity_domain = [
+            ("activity_type_id", "=", activity_type.id),
+            ("res_model", "=", signer._name),
+            ("res_id", "=", signer.id),
+            ("user_id", "=", internal_signer.id),
+            ("active", "=", True),
+        ]
+        activity = self.env["mail.activity"].search(activity_domain)
+        self.assertEqual(len(activity), 1)
+        self.assertEqual(activity.summary, "Review and sign: Clean Sign request")
+        self.assertEqual(activity.date_deadline, fields.Date.to_date(request.expires_at))
+        self.assertEqual(
+            signer.with_user(internal_signer).sign()["url"],
+            f"/sign/user/{signer.id}",
+        )
+
+        signer._send_signer_invitation(force=True, reminder=True)
+        self.assertEqual(self.env["mail.activity"].search_count(activity_domain), 1)
         signer.invitation_mail_id.write(
             {"state": "exception", "failure_reason": "Synthetic SMTP outage"},
         )
@@ -601,6 +620,52 @@ class TestCleanUslSign(TransactionCase):
             ),
         )
         self.assertTrue(signer.with_user(internal_signer).is_allow_signature)
+
+        activity.unlink()
+        self.env["sign.oca.request"]._cron_sign_operations()
+        self.assertEqual(self.env["mail.activity"].search_count(activity_domain), 1)
+        request.cancel()
+        self.assertFalse(self.env["mail.activity"].search_count(activity_domain))
+
+    def test_share_confirmation_grants_internal_signer_access_and_activity(self):
+        internal_signer = new_test_user(
+            self.env,
+            login="usl-sign-invited-colleague",
+            groups="base.group_user",
+            company_id=self.company.id,
+        )
+        internal_signer.partner_id.email = "invited-colleague@example.test"
+        sign_group = self.env.ref("usl_sign.group_sign_user")
+        self.assertNotIn(sign_group, internal_signer.all_group_ids)
+        request = self._ready(
+            self._request(partners=[internal_signer.partner_id]),
+        )
+
+        confirmation_action = request.action_send()
+        self.assertEqual(confirmation_action["res_model"], "usl.sign.share.confirm")
+        self.env["usl.sign.share.confirm"].browse(
+            confirmation_action["res_id"],
+        ).action_confirm()
+
+        self.assertIn(sign_group, internal_signer.all_group_ids)
+        signer = request.signer_ids
+        self.assertTrue(signer.with_user(internal_signer).is_allow_signature)
+        self.assertEqual(
+            self.env["mail.activity"].search_count(
+                [
+                    (
+                        "activity_type_id",
+                        "=",
+                        self.env.ref("usl_sign.mail_activity_type_sign_document").id,
+                    ),
+                    ("res_model", "=", signer._name),
+                    ("res_id", "=", signer.id),
+                    ("user_id", "=", internal_signer.id),
+                    ("active", "=", True),
+                ],
+            ),
+            1,
+        )
 
     def test_identity_setup_email_copy_review_and_request_resume(self):
         self.company.email = "identity-review@example.test"

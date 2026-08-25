@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 from .constants import INTERNAL_OPERATION
@@ -27,6 +27,14 @@ class SignShareConfirm(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         self.request_id._check_owner_access()
+        sign_group = self.env.ref("usl_sign.group_sign_user")
+        internal_users = self.request_id._internal_signer_users()
+        users_needing_access = internal_users.filtered(
+            lambda user: sign_group not in user.all_group_ids,
+        )
+        users_needing_access.sudo().write(
+            {"group_ids": [Command.link(sign_group.id)]},
+        )
         return self.request_id.with_context(
             usl_sign_share_confirmed=INTERNAL_OPERATION,
         ).action_send(message=self.message)
