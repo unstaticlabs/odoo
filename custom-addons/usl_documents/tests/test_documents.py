@@ -200,17 +200,171 @@ class TestDocuments(TransactionCase):
                 [("source_attachment_id", "=", attachment.id)],
             ),
         )
+        self.assertEqual(
+            self.env["ir.attachment"].get_keep_in_documents_states(
+                [attachment.id],
+            ),
+            {str(attachment.id): "available"},
+        )
 
         first = attachment.action_keep_in_documents()
         second = attachment.action_keep_in_documents()
+        ui_result = attachment.action_keep_in_documents_from_ui()
 
         self.assertEqual(first, second)
+        self.assertEqual(ui_result["operation_id"], first.id)
         self.assertEqual(first.archive_mode, "on_request")
         self.assertEqual(first.document_role, "library")
         self.assertEqual(first.attachment_origin, "chatter")
         self.assertEqual(first.context_json["archive_mode"], "on_request")
         self.assertEqual(first.context_json["document_role"], "library")
         self.assertEqual(attachment.usl_documents_ledger_state, "pending")
+        self.assertEqual(
+            self.env["ir.attachment"].get_keep_in_documents_states(
+                [attachment.id],
+            ),
+            {},
+        )
+
+    def test_search_workspaces_keep_background_out_of_home_until_promoted(self):
+        project = self.env["project.project"].create(
+            {"name": "Search UX project", "company_id": self.company_a.id},
+        )
+        document = self._document(
+            71001,
+            source="paperless",
+            intake_role="background",
+            paperless_created=fields.Datetime.now(),
+        )
+        link = self.env["usl.document.link"].create_for_record(
+            document,
+            "project.project",
+            project.id,
+            archive_mode="automatic",
+            policy_role="background",
+            attachment_origin="direct_record",
+            policy_reason="project_direct_background",
+        )
+        documents = self.env["usl.document"].with_user(self.user)
+
+        self.assertNotIn(
+            document.id,
+            [item["id"] for item in documents.workspace_data(workspace="home")["documents"]],
+        )
+        self.assertEqual(
+            documents.workspace_data(workspace="archive_search")["count"],
+            0,
+        )
+        archive_result = documents.workspace_data(
+            workspace="archive_search",
+            paperless_id=document.paperless_id,
+        )
+        self.assertEqual([item["id"] for item in archive_result["documents"]], [document.id])
+        self.assertEqual(
+            [
+                item["id"]
+                for item in documents.workspace_data(workspace="projects")["documents"]
+            ],
+            [document.id],
+        )
+
+        before_identity = (document.paperless_id, document.version_ids.ids)
+        detail = documents.browse(document.id).action_set_library_visibility(
+            True,
+            res_model="project.project",
+            res_id=project.id,
+        )
+
+        self.assertEqual(detail["paperless_id"], document.paperless_id)
+        self.assertEqual(link.document_role, "library")
+        self.assertEqual(before_identity, (document.paperless_id, document.version_ids.ids))
+        self.assertIn(
+            document.id,
+            [item["id"] for item in documents.workspace_data(workspace="home")["documents"]],
+        )
+        self.assertIn(
+            document.id,
+            [
+                item["id"]
+                for item in documents.workspace_data(workspace="library")["documents"]
+            ],
+        )
+
+        documents.browse(document.id).action_set_library_visibility(
+            False,
+            res_model="project.project",
+            res_id=project.id,
+        )
+
+        self.assertEqual(link.document_role, "background")
+        self.assertTrue(link.active)
+        self.assertEqual(before_identity, (document.paperless_id, document.version_ids.ids))
+        self.assertNotIn(
+            document.id,
+            [item["id"] for item in documents.workspace_data(workspace="home")["documents"]],
+        )
+
+    def test_personal_star_is_private_and_does_not_promote_background_role(self):
+        document = self._document(
+            71002,
+            source="paperless",
+            intake_role="background",
+        )
+        user_document = document.with_user(self.user)
+
+        user_document.action_set_starred(True)
+
+        self.assertTrue(user_document.is_starred)
+        self.assertFalse(document.with_user(self.manager).is_starred)
+        self.assertEqual(
+            self.env["usl.document.user.state"].with_user(self.user).search([]).user_id,
+            self.user,
+        )
+        self.assertFalse(
+            self.env["usl.document.user.state"].with_user(self.manager).search([]),
+        )
+        self.assertEqual(document.intake_role, "background")
+        self.assertFalse(document.is_prominent)
+        self.assertIn(
+            document.id,
+            [
+                item["id"]
+                for item in self.env["usl.document"]
+                .with_user(self.user)
+                .workspace_data(workspace="library")["documents"]
+            ],
+        )
+        self.assertNotIn(
+            document.id,
+            [
+                item["id"]
+                for item in self.env["usl.document"]
+                .with_user(self.user)
+                .workspace_data(workspace="home")["documents"]
+            ],
+        )
+
+    def test_primary_navigation_hides_restricted_and_diagnostic_views(self):
+        ordinary_keys = set(
+            self.env["usl.document.smart.view"]
+            .with_user(self.user)
+            .accessible_views()
+            .mapped("key"),
+        )
+        manager_keys = set(
+            self.env["usl.document.smart.view"]
+            .with_user(self.manager)
+            .accessible_views()
+            .mapped("key"),
+        )
+
+        self.assertTrue(
+            {"home", "library", "projects", "archive_search", "trash"}.issubset(
+                ordinary_keys,
+            ),
+        )
+        self.assertFalse({"hr", "inbox", "all"}.intersection(ordinary_keys))
+        self.assertTrue({"hr", "inbox", "all"}.issubset(manager_keys))
 
     def test_mandatory_evidence_overrides_chatter_origin(self):
         employee = self.env["hr.employee"].create(
@@ -3858,7 +4012,7 @@ class TestDocuments(TransactionCase):
                 PaperlessClient,
                 "compatibility",
                 return_value={
-                    "server_version": "3.0.4",
+                    "server_version": "3.0.5",
                     "api_version": "10",
                     "document_count": 0,
                 },
@@ -3887,7 +4041,7 @@ class TestDocuments(TransactionCase):
             manifest = self.env["usl.document"].integrity_manifest("qa-backup")
         self.assertEqual(manifest["schema"], "usl-documents-integrity-v1")
         self.assertEqual(manifest["backup_id"], "qa-backup")
-        self.assertEqual(manifest["paperless_version"], "3.0.4")
+        self.assertEqual(manifest["paperless_version"], "3.0.5")
         self.assertEqual(manifest["paperless_trash_count"], 1)
         self.assertEqual(manifest["paperless_total_count"], 1)
         self.assertEqual(manifest["permanent_deletion_tombstone_count"], 1)
@@ -4037,12 +4191,12 @@ class TestPaperlessClientContract(TransactionCase):
             "_request",
             return_value=(
                 {"count": 2},
-                {"x-api-version": "10", "x-version": "3.0.4"},
+                {"x-api-version": "10", "x-version": "3.0.5"},
             ),
         ):
             result = client.compatibility()
         self.assertEqual(result["api_version"], "10")
-        self.assertEqual(result["server_version"], "3.0.4")
+        self.assertEqual(result["server_version"], "3.0.5")
 
     def test_unsupported_api_or_major_version_fails_clearly(self):
         client = PaperlessClient(self.env)
@@ -4052,7 +4206,7 @@ class TestPaperlessClientContract(TransactionCase):
                 "_request",
                 return_value=(
                     {"count": 0},
-                    {"X-Api-Version": "9", "X-Version": "3.0.4"},
+                    {"X-Api-Version": "9", "X-Version": "3.0.5"},
                 ),
             ),
             self.assertRaises(PaperlessCompatibilityError),

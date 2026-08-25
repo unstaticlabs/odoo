@@ -384,7 +384,7 @@ test("a record smart button starts from an uncluttered linked-record view", asyn
         })
     );
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
-        expect(kwargs.workspace).toBe("all");
+        expect(kwargs.workspace).toBe("archive_search");
         expect(kwargs.query).toBe("");
         expect(kwargs.shortcut_tag_ids).toEqual([]);
         expect(kwargs.search_domain).toEqual([
@@ -1597,4 +1597,168 @@ test("permission failures are actionable while healthy state stays quiet", async
     expect(".o_usl_documents_detail").not.toHaveText(/Download original/i);
     expect(".o_usl_document_card img").toHaveCount(0);
     expect(".o_usl_document_thumb_placeholder").toHaveCount(1);
+});
+
+test("archive search starts empty and exposes human search controls", async () => {
+    const calls = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        return {
+            ...emptyWorkspace,
+            selected_workspace: "archive_search",
+            smart_views: [
+                {
+                    id: 1,
+                    key: "home",
+                    name: "Home",
+                    icon: "fa-home",
+                    personal: false,
+                    filters: {},
+                },
+                {
+                    id: 2,
+                    key: "archive_search",
+                    name: "Archive search",
+                    icon: "fa-search",
+                    personal: false,
+                    filters: {},
+                },
+            ],
+        };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action({ initial_workspace: "archive_search" }) },
+    });
+
+    expect(calls[0].workspace).toBe("archive_search");
+    expect(calls[0].search_mode).toBe("hybrid");
+    expect(calls[0].background_mode).toBe("include");
+    expect(".o_usl_documents_empty").toHaveText(/Search the archive/);
+    expect(".o_usl_documents_empty").toHaveText(/company, date, type/);
+    expect("[aria-label='Archive search matching']").toHaveValue("hybrid");
+    expect("[aria-label='Background document visibility']").toHaveValue(
+        "include"
+    );
+
+    await contains("[aria-label='Archive search matching']").select("exact");
+    expect(calls.at(-1).search_mode).toBe("exact");
+    await contains("[aria-label='Background document visibility']").select(
+        "exclude"
+    );
+    expect(calls.at(-1).background_mode).toBe("exclude");
+});
+
+test("background relationship is promoted without an upload journey", async () => {
+    let role = "background";
+    const calls = [];
+    const document = {
+        id: 91,
+        name: "Project brief",
+        paperless_id: 191,
+        date: "2026-08-25",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "Brief",
+        tags: [],
+        link_count: 1,
+        intake_role: "background",
+        is_starred: false,
+        primary_link: { name: "Search UX project", model: "project.project" },
+    };
+    const detail = () => ({
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: false,
+        can_trash: true,
+        archive_available: true,
+        versions: [],
+        links: [
+            {
+                id: 8,
+                model: "project.project",
+                res_id: 12,
+                record_name: "Search UX project",
+                model_label: "Project",
+                document_role: role,
+            },
+        ],
+    });
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        selected_workspace: "archive_search",
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail());
+    onRpc("usl.document", "action_set_library_visibility", ({ args, kwargs }) => {
+        expect(args).toEqual([[91], true]);
+        expect(kwargs.res_model).toBe("project.project");
+        expect(kwargs.res_id).toBe(12);
+        calls.push(true);
+        role = args[1] ? "library" : "background";
+        return detail();
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: {
+            action: action({
+                initial_workspace: "archive_search",
+                res_model: "project.project",
+                res_id: 12,
+            }),
+        },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    expect(".o_usl_detail_header_actions").toHaveText(/Add to My library/);
+    await contains("button", { text: "Add to My library" }).click();
+    await animationFrame();
+
+    expect(calls).toEqual([true]);
+    expect(".o_notification").toHaveText(/archived file was reused/);
+    expect(".o_usl_detail_header_actions").toHaveText(/Remove from My library/);
+});
+
+test("stars are personal workspace controls", async () => {
+    let starred = false;
+    const document = {
+        id: 92,
+        name: "Reference note",
+        paperless_id: 192,
+        date: "2026-08-25",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "Note",
+        tags: [],
+        link_count: 0,
+        is_starred: starred,
+        primary_link: false,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [{ ...document, is_starred: starred }],
+        count: 1,
+    }));
+    onRpc("usl.document", "action_set_starred", ({ args }) => {
+        expect(args).toEqual([[92], true]);
+        starred = true;
+        return { document_id: 92, is_starred: true };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_star_button").click();
+    await animationFrame();
+
+    expect(".o_notification").toHaveText(/Added to your starred documents/);
+    expect(".o_usl_star_button").toHaveClass("is-starred");
 });
