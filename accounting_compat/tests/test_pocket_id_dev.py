@@ -211,7 +211,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "scripts/platform-billing-restore all",
             "scripts/target-finalize",
         ]
-        positions = [script.index(step) for step in ordered_steps]
+        positions = []
+        search_from = 0
+        for step in ordered_steps:
+            position = script.index(step, search_from)
+            positions.append(position)
+            search_from = position + len(step)
 
         self.assertEqual(positions, sorted(positions))
         self.assertGreaterEqual(script.count("stop_product"), 5)
@@ -258,6 +263,16 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("requested_paperless_http_port", script)
         self.assertIn('module_args+=("--init=', script)
         self.assertIn('module_args+=("--update=', script)
+        self.assertIn("init_modules=()", script)
+        self.assertIn("update_modules=()", script)
+        self.assertLess(
+            script.index("init_modules=()"),
+            script.index("${#init_modules[@]}"),
+        )
+        self.assertLess(
+            script.index("update_modules=()"),
+            script.index("${#update_modules[@]}"),
+        )
         self.assertIn("SELECT state FROM ir_module_module", script)
         self.assertIn(
             'export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"',
