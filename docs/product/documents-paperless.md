@@ -103,13 +103,30 @@ link restores the selection. Session state is isolated by Odoo user so one
 person's search is not inherited when another person signs in on the same
 browser.
 
-The shared navigation is **Needs review**, **Recently added**, **Accounting**,
-**Contracts & legal**, **Banking**, **Tax & reporting**, restricted **HR**,
-**All documents**, and **Trash**. Archive-native shared views use Paperless
-Saved View identities and stable tag/type/correspondent IDs. Odoo-only company,
-confidentiality, linked-record, accounting, and HR restrictions compose with
-those views and remain visibly Odoo policy; they are never claimed to exist
-identically in Paperless.
+The primary navigation starts with **Home** and **My library**, then the useful
+business scopes **Accounting**, **Projects**, **Contracts & legal**,
+**Banking**, and **Tax & reporting**. **HR** remains role-restricted.
+Documents managers also receive **Inbox / To classify** and **All archived**;
+ordinary users do not receive these broad operational views. **Archive
+search** is available to Documents users but deliberately opens empty: the
+archive is queried only after the user supplies text or a facet. **Trash**
+remains separate. The former top-level **Needs review** and **Recently added**
+views are retained only as inactive compatibility identities so saved URLs and
+API clients do not break.
+
+**Home** is a working set, not an archive dump. It contains only prominent
+library/evidence relationships that are starred, recently opened, need review,
+or were added recently. **My library** contains every accessible relationship
+whose presentation role is library or evidence. Search controls let a user
+include all authorized background archive material, exclude it, or show only
+background material; this choice never changes authorization. A star and
+recent-open state are private to the current Odoo user and are not written to
+shared Paperless tags or Saved Views.
+
+Archive-native shared views use Paperless Saved View identities and stable
+tag/type/correspondent IDs. Odoo-only company, confidentiality, linked-record,
+accounting, project, and HR restrictions compose with those views and remain
+visibly Odoo policy; they are never claimed to exist identically in Paperless.
 
 Shared archive-native views are globally visible Saved View objects in
 Paperless. Paperless's sidebar is a per-user preference, so a direct user may
@@ -200,6 +217,14 @@ start with a removable **Linked record** facet. Removing it lets the user search
 and **Link to this record**. Native chatter and attachment controls remain the
 normal upload surface; there is no competing **Archive in Paperless** action.
 Removing a relationship never trashes or deletes the archived root.
+
+Automatic archiving normally keeps supporting attachments in the background
+so routine record evidence does not flood Home. An authorized attachment menu
+offers **Keep in Documents** when that relationship may be promoted. The
+document detail can likewise add a background relationship to **My library**
+or remove a library relationship from it. Both actions change only the Odoo
+presentation role: they reuse the same Paperless root, versions, checksum,
+operation history, and business link. Required evidence cannot be demoted.
 
 Context is additive. Projects receive **Projects** and one stable
 **Project · Name** tag, Platform Billing receives one stable platform tag,
@@ -294,4 +319,7 @@ collaborative editors, OCR, classifiers, or retention judgment. It does not
 iframe or copy the Paperless frontend. Existing Odoo attachments remain when
 deliberately archived. Final Odoo-generated legal or accounting outputs may
 have an operational Odoo copy plus a Paperless archival copy; checksum, source,
-and relationship make that deliberate duplication explicit.
+and relationship make that deliberate duplication explicit. A trusted
+`generated_final` origin queues that archival copy as `odoo_generated`
+evidence; it follows the same retry, duplicate, and permission workflow as
+other authoritative archive operations.

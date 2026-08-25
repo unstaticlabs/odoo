@@ -159,7 +159,7 @@ correspondent, type, or other user metadata.
 |---|---|---|
 | A — policy engine | origin, mode, role, deterministic operation/link diagnostics, adapters, idempotent retry/backfill | validated 2026-08-24 |
 | B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | validated 2026-08-25 |
-| C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | planned |
+| C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | implementation and automated gates complete; manual SSO browser evidence pending |
 | D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | isolated Worker running; endpoint planned |
 | E — personal Gemini | encrypted per-user key, activation/revocation, no chat UI, no search/index/MCP dependency | planned |
 | F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | planned |
@@ -283,3 +283,127 @@ boundary and the exact gate then passed.
   digest-bound release cohort.
 - The current QA overlay is intentionally partial and cannot satisfy source or
   release parity gates.
+
+## Checkpoint C evidence — search-first Documents workspace
+
+The implementation reduces the primary navigation to a governed working set.
+Home contains only prominent library/evidence relationships that are starred,
+recently opened, need attention, or were added recently. My library retains
+all accessible library/evidence relationships. Business views follow, while
+Inbox and All archived are manager-only. Archive search opens empty until the
+user supplies text or a facet. Users can explicitly include, exclude, or show
+only background archive material without changing the Odoo authorization
+scope. The former Needs review and Recently added identities remain inactive
+for saved-session compatibility.
+
+Three credible presentation designs were compared:
+
+1. Keep the native `ir.attachment` bridge, one Paperless root, and the existing
+   `usl.document.link`, while storing a library/background/evidence role on the
+   relationship and private star/recent state in Odoo. This is selected. It
+   preserves immediate Odoo uploads, one checksum/version identity, the
+   current queue and retry contract, and record-rule-aware per-user state.
+2. Create a second library/favorites archive or re-upload a background file
+   when the user chooses **Keep in Documents**. This was rejected because it
+   duplicates ingestion, versions, checksums, retention, and business links;
+   retries could then produce two competing archive roots.
+3. Encode library membership and personal stars as Paperless tags or Saved
+   Views. Shared tags remain credible for business classification, but they
+   were rejected for presentation state because one user's preference would
+   mutate shared metadata and could reveal or alter another user's working
+   set. Paperless also cannot enforce the Odoo relationship/evidence rule that
+   prevents required evidence from being demoted.
+
+The selected actions change only Odoo presentation. **Keep in Documents** is
+available from the native attachment list when policy permits. The document
+detail can promote or demote one accessible link, but evidence remains
+prominent. Both paths retain the Paperless root, version chain, checksum,
+operation history, business relationship, and Paperless-managed metadata.
+
+Backend validation passed 137 test methods (141 reported test entries and 8,457
+queries), zero failures and zero errors, after focused regressions for private
+state, read-only accounting access, manager-only views, empty archive search,
+background visibility, multi-company scope, attachment promotion,
+root/version identity, unchanged policy/synchronization writes, and trusted
+generated-final provenance. One preceding fresh run correctly exposed an
+over-specific mock assertion in the new synchronization test; the assertion
+was moved to the Paperless client boundary and the focused retry plus complete
+fresh-database run passed without changing production behavior. Frontend
+validation passed 31 desktop tests with 215 assertions and 28 mobile tests with
+207 assertions, with zero Odoo failures or errors. Two consecutive module
+updates installed `usl_documents saas~19.3.1.6.1`; Python, XML, JavaScript
+asset, translation, manifest, production-model Ruff, shell-syntax, static, and
+product/migration source and database checks passed.
+
+The exact authoritative dump was reconstructed in the isolated project with
+the deterministic `documents-smoke` profile. Eight selected source identity
+groups produced seven live Paperless roots, with eight checksum validations,
+permission write/readback, HR restriction, and cross-company supersession all
+passing. The sealed restore evidence SHA-256 is
+`dd955252deedc444414b7d31764c751ce93e7643c5de1a966320be9c8153945e`.
+The final database boundary passed with 12 product modules and no migration
+registry, schema, menu, field, model, or XML-ID residue. This partial profile
+is deterministic QA evidence only; it is not complete source or release
+parity.
+
+Post-reconstruction bootstrap found that Compose rendered
+`POCKET_ID_EXTRA_USERS_JSON` as YAML flow syntax and removed its JSON quotes.
+Both Odoo service declarations now use block scalars. The private env file,
+rendered Compose configuration, and recreated runtime each parse the same
+eight-user JSON list, and the focused 18-test Pocket/Compose suite passes. The
+final idempotent bootstrap synchronized seven roots, retained one trashed root,
+and produced 18 Odoo document roots, 26 active links, 19 versions, two Trash
+items, and two Needs-attention items.
+
+Four real-service attempts then reached the unchanged three-minute operation
+limit. Live probes showed that every policy ensure issued an unconditional
+Workflow API `PUT`, and that an unchanged full cache refresh invalidated every
+document's already synchronized permission state. Paperless consequently
+scheduled redundant bulk re-indexing, including the 334,457-character source
+document, ahead of the acceptance upload. Three alternatives were compared:
+
+1. Compare the exact supported owned workflow fields before writing, and mark
+   unchanged cache writes so they do not invalidate permissions. This was
+   selected because it removes the work at its source while still repairing
+   actual policy drift. Live before/after probes produced zero remote
+   permission calls and zero new tasks when state already matched.
+2. Raise Paperless worker or Ollama parallelism. This was tested and rejected:
+   it changes the release resource assumption, can amplify memory contention,
+   and merely processes needless writes faster. The final pass uses three
+   ordinary task workers from the reconstruction profile and no
+   `OLLAMA_NUM_PARALLEL` override.
+3. Move the catalog probe later or extend the operation timeout. This was
+   rejected after an empty queue proved the catalog creates no global index
+   work. Either change would conceal the idempotency defect while preserving
+   avoidable archive churn.
+
+The same acceptance exposed that a final generated accounting attachment was
+initially queued with generic attachment provenance. The retained correction
+captures the trusted `generated_final` origin as `odoo_generated`, commits the
+durable operation, and invokes the normal archive worker; relabeling the result
+after ingestion or bypassing the queue was rejected because either would make
+retry and provenance evidence untrustworthy.
+
+With the original catalog-first order, the default Ollama runtime, and the
+pinned `usl-bge-m3:documents-20260824-rc1` alias, the complete real-service
+acceptance passed in 10 seconds against Paperless 3.0.5/API v10. It ended with
+`document_id=23`, `paperless_id=24`, two versions, one active relationship,
+and an integrity-clean manifest. Direct identity checks saw 42 roots as archive
+admin, 9 as ordinary Documents user, 5 as accountant, 9 as HR, and 0 as the
+restricted user. Every identity saw the three shared views and every ordinary
+identity received HTTP 403 on shared-view mutation. The isolated outage test
+persisted resume page 1 while Odoo business data stayed available; recovery
+preserved all 44 identities and returned synchronization to healthy.
+
+No task is active. Tantivy reports that its index is current. The local vector
+index has schema 2, 1,024 dimensions, the pinned model identity, 948 chunks,
+and 46 root metadata rows. Two historical task failures remain visible rather
+than being deleted or acknowledged: task 26 is the earlier Ollama EOF from a
+diagnostic load run, and task 50 is the already classified ephemeral upload
+whose temporary file disappeared during container recreation. Both predate
+the final clean acceptance and recovery evidence.
+
+Manual desktop/mobile SSO browser evidence is still required before creating
+`codex/checkpoint/documents-search-ux`. A local one-time Pocket ID link is a
+sensitive authentication action and is not generated or entered without
+action-time user confirmation.

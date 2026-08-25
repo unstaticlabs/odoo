@@ -170,6 +170,14 @@ enabling web, consume, mail, or API intake. New archive items remain owned by
 the service context until Odoo assigns company/confidentiality and synchronizes
 actual document-object permissions.
 
+Policy reconciliation is idempotent. When the owned workflow already has the
+required trigger sources, fail-closed owner, order, enabled state, and empty
+interactive grants, Odoo must not issue a `PUT`. Likewise, an unchanged full
+metadata synchronization must not invalidate already synchronized object
+permissions. Repeated writes make Paperless schedule avoidable bulk index work
+and can delay normal ingestion behind large OCR documents; increasing worker
+or embedding concurrency is not a substitute for eliminating those writes.
+
 In Paperless, put direct identities in a role that grants model-level read
 access to Documents, Tags, Correspondents, Document types, Custom fields,
 Storage paths, Notes, and Saved Views. Grant personal Saved View/UI-settings
@@ -297,6 +305,12 @@ retention, external ingestion, versions, a real automatic matching rule,
 Odoo-initiated Trash attribution and stable restore, direct mapped identities,
 shared Saved View visibility, permissions, outage/resume, and reconciliation.
 
+Trusted `generated_final` attachments enter the ordinary durable operation
+queue with source `odoo_generated` and the evidence role. Acceptance commits
+the queued operation, runs the same archive worker used in production, and
+accepts only an archived or checksum-duplicate result. It does not bypass the
+worker or relabel a generic attachment after ingestion.
+
 The recovery target:
 
 1. exports Paperless;
@@ -321,14 +335,18 @@ were written outside the repository under `/tmp`; that location is evidence
 for the disposable rehearsal, not a production backup destination.
 
 The frontend gate runs the Documents QUnit suite in both desktop and mobile
-presets. It covers native search suggestions and facets, shared native saved
-searches, inline classification, autocomplete quick creation and dismissal,
-native tag facets, large catalogs, Smart View shortcuts, sortable URL-backed
-list ordering, linked-record return navigation, Trash attribution/deletion
-gates, and open-detail overflow. Record the current passed test/assertion count
-from the command output instead of copying a historical count into a release
-claim. Browser review must additionally exercise real archive data at desktop,
-tablet, and mobile widths and report console/network failures honestly.
+presets. It covers Home/My library navigation, role-restricted manager views,
+empty-by-default Archive search, hybrid/exact/semantic modes, background
+include/exclude/only controls, private stars, native-attachment **Keep in
+Documents**, promotion/demotion without archive duplication, native search
+suggestions and facets, shared native saved searches, inline classification,
+autocomplete quick creation and dismissal, native tag facets, large catalogs,
+Smart View shortcuts, sortable URL-backed list ordering, linked-record return
+navigation, Trash attribution/deletion gates, and open-detail overflow. Record
+the current passed test/assertion count from the command output instead of
+copying a historical count into a release claim. Browser review must
+additionally exercise real archive data at desktop, tablet, and mobile widths
+and report console/network failures honestly.
 
 The target stops the isolated restored project after evidence capture and
 preserves its volumes until review. Never pass `--volumes` to a manual cleanup
