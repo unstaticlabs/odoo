@@ -71,7 +71,7 @@ services:
     extra_hosts:
       - "${POCKET_ID_HOSTNAME:-pocket-id.localhost}:host-gateway"
     environment:
-      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect,paperless_personal_ai
       PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
         {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}","settings":{"server_url":"${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}","token_auth_method":"client_secret_basic"}}]}}
       PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
@@ -90,7 +90,7 @@ services:
 
   paperless-identity-init:
     environment:
-      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect,paperless_personal_ai
       PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
         {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:-usl-paperless-preproduction}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}","settings":{"server_url":"${POCKET_ID_APP_URL:-http://pocket-id.localhost:1411}","token_auth_method":"client_secret_basic"}}]}}
 

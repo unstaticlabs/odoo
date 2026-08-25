@@ -57,10 +57,10 @@ directory, e-reporting, or production provider.
 Paperless is exactly `3.0.5` at image digest
 `sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`.
 The qualified derived Paperless image is
-`usl-paperless-ngx:3.0.5-usl.2` at manifest digest
-`sha256:9bac20850d764127a3f8dad98b8885ace9e62559cd47c0752c79d858832dae5f`.
-It is built from the exact base above and contains only the documented
-`semantic-search-api-v2` overlay. The isolated Ollama service is exactly
+`usl-paperless-ngx:3.0.5-usl.3` at manifest digest
+`sha256:3ba338b00385a203a07296dac9be41aacbed2bcce4b317a7be206c570c1f05c5`.
+It is built from the exact base above and contains the documented
+`semantic-search-api-v2+personal-gemini-v1` overlay. The isolated Ollama service is exactly
 `0.30.11` at image digest
 `sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca`.
 Its application-facing model is `usl-bge-m3:documents-20260824-rc1`, model
@@ -162,7 +162,7 @@ correspondent, type, or other user metadata.
 | B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | validated 2026-08-25 |
 | C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | implementation and automated gates complete; manual SSO browser evidence pending |
 | D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | validated 2026-08-25 |
-| E — personal Gemini | encrypted per-user key, activation/revocation, no chat UI, no search/index/MCP dependency | planned |
+| E — personal Gemini | encrypted per-user key, activation/revocation, no Odoo chat UI, no search/index/MCP dependency | implementation and automated gates complete; manual profile browser evidence pending |
 | F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | planned |
 | G — production candidate | full security/functional matrix, install/upgrades, boundary/accounting/docs gates, release identity | planned |
 
@@ -508,3 +508,74 @@ readiness. The deployment/rollback, capacity, content disclosure, Inspector,
 and client refresh procedure is maintained in
 `docs/operations/documents-mcp-runbook.md`. The Worker remains outside Compose
 and the Paperless service credential remains behind Odoo.
+
+## Checkpoint E evidence — personal Gemini opt-in
+
+Three configuration designs were compared. Paperless's native global LLM
+configuration was rejected because one administrator-controlled key would be
+shared across users and could not prove personal consent, ownership, or
+independent revocation. An Odoo-hosted key vault and generation proxy was
+rejected because it would create a second secret/authorization plane, couple
+Paperless generation to Odoo, and invite the explicitly excluded Odoo chat UI.
+The selected design is a supported Paperless Django app plus a compiled,
+exact-source Angular overlay. Runtime DOM injection remained technically
+possible but was rejected because it bypasses component tests and
+localization, and would be brittle across Paperless upgrades.
+
+Every active governed Pocket-mapped internal user—including ordinary and
+read-only identities—may configure only their own profile. Anonymous, portal,
+inactive, unmapped, and service identities are excluded. Both metadata
+suggestions and Paperless document chat default to off and have independent
+toggles. The provider is fixed to Gemini, the endpoint is the official
+OpenAI-compatible Google endpoint, and only stable `gemini-3.7-flash` and
+`gemini-3.6-flash` identifiers are accepted. Native global generative fields
+are cleared by migration, read-only in the API, hidden from global settings,
+and rejected by the release check.
+
+User API keys use AES-256-GCM envelope encryption with a randomized data key
+and a versioned master-key wrap. Associated data binds the credential to its
+Paperless user and revision. The master-key ring is mounted as a read-only
+Docker secret and only its path is present in process environment. The key is
+write-only and is never returned, redisplayed, placed in browser storage,
+exported, copied to Odoo/MCP, or chained through a provider exception. Disable
+and delete are immediate; old master-key versions are lazily rewrapped to the
+active version.
+
+The first live startup exposed that Paperless interprets any environment name
+ending in `_FILE` and copies that file's contents into process environment.
+No value was logged, but the design boundary was violated. The variable was
+renamed to `USL_PERSONAL_AI_MASTER_KEYS_PATH`, an automated release check now
+rejects every legacy inline form, and the container was rebuilt and recreated.
+Its startup now reports `No *_FILE environment found`; a value-free in-process
+assertion proved the inline variables absent.
+
+The exact final image is
+`sha256:3ba338b00385a203a07296dac9be41aacbed2bcce4b317a7be206c570c1f05c5`
+with upstream revision `8fb73b2709e4c38180a7632edf32f32fe2315961`, base
+digest `sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`,
+and overlay label `semantic-search-api-v2+personal-gemini-v1`. The source
+archive and Node builder are checksum/digest pinned, and every modified
+upstream backend/frontend file has a SHA-256 guard.
+
+The final Django gate passed 20 tests. It covers default-off and independent
+activation, mapped/unmapped/service eligibility, cross-user and admin
+isolation, fixed model/endpoint behavior, write-only responses, randomized
+envelope encryption, user/revision binding, master-key rotation, immediate
+disable/delete, read-only document use, pre-stream authorization, global
+fallback removal, credential-free provider failures, and rejection of inline
+master-key environment. The targeted Angular Jest suite passed two tests for
+default-off/no-secret state and replacement-key clearing. The all-locale
+production build passed; the French bundle contains the maintained settings,
+placeholder, action, and privacy strings. Strict Ruff, Python compilation,
+shell syntax, XML parsing, Compose rendering, migration drift, health, and
+release-boundary checks passed.
+
+The isolated QA database migration applied cleanly and the service remained
+healthy. Its recoverable pre-migration dump is
+`/private/tmp/usl-paperless-pre-personal-ai-20260825.dump`, SHA-256
+`0e040574ada49d6ca80c9cd5acf3ba81b12bb0a2cfc98bddfce27a58b1ac1e08`.
+No personal or master key was printed or added to Git. No real Gemini API key
+was supplied, so the provider request itself was validated with a mocked
+models-only call; live document generation is deliberately not claimed.
+Manual desktop/mobile **My profile** evidence remains required before creating
+`codex/checkpoint/personal-gemini-opt-in`.

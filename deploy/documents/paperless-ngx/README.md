@@ -4,19 +4,31 @@ This directory contains the only Paperless source overlay in the USL
 distribution. It applies to upstream Paperless-ngx `v3.0.5`, source commit
 `8fb73b2709e4c38180a7632edf32f32fe2315961`, image digest
 `sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`.
-The build rejects any other upstream `paperless/urls.py` content before it
-changes the image.
+The backend and frontend patchers verify the SHA-256 of every changed upstream
+file and reject any source drift before changing the image. The exact source
+archive is pinned at
+`sha256:e2b713b1e15d388c435d51acd10bf94935e651adbf31a70e061fcc40535394c6`;
+the frontend builder is pinned at
+`node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4`.
 
 ## Patch inventory
 
-Patch level `semantic-search-api-v2` has two production changes:
+Patch level `semantic-search-api-v2+personal-gemini-v1` has two bounded feature
+groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/semantic_search/` endpoint. It uses Paperless's native
    Ollama embedding client and `llmindex.db`; it never opens the vector database
    from Odoo.
-2. `apply_overlay.py` adds one import and one URL registration to upstream
-   `paperless/urls.py` after verifying its exact SHA-256.
+2. `paperless_personal_ai` is a supported Django app loaded through
+   `PAPERLESS_APPS`. It owns per-user Gemini configuration, an encrypted
+   user-bound credential, profile-only APIs, release checks, and runtime
+   permission rechecks. The exact-source backend patch removes native global
+   generative fallback and routes Paperless's existing suggestions and document
+   chat through the initiating user's configuration. The exact-source Angular
+   patch adds those settings to **My profile**, gates the two existing
+   generative entry points independently, removes the native global LLM
+   settings, and compiles the normal localized frontend.
 
 `tests/test_semantic_api.py` is an upstream-style DRF test module covering
 permission resolution before retrieval, object grants, mandatory service
@@ -24,8 +36,9 @@ scope, indistinguishable source-document denial, source exclusion,
 empty-scope fail-closed behavior, facets, request limits, and embedding outage
 behavior.
 
-No upstream model, migration, task, OCR, Tantivy, version, metadata, or
-generative-AI behavior is replaced.
+No OCR, Tantivy, local embedding, vector-index, version, ingestion, or MCP path
+can resolve a Gemini credential. The only external generation paths are the
+two explicitly enabled personal features. There is no Odoo chat UI.
 
 ## API contract
 
@@ -58,6 +71,49 @@ operational.
 The endpoint is included in Paperless's generated OpenAPI schema through
 `drf-spectacular`. It never invokes a generative model.
 
+## Personal Gemini contract
+
+Only an active Paperless identity that is both a member of the configured
+internal Documents group and mapped to Pocket ID by the governed USL identity
+sync may configure personal Gemini. Ordinary and read-only internal users are
+eligible without administrator approval. Anonymous, portal, inactive,
+unmapped, and service identities are denied. Every API resolves only
+`request.user`; even a superuser cannot select another user's profile.
+
+Both metadata suggestions and document chat default to off and can be enabled
+or revoked independently. The provider and endpoint are fixed to Google Gemini
+and `https://generativelanguage.googleapis.com/v1beta/openai/`. The approved
+stable model allowlist is `gemini-3.7-flash` (default) and
+`gemini-3.6-flash`; `latest`, preview, experimental, and arbitrary endpoint
+values are rejected. Google documents both stable IDs and the OpenAI-compatible
+endpoint in its [model catalogue](https://ai.google.dev/gemini-api/docs/models)
+and [compatibility guide](https://ai.google.dev/gemini-api/docs/openai).
+
+The API key is accepted only as a write-only value. It is encrypted with a
+random per-credential AES-256-GCM data-encryption key; that key is wrapped by a
+versioned AES-256-GCM master key. Associated data binds both layers to the
+Paperless user ID, credential revision, and master-key identity. Ciphertexts
+therefore cannot be moved across users or revisions. The master-key ring is a
+Compose/Docker secret mounted at `/run/secrets/usl_personal_ai_master_keys` and
+identified only by `USL_PERSONAL_AI_MASTER_KEYS_PATH`. It is never copied into
+an environment variable. Resolution lazily rewraps an old data key under the
+active master-key version without decrypting and re-encrypting the stored API
+key.
+
+The key is never returned, redisplayed, stored in browser storage, exported,
+sent to Odoo or MCP, or included in logs and exception chains. Provider errors
+are converted to credential-free failures. **Test connection** calls only the
+fixed `/models` endpoint and verifies that the selected model is available; it
+does not send document content. Disable takes effect at the next authorization
+check. Delete disables both features and erases every encrypted credential
+field immediately.
+
+`python manage.py check_personal_ai_release` fails if a native global
+generative setting is present in either environment or database, if an inline
+master-key environment variable exists, or if the mounted key ring is invalid.
+Operational setup, rotation, revocation, incident response, and restore rules
+are in `docs/operations/personal-gemini-runbook.md`.
+
 ## Alternatives and removal plan
 
 Two credible non-overlay alternatives were evaluated:
@@ -81,3 +137,23 @@ upstream with this test module. Remove this directory and switch the Compose
 image to the qualified upstream digest once Paperless publishes an equivalent
 versioned endpoint with mandatory pre-retrieval permission scope and a
 service-scope fail-closed contract.
+
+For personal generation, three credible designs were compared:
+
+- Paperless's native global LLM configuration was rejected because it shares
+  one administrator-controlled credential across all users and cannot express
+  personal consent, independent toggles, user ownership, or cross-user key
+  isolation.
+- Storing keys and proxying generation through Odoo was rejected because it
+  would make Odoo a second secret and chat authority, introduce the explicitly
+  excluded Odoo chat UI, and couple Paperless generation to Odoo availability.
+- A supported Paperless Django app plus exact-source Angular build is selected.
+  Runtime DOM/script injection was considered but rejected because it bypasses
+  Angular compilation, localization, and component tests and is brittle across
+  upstream releases.
+
+Remove the personal-generation patch when upstream provides an equivalent
+per-user, encrypted, independently revocable settings contract and a supported
+frontend extension point. Until then, any Paperless upgrade must update every
+hash guard, rebuild all locales, rerun the backend/frontend suites, and reprove
+that search, OCR, indexing, and MCP never resolve a personal credential.

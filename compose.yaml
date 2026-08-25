@@ -41,7 +41,7 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.2}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.3}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
@@ -72,10 +72,17 @@ services:
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
+      USL_PERSONAL_AI_MASTER_KEYS_PATH: /run/secrets/usl_personal_ai_master_keys
+    secrets:
+      - source: usl_personal_ai_master_keys
+        target: usl_personal_ai_master_keys
     command:
       - /bin/sh
       - -ec
       - |
+        [ -s "$${USL_PERSONAL_AI_MASTER_KEYS_PATH}" ] || {
+          echo "The personal AI master-key secret is required"; exit 1;
+        }
         if [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ]; then
           [ -n "$${POCKET_ID_CLIENT_ID}" ] || { echo "The Odoo Pocket client ID is required"; exit 1; }
           [ -n "$${POCKET_ID_PAPERLESS_CLIENT_ID}" ] || { echo "The Paperless Pocket client ID is required"; exit 1; }
@@ -213,7 +220,7 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.2}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.3}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
@@ -268,8 +275,13 @@ services:
       PAPERLESS_AI_LLM_ALLOW_INTERNAL_ENDPOINTS: "true"
       PAPERLESS_LLM_INDEX_TASK_CRON: ${PAPERLESS_LLM_INDEX_TASK_CRON:-10 2 * * *}
       PAPERLESS_USL_SCOPED_SERVICE_USERS: ${PAPERLESS_USL_SCOPED_SERVICE_USERS:-odoo-integration}
+      PAPERLESS_APPS: paperless_personal_ai
+      USL_PERSONAL_AI_MASTER_KEYS_PATH: /run/secrets/usl_personal_ai_master_keys
     ports:
       - "127.0.0.1:${PAPERLESS_HTTP_PORT:-8010}:8000"
+    secrets:
+      - source: usl_personal_ai_master_keys
+        target: usl_personal_ai_master_keys
     healthcheck:
       test:
         - CMD-SHELL
@@ -291,7 +303,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.2}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.3}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -312,7 +324,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.2}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.3}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -732,3 +744,7 @@ volumes:
   paperless-consume:
   paperless-trash:
   paperless-ollama-data:
+
+secrets:
+  usl_personal_ai_master_keys:
+    file: ${USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH:-.documents-personal-ai-keys.json}

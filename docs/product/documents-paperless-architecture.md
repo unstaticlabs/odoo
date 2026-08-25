@@ -8,8 +8,11 @@ never mounts the Odoo filestore. Restarting, upgrading, or restoring Paperless
 does not make Odoo unavailable.
 
 The `usl_documents` add-on extends Odoo through supported models, controllers,
-record rules, views, and one OWL client action. No upstream Odoo core file and
-no Paperless frontend code is copied or patched.
+record rules, views, and one OWL client action. No upstream Odoo core file is
+patched. The Paperless distribution image carries one exact-source,
+hash-guarded backend/frontend overlay for the governed semantic API and
+per-user Gemini settings; it is compiled from the exact Paperless 3.0.5 source
+rather than injected at runtime.
 
 ```text
 Pocket ID
@@ -146,6 +149,40 @@ meaning-only request fails honestly. Search never invokes a generative model.
 When no explicit list order is selected, fused relevance is preserved.
 Explicit compact-list ordering is accepted only through a server allowlist of
 synchronized stored fields.
+
+## Personal generative boundary
+
+Gemini is neither an archive dependency nor a search component. Paperless owns
+the two optional personal generation surfaces—metadata suggestions and its
+existing document chat—while Odoo exposes no chat UI and MCP remains strictly
+read-only. Both features are off by default and require the current active
+internal Paperless user to have a governed Pocket mapping, an individual
+encrypted credential, and the relevant personal toggle.
+
+The credential is a one-to-one Paperless profile value encrypted with a random
+AES-256-GCM data key. A versioned deployment master key wraps that data key;
+associated data binds both encryption layers to the user, credential revision,
+and master-key identity. Only a secret-file path is present in process
+environment. The key itself never crosses into Odoo, MCP, browser storage,
+Paperless exports, logs, or exception chains, and an administrator has no API
+for selecting another user's profile.
+
+The provider, OpenAI-compatible Google endpoint, and stable model allowlist
+are distribution constants. Native global generative fields are read-only,
+hidden from the settings UI, cleared by migration, and rejected by the release
+check. The connection test calls only the provider's model-list endpoint and
+sends no document. Metadata generation re-resolves the initiating user and
+document before the external call. Streaming chat rechecks the active mapping,
+toggle, and every context document before synthesis and before emitting each
+chunk. Provider failures are deliberately sanitized because third-party
+exception objects may retain request headers.
+
+Document content is always untrusted prompt context. The fixed chat prompt
+forbids following document instructions and supplies no tools; metadata
+suggestions are returned for user review and never applied automatically.
+Disabling or deleting a profile takes effect on the next authorization check.
+Upload, OCR, local embeddings, Tantivy/vector retrieval, Odoo synchronization,
+and MCP never resolve this configuration and continue during a Gemini outage.
 
 ## Write path
 

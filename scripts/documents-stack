@@ -172,8 +172,12 @@ validate_config() {
     printf 'Pocket ID v2.13.0 is not pinned by digest.\n' >&2
     return 1
   }
-  grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect" <<<"$config" || {
-    printf 'Paperless OpenID Connect support is not enabled.\n' >&2
+  grep -Fq "PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect,paperless_personal_ai" <<<"$config" || {
+    printf 'Paperless OpenID Connect and personal AI apps are not enabled.\n' >&2
+    return 1
+  }
+  grep -Fq "USL_PERSONAL_AI_MASTER_KEYS_PATH: /run/secrets/usl_personal_ai_master_keys" <<<"$config" || {
+    printf 'Paperless personal AI master-key secret is not mounted.\n' >&2
     return 1
   }
   grep -Fq "PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: \"false\"" <<<"$config" || {
