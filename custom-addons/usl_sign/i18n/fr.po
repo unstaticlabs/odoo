@@ -2420,3 +2420,39 @@ msgstr "Quel fichier utiliser ?"
 #. module: usl_sign
 msgid "The signed PDF is the document to read and share. The completion certificate is a short summary. The proof package is for audit and contains the signed PDF, source files, consent, activity record, certificates, and validation reports as embedded attachments."
 msgstr "Le PDF signé est le document à lire et à partager. Le certificat d’achèvement en est un résumé. Le dossier de preuve est destiné à l’audit et contient, en pièces jointes intégrées, le PDF signé, les fichiers sources, le consentement, le journal d’activité, les certificats et les rapports de validation."
+
+#. module: usl_sign
+msgid "Send setup email"
+msgstr "Envoyer l’e-mail de configuration"
+
+#. module: usl_sign
+msgid "Copy setup link"
+msgstr "Copier le lien de configuration"
+
+#. module: usl_sign
+msgid "Review record"
+msgstr "Référence du contrôle"
+
+#. module: usl_sign
+msgid "Setup invitation queued"
+msgstr "Invitation de configuration mise en attente"
+
+#. module: usl_sign
+msgid "Setup complete"
+msgstr "Configuration terminée"
+
+#. module: usl_sign
+msgid "Account not connected"
+msgstr "Compte non connecté"
+
+#. module: usl_sign
+msgid "Signature not completed"
+msgstr "Signature non terminée"
+
+#. module: usl_sign
+msgid "Close this window"
+msgstr "Fermer cette fenêtre"
+
+#. module: usl_sign
+msgid "A secure Pocket ID window will open. This step only connects your account."
+msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir. Cette étape connecte uniquement votre compte."

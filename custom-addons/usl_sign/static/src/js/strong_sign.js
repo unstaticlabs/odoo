@@ -13,9 +13,10 @@
     };
 
     class JourneyError extends Error {
-        constructor(code) {
+        constructor(code, detail = null) {
             super(code);
             this.code = code;
+            this.detail = detail;
         }
     }
 
@@ -184,6 +185,22 @@
                 title: "This browser could not prepare the signature",
                 message: "Reload the page in a current browser, or ask the sender for another signing option.",
             },
+            certificate_service: {
+                title: "The signature could not be prepared",
+                message: "Nothing was signed. Try again, or contact the sender if this keeps happening.",
+            },
+            signature_service: {
+                title: "The signature could not be checked",
+                message: "Nothing was accepted. Try again, or contact the sender if this keeps happening.",
+            },
+            identity_check: {
+                title: "This identity could not be confirmed",
+                message: "Nothing was signed. Return to the document and start again.",
+            },
+            pocket_id_rejected: {
+                title: "Pocket ID did not confirm this attempt",
+                message: "Nothing was signed or changed. You can try again when you’re ready.",
+            },
             service: {
                 title: journey === "enrollment" ? "Account not connected" : "Signature not completed",
                 message:
@@ -206,7 +223,10 @@
                 return result;
             }
             if (TERMINAL_FAILURES.has(result.state)) {
-                throw new JourneyError(result.state === "expired" ? "timeout" : "service");
+                throw new JourneyError(
+                    result.state === "expired" ? "timeout" : result.failure_code || "service",
+                    result.failure_code || null
+                );
             }
             await delay(900);
         }
@@ -253,13 +273,23 @@
         let active = false;
         let cancelled = false;
         let popup;
+        let callbackFailed = false;
         installUnloadGuard(() => active);
+        window.addEventListener("message", (event) => {
+            if (
+                event.origin === window.location.origin &&
+                event.data?.type === "usl-sign-pocketid-result"
+            ) {
+                callbackFailed = event.data.successful === false;
+            }
+        });
         cancelButton?.addEventListener("click", () => {
             cancelled = true;
             popup?.close();
         });
         button.addEventListener("click", async () => {
             cancelled = false;
+            callbackFailed = false;
             active = true;
             cancelButton.hidden = false;
             try {
@@ -289,14 +319,16 @@
                 const ready = result.state === "active";
                 setPhase(container, ready ? "success" : "identity", {
                     tone: "success",
-                    title: ready ? "Ready for strong signatures" : "Account connected",
+                    title: ready ? "Ready for strong signatures" : "Setup complete",
                     message: ready
                         ? "Your reviewed identity is active."
-                        : "The company will review this identity before strong signing is enabled.",
+                        : `${container.dataset.companyName} will review the account link. You do not need to keep this page open.`,
                 });
-                setButtonBusy(button, true, ready ? "Identity ready" : "Awaiting review");
+                setButtonBusy(button, true, ready ? "Identity ready" : "Setup complete");
             } catch (error) {
-                popup?.close();
+                if (!callbackFailed) {
+                    popup?.close();
+                }
                 const failure = friendlyFailure(error, "enrollment");
                 setPhase(container, "error", {tone: "danger", ...failure});
                 setButtonBusy(button, false, "Try again");
@@ -317,7 +349,16 @@
         let active = false;
         let cancelled = false;
         let popup;
+        let callbackFailed = false;
         installUnloadGuard(() => active);
+        window.addEventListener("message", (event) => {
+            if (
+                event.origin === window.location.origin &&
+                event.data?.type === "usl-sign-pocketid-result"
+            ) {
+                callbackFailed = event.data.successful === false;
+            }
+        });
         cancelButton?.addEventListener("click", () => {
             cancelled = true;
             popup?.close();
@@ -339,6 +380,7 @@
             let finalized = false;
             const base = `/sign/strong/${container.dataset.signerId}/${container.dataset.accessToken}`;
             cancelled = false;
+            callbackFailed = false;
             active = true;
             cancelButton.hidden = false;
             try {
@@ -417,7 +459,9 @@
                 active = false;
                 window.location.assign(result.redirect);
             } catch (error) {
-                popup?.close();
+                if (!callbackFailed) {
+                    popup?.close();
+                }
                 if (!finalized) {
                     await safelyCancel(base, ceremonyId);
                 }
@@ -451,7 +495,9 @@
         } catch (_error) {
             // Polling on the signing page remains authoritative.
         }
-        window.setTimeout(close, successful ? 750 : 1800);
+        if (successful) {
+            window.setTimeout(close, 900);
+        }
     }
 
     function initialize() {

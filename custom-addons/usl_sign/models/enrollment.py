@@ -2,8 +2,8 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from odoo import fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .constants import INTERNAL_OPERATION
 
@@ -55,6 +55,22 @@ class SignEnrollment(models.Model):
     pocket_authentication_method = fields.Char(readonly=True, copy=False)
     invitation_token_sha256 = fields.Char(readonly=True, copy=False, index=True)
     invitation_expires_at = fields.Datetime(readonly=True, copy=False)
+    invitation_sent_at = fields.Datetime(readonly=True, copy=False)
+    invitation_mail_id = fields.Many2one(
+        "mail.mail",
+        readonly=True,
+        copy=False,
+        ondelete="set null",
+    )
+    invitation_delivery_state = fields.Selection(
+        [
+            ("not_sent", "Not sent"),
+            ("queued", "Queued"),
+            ("sent", "Sent"),
+            ("failed", "Delivery failed"),
+        ],
+        compute="_compute_invitation_delivery_state",
+    )
     revoked_at = fields.Datetime(readonly=True)
     status_changed_at = fields.Datetime(readonly=True)
     status_changed_by_id = fields.Many2one("res.users", readonly=True, ondelete="restrict")
@@ -70,6 +86,59 @@ class SignEnrollment(models.Model):
              WHERE state <> 'revoked'
             """,
         )
+
+    @api.constrains("relationship_reference")
+    def _check_relationship_reference(self):
+        if any(not (enrollment.relationship_reference or "").strip() for enrollment in self):
+            msg = "Record the employee, contract, partner, or review reference used."
+            raise ValidationError(msg)
+
+    @api.depends(
+        "invitation_mail_id",
+        "invitation_mail_id.state",
+        "invitation_sent_at",
+    )
+    def _compute_invitation_delivery_state(self):
+        mapping = {
+            "outgoing": "queued",
+            "sent": "sent",
+            "exception": "failed",
+            "cancel": "failed",
+        }
+        for enrollment in self:
+            mail_state = enrollment.sudo().invitation_mail_id.state
+            enrollment.invitation_delivery_state = mapping.get(
+                mail_state,
+                "sent" if enrollment.invitation_sent_at else "not_sent",
+            )
+
+    def _check_reviewer_access(self):
+        if not self.env.user.has_group("usl_sign.group_sign_identity_reviewer"):
+            msg = "Identity reviewer access is required."
+            raise AccessError(msg)
+
+    def _review_assignee(self):
+        self.ensure_one()
+        reviewers = self.env.ref(
+            "usl_sign.group_sign_identity_reviewer",
+        ).sudo().all_user_ids.filtered(
+            lambda user: user.active and self.company_id in user.company_ids,
+        )
+        return self.create_uid if self.create_uid in reviewers else reviewers.sorted("id")[:1]
+
+    def _schedule_identity_review(self):
+        self.ensure_one()
+        assignee = self._review_assignee()
+        if not assignee:
+            return
+        self.sudo().activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=assignee.id,
+            summary=_("Review signing identity for %(name)s", name=self.partner_id.name),
+            note=_(
+                "Pocket ID is connected. Confirm that this account belongs to the known person, then approve or revoke the identity link.",
+            ),
+        )
         self.env.cr.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS usl_sign_enrollment_pocket_unique
@@ -83,9 +152,7 @@ class SignEnrollment(models.Model):
         if self.state != "pending_review" or not self.pocket_subject:
             msg = "Only a pending identity review can be confirmed."
             raise ValidationError(msg)
-        if not self.env.user.has_group("usl_sign.group_sign_identity_reviewer"):
-            msg = "Identity reviewer access is required."
-            raise AccessError(msg)
+        self._check_reviewer_access()
         self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
             {
                 "state": "active",
@@ -96,10 +163,25 @@ class SignEnrollment(models.Model):
                 "status_reason": "Pocket ID identity reviewed",
             },
         )
+        self.sudo().activity_ids.unlink()
+        waiting_requests = self.env["sign.oca.request"].sudo().search(
+            [
+                ("state", "=", "waiting_enrollment"),
+                ("company_id", "=", self.company_id.id),
+                ("signer_ids.partner_id", "=", self.partner_id.id),
+            ],
+        )
+        for sign_request in waiting_requests:
+            missing = sign_request.signer_ids.filtered(
+                lambda signer: not signer._active_enrollment(),
+            )
+            if not missing:
+                sign_request.action_resume_after_enrollment()
         return True
 
-    def action_create_invitation(self):
+    def _create_invitation_link(self):
         self.ensure_one()
+        self._check_reviewer_access()
         if self.state != "pending_pocket":
             msg = "Only an enrolment waiting for Pocket ID can be connected."
             raise ValidationError(msg)
@@ -111,10 +193,68 @@ class SignEnrollment(models.Model):
             },
         )
         base = self.env["ir.config_parameter"].sudo().get_str("web.base.url").rstrip("/")
+        return f"{base}/sign/enroll/{self.id}/{token}"
+
+    def action_send_invitation(self):
+        self.ensure_one()
+        if not self.partner_id.email:
+            msg = "Add an email address to this person before sending the setup invitation."
+            raise UserError(msg)
+        link = self._create_invitation_link()
+        body = self.env["ir.qweb"]._render(
+            "usl_sign.strong_enrollment_invitation_body",
+            {"enrollment": self, "link": link},
+            engine="ir.qweb",
+            minimal_qcontext=True,
+        )
+        author = self.company_id.partner_id
+        mail = self.env["mail.mail"].sudo().create(
+            {
+                "subject": _("Set up strong signatures for %(company)s", company=self.company_id.name),
+                "body_html": body,
+                "email_to": self.partner_id.email,
+                "email_from": author.email_formatted,
+                "author_id": author.id,
+                "auto_delete": True,
+                "model": self._name,
+                "res_id": self.id,
+            },
+        )
+        self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
+            {
+                "invitation_sent_at": fields.Datetime.now(),
+                "invitation_mail_id": mail.id,
+            },
+        )
         return {
-            "type": "ir.actions.act_url",
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Setup invitation queued"),
+                "message": _("The invitation will be sent to %(email)s.", email=self.partner_id.email),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_copy_invitation(self):
+        self.ensure_one()
+        link = self._create_invitation_link()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Copy setup link"),
+            "res_model": "usl.sign.enrollment.invitation",
+            "views": [
+                (
+                    self.env.ref("usl_sign.sign_enrollment_invitation_form").id,
+                    "form",
+                ),
+            ],
             "target": "new",
-            "url": f"{base}/sign/enroll/{self.id}/{token}",
+            "context": {
+                "default_enrollment_id": self.id,
+                "default_invitation_url": link,
+            },
         }
 
     def _check_invitation(self, token):
@@ -161,6 +301,7 @@ class SignEnrollment(models.Model):
                 "status_reason": "Pocket ID identity connected; reviewer confirmation required",
             },
         )
+        self._schedule_identity_review()
         return fingerprint
 
     def action_revoke(self, reason=None):
@@ -223,6 +364,8 @@ class SignEnrollment(models.Model):
             "reviewed_at",
             "invitation_token_sha256",
             "invitation_expires_at",
+            "invitation_sent_at",
+            "invitation_mail_id",
             "pocket_issuer",
             "pocket_subject",
             "pocket_subject_fingerprint",
@@ -263,6 +406,18 @@ class SignEnrollmentRevokeWizard(models.TransientModel):
         self.ensure_one()
         self.enrollment_id.action_revoke(self.reason)
         return {"type": "ir.actions.act_window_close"}
+
+
+class SignEnrollmentInvitation(models.TransientModel):
+    _name = "usl.sign.enrollment.invitation"
+    _description = "Copy Strong Signer Setup Link"
+
+    enrollment_id = fields.Many2one(
+        "usl.sign.enrollment",
+        required=True,
+        readonly=True,
+    )
+    invitation_url = fields.Char(required=True, readonly=True)
 
 
 class SignCeremony(models.Model):
