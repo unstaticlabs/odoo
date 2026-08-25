@@ -8549,7 +8549,7 @@ class RebuildAccountImportRun(models.Model):
                         exceptions=batch.exception_count,
                         incomplete=batch.incomplete_count,
                         normalized_taxes=len(
-                            normalized_incompatible_taxes & batch.expense_ids
+                            normalized_incompatible_taxes & batch.expense_ids,
                         ),
                     ),
                 )
@@ -8580,7 +8580,7 @@ class RebuildAccountImportRun(models.Model):
             "newly_batched_expense_count": len(newly_batched),
             "normalized_inherited_count": len(normalized),
             "normalized_incompatible_tax_count": len(
-                normalized_incompatible_taxes
+                normalized_incompatible_taxes,
             ),
             "incomplete_expense_count": sum(batches.mapped("incomplete_count")),
             "exception_expense_count": sum(batches.mapped("exception_count")),
