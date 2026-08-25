@@ -9,7 +9,7 @@ local `19-usl` saas-19.3 baseline `e3b64c209ac`. It extends the pinned OCA Sign
 module without modifying its source. Odoo owns the workflow and structured
 evidence, EU DSS owns PAdES construction and validation, Pocket ID owns
 passkeys, `step-ca` issues short-lived document certificates, and Paperless
-stores the durable dossier.
+stores the signed document plus its durable proof package.
 
 The installed application exposes Standard, Strong personal and Qualified
 external document signing. The earlier internal business-decision experiment
@@ -59,10 +59,12 @@ menus, included in the dashboard, or seeded in QA.
 - **saas-19.3 compatibility:** binary fields use the new binary wrapper API,
   downloads use `ir.binary` streams, and business-record form integration uses
   the new renderer contract.
-- **Final archival:** request and daily-timestamp dossiers are converted from
+- **Final archival:** request and daily-timestamp files are converted from
   saas-19.3's `BinaryValue` wrapper to the base64 contract expected by
-  `usl_documents`. This fixes the case where signing and validation succeeded
-  but Paperless finalization left the request in Evidence incomplete.
+  `usl_documents`. Request completion now archives the signed PDF as the
+  primary document and the PDF/A-3 proof package as a separately retrievable
+  companion. The package embeds the signed PDF and supporting evidence; both
+  checksum-idempotent operations gate completion.
 - **Journey language:** signer-facing lists now distinguish personal status
   from overall request status. Closed requests retain Completed, Declined,
   Expired, Cancelled or Result rejected instead of collapsing to Done. Strong
@@ -102,13 +104,16 @@ The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
 - the final isolated `scripts/sign-qa-stack test /usl_sign` run installed the
-  module from clean state and completed 71 post-test entries with zero failures
-  and zero errors. Odoo's per-module statistics reported 77 Sign tests plus the
+  module from clean state and completed 72 post-test entries with zero failures
+  and zero errors. Odoo's per-module statistics reported 78 Sign tests plus the
   six web-suite wrappers;
 - desktop and mobile frontend suites each passed 15 tests and 65 assertions.
   They cover the stale palette-drag regression, whole-field movement, the
   iframe pointer bridge, autosave rollback, template upload, dashboard
   scrolling and action routing;
+- the worktree-specific DSS image rebuilt successfully; Maven compiled the
+  updated PDF/A-3 cover and passed all three Java tests before the image was
+  deployed;
 - six headless Chrome 151 journeys passed without biometrics: native template
   creation, requester preparation/send/monitoring, Standard public signing and
   archival, identity-connection presentation, Strong signing presentation,
@@ -127,9 +132,10 @@ authenticator:
 - French catalogue format and product-language checks for all maintained USL
   catalogues. The new dashboard, simple upload, request, field-group, System
   Status, recovery and signer-facing terms have maintained translations;
-- live QA recovery of request 4: Completed, validation Valid, evidence
-  Complete, archive Archived, linked `usl.document` present and no remaining
-  archive error;
+- live QA repair of request 4: Completed and Archived, with `Test-signed.pdf`
+  as primary document and `Test-evidence-dossier.pdf` as the distinct proof
+  companion. The primary Paperless checksum exactly equals the request's final
+  validated SHA-256;
 - live System Status refresh: Standard, Strong personal and Daily timestamps
   Ready; Qualified external Action required because the lightweight QA tenant
   has no trusted-list feed; optional PDF signing timestamps Not configured.

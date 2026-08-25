@@ -1136,10 +1136,20 @@ class TestCleanUslSign(TransactionCase):
                 "signed_document_sha256": hashlib.sha256(self.pdf).hexdigest(),
             },
         )
-        archived = self.env["usl.document"].sudo().create(
+        archived_signed = self.env["usl.document"].sudo().create(
             {
-                "name": "Clean Sign evidence dossier",
+                "name": "Clean Sign signed document",
                 "paperless_id": 990001,
+                "company_id": self.company.id,
+                "confidentiality": "private",
+                "availability_state": "available",
+                "source": "odoo_generated",
+            },
+        )
+        archived_dossier = self.env["usl.document"].sudo().create(
+            {
+                "name": "Clean Sign proof package",
+                "paperless_id": 990002,
                 "company_id": self.company.id,
                 "confidentiality": "private",
                 "availability_state": "available",
@@ -1151,18 +1161,23 @@ class TestCleanUslSign(TransactionCase):
                 RuntimeError("synthetic Paperless outage"),
                 {
                     "state": "duplicate",
-                    "document_id": archived.id,
-                    "message": "Checksum-identical dossier reused.",
+                    "document_id": archived_signed.id,
+                    "message": "Checksum-identical signed document reused.",
+                },
+                {
+                    "state": "duplicate",
+                    "document_id": archived_dossier.id,
+                    "message": "Checksum-identical proof package reused.",
                 },
             ],
         )
         archive_call_users = []
-        archive_payloads = []
+        archive_uploads = []
 
         def archive_upload(documents, *args, **kwargs):
             del kwargs
             archive_call_users.append(documents.env.user.id)
-            archive_payloads.append(args[1])
+            archive_uploads.append((args[0], args[1]))
             result = next(archive_results)
             if isinstance(result, Exception):
                 raise result
@@ -1199,23 +1214,47 @@ class TestCleanUslSign(TransactionCase):
             self.assertTrue(notify.call_args.kwargs["attachment_ids"])
         self.assertEqual(request.state, "completed")
         self.assertEqual(request.archive_status, "archived")
-        self.assertEqual(request.archive_document_id, archived)
+        self.assertEqual(request.archive_document_id, archived_signed)
+        self.assertEqual(request.archive_dossier_document_id, archived_dossier)
+        self.assertTrue(request.dossier_filename.endswith("-proof-package.pdf"))
         self.assertEqual(
             set(archive_call_users),
             {self.env.ref("base.user_root").id},
         )
-        self.assertTrue(all(isinstance(payload, str) for payload in archive_payloads))
+        self.assertTrue(
+            all(isinstance(payload, str) for _filename, payload in archive_uploads),
+        )
+        signed_uploads = [
+            payload
+            for filename, payload in archive_uploads
+            if filename == request.final_filename
+        ]
+        dossier_uploads = [
+            payload
+            for filename, payload in archive_uploads
+            if filename == request.dossier_filename
+        ]
+        self.assertEqual(len(signed_uploads), 2)
+        self.assertEqual(len(dossier_uploads), 1)
         self.assertTrue(
             all(
                 base64.b64decode(payload, validate=True)
-                == field_content(request.dossier_data)
-                for payload in archive_payloads
+                == field_content(request.final_data)
+                for payload in signed_uploads
             ),
+        )
+        self.assertEqual(
+            base64.b64decode(dossier_uploads[0], validate=True),
+            field_content(request.dossier_data),
         )
         self.assertTrue(request.completed_at)
         self.assertEqual(request.evidence_status, "complete")
         self.assertEqual(request.daily_timestamp_status, "scheduled")
         self.assertEqual(request.state, "completed")
+        preview = request.preview()
+        self.assertEqual(preview["type"], "ir.actions.act_url")
+        self.assertIn("/final_data/", preview["url"])
+        self.assertNotEqual(preview.get("tag"), "sign_oca_preview")
         self.assertEqual(
             len(request.event_ids.filtered(
                 lambda event: event.event_type == "completed_dossier_queued",
@@ -1246,6 +1285,42 @@ class TestCleanUslSign(TransactionCase):
         self.assertTrue(entry.completion_event_hash)
         self.assertEqual(request.daily_timestamp_status, "scheduled")
         self.assertEqual(request.state, "completed")
+
+    def test_proof_package_embeds_the_signed_pdf_as_its_primary_artifact(self):
+        request = self._request()
+        request.with_context(usl_sign_freeze=INTERNAL_OPERATION).write(
+            {
+                "final_data": field_value(self.pdf),
+                "final_filename": "Routine-agreement-signed.pdf",
+                "final_sha256": hashlib.sha256(self.pdf).hexdigest(),
+                "achieved_trust": "standard",
+            },
+        )
+        captured = {}
+
+        class CapturingDSS(FakeDSS):
+            @staticmethod
+            def build_dossier(**kwargs):
+                captured.update(kwargs)
+                return {"document": base64.b64encode(_pdf()).decode()}
+
+        with patch.object(
+            type(request), "_sign_dss_client", return_value=CapturingDSS(),
+        ):
+            request._build_dossier_pdf(b"signed manifest")
+
+        signed_artifact = next(
+            artifact
+            for artifact in captured["artifacts"]
+            if artifact["name"] == "final-Routine-agreement-signed.pdf"
+        )
+        self.assertEqual(signed_artifact["content"], self.pdf)
+        self.assertEqual(signed_artifact["mimetype"], "application/pdf")
+        self.assertEqual(signed_artifact["relationship"], "Data")
+        self.assertIn(
+            "Signed PDF embedded in this package: final-Routine-agreement-signed.pdf",
+            captured["summary"],
+        )
 
     def test_oca_final_document_delivery_defaults_to_enabled(self):
         defaults = self.env["res.company"].default_get(
