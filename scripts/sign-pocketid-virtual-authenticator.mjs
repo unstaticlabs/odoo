@@ -11,7 +11,7 @@ const ROOT = resolve(import.meta.dirname, "..");
 const ENV_FILE = process.env.USL_SIGN_POCKETID_ENV_FILE || join(ROOT, ".sign-pocketid-qa.env");
 const CHROME = process.env.CHROME_BIN || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const CLIENT_ID = "usl-sign-authorization";
-const REDIRECT_URI = "http://odoo-sign-qa.localhost:16669/sign/pocketid/callback";
+let REDIRECT_URI;
 
 
 function readEnv(raw) {
@@ -39,6 +39,23 @@ function decodeJwtSegment(value) {
 
 function sleep(milliseconds) {
     return new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
+}
+
+
+function qaFetch(url, options = {}) {
+    const target = new URL(url);
+    if (!target.hostname.endsWith(".localhost")) {
+        return fetch(target, options);
+    }
+    // Some Node resolvers do not apply the reserved .localhost loopback rule
+    // that browsers and curl implement. Keep the public Host header and OIDC
+    // issuer while connecting the isolated QA request to loopback.
+    const publicHost = target.host;
+    target.hostname = "127.0.0.1";
+    return fetch(target, {
+        ...options,
+        headers: {...options.headers, Host: publicHost},
+    });
 }
 
 
@@ -277,7 +294,7 @@ async function verifyIdToken(token, discovery, expected) {
     }
     const header = decodeJwtSegment(parts[0]);
     const claims = decodeJwtSegment(parts[1]);
-    const jwks = await (await fetch(discovery.jwks_uri)).json();
+    const jwks = await (await qaFetch(discovery.jwks_uri)).json();
     const jwk = jwks.keys.find((candidate) => candidate.kid === header.kid);
     if (header.alg !== "RS256" || !jwk) {
         throw new Error("Pocket ID returned an unsupported signing key");
@@ -395,7 +412,7 @@ async function authorizeFreshPasskey(client, sessionId, discovery, env, asserted
     const credentials = Buffer.from(
         `${CLIENT_ID}:${env.POCKET_ID_SIGN_CLIENT_SECRET}`
     ).toString("base64");
-    const response = await fetch(discovery.token_endpoint, {
+    const response = await qaFetch(discovery.token_endpoint, {
         method: "POST",
         headers: {
             Accept: "application/json",
@@ -621,11 +638,16 @@ async function fullStrongAcceptance({
 
 async function main() {
     const env = readEnv(await readFile(ENV_FILE, "utf8"));
-    if (!env.POCKET_ID_SIGN_CLIENT_SECRET || !env.POCKET_ID_APP_URL) {
+    if (
+        !env.POCKET_ID_SIGN_CLIENT_SECRET
+        || !env.POCKET_ID_APP_URL
+        || !env.ODOO_PUBLIC_BASE_URL
+    ) {
         throw new Error("The isolated Pocket ID Sign client is not configured");
     }
+    REDIRECT_URI = `${env.ODOO_PUBLIC_BASE_URL.replace(/\/$/, "")}/sign/pocketid/callback`;
     const discovery = await (
-        await fetch(`${env.POCKET_ID_APP_URL}/.well-known/openid-configuration`)
+        await qaFetch(`${env.POCKET_ID_APP_URL}/.well-known/openid-configuration`)
     ).json();
     if (!discovery.fresh_passkey_reauthentication_supported) {
         throw new Error("Pocket ID does not advertise strict fresh-passkey support");
@@ -658,7 +680,7 @@ async function main() {
             "--disable-gpu",
             "--disable-features=WebAuthenticationEnclaveAuthenticator",
             "--remote-allow-origins=*",
-            `--unsafely-treat-insecure-origin-as-secure=${env.POCKET_ID_APP_URL},http://odoo-sign-qa.localhost:16669`,
+            `--unsafely-treat-insecure-origin-as-secure=${env.POCKET_ID_APP_URL},${env.ODOO_PUBLIC_BASE_URL}`,
             "about:blank",
         ],
         {stdio: ["ignore", "ignore", "pipe"]}
