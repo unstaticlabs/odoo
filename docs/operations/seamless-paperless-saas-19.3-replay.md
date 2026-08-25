@@ -96,7 +96,38 @@ git diff --check e3b64c209acf0c4f50baa1a9ee519d8eb2c9b621..HEAD
 
 The range comparison accounts for every original branch-specific commit. The
 empty merge list proves that no divergent mainline ancestry was introduced.
+An independent union-of-changed-paths comparison leaves only the intentional
+saas~19.2-to-saas~19.3 migration-directory renames and the old
+`accounting_compat/tests/test_release_identity.py` path. That former assertion
+targeted a Dockerfile stage/layout superseded by the current distribution
+infrastructure; it carries no Documents product state. No old branch-specific
+product path is absent from the replay.
 The final tree must additionally pass the product/migration boundary, module
 install and repeated-update checks, Documents unit/browser tests,
 multi-company acceptance, deterministic smoke reconstruction, and recovery
 rehearsal before the active remote ref is replaced.
+
+## Source-completion corrections
+
+Three scoped follow-up commits preserve the replay boundary while correcting
+issues exposed by the authorized full source run:
+
+- `581138cdd19` reconciles an old failure only when a later archive has the
+  exact checksum and metadata, preserves remote failure details, polls the
+  oldest work first, classifies unsupported HTML and tiny placeholder images,
+  and separates migration access authority from the historical submitter;
+- `931d61be05a` accounts for both field-backed and ordinary native attachments
+  with explicit domains and limits elevated access to the trusted migration
+  operation environment;
+- `6b3d548e06a` keeps all raw operation failures visible but blocks release only
+  for a failed operation whose attachment has no archived or explicitly
+  excluded final ledger outcome.
+
+Credible alternatives were rejected at their authority boundaries: global ACL
+bypass versus a sudo-only backfill context, implicit attachment filtering
+versus explicit exhaustive domains, broad failed-root reuse versus exact
+fingerprint reconciliation, and mutating audit rows versus a final-ledger-aware
+qualification gate. The selected corrections add no old mainline ancestry and
+do not replace current saas~19.3 multi-company identity, metadata-cache,
+translation, dependency, module-version, Accounting, Expense, infrastructure,
+or reconstruction state.

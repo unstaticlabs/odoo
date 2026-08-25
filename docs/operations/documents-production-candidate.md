@@ -25,9 +25,11 @@ checkpoint pointers are immutable.
 
 ## Isolated QA/demo environment
 
-Status: **partial source-derived QA with a deterministic synthetic Documents
-overlay**. It is directly usable for product journeys, but it is not source,
-migration, accounting, release-cohort, or production-parity evidence.
+Status: **source-complete isolated QA with a deterministic synthetic Documents
+overlay**. The native attachment source is fully classified and ingested as
+recorded below. This mutable QA environment is directly usable for product
+journeys and source-completion evidence, but it is not itself a sealed release
+cohort or production-parity evidence.
 
 | Resource | Scoped value |
 |---|---|
@@ -113,9 +115,10 @@ Paperless roots without modifying production services. It covers:
 - two companies, a restricted project, and the canary phrase
   `DOCUMENTS-QA-CANARY-9F3A7D`.
 
-Avoid full OCR while the policy and retrieval implementation is changing. The
-synthetic text documents are sufficient for deterministic policy, search, and
-authorization checks.
+During policy and retrieval implementation, full OCR was avoided and the
+synthetic text documents were used for deterministic policy, search, and
+authorization checks. The separately authorized source-completion run below
+subsequently processed the complete eligible native attachment population.
 
 To stop only this environment while preserving its volumes:
 
@@ -651,3 +654,155 @@ target-architecture restore. Until both are complete, this local cohort is
 useful recovery-mechanism evidence but must not be published or described as
 production-ready. The detailed procedure is in
 [Documents release cohort](documents-release-cohort.md).
+
+## Source-completion follow-up after diagnostic cohort r6
+
+The operator subsequently authorized the bounded full native-attachment run in
+the same isolated project. This does not amend or relabel diagnostic cohort
+`usl-documents-20260825-partial-arm64-r6`; that cohort remains an immutable
+record of its earlier partial source state and a valid recovery-mechanism
+rehearsal only.
+
+The final bridge checkpoint completed all nine Paperless archive pages and
+reported 1,623 scanned native attachments. Of these, 837 were eligible and all
+837 reached an archived final ledger state: 794 evidence and 43 background.
+The other 786 are explicitly classified exclusions: 757 binary/image-field
+storage records, 14 inline or placeholder images, six inline message images,
+and nine unsupported archive formats. There are no unaccounted attachment
+IDs, accepted Trash conflicts, pending eligible attachments, unresolved
+eligible attachments, pending operations, processing operations, or
+permission failures.
+
+Odoo retains 867 governed archive roots, 869 versions and 917 active business
+links. The 869 Paperless document rows consist of the same 867 roots plus two
+native Paperless version-history rows: document 17 is version 1 of root 12 and
+document 44 is version 1 of root 24. A direct identity-set comparison found no
+Odoo root missing from Paperless. The apparent two-row difference is therefore
+version history, not an orphan or duplicate root.
+
+Four raw failed Odoo operation rows remain visible as audit history:
+
+- operation 908 is the deliberate `qa-corrupted-upload.pdf` synthetic failure;
+  it has no source attachment and remains the single qualification blocker;
+- operations 1662 and 1663 are the two historical Terms of Service HTML
+  attachments, both finally classified `unsupported_archive_format`;
+- operation 1694 is the 1,407-byte, 68×69 `Instagram.png` placeholder, finally
+  classified `inline_or_placeholder_image`.
+
+Paperless likewise retains five historical task failures. Task 26 records the
+initial local embedding-service EOF before the model was ready. Task 50 records
+an interrupted synthetic supplier upload whose temporary file disappeared on
+service recreation; its exact checksum and metadata were later found as stable
+archive root 9 and the stale Odoo operation was reconciled. Task 1173 is the
+same explicitly excluded Instagram placeholder. Tasks 2324 and 2325 are
+system-owned bulk-index jobs for documents 845 and 846 that reached the
+1,800-second hard limit while two workers redundantly embedded the same
+254,756-character spreadsheet and a third job waited for the model. The final
+supported incremental update brought both documents' index modified times to
+an exact match with PostgreSQL, and the complete vector inventory passes.
+None of these rows was deleted, rewritten or marked successful to make a gate
+pass.
+
+The remediation decisions compared credible alternatives individually:
+
+1. Converting HTML to PDF would make the Terms of Service files OCRable, but it
+   would change their legal bytes. Exact-byte retention with an explicit
+   unsupported-format classification was selected.
+2. OCR or image conversion could force every tiny icon through Paperless, but
+   the audited sample is presentation noise. A bounded 4 KiB placeholder rule
+   was selected while retaining the native Odoo bytes.
+3. A global ACL bypass or migration-owned authorship would simplify backfill,
+   but would weaken runtime authority and provenance. A sudo-only trusted
+   backfill context was selected; access is derived from the linked business
+   record while the real submitter remains the author.
+4. Relying on Odoo's implicit attachment-domain context is concise but hides
+   field-backed attachments. Two explicit public domains—`res_field = False`
+   and `res_field != False`—were selected so every native row is accounted for.
+5. Polling newest operations first favors recent uploads but can starve old
+   failures. Oldest-first polling was selected.
+6. Blindly reusing any later archive could join unrelated records. Reuse is
+   limited to an exact checksum and metadata fingerprint; otherwise the
+   historical failure remains unresolved.
+7. Acknowledging or deleting raw failed rows would make reporting green but
+   erase evidence. The release inventory keeps the raw total while qualifying
+   only failures whose final source ledger is neither archived nor explicitly
+   excluded.
+8. Purging or manually deduplicating the Celery queue would finish faster but
+   discard supported index lifecycle work. The supported workers are allowed
+   to drain naturally, followed by the native Tantivy and LLM-index no-op/
+   consistency commands.
+
+The authoritative input was re-hashed immediately before evidence capture:
+`/Users/roger/projects/odoo/usl-online-dump/dump.sql` is
+`0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f`.
+The source-complete QA database remains **partial** for release qualification
+because the deliberate corrupted-upload operation is still a real blocker,
+manual C/E browser checkpoints are absent, and the target `linux/amd64`
+recovery rehearsal is still required. Source completion does not waive any of
+those independent gates.
+
+### Source-completion validation
+
+The complete fresh Odoo server gate passed 151 post-test methods; Odoo reported
+159 tagged entries, zero failures and zero errors. The explicit migration
+archive suite passed 71 tests, and the focused runner-safety suite passed 18.
+A fresh browser database passed 28 desktop tests with 207 assertions and 28
+mobile tests with 207 assertions. The focused multi-company gate passed all
+nine selected methods—13 reported entries—including company access loss,
+cross-company rejection, Trash identity, ingestion boundaries and MCP search
+pre-scoping.
+
+Clean installation, update and repeated update completed. XML parsing,
+manifest/version parsing, Python compilation, JavaScript/static checks, shell
+syntax, scoped Ruff, `git diff --check`, the product/migration source boundary
+and the product-database boundary all passed. The database boundary found 12
+product modules and no migration registry, schema, menu, field, model or XML-ID
+residue. The existing deterministic `documents-smoke` reconstruction remains
+sealed at
+`dd955252deedc444414b7d31764c751ce93e7643c5de1a966320be9c8153945e`;
+it was not rerun because doing so would reset the newly source-complete isolated
+database. The earlier r6 independent restore remains recovery-mechanism
+evidence, not final source-complete or target-architecture evidence.
+
+The first post-ingestion live acceptance attempt passed every existing-fixture
+step but timed out waiting for its deliberately ephemeral matching-rule upload
+behind the index backlog. Its Paperless task 2379 later completed successfully
+as document 872 and that exact synthetic document was cleaned through the
+normal Trash/permanent-delete API. After true broker/active/reserved
+quiescence, the unchanged acceptance passed end to end, including live search,
+version pinning, automatic matching, Trash/restore, permissions,
+multi-company isolation and cross-system integrity.
+
+The outage test stopped only the isolated Paperless webserver. Odoo business
+data stayed available, synchronization failed closed and retained resume page
+1. After Paperless returned healthy, recovery preserved all 867 root
+identities, synchronized the resumed page, cleared the cursor and returned sync
+status to healthy.
+
+Paperless's sanity checker exited successfully with 14 informational no-OCR
+records, accounting exactly for 855 searchable rows among 869 document/version
+rows. Tantivy reported `Search index is up to date`; optimize was its documented
+no-op. Vector migration passed, the first incremental update reconciled real
+modified-time drift, a second update completed in four seconds with no
+remaining drift, and compaction retained 4,339 live rows. Final Paperless
+inventory is passed with zero active tasks, 865 live roots, two Trash roots,
+two version-history rows, 869 document/version rows and five preserved
+historical failures. Final vector inventory is passed with 4,339
+chunks/vectors, 869 indexed documents, schema 2,
+dimension 1,024, chunk size 512, overlap 200, pinned model
+`usl-bge-m3:documents-20260824-rc1`, and index SHA-256
+`3145e8d1eb757a79100c692b648e9dd545c4c6baa89cef3aa6580306d78c907e`.
+
+The final integrity manifest reports `integrity_ok=true` and healthy sync with
+no missing document IDs, checksum mismatch, orphaned relationship, permission
+failure, unmirrored Paperless ID or permanent-deletion tombstone. Relationship
+counts are six assets, 444 accounting moves, seven employees, 358 expenses, 47
+projects, 45 tasks, two companies and eight partners.
+
+One operational incident is retained in the run record. Interrupting two
+one-shot bridge commands detached their containers instead of stopping them;
+both exact feature-project containers were identified and stopped. One
+concurrent insert then reached the unique constraint for Paperless ID 349; the
+constraint prevented duplicate state, and the final single-worker bridge and
+integrity manifest passed. No container, volume, database or port outside
+`usl-odoo-paperless-193-0824` was used.
