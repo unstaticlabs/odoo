@@ -8,8 +8,17 @@ const ROLE_TWO = {id: 2, name: "Employee", color: "#3EA8F9"};
 const TEXT_FIELD = {
     id: 10,
     name: "Text",
+    kind: "text",
     icon: "fa-font",
     default_width: 20,
+    default_height: 5,
+};
+const INITIALS_FIELD = {
+    id: 11,
+    name: "Initials",
+    kind: "initials",
+    icon: "fa-pencil-square-o",
+    default_width: 14,
     default_height: 5,
 };
 
@@ -236,6 +245,51 @@ test("starting a palette drag safely clears missing and stale drag state", () =>
 
     button.remove();
     cleanup();
+});
+
+test("initials can be placed on every page as one undoable command", async () => {
+    const commands = [];
+    const history = [];
+    const fixture = {
+        canPlaceOnEveryPage: true,
+        editor: {placeOnEveryPage: true, selectedItemId: false},
+        async applyCommand(command) {
+            commands.push(command);
+            return {
+                status: "ok",
+                items: [
+                    {...command.values, id: 51, page: 1},
+                    {...command.values, id: 52, page: 2},
+                    {...command.values, id: 53, page: 3},
+                ],
+            };
+        },
+        createField() {
+            throw new Error("Single-page placement should not be used");
+        },
+        createFieldsOnEveryPage: UslSignTemplateEditor.prototype.createFieldsOnEveryPage,
+        refreshSelection() {},
+        pushHistory(entry) {
+            history.push(entry);
+        },
+    };
+    const values = {
+        field_id: INITIALS_FIELD.id,
+        role_id: ROLE_ONE.id,
+        page: 2,
+        position_x: 80,
+        position_y: 90,
+        width: 14,
+        height: 5,
+    };
+
+    await UslSignTemplateEditor.prototype.placeField.call(fixture, values);
+
+    expect(commands).toEqual([{action: "create_all_pages", values}]);
+    expect(fixture.editor.selectedItemId).toBe(52);
+    expect(history).toEqual([
+        {kind: "create_many", itemIds: [51, 52, 53], values},
+    ]);
 });
 
 test("changing the signer immediately recolors the PDF field", async () => {
