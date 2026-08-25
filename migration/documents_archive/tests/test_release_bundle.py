@@ -126,6 +126,17 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
         with self.assertRaisesRegex(bundle.BundleError, "did not pass"):
             bundle.accept(self.root)
 
+    def test_paperless_clone_sanitizer_bypasses_service_init(self):
+        script = (ROOT / "scripts/documents-release-bundle").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn(
+            'run --rm --no-deps -T --entrypoint python \\\n',
+            script,
+        )
+        self.assertIn('paperless-webserver manage.py shell \\\n', script)
+
 
 if __name__ == "__main__":
     unittest.main()

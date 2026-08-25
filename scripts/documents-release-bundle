@@ -289,11 +289,11 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
   "${COMPOSE[@]}" exec -T paperless-db pg_restore -U paperless \
     -d "$paperless_clone" --no-owner --no-privileges \
     < "$temporary/paperless.raw.dump"
-  "${COMPOSE[@]}" run --rm --no-deps -T \
+  "${COMPOSE[@]}" run --rm --no-deps -T --entrypoint python \
     -e PAPERLESS_DBNAME="$paperless_clone" \
     -e USL_RELEASE_SANITIZE_CONFIRMED=paperless-release-clone \
     -e USL_RELEASE_SERVICE_USERNAME=odoo-integration \
-    paperless-webserver python manage.py shell \
+    paperless-webserver manage.py shell \
     < scripts/paperless_release_sanitize.py \
     > "$temporary/paperless-sanitize.out"
   extract_prefixed_json "$temporary/paperless-sanitize.out" \
