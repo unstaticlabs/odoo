@@ -90,26 +90,26 @@ class AccountBankStatement(models.Model):
         self._assert_account_user()
         evidence = self.accepted_evidence_id
         if not evidence:
-            raise UserError(_("Accept the official PDF statement before archiving it."))
+            raise UserError(_("Accept the official statement before saving it in Documents."))
         evidence._process_bank_evidence_archive()
         self.invalidate_recordset()
         if evidence.paperless_archive_state == "failed":
             return self._bank_review_notification(
                 _(
-                    "The official statement could not be archived. Correct the "
+                    "The official statement could not be saved in Documents. Correct the "
                     "Documents issue shown on this statement, then retry.",
                 ),
                 "danger",
             )
         if evidence.paperless_archive_state == "archived":
             return self._bank_review_notification(
-                _("The official statement is archived and its exact version is verified."),
+                _("The official statement is saved in Documents and its exact version is verified."),
                 "success",
             )
         return self._bank_review_notification(
             _(
                 "The official statement was sent to Documents. Certification becomes "
-                "available after the exact archived version is verified.",
+                "available after the exact saved version is verified.",
             ),
             "info",
         )
@@ -359,7 +359,7 @@ class AccountBankIngestionFile(models.Model):
         if self.paperless_archive_state == "failed":
             return _(
                 "The official statement is not available in Documents. "
-                "Retry filing before certification."
+                "Retry filing before certification.",
             )
         if self.paperless_archive_state in ("not_requested", "pending", "processing"):
             return _("File the official statement in Documents before certification.")
@@ -370,14 +370,14 @@ class AccountBankIngestionFile(models.Model):
                 "statement checksum.",
             )
         if document.company_id != self.company_id:
-            return _("The archived statement belongs to a different company.")
+            return _("The Documents record belongs to a different company.")
         if (
             document.confidentiality != "accounting"
             or not document.accounting_evidence
             or document.review_state != "reviewed"
         ):
             return _(
-                "Classify and review the archived original as accounting evidence "
+                "Classify and review the original in Documents as accounting evidence "
                 "before certification.",
             )
         if not document.retention_hold:
@@ -386,11 +386,11 @@ class AccountBankIngestionFile(models.Model):
             )
         if document.availability_state != "available":
             return _(
-                "Restore the archived original in Documents before certification.",
+                "Restore the original in Documents before certification.",
             )
         if document.permission_sync_state != "synchronized":
             return _(
-                "Synchronize Documents access for the archived original before "
+                "Synchronize access to the original in Documents before "
                 "certification.",
             )
         banking_tags = self._paperless_banking_tags()
@@ -400,7 +400,7 @@ class AccountBankIngestionFile(models.Model):
             )
         if banking_tags - document.tag_ids:
             return _(
-                "Classify the archived original as a Banking document before "
+                "Classify the original in Documents as a Banking document before "
                 "certification.",
             )
         link = self.env["usl.document.link"].sudo().search(
@@ -414,7 +414,7 @@ class AccountBankIngestionFile(models.Model):
         )
         if not link or link.version_id != self.paperless_version:
             return _(
-                "The archived version is not pinned to this bank statement.",
+                "The exact Documents version is not linked to this bank statement.",
             )
         return False
 

@@ -80,7 +80,7 @@ class AccountBankStatement(models.Model):
     )
     unresolved_exception_count = fields.Integer(
         compute="_compute_bank_review",
-        string="Open exceptions",
+        string="Items to review",
     )
     movement_total = fields.Monetary(compute="_compute_bank_review")
     balance_difference = fields.Monetary(compute="_compute_bank_review")
@@ -100,6 +100,27 @@ class AccountBankStatement(models.Model):
     unidentified_line_count = fields.Integer(compute="_compute_bank_review")
     review_status = fields.Selection(REVIEW_STATES, compute="_compute_bank_review")
     review_blocking_reason = fields.Char(compute="_compute_bank_review")
+    review_summary = fields.Char(compute="_compute_bank_review")
+    evidence_check_status = fields.Selection(
+        [("missing", "Statement needed"), ("ready", "PDF received")],
+        compute="_compute_bank_review",
+    )
+    transaction_check_status = fields.Selection(
+        [
+            ("missing", "No transactions"),
+            ("attention", "Review needed"),
+            ("ready", "Complete"),
+        ],
+        compute="_compute_bank_review",
+    )
+    balance_check_status = fields.Selection(
+        [
+            ("unconfirmed", "Confirm balances"),
+            ("mismatch", "Does not agree"),
+            ("ready", "Agrees"),
+        ],
+        compute="_compute_bank_review",
+    )
     can_certify = fields.Boolean(compute="_compute_bank_review")
 
     _managed_period_unique = models.UniqueIndex(
@@ -159,6 +180,10 @@ class AccountBankStatement(models.Model):
                 statement.continuity_status = False
                 statement.review_status = False
                 statement.review_blocking_reason = False
+                statement.review_summary = False
+                statement.evidence_check_status = False
+                statement.transaction_check_status = False
+                statement.balance_check_status = False
                 statement.can_certify = False
                 continue
 
@@ -179,6 +204,30 @@ class AccountBankStatement(models.Model):
                     ),
                 ),
             )
+            statement.evidence_check_status = (
+                "ready" if statement.accepted_evidence_id else "missing"
+            )
+            if not posted:
+                statement.transaction_check_status = "missing"
+            elif (
+                statement.unresolved_exception_count
+                or statement.unidentified_line_count
+            ):
+                statement.transaction_check_status = "attention"
+            else:
+                statement.transaction_check_status = "ready"
+            if not statement.balances_confirmed:
+                statement.balance_check_status = "unconfirmed"
+            elif (
+                statement.currency_id.compare_amounts(
+                    statement.balance_difference,
+                    0,
+                )
+                != 0
+            ):
+                statement.balance_check_status = "mismatch"
+            else:
+                statement.balance_check_status = "ready"
             previous = self.env["account.bank.statement"]
             if statement.ingestion_config_id and statement.period_start:
                 previous = self.search(
@@ -239,7 +288,14 @@ class AccountBankStatement(models.Model):
                     _("An Accounting Manager must confirm the cut-over baseline."),
                 )
             if statement.unresolved_exception_count:
-                blockers.append(_("Resolve the remaining bank export exceptions."))
+                first_issue = statement.exception_ids.filtered(
+                    lambda exception: exception.state == "open",
+                ).sorted(lambda exception: (exception.create_date, exception.id))[:1]
+                blockers.append(
+                    _("Review: %(issue)s", issue=first_issue.name)
+                    if first_issue
+                    else _("Review the items requiring attention."),
+                )
             if statement.unidentified_line_count:
                 blockers.append(
                     _("Resolve transaction identity for every statement movement."),
@@ -255,6 +311,25 @@ class AccountBankStatement(models.Model):
                 statement.review_status = "attention"
             else:
                 statement.review_status = "ready"
+            if statement.review_status == "certified":
+                statement.review_summary = _(
+                    "This month agrees with the bank and has been certified.",
+                )
+            elif statement.review_status == "ready":
+                statement.review_summary = _(
+                    "All bank checks are complete. This month is ready to certify.",
+                )
+            elif statement.review_status == "reopened":
+                statement.review_summary = _(
+                    "This month was reopened and must be certified again.",
+                )
+            elif len(blockers) == 1:
+                statement.review_summary = blockers[0]
+            else:
+                statement.review_summary = _(
+                    "%(count)s checks need attention before this month can be certified.",
+                    count=len(blockers),
+                )
 
     def _additional_bank_review_blockers(self):
         """Let optional evidence stores add certification prerequisites."""
@@ -780,6 +855,24 @@ class AccountBankStatementException(models.Model):
     resolution_reason = fields.Text()
     resolved_by_id = fields.Many2one("res.users", readonly=True)
     resolved_at = fields.Datetime(readonly=True)
+
+    def action_open_resolution(self):
+        self.ensure_one()
+        if not self.env.user.has_group("account.group_account_manager"):
+            raise AccessError(
+                _("Only an Accounting Manager can resolve this review item."),
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Review bank statement issue"),
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "usl_accounting.view_bank_statement_exception_resolution_form",
+            ).id,
+            "target": "new",
+        }
 
     def action_resolve(self):
         for exception in self:

@@ -143,6 +143,9 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertEqual(statement.balance_start, 1000)
         self.assertEqual(statement.balance_end_real, 1200)
         self.assertEqual(statement.balance_difference, 0)
+        self.assertEqual(statement.evidence_check_status, "ready")
+        self.assertEqual(statement.transaction_check_status, "ready")
+        self.assertEqual(statement.balance_check_status, "unconfirmed")
         twins = statement.line_ids.filtered(
             lambda line: line.payment_ref == "Identical-looking transfer",
         )
@@ -503,6 +506,27 @@ class TestBankStatementIngestion(TransactionCase):
         ).action_confirm()
         statement.action_confirm_cutover_baseline()
         self.assertFalse(statement.can_certify)
+        open_issue = statement.exception_ids.filtered(
+            lambda item: item.kind == "unsupported" and item.state == "open",
+        )
+        self.assertEqual(len(open_issue), 1)
+        self.assertIn(open_issue.name, statement.review_blocking_reason)
+        self.assertEqual(statement.transaction_check_status, "attention")
+        action = open_issue.action_open_resolution()
+        self.assertEqual(action["res_id"], open_issue.id)
+
+    def test_monthly_review_view_prioritizes_visible_accounting_checks(self):
+        architecture = self.env.ref(
+            "usl_accounting.view_bank_statement_form_review",
+        ).arch_db
+
+        self.assertIn("What needs your attention", architecture)
+        self.assertIn("Monthly checks", architecture)
+        self.assertIn("Official statement", architecture)
+        self.assertIn("Imported transactions", architecture)
+        self.assertIn("Bank balances", architecture)
+        self.assertIn("What to check", architecture)
+        self.assertNotIn("Resolve the remaining bank export exceptions", architecture)
 
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
         ingestion = self._ingestion("<synthetic-no-pdf@example.invalid>", ofx=self.ofx)

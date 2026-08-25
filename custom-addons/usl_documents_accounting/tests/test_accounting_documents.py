@@ -381,7 +381,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         statement.invalidate_recordset()
         self.assertEqual(statement.review_status, "attention")
         self.assertEqual(statement.bank_evidence_archive_state, "unavailable")
-        with self.assertRaisesRegex(UserError, "Restore the archived original"):
+        with self.assertRaisesRegex(UserError, "Restore the original in Documents"):
             statement.action_open_evidence()
         document.sudo().with_context(usl_documents_cache_write=True).write(
             {"availability_state": "available"},

@@ -4149,3 +4149,151 @@ msgstr "Acceptez ce solde d’ouverture comme point de départ de la continuité
 #. module: usl_accounting
 msgid "Save the bank-reported balances even when they expose a difference; certification remains blocked until it is resolved."
 msgstr "Enregistrez les soldes indiqués par la banque même s’ils révèlent un écart ; la certification reste bloquée jusqu’à sa résolution."
+
+#. module: usl_accounting
+msgid "Monthly bank check"
+msgstr "Contrôle bancaire mensuel"
+
+#. module: usl_accounting
+msgid "Monthly checks"
+msgstr "Contrôles du mois"
+
+#. module: usl_accounting
+msgid "What needs your attention"
+msgstr "Points à vérifier"
+
+#. module: usl_accounting
+msgid "What to check"
+msgstr "Vérification à effectuer"
+
+#. module: usl_accounting
+msgid "Items to review"
+msgstr "Points à vérifier"
+
+#. module: usl_accounting
+msgid "Statement needed"
+msgstr "Relevé requis"
+
+#. module: usl_accounting
+msgid "PDF received"
+msgstr "PDF reçu"
+
+#. module: usl_accounting
+msgid "No transactions"
+msgstr "Aucune transaction"
+
+#. module: usl_accounting
+msgid "Review needed"
+msgstr "Vérification requise"
+
+#. module: usl_accounting
+msgid "Does not agree"
+msgstr "Écart constaté"
+
+#. module: usl_accounting
+msgid "Agrees"
+msgstr "Conforme"
+
+#. module: usl_accounting
+msgid "Update bank balances"
+msgstr "Modifier les soldes bancaires"
+
+#. module: usl_accounting
+msgid "Received PDF"
+msgstr "PDF reçu"
+
+#. module: usl_accounting
+msgid "Compared with the PDF"
+msgstr "Comparé au PDF"
+
+#. module: usl_accounting
+msgid "Checked by"
+msgstr "Vérifié par"
+
+#. module: usl_accounting
+msgid "Imported transactions"
+msgstr "Transactions importées"
+
+#. module: usl_accounting
+msgid "Net movement"
+msgstr "Mouvement net"
+
+#. module: usl_accounting
+msgid "Still to match"
+msgstr "Reste à rapprocher"
+
+#. module: usl_accounting
+msgid "Bank balances"
+msgstr "Soldes bancaires"
+
+#. module: usl_accounting
+msgid "Opening balance"
+msgstr "Solde d’ouverture"
+
+#. module: usl_accounting
+msgid "Plus net movement"
+msgstr "Plus mouvement net"
+
+#. module: usl_accounting
+msgid "Previous month"
+msgstr "Mois précédent"
+
+#. module: usl_accounting
+msgid "Previous certified month"
+msgstr "Mois précédent certifié"
+
+#. module: usl_accounting
+msgid "Received files"
+msgstr "Fichiers reçus"
+
+#. module: usl_accounting
+msgid "Resolved issues"
+msgstr "Points résolus"
+
+#. module: usl_accounting
+msgid "Related file"
+msgstr "Fichier concerné"
+
+#. module: usl_accounting
+msgid "Apply decision"
+msgstr "Appliquer la décision"
+
+#. module: usl_accounting
+msgid "Review bank statement issue"
+msgstr "Vérifier un point du relevé bancaire"
+
+#. module: usl_accounting
+msgid "Only an Accounting Manager can resolve this review item."
+msgstr "Seul un responsable comptable peut résoudre ce point à vérifier."
+
+#. module: usl_accounting
+msgid "All bank checks are complete. This month is ready to certify."
+msgstr "Tous les contrôles bancaires sont terminés. Ce mois peut être certifié."
+
+#. module: usl_accounting
+msgid "This month agrees with the bank and has been certified."
+msgstr "Ce mois est conforme au relevé de la banque et a été certifié."
+
+#. module: usl_accounting
+msgid "This month was reopened and must be certified again."
+msgstr "Ce mois a été rouvert et doit être certifié à nouveau."
+
+#. module: usl_accounting
+msgid "%(count)s checks need attention before this month can be certified."
+msgstr "%(count)s contrôles doivent être traités avant de pouvoir certifier ce mois."
+
+#. module: usl_accounting
+msgid "Review: %(issue)s"
+msgstr "À vérifier : %(issue)s"
+
+#. module: usl_accounting
+msgid "Review the items requiring attention."
+msgstr "Vérifiez les points qui nécessitent votre attention."
+
+#. module: usl_accounting
+msgid "No earlier certified month exists. An Accounting Manager must confirm this starting balance once."
+msgstr "Aucun mois antérieur n’est certifié. Un responsable comptable doit confirmer ce solde de départ une seule fois."
+
+#. module: usl_accounting
+msgid "The opening balance or dates do not follow the previous certified month."
+msgstr "Le solde d’ouverture ou les dates ne suivent pas le mois précédent certifié."

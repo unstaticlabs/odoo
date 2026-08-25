@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_bank_statement_exception_resolution_form" model="ir.ui.view">
+        <field name="name">account.bank.statement.issue.resolution.form</field>
+        <field name="model">account.bank.statement.exception</field>
+        <field name="arch" type="xml">
+            <form string="Review bank statement issue" create="false" delete="false">
+                <group>
+                    <field name="name" string="Issue" readonly="1"/>
+                    <field name="detail" string="What to check" readonly="1"/>
+                    <field name="file_id" string="Related file" readonly="1"/>
+                </group>
+                <group string="Decision">
+                    <field name="resolution" required="1"/>
+                    <field name="mapped_line_id" invisible="resolution != 'map_existing'" required="resolution == 'map_existing'"/>
+                    <field name="resolution_reason" string="Reason" required="1" placeholder="Explain what you checked and why this decision is safe."/>
+                </group>
+                <footer>
+                    <button name="action_resolve" type="object" string="Apply decision" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="view_bank_statement_list_review" model="ir.ui.view">
         <field name="name">account.bank.statement.list.monthly.review</field>
         <field name="model">account.bank.statement</field>
@@ -36,7 +59,8 @@
         <field name="arch" type="xml">
             <form string="Bank Statement Review" create="false" delete="false">
                 <header>
-                    <button name="action_open_confirm_balances" type="object" string="Confirm bank balances" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or certification_state == 'certified'"/>
+                    <button name="action_open_confirm_balances" type="object" string="Confirm bank balances" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or balances_confirmed or certification_state == 'certified'"/>
+                    <button name="action_open_confirm_balances" type="object" string="Update bank balances" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or not balances_confirmed or certification_state == 'certified'"/>
                     <button name="action_confirm_cutover_baseline" type="object" string="Confirm cut-over baseline" groups="account.group_account_manager" invisible="not ingestion_config_id or continuity_status != 'baseline' or certification_state == 'certified'" title="Accept this opening balance as the starting continuity checkpoint because no preceding certified statement exists."/>
                     <button name="action_certify" type="object" string="Certify" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not can_certify or certification_state == 'certified'"/>
                     <button name="action_open_reopen" type="object" string="Reopen" groups="account.group_account_manager" invisible="certification_state != 'certified'"/>
@@ -50,44 +74,73 @@
                             <field name="movement_total" widget="statinfo" string="Movements"/>
                         </button>
                         <button name="action_open_evidence" type="object" class="oe_stat_button" icon="fa-file-pdf-o" invisible="not accepted_evidence_id">
-                            <div class="o_stat_info"><span class="o_stat_text">Official PDF</span></div>
+                            <div class="o_stat_info"><span class="o_stat_text">Official statement</span></div>
                         </button>
                     </div>
-                    <div class="oe_title"><h1><field name="name" readonly="certification_state == 'certified'"/></h1></div>
-                    <div class="alert alert-warning" role="alert" invisible="not review_blocking_reason">
-                        <field name="review_blocking_reason" readonly="1" nolabel="1"/>
+                    <div class="oe_title">
+                        <label for="name" string="Monthly bank check"/>
+                        <h1><field name="name" readonly="certification_state == 'certified'"/></h1>
                     </div>
+                    <div class="alert alert-success" role="status" invisible="review_status not in ('ready', 'certified')">
+                        <field name="review_summary" readonly="1" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="review_status in ('ready', 'certified')">
+                        <field name="review_summary" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <div name="review_issues" class="mb-3" invisible="not unresolved_exception_count">
+                        <h3>What needs your attention</h3>
+                        <field name="exception_ids" nolabel="1" domain="[('state', '=', 'open')]">
+                            <list create="false" delete="false" decoration-warning="state == 'open'">
+                                <field name="name" string="Issue" readonly="1"/>
+                                <field name="detail" string="What to check" readonly="1"/>
+                                <field name="file_id" string="Related file" readonly="1" optional="show"/>
+                                <button name="action_open_resolution" type="object" string="Review" groups="account.group_account_manager"/>
+                            </list>
+                        </field>
+                    </div>
+
+                    <h2>Monthly checks</h2>
                     <group>
-                        <group string="Statement period">
-                            <field name="ingestion_config_id" readonly="1"/>
-                            <field name="journal_id" readonly="1"/>
-                            <field name="period_start" readonly="1"/>
-                            <field name="period_end" readonly="1"/>
-                            <field name="reference" readonly="certification_state == 'certified'"/>
+                        <group string="Official statement">
+                            <field name="evidence_check_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="accepted_evidence_id" string="Received PDF" readonly="1"/>
+                            <field name="balances_confirmed" string="Compared with the PDF" readonly="1"/>
+                            <field name="balances_confirmed_by_id" string="Checked by" readonly="1" invisible="not balances_confirmed"/>
                         </group>
-                        <group string="Bank evidence">
-                            <field name="accepted_evidence_id" readonly="1"/>
-                            <field name="balances_confirmed" readonly="1"/>
-                            <field name="balances_confirmed_by_id" readonly="1" invisible="not balances_confirmed"/>
-                            <field name="certified_by_id" readonly="1" invisible="certification_state != 'certified'"/>
-                            <field name="certified_at" readonly="1" invisible="certification_state != 'certified'"/>
+                        <group string="Imported transactions">
+                            <field name="transaction_check_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="movement_total" string="Net movement" readonly="1"/>
+                            <field name="unreconciled_line_count" string="Still to match" readonly="1" help="Matching transactions to invoices is separate work and does not block this monthly bank check."/>
                         </group>
                     </group>
                     <group>
-                        <group string="Balance check">
-                            <field name="balance_start" readonly="1"/>
-                            <field name="movement_total" readonly="1"/>
-                            <field name="balance_end" readonly="1"/>
-                            <field name="balance_end_real" readonly="1" string="Bank closing balance"/>
-                            <field name="balance_difference" readonly="1"/>
+                        <group string="Bank balances">
+                            <field name="balance_check_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="balance_start" string="Opening balance" readonly="1"/>
+                            <field name="movement_total" string="Plus net movement" readonly="1"/>
+                            <field name="balance_end_real" string="Bank closing balance" readonly="1"/>
+                            <field name="balance_difference" string="Difference" readonly="1"/>
                         </group>
-                        <group string="Continuity and follow-up">
-                            <field name="continuity_status" widget="badge" readonly="1"/>
-                            <field name="previous_certified_statement_id" readonly="1" invisible="not previous_certified_statement_id"/>
-                            <field name="unresolved_exception_count" readonly="1"/>
-                            <field name="unidentified_line_count" readonly="1" invisible="not unidentified_line_count"/>
-                            <field name="unreconciled_line_count" readonly="1" help="Matching bank lines to invoices remains a separate accounting task and does not block bank evidence certification."/>
+                        <group string="Previous month">
+                            <field name="continuity_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="previous_certified_statement_id" string="Previous certified month" readonly="1" invisible="not previous_certified_statement_id"/>
+                            <div class="text-muted" invisible="continuity_status != 'baseline'">
+                                No earlier certified month exists. An Accounting Manager must confirm this starting balance once.
+                            </div>
+                            <div class="text-danger" invisible="continuity_status != 'broken'">
+                                The opening balance or dates do not follow the previous certified month.
+                            </div>
                         </group>
+                    </group>
+                    <group string="Period" col="4">
+                        <field name="journal_id" readonly="1"/>
+                        <field name="period_start" readonly="1"/>
+                        <field name="period_end" readonly="1"/>
+                        <field name="reference" readonly="certification_state == 'certified'"/>
+                        <field name="ingestion_config_id" readonly="1" invisible="1"/>
+                        <field name="certified_by_id" readonly="1" invisible="certification_state != 'certified'"/>
+                        <field name="certified_at" readonly="1" invisible="certification_state != 'certified'"/>
                     </group>
                     <notebook>
                         <page string="Transactions">
@@ -101,7 +154,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Evidence and sources">
+                        <page string="Received files">
                             <field name="bank_source_file_ids" readonly="1">
                                 <list decoration-warning="evidence_status == 'candidate'" decoration-muted="evidence_status == 'superseded'">
                                     <field name="filename"/>
@@ -113,17 +166,14 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Exceptions" invisible="not unresolved_exception_count">
-                            <field name="exception_ids">
-                                <list editable="bottom" create="false" delete="false">
+                        <page string="Resolved issues" invisible="not exception_ids">
+                            <field name="exception_ids" domain="[('state', '=', 'resolved')]">
+                                <list create="false" delete="false">
                                     <field name="name" readonly="1"/>
-                                    <field name="kind" readonly="1"/>
                                     <field name="detail" readonly="1"/>
-                                    <field name="mapped_line_id" groups="account.group_account_manager"/>
-                                    <field name="resolution" groups="account.group_account_manager"/>
-                                    <field name="resolution_reason" groups="account.group_account_manager"/>
-                                    <button name="action_resolve" type="object" string="Resolve" groups="account.group_account_manager" invisible="state == 'resolved'"/>
-                                    <field name="state" widget="badge"/>
+                                    <field name="resolution" string="Decision"/>
+                                    <field name="resolution_reason" string="Reason"/>
+                                    <field name="resolved_by_id" string="Resolved by"/>
                                 </list>
                             </field>
                         </page>

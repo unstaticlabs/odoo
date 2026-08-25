@@ -6,8 +6,8 @@
         <field name="inherit_id" ref="usl_accounting.view_bank_statement_form_review"/>
         <field name="arch" type="xml">
             <xpath expr="//header/button[@name='action_certify']" position="before">
-                <button name="action_archive_bank_evidence" type="object" string="File in Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('not_requested', 'pending')"/>
-                <button name="action_archive_bank_evidence" type="object" string="Retry Documents filing" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('failed', 'unavailable')"/>
+                <button name="action_archive_bank_evidence" type="object" string="Save in Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('not_requested', 'pending')"/>
+                <button name="action_archive_bank_evidence" type="object" string="Retry Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('failed', 'unavailable')"/>
             </xpath>
             <xpath expr="//button[@name='action_open_evidence']" position="attributes">
                 <attribute name="string">Official statement</attribute>
@@ -18,10 +18,16 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='accepted_evidence_id']" position="after">
-                <field name="bank_evidence_document_id" readonly="1" invisible="not bank_evidence_document_id"/>
-                <field name="bank_evidence_document_version" readonly="1" invisible="not bank_evidence_document_version"/>
-                <field name="bank_evidence_archive_state" widget="badge" readonly="1"/>
-                <field name="bank_evidence_archive_error" readonly="1" invisible="not bank_evidence_archive_error"/>
+                <field name="bank_evidence_document_id" string="Documents record" readonly="1" invisible="not bank_evidence_document_id"/>
+                <field name="bank_evidence_document_version" string="Saved version" readonly="1" invisible="not bank_evidence_document_version"/>
+                <field name="bank_evidence_archive_state" string="Documents status" widget="badge" readonly="1"/>
+            </xpath>
+            <xpath expr="//div[@name='review_issues']" position="before">
+                <div class="alert alert-danger" role="alert" invisible="not bank_evidence_archive_error">
+                    <strong>Official statement is not safely stored in Documents.</strong>
+                    <div><field name="bank_evidence_archive_error" readonly="1" nolabel="1"/></div>
+                    <div class="mt-1">Correct the Documents issue, then use <em>Retry Documents</em>.</div>
+                </div>
             </xpath>
             <xpath expr="//field[@name='certification_ids']/list/field[@name='evidence_sha256']" position="after">
                 <field name="paperless_document_id" optional="hide"/>
