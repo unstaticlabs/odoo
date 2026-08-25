@@ -25,6 +25,7 @@ _SUPPORTED_TOKEN_AUTH_METHODS = {
 }
 _MAX_JWKS_BYTES = 1_048_576
 _MAX_JWKS_KEYS = 20
+_TAILSCALE_NETWORK = ipaddress.ip_network("100.64.0.0/10")
 _ENVIRONMENT_MANAGED_FIELDS = {
     "auth_endpoint",
     "body",
@@ -74,6 +75,30 @@ def _origin(url):
     if port is None:
         port = 443 if parsed.scheme == "https" else 80
     return parsed.scheme, parsed.hostname, port
+
+
+def _private_http_qa_allowed(hostname):
+    if (
+        os.getenv("USL_DEPLOYMENT_ENV", "development").strip().lower()
+        != "development"
+        or not _env_enabled("USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA")
+    ):
+        return False
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        normalized = hostname.rstrip(".").lower()
+        return normalized.endswith(".ts.net")
+    return (
+        address.version == 4
+        and not address.is_unspecified
+        and not address.is_multicast
+        and (
+            address.is_loopback
+            or address.is_private
+            or address in _TAILSCALE_NETWORK
+        )
+    )
 
 
 class AuthOauthProvider(models.Model):
@@ -198,7 +223,7 @@ class AuthOauthProvider(models.Model):
         except ValueError:
             hostname = parsed.hostname.rstrip(".")
             is_loopback = hostname == "localhost" or hostname.endswith(".localhost")
-        if not is_loopback:
+        if not is_loopback and not _private_http_qa_allowed(parsed.hostname):
             raise ValidationError(
                 _("%(label)s may use HTTP only for a loopback test service.", label=label),
             )
