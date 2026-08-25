@@ -97,3 +97,31 @@ reconstruction must confirm the product total remains the 1,910 source tasks.
 The complete Paperless archive, pre-production and coordinated recovery gates
 remain outstanding. The 19.2 register remains historical and must not be edited
 to describe 19.3 evidence.
+
+## Upstream refresh record: 25 August 2026
+
+The Distribution refreshed its official `saas-19.3` ancestry without changing
+the frozen source or reconstruction evidence above:
+
+- Distribution base: `f302ae6cdb43b47e1bb2c705e1f4f716a27ce7d5`;
+- previous upstream: `efb98f932f3a568ce550a26ebde06da0e14e65d3`;
+- refreshed upstream: `f5ace41946dce669f72d1edeef3daebfdb4a4519`;
+- upstream delta: 62 commits, 904 files, 17,896 insertions and 10,203
+  deletions, dominated by translation catalogue refreshes;
+- upstream migrations, manifest changes and runtime dependency changes: none;
+- merge conflicts: none;
+- overlapping downstream/core files: `addons/account/models/account_move.py`.
+
+In the overlapping file, upstream removed the invoice-line onchange ordering
+workaround after fixing relational cache updates in the ORM. The independent
+USL fiscal-year sequence adaptation remains because this upstream commit still
+derives sequence years from fixed fiscal-year closing fields rather than the
+company-governed `compute_fiscalyear_dates()` API.
+
+Two downstream choices were reviewed. Removing the fiscal sequence and
+resequencing adaptations would reduce core divergence, but would reintroduce
+incorrect sequence boundaries for governed fiscal years. Moving them into a
+product add-on would avoid a core patch, but changes upgrade and installation
+behavior without improving this compatibility refresh. The existing two-file
+core adaptation is therefore retained with its focused regression coverage;
+no downstream core patch is removed in this refresh.
