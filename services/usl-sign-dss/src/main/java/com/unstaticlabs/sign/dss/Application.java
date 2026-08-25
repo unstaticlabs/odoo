@@ -610,12 +610,15 @@ public final class Application {
 
             PDType0Font font = PDType0Font.load(document, fontInput, true);
             List<String> coverLines = new ArrayList<>();
-            coverLines.add("USL Sign evidence dossier");
+            coverLines.add("Signing proof package");
             coverLines.add(title);
             coverLines.add("");
             coverLines.addAll(lines);
             coverLines.add("");
-            coverLines.add("Embedded evidence artifacts: " + artifacts.size());
+            coverLines.add("Embedded files: " + artifacts.size());
+            for (Artifact artifact : artifacts) {
+                coverLines.add("- " + artifact.name() + " — " + artifact.description());
+            }
             addCoverPages(document, font, coverLines);
 
             Map<String, PDComplexFileSpecification> embeddedFiles = new LinkedHashMap<>();
