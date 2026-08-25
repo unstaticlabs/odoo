@@ -2086,6 +2086,28 @@ msgid "Review and sign"
 msgstr "Vérifier et signer"
 
 #. module: usl_sign
+#: model:mail.activity.type,name:usl_sign.mail_activity_type_sign_document
+msgid "Document signature"
+msgstr "Signature de document"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "Review and sign: %(document)s"
+msgstr "Vérifier et signer : %(document)s"
+
+#. module: usl_sign
+#. odoo-python
+#: code:addons/usl_sign/models/request.py:0
+msgid "<p><strong>%(sender)s</strong> asked you to review and sign <strong>%(document)s</strong> as %(role)s.</p><p>Open this activity and choose <strong>Review and sign</strong>.</p>"
+msgstr "<p><strong>%(sender)s</strong> vous demande de vérifier et signer <strong>%(document)s</strong> en tant que %(role)s.</p><p>Ouvrez cette activité puis choisissez <strong>Vérifier et signer</strong>.</p>"
+
+#. module: usl_sign
+#: model_terms:ir.ui.view,arch_db:usl_sign.sign_share_confirm_form
+msgid "These invited people have an Odoo account. They will receive a signing activity, can open the request in <strong>My Signatures</strong>, and can retrieve the final files after completion."
+msgstr "Ces personnes invitées disposent d’un compte Odoo. Elles recevront une activité de signature, pourront ouvrir la demande dans <strong>Mes signatures</strong> et récupérer les fichiers finaux après sa finalisation."
+
+#. module: usl_sign
 msgid "Independent timestamp"
 msgstr "Horodatage indépendant"
 

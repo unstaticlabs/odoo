@@ -868,6 +868,7 @@ class StrongSignController(http.Controller):
             authentication_method="pocket_id_passkey",
             payload={"ceremony_id": ceremony.id, "document_sha256": digest},
         )
+        signer._close_internal_signing_activities()
         signer._activate_next_signer_or_finish()
         redirect = "/sign/result/success"
         completions = {
