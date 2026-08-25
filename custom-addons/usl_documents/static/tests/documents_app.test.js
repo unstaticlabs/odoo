@@ -945,7 +945,7 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
     );
 });
 
-test("Back from a record-context workspace returns to the linked record", async () => {
+test("smart-button history restores the exact Odoo route on Back and Forward", async () => {
     let returnedAction = null;
     let returnedOptions = null;
     let returnedLocation = null;
@@ -970,6 +970,18 @@ test("Back from a record-context workspace returns to the linked record", async 
     browser.history.replaceState(
         {
             nextState: {
+                action: "usl_documents.workspace",
+                actionStack: [
+                    {
+                        action: 210,
+                        model: "account.move",
+                        resId: 12,
+                        view_type: "form",
+                    },
+                    {
+                        action: "usl_documents.workspace",
+                    },
+                ],
                 domain: '[["linked_record_ref","=","account.move:12"]]',
                 groupBy: "tag_ids",
                 usl_filters: "{}",
@@ -992,31 +1004,33 @@ test("Back from a record-context workspace returns to the linked record", async 
         browser.history.state.uslDocumentsRecordContext ||
             browser.history.state.nextState?.uslDocumentsRecordContext
     ).toBe("account.move:12");
+    expect(browser.history.state.nextState.actionStack?.length).toBe(2);
+    expect(browser.history.state.skipRouteChange).toBe(false);
 
-    const popState = new Event("popstate");
-    Object.defineProperty(popState, "state", {
-        value: {
-            nextState: { actionStack: [] },
-        },
-    });
-    browser.dispatchEvent(popState);
+    browser.history.back();
+    await animationFrame();
     await tick();
 
-    expect(returnedAction).toEqual({
-        type: "ir.actions.act_window",
-        res_model: "account.move",
-        res_id: 12,
-        views: [[false, "form"]],
-        target: "current",
+    expect(returnedAction).toBe(null);
+    expect(returnedOptions).toBe(null);
+    expect(returnedLocation).toBe(null);
+    expect(returnedHistoryState).toBe(null);
+    expect(browser.history.state.nextState.actionStack?.length).toBe(1);
+    expect(browser.history.state.nextState).toMatchObject({
+        action: 210,
+        model: "account.move",
+        resId: 12,
+        view_type: "form",
     });
-    expect(returnedOptions).toEqual({ clearBreadcrumbs: true });
-    const returnedUrl = new URL(returnedLocation);
-    expect(returnedUrl.searchParams.has("domain")).toBe(false);
-    expect(returnedUrl.searchParams.has("groupBy")).toBe(false);
-    expect(returnedUrl.searchParams.has("usl_filters")).toBe(false);
-    expect("domain" in returnedHistoryState.nextState).toBe(false);
-    expect("groupBy" in returnedHistoryState.nextState).toBe(false);
-    expect("usl_filters" in returnedHistoryState.nextState).toBe(false);
+    expect(browser.location.href).toMatch(/action-210\/12/);
+
+    browser.history.forward();
+    await animationFrame();
+    await tick();
+    expect(browser.history.state.nextState.actionStack?.length).toBe(2);
+    expect(browser.history.state.nextState.uslDocumentsRecordContext).toBe(
+        "account.move:12"
+    );
 });
 
 test("native search defaults to broad archive search and keeps specialist fields advanced", async () => {
