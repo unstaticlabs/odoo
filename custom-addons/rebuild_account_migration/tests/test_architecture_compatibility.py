@@ -68,6 +68,7 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
                 self.env.ref(xmlid, raise_if_not_found=False),
                 f"{xmlid} belongs only to codex/fix-seamless-paperless-documents",
             )
+
     def test_company_scoped_custom_models_have_record_rules(self):
         """A public product model must never rely on UI company domains."""
         Model = self.env["ir.model"].sudo()
@@ -272,3 +273,47 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
             "Optional default analytic distribution",
             platform_view.arch_db,
         )
+
+        accounting_home = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_form",
+        ).with_context(lang="fr_FR")
+        for expected in (
+            "Factures fournisseurs en brouillon",
+            "à rapprocher",
+            "Montant estimé dû par USL à",
+            "Montant estimé dû par",
+            "à USL",
+            "Trésorerie",
+            "Qualité comptable",
+            "Espace de clôture en cours",
+            "Cette estimation de gestion",
+        ):
+            self.assertIn(expected, accounting_home.arch_db)
+        for rejected in (
+            "Projets de loi",
+            ">correspondre<",
+            "Montant estimé qu'USL doit",
+            "Hygiène comptable",
+            "devis prévisionnel",
+        ):
+            self.assertNotIn(rejected, accounting_home.arch_db)
+
+        closing_view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_closing_form",
+        ).with_context(lang="fr_FR")
+        for expected in (
+            "Dossier de clôture",
+            "Valider comme prêt à clôturer",
+            "Actualiser l’état de préparation",
+        ):
+            self.assertIn(expected, closing_view.arch_db)
+
+        statement_lines = self.env["account.bank.statement.line"].with_context(
+            lang="fr_FR",
+        )
+        status_labels = dict(
+            statement_lines._fields[
+                "rebuild_transaction_status"
+            ]._description_selection(statement_lines.env),
+        )
+        self.assertEqual(status_labels["open"], "À rapprocher")
