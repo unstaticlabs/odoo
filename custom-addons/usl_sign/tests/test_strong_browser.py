@@ -238,7 +238,7 @@ class TestSignBrowserJourneys(HttpCase):
                     "The Start dialog did not open.",
                 );
                 const templateChoice = startDialog.querySelector(
-                    'input[type="radio"][value="template"]',
+                    'input[type="radio"][data-value="template"]',
                 );
                 if (!templateChoice) {{
                     throw new Error("The template starting point is missing.");
