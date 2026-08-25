@@ -188,6 +188,11 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("source_gate=gate", target)
         self.assertIn("attachment_gate=gate", target)
         self.assertIn("USL_MIGRATION_CONFIRM_SOURCE_SHA", target)
+        self.assertIn('export USL_ONLINE_DUMP_DIR="$source_dump_dir"', target)
+        self.assertLess(
+            target.index('export USL_ONLINE_DUMP_DIR="$source_dump_dir"'),
+            target.index('scripts/migration-source-truth "$source_gate"'),
+        )
         self.assertLess(
             target.index('scripts/migration-source-truth "$source_gate"'),
             target.index("scripts/accounting-compat dev-reset"),
@@ -204,6 +209,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
 
         finalizer = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
         self.assertIn("scripts/platform-billing-restore product-validate", finalizer)
+        self.assertIn(
+            'usl_cli_load_local_port_defaults "$ROOT" "${POCKET_ID_ENV_FILE:-}"',
+            finalizer,
+        )
 
     def test_seed_pruning_requires_confirmation_and_preserves_current(self):
         seed = SEED_SCRIPT.read_text(encoding="utf-8")

@@ -116,9 +116,9 @@ permanent Odoo models.
 
 ## Safe execution
 
-Keep the source dump outside the repository. The default path is
-`/Users/valentin/Code/odoo/usl-online-dump`; override it with
-`USL_ONLINE_DUMP_DIR`.
+The ignored checkout-local `usl-online-dump/` is the development default. Set
+`USL_ONLINE_DUMP_DIR` to the approved absolute external package path for
+rehearsal or production use; never commit the private dump.
 
 The source PostgreSQL connection is read-only. The script also forces both
 electronic-invoice live guards to zero. It defaults to the single disposable

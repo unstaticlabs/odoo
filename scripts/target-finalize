@@ -4,7 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
-usl_cli_load_local_port_defaults "$ROOT"
+# Base-Compose product validators restart Odoo outside pocket-id-dev's
+# subprocess. Import only the four non-secret ports from the selected
+# project-bound identity environment so every stage recreates the same runtime.
+usl_cli_load_local_port_defaults "$ROOT" "${POCKET_ID_ENV_FILE:-}"
 
 usl_require_explicit_compose_project "Target finalization"
 usl_verify_compose_scope \

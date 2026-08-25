@@ -28,9 +28,17 @@ The input is the preserved Odoo Online package:
 Never start target Odoo against the source database. Never edit source rows to
 make an importer pass.
 
-The Accounting harness resolves `--source-dir` once and exports that absolute
-path to every Compose child. Host validation and the read-only container mount
-therefore cannot silently select different source packages.
+Canonical reconstruction resolves `USL_ONLINE_DUMP_DIR` once, exports the
+absolute path to every migration stage, and uses that same path for host
+validation and the read-only container mount. If the variable is unset, local
+development uses the ignored checkout-local `usl-online-dump/`; production
+must supply the approved external package path.
+
+Two alternatives were considered: retaining per-script maintainer-specific
+defaults, or requiring every caller to repeat `--source-dir` for every stage.
+Both permit path drift between host validation, audit tools and Compose. The
+single exported environment contract is used instead, with a portable local
+default and an explicit production override.
 
 ## Whole-source coverage ledger
 

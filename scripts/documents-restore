@@ -43,7 +43,7 @@ fi
 compose_project="${COMPOSE_PROJECT_NAME:-codex-migration-full}"
 target_database="${DOCUMENTS_TARGET_DATABASE-odoo_dev}"
 source_database="${DOCUMENTS_SOURCE_DATABASE:-odoo_online_source_saas_19_3}"
-source_dump_dir="${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
 canonical_reset="${DOCUMENTS_CANONICAL_RESET:-0}"
 require_checkpoint="${DOCUMENTS_REQUIRE_CHECKPOINT:-0}"
 restore_profile="${DOCUMENTS_RESTORE_PROFILE:-full}"

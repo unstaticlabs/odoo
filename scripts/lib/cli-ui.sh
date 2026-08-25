@@ -57,7 +57,13 @@ usl_cli_blocked() {
 # variables keep precedence over local files.
 usl_cli_load_local_port_defaults() {
     local repository_root="$1"
+    shift
     local file key value
+    local files=(
+        "$repository_root/.env"
+        "$repository_root/.pocket-id.env"
+        "$@"
+    )
     local keys=(
         ODOO_HTTP_PORT
         ODOO_GEVENT_PORT
@@ -65,7 +71,8 @@ usl_cli_load_local_port_defaults() {
         PAPERLESS_HTTP_PORT
     )
 
-    for file in "$repository_root/.env" "$repository_root/.pocket-id.env"; do
+    for file in "${files[@]}"; do
+        [[ -n "$file" ]] || continue
         [[ -f "$file" ]] || continue
         for key in "${keys[@]}"; do
             [[ -z "${!key:-}" ]] || continue

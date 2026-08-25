@@ -565,7 +565,7 @@ services:
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
-      - ${USL_ONLINE_DUMP_DIR:-/Users/valentin/Code/odoo/usl-online-dump}:/mnt/accounting-source:ro
+      - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
       - ./artifacts/platform-billing-restore:/mnt/platform-billing-evidence
 
   test:

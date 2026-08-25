@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT))
 from migration.source_truth.cli import (  # noqa: E402
     AuditError,
     SourceDatabase,
+    default_source_dir,
     resolve_source_container,
     sha256_file,
     source_package,
@@ -36,9 +37,7 @@ from migration.source_truth.cli import (  # noqa: E402
 
 
 SCHEMA = "usl-source-attachment-ledger-v1"
-DEFAULT_SOURCE_DIR = Path(
-    os.environ.get("USL_ONLINE_DUMP_DIR", "/Users/valentin/Code/odoo/usl-online-dump"),
-)
+DEFAULT_SOURCE_DIR = default_source_dir()
 DEFAULT_ARTIFACTS = ROOT / "artifacts/migration/private"
 
 # These stages already restore the attachment and prove target bytes by source

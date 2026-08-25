@@ -89,11 +89,17 @@ case "$migration_purpose" in
 esac
 
 source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
+if [[ ! -d "$source_dump_dir" ]]; then
+  printf 'Migration source package is incomplete: %s\n' "$source_dump_dir" >&2
+  exit 2
+fi
+source_dump_dir="$(cd "$source_dump_dir" && pwd -P)"
 source_dump="$source_dump_dir/dump.sql"
 if [[ ! -f "$source_dump" || ! -d "$source_dump_dir/filestore" ]]; then
   printf 'Migration source package is incomplete: %s\n' "$source_dump_dir" >&2
   exit 2
 fi
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
 source_sha256="$(shasum -a 256 "$source_dump" | awk '{print $1}')"
 if [[ "$migration_purpose" == production ]]; then
   expected_source_sha256="${USL_MIGRATION_CONFIRM_SOURCE_SHA:-}"
