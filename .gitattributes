@@ -1,1 +1,2 @@
 oca-patches/**/*.patch whitespace=-trailing-space,-blank-at-eof
+custom-addons/**/tests/fixtures/*.pdf binary

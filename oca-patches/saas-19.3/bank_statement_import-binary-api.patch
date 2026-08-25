@@ -1,0 +1,55 @@
+diff --git a/account_statement_import_file/tests/test_account_statement_import_file.py b/account_statement_import_file/tests/test_account_statement_import_file.py
+--- a/account_statement_import_file/tests/test_account_statement_import_file.py
++++ b/account_statement_import_file/tests/test_account_statement_import_file.py
+@@ -1,10 +1,9 @@
+ # Copyright 2024 Sygel - Manuel Regidor
+ # License AGPL-3 - See http://www.gnu.org/licenses/agpl-3.0.html
+ 
+-import base64
+-
+ import odoo.tests.common as common
+ from odoo.exceptions import UserError
++from odoo.tools import BinaryBytes
+ from odoo.tools.misc import file_path
+ 
+ 
+@@ -37,7 +37,7 @@ class TestAccountStatementImportFile(common.TransactionCase):
+         f_path = file_path(
+             "account_statement_import_file/tests/samples/test_statement_import.txt"
+         )
+-        file = base64.b64encode(open(f_path, "rb").read())
++        file = BinaryBytes(open(f_path, "rb").read())
+         cls.import_wizard = (
+             cls.env["account.statement.import"]
+             .with_context(journal_id=cls.journal_1.id)
+diff --git a/account_statement_import_file/wizard/account_statement_import.py b/account_statement_import_file/wizard/account_statement_import.py
+--- a/account_statement_import_file/wizard/account_statement_import.py
++++ b/account_statement_import_file/wizard/account_statement_import.py
+@@ -1,7 +1,6 @@
+ # Copyright 2004-2020 Odoo S.A.
+ # Licence LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
+ 
+-import base64
+ import logging
+ 
+ from odoo import api, fields, models
+@@ -29,7 +28,7 @@ class AccountStatementImport(models.TransientModel):
+             "notifications": [],  # list of text messages
+         }
+         logger.info("Start to import bank statement file %s", self.statement_filename)
+-        file_data = base64.b64decode(self.statement_file)
++        file_data = self.statement_file.content
+         self.import_single_file(file_data, result)
+         logger.debug("result=%s", result)
+         if not result["statement_ids"]:
+@@ -76,9 +75,9 @@ class AccountStatementImport(models.TransientModel):
+         vals = {
+             "name": self.statement_filename,
+             "res_id": res_id,
+             "company_id": st.company_id.id,
+             "res_model": "account.bank.statement",
+-            "datas": self.statement_file,
++            "raw": self.statement_file,
+         }
+         return vals
+ 

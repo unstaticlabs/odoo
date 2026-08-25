@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bank_statement_list_review" model="ir.ui.view">
+        <field name="name">account.bank.statement.list.monthly.review</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="account.view_bank_statement_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date']" position="after">
+                <field name="period_start" optional="show"/>
+                <field name="period_end" optional="show"/>
+                <field name="review_status" widget="badge" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='balance_end_real']" position="after">
+                <field name="balance_difference" optional="show"/>
+                <field name="accepted_evidence_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_bank_statement_search_review" model="ir.ui.view">
+        <field name="name">account.bank.statement.search.monthly.review</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="account.view_bank_statement_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='invalid']" position="after">
+                <filter name="managed" string="Scheduled exports" domain="[('ingestion_config_id', '!=', False)]"/>
+                <filter name="needs_attention" string="Needs attention" domain="[('ingestion_config_id', '!=', False), ('certification_state', '!=', 'certified')]"/>
+                <filter name="certified" string="Certified" domain="[('certification_state', '=', 'certified')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_bank_statement_form_review" model="ir.ui.view">
+        <field name="name">account.bank.statement.form.monthly.review</field>
+        <field name="model">account.bank.statement</field>
+        <field name="arch" type="xml">
+            <form string="Bank Statement Review" create="false" delete="false">
+                <header>
+                    <button name="action_open_confirm_balances" type="object" string="Confirm bank balances" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or certification_state == 'certified'"/>
+                    <button name="action_confirm_cutover_baseline" type="object" string="Confirm cut-over baseline" groups="account.group_account_manager" invisible="not ingestion_config_id or continuity_status != 'baseline' or certification_state == 'certified'" title="Accept this opening balance as the starting continuity checkpoint because no preceding certified statement exists."/>
+                    <button name="action_certify" type="object" string="Certify" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not can_certify or certification_state == 'certified'"/>
+                    <button name="action_open_reopen" type="object" string="Reopen" groups="account.group_account_manager" invisible="certification_state != 'certified'"/>
+                    <field name="review_status" widget="statusbar" statusbar_visible="expected,processing,attention,ready,certified,reopened"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Certified" bg_color="text-bg-success" invisible="certification_state != 'certified'"/>
+                    <widget name="web_ribbon" title="Reopened" bg_color="text-bg-warning" invisible="certification_state != 'reopened'"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_transactions" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="movement_total" widget="statinfo" string="Movements"/>
+                        </button>
+                        <button name="action_open_evidence" type="object" class="oe_stat_button" icon="fa-file-pdf-o" invisible="not accepted_evidence_id">
+                            <div class="o_stat_info"><span class="o_stat_text">Official PDF</span></div>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name" readonly="certification_state == 'certified'"/></h1></div>
+                    <div class="alert alert-warning" role="alert" invisible="not review_blocking_reason">
+                        <field name="review_blocking_reason" readonly="1" nolabel="1"/>
+                    </div>
+                    <group>
+                        <group string="Statement period">
+                            <field name="ingestion_config_id" readonly="1"/>
+                            <field name="journal_id" readonly="1"/>
+                            <field name="period_start" readonly="1"/>
+                            <field name="period_end" readonly="1"/>
+                            <field name="reference" readonly="certification_state == 'certified'"/>
+                        </group>
+                        <group string="Bank evidence">
+                            <field name="accepted_evidence_id" readonly="1"/>
+                            <field name="balances_confirmed" readonly="1"/>
+                            <field name="balances_confirmed_by_id" readonly="1" invisible="not balances_confirmed"/>
+                            <field name="certified_by_id" readonly="1" invisible="certification_state != 'certified'"/>
+                            <field name="certified_at" readonly="1" invisible="certification_state != 'certified'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Balance check">
+                            <field name="balance_start" readonly="1"/>
+                            <field name="movement_total" readonly="1"/>
+                            <field name="balance_end" readonly="1"/>
+                            <field name="balance_end_real" readonly="1" string="Bank closing balance"/>
+                            <field name="balance_difference" readonly="1"/>
+                        </group>
+                        <group string="Continuity and follow-up">
+                            <field name="continuity_status" widget="badge" readonly="1"/>
+                            <field name="previous_certified_statement_id" readonly="1" invisible="not previous_certified_statement_id"/>
+                            <field name="unresolved_exception_count" readonly="1"/>
+                            <field name="unidentified_line_count" readonly="1" invisible="not unidentified_line_count"/>
+                            <field name="unreconciled_line_count" readonly="1" help="Matching bank lines to invoices remains a separate accounting task and does not block bank evidence certification."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Transactions">
+                            <field name="line_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="date"/>
+                                    <field name="payment_ref"/>
+                                    <field name="partner_id"/>
+                                    <field name="amount"/>
+                                    <field name="is_reconciled"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Evidence and sources">
+                            <field name="bank_source_file_ids" readonly="1">
+                                <list decoration-warning="evidence_status == 'candidate'" decoration-muted="evidence_status == 'superseded'">
+                                    <field name="filename"/>
+                                    <field name="classification"/>
+                                    <field name="processing_state" widget="badge"/>
+                                    <field name="evidence_status" widget="badge"/>
+                                    <field name="ingestion_id"/>
+                                    <button name="action_accept_evidence" type="object" string="Accept" groups="account.group_account_user,account.group_account_manager" invisible="classification != 'pdf' or evidence_status in ('accepted', 'duplicate')" title="Use this retained PDF as the official evidence for the monthly review. Prior evidence remains in the history."/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Exceptions" invisible="not unresolved_exception_count">
+                            <field name="exception_ids">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="name" readonly="1"/>
+                                    <field name="kind" readonly="1"/>
+                                    <field name="detail" readonly="1"/>
+                                    <field name="mapped_line_id" groups="account.group_account_manager"/>
+                                    <field name="resolution" groups="account.group_account_manager"/>
+                                    <field name="resolution_reason" groups="account.group_account_manager"/>
+                                    <button name="action_resolve" type="object" string="Resolve" groups="account.group_account_manager" invisible="state == 'resolved'"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Certification history">
+                            <field name="certification_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="event_at"/>
+                                    <field name="event_type" widget="badge"/>
+                                    <field name="user_id"/>
+                                    <field name="reason" optional="show"/>
+                                    <field name="evidence_sha256" optional="hide"/>
+                                    <field name="transaction_identity_digest" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bank_statement_tree_review_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bank_statement_form_review"/>
+        <field name="act_window_id" ref="account.action_bank_statement_tree"/>
+    </record>
+
+    <record id="view_account_journal_dashboard_bank_review" model="ir.ui.view">
+        <field name="name">account.journal.dashboard.bank.statement.review</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='bank_account_id']" position="after">
+                <field name="bank_ingestion_config_id"/>
+                <field name="bank_statement_review_status"/>
+                <field name="bank_statement_review_period"/>
+                <field name="bank_statement_review_next_action"/>
+            </xpath>
+            <xpath expr="//t[@t-name='JournalBodyBank']//t[@t-call='JournalBodyBankCash']" position="after">
+                <div t-if="record.bank_ingestion_config_id.raw_value" class="col-12 mt-2">
+                    <a type="object" name="action_open_bank_statement_review" class="d-flex justify-content-between gap-2">
+                        <span><field name="bank_statement_review_period"/></span>
+                        <strong><field name="bank_statement_review_status"/></strong>
+                    </a>
+                    <small class="text-muted"><field name="bank_statement_review_next_action"/></small>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

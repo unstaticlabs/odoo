@@ -1,6 +1,7 @@
 from . import (
     test_account_direction_guard,
     test_analytic_reporting,
+    test_bank_statement_ingestion,
     test_expense_bank_matching,
     test_expense_batch_reporting,
     test_immediate_settlement,

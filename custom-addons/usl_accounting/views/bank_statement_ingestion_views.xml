@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bank_ingestion_config_list" model="ir.ui.view">
+        <field name="name">account.bank.ingestion.config.list</field>
+        <field name="model">account.bank.ingestion.config</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="not processing_enabled">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="journal_id"/>
+                <field name="provider"/>
+                <field name="alias_full_name" string="Scheduled export address"/>
+                <field name="automatic_start_date"/>
+                <field name="review_status" widget="badge"/>
+                <field name="processing_enabled" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bank_ingestion_config_form" model="ir.ui.view">
+        <field name="name">account.bank.ingestion.config.form</field>
+        <field name="model">account.bank.ingestion.config</field>
+        <field name="arch" type="xml">
+            <form string="Scheduled Bank Export">
+                <header>
+                    <button name="action_open_expected_statement" type="object" string="Open monthly review" class="btn-primary"/>
+                    <field name="review_status" widget="statusbar" statusbar_visible="expected,processing,attention,ready,certified,reopened"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Paused" bg_color="text-bg-secondary" invisible="processing_enabled"/>
+                    <div class="oe_title"><h1><field name="name" placeholder="Shine monthly export"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="journal_id"/>
+                            <field name="provider"/>
+                            <field name="source_account_identifier" password="True"/>
+                            <field name="responsible_user_id"/>
+                        </group>
+                        <group>
+                            <field name="alias_name" string="Scheduled export address"/>
+                            <field name="alias_domain_id" options="{'no_create': True}"/>
+                            <field name="automatic_start_date"/>
+                            <field name="expected_delivery_day"/>
+                            <field name="processing_enabled" widget="boolean_toggle"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Approved source">
+                        <field name="allowed_senders" placeholder="hello@shine.fr"/>
+                        <field name="allowed_download_hosts" placeholder="accounting.files.shine.fr"/>
+                    </group>
+                    <group string="Current monthly checkpoint" col="4">
+                        <field name="expected_period_start" readonly="1"/>
+                        <field name="expected_period_end" readonly="1"/>
+                        <field name="expected_delivery_date" readonly="1"/>
+                        <field name="review_next_action" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Received exports">
+                            <field name="ingestion_ids" readonly="1">
+                                <list>
+                                    <field name="received_at"/>
+                                    <field name="subject"/>
+                                    <field name="period_start"/>
+                                    <field name="period_end"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="attempt_count"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bank_ingestion_config" model="ir.actions.act_window">
+        <field name="name">Scheduled Bank Exports</field>
+        <field name="res_model">account.bank.ingestion.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_bank_ingestion_list" model="ir.ui.view">
+        <field name="name">account.bank.ingestion.list</field>
+        <field name="model">account.bank.ingestion</field>
+        <field name="arch" type="xml">
+            <list create="false" decoration-danger="state == 'failed'" decoration-warning="state == 'attention'">
+                <field name="received_at"/>
+                <field name="subject"/>
+                <field name="journal_id"/>
+                <field name="period_start"/>
+                <field name="period_end"/>
+                <field name="state" widget="badge"/>
+                <field name="unresolved_exception_count"/>
+                <field name="attempt_count" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bank_ingestion_form" model="ir.ui.view">
+        <field name="name">account.bank.ingestion.form</field>
+        <field name="model">account.bank.ingestion</field>
+        <field name="arch" type="xml">
+            <form string="Received Bank Export" create="false" delete="false">
+                <header>
+                    <button name="action_process_now" type="object" string="Process now" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="state != 'received'"/>
+                    <button name="action_retry" type="object" string="Retry" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="state not in ('attention', 'failed')"/>
+                    <button name="action_open_add_source_file" type="object" string="Add recovered export" groups="account.group_account_user,account.group_account_manager" invisible="state == 'processing'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,processing,attention,done,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="subject" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="config_id" readonly="1"/>
+                            <field name="journal_id" readonly="1"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="sender" readonly="1"/>
+                            <field name="received_at" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="period_start" readonly="1"/>
+                            <field name="period_end" readonly="1"/>
+                            <field name="message_id_header" readonly="1"/>
+                            <field name="duplicate_delivery_count" readonly="1"/>
+                            <field name="attempt_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-danger" role="alert" invisible="not last_error">
+                        <field name="last_error" readonly="1" nolabel="1"/>
+                    </div>
+                    <notebook>
+                        <page string="Files">
+                            <field name="file_ids" readonly="1">
+                                <list decoration-danger="processing_state == 'failed'" decoration-warning="processing_state == 'attention'">
+                                    <field name="filename"/>
+                                    <field name="classification"/>
+                                    <field name="processing_state" widget="badge"/>
+                                    <field name="statement_id"/>
+                                    <field name="evidence_status" widget="badge"/>
+                                    <field name="sha256" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Exceptions" invisible="not unresolved_exception_count">
+                            <field name="exception_ids" readonly="1">
+                                <list decoration-danger="kind == 'import'" decoration-warning="state == 'open'">
+                                    <field name="name"/>
+                                    <field name="kind"/>
+                                    <field name="file_id"/>
+                                    <field name="detail"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Source details" groups="account.group_account_manager">
+                            <group>
+                                <field name="recipient" readonly="1"/>
+                                <field name="headers" readonly="1"/>
+                                <field name="last_attempt_at" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bank_ingestion" model="ir.actions.act_window">
+        <field name="name">Received Bank Exports</field>
+        <field name="res_model">account.bank.ingestion</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="view_bank_ingestion_file_form" model="ir.ui.view">
+        <field name="name">account.bank.ingestion.file.form</field>
+        <field name="model">account.bank.ingestion.file</field>
+        <field name="arch" type="xml">
+            <form string="Retained Bank Export File" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_accept_evidence" type="object" string="Accept as official statement" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="classification != 'pdf' or evidence_status in ('accepted', 'duplicate') or not statement_id" title="Use this retained PDF as the official evidence for the monthly review. Prior evidence remains in the history."/>
+                    <field name="processing_state" widget="statusbar" statusbar_visible="pending,processed,duplicate,attention,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_download" icon="fa-download">
+                            <div class="o_stat_info"><span class="o_stat_text">Original file</span></div>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="filename"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="ingestion_id"/>
+                            <field name="classification"/>
+                            <field name="mimetype"/>
+                            <field name="size"/>
+                        </group>
+                        <group>
+                            <field name="period_start"/>
+                            <field name="period_end"/>
+                            <field name="statement_id"/>
+                            <field name="evidence_status"/>
+                        </group>
+                    </group>
+                    <group string="Integrity">
+                        <field name="sha256"/>
+                        <field name="processing_detail"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_bank_statement_reviews" name="Bank Statements" parent="account.menu_finance_entries" action="account.action_bank_statement_tree" sequence="12" groups="account.group_account_readonly,account.group_account_manager"/>
+    <menuitem id="menu_bank_ingestion_config" name="Scheduled Bank Exports" parent="account.menu_finance_configuration" action="action_bank_ingestion_config" sequence="45" groups="account.group_account_manager"/>
+</odoo>
