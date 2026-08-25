@@ -243,7 +243,7 @@ configure_odoo() {
   local apply_identity_policy="${3:-1}"
   local status=0 module_name module_state modules_csv seen_modules
   local qa_data_profile="${USL_QA_DATA_PROFILE:-full}"
-  local -a init_modules requested_modules update_modules module_args
+  local -a init_modules=() requested_modules=() update_modules=() module_args=()
   require_target_database
   provision
   if [[ "$skip_paperless" != 1 ]]; then
