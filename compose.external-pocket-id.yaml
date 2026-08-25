@@ -1,0 +1,120 @@
+# Production/rehearsal overlay for an already-operated external Pocket ID.
+# Deliberately contains no Pocket ID service, volume, provisioning or API call.
+services:
+  odoo:
+    build: !reset null
+    environment: &odoo_external_identity
+      ODOO_LIST_DB: "False"
+      ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-0}
+      USL_EINVOICE_LIVE_ENABLED: "0"
+      USL_EREPORTING_LIVE_ENABLED: "0"
+      USL_POCKET_ID_ENABLED: "1"
+      USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:?External Pocket ID issuer is required}
+      USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:?External Odoo client ID is required}
+      USL_POCKET_ID_CLIENT_SECRET: ${POCKET_ID_CLIENT_SECRET:?External Odoo client secret is required}
+      USL_POCKET_ID_ODOO_BASE_URL: ${ODOO_PUBLIC_BASE_URL:?Public Odoo URL is required}
+      USL_POCKET_ID_REQUIRED_GROUP: ${POCKET_ID_GROUP_NAME:?Required Pocket ID group is required}
+      USL_POCKET_ID_SCOPES: openid profile email groups
+      USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
+      USL_POCKET_ID_LOGIN_POLICY: ${USL_POCKET_ID_LOGIN_POLICY:-sso_only}
+      USL_POCKET_ID_BREAK_GLASS_ENABLED: ${USL_POCKET_ID_BREAK_GLASS_ENABLED:-0}
+      USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT: ${USL_POCKET_ID_BREAK_GLASS_EXPIRES_AT:-}
+    networks:
+      - default
+      - external-identity
+      - external-ingress
+    ports: !override
+      - "127.0.0.1:${ODOO_HTTP_PORT}:8069"
+      - "127.0.0.1:${ODOO_GEVENT_PORT}:8072"
+    volumes: !override
+      - odoo-data:/var/lib/odoo
+
+  init-db:
+    build: !reset null
+    environment: *odoo_external_identity
+    networks:
+      - default
+      - external-identity
+    volumes: !override
+      - odoo-data:/var/lib/odoo
+
+  paperless-preflight:
+    environment:
+      PAPERLESS_OIDC_ENABLED: "1"
+      PAPERLESS_PUBLIC_BASE_URL: ${PAPERLESS_PUBLIC_URL:?Public Paperless URL is required}
+      PAPERLESS_DISABLE_REGULAR_LOGIN: "true"
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
+      POCKET_ID_APP_URL: ${POCKET_ID_APP_URL:?External Pocket ID issuer is required}
+      POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:?External Odoo client ID is required}
+      POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:?External Paperless client ID is required}
+      POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:?External Paperless client secret is required}
+    networks:
+      - default
+      - external-identity
+
+  paperless-webserver:
+    environment: &paperless_external_identity
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
+        {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:?External Paperless client ID is required}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:?External Paperless client secret is required}","settings":{"server_url":"${POCKET_ID_APP_URL:?External Pocket ID issuer is required}","token_auth_method":"client_secret_basic"}}]}}
+      PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+      PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
+      PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS: ${PAPERLESS_SSO_BASE_GROUP:?Paperless base group is required}
+      PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "false"
+      PAPERLESS_DISABLE_REGULAR_LOGIN: "true"
+      PAPERLESS_REDIRECT_LOGIN_TO_SSO: "true"
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: https
+    networks:
+      - default
+      - external-identity
+      - external-ingress
+    ports: !override
+      - "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"
+
+  paperless-identity-init:
+    environment: *paperless_external_identity
+    networks:
+      - default
+      - external-identity
+
+  paperless-access-init:
+    networks:
+      - default
+
+volumes:
+  postgres-data:
+    name: ${USL_ODOO_POSTGRES_VOLUME:?Dedicated Odoo PostgreSQL volume is required}
+    labels: &candidate_volume_labels
+      com.unstaticlabs.migration.project: ${COMPOSE_PROJECT_NAME}
+  odoo-data:
+    name: ${USL_ODOO_DATA_VOLUME:?Dedicated Odoo data volume is required}
+    labels: *candidate_volume_labels
+  paperless-postgres-data:
+    name: ${USL_PAPERLESS_POSTGRES_VOLUME:?Dedicated Paperless PostgreSQL volume is required}
+    labels: *candidate_volume_labels
+  paperless-broker-data:
+    name: ${USL_PAPERLESS_BROKER_VOLUME:?Dedicated Paperless broker volume is required}
+    labels: *candidate_volume_labels
+  paperless-data:
+    name: ${USL_PAPERLESS_DATA_VOLUME:?Dedicated Paperless data volume is required}
+    labels: *candidate_volume_labels
+  paperless-media:
+    name: ${USL_PAPERLESS_MEDIA_VOLUME:?Dedicated Paperless media volume is required}
+    labels: *candidate_volume_labels
+  paperless-export:
+    name: ${USL_PAPERLESS_EXPORT_VOLUME:?Dedicated Paperless export volume is required}
+    labels: *candidate_volume_labels
+  paperless-consume:
+    name: ${USL_PAPERLESS_CONSUME_VOLUME:?Dedicated Paperless consume volume is required}
+    labels: *candidate_volume_labels
+  paperless-trash:
+    name: ${USL_PAPERLESS_TRASH_VOLUME:?Dedicated Paperless trash volume is required}
+    labels: *candidate_volume_labels
+
+networks:
+  external-identity:
+    external: true
+    name: ${USL_EXTERNAL_IDENTITY_NETWORK:?Existing identity network is required}
+  external-ingress:
+    external: true
+    name: ${USL_EXTERNAL_INGRESS_NETWORK:?Existing ingress network is required}

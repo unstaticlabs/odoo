@@ -170,18 +170,9 @@ class RebuildAccountImportRun(models.Model):
     ):
         Profile = self.env["account.asset.profile"].sudo().with_company(company)
         profile = Profile.search([
-            (
-                "rebuild_source_model",
-                "=",
-                "account.depreciation.model.asset_profile",
-            ),
+            ("rebuild_source_model", "=", "account.asset"),
             ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("rebuild_source_id", "=", row["model_id"]),
-            (
-                "rebuild_source_asset_account_id",
-                "=",
-                row["account_asset_id"],
-            ),
+            ("rebuild_source_id", "=", row["id"]),
         ], limit=1)
         analytic_distribution = self._native_replay_analytic_distribution(
             row["analytic_distribution"],
@@ -230,11 +221,13 @@ class RebuildAccountImportRun(models.Model):
             "analytic_distribution": analytic_distribution or False,
             "rebuild_source_depreciation_model_id": row["model_id"],
             "rebuild_source_asset_account_id": row["account_asset_id"],
-            **self._trace_values(
-                "account.depreciation.model.asset_profile",
-                row["model_id"],
-                options,
-            ),
+            # Enterprise stores the depreciation method on the model but the
+            # accounts and asset-specific options on each asset.  An OCA
+            # profile therefore projects one source asset, not one source
+            # depreciation model.  Using the real asset identity prevents two
+            # account variants of the same model from sharing or overwriting a
+            # profile while keeping replay idempotent.
+            **self._trace_values("account.asset", row["id"], options),
         }
         if profile:
             profile.write(values)

@@ -1,5 +1,22 @@
 # Accounting development workflow
 
+## Reconstruction performance evidence
+
+Exact Accounting replay records monotonic timings and row counts for
+configuration, partners, move creation/posting/cancellation, reconciliation,
+payments, analytics, attachments, expenses, assets and final validation in the
+private import status. Move creation uses deterministic bounded batches of 250;
+source identity lookups and high-volume relation creation are prefetched and
+bounded. A temporary partial unique composite source-identity index enforces
+one target representation and is removed with migration columns at finalization.
+
+After the committed import the harness runs `ANALYZE`; custom-format cache and
+candidate restores default to four `pg_restore` workers. Compare repeated runs
+against the historical approximately 42-minute Accounting stage with the exact
+same dump. Never trade parity for an artificial wall-clock target, disable
+PostgreSQL durability, insert ledger rows with SQL, or modify the read-only
+source database.
+
 Last updated: 2026-07-30
 
 Audience: implementation agents and developers working on Milestone 13.

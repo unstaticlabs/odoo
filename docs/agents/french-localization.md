@@ -14,11 +14,24 @@ Use familiar French accounting language consistently:
 | Customer invoicing activity | Facturation |
 | Bank Matching | Rapprochement bancaire |
 | General Reconciliation | Lettrage général |
+| Accounting Hygiene | Qualité comptable |
 | Post / Posted | Comptabiliser / Comptabilisé |
 | Expense receipt | Justificatif |
+| Vendor bill | Facture fournisseur |
 | Closing | Clôture |
 | Tax package | Liasse fiscale |
 | French Approved Platform | Plateforme agréée |
+| Human Resources | RH |
+| Review / Reviewed | Vérifier / Vérifié |
+| Upload | Importer |
+
+Translate from the business context, not from an isolated English word.
+Accounting actions use *rapprochement* or *lettrage*; document metadata and
+search predicates use *correspondance*. A supplier bill is never a *projet de
+loi*, and the company name `Unstatic Labs` is never translated. Prefer natural
+French sentence structure even when an Odoo view divides the sentence around a
+dynamic field; translate the surrounding fragments together and protect the
+rendered result with a French-context test.
 
 Keep protocol names, identifiers and third-party product names unchanged when
 translation would reduce precision. Validate catalogues with

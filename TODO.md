@@ -4,7 +4,40 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current Milestone 13 candidate — verified 2026-07-26
+## Current release preparation — updated 2026-08-25
+
+Status: **Accounting v1 is engineering-complete, but the Distribution is not
+yet production-ready.** The current `19-usl` integration baseline is
+`aae5994a7ec`. Expense Analytics has now been reviewed and fast-forwarded into
+`19-usl`; its aligned feature tip is preserved at
+`archive/expense-batch-context-20260825`.
+B2C, Paperless 3.0, Native Sign and monthly bank-statement email ingestion
+remain independent review branches. None may be treated as shipped until it
+has been reviewed, merged into `19-usl`, and included in a fresh complete
+reconstruction.
+
+The migration-performance candidate now implements deterministic batched
+Accounting replay, fail-closed reusable QA seeds, portable sanitized production
+candidates, an external-Pocket-ID cut-over topology, immutable Distribution
+images, a focused application launcher and contextual French regression guards.
+It now also emits dump-bound model/table/stored-field gap evidence and refuses
+to start reconstruction on an unsafe shared low-memory Docker runtime. These
+changes are still pending review/merge into `19-usl`; their reusable full QA
+seed and a final production candidate have **not** been published. The latest
+fresh no-Documents rehearsal was correctly invalidated when Docker Desktop's
+8 GiB shared VM OOM-killed the atomic Accounting import; the interrupted target
+is not reusable, and no unrelated feature project may be stopped automatically
+to make the rerun pass.
+An isolated clean install and repeated update now pass the complete current
+12-module product database boundary with no migration registry/schema residue;
+this proves module completeness only, not final-source migration parity.
+
+The canonical remaining release sequence and owner/evidence checklist are in
+[`docs/operations/production-cutover-readiness.md`](docs/operations/production-cutover-readiness.md).
+The executable candidate procedure remains
+[`docs/operations/portable-production-migration.md`](docs/operations/portable-production-migration.md).
+
+## Historical Milestone 13 candidate — verified 2026-07-26
 
 Status: **Accounting v1 engineering complete; ready for internal daily use with
 documented source/scope assumptions**.
@@ -295,9 +328,9 @@ Final evidence and residual advisories are recorded in
 - [x] Document log inspection.
 - [x] Document debugging.
 - [ ] Document frontend asset rebuilding.
-- [ ] Document translation workflows.
-- [ ] Document migration-script execution.
-- [ ] Document how agents should validate their changes.
+- [x] Document translation workflows.
+- [x] Document migration-script execution.
+- [x] Document how agents should validate their changes.
 - [ ] Add a preflight command that checks local readiness.
 - [ ] Add a doctor command that diagnoses common setup failures.
 
@@ -322,7 +355,8 @@ Final evidence and residual advisories are recorded in
 - [ ] Configure JavaScript linting.
 - [ ] Configure XML validation.
 - [ ] Configure manifest validation.
-- [ ] Configure translation validation.
+- [x] Configure contextual French translation validation for maintained USL
+  catalogs; keep broader upstream/OCA translation review in the release QA.
 - [ ] Configure security-focused static checks.
 - [ ] Configure license-header checks.
 - [ ] Configure forbidden-import checks.
@@ -943,8 +977,8 @@ own later milestones.
 - [x] Identify the minimum standard Odoo Community module set.
 - [x] Install base company and contact functionality.
 - [x] Install invoicing/accounting foundations.
-- [ ] Install project functionality.
-- [ ] Install HR/employee foundations.
+- [x] Install project functionality.
+- [x] Install HR/employee foundations.
 - [x] Install native Odoo expense functionality.
 - [x] Install document/attachment foundations.
 - [x] Install communication/chatter foundations.
@@ -2015,6 +2049,12 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 - [ ] Define the authoritative production cut-off.
 - [x] Define source backup requirements.
+- [x] Define a fail-closed portable production-candidate format and independent
+  fingerprint approval workflow (implemented on the migration-performance
+  candidate; merge pending).
+- [x] Define external-Pocket-ID preflight, fresh-volume stage, configuration,
+  gate, pre-admission reset and permanent admission semantics (implemented on
+  the migration-performance candidate; merge pending).
 - [x] Define version compatibility requirements.
 - [x] Define Enterprise-to-Community Accounting transformation rules.
 - [x] Define Studio Accounting-field and view transformation rules.
@@ -2080,6 +2120,10 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Resolve all migration blockers.
 - [ ] Freeze the cutover runbook.
 
+The full-profile QA seed publication, two zero-OCR hydrations, optimized
+before/after timing comparison and intended-host dress rehearsal remain open.
+Passing a cached or scoped reconstruction does not close those items.
+
 ## Milestone 26 exit criteria
 
 - [x] Accounting migration is scripted and repeatable.
@@ -2139,6 +2183,11 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 ---
 
 # 28. Production cutover
+
+Execution follows the phased readiness register. Human admission, backup
+activation, outbound mail, inbound aliases, bank-statement ingestion,
+Paperless mail/webhooks and regulatory services are separate gates; admission
+must not mass-enable reconstructed scheduled actions or outbound queues.
 
 - [ ] Announce the change window.
 - [ ] Freeze relevant Odoo Online writes.

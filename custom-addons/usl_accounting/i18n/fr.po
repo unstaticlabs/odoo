@@ -349,7 +349,7 @@ msgstr "Taux de change appliqué à la facture"
 #. odoo-javascript
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 msgid "Applied document rate:"
-msgstr "Tarif document appliqué :"
+msgstr "Taux appliqué au document :"
 
 #. module: usl_accounting
 #. odoo-python
@@ -468,7 +468,7 @@ msgstr "Montant en devises déclaré par la banque"
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 #: model:ir.model.fields.selection,name:usl_accounting.selection__usl_expense_bank_match_candidate__match_label__best
 msgid "Best match"
-msgstr "Meilleure rapprochement"
+msgstr "Meilleur rapprochement"
 
 #. module: usl_accounting
 #. odoo-python
@@ -604,7 +604,7 @@ msgstr "Configurez les comptes de change de Odoo avant le règlement."
 #. module: usl_accounting
 #: model:ir.model,name:usl_accounting.model_usl_expense_bank_match_wizard
 msgid "Confirm Expense Bank Match"
-msgstr "Confirmer la rapprochement bancaire des dépenses"
+msgstr "Confirmer le rapprochement bancaire de la note de frais"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__confirmation_message
@@ -808,7 +808,7 @@ msgstr "Justificatifs"
 #. odoo-python
 #: code:addons/usl_accounting/models/payment_suggestion.py:0
 msgid "Evidence: %(evidence)s"
-msgstr "justificatif : %(evidence)s"
+msgstr "Justificatif : %(evidence)s"
 
 #. module: usl_accounting
 #. odoo-python
@@ -848,7 +848,7 @@ msgstr "Nom exact de la contrepartie déclarée"
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "Exact foreign amount"
-msgstr "Montant étranger exact"
+msgstr "Montant exact en devise"
 
 #. module: usl_accounting
 #. odoo-python
@@ -919,7 +919,7 @@ msgstr "Montant des dépenses"
 #. module: usl_accounting
 #: model:ir.model,name:usl_accounting.model_usl_expense_bank_match_candidate
 msgid "Expense Bank Match Candidate"
-msgstr "Candidat à la rapprochement avec la banque de dépenses"
+msgstr "Proposition de rapprochement bancaire pour note de frais"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__expense_date
@@ -992,7 +992,7 @@ msgstr "Le règlement en devise étrangère %(name)s a été annulé."
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_account_reconcile__selection_outcome__full
 msgid "Full match"
-msgstr "Rapprochement total"
+msgstr "Rapprochement complet"
 
 #. module: usl_accounting
 #. odoo-python
@@ -1009,7 +1009,7 @@ msgstr "Lettrage général"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__generated_line_ids
 msgid "Generated Journal Items"
-msgstr "Éléments de journal générés"
+msgstr "Lignes comptables générées"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_analytic_line__rebuild_financial_account_group_id
@@ -1213,7 +1213,7 @@ msgstr "Rapprocher"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__match_label
 msgid "Match Label"
-msgstr "Qualité de la correspondance"
+msgstr "Type de rapprochement"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_matching_reference
@@ -1370,7 +1370,7 @@ msgstr "Références d'entrée Exchange natives"
 #. odoo-javascript
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 msgid "Native exchange entry:"
-msgstr "Entrée d'échange native :"
+msgstr "Écriture d’écart de change Odoo :"
 
 #. module: usl_accounting
 #. odoo-python
@@ -1440,15 +1440,13 @@ msgstr "Aucune transaction bancaire correspondante n'a été trouvée."
 #. odoo-python
 #: code:addons/usl_accounting/models/account_reconcile_compat.py:0
 msgid "No matching was created"
-msgstr "Aucune rapprochement n'a été créée"
+msgstr "Aucun rapprochement n’a été créé"
 
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/payment_suggestion.py:0
 msgid "No partner assigned; selecting this match will set %(partner)s"
-msgstr ""
-"Aucun partenaire attribué ; la sélection de cette rapprochement définira "
-"%(partner)s"
+msgstr "Aucun partenaire renseigné ; ce rapprochement définira %(partner)s"
 
 #. module: usl_accounting
 #. odoo-python
@@ -1495,8 +1493,8 @@ msgid ""
 "Odoo could not restore the document's original valuation. No reversal "
 "changes were saved."
 msgstr ""
-"Odoo n'a ​​pas pu restaurer la valorisation originale du document. Aucune "
-"modification d'annulation n'a été enregistrée."
+"Odoo n’a pas pu restaurer la valorisation d’origine du document. Aucune "
+"écriture d’annulation n’a été enregistrée."
 
 #. module: usl_accounting
 #. odoo-python
@@ -1505,8 +1503,8 @@ msgid ""
 "Odoo did not confirm the expected reconciliation. No expense match was "
 "accepted."
 msgstr ""
-"Odoo n'a ​​pas confirmé le rapprochement attendu. Aucune contrepartie de "
-"dépenses n’a été acceptée."
+"Odoo n’a pas confirmé le rapprochement attendu. Aucun rapprochement de note "
+"de frais n’a été accepté."
 
 #. module: usl_accounting
 #. odoo-python
@@ -1628,7 +1626,7 @@ msgstr "ID de ligne suggéré d'origine"
 #. odoo-javascript
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 msgid "Original document rate:"
-msgstr "Tarif document original :"
+msgstr "Taux d’origine du document :"
 
 #. module: usl_accounting
 #. odoo-javascript
@@ -1934,7 +1932,7 @@ msgstr "Reconstruire la couleur correspondante"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_review_will_reconcile
 msgid "Rebuild Review Will Reconcile"
-msgstr "La mise en revue effectuera le rapprochement"
+msgstr "La vérification USL effectuera le rapprochement"
 
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_partner_suggestion_source__reconciled_label
@@ -1961,13 +1959,13 @@ msgstr "Taux de référence"
 #. odoo-python
 #: code:addons/usl_accounting/models/payment_suggestion.py:0
 msgid "Reference match"
-msgstr "rapprochement de référence"
+msgstr "Référence concordante"
 
 #. module: usl_accounting
 #. odoo-javascript
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 msgid "Reference rate:"
-msgstr "Tarif de référence :"
+msgstr "Taux de référence :"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__benchmark_company_amount
@@ -2071,7 +2069,7 @@ msgstr "Extourné le"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__rebuild_review_state
 msgid "Review status"
-msgstr "Statut de l'examen"
+msgstr "État de la vérification"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
@@ -2114,7 +2112,7 @@ msgstr "Le même jour"
 #. odoo-python
 #: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
 msgid "Same label matched %(count)s time(s) to one partner"
-msgstr "La même étiquette correspondait aux heures %(count)s à un partenaire"
+msgstr "Le même libellé a été associé %(count)s fois au même partenaire"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__score
@@ -2132,7 +2130,7 @@ msgstr "Voir les informations de change"
 #: code:addons/usl_accounting/models/account_reconcile_compat.py:0
 msgid "Select at least two journal items before matching."
 msgstr ""
-"Sélectionnez au moins deux éléments de journal avant de faire la "
+"Sélectionnez au moins deux lignes comptables avant d’effectuer le "
 "rapprochement."
 
 #. module: usl_accounting
@@ -2448,7 +2446,7 @@ msgstr "Source des suggestions"
 #. odoo-python
 #: code:addons/usl_accounting/models/expense_bank_matching.py:0
 msgid "Text match: %(terms)s"
-msgstr "rapprochement du texte : %(terms)s"
+msgstr "Libellé concordant : %(terms)s"
 
 #. module: usl_accounting
 #. odoo-python
@@ -2501,8 +2499,8 @@ msgid ""
 "The amounts are close but not equal. Correct the expense or review the "
 "transaction in Bank Matching before continuing."
 msgstr ""
-"Les montants sont proches mais pas égaux. Corrigez la dépense ou examinez la"
-" transaction dans rapprochement bancaire avant de continuer."
+"Les montants sont proches mais différents. Corrigez la note de frais ou "
+"vérifiez l’opération dans le Rapprochement bancaire avant de continuer."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2521,8 +2519,8 @@ msgid ""
 "The bank amount matches more than one payment term. Review it in Bank "
 "Matching."
 msgstr ""
-"Le montant bancaire correspond à plusieurs conditions de paiement. Examinez-"
-"le dans rapprochement bancaire."
+"Le montant bancaire correspond à plusieurs échéances. Vérifiez-le dans le "
+"Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2589,8 +2587,8 @@ msgid ""
 "The bank transaction includes a fee or withholding. Keep it separate in Bank"
 " Matching."
 msgstr ""
-"La transaction bancaire comprend des frais ou une retenue. Gardez-le séparé "
-"dans rapprochement bancaire."
+"L’opération bancaire comprend des frais ou une retenue. Conservez-les "
+"séparément dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2599,8 +2597,8 @@ msgid ""
 "The bank transaction is assigned to another partner. Review it before "
 "settlement."
 msgstr ""
-"La transaction bancaire est affectée à un autre partenaire. Examinez-le "
-"avant le règlement."
+"L’opération bancaire est affectée à un autre partenaire. Vérifiez-la avant "
+"le règlement."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2633,8 +2631,8 @@ msgid ""
 "The bank-reported foreign currency conflicts with the document. Review it in"
 " Bank Matching."
 msgstr ""
-"La transaction bancaire comprend des frais ou une retenue. Conservez-les "
-"séparément dans le Rapprochement bancaire."
+"La devise indiquée par la banque ne correspond pas à celle du document. "
+"Vérifiez l’opération dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-javascript
@@ -2773,7 +2771,7 @@ msgstr "Le retard du taux de paiement ne peut être négatif."
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "The payment-rate deviation must be between 0% and 100%."
-msgstr "L'écart du taux de paiement doit être compris entre 0% a et 100 %."
+msgstr "L’écart du taux de règlement doit être compris entre 0 % et 100 %."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2814,8 +2812,8 @@ msgid ""
 "The selected transaction and expense payment do not fully balance. Review "
 "them in Bank Matching."
 msgstr ""
-"La transaction sélectionnée et le paiement des dépenses ne s'équilibrent pas"
-" complètement. Examinez-les dans rapprochement bancaire."
+"L’opération sélectionnée et le paiement de la note de frais ne se soldent "
+"pas entièrement. Vérifiez-les dans le Rapprochement bancaire."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2985,8 +2983,8 @@ msgid ""
 "This repriced document's journal items cannot be deleted directly. Undo the "
 "linked settlement first."
 msgstr ""
-"Les éléments de journal de ce document retarifé ne peuvent pas être "
-"supprimés directement. Annulez d’abord le règlement lié."
+"Les lignes comptables de ce document réévalué ne peuvent pas être supprimées"
+" directement. Annulez d’abord le règlement associé."
 
 #. module: usl_accounting
 #. odoo-python
@@ -2995,8 +2993,8 @@ msgid ""
 "This repriced document's journal items cannot be edited directly. Undo the "
 "linked settlement first."
 msgstr ""
-"Les éléments de journal de ce document retarifé ne peuvent pas être modifiés"
-" directement. Annulez d’abord le règlement lié."
+"Les lignes comptables de ce document réévalué ne peuvent pas être modifiées "
+"directement. Annulez d’abord le règlement associé."
 
 #. module: usl_accounting
 #. odoo-python
@@ -3011,7 +3009,7 @@ msgstr ""
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_statement_line__rebuild_transaction_status__open
 msgid "To match"
-msgstr "Pour correspondre"
+msgstr "À rapprocher"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__trusted_source
@@ -3041,7 +3039,7 @@ msgstr "Annulez le règlement lié au lieu d'annuler son écriture comptable."
 #. odoo-python
 #: code:addons/usl_accounting/models/bank_partner_suggestion.py:0
 msgid "Unique partial counterparty-name match"
-msgstr "rapprochement partielle unique du nom de la contrepartie"
+msgstr "Correspondance partielle unique sur le nom de la contrepartie"
 
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__rebuild_reconciliation_state__open
@@ -3143,27 +3141,27 @@ msgstr "Utilisateur"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_accepted_count
 msgid "Usl Bank Match Accepted Count"
-msgstr "Nombre de rapprochements bancaires Usl acceptées"
+msgstr "Nombre de rapprochements bancaires USL acceptés"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_available_count
 msgid "Usl Bank Match Available Count"
-msgstr "Nombre de rapprochements bancaires Usl disponibles"
+msgstr "Nombre de rapprochements bancaires USL disponibles"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_eligible
 msgid "Usl Bank Match Eligible"
-msgstr "Éligibilité à la rapprochement bancaire Usl"
+msgstr "Éligible au rapprochement bancaire USL"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_guidance
 msgid "Usl Bank Match Guidance"
-msgstr "Conseils de rapprochement avec la banque Usl"
+msgstr "Consignes de rapprochement bancaire USL"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__usl_bank_match_last_refreshed_at
 msgid "Usl Bank Match Last Refreshed At"
-msgstr "Usl Bank rapprochement dernière mise à jour à"
+msgstr "Dernière actualisation du rapprochement bancaire USL"
 
 #. module: usl_accounting
 #. odoo-python
@@ -3185,7 +3183,7 @@ msgstr "Crédit fournisseur"
 #. odoo-python
 #: code:addons/usl_accounting/models/expense_bank_matching.py:0
 msgid "Vendor matches"
-msgstr "Correspondances de fournisseurs"
+msgstr "Fournisseurs correspondants"
 
 #. module: usl_accounting
 #: model:ir.model.fields,help:usl_accounting.field_account_account__rebuild_entry_direction_policy
@@ -3253,7 +3251,7 @@ msgstr "deux rendez-vous"
 #. odoo-python
 #: code:addons/usl_accounting/models/payment_suggestion.py:0
 msgid "matching facts"
-msgstr "faits correspondants"
+msgstr "critères de correspondance"
 
 #. module: usl_accounting
 #. odoo-python

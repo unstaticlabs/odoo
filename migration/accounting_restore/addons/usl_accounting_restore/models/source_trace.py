@@ -5,6 +5,17 @@ class SourceTraceMixin(models.AbstractModel):
     _name = "usl.accounting.restore.source.mixin"
     _description = "Temporary Accounting Source Binding"
 
+    # Exact replay resolves almost every target record through this identity.
+    # The individual field indexes remain useful for diagnostics, while this
+    # migration-only index avoids thousands of bitmap/index intersections and
+    # also makes an accidental duplicate source representation impossible.
+    # Finalization drops the indexed columns, so PostgreSQL removes this index
+    # with the rest of the temporary migration schema.
+    _rebuild_source_identity_uniq = models.UniqueIndex(
+        "(rebuild_source_snapshot, rebuild_source_model, rebuild_source_id) "
+        "WHERE rebuild_source_model IS NOT NULL",
+    )
+
     rebuild_source_database = fields.Char(index=True, copy=False)
     rebuild_source_model = fields.Char(index=True, copy=False)
     rebuild_source_id = fields.Integer(index=True, copy=False)

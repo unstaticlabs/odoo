@@ -323,6 +323,87 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(cleanup["migration_summary_message_count"], 0)
         self.assertEqual(len(migration_messages.exists()), 1)
 
+    def test_source_identity_index_is_unique_and_composite(self):
+        for table_name in (
+            "account_move",
+            "account_move_line",
+            "account_partial_reconcile",
+            "account_asset_profile",
+            "ir_attachment",
+            "res_partner",
+        ):
+            self.env.cr.execute(
+                """
+                SELECT indexdef
+                  FROM pg_indexes
+                 WHERE schemaname = current_schema()
+                   AND tablename = %s
+                   AND indexname = %s
+                """,
+                [
+                    table_name,
+                    f"{table_name}_rebuild_source_identity_uniq",
+                ],
+            )
+            definition = self.env.cr.fetchone()
+            self.assertTrue(definition, table_name)
+            self.assertIn("CREATE UNIQUE INDEX", definition[0])
+            self.assertIn(
+                "rebuild_source_snapshot, rebuild_source_model, "
+                "rebuild_source_id",
+                definition[0],
+            )
+
+        values = {
+            "name": "Unique source identity",
+            "rebuild_source_model": "res.partner",
+            "rebuild_source_id": 987654,
+            "rebuild_source_snapshot": "source-unit-test",
+        }
+        self.env["res.partner"].create(values)
+        with self.assertRaises(IntegrityError), self.env.cr.savepoint():
+            self.env["res.partner"].create(values)
+
+    def test_replay_batches_preserve_order_and_bounds(self):
+        run = self.env["rebuild.account.import.run"]
+        values = list(range(777))
+        batches = list(run._batched(values, run._EXACT_REPLAY_BATCH_SIZE))
+
+        self.assertEqual([len(batch) for batch in batches], [250, 250, 250, 27])
+        self.assertEqual(
+            [value for batch in batches for value in batch],
+            values,
+        )
+
+    def test_source_identity_prefetch_includes_binary_field_attachments(self):
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2025-01-01",
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+        })
+        attachment = self.env["ir.attachment"].create({
+            "name": "unit-source-identity.xml",
+            "raw": b"<Invoice/>",
+            "mimetype": "application/xml",
+            "res_model": "account.move",
+            "res_id": move.id,
+            "res_field": "ubl_cii_xml_file",
+            "rebuild_source_model": "ir.attachment",
+            "rebuild_source_id": 987653,
+            "rebuild_source_snapshot": "source-unit-test",
+        })
+
+        prefetched = self.env[
+            "rebuild.account.import.run"
+        ]._source_trace_record_map(
+            "ir.attachment",
+            [987653],
+            {"source_snapshot_id": "source-unit-test"},
+        )
+
+        self.assertEqual(prefetched, {987653: attachment})
+
     def test_historical_no_entry_payment_is_native_and_immutable(self):
         journal = self._journal("bank")
         method_line = journal.inbound_payment_method_line_ids[:1]
@@ -5489,7 +5570,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "company_ids": [Command.set([self.company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
-        self.assertEqual(attachment.with_user(reviewer).raw, raw)
+        self.assertEqual(attachment.with_user(reviewer).raw.content, raw)
 
     def test_native_expense_attachment_preserves_source_url_evidence(self):
         snapshot = "unit-native-expense-url-attachment"
@@ -5856,10 +5937,17 @@ class TestRebuildAccountMigration(TransactionCase):
             "source_database": "unit_source",
         }
 
-        with patch.object(
-            type(import_run),
-            "_fetchall",
-            side_effect=[source_rows, source_rows],
+        with (
+            patch.object(
+                type(import_run),
+                "_source_table_exists",
+                return_value=True,
+            ),
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                side_effect=[source_rows, source_rows],
+            ),
         ):
             first = import_run._account_group_map(
                 object(),
@@ -6070,10 +6158,17 @@ class TestRebuildAccountMigration(TransactionCase):
             "active_journal_count": 1,
         }]
 
-        with patch.object(
-            type(import_run),
-            "_fetchall",
-            return_value=source_rows,
+        with (
+            patch.object(
+                type(import_run),
+                "_source_table_exists",
+                return_value=False,
+            ),
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                return_value=source_rows,
+            ),
         ):
             passed = import_run._company_configuration_parity(
                 object(),
@@ -8197,7 +8292,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_source_model": "ir.attachment",
             "rebuild_source_id": 990001,
         })
-        self.assertEqual(accounting_attachment.with_user(reviewer).raw, b"accounting evidence")
+        self.assertEqual(
+            accounting_attachment.with_user(reviewer).raw.content,
+            b"accounting evidence",
+        )
         with self.assertRaises(AccessError):
             move.with_user(reviewer).message_post(body="Reviewer cannot post")
         with self.assertRaises(AccessError):
@@ -9937,9 +10035,7 @@ class TestRebuildAccountMigration(TransactionCase):
             },
         )
         Report.report_client_export(sig_caf["wizard_id"], "pdf")
-        sig_pdf = base64.b64decode(
-            Report.browse(sig_caf["wizard_id"]).export_file,
-        )
+        sig_pdf = Report.browse(sig_caf["wizard_id"]).export_file.content
         self.assertEqual(len(PdfReader(BytesIO(sig_pdf)).pages), 2)
 
         profit_loss = Report.report_client_load(
@@ -9981,9 +10077,9 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(legacy_alias["report_type"], "profit_loss")
         self.assertEqual(legacy_alias["definition"]["code"], "profit_loss")
         Report.report_client_export(profit_loss["wizard_id"], "pdf")
-        profit_loss_pdf = base64.b64decode(
-            Report.browse(profit_loss["wizard_id"]).export_file,
-        )
+        profit_loss_pdf = Report.browse(
+            profit_loss["wizard_id"],
+        ).export_file.content
         profit_loss_pdf_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(BytesIO(profit_loss_pdf)).pages
@@ -10020,9 +10116,9 @@ class TestRebuildAccountMigration(TransactionCase):
             ["gross_amount", "depreciation_amount", "net_amount"],
         )
         Report.report_client_export(french_annual["wizard_id"], "pdf")
-        french_annual_pdf = base64.b64decode(
-            Report.browse(french_annual["wizard_id"]).export_file,
-        )
+        french_annual_pdf = Report.browse(
+            french_annual["wizard_id"],
+        ).export_file.content
         french_annual_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(BytesIO(french_annual_pdf)).pages
@@ -10523,6 +10619,97 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(rehomed, 1)
         self.assertEqual(attachment.res_model, "account.asset")
         self.assertEqual(attachment.res_id, asset.id)
+
+    def test_native_asset_profiles_use_asset_source_identity(self):
+        journal = self._journal()
+        depreciation_account = self._account(
+            "T281897",
+            "Unit projected asset depreciation",
+            "asset_fixed",
+        )
+        expense_account = self._account(
+            "T681197",
+            "Unit projected asset expense",
+            "expense_depreciation",
+        )
+        first_asset_account = self._account(
+            "T218397",
+            "Unit projected asset first",
+            "asset_fixed",
+        )
+        second_asset_account = self._account(
+            "T218396",
+            "Unit projected asset second",
+            "asset_fixed",
+        )
+        options = {"source_snapshot_id": "unit-native-asset-profile"}
+
+        def source_row(source_id, account):
+            return {
+                "id": source_id,
+                "model_id": 7,
+                "account_asset_id": account.id,
+                "account_depreciation_id": depreciation_account.id,
+                "account_depreciation_expense_id": expense_account.id,
+                "analytic_distribution": False,
+                "method_period": "1",
+                "method": "linear",
+                "method_number": 36,
+                "method_progress_factor": 0.3,
+                "salvage_value": 0,
+                "prorata_date": "2025-01-01",
+            }
+
+        ImportRun = self.env["rebuild.account.import.run"]
+        first, first_created = ImportRun._native_asset_profile(
+            options,
+            source_row(991997, first_asset_account),
+            self.company,
+            {
+                first_asset_account.id: first_asset_account,
+                depreciation_account.id: depreciation_account,
+                expense_account.id: expense_account,
+            },
+            journal,
+            {},
+        )
+        second, second_created = ImportRun._native_asset_profile(
+            options,
+            source_row(991996, second_asset_account),
+            self.company,
+            {
+                second_asset_account.id: second_asset_account,
+                depreciation_account.id: depreciation_account,
+                expense_account.id: expense_account,
+            },
+            journal,
+            {},
+        )
+        replayed, replayed_created = ImportRun._native_asset_profile(
+            options,
+            source_row(991997, first_asset_account),
+            self.company,
+            {
+                first_asset_account.id: first_asset_account,
+                depreciation_account.id: depreciation_account,
+                expense_account.id: expense_account,
+            },
+            journal,
+            {},
+        )
+
+        self.assertTrue(first_created)
+        self.assertTrue(second_created)
+        self.assertFalse(replayed_created)
+        self.assertNotEqual(first, second)
+        self.assertEqual(first, replayed)
+        self.assertEqual(first.rebuild_source_model, "account.asset")
+        self.assertEqual(first.rebuild_source_id, 991997)
+        self.assertEqual(second.rebuild_source_id, 991996)
+        self.assertEqual(first.rebuild_source_depreciation_model_id, 7)
+        self.assertEqual(second.rebuild_source_depreciation_model_id, 7)
+        self.assertEqual(first.account_asset_id, first_asset_account)
+        self.assertEqual(second.account_asset_id, second_asset_account)
 
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(

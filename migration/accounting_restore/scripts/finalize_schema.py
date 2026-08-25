@@ -55,6 +55,17 @@ metadata = env["ir.model.fields"].sudo().search(
 removed_metadata = sorted(f"{field.model}.{field.name}" for field in metadata)
 metadata.with_context(force_delete=True).unlink()
 
+env.cr.execute(
+    """
+    SELECT schemaname, tablename, indexname
+      FROM pg_indexes
+     WHERE schemaname = current_schema()
+       AND indexname LIKE '%_rebuild_source_identity_uniq'
+     ORDER BY tablename, indexname
+    """,
+)
+source_identity_indexes = [tuple(row) for row in env.cr.fetchall()]
+
 removed = []
 env.cr.execute(
     """
@@ -75,12 +86,29 @@ for table_name, column_name in env.cr.fetchall():
     )
     removed.append(f"{table_name}.{column_name}")
 
+env.cr.execute(
+    """
+    SELECT tablename, indexname
+      FROM pg_indexes
+     WHERE schemaname = current_schema()
+       AND indexname LIKE '%_rebuild_source_identity_uniq'
+     ORDER BY tablename, indexname
+    """,
+)
+remaining_source_identity_indexes = [tuple(row) for row in env.cr.fetchall()]
+if remaining_source_identity_indexes:
+    raise RuntimeError(
+        "Migration source-identity indexes remain after column finalization: "
+        f"{remaining_source_identity_indexes}.",
+    )
+
 env.cr.commit()
 print(
     json.dumps(
         {
             "removed_migration_columns": removed,
             "removed_migration_field_metadata": removed_metadata,
+            "removed_source_identity_indexes": source_identity_indexes,
         },
         indent=2,
         sort_keys=True,

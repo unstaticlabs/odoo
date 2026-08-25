@@ -6,6 +6,7 @@ from pathlib import Path
 
 from migration.source_truth.cli import (
     AuditError,
+    build_gap_report,
     build_inventory,
     classify,
     current_distribution_blocking,
@@ -59,6 +60,36 @@ class FakeDatabase:
             {"table_name": "documents_document", "record_count": 2},
             {"table_name": "document_tag_rel", "record_count": 1},
             {"table_name": "knowledge_article", "record_count": 1},
+        ]
+
+    def fields(self):
+        return [
+            {
+                "model": "account.move",
+                "name": "name",
+                "ttype": "char",
+                "relation": "",
+                "state": "base",
+                "required": True,
+                "readonly": False,
+                "store": True,
+                "company_dependent": False,
+                "tracking": 1,
+                "ai": False,
+            },
+            {
+                "model": "knowledge.article",
+                "name": "body",
+                "ttype": "html",
+                "relation": "",
+                "state": "base",
+                "required": False,
+                "readonly": False,
+                "store": True,
+                "company_dependent": False,
+                "tracking": 0,
+                "ai": False,
+            },
         ]
 
     def attachments(self):
@@ -162,6 +193,19 @@ class SourceTruthAuditCase(unittest.TestCase):
                 ["knowledge"],
             )
             self.assertFalse(any(current_distribution_blocking(inventory).values()))
+            self.assertEqual(inventory["summary"]["stored_or_manual_fields"], 2)
+            self.assertEqual(
+                inventory["incomplete_scope_fields"],
+                ["knowledge.article.body"],
+            )
+            report = build_gap_report(inventory)
+            self.assertFalse(report["summary"]["production_ready"])
+            self.assertEqual(report["summary"]["delivered_source_records"], 5)
+            self.assertEqual(report["summary"]["blocked_source_records"], 1)
+            self.assertEqual(
+                report["blocked_scopes"]["knowledge"]["fields"][0]["name"],
+                "body",
+            )
 
     def test_current_distribution_gate_keeps_structural_errors_blocking(self):
         with tempfile.TemporaryDirectory() as directory:
