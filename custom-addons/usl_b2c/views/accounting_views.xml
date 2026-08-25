@@ -54,10 +54,10 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_refresh" type="object" string="Refresh Evidenced Totals" class="btn-primary" invisible="state == 'locked'" groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_mark_reviewed" type="object" string="Mark Reviewed" invisible="state != 'draft'" groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_lock" type="object" string="Lock Session" invisible="state != 'reviewed'" groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_unlock" type="object" string="Unlock" invisible="state != 'locked'" groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_refresh" type="object" string="Refresh Evidenced Totals" title="Recalculate evidenced totals and coverage without changing linked accounting entries." class="btn-primary" invisible="state == 'locked'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_mark_reviewed" type="object" string="Mark Reviewed" title="Mark this session reviewed after checking totals, mappings, conversions, and evidence links." invisible="state != 'draft'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_lock" type="object" string="Lock Session" title="Lock this reviewed session to prevent further changes." invisible="state != 'reviewed'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_unlock" type="object" string="Unlock" title="Unlock this session to allow review and refresh actions again." invisible="state != 'locked'" groups="usl_b2c.group_b2c_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,reviewed,locked"/>
                 </header>
                 <sheet>
@@ -183,8 +183,8 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_verify" type="object" string="Verify" class="btn-primary" invisible="link_state == 'verified'" groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_reject" type="object" string="Reject" invisible="link_state == 'rejected'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_verify" type="object" string="Verify" title="Confirm that the evidence supports this link without changing the linked accounting or operational record." class="btn-primary" invisible="link_state == 'verified'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_reject" type="object" string="Reject" title="Reject this proposed link without changing the linked accounting or operational record." invisible="link_state == 'rejected'" groups="usl_b2c.group_b2c_operator"/>
                     <field name="link_state" widget="statusbar" statusbar_visible="pending,verified,rejected"/>
                 </header>
                 <sheet>

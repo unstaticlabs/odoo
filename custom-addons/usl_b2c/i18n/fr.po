@@ -2793,6 +2793,69 @@ msgid "Verify Mapping"
 msgstr "Vérifier la correspondance"
 
 #. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+msgid "Confirm that the evidence supports this link without changing the linked accounting or operational record."
+msgstr ""
+"Confirmer que les preuves justifient ce lien sans modifier l’écriture "
+"comptable ni l’enregistrement opérationnel lié."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Lock this reviewed session to prevent further changes."
+msgstr ""
+"Verrouiller cette session vérifiée pour empêcher toute modification "
+"ultérieure."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Mark this session reviewed after checking totals, mappings, conversions, and evidence links."
+msgstr ""
+"Marquer cette session comme vérifiée après avoir contrôlé les totaux, les "
+"correspondances, les conversions et les liens de preuve."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Recalculate evidenced totals and coverage without changing linked accounting entries."
+msgstr ""
+"Recalculer les totaux justifiés et les taux de couverture sans modifier les "
+"écritures comptables liées."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_form
+msgid "Reject this proposed link without changing the linked accounting or operational record."
+msgstr ""
+"Rejeter ce lien proposé sans modifier l’écriture comptable ni "
+"l’enregistrement opérationnel lié."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Reject this SKU mapping while preserving the original provider identifiers and evidence."
+msgstr ""
+"Rejeter cette correspondance de SKU tout en conservant les identifiants et "
+"les preuves d’origine du prestataire."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Return this alias to pending review without verifying a product mapping."
+msgstr ""
+"Remettre cet alias en attente de vérification sans valider de correspondance "
+"avec un produit."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
+msgid "Unlock this session to allow review and refresh actions again."
+msgstr ""
+"Déverrouiller cette session pour autoriser de nouveau les actions de "
+"vérification et d’actualisation."
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_product_alias_form
+msgid "Verify the selected product mapping while preserving the original provider identifiers and evidence."
+msgstr ""
+"Vérifier la correspondance avec le produit sélectionné tout en conservant "
+"les identifiants et les preuves d’origine du prestataire."
+
+#. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__website_message_ids
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__website_message_ids
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_product_alias__website_message_ids

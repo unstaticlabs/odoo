@@ -46,9 +46,9 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_verify" type="object" string="Verify Mapping" class="btn-primary" invisible="mapping_state == 'verified'" groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_reject" type="object" string="Reject" invisible="mapping_state == 'rejected'" groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_reset_pending" type="object" string="Reset to Pending" invisible="mapping_state == 'pending'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_verify" type="object" string="Verify Mapping" title="Verify the selected product mapping while preserving the original provider identifiers and evidence." class="btn-primary" invisible="mapping_state == 'verified'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_reject" type="object" string="Reject" title="Reject this SKU mapping while preserving the original provider identifiers and evidence." invisible="mapping_state == 'rejected'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_reset_pending" type="object" string="Reset to Pending" title="Return this alias to pending review without verifying a product mapping." invisible="mapping_state == 'pending'" groups="usl_b2c.group_b2c_operator"/>
                     <field name="mapping_state" widget="statusbar" statusbar_visible="pending,verified,rejected"/>
                 </header>
                 <sheet>
