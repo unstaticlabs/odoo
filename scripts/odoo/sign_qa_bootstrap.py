@@ -352,6 +352,15 @@ def bootstrap(env):
         send=True,
     )
 
+    # Real-device identity acceptance may activate the synthetic signer before
+    # this idempotent bootstrap is rerun.  Keep the demo request aligned with
+    # that current identity state so Roger receives a genuine signing action
+    # instead of a stale "waiting for enrolment" example.
+    if strong_request.state == "waiting_enrollment" and not strong_request.signer_ids.filtered(
+        lambda row: not row._active_enrollment()
+    ):
+        strong_request.action_resume_after_enrollment()
+
     health = env["usl.sign.service.health"]._ensure_company(company)
     health.with_user(requester)._refresh_checks()
     env.cr.commit()

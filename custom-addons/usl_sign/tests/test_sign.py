@@ -1723,6 +1723,8 @@ class TestCleanUslSign(TransactionCase):
         for filter_name in [
             "to_sign",
             "waiting_turn",
+            "identity_setup",
+            "external_signing",
             "signed_by_me",
             "completed",
             "closed",
@@ -1892,14 +1894,95 @@ class TestCleanUslSign(TransactionCase):
 
         view_arch = self.env.ref("usl_sign.my_signature_list_usl").arch
         self.assertIn('name="personal_status"', view_arch)
+        self.assertIn('name="personal_next_step"', view_arch)
         self.assertIn('string="Review and sign"', view_arch)
+        self.assertIn('string="View identity status"', view_arch)
+        self.assertIn('string="Open external signing"', view_arch)
         self.assertIn('string="View result"', view_arch)
+        self.assertNotIn('string="View details"', view_arch)
         self.assertNotIn('string="Your signature"', view_arch)
 
         role_action = self.env.ref("sign_oca.sign_oca_role_act_window")
         role_menu = self.env.ref("sign_oca.sign_oca_role_menu")
         self.assertEqual(role_action.name, "Signing Roles")
         self.assertEqual(role_menu.name, "Signing Roles")
+
+    def test_my_signatures_explains_and_routes_waiting_journeys(self):
+        signer_user = new_test_user(
+            self.env,
+            login="usl-sign-waiting-signer",
+            groups="usl_sign.group_sign_user",
+            company_id=self.company.id,
+        )
+        strong_request = self._request(
+            partners=[signer_user.partner_id],
+            user_id=self.sign_user.id,
+            requested_trust="strong_personal",
+        )
+        strong_request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"state": "waiting_enrollment"},
+        )
+        strong_signer = strong_request.signer_ids.with_user(signer_user)
+        self.assertEqual(strong_signer.personal_status, "Waiting for sender")
+        self.assertIn("sender must arrange", strong_signer.personal_next_step)
+        self.assertFalse(strong_signer.can_open_signing_identity)
+
+        enrollment = self.env["usl.sign.enrollment"].with_user(self.reviewer).create(
+            {
+                "partner_id": signer_user.partner_id.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+                "relationship_reference": "Reviewed QA relationship",
+                "policy_version": "test-1",
+            },
+        )
+        strong_signer.invalidate_recordset(
+            [
+                "personal_status",
+                "personal_next_step",
+                "can_open_signing_identity",
+            ],
+        )
+        self.assertEqual(strong_signer.personal_status, "Identity setup needed")
+        self.assertTrue(strong_signer.can_open_signing_identity)
+        identity_action = strong_signer.action_open_signing_identity()
+        self.assertEqual(identity_action["res_id"], enrollment.id)
+        self.assertEqual(identity_action["res_model"], "usl.sign.enrollment")
+
+        provider = self.env["usl.sign.external.provider"].create(
+            {
+                "name": "Waiting-journey provider",
+                "territory": "EU",
+                "supported_levels": "QES",
+                "mobile_url": "https://provider.example.test/sign",
+                "instructions": "<p>Follow the provider invitation.</p>",
+                "reviewed_on": fields.Date.today(),
+            },
+        )
+        external_request = self._request(
+            partners=[signer_user.partner_id],
+            user_id=self.sign_user.id,
+            requested_trust="qualified_external",
+            external_provider_id=provider.id,
+            original_sha256="0" * 64,
+        )
+        external_request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"state": "waiting_external"},
+        )
+        journey = external_request._prepare_external_journey()
+        external_signer = external_request.signer_ids.with_user(signer_user)
+        self.assertEqual(external_signer.personal_status, "External signing")
+        self.assertEqual(
+            external_signer.personal_next_step,
+            "Open the provider instructions to continue.",
+        )
+        self.assertTrue(external_signer.can_open_external_signing)
+        external_action = external_signer.action_open_external_signing()
+        self.assertEqual(external_action["res_id"], journey.id)
+        self.assertEqual(external_action["res_model"], "usl.sign.external.journey")
+        download_action = journey.with_user(signer_user).action_export()
+        self.assertEqual(download_action["target"], "download")
+        self.assertIn(f"/sign/external/{journey.id}/document", download_action["url"])
 
     def test_request_status_summary_never_calls_a_failed_or_closed_request_done(self):
         request = self._request(
