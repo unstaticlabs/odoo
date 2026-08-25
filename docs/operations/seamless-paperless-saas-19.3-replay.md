@@ -9,6 +9,13 @@ preserved locally and on `origin` as
 `archive/fix-seamless-paperless-documents-pre-saas-19.3-20260824` at exactly
 `d2748787c707cc947d70d0a03c2607060e311478`.
 
+Before final publication, `origin/19-usl` advanced by fast-forward to
+`f302ae6cdb43b47e1bb2c705e1f4f716a27ce7d5`. Merge commit
+`8658e0bec4a2ca0783b15f73b8b1701e343ec4a9` integrates that exact successor.
+Its first parent is the completed rebuilt feature and its second parent is the
+current mainline tip, so both histories remain directly reviewable and no
+divergent saas~19.2 ancestry was introduced.
+
 The rebuild does not merge the feature branch's divergent saas~19.2 ancestry.
 Its product intent is replayed as eight ordered commits:
 
@@ -47,6 +54,28 @@ Three credible approaches were considered:
 3. Replay the eight branch-specific commits in order and resolve each against
    saas~19.3. This was selected. It preserves product history while allowing
    newer mainline behavior to remain authoritative.
+
+Two credible alternatives were then considered when current `19-usl` advanced:
+
+1. Rebase every already-reviewed replay and follow-up commit onto `f302ae6cdb43`.
+   This would produce a linear history, but it would rewrite the active feature
+   a second time and require another forced remote replacement. It was rejected
+   because the current mainline is a direct fast-forward successor and the
+   rebuilt feature history is already independently reviewable.
+2. Merge the exact fast-forward successor once. This was selected because it
+   preserves both parent histories, keeps the eventual feature publication a
+   normal fast-forward from its current remote tip, and still excludes the
+   archived branch's divergent saas~19.2 ancestry.
+
+Shared conflicts used current mainline infrastructure and French wording while
+retaining the newer Documents product implementation and module-version
+sequence. The release-clone and portable-candidate sanitizers were combined
+because they protect different delivery paths; dropping either was rejected.
+Paperless import/export writers newly added by mainline were aligned with the
+existing runtime-user ownership rule. Mainline's task-count guard was retained
+but corrected to use Paperless 3.0.5's native `PaperlessTask` model rather than
+the unavailable `django_celery_results` package. Expense conflicts were taken
+byte-for-byte from current mainline and were not product-reviewed here.
 
 ## Retained and superseded changes
 
@@ -94,8 +123,11 @@ git rev-list --merges e3b64c209acf0c4f50baa1a9ee519d8eb2c9b621..HEAD
 git diff --check e3b64c209acf0c4f50baa1a9ee519d8eb2c9b621..HEAD
 ```
 
-The range comparison accounts for every original branch-specific commit. The
-empty merge list proves that no divergent mainline ancestry was introduced.
+The range comparison accounts for every original branch-specific commit.
+Before `8658e0bec4a`, the empty merge list proves that no divergent mainline
+ancestry was introduced during replay. The one final merge has exactly
+`f302ae6cdb43` as its second parent; it is the required current `19-usl`
+fast-forward successor, not the archived saas~19.2 lineage.
 An independent union-of-changed-paths comparison leaves only the intentional
 saas~19.2-to-saas~19.3 migration-directory renames and the old
 `accounting_compat/tests/test_release_identity.py` path. That former assertion

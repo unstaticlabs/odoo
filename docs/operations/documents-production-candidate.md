@@ -857,3 +857,48 @@ runner-safety suite, scoped Ruff, compilation, shell syntax, source boundary
 and 12-module product-database boundary all pass. The manual tour and current
 SSO persona paths are maintained in
 [Try the Documents application](../users/guides/test-paperless-documents.md).
+
+### 2026-08-26 current-mainline integration and final index evidence
+
+Current `19-usl` advanced by fast-forward from `e3b64c209acf` to
+`f302ae6cdb43`. Merge `8658e0bec4a` integrates that exact successor without
+rewriting the completed Documents replay or importing the archived saas~19.2
+lineage. The complete fresh Documents gate then passed 156 post-test methods
+with zero failures or errors (162 Documents entries), including 31 desktop
+tests/215 assertions and 28 mobile tests/207 assertions. The expanded
+migration, recovery, seed, cutover and runner-safety suite passed 99 tests.
+Manifests, XML, maintained French catalogs, Python compilation, shell syntax,
+scoped Ruff and the product/migration source boundary also pass.
+
+The supported Paperless queue drained to true quiescence: broker depth zero,
+zero nonterminal `PaperlessTask` rows, and zero active or reserved Celery work.
+The final native sanity check reports only the expected 14 informational
+no-OCR records; Tantivy is current and its optimize command is the documented
+no-op. A full LLM-index update, compaction and second no-drift update were run
+as the `paperless` runtime user. Final inventory is passed with 869 total
+document/version rows, 867 live rows, two Trash rows, 855 searchable rows,
+zero active tasks and zero Personal Gemini profiles. Vector inventory is passed
+with 4,339 chunks/vectors for all 869 rows, schema 2, dimension 1,024, chunk
+size 512, overlap 200, model `usl-bge-m3:documents-20260824-rc1`, and SHA-256
+`9141f60a17f51bc5f9d60793ffee063772c74014778f211ca88ee2eed317d20b`.
+The SQLite database, WAL and shared-memory files are all owned by
+`paperless:paperless` with mode `0644`. Personal Gemini's release boundary
+passes as `qa-personal-ai-2026-08:1`.
+
+Fifteen Paperless failure rows remain as immutable audit evidence. The five
+original failures and nine read-only-index failures are documented above. The
+additional task 2850 was an already-running bulk update whose Ollama HTTP
+connection closed when the QA SSO runtime repair recreated Ollama at 22:28 UTC.
+It failed with `RemoteProtocolError: Server disconnected without sending a
+response`; no document, permission or vector row is missing, and the supported
+final update reconciled its state. The row was not acknowledged, deleted or
+rewritten.
+
+The source module version is now `saas~19.3.1.7.3`. Deployment to the retained
+source-complete Odoo database remains a separate gate: current mainline adds a
+Documents mixin dependency to an already-installed Expense module, so the old
+database dependency metadata cannot load the new registry until that inherited
+base module is included in one update. The Documents-only update was attempted
+and failed closed before module work. This task's Expense exclusion prevented
+performing that base migration without explicit operator approval; no
+workaround, direct SQL change or out-of-scope source edit was used.
