@@ -2903,8 +2903,18 @@ class SignRequestSigner(models.Model):
         readonly=True,
     )
     personal_status = fields.Char(
-        compute="_compute_personal_status",
+        compute="_compute_personal_presentation",
         string="Your status",
+    )
+    personal_next_step = fields.Char(
+        compute="_compute_personal_presentation",
+        string="What happens next",
+    )
+    can_open_signing_identity = fields.Boolean(
+        compute="_compute_personal_presentation",
+    )
+    can_open_external_signing = fields.Boolean(
+        compute="_compute_personal_presentation",
     )
     request_due_at = fields.Datetime(
         related="request_id.expires_at",
@@ -2917,9 +2927,26 @@ class SignRequestSigner(models.Model):
         readonly=True,
     )
 
-    @api.depends("state", "request_id.state")
-    @api.depends_context("lang")
-    def _compute_personal_status(self):
+    @api.depends(
+        "state",
+        "request_id.state",
+        "request_id.external_journey_id",
+    )
+    @api.depends_context("lang", "uid")
+    def _compute_personal_presentation(self):
+        partner_ids = self.mapped("partner_id").ids
+        company_ids = self.mapped("request_id.company_id").ids
+        enrollments = self.env["usl.sign.enrollment"].sudo().search(
+            [
+                ("partner_id", "in", partner_ids),
+                ("company_id", "in", company_ids),
+                ("state", "!=", "revoked"),
+            ],
+        )
+        enrollment_by_identity = {
+            (enrollment.partner_id.id, enrollment.company_id.id): enrollment
+            for enrollment in enrollments
+        }
         request_labels = {
             "completed": _("Signed"),
             "declined": _("Closed after a decline"),
@@ -2934,16 +2961,122 @@ class SignRequestSigner(models.Model):
             "cancelled": _("Cancelled"),
         }
         for signer in self:
+            owns_assignment = signer.partner_id == self.env.user.partner_id
+            enrollment = enrollment_by_identity.get(
+                (signer.partner_id.id, signer.request_id.company_id.id),
+                self.env["usl.sign.enrollment"],
+            )
+            signer.can_open_signing_identity = bool(
+                owns_assignment
+                and signer.request_id.state == "waiting_enrollment"
+                and enrollment
+            )
+            signer.can_open_external_signing = bool(
+                owns_assignment
+                and signer.request_id.state == "waiting_external"
+                and signer.request_id.external_journey_id
+            )
             if signer.state in signer_labels:
                 signer.personal_status = signer_labels[signer.state]
+                signer.personal_next_step = (
+                    _("Open the completed files.")
+                    if signer.state == "signed"
+                    else _("Nothing else is needed from you.")
+                )
             elif signer.state in {"notified", "viewed", "authorized"}:
                 signer.personal_status = _("Ready to sign")
+                signer.personal_next_step = _("Review the document and sign it.")
+            elif signer.request_id.state == "waiting_enrollment":
+                if enrollment and enrollment.state == "pending_pocket":
+                    signer.personal_status = _("Identity setup needed")
+                    signer.personal_next_step = _(
+                        "Use your setup invitation to connect Pocket ID.",
+                    )
+                elif enrollment and enrollment.state == "pending_review":
+                    signer.personal_status = _("Identity review in progress")
+                    signer.personal_next_step = _(
+                        "Your identity is connected. An identity reviewer must approve it.",
+                    )
+                elif enrollment and enrollment.state == "active":
+                    signer.personal_status = _("Waiting for sender")
+                    signer.personal_next_step = _(
+                        "Your identity is ready. The sender must continue the request.",
+                    )
+                else:
+                    signer.personal_status = _("Waiting for sender")
+                    signer.personal_next_step = _(
+                        "The sender must arrange identity setup before you can sign.",
+                    )
+            elif signer.request_id.state == "waiting_external":
+                signer.personal_status = _("External signing")
+                signer.personal_next_step = (
+                    _("Open the provider instructions to continue.")
+                    if signer.request_id.external_journey_id
+                    else _("The sender is preparing the external signing journey.")
+                )
             elif signer.request_id.state in request_labels:
                 signer.personal_status = request_labels[signer.request_id.state]
+                signer.personal_next_step = (
+                    _("Open the completed files.")
+                    if signer.request_id.state == "completed"
+                    else _("Nothing else is needed from you.")
+                )
             elif signer.request_id.state in {"sent", "viewed", "partial"}:
                 signer.personal_status = _("Waiting for your turn")
+                signer.personal_next_step = _(
+                    "Another signer goes first. You will be notified when it is your turn.",
+                )
+            elif signer.request_id.state in {
+                "signed_to_import",
+                "validating",
+                "evidence_incomplete",
+                "action_required",
+            }:
+                signer.personal_status = _("Final checks")
+                signer.personal_next_step = _(
+                    "Nothing is needed from you while the sender completes the final checks.",
+                )
             else:
                 signer.personal_status = _("Not sent yet")
+                signer.personal_next_step = _("The sender is still preparing the request.")
+
+    def action_open_signing_identity(self):
+        self.ensure_one()
+        if self.partner_id != self.env.user.partner_id:
+            msg = _("Only the assigned signer can open this signing identity.")
+            raise AccessError(msg)
+        enrollment = self.env["usl.sign.enrollment"].search(
+            [
+                ("partner_id", "=", self.partner_id.id),
+                ("company_id", "=", self.request_id.company_id.id),
+                ("state", "!=", "revoked"),
+            ],
+            limit=1,
+        )
+        if not enrollment:
+            msg = _("The sender has not started identity setup yet.")
+            raise UserError(msg)
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("My Signing Identity"),
+            "res_model": "usl.sign.enrollment",
+            "res_id": enrollment.id,
+            "views": [
+                (self.env.ref("usl_sign.sign_enrollment_my_form").id, "form"),
+            ],
+            "target": "current",
+        }
+
+    def action_open_external_signing(self):
+        self.ensure_one()
+        if self.partner_id != self.env.user.partner_id:
+            msg = _("Only the assigned signer can open this signing journey.")
+            raise AccessError(msg)
+        journey = self.request_id.external_journey_id
+        if self.request_id.state != "waiting_external" or not journey:
+            msg = _("External signing instructions are not available yet.")
+            raise UserError(msg)
+        return journey.action_open_details()
 
     def action_open_request(self):
         self.ensure_one()

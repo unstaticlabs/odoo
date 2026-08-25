@@ -402,15 +402,20 @@
                 <field name="sender_id" string="Sent by"/>
                 <field name="role_id" string="Signing as"/>
                 <field name="personal_status" string="Your status"/>
+                <field name="personal_next_step" string="Next step"/>
                 <field name="request_due_at" string="Due date"/>
-                <field name="overall_status" string="Request status"/>
+                <field name="overall_status" string="Request status" optional="hide"/>
                 <field name="requested_trust_short" string="Signing method"/>
                 <field name="signed_on" string="Signed on" optional="show"/>
                 <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
-                <button name="action_open_request" type="object" string="View result" invisible="state != 'signed'"/>
-                <button name="action_open_request" type="object" string="View details" invisible="state == 'signed'"/>
+                <button name="action_open_signing_identity" type="object" string="View identity status" invisible="not can_open_signing_identity"/>
+                <button name="action_open_external_signing" type="object" string="Open external signing" class="btn-primary" invisible="not can_open_external_signing"/>
+                <button name="action_open_request" type="object" string="View result" invisible="state != 'signed' and request_state not in ['completed', 'evidence_incomplete', 'validation_failed']"/>
                 <field name="is_allow_signature" column_invisible="1"/>
+                <field name="can_open_signing_identity" column_invisible="1"/>
+                <field name="can_open_external_signing" column_invisible="1"/>
                 <field name="state" column_invisible="1"/>
+                <field name="request_state" column_invisible="1"/>
             </list>
         </field>
     </record>
@@ -422,23 +427,30 @@
             <form create="0" edit="0" delete="0">
                 <header>
                     <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
-                    <button name="action_open_request" type="object" string="View result" invisible="state != 'signed'"/>
-                    <button name="action_open_request" type="object" string="View details" invisible="state == 'signed'"/>
+                    <button name="action_open_signing_identity" type="object" string="View identity status" class="btn-primary" invisible="not can_open_signing_identity"/>
+                    <button name="action_open_external_signing" type="object" string="Open external signing" class="btn-primary" invisible="not can_open_external_signing"/>
+                    <button name="action_open_request" type="object" string="View result" invisible="state != 'signed' and request_state not in ['completed', 'evidence_incomplete', 'validation_failed']"/>
                 </header>
                 <sheet>
                     <field name="is_allow_signature" invisible="1"/>
+                    <field name="can_open_signing_identity" invisible="1"/>
+                    <field name="can_open_external_signing" invisible="1"/>
                     <field name="state" invisible="1"/>
+                    <field name="request_state" invisible="1"/>
                     <div class="oe_title"><p class="text-muted mb-1">Your signature</p><h1><field name="request_id" options="{'no_open': true}"/></h1></div>
+                    <div class="alert alert-info mt-3" role="status">
+                        <div>
+                            <strong><field name="personal_status" readonly="1" nolabel="1"/></strong>
+                            <div><field name="personal_next_step" readonly="1" nolabel="1"/></div>
+                        </div>
+                    </div>
                     <div class="row g-3 my-4">
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Sent by</div><div class="fw-semibold"><field name="sender_id" readonly="1"/></div></div></div></div>
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing as</div><div class="fw-semibold"><field name="role_id" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Your status</div><div class="fw-semibold"><field name="personal_status" readonly="1"/></div></div></div></div>
-                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Document</div><div class="fw-semibold"><field name="overall_status" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Complete by</div><div class="fw-semibold"><field name="request_due_at" readonly="1"/></div></div></div></div>
+                        <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
                     </div>
-                    <group>
-                        <group string="Timing"><field name="request_due_at" string="Complete by"/><field name="signed_on" invisible="not signed_on"/></group>
-                        <group string="Signing"><field name="requested_trust_short" string="Signing method"/></group>
-                    </group>
+                    <field name="signed_on" string="Signed on" readonly="1" invisible="not signed_on"/>
                 </sheet>
             </form>
         </field>
@@ -457,6 +469,8 @@
                 <separator/>
                 <filter name="to_sign" string="Ready to sign" domain="[('state', 'in', ['notified', 'viewed', 'authorized']), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
                 <filter name="waiting_turn" string="Waiting for my turn" domain="[('state', '=', 'draft'), ('request_id.state', 'in', ['sent', 'viewed', 'partial'])]"/>
+                <filter name="identity_setup" string="Identity setup" domain="[('request_id.state', '=', 'waiting_enrollment')]"/>
+                <filter name="external_signing" string="External signing" domain="[('request_id.state', '=', 'waiting_external')]"/>
                 <filter name="signed_by_me" string="Signed by me" domain="[('state', '=', 'signed')]"/>
                 <filter name="completed" string="Completed" domain="[('request_id.state', '=', 'completed')]"/>
                 <filter name="closed" string="Closed" domain="[('request_id.state', 'in', ['declined', 'expired', 'cancelled', 'validation_failed'])]"/>
