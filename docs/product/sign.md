@@ -7,8 +7,9 @@ The ten end-user release journeys and their acceptance expectations are kept in
 
 USL Sign is an Odoo-native document-signing application. Odoo is the
 operational source of truth for templates, business links, signers, consent,
-lifecycle, validation, evidence and archive state. Paperless receives one
-durable dossier after Odoo has validated the completed ceremony; it does not
+lifecycle, validation, evidence and archive state. After Odoo validates the
+completed ceremony, Paperless receives the signed PDF as the primary document
+and a separate durable proof package linked to the same request. It does not
 become a second workflow system.
 
 The delivered application extends the pinned OCA `sign_oca` module at commit
@@ -272,10 +273,19 @@ The retained evidence includes source and annex PDFs, the frozen PDF and page
 map, fields/roles/policy/signers, consent, hashes, events, personal/platform
 certificates and chains, timestamps and revocation material, all DSS reports,
 external proof, signed canonical manifest, completion certificate and signed
-PDF. A deterministic PDF/A-3 dossier embeds the artifacts behind a readable
-cover, passes veraPDF, receives a platform seal and is sent through the
-checksum-idempotent `usl_documents` Paperless operation. Failed archival is
-visible and safely retryable; it blocks completion.
+PDF. The signed PDF is archived as the document of record. A separate,
+deterministic PDF/A-3 proof package embeds the signed PDF and every supporting
+artifact behind a readable cover, passes veraPDF, receives a platform seal and
+is archived as its companion through a second checksum-idempotent
+`usl_documents` operation. Both archives must succeed or reuse an identical
+checksum before completion. Failed archival is visible and safely retryable.
+
+The colored field overlay belongs only to template preparation and an active
+signing session. It is never an archived document version. Once completed,
+**Open signed document** always opens the clean validated PDF. The completion
+certificate is a short human-readable summary; the proof package is the audit
+asset and exposes its embedded filenames on the cover for readers whose inline
+PDF viewer hides attachments.
 
 After Bitcoin confirmation, a separate deterministic PDF/A-3 daily proof
 dossier embeds the signed manifest, original and upgraded `.ots` receipts,
