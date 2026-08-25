@@ -280,14 +280,15 @@ stage() {
     '
   queue_before="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   tasks_before="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver python manage.py shell -c \
-    'from django_celery_results.models import TaskResult; print(TaskResult.objects.count())' | tail -n 1)"
-  "${COMPOSE[@]}" --profile paperless run --rm --no-deps paperless-webserver \
-    document_importer --no-progress-bar /usr/src/paperless/export/candidate
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
+  "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
+    --entrypoint document_importer paperless-webserver \
+    --no-progress-bar /usr/src/paperless/export/candidate
   queue_after="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   tasks_after="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver python manage.py shell -c \
-    'from django_celery_results.models import TaskResult; print(TaskResult.objects.count())' | tail -n 1)"
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
   if [[ "$queue_before" != "$queue_after" || "$tasks_before" != "$tasks_after" ]]; then
     printf 'Paperless import submitted background/OCR tasks; refusing stage.\n' >&2
     exit 1
@@ -295,7 +296,7 @@ stage() {
 
   printf '[4/5] Validate restored accounting/Documents controls\n'
   "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver python manage.py document_sanity_checker
+    --entrypoint python paperless-webserver manage.py document_sanity_checker
   python3 - "$candidate/qualification.json" "$database" <<'PY'
 # The shell performs live SQL/API controls immediately below; this first check
 # keeps qualification parsing fail-closed before values reach shell variables.
@@ -321,8 +322,8 @@ PY
       'active_link_count',(SELECT count(*) FROM usl_document_link WHERE active)
     )::text")"
   actual_paperless="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    paperless-webserver \
-    python manage.py shell -c 'from documents.models import Document; print(Document.objects.count())' | tail -n 1)"
+    --entrypoint python paperless-webserver manage.py shell -c \
+    'from documents.models import Document; print(Document.objects.count())' | tail -n 1)"
   python3 - "$candidate/qualification.json" "$actual_accounting" \
     "$actual_documents" "$actual_paperless" <<'PY'
 import json

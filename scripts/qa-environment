@@ -214,23 +214,24 @@ hydrate_seed() {
   "${compose[@]}" stop paperless-webserver
   before_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   before_tasks="$(
-    "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
-      python manage.py shell -c \
-      'from django_celery_results.models import TaskResult; print(TaskResult.objects.count())' \
+    "${compose[@]}" --profile paperless run --rm --no-deps \
+      --entrypoint python paperless-webserver manage.py shell -c \
+      'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' \
       | tail -n 1
   )"
-  "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
-    document_importer --no-progress-bar /usr/src/paperless/export/qa-seed
+  "${compose[@]}" --profile paperless run --rm --no-deps \
+    --entrypoint document_importer paperless-webserver \
+    --no-progress-bar /usr/src/paperless/export/qa-seed
   after_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   after_tasks="$(
-    "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
-      python manage.py shell -c \
-      'from django_celery_results.models import TaskResult; print(TaskResult.objects.count())' \
+    "${compose[@]}" --profile paperless run --rm --no-deps \
+      --entrypoint python paperless-webserver manage.py shell -c \
+      'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' \
       | tail -n 1
   )"
   if [[ "$after_queue" != "$before_queue" || "$after_tasks" != "$before_tasks" ]]; then
     printf 'QA seed hydration submitted Paperless background/OCR work; refusing cache.\n' >&2
-    printf 'Queue: %s -> %s; task results: %s -> %s\n' \
+    printf 'Queue: %s -> %s; Paperless task rows: %s -> %s\n' \
       "$before_queue" "$after_queue" "$before_tasks" "$after_tasks" >&2
     return 1
   fi
@@ -245,8 +246,8 @@ Path(sys.argv[1]).write_text(json.dumps({
     "broker_queue_after": int(sys.argv[3]),
     "broker_queue_before": int(sys.argv[2]),
     "ocr_submissions": 0,
-    "task_results_after": int(sys.argv[5]),
-    "task_results_before": int(sys.argv[4]),
+    "paperless_tasks_after": int(sys.argv[5]),
+    "paperless_tasks_before": int(sys.argv[4]),
 }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 PY
 }
