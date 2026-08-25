@@ -83,9 +83,14 @@ class SignRequest(models.Model):
     _order = "create_date desc, id desc"
 
     def preview(self):
-        """Open the authoritative result after completion, not editor overlays."""
+        """Open the validated result, never an editor overlay or unchecked file."""
         self.ensure_one()
-        if self.state == "completed" and self.final_data and self.final_filename:
+        if (
+            self.state in {"evidence_incomplete", "completed"}
+            and self.validation_status == "valid"
+            and self.final_data
+            and self.final_filename
+        ):
             return {
                 "type": "ir.actions.act_url",
                 "url": (
@@ -2261,7 +2266,9 @@ class SignRequest(models.Model):
                         "archive_status": "failed",
                         "archive_last_error": "Paperless rejected or could not accept the signed document or proof package.",
                         "last_error": "Paperless archival failed.",
-                        "recovery_action": "Restore Paperless and retry archival.",
+                        "recovery_action": (
+                            "Check that Paperless is available, then retry final storage."
+                        ),
                         "evidence_status": "incomplete",
                     },
                 )
@@ -2305,7 +2312,9 @@ class SignRequest(models.Model):
                                 "archive_status": "failed",
                                 "archive_last_error": "Paperless archival status could not be confirmed.",
                                 "last_error": "Paperless archival reconciliation failed.",
-                                "recovery_action": "Restore Paperless and retry archival.",
+                                "recovery_action": (
+                                    "Check that Paperless is available, then retry final storage."
+                                ),
                                 "evidence_status": "incomplete",
                             },
                         )
@@ -2332,7 +2341,8 @@ class SignRequest(models.Model):
                             ),
                             "last_error": "Paperless archival needs attention.",
                             "recovery_action": (
-                                "Classify the matching Paperless document, then retry archival."
+                                "A matching file in Paperless needs classification. "
+                                "Resolve it there, then retry final storage."
                             ),
                             "evidence_status": "incomplete",
                         },

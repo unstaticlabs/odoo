@@ -44,7 +44,21 @@
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Status</div><div class="fw-semibold"><field name="lifecycle_stage_label" readonly="1"/></div></div></div></div>
                     </div>
 
-                    <div class="alert alert-warning" role="status" invisible="state not in ['waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed']">
+                    <div class="alert alert-warning" role="alert" invisible="state != 'evidence_incomplete'">
+                        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                            <div>
+                                <strong class="d-block mb-1">Signed files are ready; final storage failed.</strong>
+                                <span class="d-block">The validated signed PDF and proof are safe in Odoo. Paperless has not stored the final copies yet.</span>
+                                <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
+                                <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+                                <button name="preview" type="object" string="Open signed PDF" class="btn-secondary" invisible="not final_data"/>
+                                <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="archive_status != 'failed' or not can_coordinate"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state not in ['waiting_enrollment', 'action_required', 'validation_failed']">
                         <strong>Needs attention</strong>
                         <field name="blocking_summary" nolabel="1" readonly="1"/>
                     </div>
@@ -203,9 +217,13 @@
         <field name="arch" type="xml">
             <form string="Signed document" create="0" edit="0" delete="0">
                 <header>
-                    <button name="preview" type="object" string="Open signed PDF" class="btn-primary" invisible="state != 'completed' or not final_data"/>
+                    <button name="preview" type="object" string="Open signed PDF" class="btn-primary" invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']"/>
+                    <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary" invisible="state != 'evidence_incomplete' or archive_status != 'failed' or not can_coordinate"/>
                     <field name="lifecycle_stage" widget="statusbar" statusbar_visible="sent,progress,checks,closed" readonly="1"/>
                     <field name="state" invisible="1"/>
+                    <field name="validation_status" invisible="1"/>
+                    <field name="archive_status" invisible="1"/>
+                    <field name="can_coordinate" invisible="1"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Completed" invisible="state != 'completed'"/>
@@ -219,13 +237,27 @@
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Signing method</div><div class="fw-semibold"><field name="requested_trust_short" readonly="1"/></div></div></div></div>
                         <div class="col-12 col-sm-6 col-xl-3"><div class="card h-100"><div class="card-body py-3"><div class="text-muted small">Status</div><div class="fw-semibold"><field name="lifecycle_stage_label" readonly="1"/></div></div></div></div>
                     </div>
-                    <div class="alert alert-info" role="status" invisible="state == 'completed'">
+                    <div class="alert alert-warning" role="alert" invisible="state != 'evidence_incomplete'">
+                        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                            <div>
+                                <strong class="d-block mb-1">Your signed files are ready.</strong>
+                                <span class="d-block">The validated signed PDF and proof are safe here, but Paperless has not stored the final copies yet.</span>
+                                <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
+                                <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
+                            </div>
+                            <button name="action_retry_archive" type="object" string="Retry final storage" class="btn-primary flex-shrink-0" invisible="archive_status != 'failed' or not can_coordinate"/>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'validation_failed'">
+                        <strong>Verification failed.</strong> The requester needs to review this result before it can be used.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state in ['completed', 'evidence_incomplete', 'validation_failed']">
                         Your part is recorded. The final files will appear here after everyone has signed and the document has passed its checks.
                     </div>
                     <div class="alert alert-success" role="status" invisible="state != 'completed'">
                         <strong>Complete.</strong> The signed document and its proof are ready below.
                     </div>
-                    <group invisible="state != 'completed'">
+                    <group invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
                         <group string="Result">
                             <field name="achieved_trust_short" string="Signing method achieved" readonly="1"/>
                             <field name="completed_at" string="Completed on" readonly="1"/>
@@ -239,7 +271,7 @@
                             <field name="dossier_data" filename="dossier_filename" string="Complete proof package" readonly="1" invisible="not dossier_data"/>
                         </group>
                     </group>
-                    <div class="text-muted small mt-3" invisible="state != 'completed'">
+                    <div class="text-muted small mt-3" invisible="not final_data or validation_status != 'valid' or state not in ['evidence_incomplete', 'completed']">
                         Use the signed PDF for everyday reference. Keep the proof package when an auditor or reviewer needs the full record.
                     </div>
                 </sheet>
