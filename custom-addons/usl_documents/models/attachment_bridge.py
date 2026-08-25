@@ -664,6 +664,11 @@ class IrAttachment(models.Model):
             if eligible:
                 queued |= self.env["usl.document.operation"].queue_attachment(
                     attachment,
+                    source=(
+                        "odoo_generated"
+                        if attachment.usl_documents_origin == "generated_final"
+                        else "odoo_attachment"
+                    ),
                     force_on_request=force_on_request,
                 )
         return queued

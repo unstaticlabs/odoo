@@ -518,16 +518,43 @@ class PaperlessClient:
             None,
         )
         if existing:
-            result = self._request(
-                "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload,
-            )[0]
             created = False
+            triggers = existing.get("triggers") or []
+            actions = existing.get("actions") or []
+            trigger = triggers[0] if len(triggers) == 1 else {}
+            action = actions[0] if len(actions) == 1 else {}
+            matches = (
+                existing.get("name") == payload["name"]
+                and existing.get("order") == payload["order"]
+                and existing.get("enabled") is True
+                and len(triggers) == 1
+                and trigger.get("type") == 1
+                and sorted(trigger.get("sources") or []) == [1, 2, 3, 4]
+                and trigger.get("filter_filename") == "*"
+                and len(actions) == 1
+                and action.get("type") == 1
+                and action.get("assign_owner") == self.owner_user_id
+                and not (action.get("assign_view_users") or [])
+                and not (action.get("assign_view_groups") or [])
+                and not (action.get("assign_change_users") or [])
+                and not (action.get("assign_change_groups") or [])
+            )
+            if matches:
+                result = existing
+                updated = False
+            else:
+                result = self._request(
+                    "PUT", f"/api/workflows/{int(existing['id'])}/", body=payload,
+                )[0]
+                updated = True
         else:
             result = self._request("POST", "/api/workflows/", body=payload)[0]
             created = True
+            updated = False
         return {
             "ok": True,
             "created": created,
+            "updated": updated,
             "workflow_id": result.get("id"),
             "workflow_name": result.get("name", self.FAIL_CLOSED_WORKFLOW_NAME),
             "owner_user_id": self.owner_user_id,

@@ -419,6 +419,31 @@ class TestDocuments(TransactionCase):
             ),
         )
 
+    def test_generated_final_output_queues_as_authoritative_evidence(self):
+        task = self.env["project.task"].create({"name": "Final output"})
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_origin_token=ORIGIN_CAPTURE_TOKEN,
+            usl_documents_attachment_origin="generated_final",
+        ).create(
+            {
+                "name": "approved-output.pdf",
+                "raw": b"approved final output",
+                "mimetype": "application/pdf",
+                "res_model": task._name,
+                "res_id": task.id,
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "=", attachment.id)],
+        )
+
+        self.assertEqual(len(operation), 1)
+        self.assertEqual(attachment.usl_documents_origin, "generated_final")
+        self.assertEqual(operation.source, "odoo_generated")
+        self.assertEqual(operation.document_role, "evidence")
+        self.assertEqual(operation.policy_reason, "final_generated_output")
+        self.assertEqual(operation.state, "pending")
+
     def test_client_context_cannot_forge_attachment_origin(self):
         task = self.env["project.task"].create({"name": "Origin protection"})
         attachment = self.env["ir.attachment"].with_context(
@@ -1536,6 +1561,48 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.link_count, 1)
         self.assertEqual(document.review_state, "classified")
         self.assertEqual(document.company_id, self.company_a)
+
+    def test_full_sync_does_not_rewrite_synchronized_permissions(self):
+        document = self._document(
+            1840,
+            name="Already synchronized evidence",
+            permission_sync_state="synchronized",
+        )
+        payload = {
+            "count": 1,
+            "next": None,
+            "results": [
+                {
+                    "id": 1840,
+                    "title": document.name,
+                    "created": "2026-07-28",
+                    "added": "2026-07-28T10:00:00Z",
+                    "modified": "2026-07-28T10:05:00Z",
+                    "checksum": "c" * 64,
+                    "original_file_name": "evidence.pdf",
+                    "mime_type": "application/pdf",
+                    "tags": [],
+                    "custom_fields": [],
+                    "versions": [],
+                },
+            ],
+        }
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(PaperlessClient, "list_documents", return_value=payload),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
+            patch.object(
+                PaperlessClient,
+                "set_document_permissions",
+            ) as sync_permissions,
+        ):
+            self.env["usl.document"].with_user(self.manager).sync_from_paperless(
+                full=True,
+            )
+
+        self.assertEqual(document.permission_sync_state, "synchronized")
+        sync_permissions.assert_not_called()
 
     def test_sync_cron_preserves_its_authorized_system_identity(self):
         root = self.env.ref("base.user_root")
@@ -4400,9 +4467,108 @@ class TestPaperlessClientContract(TransactionCase):
         ) as request:
             result = client.ensure_fail_closed_ingestion_policy()
         self.assertTrue(result["created"])
+        self.assertFalse(result["updated"])
         method, path = request.call_args_list[1].args
         payload = request.call_args_list[1].kwargs["body"]
         self.assertEqual((method, path), ("POST", "/api/workflows/"))
         self.assertEqual(payload["triggers"][0]["sources"], [1, 2, 3, 4])
         self.assertEqual(payload["actions"][0]["assign_owner"], 42)
         self.assertEqual(payload["actions"][0]["assign_view_users"], [])
+
+    def test_fail_closed_workflow_is_a_noop_when_policy_already_matches(self):
+        self.env["ir.config_parameter"].sudo().set_int(
+            "usl_documents.paperless_service_user_id", 42,
+        )
+        client = PaperlessClient(self.env)
+        workflow = {
+            "id": 7,
+            "name": client.FAIL_CLOSED_WORKFLOW_NAME,
+            "order": -1000,
+            "enabled": True,
+            "triggers": [
+                {
+                    "id": 11,
+                    "type": 1,
+                    "sources": [4, 2, 1, 3],
+                    "filter_filename": "*",
+                    "matching_algorithm": 0,
+                },
+            ],
+            "actions": [
+                {
+                    "id": 12,
+                    "type": 1,
+                    "assign_owner": 42,
+                    "assign_view_users": [],
+                    "assign_view_groups": [],
+                    "assign_change_users": [],
+                    "assign_change_groups": [],
+                    "remove_all_permissions": False,
+                },
+            ],
+        }
+        with patch.object(
+            client,
+            "_request",
+            return_value=({"results": [workflow]}, {}),
+        ) as request:
+            result = client.ensure_fail_closed_ingestion_policy()
+
+        self.assertFalse(result["created"])
+        self.assertFalse(result["updated"])
+        request.assert_called_once_with(
+            "GET",
+            "/api/workflows/",
+            query={
+                "name__iexact": client.FAIL_CLOSED_WORKFLOW_NAME,
+                "page_size": 20,
+            },
+        )
+
+    def test_fail_closed_workflow_repairs_drift(self):
+        self.env["ir.config_parameter"].sudo().set_int(
+            "usl_documents.paperless_service_user_id", 42,
+        )
+        client = PaperlessClient(self.env)
+        with patch.object(
+            client,
+            "_request",
+            side_effect=[
+                (
+                    {
+                        "results": [
+                            {
+                                "id": 7,
+                                "name": client.FAIL_CLOSED_WORKFLOW_NAME,
+                                "order": 0,
+                                "enabled": False,
+                                "triggers": [],
+                                "actions": [],
+                            },
+                        ],
+                    },
+                    {},
+                ),
+                (
+                    {
+                        "id": 7,
+                        "name": client.FAIL_CLOSED_WORKFLOW_NAME,
+                    },
+                    {},
+                ),
+            ],
+        ) as request:
+            result = client.ensure_fail_closed_ingestion_policy()
+
+        self.assertFalse(result["created"])
+        self.assertTrue(result["updated"])
+        self.assertEqual(
+            request.call_args_list[1].args,
+            ("PUT", "/api/workflows/7/"),
+        )
+        self.assertEqual(
+            request.call_args_list[1].kwargs["body"]["actions"][0][
+                "assign_owner"
+            ],
+            42,
+        )

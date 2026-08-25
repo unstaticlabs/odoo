@@ -15,6 +15,8 @@ import time
 
 from odoo.exceptions import AccessError
 
+from odoo.addons.usl_documents.models.attachment_bridge import ORIGIN_CAPTURE_TOKEN
+
 
 def check(condition, message):
     if not condition:
@@ -301,28 +303,41 @@ if not generated_document:
     )
     generated_pdf += f"\n% USL Documents acceptance {marker}\n".encode()
     generated_checksum = hashlib.sha256(generated_pdf).hexdigest()
-    generated_attachment = env["ir.attachment"].create({
-        "name": generated_name,
-        "raw": generated_pdf,
-        "mimetype": "application/pdf",
-        "res_model": bill._name,
-        "res_id": bill.id,
-    })
-    generated_result = bill.action_archive_attachment(
-        generated_attachment.id, source="odoo_generated"
+    generated_attachment = env["ir.attachment"].with_context(
+        usl_documents_origin_token=ORIGIN_CAPTURE_TOKEN,
+        usl_documents_attachment_origin="generated_final",
+    ).create(
+        {
+            "name": generated_name,
+            "raw": generated_pdf,
+            "mimetype": "application/pdf",
+            "res_model": bill._name,
+            "res_id": bill.id,
+        },
     )
-    if generated_result["state"] == "processing":
-        generated_operation = env["usl.document.operation"].browse(
-            generated_result["operation_id"]
-        )
+    generated_result = bill.action_archive_attachment(
+        generated_attachment.id, source="odoo_generated",
+    )
+    generated_operation = env["usl.document.operation"].browse(
+        generated_result["operation_id"],
+    )
+    if generated_operation.state == "pending":
+        env.cr.commit()
+        processed = env["usl.document.operation"].cron_process_attachment_queue()
+        check(processed >= 1, "final-output operation entered the archive worker")
+        generated_operation.invalidate_recordset()
+    if generated_operation.state == "processing":
         wait_for_operation(generated_operation)
         check(
-            generated_operation.state == "archived",
-            "Odoo-generated accounting output archived",
+            generated_operation.state in ("archived", "duplicate"),
+            "Odoo-generated accounting output archived or reused",
         )
-        generated_document = generated_operation.document_id
     else:
-        generated_document = documents.browse(generated_result["document_id"])
+        check(
+            generated_operation.state in ("archived", "duplicate"),
+            "Odoo-generated accounting output archived or reused",
+        )
+    generated_document = generated_operation.document_id
 check(bool(generated_attachment.exists()), "Odoo operational report copy retained")
 generated_checksum = hashlib.sha256(
     bytes(generated_attachment.raw),

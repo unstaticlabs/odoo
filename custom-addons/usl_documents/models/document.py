@@ -1568,7 +1568,10 @@ class UslDocument(models.Model):
                         # Odoo-origin provenance is authoritative and must survive
                         # refreshes of the Paperless metadata cache.
                         values.pop("source", None)
-                        document.with_context(usl_documents_cache_write=True).write(values)
+                        document.with_context(
+                            usl_documents_cache_write=True,
+                            skip_permission_invalidation=True,
+                        ).write(values)
                     else:
                         document = self.sudo().create(values)
                     document._synchronize_versions(item.get("versions") or [])
@@ -1684,6 +1687,7 @@ class UslDocument(models.Model):
                     values.pop("source", None)
                     document.with_context(
                         usl_documents_cache_write=True,
+                        skip_permission_invalidation=True,
                     ).write(values)
                     document._synchronize_versions(item.get("versions") or [])
                     touched |= document
