@@ -29,6 +29,7 @@ services:
       USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}
       USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${POCKET_ID_SIGN_GROUP_NAME:?Missing Sign signer group}
       USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"
+      USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA: ${USL_SIGN_POCKETID_PRIVATE_QA:-0}
     # Loopback remains the safe default. A review tenant may bind to one exact,
     # validated private/Tailscale IPv4 address, never every host interface.
     ports: !override
@@ -41,6 +42,7 @@ services:
       USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}
       USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${POCKET_ID_SIGN_GROUP_NAME:?Missing Sign signer group}
       USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"
+      USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA: ${USL_SIGN_POCKETID_PRIVATE_QA:-0}
 
   test:
     depends_on:
@@ -53,3 +55,4 @@ services:
       USL_POCKET_ID_SIGN_CLIENT_SECRET: ${POCKET_ID_SIGN_CLIENT_SECRET:?Missing dedicated Sign client secret}
       USL_POCKET_ID_SIGN_REQUIRED_GROUP: ${POCKET_ID_SIGN_GROUP_NAME:?Missing Sign signer group}
       USL_POCKET_ID_SIGN_FRESH_REQUIRED: "1"
+      USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA: ${USL_SIGN_POCKETID_PRIVATE_QA:-0}
