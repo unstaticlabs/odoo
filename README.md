@@ -593,8 +593,11 @@ Odoo policy when configuration or modules are updated.
 Source parity and target configuration remain separate stages. The Online dump
 has no Pocket ID state, so the reconstruction orchestrator validates Accounting,
 installs Documents security before restoring identities, restores Product,
-HR, Projects, Paie TESE and Platform Billing, rebuilds the Paperless archive,
-and finalizes every temporary migration module out of the product. Its final
+HR and Projects, rebuilds the Paperless archive, restores Paie TESE and
+Platform Billing, and only then finalizes every temporary migration module out
+of the product. Projects, Paie TESE and Platform Billing retain their exact
+temporary source bindings until this global boundary so a failed QA archive
+run can resume without guessing from user-visible names. Its final
 target-only step provisions the governed Pocket identities in both Odoo and
 Paperless, maps the same immutable people, and synchronizes their exact
 Paperless document permissions. It never imports source credentials or SSO

@@ -144,6 +144,42 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
 
+    def test_downstream_source_bindings_survive_until_global_finalization(self):
+        script = TARGET_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("restore_projects_for_reconstruction", script)
+        self.assertIn("restore_tese_for_reconstruction", script)
+        self.assertIn("restore_platform_billing_for_reconstruction", script)
+        self.assertNotIn(
+            'run_stage "restore Projects" env '
+            "PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore all",
+            script,
+        )
+        self.assertLess(
+            script.index('run_stage "restore Documents archive"'),
+            script.index('run_stage "restore Paie TESE"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore Platform Billing"'),
+            script.index('run_stage "finalize migration boundary"'),
+        )
+        finalizer = script[
+            script.index("finalize_migration_boundary()") :
+            script.index('run_stage "Docker resource preflight"')
+        ]
+        self.assertLess(
+            finalizer.index("scripts/platform-billing-restore finalize"),
+            finalizer.index("scripts/tese-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/tese-restore finalize"),
+            finalizer.index("scripts/project-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/project-restore finalize"),
+            finalizer.index("scripts/accounting-restore finalize"),
+        )
+
     def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):
         runner = SCRIPT.read_text(encoding="utf-8")
         target = TARGET_SCRIPT.read_text(encoding="utf-8")

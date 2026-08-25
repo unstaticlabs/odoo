@@ -60,8 +60,8 @@ The complete canonical lifecycle is:
 
 ```text
 Online dump → Accounting import/parity → Documents product/security
-→ identity/Product/HR → Projects → Paie TESE → Platform Billing
-→ Paperless archive
+→ identity/Product/HR → Projects → Paperless archive
+→ Paie TESE → Platform Billing
 → uninstall migration modules → product-boundary checks
 → Pocket/Odoo/Paperless identities and target configuration
 ```
@@ -111,6 +111,12 @@ Every reconstruction writes a dump-bound run record below ignored
 commit, migration-code digest, ordered stage outcomes, duration, source
 coverage and attachment-ledger evidence. A failed run remains visible and
 cannot be confused with a qualified production migration.
+Projects, Paie TESE and Platform Billing keep their temporary source bindings
+until the Paperless archive and every downstream restore have passed. This
+lets a development/QA resume resolve records by exact source identity after an
+archive interruption; the global finalization stage then uninstalls those
+modules in dependency-safe order. Production still starts from a clean target
+and never uses resume evidence.
 
 The canonical command validates and restores the current local dump into the
 isolated read-only source service, refreshes source controls and extraction,
