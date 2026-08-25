@@ -45,6 +45,20 @@ permission_failures = int(
         "WHERE permission_sync_state = 'failed'",
     ),
 )
+blocking_operation_failures = int(
+    scalar(
+        "SELECT count(*) FROM usl_document_operation operation "
+        "LEFT JOIN ir_attachment attachment "
+        "ON attachment.id = operation.source_attachment_id "
+        "WHERE operation.state = 'failed' "
+        "AND NOT COALESCE(operation.acknowledged, FALSE) "
+        "AND (operation.source_attachment_id IS NULL "
+        "OR COALESCE(attachment.usl_documents_ledger_state, 'unresolved') "
+        "NOT IN ('archived_background', 'archived_evidence', "
+        "'explicitly_excluded'))",
+    ),
+)
+total_operation_failures = operations.get("failed", 0)
 active_links = int(scalar("SELECT count(*) FROM usl_document_link WHERE active"))
 roots = int(scalar("SELECT count(*) FROM usl_document"))
 versions = int(scalar("SELECT count(*) FROM usl_document_version"))
@@ -64,7 +78,7 @@ posted_debit, posted_credit = env.cr.fetchone()
 blocking_states = {
     "eligible_attachment_pending": ledger.get("pending", 0),
     "eligible_attachment_unresolved": ledger.get("unresolved", 0),
-    "odoo_operations_failed": operations.get("failed", 0),
+    "odoo_operations_failed": blocking_operation_failures,
     "odoo_operations_pending": operations.get("pending", 0),
     "odoo_operations_processing": (
         operations.get("processing", 0) + operations.get("uploading", 0)
@@ -84,6 +98,13 @@ result = {
     "database": env.cr.dbname,
     "ledger_state_counts": ledger,
     "operation_state_counts": operations,
+    "operation_failure_counts": {
+        "blocking": blocking_operation_failures,
+        "resolved_or_acknowledged": (
+            total_operation_failures - blocking_operation_failures
+        ),
+        "total": total_operation_failures,
+    },
     "root_role_counts": root_roles,
     "link_role_counts": link_roles,
     "root_count": roots,

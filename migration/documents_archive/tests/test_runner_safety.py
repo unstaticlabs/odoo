@@ -124,6 +124,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         ):
             self.assertIn(name, inventory)
         self.assertIn('USL_RELEASE_REQUIRE_COMPLETE") == "1"', inventory)
+        self.assertIn("operation_failure_counts", inventory)
+        self.assertIn("operation.acknowledged", inventory)
+        self.assertIn("attachment.usl_documents_ledger_state", inventory)
+        self.assertIn("resolved_or_acknowledged", inventory)
         self.assertNotIn("paperless_token\"", inventory.split("print(", 1)[-1])
 
     def test_checkpoint_reuse_is_explicit_and_fail_closed(self):
