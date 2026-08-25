@@ -1370,11 +1370,14 @@ class TestCleanUslSign(TransactionCase):
             self.assertEqual(request.state, "evidence_incomplete")
             self.assertEqual(request.archive_status, "failed")
             self.assertFalse(request.completed_at)
+            self.assertEqual(request.preview()["type"], "ir.actions.act_url")
             signed_evidence = request.evidence_ids.filtered(
                 lambda evidence: evidence.kind == "signed",
             )
             self.assertEqual(len(signed_evidence), 1)
             self.assertEqual(signed_evidence.sha256, request.final_sha256)
+            with self.assertRaises(AccessError):
+                request.with_user(self.sign_user).action_retry_archive()
             request.action_retry_archive()
             request._reconcile_archive()
             notify.assert_called_once()
@@ -1715,6 +1718,9 @@ class TestCleanUslSign(TransactionCase):
             result_action["views"][0][0],
             self.env.ref("usl_sign.sign_request_signer_result_form").id,
         )
+        result_view = self.env.ref("usl_sign.sign_request_signer_result_form")
+        self.assertIn("action_retry_archive", result_view.arch_db)
+        self.assertIn("Your signed files are ready.", result_view.arch_db)
         self.assertEqual(participant_request.preview()["type"], "ir.actions.act_url")
         completed_landing = self.env["usl.sign.workspace"].with_user(
             internal_signer,
