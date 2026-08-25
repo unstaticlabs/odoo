@@ -279,6 +279,11 @@ ensure_paperless_access() {
   "${COMPOSE[@]}" run --rm --no-deps paperless-access-init
 }
 
+ensure_personal_ai_release() {
+  "${COMPOSE[@]}" exec -T paperless-webserver \
+    python manage.py check_personal_ai_release
+}
+
 sync_odoo_runtime_config() {
   local paperless_public_url
   paperless_public_url="$(
@@ -318,6 +323,7 @@ case "$COMMAND" in
     provision_qa_sso
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
     ensure_paperless_access
+    ensure_personal_ai_release
     runtime_status
     sync_odoo_runtime_config
     ;;
@@ -339,6 +345,7 @@ case "$COMMAND" in
       paperless-model-preflight \
       paperless-gotenberg paperless-tika paperless-webserver
     ensure_paperless_access
+    ensure_personal_ai_release
     "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
     runtime_status
     sync_odoo_runtime_config
@@ -352,6 +359,7 @@ case "$COMMAND" in
     provision_qa_sso
     "${COMPOSE[@]}" up -d --wait --pull never "${SERVICES[@]}"
     ensure_paperless_access
+    ensure_personal_ai_release
     paperless_setup="$(
       "${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell -c '
 from django.contrib.auth import get_user_model
