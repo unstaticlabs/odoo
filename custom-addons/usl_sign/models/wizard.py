@@ -1,4 +1,4 @@
-from odoo import Command, api, fields, models
+from odoo import _, Command, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 from .constants import INTERNAL_OPERATION
@@ -326,6 +326,18 @@ class SignRequestMethod(models.TransientModel):
     recommended_trust = fields.Selection(SHORT_TRUST_LEVELS, readonly=True)
     recommendation_reason = fields.Text(readonly=True)
     override_reason = fields.Text()
+    selected_method_summary = fields.Char(
+        compute="_compute_method_presentation",
+        readonly=True,
+    )
+    selected_method_readiness = fields.Char(
+        compute="_compute_method_presentation",
+        readonly=True,
+    )
+    can_override_trust = fields.Boolean(
+        compute="_compute_can_override_trust",
+        readonly=True,
+    )
     external_provider_id = fields.Many2one(
         "usl.sign.external.provider",
         domain="[('active', '=', True), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
@@ -346,6 +358,72 @@ class SignRequestMethod(models.TransientModel):
                 values.setdefault("override_reason", request.override_reason)
                 values.setdefault("external_provider_id", request.external_provider_id.id)
         return super().create(vals_list)
+
+    @api.depends_context("uid")
+    def _compute_can_override_trust(self):
+        allowed = self.env.user.has_group("usl_sign.group_sign_trust_override")
+        for wizard in self:
+            wizard.can_override_trust = allowed
+
+    @api.depends("requested_trust", "external_provider_id", "request_id.signer_ids")
+    def _compute_method_presentation(self):
+        for wizard in self:
+            if wizard.requested_trust == "strong_personal":
+                wizard.selected_method_summary = _(
+                    "Each known signer confirms with Pocket ID before a personal "
+                    "digital signature is added.",
+                )
+                partners = wizard.request_id.signer_ids.mapped("partner_id")
+                enrolled_partner_ids = set(
+                    self.env["usl.sign.enrollment"]
+                    .sudo()
+                    .search(
+                        [
+                            ("company_id", "=", wizard.company_id.id),
+                            ("partner_id", "in", partners.ids),
+                            ("state", "=", "active"),
+                        ],
+                    )
+                    .mapped("partner_id")
+                    .ids
+                )
+                missing = partners.filtered(
+                    lambda partner: partner.id not in enrolled_partner_ids,
+                )
+                if not partners:
+                    wizard.selected_method_readiness = _(
+                        "Add the signers before checking identity readiness.",
+                    )
+                elif missing:
+                    wizard.selected_method_readiness = _(
+                        "Identity setup is still required for %(names)s.",
+                        names=", ".join(missing.mapped("display_name")),
+                    )
+                else:
+                    wizard.selected_method_readiness = _(
+                        "Every signer has an approved signing identity.",
+                    )
+            elif wizard.requested_trust == "qualified_external":
+                wizard.selected_method_summary = _(
+                    "The frozen PDF is signed through an external qualified provider, "
+                    "then returned and checked here.",
+                )
+                wizard.selected_method_readiness = (
+                    _(
+                        "Provider selected: %(provider)s.",
+                        provider=wizard.external_provider_id.display_name,
+                    )
+                    if wizard.external_provider_id
+                    else _("Choose a qualified provider below.")
+                )
+            else:
+                wizard.selected_method_summary = _(
+                    "Signers use private links. Their consent and actions are recorded, "
+                    "and the final PDF is independently checked.",
+                )
+                wizard.selected_method_readiness = _(
+                    "Ready once every signer and required field is set.",
+                )
 
     @api.onchange(
         "document_category",

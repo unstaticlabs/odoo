@@ -312,38 +312,90 @@
         <field name="name">usl.sign.request.method.form</field>
         <field name="model">usl.sign.request.method</field>
         <field name="arch" type="xml">
-            <form string="Signing method">
-                <sheet>
+            <form string="Signing method" class="usl_sign_method_wizard">
+                <sheet class="mw-100">
                     <field name="request_id" invisible="1"/>
                     <field name="company_id" invisible="1"/>
-                    <div class="oe_title">
-                        <h2>Choose how this document is signed</h2>
-                        <p class="text-muted">Standard is right for most everyday documents.</p>
+                    <field name="can_override_trust" invisible="1"/>
+                    <div class="oe_title mb-4">
+                        <h2>Choose a signing method</h2>
+                        <p class="text-muted mb-0">Confirm the context, then use the recommended method or choose another.</p>
                     </div>
-                    <field name="requested_trust" widget="radio" nolabel="1"/>
-                    <div class="row g-3 my-3">
-                        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><strong>Standard</strong><p class="small text-muted mb-0">Quick online signing with consent and a complete activity record.</p></div></div></div>
-                        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><strong>Strong personal</strong><p class="small text-muted mb-0">For an enrolled signer who confirms with a Pocket ID passkey.</p></div></div></div>
-                        <div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><strong>Qualified external</strong><p class="small text-muted mb-0">For a formal QES requirement handled by an external provider.</p></div></div></div>
-                    </div>
-                    <div class="alert alert-info" role="status">
-                        <strong>Recommended: <field name="recommended_trust" class="d-inline" readonly="1"/></strong>
-                        <field name="recommendation_reason" nolabel="1" readonly="1"/>
-                    </div>
-                    <field name="external_provider_id" invisible="requested_trust != 'qualified_external'" required="requested_trust == 'qualified_external'"/>
-                    <field name="override_reason" string="Why choose a different method?" invisible="requested_trust == recommended_trust" required="requested_trust != recommended_trust"/>
-                    <details class="mt-3">
-                        <summary class="text-muted">Change the recommendation inputs</summary>
-                        <group class="mt-2">
-                            <field name="document_category" string="Document type"/>
-                            <field name="signer_type" string="Relationship to signer"/>
-                            <field name="risk_level" string="Business risk"/>
-                            <field name="formal_qes_required" string="A formal QES is required"/>
-                        </group>
-                    </details>
+
+                    <section class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+                                <div>
+                                    <h3 class="h5 mb-1">1. Confirm the context</h3>
+                                    <p class="text-muted mb-0">These required details determine the recommendation.</p>
+                                </div>
+                                <span class="small text-muted"><span class="text-danger" aria-hidden="true">*</span> Required</span>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-4">
+                                    <label for="document_category" class="o_form_label fw-semibold">Document type <span class="text-danger" aria-hidden="true">*</span></label>
+                                    <field name="document_category" nolabel="1"/>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label for="signer_type" class="o_form_label fw-semibold">Relationship to signer <span class="text-danger" aria-hidden="true">*</span></label>
+                                    <field name="signer_type" nolabel="1"/>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label for="risk_level" class="o_form_label fw-semibold">Business risk <span class="text-danger" aria-hidden="true">*</span></label>
+                                    <field name="risk_level" nolabel="1"/>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-3 border-top">
+                                <field name="formal_qes_required" string="A law, authority, or counterparty explicitly requires a qualified signature"/>
+                                <p class="small text-muted mb-0 ms-4">Select this only when a formal qualified-signature requirement has been confirmed.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3 class="h5 mb-1">2. Choose the method</h3>
+                        <p class="text-muted mb-3">The method changes how signers confirm and what proof is produced.</p>
+
+                        <div class="alert alert-info mb-3" role="status">
+                            <div class="small fw-semibold text-uppercase mb-1">Recommended for this document</div>
+                            <div class="h5 mb-1"><field name="recommended_trust" class="d-inline" readonly="1"/></div>
+                            <field name="recommendation_reason" nolabel="1" readonly="1" class="text-body"/>
+                        </div>
+
+                        <label for="requested_trust" class="o_form_label fw-semibold">Signing method <span class="text-danger" aria-hidden="true">*</span></label>
+                        <p class="small text-muted mb-2">Required. Select one method, then review any requirement shown below.</p>
+                        <field name="requested_trust" widget="radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
+
+                        <div class="rounded border bg-light-subtle p-3 mt-3 mb-3" aria-live="polite">
+                            <field name="selected_method_summary" nolabel="1" readonly="1" class="fw-semibold"/>
+                            <div class="small text-muted mt-1"><field name="selected_method_readiness" nolabel="1" readonly="1"/></div>
+                        </div>
+
+                        <div class="alert alert-warning" role="alert" invisible="requested_trust == recommended_trust or can_override_trust">
+                            <strong>Use the recommendation or ask an administrator.</strong>
+                            <div>You do not have permission to choose a different signing method.</div>
+                        </div>
+
+                        <div class="card border-warning mb-3" invisible="requested_trust == recommended_trust or not can_override_trust">
+                            <div class="card-body">
+                                <label for="override_reason" class="o_form_label fw-semibold">Reason for choosing a different method <span class="text-danger" aria-hidden="true">*</span></label>
+                                <p class="small text-muted mb-2">Required. This reason is kept with the request.</p>
+                                <field name="override_reason" nolabel="1" placeholder="Explain why the recommendation is not appropriate for this document…" required="requested_trust != recommended_trust and can_override_trust"/>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3" invisible="requested_trust != 'qualified_external'">
+                            <div class="card-body">
+                                <label for="external_provider_id" class="o_form_label fw-semibold">Qualified provider <span class="text-danger" aria-hidden="true">*</span></label>
+                                <p class="small text-muted mb-2">Required. Choose the provider that will sign the frozen PDF outside Odoo.</p>
+                                <field name="external_provider_id" nolabel="1" required="requested_trust == 'qualified_external'"/>
+                            </div>
+                        </div>
+                    </section>
                 </sheet>
                 <footer>
-                    <button name="action_apply" type="object" string="Use this method" class="btn-primary"/>
+                    <button name="action_apply" type="object" string="Apply signing method" class="btn-primary" invisible="requested_trust != recommended_trust and not can_override_trust"/>
+                    <span class="text-muted align-self-center" invisible="requested_trust == recommended_trust or can_override_trust">Select the recommended method to continue.</span>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
