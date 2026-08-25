@@ -3720,6 +3720,90 @@ class TestDocuments(TransactionCase):
             110, view_users=[21, 22], change_users=[22],
         )
 
+    def test_permission_sync_batches_documents_with_the_same_acl(self):
+        documents = (
+            self._document(1510)
+            | self._document(1511)
+            | self._document(1512)
+            | self._document(1513)
+        )
+        self.env["usl.paperless.user.mapping"].search([
+            ("user_id", "in", [self.user.id, self.manager.id]),
+        ]).unlink()
+        self._verified_mapping([
+            {
+                "user_id": self.user.id,
+                "paperless_user_id": 21,
+                "paperless_username": "documents-user",
+                "sync_state": "synchronized",
+            },
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 22,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        ])
+        with (
+            patch.dict(
+                UslDocument.action_sync_permissions.__globals__,
+                {"PERMISSION_SYNC_BATCH_SIZE": 2},
+            ),
+            patch.object(
+                PaperlessClient,
+                "set_documents_permissions",
+                return_value={},
+            ) as batch_permission_call,
+            patch.object(PaperlessClient, "set_document_permissions") as single_call,
+        ):
+            documents.with_user(self.manager).action_sync_permissions()
+        self.assertEqual(batch_permission_call.call_count, 2)
+        self.assertEqual(
+            [call.args[0] for call in batch_permission_call.call_args_list],
+            [[1510, 1511], [1512, 1513]],
+        )
+        for call in batch_permission_call.call_args_list:
+            self.assertEqual(call.kwargs["view_users"], [21, 22])
+            self.assertEqual(call.kwargs["change_users"], [22])
+        single_call.assert_not_called()
+        self.assertFalse(
+            documents.filtered(
+                lambda document: (
+                    document.permission_sync_state != "synchronized"
+                    or not document.permission_checked_at
+                ),
+            ),
+        )
+
+    def test_permission_sync_batch_fails_closed_together(self):
+        documents = self._document(1512) | self._document(1513)
+        self.env["usl.paperless.user.mapping"].search([
+            ("user_id", "in", [self.user.id, self.manager.id]),
+        ]).unlink()
+        self._verified_mapping([
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 22,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        ])
+        with patch.object(
+            PaperlessClient,
+            "set_documents_permissions",
+            side_effect=PaperlessUnavailable("Archive offline"),
+        ):
+            documents.with_user(self.manager).action_sync_permissions()
+        self.assertFalse(
+            documents.filtered(
+                lambda document: (
+                    document.permission_sync_state != "failed"
+                    or document.availability_state != "permission_error"
+                    or document.permission_sync_error != "Archive offline"
+                ),
+            ),
+        )
+
     def test_identity_mapping_cannot_bypass_verification_state(self):
         mapping = self.env["usl.paperless.user.mapping"].create(
             {

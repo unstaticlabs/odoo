@@ -795,6 +795,19 @@ class PaperlessClient:
         return results[0] if results else None
 
     def set_document_permissions(self, document_id, *, view_users, change_users):
+        return self.set_documents_permissions(
+            [document_id],
+            view_users=view_users,
+            change_users=change_users,
+        )
+
+    def set_documents_permissions(
+        self,
+        document_ids,
+        *,
+        view_users,
+        change_users,
+    ):
         if not self.owner_user_id:
             raise PaperlessCompatibilityError(
                 _(
@@ -802,6 +815,9 @@ class PaperlessClient:
                     "permission synchronization is blocked.",
                 ),
             )
+        document_ids = sorted({int(document_id) for document_id in document_ids})
+        if not document_ids:
+            return {"result": "OK"}
         permissions = {
             "view": {"users": sorted(set(view_users)), "groups": []},
             "change": {"users": sorted(set(change_users)), "groups": []},
@@ -810,7 +826,7 @@ class PaperlessClient:
             "POST",
             "/api/documents/bulk_edit/",
             body={
-                "documents": [int(document_id)],
+                "documents": document_ids,
                 "method": "set_permissions",
                 "parameters": {
                     "set_permissions": permissions,

@@ -51,6 +51,8 @@ ATTACHMENT_ORIGINS = [
     ("backfill", "Backfill"),
 ]
 
+PERMISSION_SYNC_BATCH_SIZE = 100
+
 
 class UslDocument(models.Model):
     _name = "usl.document"
@@ -3717,6 +3719,7 @@ class UslDocument(models.Model):
             )
             for mapping in mappings
         ]
+        permission_batches = {}
         for document in self:
             if document.availability_state not in ("available", "permission_error"):
                 # Paperless bulk permission edits only accept live documents.
@@ -3739,41 +3742,50 @@ class UslDocument(models.Model):
                 view_users.append(paperless_user_id)
                 if may_change:
                     change_users.append(paperless_user_id)
-            try:
-                document._paperless().set_document_permissions(
-                    document.paperless_id,
-                    view_users=sorted(view_users),
-                    change_users=sorted(change_users),
-                )
-            except PaperlessError as error:
-                document.sudo().with_context(
-                    skip_permission_invalidation=True,
-                    usl_documents_cache_write=True,
-                ).write({
-                    "permission_sync_state": "failed",
-                    "permission_sync_error": str(error),
-                    "permission_checked_at": fields.Datetime.now(),
-                    "availability_state": (
-                        "permission_error"
-                        if document.availability_state
-                        in ("available", "permission_error")
-                        else document.availability_state
-                    ),
-                })
-            else:
-                document.sudo().with_context(
-                    skip_permission_invalidation=True,
-                    usl_documents_cache_write=True,
-                ).write({
-                    "permission_sync_state": "synchronized",
-                    "permission_sync_error": False,
-                    "permission_checked_at": fields.Datetime.now(),
-                    "availability_state": (
-                        "available"
-                        if document.availability_state == "permission_error"
-                        else document.availability_state
-                    ),
-                })
+            permission_key = (
+                tuple(sorted(view_users)),
+                tuple(sorted(change_users)),
+            )
+            permission_batches.setdefault(permission_key, self.browse())
+            permission_batches[permission_key] |= document
+
+        for (view_users, change_users), documents in permission_batches.items():
+            for offset in range(0, len(documents), PERMISSION_SYNC_BATCH_SIZE):
+                batch = documents[offset : offset + PERMISSION_SYNC_BATCH_SIZE]
+                client = batch[0]._paperless()
+                try:
+                    if len(batch) == 1:
+                        client.set_document_permissions(
+                            batch.paperless_id,
+                            view_users=list(view_users),
+                            change_users=list(change_users),
+                        )
+                    else:
+                        client.set_documents_permissions(
+                            batch.mapped("paperless_id"),
+                            view_users=list(view_users),
+                            change_users=list(change_users),
+                        )
+                except PaperlessError as error:
+                    batch.sudo().with_context(
+                        skip_permission_invalidation=True,
+                        usl_documents_cache_write=True,
+                    ).write({
+                        "permission_sync_state": "failed",
+                        "permission_sync_error": str(error),
+                        "permission_checked_at": fields.Datetime.now(),
+                        "availability_state": "permission_error",
+                    })
+                else:
+                    batch.sudo().with_context(
+                        skip_permission_invalidation=True,
+                        usl_documents_cache_write=True,
+                    ).write({
+                        "permission_sync_state": "synchronized",
+                        "permission_sync_error": False,
+                        "permission_checked_at": fields.Datetime.now(),
+                        "availability_state": "available",
+                    })
         return True
 
     def action_preview(self):
