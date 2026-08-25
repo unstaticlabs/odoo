@@ -155,7 +155,7 @@ product_modules='rebuild_account_migration,usl_accounting,usl_documents,usl_docu
 
 verify_seed() {
   local runtime_json
-  runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.XXXXXX.json")"
+  runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.json.XXXXXX")"
   scripts/qa-seed runtime "$runtime_json"
   if ! scripts/qa_seed.py verify \
     --root "$ROOT" --seed-dir "$qa_seed_dir" \

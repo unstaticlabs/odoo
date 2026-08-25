@@ -62,7 +62,7 @@ require_safe_cache_root() {
 runtime_identity() {
     local output="$1" config_file service image_ref image_id
     local -a image_arguments
-    config_file="$(mktemp "${TMPDIR:-/tmp}/usl-qa-compose.XXXXXX.json")"
+    config_file="$(mktemp "${TMPDIR:-/tmp}/usl-qa-compose.json.XXXXXX")"
     "${compose[@]}" --profile paperless config --format json > "$config_file"
     for service in \
         db odoo paperless-db paperless-webserver paperless-gotenberg paperless-tika
@@ -297,7 +297,7 @@ publish() {
         printf 'No pending QA seed exists for %s.\n' "$compose_project" >&2
         exit 2
     fi
-    runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.XXXXXX.json")"
+    runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.json.XXXXXX")"
     runtime_identity "$runtime_json"
     fingerprint="$(verify_seed "$pending_dir" "$runtime_json")"
     rm -f "$runtime_json"
@@ -330,7 +330,7 @@ status() {
         printf '\nNext step: from the main checkout run make qa-cache-refresh.\n'
         exit 2
     fi
-    runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.XXXXXX.json")"
+    runtime_json="$(mktemp "${TMPDIR:-/tmp}/usl-qa-runtime.json.XXXXXX")"
     runtime_identity "$runtime_json"
     python3 scripts/qa_seed.py status \
         --root "$ROOT" \

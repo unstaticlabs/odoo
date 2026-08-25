@@ -291,6 +291,17 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn('[[ "$candidate" != "$current_dir" ]]', seed)
         self.assertIn("CONFIRM=qa-seeds", seed)
 
+    def test_tempfile_templates_are_portable_to_bsd_mktemp(self):
+        for relative in (
+            "scripts/qa-seed",
+            "scripts/qa-environment",
+            "scripts/production-cutover",
+        ):
+            with self.subTest(script=relative):
+                script = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertNotIn("XXXXXX.json", script)
+                self.assertNotIn("XXXXXX.tsv", script)
+
     def test_source_identity_index_is_removed_with_migration_columns(self):
         finalizer = (
             ROOT / "migration/accounting_restore/scripts/finalize_schema.py"
