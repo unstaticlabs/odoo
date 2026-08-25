@@ -52,6 +52,8 @@ The feature deliberately depends on Community `sale_management`, `sale_stock`,
 `delivery` supplies future delivery workflow and source-backed customs fields;
 `mrp` is required to represent the source's `mrp_operation` operation type.
 There is no source BOM, manufacturing order, or quality transaction to invent.
+The product install explicitly disables Delivery's install-time Cash on
+Delivery provider. No payment provider is activated by this foundation.
 
 `product_margin` was rejected because native sale margin plus valued deliveries
 cover the ongoing decision. `website_sale` and provider connectors were rejected

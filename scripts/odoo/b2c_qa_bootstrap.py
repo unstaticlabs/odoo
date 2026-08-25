@@ -61,6 +61,13 @@ if profile != "clean-install":
     if counts != expected:
         raise RuntimeError(f"B2C QA tour baseline changed: {counts!r} != {expected!r}")
 
+enabled_providers = env["payment.provider"].sudo().search([("state", "!=", "disabled")])
+if enabled_providers:
+    raise RuntimeError(
+        "B2C QA requires every payment provider to remain disabled: "
+        f"{enabled_providers.mapped('display_name')!r}",
+    )
+
 reader_orders = (
     env["b2c.order"]
     .with_user(prosper)
@@ -75,5 +82,6 @@ for operation in ("write", "create", "unlink"):
 env.cr.commit()
 print(
     "B2C QA personas ready: "
-    f"valentin=manager, prosper=read-only, profile={profile}, counts={counts}",
+    "valentin=manager, prosper=read-only, enabled_payment_providers=0, "
+    f"profile={profile}, counts={counts}",
 )

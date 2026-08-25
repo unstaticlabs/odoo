@@ -100,6 +100,10 @@ class TestB2cFoundation(TransactionCase):
             "fulfilment_mode": "own_stock",
         }
 
+    def test_delivery_does_not_activate_cash_on_delivery(self):
+        provider = self.env.ref("delivery.payment_provider_cod")
+        self.assertEqual(provider.state, "disabled")
+
     def test_acl_and_company_isolation(self):
         order = self.env["b2c.order"].create(self._order_values("acl"))
         self.assertEqual(order.with_user(self.reader).name, "B2C-acl")
