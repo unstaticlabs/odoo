@@ -401,7 +401,7 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
 
 restore_bundle() {
   local bundle="${1:-}" option="${2:-}" restore_project="${3:-}"
-  local env_file restore_database source_database evidence_file
+  local env_file restore_database source_database evidence_file odoo_uid odoo_gid
   [[ -d "$bundle" && "$option" = --project && -n "$restore_project" ]] || usage
   bundle="$(cd "$bundle" && pwd -P)"
   require_safe_name "restore project" "$restore_project"
@@ -435,6 +435,21 @@ restore_bundle() {
     -v "$bundle/odoo:/backup:ro" \
     alpine:3.22.1 sh -ec \
     'mkdir -p /target/filestore && tar -C /target/filestore -xzf /backup/odoo-filestore.tgz'
+  odoo_uid="$("${COMPOSE[@]}" run --rm --no-deps -T --entrypoint id odoo -u)"
+  odoo_gid="$("${COMPOSE[@]}" run --rm --no-deps -T --entrypoint id odoo -g)"
+  [[ "$odoo_uid" =~ ^[0-9]+$ && "$odoo_gid" =~ ^[0-9]+$ ]] || {
+    printf 'Could not resolve the Odoo image runtime ownership.\n' >&2
+    exit 1
+  }
+  docker run --rm -v "${restore_project}_odoo-data:/target" alpine:3.22.1 \
+    sh -ec '
+uid="$1"
+gid="$2"
+mkdir -p /target/filestore /target/sessions
+chown "$uid:$gid" /target /target/filestore /target/sessions
+chmod 755 /target /target/filestore
+chmod 700 /target/sessions
+' sh "$odoo_uid" "$odoo_gid"
   if [[ "$source_database" != "$restore_database" ]]; then
     docker run --rm -v "${restore_project}_odoo-data:/target" alpine:3.22.1 \
       cp -a "/target/filestore/$source_database" "/target/filestore/$restore_database"

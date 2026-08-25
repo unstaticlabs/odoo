@@ -151,6 +151,19 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
             script,
         )
 
+    def test_restore_provisions_odoo_runtime_volume_ownership(self):
+        script = (ROOT / "scripts/documents-release-bundle").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("--entrypoint id odoo -u", script)
+        self.assertIn("--entrypoint id odoo -g", script)
+        self.assertIn("mkdir -p /target/filestore /target/sessions", script)
+        self.assertIn(
+            'chown "$uid:$gid" /target /target/filestore /target/sessions',
+            script,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
