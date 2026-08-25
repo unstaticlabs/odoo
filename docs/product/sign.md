@@ -148,6 +148,11 @@ does not imply a personal, qualified or handwritten-equivalent signature.
 An identity reviewer first links a known partner to an explicit relationship
 basis: Pocket ID, employee, contractor or recurring-partner relationship. The
 enrolment records the reviewer, date, reference, notes and policy version.
+The relationship reference is the organization's own employee, contract,
+partner or review record; it is not a Pocket ID identifier. The reviewer sends
+the personal setup link by email. A separate copy action is available for a
+trusted channel, but generating a copied link replaces any earlier link and
+never opens it in the reviewer's browser.
 The signer connects an existing Pocket ID identity, which is bound by immutable
 issuer and subject rather than email. An identity reviewer then confirms the
 relationship under the versioned policy. Pocket ID owns passkey registration,
@@ -184,6 +189,10 @@ document-bound signature. Pocket ID opens in a short-lived authentication
 window because the non-exportable document key must remain alive in the
 isolated worker on the signing page. The window closes after confirmation and
 the signing page remains the authoritative source of progress and outcome.
+Connecting Pocket ID does not sign a document. It creates a review activity for
+an identity reviewer, tells the signer that the setup page may be closed, and
+automatically resumes eligible requests after approval. Failed callbacks stay
+visible with a safe, actionable result instead of disappearing.
 The signer can cancel a live attempt and start again without changing the
 frozen document. If the final browser response is lost after the server has
 accepted the signature, a short-lived session receipt recovers the confirmed

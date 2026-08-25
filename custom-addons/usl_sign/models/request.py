@@ -67,6 +67,7 @@ TRANSITIONS = {
     "action_required": {
         "ready",
         "sent",
+        "partial",
         "waiting_enrollment",
         "waiting_external",
         "signed_to_import",
@@ -2487,9 +2488,23 @@ class SignRequest(models.Model):
             [
                 ("request_id.state", "in", ["sent", "viewed", "partial"]),
                 ("invitation_mail_id.state", "=", "exception"),
+                ("invitation_fallback_at", "=", False),
             ],
             limit=100,
         )
+        odoo_available = failed_delivery.filtered(
+            lambda signer: signer._has_internal_signing_access(),
+        )
+        for signer in odoo_available:
+            signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+                {"invitation_fallback_at": now},
+            )
+            signer.request_id._append_event(
+                "invitation_available_in_odoo",
+                signer=signer,
+                payload={"email_delivery": "failed"},
+            )
+        failed_delivery -= odoo_available
         for request in failed_delivery.mapped("request_id"):
             signers = failed_delivery.filtered(lambda signer: signer.request_id == request)
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
@@ -2622,11 +2637,20 @@ class SignRequest(models.Model):
             if request.state != "action_required":
                 continue
             failed_delivery = request.signer_ids.filtered(
-                lambda signer: signer.invitation_mail_id.state == "exception",
+                lambda signer: signer.invitation_mail_id.state == "exception"
+                and not signer.invitation_fallback_at,
             )
             if failed_delivery:
-                failed_delivery.mapped("invitation_mail_id").sudo().unlink()
-                failed_delivery._send_signer_invitation(force=True)
+                odoo_available = failed_delivery.filtered(
+                    lambda signer: signer._has_internal_signing_access(),
+                )
+                odoo_available.with_context(
+                    usl_sign_signer_transition=INTERNAL_OPERATION,
+                ).write({"invitation_fallback_at": fields.Datetime.now()})
+                retry_delivery = failed_delivery - odoo_available
+                if retry_delivery:
+                    retry_delivery.mapped("invitation_mail_id").sudo().unlink()
+                    retry_delivery._send_signer_invitation(force=True)
                 request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                     {"last_error": False, "recovery_action": False},
                 )
@@ -2894,12 +2918,14 @@ class SignRequestSigner(models.Model):
     invitation_mail_id = fields.Many2one(
         "mail.mail", readonly=True, copy=False, ondelete="set null",
     )
+    invitation_fallback_at = fields.Datetime(readonly=True, copy=False)
     invitation_delivery_state = fields.Selection(
         [
             ("not_queued", "Not queued"),
             ("queued", "Queued"),
             ("sent", "Sent"),
             ("failed", "Failed"),
+            ("available_in_odoo", "Available in Odoo"),
             ("cancelled", "Cancelled"),
             ("resolved", "No longer needed"),
         ],
@@ -2922,7 +2948,11 @@ class SignRequestSigner(models.Model):
     last_access_failure_at = fields.Datetime(readonly=True, copy=False)
 
     @api.depends(
-        "invitation_mail_id", "invitation_mail_id.state", "invitation_sent_at", "signed_on",
+        "invitation_mail_id",
+        "invitation_mail_id.state",
+        "invitation_sent_at",
+        "invitation_fallback_at",
+        "signed_on",
     )
     def _compute_invitation_delivery_state(self):
         mapping = {
@@ -2934,6 +2964,9 @@ class SignRequestSigner(models.Model):
         for signer in self:
             if signer.signed_on:
                 signer.invitation_delivery_state = "resolved"
+                continue
+            if signer.invitation_fallback_at:
+                signer.invitation_delivery_state = "available_in_odoo"
                 continue
             # Requesters may inspect delivery, but they must not gain access to the
             # internal outgoing-mail record.  Resolve it under sudo and expose only
@@ -2990,6 +3023,20 @@ class SignRequestSigner(models.Model):
                 ("state", "=", "active"),
             ],
             limit=1,
+        )
+
+    def _has_internal_signing_access(self):
+        self.ensure_one()
+        sign_users = self.env.ref("usl_sign.group_sign_user").sudo().all_user_ids
+        return bool(
+            self.partner_id.sudo().user_ids.filtered(
+                lambda user: (
+                    user.active
+                    and not user.share
+                    and user in sign_users
+                    and self.request_id.company_id in user.company_ids
+                ),
+            ),
         )
 
     def _issue_access_token(self):
@@ -3595,6 +3642,7 @@ class SignRequestSigner(models.Model):
             "invitation_sent_at",
             "invitation_count",
             "invitation_mail_id",
+            "invitation_fallback_at",
             "reminder_sent_at",
             "reminder_count",
             "authentication_method",
