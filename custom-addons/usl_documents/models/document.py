@@ -3107,6 +3107,11 @@ class UslDocument(models.Model):
             existing._apply_archive_context(
                 archive_context,
                 submitted_by=operation.user_id if operation else self.env.user,
+                access_user=(
+                    operation._archive_context_access_user()
+                    if operation
+                    else self.env.user
+                ),
             )
             if operation:
                 operation.sudo().write(
@@ -3197,6 +3202,11 @@ class UslDocument(models.Model):
             mirrored._apply_archive_context(
                 archive_context,
                 submitted_by=operation.user_id if operation else self.env.user,
+                access_user=(
+                    operation._archive_context_access_user()
+                    if operation
+                    else self.env.user
+                ),
             )
             if operation:
                 operation.sudo().write(
@@ -4491,10 +4501,11 @@ class UslDocumentOperation(models.Model):
                     document._apply_archive_context(
                         archive_context,
                         submitted_by=operation.user_id,
+                        access_user=operation._archive_context_access_user(),
                     )
                 elif operation.res_model and operation.res_id:
                     record = self.env[operation.res_model].with_user(
-                        operation.user_id,
+                        operation._archive_context_access_user(),
                     ).browse(operation.res_id).exists()
                     if not record:
                         raise UserError(_("The source Odoo record no longer exists."))
@@ -4517,11 +4528,58 @@ class UslDocumentOperation(models.Model):
                     "error_message": False,
                 })
             elif status in ("failure", "failed"):
+                existing = self.env["usl.document"]
+                if operation.checksum and operation.metadata_hash:
+                    existing, matching_version = self.env[
+                        "usl.document"
+                    ]._find_archive_fingerprint(
+                        operation.checksum,
+                        operation.metadata_hash,
+                        company=operation.company_id,
+                        availability_state="available",
+                    )
+                    archive_context = operation.context_json or {}
+                    if existing and (archive_context or not operation.res_model):
+                        if matching_version:
+                            archive_context = {
+                                **archive_context,
+                                "related_records": [
+                                    {
+                                        **target,
+                                        "version_id": (
+                                            matching_version.paperless_version_id
+                                        ),
+                                    }
+                                    for target in archive_context.get(
+                                        "related_records",
+                                    )
+                                    or []
+                                ],
+                            }
+                        if archive_context:
+                            existing._apply_archive_context(
+                                archive_context,
+                                submitted_by=operation.user_id,
+                                access_user=(
+                                    operation._archive_context_access_user()
+                                ),
+                            )
+                        operation.sudo().write(
+                            {
+                                "state": "archived",
+                                "document_id": existing.id,
+                                "error_message": False,
+                            },
+                        )
+                        continue
                 result_data = task.get("result_data")
                 operation.sudo().write({
                     "state": "failed",
                     "error_message": (
-                        result_data.get("message")
+                        (
+                            result_data.get("message")
+                            or result_data.get("error_message")
+                        )
                         if isinstance(result_data, dict)
                         else result_data
                     )
@@ -4553,7 +4611,11 @@ class UslDocumentOperation(models.Model):
             raise AccessError(
                 _("Only Documents administrators may run the ingestion scheduler."),
             )
-        operations = self.search([("state", "=", "processing")], limit=100)
+        operations = self.search(
+            [("state", "=", "processing")],
+            order="create_date, id",
+            limit=100,
+        )
         return operations.poll()
 
 

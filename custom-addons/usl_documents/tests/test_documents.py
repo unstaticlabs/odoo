@@ -793,6 +793,21 @@ class TestDocuments(TransactionCase):
                     "res_model": "project.task",
                     "res_id": task.id,
                 },
+                {
+                    "name": "terms.html",
+                    "raw": b"<html><body>Terms</body></html>",
+                    # Source systems may conservatively label HTML as plain text.
+                    "mimetype": "text/plain",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
+                {
+                    "name": "legacy-terms.htm",
+                    "raw": b"<html><body>Legacy terms</body></html>",
+                    "mimetype": "text/html",
+                    "res_model": "project.task",
+                    "res_id": task.id,
+                },
             ],
         )
 
@@ -823,14 +838,14 @@ class TestDocuments(TransactionCase):
                 },
                 {
                     "name": "tracking.png",
-                    "raw": b"x" * 67,
+                    "raw": b"x" * 4096,
                     "mimetype": "image/png",
                     "res_model": "project.task",
                     "res_id": task.id,
                 },
                 {
                     "name": "site-photo.jpg",
-                    "raw": b"x" * 513,
+                    "raw": b"x" * 4097,
                     "mimetype": "image/jpeg",
                     "res_model": "project.task",
                     "res_id": task.id,
@@ -3248,6 +3263,181 @@ class TestDocuments(TransactionCase):
 
         self.assertEqual(operation.state, "failed")
         self.assertIn("archive owner and permissions", operation.error_message)
+
+    def test_async_failure_preserves_paperless_error_detail(self):
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "missing.pdf",
+                "state": "processing",
+                "checksum": "a" * 64,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-missing",
+                "user_id": self.user.id,
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "task",
+            return_value={
+                "status": "failure",
+                "result_data": {
+                    "error_type": "ConsumerError",
+                    "error_message": "The temporary upload file is missing.",
+                },
+            },
+        ):
+            operation.poll()
+
+        self.assertEqual(operation.state, "failed")
+        self.assertEqual(
+            operation.error_message,
+            "The temporary upload file is missing.",
+        )
+
+    def test_async_failure_reuses_later_exact_archive(self):
+        checksum = "b" * 64
+        metadata_hash = "c" * 64
+        document = self._document(
+            146,
+            checksum=checksum,
+            metadata_hash=metadata_hash,
+        )
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": "retried.pdf",
+                "state": "processing",
+                "checksum": checksum,
+                "metadata_hash": metadata_hash,
+                "mime_type": "application/pdf",
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-retried",
+                "user_id": self.user.id,
+            },
+        )
+        with patch.object(
+            PaperlessClient,
+            "task",
+            return_value={
+                "status": "failure",
+                "result_data": {"error_message": "The first upload was lost."},
+            },
+        ):
+            operation.poll()
+
+        self.assertEqual(operation.state, "archived")
+        self.assertEqual(operation.document_id, document)
+        self.assertFalse(operation.error_message)
+
+    def test_poll_cron_processes_oldest_operations_first(self):
+        operations = self.env["usl.document.operation"].sudo().create(
+            [
+                {
+                    "name": f"queued-{index}.pdf",
+                    "state": "processing",
+                    "checksum": f"{index:064x}",
+                    "mime_type": "application/pdf",
+                    "company_id": self.company_a.id,
+                    "paperless_task_id": f"task-{index}",
+                    "user_id": self.user.id,
+                }
+                for index in range(101)
+            ],
+        )
+        with patch.object(PaperlessClient, "task", return_value=None):
+            result = (
+                self.env["usl.document.operation"]
+                .with_user(self.manager)
+                .cron_poll_operations()
+            )
+
+        self.assertIn(operations[0].id, result)
+        self.assertNotIn(operations[-1].id, result)
+
+    def test_backfill_validates_links_as_system_and_keeps_source_author(self):
+        project = self.env["project.project"].create(
+            {
+                "name": "Restricted historical project",
+                "privacy_visibility": "followers",
+            },
+        )
+        with self.assertRaises(AccessError):
+            project.with_user(self.user).check_access("read")
+        attachment = self.env["ir.attachment"].with_context(
+            usl_documents_skip_attachment_queue=True,
+        ).create(
+            {
+                "name": "historical.pdf",
+                "raw": b"historical project evidence",
+                "mimetype": "application/pdf",
+                "res_model": project._name,
+                "res_id": project.id,
+            },
+        )
+        operation = self.env["usl.document.operation"].sudo().create(
+            {
+                "name": attachment.name,
+                "state": "processing",
+                "checksum": "d" * 64,
+                "metadata_hash": "e" * 64,
+                "mime_type": attachment.mimetype,
+                "company_id": self.company_a.id,
+                "paperless_task_id": "task-backfill",
+                "res_model": project._name,
+                "res_id": project.id,
+                "source": "odoo_attachment",
+                "source_attachment_id": attachment.id,
+                "source_attachment_checksum": attachment.checksum,
+                "attachment_origin": "backfill",
+                "context_json": {
+                    "company_id": self.company_a.id,
+                    "confidentiality": "internal",
+                    "access_scope": "linked_record",
+                    "archive_mode": "automatic",
+                    "document_role": "background",
+                    "attachment_origin": "backfill",
+                    "policy_reason": "project_direct_attachment",
+                    "related_records": [
+                        {"model": project._name, "id": project.id},
+                    ],
+                },
+                "user_id": self.user.id,
+            },
+        )
+        self.assertEqual(operation._archive_context_access_user(), self.user)
+        self.assertEqual(
+            operation.with_context(
+                usl_documents_trusted_backfill_access=True,
+            )._archive_context_access_user(),
+            self.env.ref("base.user_root"),
+        )
+        payload = {
+            "id": 147,
+            "title": attachment.name,
+            "checksum": operation.checksum,
+            "tags": [],
+            "custom_fields": [],
+            "versions": [],
+        }
+        with (
+            patch.object(
+                PaperlessClient,
+                "task",
+                return_value={
+                    "status": "success",
+                    "related_document_ids": [147],
+                },
+            ),
+            patch.object(PaperlessClient, "get_document", return_value=payload),
+        ):
+            operation.with_context(
+                usl_documents_trusted_backfill_access=True,
+            ).poll()
+
+        self.assertEqual(operation.state, "archived")
+        self.assertEqual(operation.document_id.link_ids.res_model, project._name)
+        self.assertEqual(operation.document_id.link_ids.res_id, project.id)
+        self.assertEqual(operation.document_id.link_ids.linked_by_id, self.user)
 
     def test_async_remote_match_refuses_different_metadata_fingerprint(self):
         document = self._document(

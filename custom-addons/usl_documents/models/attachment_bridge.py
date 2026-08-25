@@ -262,9 +262,16 @@ class UslDocument(models.Model):
             "correspondent_paperless_id": correspondent.paperless_id or False,
         }
 
-    def _apply_archive_context(self, context, *, submitted_by=None):
+    def _apply_archive_context(
+        self,
+        context,
+        *,
+        submitted_by=None,
+        access_user=None,
+    ):
         for document in self:
             actor = submitted_by or self.env.user
+            access_actor = access_user or actor
             incoming_role = context.get("document_role") or "background"
             if not context.get("related_records") and incoming_role in {
                 "evidence",
@@ -277,7 +284,7 @@ class UslDocument(models.Model):
                         skip_permission_invalidation=True,
                     ).write({"intake_role": incoming_role})
             for target in context.get("related_records") or []:
-                record = self.env[target["model"]].with_user(actor).browse(
+                record = self.env[target["model"]].with_user(access_actor).browse(
                     int(target["id"]),
                 ).exists()
                 if not record:
@@ -404,12 +411,19 @@ class UslDocument(models.Model):
             document._recompute_linked_record_access(sync_permissions=True)
         return True
 
-    def _register_trashed_archive_context(self, context, *, submitted_by=None):
+    def _register_trashed_archive_context(
+        self,
+        context,
+        *,
+        submitted_by=None,
+        access_user=None,
+    ):
         """Keep source Trash intent while retaining the Odoo business links."""
         for document in self:
             actor = submitted_by or self.env.user
+            access_actor = access_user or actor
             for target in context.get("related_records") or []:
-                record = self.env[target["model"]].with_user(actor).browse(
+                record = self.env[target["model"]].with_user(access_actor).browse(
                     int(target["id"]),
                 ).exists()
                 if not record:
@@ -456,7 +470,9 @@ class UslDocument(models.Model):
 class IrAttachment(models.Model):
     _inherit = "ir.attachment"
 
-    _usl_documents_unsupported_archive_suffixes = frozenset({".ics", ".xml", ".zip"})
+    _usl_documents_unsupported_archive_suffixes = frozenset(
+        {".htm", ".html", ".ics", ".xml", ".zip"},
+    )
     _usl_documents_inline_image_name = re.compile(
         r"^dbfamilycid\d+\.(?:gif|jpe?g|png|webp)$",
         re.IGNORECASE,
@@ -556,7 +572,10 @@ class IrAttachment(models.Model):
             return "unsupported_archive_format"
         if self._usl_documents_inline_image_name.fullmatch(name):
             return "inline_message_image"
-        if str(self.mimetype or "").casefold().startswith("image/") and self.file_size <= 512:
+        if (
+            str(self.mimetype or "").casefold().startswith("image/")
+            and self.file_size <= 4 * 1024
+        ):
             # Real evidence cannot be meaningfully inspected at this size. These
             # are mail-client tracking pixels and disposable placeholder images.
             return "inline_or_placeholder_image"
@@ -882,6 +901,14 @@ class UslDocumentOperation(models.Model):
         "This attachment version is already queued for archival.",
     )
 
+    def _archive_context_access_user(self):
+        self.ensure_one()
+        if self.env.su and self.env.context.get(
+            "usl_documents_trusted_backfill_access",
+        ):
+            return self.env.ref("base.user_root")
+        return self.user_id
+
     def write(self, values):
         result = super().write(values)
         if "state" in values:
@@ -1127,6 +1154,7 @@ class UslDocumentOperation(models.Model):
                 trashed._register_trashed_archive_context(
                     archive_context,
                     submitted_by=self.user_id,
+                    access_user=self._archive_context_access_user(),
                 )
                 self.sudo().write(
                     {
