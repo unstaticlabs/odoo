@@ -3,6 +3,7 @@ from werkzeug.exceptions import NotFound
 from odoo import http
 from odoo.exceptions import AccessError
 from odoo.http import request
+from odoo.tools.misc import format_datetime
 
 from ..models.constants import SIGN_RESULT_SESSION_KEY, TRUST_LEVELS
 from .strong import _personal_certificate_subject
@@ -146,6 +147,13 @@ class SignPortalController(PortalSign):
                     "requested_trust_display": dict(TRUST_LEVELS).get(
                         signer.request_id.requested_trust,
                     ),
+                    "due_display": format_datetime(
+                        request.env,
+                        signer.request_id.expires_at,
+                        dt_format="short",
+                    )
+                    if signer.request_id.expires_at
+                    else False,
                 },
             )
         if signer.request_id.requested_trust == "strong_personal":
