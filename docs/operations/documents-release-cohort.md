@@ -77,7 +77,10 @@ attachment/operation/role/accounting ledger; runs Paperless sanity, Tantivy
 sanitizes the official Paperless export and cloned databases; builds the MCP
 Worker; records image, BGE and vector identities; and seals mode-0600
 artifacts under mode-0700 directories into `manifest.json` and
-`SHA256SUMS`.
+`SHA256SUMS`. Every Paperless command that writes the export, Tantivy or vector
+volumes runs as the `paperless` runtime user. Running those commands as the
+container default root can leave SQLite WAL/SHM or index files read-only to the
+worker and is not valid release evidence.
 
 The cleanup trap restarts only source services it stopped, drops only the two
 release clone databases and removes only its private capture directory. An
@@ -105,8 +108,9 @@ database/media/data/Trash/export and complete Ollama model volume.
 
 It starts with `--pull never`, requires Tantivy
 `reindex --if-needed` to be a no-op, runs vector schema migration and
-incremental update only, and starts Odoo. It never invokes consumption, OCR,
-`document_llmindex rebuild` or model acquisition.
+incremental update only as the `paperless` runtime user, and starts Odoo. It
+never invokes consumption, OCR, `document_llmindex rebuild` or model
+acquisition.
 
 After startup, the command compares:
 

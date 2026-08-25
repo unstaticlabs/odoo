@@ -237,9 +237,10 @@ EXPECTED_MOVE_LINES="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABA
 EXPECTED_POSTED_DEBIT="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc "SELECT COALESCE(sum(line.debit), 0) FROM account_move_line line JOIN account_move move ON move.id = line.move_id WHERE move.state = 'posted'")"
 EXPECTED_POSTED_CREDIT="$("${SOURCE[@]}" exec -T db psql -U odoo -d "$SOURCE_DATABASE" -Atc "SELECT COALESCE(sum(line.credit), 0) FROM account_move_line line JOIN account_move move ON move.id = line.move_id WHERE move.state = 'posted'")"
 
-"${SOURCE[@]}" exec -T paperless-webserver \
+"${SOURCE[@]}" exec -T --user paperless paperless-webserver \
   mkdir -p "/usr/src/paperless/export/$BACKUP_ID"
-"${SOURCE[@]}" exec -T paperless-webserver python manage.py document_exporter \
+"${SOURCE[@]}" exec -T --user paperless paperless-webserver \
+  python manage.py document_exporter \
   "/usr/src/paperless/export/$BACKUP_ID"
 "${SOURCE[@]}" stop odoo paperless-webserver
 "${SOURCE[@]}" exec -T db pg_dump -U odoo -Fc "$SOURCE_DATABASE" > "$ARTIFACT_DIR/odoo.dump"

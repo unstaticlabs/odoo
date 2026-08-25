@@ -193,7 +193,8 @@ hydrate_seed() {
     alpine:3.24.1 sh -ec 'mkdir -p /export/qa-seed && cp -a /seed/. /export/qa-seed/'
   "${compose[@]}" --profile paperless up -d --wait paperless-webserver
   "${compose[@]}" stop paperless-webserver
-  "${compose[@]}" --profile paperless run --rm --no-deps paperless-webserver \
+  "${compose[@]}" --profile paperless run --rm --no-deps \
+    --user paperless paperless-webserver \
     document_importer --no-progress-bar /usr/src/paperless/export/qa-seed
   "${compose[@]}" --profile paperless up -d --wait paperless-webserver
   "${compose[@]}" exec -T paperless-webserver python manage.py document_sanity_checker

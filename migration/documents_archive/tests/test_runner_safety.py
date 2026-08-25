@@ -19,6 +19,8 @@ PAPERLESS_MIGRATION_ACCESS_CLEANUP = (
     / "migration/documents_archive/scripts/paperless_migration_access_cleanup.py"
 )
 RELEASE_INVENTORY = ROOT / "scripts/odoo/documents_release_inventory.py"
+RELEASE_BUNDLE_SCRIPT = ROOT / "scripts/documents-release-bundle"
+RECOVERY_SCRIPT = ROOT / "scripts/documents-recovery-test"
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -232,8 +234,36 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "document_importer --no-progress-bar /usr/src/paperless/export/qa-seed",
             script,
         )
+        self.assertIn("--user paperless paperless-webserver", script)
         self.assertIn("usl-odoo-qa-?*", script)
         self.assertIn("No containers or data volumes were changed", script)
+
+    def test_paperless_file_writers_run_as_the_runtime_user(self):
+        release = RELEASE_BUNDLE_SCRIPT.read_text(encoding="utf-8")
+        recovery = RECOVERY_SCRIPT.read_text(encoding="utf-8")
+        seed = SEED_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertGreaterEqual(
+            release.count("exec -T --user paperless paperless-webserver"),
+            9,
+        )
+        for command in (
+            "document_index reindex",
+            "document_index optimize",
+            "document_llmindex migrate",
+            "document_llmindex update",
+            "document_llmindex compact",
+            "document_exporter",
+        ):
+            self.assertIn(command, release)
+        self.assertIn(
+            "exec -T --user paperless paperless-webserver",
+            recovery,
+        )
+        self.assertIn(
+            "exec -T --user paperless paperless-webserver",
+            seed,
+        )
 
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")

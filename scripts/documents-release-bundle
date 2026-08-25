@@ -200,19 +200,19 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
   "${COMPOSE[@]}" exec -T paperless-webserver \
     python manage.py document_sanity_checker --no-progress-bar \
     > "$temporary/paperless-sanity.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_index reindex --if-needed --no-progress-bar \
     > "$temporary/tantivy-finalize.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_index optimize --no-progress-bar \
     >> "$temporary/tantivy-finalize.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_llmindex migrate --no-progress-bar \
     > "$temporary/vector-finalize.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_llmindex update --no-progress-bar \
     >> "$temporary/vector-finalize.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_llmindex compact --no-progress-bar \
     >> "$temporary/vector-finalize.txt"
 
@@ -225,9 +225,9 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
     "USL_PAPERLESS_VECTOR_INVENTORY=" "$temporary/vector-index-manifest.json"
 
   export_name="release-export-$release_id"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     mkdir -p "/usr/src/paperless/export/$export_name"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_exporter "/usr/src/paperless/export/$export_name" \
     --compare-checksums --delete --no-progress-bar
   mkdir -m 700 "$temporary/paperless-export"
@@ -473,13 +473,13 @@ chmod 700 /target/sessions
     < "$bundle/paperless/paperless.dump"
   "${COMPOSE[@]}" up -d --wait --pull never paperless-ollama \
     paperless-gotenberg paperless-tika paperless-webserver
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_index reindex --if-needed --no-progress-bar \
     > "/private/tmp/${restore_project}-tantivy-noop.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_llmindex migrate --no-progress-bar \
     > "/private/tmp/${restore_project}-llm-noop.txt"
-  "${COMPOSE[@]}" exec -T paperless-webserver \
+  "${COMPOSE[@]}" exec -T --user paperless paperless-webserver \
     python manage.py document_llmindex update --no-progress-bar \
     >> "/private/tmp/${restore_project}-llm-noop.txt"
   "${COMPOSE[@]}" exec -T paperless-webserver \

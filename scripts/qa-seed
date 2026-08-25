@@ -155,9 +155,9 @@ capture() {
             'from documents.models import Document; print(Document.objects.count())' \
             | tail -n 1
     )"
-    "${compose[@]}" exec -T paperless-webserver \
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
         mkdir -p "/usr/src/paperless/export/$export_name"
-    "${compose[@]}" exec -T paperless-webserver \
+    "${compose[@]}" exec -T --user paperless paperless-webserver \
         python manage.py document_exporter \
         "/usr/src/paperless/export/$export_name" \
         --compare-checksums --delete --no-progress-bar
