@@ -439,6 +439,7 @@ async function fullStrongAcceptance({
     sessionId,
     authenticatorId,
     credentials,
+    env,
     assertedCount,
     networkRequests,
     trackedSessions,
@@ -574,7 +575,8 @@ async function fullStrongAcceptance({
         () => evaluate(
             client,
             popupSession,
-            `document.readyState === "complete" && location.origin.includes("pocket-id-sign-qa")`
+            `document.readyState === "complete"
+                && location.origin === ${JSON.stringify(new URL(env.POCKET_ID_APP_URL).origin)}`
         ),
         "Pocket ID Strong authorization popup",
         20000
@@ -770,6 +772,7 @@ async function main() {
                 sessionId,
                 authenticatorId,
                 credentials,
+                env,
                 assertedCount,
                 networkRequests,
                 trackedSessions,

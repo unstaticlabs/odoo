@@ -77,7 +77,9 @@ checks = {
     "amr_is_fresh_passkey": ceremony.oidc_claims_summary.get("amr") == ["phr"],
     "auth_time_is_fresh": bool(
         auth_time
-        and ceremony.create_date <= auth_time <= auth_upper_bound
+        and int(ceremony.create_date.timestamp())
+        <= int(auth_time.timestamp())
+        <= int(auth_upper_bound.timestamp())
     ),
     "binding_digest_matches": bool(
         ceremony.challenge_sha256 == binding_digest.hex()

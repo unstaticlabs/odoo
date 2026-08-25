@@ -76,7 +76,14 @@ sign_request = env["sign.oca.request"].with_user(reviewer).create(
 sign_request.action_mark_ready()
 if sign_request.recommended_trust != "strong_personal":
     raise RuntimeError("The material recurring-signer policy did not recommend Strong")
-sign_request.action_send()
+send_action = sign_request.action_send()
+if (
+    isinstance(send_action, dict)
+    and send_action.get("res_model") == "usl.sign.share.confirm"
+):
+    env["usl.sign.share.confirm"].browse(send_action["res_id"]).action_confirm()
+if sign_request.state != "sent":
+    raise RuntimeError(f"The Strong request was not sent: {sign_request.state}")
 signer = sign_request.signer_ids
 access_token = signer._issue_access_token()
 session_token = signer._exchange_access_token(access_token)
@@ -86,6 +93,6 @@ payload = {
     "enrollment_id": enrollment.id,
     "request_id": sign_request.id,
     "signer_id": signer.id,
-    "signing_url": f"{base_url}/sign/session/{signer.id}/{session_token}",
+    "signing_url": f"{base_url}/sign/session/{signer.id}/{session_token}?review=1",
 }
 print("USL_SIGN_STRONG_ACCEPTANCE=" + json.dumps(payload, sort_keys=True))
