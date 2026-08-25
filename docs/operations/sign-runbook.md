@@ -4,9 +4,10 @@
 
 Odoo owns the signing workflow and structured evidence. The internal EU DSS
 service constructs and validates PAdES, `step-ca` issues short-lived personal
-certificates, and Paperless stores the final sealed dossier. The first-release
-qualified journey is manual and provider-neutral. Do not install an external
-signing API adapter or store service credentials in Odoo.
+certificates, and Paperless stores the final signed PDF plus its sealed proof
+package. The first-release qualified journey is manual and provider-neutral.
+Do not install an external signing API adapter or store service credentials in
+Odoo.
 
 All Sign keys and credentials are deployment secrets. Keep the offline CA
 root offline after initialization. Mount only the online intermediate,
@@ -332,9 +333,8 @@ downgrade or manual completion option.
 
 In **Sign → Configuration → Settings**, keep **Send signers a copy of the final
 signed document** enabled unless company policy explicitly forbids signer
-delivery. The signing application queues the final PDF/A-3 dossier once, and
-only after
-validation and Paperless archival have completed.
+delivery. The signing application queues signer delivery only after validation
+and both Paperless archives have completed.
 
 For every completed request, inspect the source documents, frozen snapshots,
 signer/consent evidence, original/final hashes, complete event chain,
@@ -342,12 +342,20 @@ certificates, timestamps/revocation material, all DSS reports, pyHanko result,
 external proof where applicable, completion certificate, signed PDF and signed
 canonical manifest.
 
-The deterministic PDF/A-3 dossier must pass veraPDF before its platform seal
-is applied. Paperless success or a checksum-identical response is required for
-completion. For timeout or server failure, leave the operation failed/pending,
-correct the infrastructure problem and use the explicit retry action. Never
-change the checksum, create a second truth record or mark the request complete
-manually.
+Paperless receives two request-linked records: the clean signed PDF is the
+primary document to read and share; the deterministic PDF/A-3 proof package is
+its audit companion. The package must embed the signed PDF and all supporting
+artifacts, pass veraPDF and receive its platform seal. Success or a
+checksum-identical response is required for both records before completion.
+For timeout or server failure, leave the operation failed/pending, correct the
+infrastructure problem and use the explicit retry action. Never change a
+checksum, create a second truth record or mark the request complete manually.
+
+The Odoo archived-document **File history** tab appears only when Paperless has
+a genuine replacement or restored file. The PDF editor's colored field overlay
+is not a file version and must not appear after completion. Use the request's
+**Signed PDF** for the authoritative result, **Completion certificate** for a
+short summary, and **Complete proof package** for audit or independent review.
 
 The daily job closes UTC days and automatically catches up missed days. Each
 company manifest is DSS-signed and chained to the preceding signed envelope.

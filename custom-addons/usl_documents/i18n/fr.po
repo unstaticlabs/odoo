@@ -5919,12 +5919,26 @@ msgstr "Documents : classer les enregistrements liés fiables"
 
 #. module: usl_documents
 #. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Remove this Odoo link without deleting the archived document."
-msgstr "Supprime ce lien Odoo sans effacer le document archivé."
-
-#. module: usl_documents
-#. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_loader.js:0
 msgid "The Documents workspace could not be loaded."
 msgstr "L’espace Documents n’a pas pu être chargé."
+
+#. module: usl_documents
+msgid "Open document"
+msgstr "Ouvrir le document"
+
+#. module: usl_documents
+msgid "Download file"
+msgstr "Télécharger le fichier"
+
+#. module: usl_documents
+msgid "Download Paperless copy"
+msgstr "Télécharger la copie Paperless"
+
+#. module: usl_documents
+msgid "File history"
+msgstr "Historique des fichiers"
+
+#. module: usl_documents
+msgid "Earlier files are kept only when this archived document was deliberately replaced or restored. The row marked Current is the file opened from the Document tab."
+msgstr "Les fichiers antérieurs ne sont conservés que lorsque ce document archivé a été remplacé ou restauré volontairement. La ligne marquée Actuel correspond au fichier ouvert depuis l’onglet Document."

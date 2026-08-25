@@ -2400,3 +2400,23 @@ msgstr "PDF signé"
 #. module: usl_sign
 msgid "Proof record"
 msgstr "Dossier de preuves"
+
+#. module: usl_sign
+msgid "Archived signed document"
+msgstr "Document signé archivé"
+
+#. module: usl_sign
+msgid "Archived proof package"
+msgstr "Dossier de preuve archivé"
+
+#. module: usl_sign
+msgid "Complete proof package"
+msgstr "Dossier de preuve complet"
+
+#. module: usl_sign
+msgid "Which file should I use?"
+msgstr "Quel fichier utiliser ?"
+
+#. module: usl_sign
+msgid "The signed PDF is the document to read and share. The completion certificate is a short summary. The proof package is for audit and contains the signed PDF, source files, consent, activity record, certificates, and validation reports as embedded attachments."
+msgstr "Le PDF signé est le document à lire et à partager. Le certificat d’achèvement en est un résumé. Le dossier de preuve est destiné à l’audit et contient, en pièces jointes intégrées, le PDF signé, les fichiers sources, le consentement, le journal d’activité, les certificats et les rapports de validation."
