@@ -2336,6 +2336,42 @@ msgid "Confirm and sign"
 msgstr "Confirmer et signer"
 
 #. module: usl_sign
+msgid "Before you sign"
+msgstr "Avant de signer"
+
+#. module: usl_sign
+msgid "I reviewed this document and consent to use an electronic signature."
+msgstr "J’ai vérifié ce document et j’accepte d’utiliser une signature électronique."
+
+#. module: usl_sign
+msgid "Consent is required."
+msgstr "Votre consentement est requis."
+
+#. module: usl_sign
+msgid "Saving your signature and checking the document. Keep this tab open."
+msgstr "Enregistrement de votre signature et vérification du document. Gardez cet onglet ouvert."
+
+#. module: usl_sign
+msgid "Signature saved. Opening the result…"
+msgstr "Signature enregistrée. Ouverture du résultat…"
+
+#. module: usl_sign
+msgid "Finalizing…"
+msgstr "Finalisation…"
+
+#. module: usl_sign
+msgid "The signature could not be submitted. Reload the document and try again."
+msgstr "La signature n’a pas pu être envoyée. Rechargez le document et réessayez."
+
+#. module: usl_sign
+msgid "Recommended method"
+msgstr "Méthode recommandée"
+
+#. module: usl_sign
+msgid "Availability"
+msgstr "Disponibilité"
+
+#. module: usl_sign
 msgid "A secure Pocket ID window will open."
 msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir."
 
