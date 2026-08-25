@@ -75,6 +75,7 @@ function editorFixture() {
         activeManipulation: null,
         cancelPaletteDrag: UslSignTemplateEditor.prototype.cancelPaletteDrag,
         cancelManipulation: UslSignTemplateEditor.prototype.cancelManipulation,
+        placeField: UslSignTemplateEditor.prototype.placeField,
         role(roleId) {
             return this.info.roles.find((role) => role.id === Number(roleId));
         },

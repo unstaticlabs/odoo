@@ -2,6 +2,7 @@ from pathlib import Path
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+from odoo.tools.misc import format_datetime
 
 
 class SignWorkspace(models.AbstractModel):
@@ -49,7 +50,9 @@ class SignWorkspace(models.AbstractModel):
             "status": request.lifecycle_stage_label,
             "progress": request.signer_progress,
             "next_step": request.next_step,
-            "due": fields.Datetime.to_string(request.expires_at) if request.expires_at else False,
+            "due": format_datetime(self.env, request.expires_at, dt_format="short")
+            if request.expires_at
+            else False,
             "trust": request.requested_trust_short,
             "archive": request.archive_status,
             "action": {"type": "open", "model": request._name, "id": request.id},
@@ -103,7 +106,11 @@ class SignWorkspace(models.AbstractModel):
                 "status": "Ready for your signature",
                 "progress": signer.request_id.signer_progress,
                 "next_step": "Review and sign",
-                "due": fields.Datetime.to_string(signer.request_id.expires_at)
+                "due": format_datetime(
+                    self.env,
+                    signer.request_id.expires_at,
+                    dt_format="short",
+                )
                 if signer.request_id.expires_at
                 else False,
                 "trust": signer.request_id.requested_trust_short,
