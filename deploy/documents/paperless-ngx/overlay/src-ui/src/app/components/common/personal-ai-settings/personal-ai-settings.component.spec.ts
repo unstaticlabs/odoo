@@ -67,4 +67,3 @@ describe('PersonalAISettingsComponent', () => {
     expect(fixture.componentInstance.form.value.api_key).toBe('')
   })
 })
-
