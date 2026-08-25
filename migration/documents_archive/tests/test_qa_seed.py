@@ -119,6 +119,10 @@ class QaSeedManifestTest(unittest.TestCase):
         self.assertIn("DELETE FROM", script)
         self.assertIn("usl_documents.paperless_token", script)
         self.assertIn("UPDATE auth_oauth_provider SET client_secret = NULL", script)
+        self.assertLess(
+            script.index('"usl_paperless_user_mapping"'),
+            script.index('"usl_oidc_identity"'),
+        )
 
 
 if __name__ == "__main__":

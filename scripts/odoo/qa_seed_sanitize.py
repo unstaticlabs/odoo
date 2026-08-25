@@ -19,8 +19,14 @@ for table in ("auth_api_key", "auth_totp_device", "auth_passkey_key"):
         env.cr.execute(f'DELETE FROM "{table}"')  # noqa: S608, F821
 
 # Provider configuration is rebuilt from the isolated environment after
-# hydration. Identity subjects and audit events must never enter the seed.
-for table in ("usl_oidc_identity", "usl_oidc_audit_event"):
+# hydration. Paperless mappings reference OIDC identities, so remove the
+# environment-specific dependent rows before identity subjects and audit
+# events. None of them may enter a seed or release cohort.
+for table in (
+    "usl_paperless_user_mapping",
+    "usl_oidc_audit_event",
+    "usl_oidc_identity",
+):
     if table_exists(table):
         env.cr.execute(f'DELETE FROM "{table}"')  # noqa: S608, F821
 
