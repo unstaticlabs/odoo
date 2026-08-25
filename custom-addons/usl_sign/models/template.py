@@ -422,15 +422,19 @@ class SignTemplate(models.Model):
             },
         )
 
-    def _validate_editor_page(self, page):
+    def _editor_page_count(self):
         self.ensure_one()
         try:
-            page_count = len(
+            return len(
                 PdfReader(BytesIO(field_content(self.with_context(bin_size=False).data))).pages,
             )
         except Exception as error:
             msg = "Upload a readable PDF before editing its fields."
             raise ValidationError(msg) from error
+
+    def _validate_editor_page(self, page):
+        self.ensure_one()
+        page_count = self._editor_page_count()
         if int(page) < 1 or int(page) > page_count:
             msg = "The selected PDF page does not exist."
             raise ValidationError(msg)
@@ -506,8 +510,10 @@ class SignTemplate(models.Model):
             raise ValidationError(msg)
         _validate_editor_geometry(values)
         item = False
+        items = []
         deleted_id = False
-        if action == "create":
+        deleted_ids = []
+        if action in {"create", "create_all_pages"}:
             if not values.get("field_id") or not values.get("role_id"):
                 msg = "Choose both a field type and a signer before placing it."
                 raise ValidationError(msg)
@@ -518,16 +524,33 @@ class SignTemplate(models.Model):
             if not field or not role:
                 msg = "The selected field type or signer role is unavailable."
                 raise ValidationError(msg)
+            if action == "create_all_pages" and _field_kind(field) != "initials":
+                msg = "Only an Initials field can be placed on every page."
+                raise ValidationError(msg)
             defaults = FIELD_PRESENTATION[_field_kind(field)]
             values.setdefault("width", defaults["width"])
             values.setdefault("height", defaults["height"])
             values.setdefault("required", field.field_type == "signature")
             values.setdefault("page", 1)
-            self._validate_editor_page(values["page"])
-            item = self.env["sign.oca.template.item"].create(
-                {"template_id": self.id, **values},
+            page_count = self._editor_page_count()
+            pages = (
+                range(1, page_count + 1)
+                if action == "create_all_pages"
+                else [int(values["page"])]
             )
-            _validate_complete_editor_geometry(item.get_info())
+            for page in pages:
+                if page < 1 or page > page_count:
+                    msg = "The selected PDF page does not exist."
+                    raise ValidationError(msg)
+                item_values = {**values, "page": page}
+                created = self.env["sign.oca.template.item"].create(
+                    {"template_id": self.id, **item_values},
+                )
+                _validate_complete_editor_geometry(created.get_info())
+                items.append(created)
+            if action == "create":
+                item = items[0]
+                items = []
         elif action == "update":
             item = self.item_ids.filtered(lambda row: row.id == int(command.get("item_id", 0)))
             if len(item) != 1:
@@ -557,6 +580,22 @@ class SignTemplate(models.Model):
             deleted_id = item.id
             item.unlink()
             item = False
+        elif action == "delete_many":
+            raw_ids = command.get("item_ids")
+            if not isinstance(raw_ids, list) or not raw_ids:
+                msg = "Choose the fields to remove."
+                raise ValidationError(msg)
+            try:
+                requested_ids = list(dict.fromkeys(int(item_id) for item_id in raw_ids))
+            except (TypeError, ValueError) as error:
+                msg = "The fields to remove are invalid."
+                raise ValidationError(msg) from error
+            batch = self.item_ids.filtered(lambda row: row.id in requested_ids)
+            if len(batch) != len(requested_ids):
+                msg = "One or more fields no longer exist in this template."
+                raise ValidationError(msg)
+            deleted_ids = batch.ids
+            batch.unlink()
         else:
             msg = "The editor command action is unsupported."
             raise ValidationError(msg)
@@ -572,7 +611,16 @@ class SignTemplate(models.Model):
                 }
                 if item else False
             ),
+            "items": [
+                {
+                    **created.get_info(),
+                    "kind": _field_kind(created.field_id),
+                    "field_type": created.field_id.field_type,
+                }
+                for created in items
+            ],
             "deleted_id": deleted_id,
+            "deleted_ids": deleted_ids,
         }
         self._editor_store_result(operation_uuid, result)
         return result

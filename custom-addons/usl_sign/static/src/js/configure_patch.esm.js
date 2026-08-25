@@ -55,6 +55,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
             selectedFieldId: false,
             selectedRoleId: false,
             selectedItemId: false,
+            placeOnEveryPage: false,
             newRoleName: "",
             contextPlacement: false,
             saveStatus: "saved",
@@ -106,6 +107,10 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
 
     get isEditable() {
         return !this.info.readonly && !this.editor.conflict;
+    }
+
+    get canPlaceOnEveryPage() {
+        return this.selectedField?.kind === "initials";
     }
 
     get finishLabel() {
@@ -166,6 +171,13 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
         this.editor.selectedFieldId = Number(event.currentTarget.dataset.fieldId);
         this.editor.selectedItemId = false;
+        if (!this.canPlaceOnEveryPage) {
+            this.editor.placeOnEveryPage = false;
+        }
+    }
+
+    toggleEveryPagePlacement(event) {
+        this.editor.placeOnEveryPage = event.target.checked;
     }
 
     closeInspector() {
@@ -176,6 +188,9 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
 
     selectContextField(event) {
         this.editor.selectedFieldId = Number(event.target.value);
+        if (!this.canPlaceOnEveryPage) {
+            this.editor.placeOnEveryPage = false;
+        }
     }
 
     selectContextRole(event) {
@@ -297,7 +312,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 page.getBoundingClientRect(), event.clientX, event.clientY,
                 field.default_width, field.default_height
             );
-            this.createField({
+            this.placeField({
                 field_id: field.id,
                 role_id: this.editor.selectedRoleId,
                 page: Number(page.dataset.pageNumber),
@@ -658,7 +673,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 pageRectangle, iframeX, iframeY, field.default_width, field.default_height
             );
             this.editor.selectedFieldId = field.id;
-            this.createField({
+            this.placeField({
                 field_id: field.id,
                 role_id: this.editor.selectedRoleId,
                 page: Number(page.dataset.pageNumber),
@@ -703,7 +718,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
             this.notification.add(_t("Choose a field type and signer first."), {type: "warning"});
             return;
         }
-        this.createField({
+        this.placeField({
             field_id: field.id,
             role_id: this.editor.selectedRoleId,
             ...this.editor.contextPlacement,
@@ -738,12 +753,20 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                     this.info.items[String(result.item.id)] = result.item;
                     this.renderField(result.item);
                 }
-                if (result.deleted_id) {
-                    delete this.info.items[String(result.deleted_id)];
-                    delete this.info.items[result.deleted_id];
-                    this.items[result.deleted_id]?.remove();
-                    delete this.items[result.deleted_id];
-                    if (this.editor.selectedItemId === result.deleted_id) {
+                for (const item of result.items || []) {
+                    this.info.items[String(item.id)] = item;
+                    this.renderField(item);
+                }
+                const deletedIds = [
+                    ...(result.deleted_id ? [result.deleted_id] : []),
+                    ...(result.deleted_ids || []),
+                ];
+                for (const deletedId of deletedIds) {
+                    delete this.info.items[String(deletedId)];
+                    delete this.info.items[deletedId];
+                    this.items[deletedId]?.remove();
+                    delete this.items[deletedId];
+                    if (this.editor.selectedItemId === deletedId) {
                         this.editor.selectedItemId = false;
                     }
                 }
@@ -793,6 +816,32 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         return result;
     }
 
+    placeField(values) {
+        if (this.canPlaceOnEveryPage && this.editor.placeOnEveryPage) {
+            return this.createFieldsOnEveryPage(values);
+        }
+        return this.createField(values);
+    }
+
+    async createFieldsOnEveryPage(values, {recordHistory = true} = {}) {
+        const result = await this.applyCommand({action: "create_all_pages", values});
+        if (result.status !== "ok") {
+            return result;
+        }
+        const placedItems = result.items || [];
+        const selected = placedItems.find((item) => item.page === values.page) || placedItems[0];
+        this.editor.selectedItemId = selected?.id || false;
+        this.refreshSelection();
+        if (recordHistory) {
+            this.pushHistory({
+                kind: "create_many",
+                itemIds: placedItems.map((item) => item.id),
+                values,
+            });
+        }
+        return result;
+    }
+
     async updateField(item, values, inverseValues = false, {recordHistory = true} = {}) {
         const before = inverseValues || Object.fromEntries(
             Object.keys(values).map((key) => [key, item[key]])
@@ -826,6 +875,10 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         return result;
     }
 
+    async deleteFields(itemIds) {
+        return this.applyCommand({action: "delete_many", item_ids: itemIds});
+    }
+
     async undo() {
         if (!this.isEditable || !this.undoStack.length) {
             return;
@@ -838,6 +891,8 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 result = await this.updateField(item, entry.before, entry.after, {recordHistory: false});
             } else if (entry.kind === "create") {
                 result = await this.deleteField(this.info.items[String(entry.itemId)], {recordHistory: false});
+            } else if (entry.kind === "create_many") {
+                result = await this.deleteFields(entry.itemIds);
             } else if (entry.kind === "delete") {
                 result = await this.createField(entry.values, {recordHistory: false});
                 if (result.status === "ok") {
@@ -871,6 +926,14 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 result = await this.createField(entry.values, {recordHistory: false});
                 if (result.status === "ok") {
                     entry.itemId = result.item.id;
+                }
+            } else if (entry.kind === "create_many") {
+                result = await this.createFieldsOnEveryPage(
+                    entry.values,
+                    {recordHistory: false}
+                );
+                if (result.status === "ok") {
+                    entry.itemIds = result.items.map((item) => item.id);
                 }
             } else if (entry.kind === "delete") {
                 result = await this.deleteField(this.info.items[String(entry.itemId)], {recordHistory: false});
