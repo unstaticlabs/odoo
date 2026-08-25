@@ -13,6 +13,7 @@ from . import report_views
 from . import report_definition
 from . import report_export_wizard
 from . import accounting_overview
+from . import bank_statement_hygiene
 from . import cash_position
 from . import oca_report_defaults
 from . import fec_export_wizard

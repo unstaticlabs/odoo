@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bank_statement_confirm_form" model="ir.ui.view">
+        <field name="name">account.bank.statement.confirm.form</field>
+        <field name="model">account.bank.statement.confirm</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Bank Balances">
+                <group>
+                    <field name="statement_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="balance_start" string="Bank opening balance"/>
+                    <field name="movement_total"/>
+                    <field name="balance_end_real" string="Bank closing balance"/>
+                    <field name="resulting_difference" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm balances" class="btn-primary" data-hotkey="s"/>
+                    <button string="Cancel" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bank_statement_reopen_form" model="ir.ui.view">
+        <field name="name">account.bank.statement.reopen.form</field>
+        <field name="model">account.bank.statement.reopen</field>
+        <field name="arch" type="xml">
+            <form string="Reopen Certified Statement">
+                <field name="statement_id" invisible="1"/>
+                <div class="alert alert-warning" role="alert">
+                    Reopening allows corrections and requires a new certification. Existing evidence and certification history remain unchanged.
+                </div>
+                <field name="reason" placeholder="Why is this correction required?"/>
+                <footer>
+                    <button name="action_reopen" type="object" string="Reopen statement" class="btn-primary" data-hotkey="s"/>
+                    <button string="Cancel" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

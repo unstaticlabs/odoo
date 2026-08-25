@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rebuild_accounting_home_bank_checkpoint" model="ir.ui.view">
+        <field name="name">rebuild.account.overview.form.bank.statement.checkpoint</field>
+        <field name="model">rebuild.account.overview</field>
+        <field name="inherit_id" ref="view_rebuild_accounting_home_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_missing_vendor_attachments']/ancestor::div[contains(@class, 'col-12')][1]" position="after">
+                <div class="col-12" invisible="not bank_checkpoint_config_id">
+                    <div class="o_usl_overview_card">
+                        <div class="o_usl_overview_status">
+                            <h4 class="o_usl_overview_card_title">Monthly bank statement</h4>
+                            <field
+                                name="bank_checkpoint_status"
+                                nolabel="1"
+                                widget="badge"
+                                decoration-success="bank_checkpoint_status == 'certified'"
+                                decoration-warning="bank_checkpoint_status in ('expected', 'processing', 'ready', 'reopened')"
+                                decoration-danger="bank_checkpoint_status == 'attention'"/>
+                        </div>
+                        <span class="o_usl_overview_value"><field name="bank_checkpoint_period" nolabel="1"/></span>
+                        <div class="o_usl_overview_detail"><field name="bank_checkpoint_next_action" nolabel="1"/></div>
+                        <button name="action_open_bank_checkpoint" type="object" string="Open monthly statement" class="btn-link"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

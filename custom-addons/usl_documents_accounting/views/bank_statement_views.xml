@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bank_statement_review_documents" model="ir.ui.view">
+        <field name="name">account.bank.statement.form.bank.evidence.archive</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="usl_accounting.view_bank_statement_form_review"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='accepted_evidence_id']" position="after">
+                <field name="bank_evidence_archive_state" widget="badge" readonly="1"/>
+                <field name="bank_evidence_archive_error" readonly="1" invisible="not bank_evidence_archive_error"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-archive" invisible="not archived_document_count">
+                    <field name="archived_document_count" widget="statinfo" string="Archive"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_bank_ingestion_file_documents" model="ir.ui.view">
+        <field name="name">account.bank.ingestion.file.form.documents</field>
+        <field name="model">account.bank.ingestion.file</field>
+        <field name="inherit_id" ref="usl_accounting.view_bank_ingestion_file_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='paperless_version']" position="before">
+                <field name="paperless_archive_state" widget="badge" readonly="1"/>
+                <field name="paperless_archive_error" readonly="1" invisible="not paperless_archive_error"/>
+                <field name="paperless_document_id" readonly="1" invisible="not paperless_document_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
