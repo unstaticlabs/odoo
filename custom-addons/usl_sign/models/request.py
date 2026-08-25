@@ -2484,6 +2484,25 @@ class SignRequest(models.Model):
     @api.model
     def _cron_sign_operations(self):
         now = fields.Datetime.now()
+        signer_model = self.env["sign.oca.request.signer"]
+        actionable_signers = signer_model.search(
+            [
+                ("state", "in", ["notified", "viewed", "authorized"]),
+                ("request_id.state", "in", ["sent", "viewed", "partial"]),
+                ("access_revoked", "=", False),
+            ],
+            limit=500,
+        )
+        activity_type = self.env.ref("usl_sign.mail_activity_type_sign_document")
+        active_activities = self.env["mail.activity"].sudo().search(
+            [
+                ("activity_type_id", "=", activity_type.id),
+                ("res_model", "=", "sign.oca.request.signer"),
+                ("active", "=", True),
+            ],
+        )
+        activity_signers = signer_model.browse(active_activities.mapped("res_id")).exists()
+        (actionable_signers | activity_signers)._ensure_internal_signing_activities()
         failed_delivery = self.env["sign.oca.request.signer"].search(
             [
                 ("request_id.state", "in", ["sent", "viewed", "partial"]),
@@ -2615,6 +2634,7 @@ class SignRequest(models.Model):
 
     def _close_outstanding_work(self, failure_code):
         self.ensure_one()
+        self.signer_ids._close_internal_signing_activities()
         self.external_journey_id.filtered(
             lambda journey: journey.state not in {"validated", "rejected", "cancelled"},
         ).with_context(usl_sign_external_transition=INTERNAL_OPERATION).write({"state": "cancelled"})
@@ -3027,17 +3047,107 @@ class SignRequestSigner(models.Model):
 
     def _has_internal_signing_access(self):
         self.ensure_one()
+        return bool(self._internal_signing_users())
+
+    def _internal_signing_users(self):
+        """Backend users who can open this exact signing assignment."""
         sign_users = self.env.ref("usl_sign.group_sign_user").sudo().all_user_ids
-        return bool(
-            self.partner_id.sudo().user_ids.filtered(
-                lambda user: (
-                    user.active
-                    and not user.share
-                    and user in sign_users
-                    and self.request_id.company_id in user.company_ids
-                ),
+        users = self.sudo().partner_id.user_ids.filtered(
+            lambda user: (
+                user.active
+                and not user.share
+                and user in sign_users
+                and self.request_id.company_id in user.company_ids
             ),
         )
+        return users.sorted(lambda user: (user.name.casefold(), user.id))
+
+    def _signing_activity_deadline(self):
+        self.ensure_one()
+        return (
+            fields.Date.to_date(self.request_id.expires_at)
+            if self.request_id.expires_at
+            else fields.Date.context_today(self)
+        )
+
+    def _ensure_internal_signing_activities(self):
+        """Create one current native activity per internal signer user.
+
+        Invitations and reminders can be retried, so this intentionally updates
+        an existing assignment instead of creating notification duplicates.
+        """
+        activity_type = self.env.ref("usl_sign.mail_activity_type_sign_document")
+        activity_model = self.env["mail.activity"].sudo()
+        for signer in self.exists():
+            if (
+                signer.state not in {"notified", "viewed", "authorized"}
+                or signer.access_revoked
+                or signer.request_id.state not in {"sent", "viewed", "partial"}
+            ):
+                signer._close_internal_signing_activities()
+                continue
+            # Serialize invitation retries on the signer so duplicate HTTP jobs
+            # cannot create duplicate activities.
+            self.env.cr.execute(
+                "SELECT id FROM sign_oca_request_signer WHERE id = %s FOR UPDATE",
+                [signer.id],
+            )
+            users = signer._internal_signing_users()
+            existing = activity_model.search(
+                [
+                    ("activity_type_id", "=", activity_type.id),
+                    ("res_model", "=", signer._name),
+                    ("res_id", "=", signer.id),
+                    ("active", "=", True),
+                ],
+                order="id",
+            )
+            stale = existing.filtered(lambda activity: activity.user_id not in users)
+            stale.unlink()
+            for user in users:
+                user_activities = (existing - stale).filtered(
+                    lambda activity: activity.user_id == user,
+                )
+                summary = _(
+                    "Review and sign: %(document)s",
+                    document=signer.request_id.name,
+                )
+                note = _(
+                    "<p><strong>%(sender)s</strong> asked you to review and sign "
+                    "<strong>%(document)s</strong> as %(role)s.</p>"
+                    "<p>Open this activity and choose <strong>Review and sign</strong>.</p>",
+                    sender=escape(signer.request_id.user_id.name),
+                    document=escape(signer.request_id.name),
+                    role=escape(signer.role_id.name),
+                )
+                values = {
+                    "summary": summary,
+                    "note": note,
+                    "date_deadline": signer._signing_activity_deadline(),
+                }
+                if user_activities:
+                    user_activities[:1].write(values)
+                    user_activities[1:].unlink()
+                    continue
+                # The signing invitation already owns email delivery. Quick
+                # update keeps this as an Odoo inbox/activity notification and
+                # avoids sending a second generic activity email.
+                signer.sudo().with_context(
+                    lang=user.lang,
+                    mail_activity_quick_update=True,
+                ).activity_schedule(
+                    "usl_sign.mail_activity_type_sign_document",
+                    user_id=user.id,
+                    **values,
+                )
+        return True
+
+    def _close_internal_signing_activities(self):
+        if self:
+            self.sudo().activity_unlink(
+                ["usl_sign.mail_activity_type_sign_document"],
+            )
+        return True
 
     def _issue_access_token(self):
         self.ensure_one()
@@ -3333,6 +3443,7 @@ class SignRequestSigner(models.Model):
                 signer=signer,
                 payload={"reminder": reminder},
             )
+            signer._ensure_internal_signing_activities()
         return True
 
     def _mark_viewed(self):
@@ -3515,6 +3626,7 @@ class SignRequestSigner(models.Model):
                 "consent_version": "1",
             },
         )
+        self._close_internal_signing_activities()
         self._activate_next_signer_or_finish()
         return {"type": "ir.actions.act_url", "url": "/sign/result/success"}
 
