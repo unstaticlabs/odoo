@@ -3099,7 +3099,7 @@ class SignRequestSigner(models.Model):
         return {
             "type": "ir.actions.act_url",
             "url": self.access_url,
-            "target": "self",
+            "target": "new",
         }
 
     access_token_sha256 = fields.Char(readonly=True, copy=False, index=True)

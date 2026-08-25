@@ -356,6 +356,12 @@ class TestCleanUslSign(TransactionCase):
             wizard.journey_availability,
             "Ready. Each signer receives a private link to review and sign.",
         )
+        preparation_arch = self.env.ref(
+            "usl_sign.sign_template_generate_form_usl",
+        ).arch_db
+        self.assertIn("usl_sign_method_recommendation", preparation_arch)
+        self.assertIn("Recommended method", preparation_arch)
+        self.assertIn("Availability", preparation_arch)
         action = wizard.generate()
         self.assertEqual(action["type"], "ir.actions.act_window")
         request = self.env["sign.oca.request"].browse(action["res_id"])
@@ -1759,6 +1765,10 @@ class TestCleanUslSign(TransactionCase):
 
         participant_request = request.with_user(internal_signer)
         self.assertTrue(own_signer.with_user(internal_signer).is_allow_signature)
+        self.assertEqual(
+            own_signer.with_user(internal_signer).sign()["target"],
+            "new",
+        )
         self.assertEqual(participant_request.signer_progress, "0 of 2 signed")
         self.assertEqual(participant_request.next_step, "Waiting for 2 signers.")
         landing = self.env["usl.sign.workspace"].with_user(
