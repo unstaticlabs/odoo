@@ -452,6 +452,53 @@ class TestPocketIDOidcSecurity(TransactionCase):
                     label="unsafe test service",
                 )
 
+    def test_private_http_requires_explicit_development_qa_opt_in(self):
+        private_url = "http://100.79.30.44:1411"
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "USL_DEPLOYMENT_ENV": "development",
+                    "USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA": "0",
+                },
+            ),
+            self.assertRaises(ValidationError),
+        ):
+            self.provider._usl_validate_url(
+                private_url,
+                label="private service without QA opt-in",
+            )
+        with patch.dict(
+            os.environ,
+            {
+                "USL_DEPLOYMENT_ENV": "development",
+                "USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA": "1",
+            },
+        ):
+            self.assertEqual(
+                self.provider._usl_validate_url(
+                    private_url,
+                    label="private QA service",
+                ),
+                private_url,
+            )
+        for deployment in ("preproduction", "production"):
+            with (
+                self.subTest(deployment=deployment),
+                patch.dict(
+                    os.environ,
+                    {
+                        "USL_DEPLOYMENT_ENV": deployment,
+                        "USL_POCKET_ID_ALLOW_PRIVATE_HTTP_QA": "1",
+                    },
+                ),
+                self.assertRaises(ValidationError),
+            ):
+                self.provider._usl_validate_url(
+                    private_url,
+                    label="unsafe private service",
+                )
+
     def test_jwks_requires_bounded_valid_rsa_key_selection(self):
         second_key = {**self.jwk, "kid": "second-key"}
         response = Mock()

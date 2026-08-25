@@ -84,9 +84,11 @@ Compose overlay publishes only Odoo, its gevent endpoint, Pocket ID and
 Paperless on that one address. PostgreSQL, CA and DSS remain internal to the
 isolated Compose project. The helper rejects wildcard, public and multicast
 bind addresses; an explicit private-QA opt-in is required for non-localhost
-OIDC hostnames. Plain HTTP on a private address is suitable only for this
-disposable synthetic review tenant, not for production or a real passkey
-ceremony.
+OIDC hostnames. The QA-only private HTTP exception is accepted only when
+`USL_DEPLOYMENT_ENV=development` and the opt-in is set; preproduction and
+production continue to require HTTPS. Plain HTTP on a private address is
+suitable only for this disposable synthetic review tenant, not for production
+or a real passkey ceremony.
 
 ## Product workspaces
 
