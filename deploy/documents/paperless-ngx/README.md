@@ -9,7 +9,7 @@ changes the image.
 
 ## Patch inventory
 
-Patch level `semantic-search-api-v1` has two production changes:
+Patch level `semantic-search-api-v2` has two production changes:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/semantic_search/` endpoint. It uses Paperless's native
@@ -20,8 +20,9 @@ Patch level `semantic-search-api-v1` has two production changes:
 
 `tests/test_semantic_api.py` is an upstream-style DRF test module covering
 permission resolution before retrieval, object grants, mandatory service
-scope, empty-scope fail-closed behavior, facets, request limits, and embedding
-outage behavior.
+scope, indistinguishable source-document denial, source exclusion,
+empty-scope fail-closed behavior, facets, request limits, and embedding outage
+behavior.
 
 No upstream model, migration, task, OCR, Tantivy, version, metadata, or
 generative-AI behavior is replaced.
@@ -30,7 +31,9 @@ generative-AI behavior is replaced.
 
 The request accepts:
 
-- `query`: required nonblank text, at most 2,048 characters;
+- exactly one of `query` (nonblank text, at most 2,048 characters) or
+  `document_id` (an authorized root whose title and OCR become the local
+  embedding query);
 - `limit`: 1–50, default 10;
 - `document_ids`: optional root scope of at most 10,000 IDs;
 - optional tag, correspondent, document-type, and created-date facets.
@@ -39,9 +42,11 @@ The configured `odoo-integration` service identity must supply
 `document_ids`; an omitted scope is forbidden and an empty scope returns no
 results without touching the embedding backend. Direct Paperless users may
 omit it, but Paperless resolves their owned, unowned, and object-granted roots
-before vector retrieval. Historical version IDs are added only after their
-authorized root has been selected. The vector filter is split below SQLite's
-bound-parameter limit and is rechecked after retrieval.
+before vector retrieval. For document similarity, the source must be visible
+and, for the service identity, must itself occur in the explicit scope. It is
+removed from the candidate set before retrieval. Historical version IDs are
+added only after their authorized root has been selected. The vector filter is
+split below SQLite's bound-parameter limit and is rechecked after retrieval.
 
 Each response item contains the Paperless root ID, rank, similarity, a
 whitespace-normalized excerpt capped at 500 characters, and bounded display
@@ -57,12 +62,16 @@ The endpoint is included in Paperless's generated OpenAPI schema through
 
 Two credible non-overlay alternatives were evaluated:
 
-- Paperless's native similar-document helper is permission scoped, but its
-  input is an existing document and it returns ORM objects. Its only arbitrary
-  text-query surface is document chat, which invokes a generative provider and
-  does not expose ranked retrieval results. It cannot implement local search
-  or MCP without violating the no-generative-search requirement.
-- An Odoo vector index or direct access to Paperless PostgreSQL, Tantivy, or
+- Paperless's native similar-document helper accepts an existing document and
+  a candidate ID list, but it is not an authenticated API, returns ORM objects,
+  and provides neither the mandatory service-scope contract nor bounded
+  excerpts. Its only arbitrary-text surface is document chat, which invokes a
+  generative provider rather than exposing ranked retrieval results.
+- Paperless's public `more_like_id` API is a credible no-overlay fallback, but
+  it uses Tantivy rather than the qualified BGE-M3 index and intersects
+  candidates after retrieval, so it cannot prove the required vector
+  pre-retrieval scope.
+- An Odoo vector index or direct access to Paperless PostgreSQL or
   `llmindex.db` would avoid a Paperless API change, but would split archive
   authority, duplicate embeddings, and bypass Paperless's index lifecycle and
   permission boundary.

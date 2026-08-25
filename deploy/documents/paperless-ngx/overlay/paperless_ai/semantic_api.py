@@ -41,6 +41,8 @@ _INDEX_UNAVAILABLE_MESSAGE = "The semantic index is unavailable."
 _SERVICE_SCOPE_REQUIRED_MESSAGE = (
     "Trusted service identities must supply a document scope."
 )
+_QUERY_MODE_MESSAGE = "Specify exactly one of query or document_id."
+_SOURCE_UNAVAILABLE_MESSAGE = "The source document is unavailable."
 
 
 class SemanticSearchUnavailable(RuntimeError):
@@ -51,6 +53,11 @@ class SemanticSearchRequestSerializer(serializers.Serializer):
     query = serializers.CharField(
         max_length=MAX_QUERY_LENGTH,
         trim_whitespace=True,
+        required=False,
+    )
+    document_id = serializers.IntegerField(
+        min_value=1,
+        required=False,
     )
     limit = serializers.IntegerField(
         default=10,
@@ -90,6 +97,8 @@ class SemanticSearchRequestSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
+        if ("query" in attrs) == ("document_id" in attrs):
+            raise serializers.ValidationError(_QUERY_MODE_MESSAGE)
         start = attrs.get("created_after")
         end = attrs.get("created_before")
         if start and end and start > end:
@@ -242,6 +251,16 @@ class SemanticSearchView(APIView):
             root_document__isnull=True,
             id__in=permitted_document_ids(request.user),
         )
+        source = None
+        if source_id := values.get("document_id"):
+            source = roots.filter(id=source_id).first()
+            if source is None:
+                raise PermissionDenied(_SOURCE_UNAVAILABLE_MESSAGE)
+            if (
+                request.user.username in _scoped_service_usernames()
+                and source.id not in set(requested_ids or [])
+            ):
+                raise PermissionDenied(_SOURCE_UNAVAILABLE_MESSAGE)
         if requested_ids is not None:
             roots = roots.filter(id__in=requested_ids)
         if tag_ids := values.get("tag_ids"):
@@ -254,6 +273,8 @@ class SemanticSearchView(APIView):
             roots = roots.filter(created__gte=created_after)
         if created_before := values.get("created_before"):
             roots = roots.filter(created__lte=created_before)
+        if source is not None:
+            roots = roots.exclude(id=source.id)
 
         root_ids = list(roots.order_by().values_list("id", flat=True).distinct())
         if not root_ids:
@@ -267,7 +288,11 @@ class SemanticSearchView(APIView):
         }
         try:
             chunk_hits = query_semantic_index(
-                values["query"],
+                (
+                    f"{source.title}\n{source.get_effective_content() or ''}"
+                    if source is not None
+                    else values["query"]
+                ),
                 limit=values["limit"],
                 document_ids=list(vector_to_root),
             )
