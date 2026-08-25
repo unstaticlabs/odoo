@@ -864,7 +864,9 @@ class TestSignBrowserJourneys(HttpCase):
                     emailInput.value = "invalid-address";
                     emailInput.dispatchEvent(new InputEvent("input", {bubbles: true}));
                     emailInput.dispatchEvent(new Event("change", {bubbles: true}));
-                    document.getElementById("usl_sign_consent").checked = true;
+                    const consent = document.getElementById("usl_sign_consent");
+                    consent.checked = true;
+                    consent.dispatchEvent(new Event("change", {bubbles: true}));
                     const button = document.getElementById("sign_oca_button");
                     for (let attempt = 0; attempt < 200 && button.disabled; attempt++) {
                         await new Promise((resolve) => setTimeout(resolve, 50));

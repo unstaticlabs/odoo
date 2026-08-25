@@ -59,8 +59,10 @@
                         </div>
                     </div>
                     <div class="alert alert-warning" role="status" invisible="state not in ['waiting_enrollment', 'action_required', 'validation_failed']">
-                        <strong>Needs attention</strong>
-                        <field name="blocking_summary" nolabel="1" readonly="1"/>
+                        <div class="d-flex flex-column gap-1">
+                            <strong class="d-block">Needs attention</strong>
+                            <field name="blocking_summary" nolabel="1" readonly="1" class="d-block"/>
+                        </div>
                     </div>
                     <div class="alert alert-info" role="status" invisible="state in ['waiting_enrollment', 'action_required', 'evidence_incomplete', 'validation_failed', 'completed', 'cancelled', 'declined', 'expired']">
                         <field name="next_step" nolabel="1" readonly="1"/>
