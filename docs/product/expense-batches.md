@@ -143,6 +143,7 @@ totals reconcile to the underlying ledger.
 Normal Odoo services expose the same rules used by the UI:
 
 - `hr.expense.get_expense_batch_candidates(expense_ids)`;
+- `usl.expense.batch.add_expenses(expense_ids)`;
 - `usl.expense.batch.preview_context_application(...)`;
 - `usl.expense.batch.apply_context(..., expected_revision=...)`;
 - `usl.expense.batch.get_review_summary()`.

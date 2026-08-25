@@ -338,7 +338,7 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
                 raise UserError(
                     _("The selected Batch is no longer compatible with these expenses."),
                 )
-            self.expense_ids.write({"expense_batch_id": self.batch_id.id})
+            self.batch_id.add_expenses(self.expense_ids.ids)
             return self.batch_id
         if not self.name or not self.purpose:
             raise UserError(_("Enter a batch name and a common business purpose."))

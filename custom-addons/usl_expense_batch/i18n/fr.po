@@ -341,6 +341,12 @@ msgid "Expense"
 msgstr "Dépense"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Expenses can only be added to a draft Batch."
+msgstr "Les dépenses ne peuvent être ajoutées qu’à un lot en brouillon."
+
+#. module: usl_expense_batch
 #: model:ir.model,name:usl_expense_batch.model_usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_account_bank_statement_line__expense_batch_id
 #: model:ir.model.fields,field_description:usl_expense_batch.field_account_move__expense_batch_id

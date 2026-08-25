@@ -46,6 +46,35 @@ registry.category("web_tour.tours").add("usl_expense_batch_create_or_select", {
     ],
 });
 
+registry.category("web_tour.tours").add("usl_expense_batch_receipt_capture", {
+    steps: () => [
+        {
+            content: "Native receipt upload remains available on the expense work list",
+            trigger: ".o_list_view .o_button_upload_expense",
+        },
+        {
+            content: "Open the captured expense evidence",
+            trigger:
+                ".o_list_table tbody tr.o_data_row td[name='name']:contains('Browser receipt evidence')",
+            run: "click",
+        },
+        {
+            content: "The captured receipt count is available on its expense",
+            trigger:
+                ".o_form_view:has(.o_field_widget[name='product_id']) button[aria-label='Attach files']:contains('1')",
+            run: "click",
+        },
+        {
+            content: "The receipt evidence is inspectable from the expense",
+            trigger: ".o-mail-AttachmentBox:contains('browser-receipt.pdf')",
+        },
+        {
+            content: "The payer choice remains explicit after receipt capture",
+            trigger: ".o_form_view .o_field_widget[name='payment_mode']",
+        },
+    ],
+});
+
 registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
     steps: () => [
         {
@@ -77,6 +106,86 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
             content: "Removal is the single explicit line action",
             trigger:
                 ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']:contains('Remove from Batch')",
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_expense_batch_submitter_handoff", {
+    steps: () => [
+        {
+            content: "The submitter sees a complete mixed-payer Batch",
+            trigger:
+                ".o_form_view:has(.o_field_widget[name='expense_count']:contains('2')):has(.o_field_widget[name='readiness_state']:contains('Ready'))",
+        },
+        {
+            content: "Submit only the draft expenses for manager review",
+            trigger: "button[name='action_submit']:contains('Submit batch')",
+            run: "click",
+            expectUnloadPage: true,
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_expense_batch_manager_handoff", {
+    steps: () => [
+        {
+            content: "The manager receives the submitted Batch",
+            trigger: "button[name='action_approve']:contains('Approve batch')",
+        },
+        {
+            content: "Approve only the submitted expenses",
+            trigger: "button[name='action_approve']:contains('Approve batch')",
+            run: "click",
+            expectUnloadPage: true,
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_expense_batch_accountant_handoff", {
+    steps: () => [
+        {
+            content: "Accounting receives the approved mixed-payer Batch",
+            trigger: "button[name='action_post']:contains('Post batch')",
+        },
+        {
+            content: "Post the company-paid side and open native reimbursement",
+            trigger: "button[name='action_post']:contains('Post batch')",
+            run: "click",
+        },
+        {
+            content: "Complete the native employee-paid posting wizard",
+            trigger:
+                ".o_dialog footer button[name='action_post_entry']:contains('Post Expenses')",
+            run: "click",
+        },
+        {
+            content: "Both mixed-payer journal entries are available for review",
+            trigger: ".o_list_view .o_list_table tbody:has(tr:nth-child(2))",
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_expense_batch_readonly_audit", {
+    steps: () => [
+        {
+            content: "The read-only accountant can inspect the Batch evidence",
+            trigger:
+                ".o_form_view:has(.o_usl_batch_summary):has(.o_field_widget[name='expense_ids'])",
+        },
+        {
+            content: "No lifecycle or line-correction action is exposed",
+            trigger:
+                ".o_form_view:not(:has(header button)):not(:has(button[name='action_return_from_batch']))",
+        },
+        {
+            content: "Accounting history remains available for audit",
+            trigger: ".o_notebook_headers .nav-link:contains('Accounting and history')",
+            run: "click",
+        },
+        {
+            content: "Accounting reconciliation context is visible but read-only",
+            trigger:
+                ".o_form_view .o_field_widget[name='accounting_reconciliation_state'].o_readonly_modifier",
         },
     ],
 });

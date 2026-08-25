@@ -447,43 +447,48 @@ class UslExpenseBatch(models.Model):
 
         batches = super().create(clean_values_list)
         for batch, expense_ids in zip(batches, expense_ids_list):
-            expenses = self.env["hr.expense"].browse(expense_ids).exists()
-            if len(expenses) != len(expense_ids):
-                raise ValidationError(_("Every selected expense must still exist."))
-            expenses.check_access("read")
-            invalid = expenses.filtered(
-                lambda expense: (
-                    expense.state not in ("draft", "approved", "posted")
-                    or expense.expense_batch_id
+            if expense_ids:
+                batch.add_expenses(expense_ids)
+        return batches
+
+    def add_expenses(self, expense_ids):
+        self.ensure_one()
+        self._check_readonly_accountant_mutation()
+        self.check_access("write")
+        if self.state != "draft":
+            raise UserError(_("Expenses can only be added to a draft Batch."))
+        expenses = self.env["hr.expense"].browse(expense_ids).exists()
+        if len(expenses) != len(set(expense_ids)):
+            raise ValidationError(_("Every selected expense must still exist."))
+        expenses.check_access("read")
+        invalid = expenses.filtered(
+            lambda expense: (
+                expense.state not in ("draft", "approved", "posted")
+                or expense.expense_batch_id
+            ),
+        )
+        if invalid:
+            raise ValidationError(
+                _(
+                    "Only unbatched draft, approved, or posted expenses "
+                    "can be added to an expense batch.",
                 ),
             )
-            if invalid:
-                raise ValidationError(
-                    _(
-                        "Only unbatched draft, approved, or posted expenses "
-                        "can be added to an expense batch.",
-                    ),
-                )
-            if expenses.filtered(
-                lambda expense: expense.company_id != batch.company_id,
-            ):
-                raise ValidationError(
-                    _("A batch cannot contain expenses from different companies."),
-                )
-            if expenses.filtered(
-                lambda expense: expense.employee_id != batch.employee_id,
-            ):
-                raise ValidationError(
-                    _("A batch cannot contain expenses from different employees."),
-                )
-            if expenses:
-                # Native expense rules deliberately make approved and posted
-                # records read-only for their employee. Linking the optional
-                # grouping context is safe after the explicit access and
-                # compatibility checks above.
-                expenses.sudo().write({"expense_batch_id": batch.id})
-        batches._link_existing_moves()
-        return batches
+        if expenses.filtered(lambda expense: expense.company_id != self.company_id):
+            raise ValidationError(
+                _("A batch cannot contain expenses from different companies."),
+            )
+        if expenses.filtered(lambda expense: expense.employee_id != self.employee_id):
+            raise ValidationError(
+                _("A batch cannot contain expenses from different employees."),
+            )
+        if expenses:
+            # Native expense rules deliberately make approved and posted
+            # records read-only for their employee. Linking the optional
+            # grouping context is safe after the explicit access and
+            # compatibility checks above.
+            expenses.sudo().write({"expense_batch_id": self.id})
+        return {"batch_id": self.id, "added": len(expenses)}
 
     @api.model
     def _expense_ids_from_create_commands(self, commands):

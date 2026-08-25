@@ -242,6 +242,62 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(posted.expense_batch_id, batch)
         self.assertEqual(posted.account_move_id.expense_batch_id, batch)
 
+    def test_approved_and_posted_expenses_can_join_existing_batch(self):
+        existing = self.env["usl.expense.batch"].with_user(
+            self.expense_user_employee,
+        ).create({
+            "name": "Toronto retrospective review",
+            "purpose": "Group later-stage expenses without rewriting accounting",
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+        })
+        approved = self._expense("Toronto approved retrospective")
+        approved.sudo().approval_state = "approved"
+        posted = self._expense("Toronto posted retrospective", amount=44)
+        posted.sudo().approval_state = "approved"
+        self.post_expenses_with_wizard(posted.with_user(self.env.user))
+
+        wizard = self.env[
+            "usl.expense.batch.create.wizard"
+        ].with_user(self.expense_user_employee).create({
+            "mode": "existing",
+            "batch_id": existing.id,
+            "expense_ids": [Command.set((approved + posted).ids)],
+        })
+        self.assertEqual(wizard._create_batch(), existing)
+
+        self.assertEqual(approved.expense_batch_id, existing)
+        self.assertEqual(posted.expense_batch_id, existing)
+        self.assertEqual(approved.state, "approved")
+        self.assertEqual(posted.state, "posted")
+        self.assertEqual(posted.account_move_id.expense_batch_id, existing)
+
+    def test_add_expenses_service_enforces_batch_state_and_readonly_access(self):
+        candidate = self._expense("Toronto controlled grouping")
+        target = self._batch(self._expense("Toronto submitted grouping"))
+        target.with_user(self.expense_user_employee).action_submit()
+
+        with self.assertRaisesRegex(
+            UserError,
+            "Expenses can only be added to a draft Batch",
+        ):
+            target.with_user(self.expense_user_employee).add_expenses(candidate.ids)
+
+        draft_target = self._batch(
+            self._expense("Toronto readonly grouping target"),
+            name="Toronto readonly grouping",
+        )
+        reviewer = mail_new_test_user(
+            self.env,
+            name="Expense batch grouping reviewer",
+            login="expense.batch.grouping.reviewer@example.invalid",
+            groups="base.group_user,account.group_account_readonly",
+            company_id=self.env.company.id,
+            company_ids=[Command.set(self.env.companies.ids)],
+        )
+        with self.assertRaisesRegex(AccessError, "Read-only accountants"):
+            draft_target.with_user(reviewer).add_expenses(candidate.ids)
+
     def test_submit_approve_and_return_one_expense(self):
         first = self._expense("Toronto flight")
         second = self._expense("Toronto meals", amount=43)
