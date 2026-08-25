@@ -14,11 +14,12 @@ Status date: 25 August 2026
 - Read-only source snapshot: `odoo_online_source_saas_19_3`
 
 Accounting v1 is engineering-complete for internal daily use. The current
-`19-usl` baseline is not yet the final production release: Expense Analytics,
-B2C sales/inventory, Paperless 3.0, Native Sign and monthly bank-statement email
-ingestion remain independently reviewable workstreams. They must be reviewed
-and merged before the final full reconstruction; no feature worktree, old QA
-seed or rehearsal candidate can be promoted directly.
+`19-usl` baseline is not yet the final production release. Expense Analytics
+is now integrated at `aae5994a7ec`; B2C sales/inventory, Paperless 3.0, Native
+Sign and monthly bank-statement email ingestion remain independently reviewable
+workstreams. They must be reviewed and merged before the final full
+reconstruction; no feature worktree, old QA seed or rehearsal candidate can be
+promoted directly.
 
 The integrated baseline is aligned with the frozen upstream `saas~19.3`
 baseline and preserves the current
@@ -98,11 +99,18 @@ Documents application.
 - A focused launcher that de-emphasizes Discussion, To-do, Dashboards and Apps.
 - Contextual French terminology guards and corrected visible Accounting,
   Documents, HR/Paie and navigation language.
+- Dump-bound source gap evidence that names every populated model, relation
+  table and stored/manual field under its delivered or blocked scope.
+- A pre-mutation Docker capacity guard and accurate exit-137 resource
+  classification, without stopping unrelated feature projects.
 
 These items are not marked shipped until their branch is reviewed and merged
 into `19-usl`. The complete reusable QA seed publication, two zero-OCR
 hydrations, current-source performance comparison and production dress
-rehearsal remain outstanding.
+rehearsal remain outstanding. A fresh no-Documents rehearsal reached the
+Accounting import but was OOM-killed by the shared 8 GiB Docker VM; its target
+must be reset and the run repeated on a responsive, sufficiently isolated
+runtime before it counts as evidence.
 
 The current candidate's isolated clean-install and repeated-update check passes
 for all twelve presently delivered product modules with no migration registry
@@ -138,7 +146,7 @@ The canonical, evidence-bearing sequence is maintained in the
 ### Merge train
 
 1. Review and merge the migration-performance/portable-candidate work.
-2. Review and merge Expense Analytics.
+2. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 3. Review and merge B2C sales/inventory with complete historical source
    disposition and analytics dimensions.
 4. Review and merge Paperless 3.0 and requalify the official export/import and
