@@ -292,6 +292,8 @@ class UslDocument(models.Model):
     version_ids = fields.One2many(
         "usl.document.version", "document_id", string="File versions", readonly=True,
     )
+    version_count = fields.Integer(compute="_compute_file_presentation")
+    has_distinct_archive_file = fields.Boolean(compute="_compute_file_presentation")
     source = fields.Selection(
         [
             ("odoo_upload", "Uploaded from Odoo"),
@@ -342,6 +344,16 @@ class UslDocument(models.Model):
     link_count = fields.Integer(compute="_compute_link_count")
     paperless_url = fields.Char(compute="_compute_paperless_url")
     last_error = fields.Text(readonly=True)
+
+    @api.depends("version_ids", "checksum", "archive_checksum")
+    def _compute_file_presentation(self):
+        for document in self:
+            document.version_count = len(document.version_ids)
+            document.has_distinct_archive_file = bool(
+                document.archive_checksum
+                and document.checksum
+                and document.archive_checksum != document.checksum
+            )
 
     @api.depends("submitted_at", "paperless_created")
     def _compute_archive_added_at(self):
@@ -4339,6 +4351,18 @@ class UslDocumentVersion(models.Model):
         ],
         readonly=True,
     )
+    has_distinct_archive_file = fields.Boolean(
+        compute="_compute_has_distinct_archive_file",
+    )
+
+    @api.depends("checksum", "archive_checksum")
+    def _compute_has_distinct_archive_file(self):
+        for version in self:
+            version.has_distinct_archive_file = bool(
+                version.archive_checksum
+                and version.checksum
+                and version.archive_checksum != version.checksum
+            )
 
     _document_version_unique = models.Constraint(
         "UNIQUE(document_id, paperless_version_id)",
