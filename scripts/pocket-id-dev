@@ -244,6 +244,12 @@ configure_odoo() {
   local status=0 module_name module_state modules_csv seen_modules
   local qa_data_profile="${USL_QA_DATA_PROFILE:-full}"
   local -a init_modules requested_modules update_modules module_args
+  # macOS Bash 3.2 treats a declared-but-empty array as unbound under `set -u`.
+  # Initialize every accumulator before querying its length.
+  init_modules=()
+  requested_modules=()
+  update_modules=()
+  module_args=()
   require_target_database
   provision
   if [[ "$skip_paperless" != 1 ]]; then
@@ -285,7 +291,6 @@ configure_odoo() {
         ;;
     esac
   done
-  module_args=()
   if ((${#init_modules[@]})); then
     module_args+=("--init=$(IFS=,; printf '%s' "${init_modules[*]}")")
   fi

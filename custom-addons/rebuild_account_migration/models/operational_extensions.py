@@ -1,7 +1,10 @@
 from lxml import etree
 
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.addons.account_statement_import_qif.wizards.account_statement_import_qif import (
+    AccountStatementImport as QifAccountStatementImport,
+)
 
 
 class ResCurrencyRate(models.Model):
@@ -240,6 +243,64 @@ class AccountJournal(models.Model):
 
 class AccountStatementImport(models.TransientModel):
     _inherit = "account.statement.import"
+
+    def _import_file(self):
+        """Use the saas-19.3 raw-binary API with the pinned OCA importer.
+
+        The pinned OCA 19.0 implementation still base64-decodes a binary field
+        and writes the removed ``ir.attachment.datas`` compatibility key.
+        Odoo saas-19.3 exposes :class:`BinaryValue` raw content instead.  Keep
+        OCA's workflow and duplicate detection, but pass the exact uploaded
+        bytes and create a real attachment through ``raw``.
+        """
+        self.ensure_one()
+        result = {"statement_ids": [], "notifications": []}
+        self.import_single_file(self.statement_file.content, result)
+        if not result["statement_ids"]:
+            raise UserError(
+                self.env._(
+                    "You have already imported this file, or this file "
+                    "only contains already imported transactions.",
+                ),
+            )
+        attachment = self.env["ir.attachment"].create(
+            self._prepare_create_attachment(result),
+        )
+        for statement in self.env["account.bank.statement"].browse(
+            result["statement_ids"],
+        ):
+            statement.write({"attachment_ids": [Command.link(attachment.id)]})
+        return result
+
+    def _prepare_create_attachment(self, result):
+        values = super()._prepare_create_attachment(result)
+        values.pop("datas", None)
+        values["raw"] = self.statement_file
+        return values
+
+    def _complete_stmts_vals(self, stmt_vals, journal_id, account_number):
+        # Bypass only the pinned QIF add-on's legacy second base64 decode.  Its
+        # superclass still performs all generic statement completion; the
+        # partner-name behavior is then reproduced against raw 19.3 bytes.
+        result = super(
+            QifAccountStatementImport,
+            self,
+        )._complete_stmts_vals(stmt_vals, journal_id, account_number)
+        if not self.statement_file or not self._check_qif(
+            self.statement_file.content,
+        ):
+            return result
+        Partner = self.env["res.partner"]
+        for statement in result:
+            for line_values in statement["transactions"]:
+                if not line_values.get("partner_id") and line_values.get(
+                    "payment_ref",
+                ):
+                    partner = Partner.search([
+                        ("name", "ilike", line_values["payment_ref"]),
+                    ], limit=1)
+                    line_values["partner_id"] = partner.id
+        return result
 
     def _parse_file(self, data_file):
         parsed = super()._parse_file(data_file)

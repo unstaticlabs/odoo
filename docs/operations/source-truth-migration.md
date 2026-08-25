@@ -1,5 +1,10 @@
 # Source-truth migration
 
+Final source freeze, portable candidate compilation and cut-over are documented
+in [Portable production migration candidate](portable-production-migration.md).
+Candidate build remains blocked until this inventory and the attachment ledger
+both report complete whole-source coverage.
+
 The migration tool is a maintained repository deliverable under `migration/`
 and `scripts/`. It is not part of the Odoo Community product, is not present on
 the normal add-ons path, and must leave no migration models, menus, fields, or
@@ -34,6 +39,11 @@ Every populated persistent source model and every populated relation or
 unmapped table must resolve to one declared scope. Each scope states whether
 the source is translated to native Community records, archived, recomputed
 from version-controlled product configuration, or deliberately not copied.
+The inventory also records every stored or Studio/manual field belonging to a
+populated model. The dump-bound private gap report groups those fields with
+the exact model and relation-table counts under the delivered or blocked scope;
+it does not mistake a scope contract for value-level parity, which remains the
+responsibility of that scope's importer and validation evidence.
 
 The gate fails when:
 
@@ -50,6 +60,20 @@ USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
 ACCOUNTING_COMPAT_COMPOSE_PROJECT=codex-migration-audit \
 make migration-source-inventory
 ```
+
+Write the human- and machine-readable private gap report without weakening the
+strict gate:
+
+```bash
+USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
+ACCOUNTING_COMPAT_COMPOSE_PROJECT=codex-migration-audit \
+make migration-source-report
+```
+
+The files are written beside the inventory as
+`source-migration-gap-report.md` and `source-migration-gap-report.json`. A
+blocked scope means this commit has no qualified lossless destination for that
+data and therefore cannot produce a production candidate.
 
 Run the strict whole-source completeness gate:
 
@@ -159,6 +183,15 @@ The main checkout owns the default Compose project. A linked worktree must
 pass a dedicated `COMPOSE_PROJECT` and non-conflicting published ports. Every
 reconstruction helper verifies existing containers' Compose project and
 working-directory labels before stopping or changing them.
+
+Before any source restore or target reset, reconstruction also inspects the
+shared Docker runtime. Production rejects every foreign running Compose
+project. Development is fail-closed when Docker has less than 12 GiB and a
+foreign project is running, because an 8 GiB shared VM demonstrably OOM-killed
+the otherwise qualified atomic Accounting import. The preflight never stops a
+foreign project. Its owner must quiesce it or the host must allocate more
+Docker memory. `USL_MIGRATION_ALLOW_CONCURRENT_DOCKER=1` is an explicit
+development-only escape hatch and is forbidden in production.
 
 Every stage must be idempotent and must bind its run to `source-<first 12
 characters of dump SHA-256>`. Project restoration previously used a constant

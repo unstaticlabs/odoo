@@ -29,7 +29,8 @@ DEFAULT_SOURCE_DIR = Path(
 )
 DEFAULT_ARTIFACTS = ROOT / "artifacts/migration/private"
 CONTRACT_SCHEMA = "usl-source-truth-coverage-v1"
-INVENTORY_SCHEMA = "usl-source-truth-inventory-v1"
+INVENTORY_SCHEMA = "usl-source-truth-inventory-v2"
+GAP_REPORT_SCHEMA = "usl-source-migration-gap-report-v1"
 CURRENT_DISTRIBUTION_SCOPES = {
     "accounting",
     "b2c_commerce",
@@ -211,6 +212,37 @@ TO STDOUT WITH CSV HEADER;
             row["record_count"] = counts[row["table_name"]]
         return rows
 
+    def fields(self) -> list[dict[str, Any]]:
+        """Return durable source field metadata for explicit coverage review.
+
+        Values are deliberately not queried here: the inventory records the
+        complete stored/manual schema, while each scoped importer remains
+        responsible for value-level parity.  This prevents Enterprise and
+        Studio fields from disappearing merely because Community does not
+        expose the same field definition.
+        """
+        rows = self.csv(
+            r"""
+COPY (
+    SELECT fields.model, fields.name, fields.ttype,
+           COALESCE(fields.relation, '') AS relation,
+           fields.state, fields.required, fields.readonly, fields.store,
+           fields.company_dependent, COALESCE(fields.tracking, 0) AS tracking,
+           fields.ai
+      FROM ir_model_fields fields
+      JOIN ir_model model ON model.id = fields.model_id
+     WHERE NOT model.transient
+       AND (fields.store OR fields.state = 'manual')
+     ORDER BY fields.model, fields.name
+) TO STDOUT WITH CSV HEADER;
+""",
+        )
+        for row in rows:
+            for key in ("required", "readonly", "store", "company_dependent", "ai"):
+                row[key] = row[key] == "t"
+            row["tracking"] = int(row["tracking"] or 0)
+        return rows
+
     def attachments(self) -> list[dict[str, Any]]:
         rows = self.csv(
             r"""
@@ -303,6 +335,7 @@ def build_inventory(
     database_status = database.assert_source()
     models = database.models()
     tables = database.tables()
+    fields = database.fields()
     attachments = database.attachments()
     filestore, attachment_errors = verify_filestore(
         Path(package["filestore"]), attachments,
@@ -338,6 +371,20 @@ def build_inventory(
         for scope, count in scope_counts.items()
         if count and contract["scopes"][scope]["status"] != "implemented"
     )
+    populated_model_scopes = {
+        row["model"]: row["scope"] for row in populated_models
+    }
+    inventoried_fields = []
+    incomplete_scope_fields = []
+    for row in fields:
+        scope = populated_model_scopes.get(row["model"])
+        if not scope:
+            continue
+        row["scope"] = scope
+        row["scope_status"] = contract["scopes"][scope]["status"]
+        inventoried_fields.append(row)
+        if row["scope_status"] != "implemented":
+            incomplete_scope_fields.append(f"{row['model']}.{row['name']}")
     blocking = {
         "attachment_integrity_errors": attachment_errors,
         "unclassified_populated_models": sorted(unclassified_models),
@@ -359,13 +406,176 @@ def build_inventory(
             "database_tables": len(tables),
             "populated_relation_or_unmapped_tables": len(relation_tables),
             "scope_record_counts": dict(sorted(scope_counts.items())),
+            "stored_or_manual_fields": len(inventoried_fields),
+            "incomplete_scope_fields": len(incomplete_scope_fields),
             "complete": not any(blocking.values()),
         },
         "models": models,
+        "stored_or_manual_fields": inventoried_fields,
+        "incomplete_scope_fields": incomplete_scope_fields,
         "relation_or_unmapped_tables": relation_tables,
         "filestore": filestore,
         "blocking": blocking,
     }
+
+
+def build_gap_report(inventory: dict[str, Any]) -> dict[str, Any]:
+    """Build an explicit, source-bound statement of delivered and open data.
+
+    The report does not turn an implemented scope into field-level proof.
+    Importer parity remains authoritative for that.  It does ensure every
+    populated model, relation table and stored/manual field is visible under a
+    named scope instead of being silently omitted from migration planning.
+    """
+    contract_scopes = inventory["contract"]["scopes"]
+    scope_rows: dict[str, dict[str, Any]] = {}
+    for scope, contract in sorted(contract_scopes.items()):
+        scope_rows[scope] = {
+            "status": contract["status"],
+            "disposition": contract["disposition"],
+            "evidence": contract["evidence"],
+            "source_record_count": 0,
+            "relation_row_count": 0,
+            "stored_or_manual_field_count": 0,
+            "models": [],
+            "relation_tables": [],
+            "fields": [],
+        }
+    for row in inventory["models"]:
+        scope = row.get("scope")
+        if not scope or not row["record_count"] or row["transient"]:
+            continue
+        scope_rows[scope]["source_record_count"] += row["record_count"]
+        scope_rows[scope]["models"].append({
+            "model": row["model"],
+            "owner_module": row["owner_module"],
+            "record_count": row["record_count"],
+            "table_name": row["table_name"],
+        })
+    for row in inventory["relation_or_unmapped_tables"]:
+        scope = row.get("scope")
+        if not scope:
+            continue
+        scope_rows[scope]["relation_row_count"] += row["record_count"]
+        scope_rows[scope]["relation_tables"].append({
+            "table_name": row["table_name"],
+            "record_count": row["record_count"],
+        })
+    for row in inventory["stored_or_manual_fields"]:
+        scope = row["scope"]
+        scope_rows[scope]["stored_or_manual_field_count"] += 1
+        scope_rows[scope]["fields"].append({
+            key: row[key]
+            for key in (
+                "model", "name", "ttype", "relation", "state", "required",
+                "store", "company_dependent", "tracking", "ai",
+            )
+        })
+    populated = {
+        scope: row
+        for scope, row in scope_rows.items()
+        if row["source_record_count"] or row["relation_row_count"]
+    }
+    blocked = {
+        scope: row for scope, row in populated.items()
+        if row["status"] != "implemented"
+    }
+    delivered = {
+        scope: row for scope, row in populated.items()
+        if row["status"] == "implemented"
+    }
+    return {
+        "schema": GAP_REPORT_SCHEMA,
+        "generated_at": inventory["generated_at"],
+        "source_dump_sha256": inventory["source"]["dump_sha256"],
+        "source_inventory_schema": inventory["schema"],
+        "summary": {
+            "production_ready": inventory["summary"]["complete"],
+            "delivered_scope_count": len(delivered),
+            "blocked_scope_count": len(blocked),
+            "delivered_source_records": sum(
+                row["source_record_count"] for row in delivered.values()
+            ),
+            "blocked_source_records": sum(
+                row["source_record_count"] for row in blocked.values()
+            ),
+            "blocked_relation_rows": sum(
+                row["relation_row_count"] for row in blocked.values()
+            ),
+            "blocked_stored_or_manual_fields": sum(
+                row["stored_or_manual_field_count"] for row in blocked.values()
+            ),
+        },
+        "delivered_scopes": delivered,
+        "blocked_scopes": blocked,
+        "structural_blockers": {
+            key: value for key, value in inventory["blocking"].items()
+            if key != "incomplete_populated_scopes"
+        },
+        "interpretation": (
+            "Implemented scopes require their importer parity evidence; blocked "
+            "scopes have no qualified lossless destination on this commit and "
+            "must prevent a production candidate."
+        ),
+    }
+
+
+def write_gap_report(report: dict[str, Any], root: Path) -> tuple[Path, Path]:
+    snapshot = f"source-{report['source_dump_sha256'][:12]}"
+    directory = root / snapshot
+    json_path = directory / "source-migration-gap-report.json"
+    markdown_path = directory / "source-migration-gap-report.md"
+    directory.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    lines = [
+        "# Source migration coverage and gaps",
+        "",
+        f"- Source dump SHA-256: `{report['source_dump_sha256']}`",
+        f"- Production ready: **{'yes' if report['summary']['production_ready'] else 'no'}**",
+        f"- Delivered source records: {report['summary']['delivered_source_records']}",
+        f"- Currently blocked source records: {report['summary']['blocked_source_records']}",
+        f"- Currently blocked relation rows: {report['summary']['blocked_relation_rows']}",
+        "- Stored/manual fields in blocked scopes: "
+        f"{report['summary']['blocked_stored_or_manual_fields']}",
+        "",
+        "## Qualified scope contracts",
+        "",
+    ]
+    for scope, row in report["delivered_scopes"].items():
+        lines.append(
+            f"- **{scope}** — {row['source_record_count']} records, "
+            f"{row['relation_row_count']} relation rows, "
+            f"{row['stored_or_manual_field_count']} fields; {row['evidence']}.",
+        )
+    lines.extend(("", "## Production blockers", ""))
+    for scope, row in report["blocked_scopes"].items():
+        model_counts = ", ".join(
+            f"`{item['model']}` ({item['record_count']})"
+            for item in row["models"]
+        ) or "no populated model table"
+        lines.extend((
+            f"### {scope}",
+            "",
+            f"- Required disposition: `{row['disposition']}`",
+            f"- Open source data: {row['source_record_count']} records, "
+            f"{row['relation_row_count']} relation rows and "
+            f"{row['stored_or_manual_field_count']} stored/manual fields.",
+            f"- Current evidence: {row['evidence']}.",
+            f"- Populated models: {model_counts}.",
+            "",
+        ))
+    lines.extend((
+        "## Interpretation",
+        "",
+        report["interpretation"],
+        "This report is private migration evidence and must not be committed.",
+        "",
+    ))
+    markdown_path.write_text("\n".join(lines), encoding="utf-8")
+    return json_path, markdown_path
 
 
 def write_inventory(inventory: dict[str, Any], root: Path) -> Path:
@@ -455,7 +665,10 @@ def print_current_distribution_summary(inventory: dict[str, Any]) -> None:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("inventory", "product-gate", "gate"))
+    parser.add_argument(
+        "command",
+        choices=("inventory", "report", "product-gate", "gate"),
+    )
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
@@ -514,11 +727,18 @@ def main(argv: list[str] | None = None) -> int:
             contract,
         )
         destination = write_inventory(inventory, args.artifacts)
+        gap_json, gap_markdown = write_gap_report(
+            build_gap_report(inventory),
+            args.artifacts,
+        )
         print_summary(
             inventory,
             destination,
             show_full_status=args.command != "product-gate",
         )
+        print(f"Gap report: {gap_markdown} ({gap_json})")
+        if args.command == "report":
+            return 0
         if args.command == "product-gate":
             print_current_distribution_summary(inventory)
             return 1 if any(current_distribution_blocking(inventory).values()) else 0

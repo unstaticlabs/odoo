@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from accounting_compat.cli import (
     build_parser,
+    classify_product_import_failure,
     configure_source_mount,
     git_tracking_status,
     source_snapshot_id,
@@ -20,6 +21,24 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class OdooTestHarnessTest(unittest.TestCase):
+    def test_import_exit_137_is_reported_as_resource_exhaustion(self):
+        evidence = classify_product_import_failure(137, "registry loaded\nKilled\n")
+
+        self.assertEqual(
+            evidence["classification"],
+            "MIGRATION_RESOURCE_EXHAUSTION",
+        )
+        self.assertEqual(evidence["failure_mode"], "process_killed")
+        self.assertIn("reset", evidence["recovery"])
+
+    def test_ordinary_import_failure_remains_a_product_defect(self):
+        evidence = classify_product_import_failure(1, "Traceback: invalid source")
+
+        self.assertEqual(
+            evidence["classification"],
+            "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
+        )
+
     def test_source_validation_accepts_external_absolute_package_path(self):
         with TemporaryDirectory() as directory:
             package = Path(directory)

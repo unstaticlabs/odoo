@@ -304,6 +304,7 @@ stop_product() {
   docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
 }
 
+run_stage "Docker resource preflight" scripts/migration-resource-preflight
 run_stage "target identity preflight" preflight_target_identity
 start_target_database
 stop_product

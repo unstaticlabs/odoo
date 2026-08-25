@@ -466,6 +466,7 @@ make migrate-production SOURCE_SHA=<sha256> # full-source, fresh production migr
 make target-reconstruct-product       # rebuild current product scopes from source
 make target-reconstruct-reuse-documents # rebuild Odoo; reuse verified Paperless ingestion
 scripts/migration-source-truth inventory # audit all populated source perimeters
+scripts/migration-source-truth report    # write private model/table/field gap evidence
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes

@@ -94,6 +94,9 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         self.assertEqual(
             named_models,
             {
+                "account_group_compat.py": [
+                    "account.group",
+                ],
                 "expense_bank_matching.py": [
                     "usl.expense.bank.match.candidate",
                 ],
@@ -199,7 +202,6 @@ class CustomAddonArchitectureTest(unittest.TestCase):
             "scripts/accounting-compat extract",
             "scripts/accounting-compat dev-reset",
             "scripts/accounting-compat dev-import",
-            "scripts/accounting-compat dev-validate",
             "scripts/project-restore all",
             "scripts/tese-restore all",
             "scripts/accounting-restore finalize",
@@ -207,7 +209,19 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         ]
 
         positions = [script.index(step) for step in ordered_steps]
+        fresh_validation = script.index(
+            "scripts/accounting-compat dev-validate",
+            script.index("scripts/accounting-compat dev-import"),
+        )
+        positions.insert(5, fresh_validation)
         self.assertEqual(positions, sorted(positions))
+        resume_validation = script.index(
+            "scripts/accounting-compat dev-validate",
+        )
+        self.assertLess(
+            resume_validation,
+            script.index("scripts/accounting-compat dev-reset"),
+        )
         self.assertIn('USL_RECONSTRUCT_REUSE_DOCUMENTS:-0', script)
         self.assertIn('DOCUMENTS_CANONICAL_RESET="$documents_reset"', script)
         self.assertIn(

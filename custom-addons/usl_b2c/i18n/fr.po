@@ -1389,7 +1389,7 @@ msgstr "Statut de la correspondance"
 #. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
 msgid "Mark Reviewed"
-msgstr "Marquer comme révisé"
+msgstr "Marquer comme vérifié"
 
 #. module: usl_b2c
 #: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__source_provider__medusa
@@ -2232,12 +2232,12 @@ msgstr "Note de vérification"
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__review_state
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_payment_event__review_state
 msgid "Review State"
-msgstr "État de révision"
+msgstr "État de la vérification"
 
 #. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
 msgid "Review Status"
-msgstr "Statut de la revue"
+msgstr "État de la vérification"
 
 #. module: usl_b2c
 #. odoo-python

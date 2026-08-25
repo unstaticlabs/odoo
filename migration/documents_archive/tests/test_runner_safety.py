@@ -166,6 +166,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertIn("usl-odoo-qa-?*", script)
         self.assertIn("No containers or data volumes were changed", script)
+        self.assertIn("pg_restore -U odoo -d odoo_dev --exit-on-error", script)
+        self.assertIn('--jobs="$RESTORE_JOBS"', script)
+        self.assertIn("TaskResult.objects.count()", script)
+        self.assertIn("verify_hydrated_controls", script)
 
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
@@ -208,6 +212,53 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("USL_QA_SEED_PRUNE_CONFIRM", seed)
         self.assertIn('[[ "$candidate" != "$current_dir" ]]', seed)
         self.assertIn("CONFIRM=qa-seeds", seed)
+
+    def test_source_identity_index_is_removed_with_migration_columns(self):
+        finalizer = (
+            ROOT / "migration/accounting_restore/scripts/finalize_schema.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("_rebuild_source_identity_uniq", finalizer)
+        self.assertIn("remaining_source_identity_indexes", finalizer)
+        self.assertLess(
+            finalizer.index("source_identity_indexes ="),
+            finalizer.index("ALTER TABLE {} DROP COLUMN {}"),
+        )
+        self.assertGreater(
+            finalizer.index("remaining_source_identity_indexes ="),
+            finalizer.index("ALTER TABLE {} DROP COLUMN {}"),
+        )
+
+    def test_external_pocket_overlay_never_manages_identity_service(self):
+        overlay = (ROOT / "compose.external-pocket-id.yaml").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertNotIn("  pocket-id:", overlay)
+        self.assertNotIn("pocket-id-data", overlay)
+        self.assertIn("external-identity:", overlay)
+        self.assertIn("external-ingress:", overlay)
+        self.assertIn('127.0.0.1:${ODOO_HTTP_PORT}:8069', overlay)
+        self.assertIn('127.0.0.1:${PAPERLESS_HTTP_PORT}:8000', overlay)
+
+    def test_portable_candidate_and_cutover_are_fail_closed(self):
+        candidate = (ROOT / "scripts/migration-candidate").read_text(
+            encoding="utf-8",
+        )
+        cutover = (ROOT / "scripts/production-cutover").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn("source_coverage", candidate)
+        self.assertIn("attachment_coverage", candidate)
+        self.assertIn("--portable-candidate", candidate)
+        self.assertIn("pg_dump -U \"$POSTGRES_USER\" -Fc", candidate)
+        self.assertNotIn("compose.pocket-id.yaml", cutover)
+        self.assertIn("candidate reset is permanently disabled", cutover.lower())
+        self.assertIn("document_importer --no-progress-bar", cutover)
+        self.assertIn('--jobs="$RESTORE_JOBS"', cutover)
+        self.assertIn("USL_PRODUCTION_CRON_ALLOWLIST_JSON", cutover)
+        self.assertIn("journeys --evidence", cutover)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import time
 import unicodedata
 from collections import Counter, defaultdict
 from datetime import date
@@ -159,6 +160,15 @@ class RebuildAccountImportRun(models.Model):
 
     discrepancy_ids = fields.One2many("rebuild.account.discrepancy", "import_run_id")
 
+    _EXACT_REPLAY_BATCH_SIZE = 250
+    _RELATION_BATCH_SIZE = 500
+
+    @staticmethod
+    def _batched(values, size):
+        """Yield bounded lists without changing their deterministic order."""
+        for index in range(0, len(values), size):
+            yield values[index:index + size]
+
     def _upsert_external_report_value(self, vals):
         ExternalValue = self.env["rebuild.account.external.report.value"]
         domain = [
@@ -253,7 +263,14 @@ class RebuildAccountImportRun(models.Model):
         if not source_ids:
             return {}
         trace_models = self._source_trace_models(target_model, options)
-        records = self.env[target_model].with_context(active_test=False).search([
+        # ``ir.attachment`` hides binary-field attachments from ordinary
+        # searches unless this context is explicit.  Source identity lookup
+        # must cover those rows too (for example ``ubl_cii_xml_file``), or a
+        # repeated import attempts to recreate an existing traced attachment.
+        records = self.env[target_model].with_context(
+            active_test=False,
+            skip_res_field_check=True,
+        ).search([
             ("rebuild_source_model", "in", trace_models),
             ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
             ("rebuild_source_id", "in", source_ids),
@@ -1855,13 +1872,15 @@ class RebuildAccountImportRun(models.Model):
             """,
             options,
         )
+        Partner = self.env["res.partner"].with_context(active_test=False)
+        existing_partners = self._source_trace_record_map(
+            "res.partner",
+            [row["id"] for row in rows],
+            options,
+        )
         partners = {}
+        pending = []
         for row in rows:
-            partner = self.env["res.partner"].with_context(active_test=False).search([
-                ("rebuild_source_model", "=", "res.partner"),
-                ("rebuild_source_id", "=", row["id"]),
-                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
-            ], limit=1)
             vals = {
                 "name": row["name"] or f"Source partner {row['id']}",
                 "ref": row["ref"],
@@ -1873,11 +1892,16 @@ class RebuildAccountImportRun(models.Model):
                 "active": row["active"],
                 **self._trace_values("res.partner", row["id"], options),
             }
+            partner = existing_partners.get(row["id"])
             if partner:
                 partner.write(vals)
+                partners[row["id"]] = partner
             else:
-                partner = self.env["res.partner"].create(vals)
-            partners[row["id"]] = partner
+                pending.append((row["id"], vals))
+        for batch in self._batched(pending, self._RELATION_BATCH_SIZE):
+            created = Partner.create([vals for _source_id, vals in batch])
+            for (source_id, _vals), partner in zip(batch, created, strict=True):
+                partners[source_id] = partner
         return partners
 
     def _account_group_map(self, conn, options, companies):
@@ -3862,7 +3886,13 @@ class RebuildAccountImportRun(models.Model):
             source_move_line_ids,
             options,
         )
-        imported_lines = self.env["account.analytic.line"]
+        existing_lines = self._source_trace_record_map(
+            "account.analytic.line",
+            [row["id"] for row in rows],
+            options,
+        )
+        imported_line_ids = []
+        pending = []
         linked_to_move_line_count = 0
         skipped_missing_account = []
         seen_source_ids = set()
@@ -3894,18 +3924,16 @@ class RebuildAccountImportRun(models.Model):
             if target_move_line:
                 vals["move_line_id"] = target_move_line.id
                 linked_to_move_line_count += 1
-            existing = AnalyticLine.search([
-                ("rebuild_source_model", "=", "account.analytic.line"),
-                ("rebuild_source_id", "=", row["id"]),
-                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
-            ], limit=1)
+            existing = existing_lines.get(row["id"])
             if existing:
                 existing.write(vals)
-                analytic_line = existing
+                imported_line_ids.append(existing.id)
             else:
-                analytic_line = AnalyticLine.create(vals)
-            imported_lines |= analytic_line
+                pending.append((row["id"], vals))
             seen_source_ids.add(row["id"])
+        for batch in self._batched(pending, self._RELATION_BATCH_SIZE):
+            created = AnalyticLine.create([vals for _source_id, vals in batch])
+            imported_line_ids.extend(created.ids)
         stale_lines = AnalyticLine.search([
             ("rebuild_source_model", "=", "account.analytic.line"),
             ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
@@ -3958,7 +3986,7 @@ class RebuildAccountImportRun(models.Model):
             "source_analytic_plan_count": len(analytic_plans),
             "source_analytic_account_count": len(analytic_accounts),
             "source_analytic_line_count": len(rows),
-            "imported_analytic_line_count": len(imported_lines),
+            "imported_analytic_line_count": len(imported_line_ids),
             "linked_to_move_line_count": linked_to_move_line_count,
             "unlinked_source_analytic_line_count": len(rows) - linked_to_move_line_count - len(skipped_missing_account),
             "skipped_missing_account_count": len(skipped_missing_account),
@@ -4391,7 +4419,12 @@ class RebuildAccountImportRun(models.Model):
             tracking_disable=True,
             mail_create_nolog=True,
         )
-        imported = self.env["ir.attachment"]
+        existing_attachments = self._source_trace_record_map(
+            "ir.attachment",
+            [row["id"] for row in rows],
+            options,
+        )
+        imported_ids = []
         missing_files = []
         unmapped_targets = []
         checksum_mismatches = []
@@ -4453,24 +4486,7 @@ class RebuildAccountImportRun(models.Model):
                     })
                     continue
 
-            self.env.cr.execute(
-                """
-                SELECT id
-                FROM ir_attachment
-                WHERE rebuild_source_model = 'ir.attachment'
-                  AND rebuild_source_id = %s
-                  AND rebuild_source_snapshot = %s
-                ORDER BY id
-                """,
-                [row["id"], options["source_snapshot_id"]],
-            )
-            attachment_ids = [result[0] for result in self.env.cr.fetchall()]
-            if len(attachment_ids) > 1:
-                duplicate_traces.append({
-                    "source_attachment_id": row["id"],
-                    "target_attachment_ids": attachment_ids,
-                })
-            attachment = Attachment.browse(attachment_ids[:1])
+            attachment = existing_attachments.get(row["id"])
             vals = {
                 "name": row["name"] or f"Source attachment {row['id']}",
                 "res_model": target_model,
@@ -4573,7 +4589,7 @@ class RebuildAccountImportRun(models.Model):
                     target_record.id,
                     row["source_message_id"],
                 ].append(attachment)
-            imported |= attachment
+            imported_ids.append(attachment.id)
 
         for (
             target_model,
@@ -4733,7 +4749,7 @@ class RebuildAccountImportRun(models.Model):
             })
         return {
             "source_attachment_count": len(rows),
-            "imported_attachment_count": len(imported),
+            "imported_attachment_count": len(set(imported_ids)),
             "source_main_attachment_count": sum(
                 bool(row.get("is_main"))
                 for row in rows
@@ -5651,15 +5667,14 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
 
-        partial_map = {}
+        partial_map = self._source_trace_record_map(
+            "account.partial.reconcile",
+            [row["id"] for row in partial_rows],
+            options,
+        )
+        pending_partials = []
         for row in partial_rows:
-            partial = Partial.search([
-                ("rebuild_source_model", "=", "account.partial.reconcile"),
-                ("rebuild_source_id", "=", row["id"]),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
-            if partial:
-                partial_map[row["id"]] = partial
+            if row["id"] in partial_map:
                 continue
             debit_line = line_map.get(row["debit_move_id"])
             credit_line = line_map.get(row["credit_move_id"])
@@ -5680,27 +5695,35 @@ class RebuildAccountImportRun(models.Model):
             }
             if row["exchange_move_id"] in move_map:
                 vals["exchange_move_id"] = move_map[row["exchange_move_id"]].id
-            partial = Partial.create(vals)
-            partial_map[row["id"]] = partial
+            pending_partials.append((row["id"], vals))
+        for batch in self._batched(
+            pending_partials,
+            self._RELATION_BATCH_SIZE,
+        ):
+            created = Partial.create([vals for _source_id, vals in batch])
+            for (source_id, _vals), partial in zip(batch, created, strict=True):
+                partial_map[source_id] = partial
 
-        full_map = {}
+        full_map = self._source_trace_record_map(
+            "account.full.reconcile",
+            [row["id"] for row in full_rows],
+            options,
+        )
+        pending_fulls = []
         for row in full_rows:
-            full = Full.search([
-                ("rebuild_source_model", "=", "account.full.reconcile"),
-                ("rebuild_source_id", "=", row["id"]),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
-            if full:
-                full_map[row["id"]] = full
+            if row["id"] in full_map:
                 continue
             target_line_ids = [line_map[source_line_id].id for source_line_id in row["line_ids"] or []]
             target_partial_ids = [partial_map[source_partial_id].id for source_partial_id in row["partial_ids"] or []]
-            full = Full.create({
+            pending_fulls.append((row["id"], {
                 "reconciled_line_ids": [Command.set(target_line_ids)],
                 "partial_reconcile_ids": [Command.set(target_partial_ids)],
                 **self._trace_values("account.full.reconcile", row["id"], options),
-            })
-            full_map[row["id"]] = full
+            }))
+        for batch in self._batched(pending_fulls, self._RELATION_BATCH_SIZE):
+            created = Full.create([vals for _source_id, vals in batch])
+            for (source_id, _vals), full in zip(batch, created, strict=True):
+                full_map[source_id] = full
 
         return {
             "source_partial_reconcile_count": len(partial_rows),
@@ -9840,10 +9863,26 @@ class RebuildAccountImportRun(models.Model):
             "source_version": options.get("source_version"),
             "target_database": options["target_database"],
         })
+        exact_replay_started = time.perf_counter()
         conn = self._source_connection(options)
         stats = {}
         warnings = []
+        performance = {
+            "schema": "usl-accounting-import-performance-v1",
+            "exact_replay_batch_size": self._EXACT_REPLAY_BATCH_SIZE,
+            "relation_batch_size": self._RELATION_BATCH_SIZE,
+            "stages": [],
+        }
+
+        def record_stage(name, started, **counts):
+            performance["stages"].append({
+                "name": name,
+                "duration_seconds": round(time.perf_counter() - started, 3),
+                **counts,
+            })
+
         try:
+            stage_started = time.perf_counter()
             currencies = self._currency_map(conn)
             countries = self._country_map(conn)
             companies, company_rows = self._company_map(conn, options, countries)
@@ -9851,7 +9890,20 @@ class RebuildAccountImportRun(models.Model):
             source_report_stats = self._import_source_reports(conn, options)
             source_report_structure_stats = self._import_source_report_structure(conn, options)
             source_report_stats["structure"] = source_report_structure_stats
+            record_stage(
+                "base configuration",
+                stage_started,
+                company_count=len(companies),
+                currency_count=len(currencies),
+            )
+            stage_started = time.perf_counter()
             partners = self._partner_map(conn, options)
+            record_stage(
+                "partners",
+                stage_started,
+                partner_count=len(partners),
+            )
+            stage_started = time.perf_counter()
             accounts, account_ids_to_archive_after_post = self._account_map(conn, options, companies, currencies)
             tax_tags = self._tax_tag_map(conn, options, countries)
             tax_groups = self._tax_group_map(conn, options, companies, accounts, countries)
@@ -9916,8 +9968,24 @@ class RebuildAccountImportRun(models.Model):
                     analytic_accounts,
                 )
             )
+            record_stage(
+                "accounting configuration",
+                stage_started,
+                account_count=len(accounts),
+                analytic_account_count=len(analytic_accounts),
+                journal_count=len(journals),
+            )
+            stage_started = time.perf_counter()
             move_rows = self._move_rows(conn, options)
             line_rows_by_move = self._line_rows_by_move(conn, options)
+            record_stage(
+                "source move queries",
+                stage_started,
+                move_count=len(move_rows),
+                move_line_count=sum(
+                    len(lines) for lines in line_rows_by_move.values()
+                ),
+            )
             Move = self.env["account.move"].with_context(
                 check_move_validity=False,
                 tracking_disable=True,
@@ -9925,7 +9993,7 @@ class RebuildAccountImportRun(models.Model):
                 skip_account_move_synchronization=True,
                 skip_invoice_sync=True,
             )
-            imported_moves = self.env["account.move"]
+            imported_move_ids = []
             imported_line_count = 0
             imported_display_lines = [
                 line
@@ -9964,6 +10032,54 @@ class RebuildAccountImportRun(models.Model):
                 options["date_to"],
             )
             reused_native_move_representations = []
+            pending_moves = []
+            move_materialization_started = time.perf_counter()
+            move_create_seconds = 0.0
+            move_post_seconds = 0.0
+            move_cancel_seconds = 0.0
+
+            def flush_pending_moves():
+                nonlocal move_create_seconds
+                nonlocal move_post_seconds
+                nonlocal move_cancel_seconds
+                nonlocal imported_line_count
+                if not pending_moves:
+                    return
+                batch = list(pending_moves)
+                pending_moves.clear()
+                started = time.perf_counter()
+                created = Move.create([
+                    move_vals for _move_row, move_vals, _line_count in batch
+                ])
+                move_create_seconds += time.perf_counter() - started
+                pairs = list(zip(batch, created, strict=True))
+                posted = Move.browse([
+                    move.id
+                    for ((move_row, _vals, _count), move) in pairs
+                    if move_row["state"] == "posted"
+                ])
+                cancelled = Move.browse([
+                    move.id
+                    for ((move_row, _vals, _count), move) in pairs
+                    if move_row["state"] == "cancel"
+                ])
+                if posted:
+                    started = time.perf_counter()
+                    posted.action_post()
+                    move_post_seconds += time.perf_counter() - started
+                if cancelled:
+                    started = time.perf_counter()
+                    cancelled.button_cancel()
+                    move_cancel_seconds += time.perf_counter() - started
+                for (move_row, _move_vals, line_count), move in pairs:
+                    if move.name != (move_row["name"] or "/"):
+                        warnings.append(
+                            "Move %s imported with name %s instead of %s."
+                            % (move_row["id"], move.name, move_row["name"]),
+                        )
+                    imported_move_ids.append(move.id)
+                    imported_line_count += line_count
+
             for move_row in move_rows:
                 existing = existing_move_map.get(move_row["id"])
                 if existing:
@@ -9990,7 +10106,7 @@ class RebuildAccountImportRun(models.Model):
                         reused_native_move_representations.append(
                             alias_evidence,
                         )
-                    imported_moves |= existing
+                    imported_move_ids.append(existing.id)
                     imported_line_count += len(existing.line_ids)
                     continue
                 line_commands = []
@@ -10079,16 +10195,47 @@ class RebuildAccountImportRun(models.Model):
                     })
                 if move_row["currency_id"] in currencies:
                     move_vals["currency_id"] = currencies[move_row["currency_id"]].id
-                move = Move.create(move_vals)
-                if move_row["state"] == "posted":
-                    move.action_post()
-                elif move_row["state"] == "cancel":
-                    move.button_cancel()
-                if move.name != (move_row["name"] or "/"):
-                    warnings.append(f"Move {move_row['id']} imported with name {move.name} instead of {move_row['name']}.")
-                imported_moves |= move
-                imported_line_count += len(line_commands)
+                pending_moves.append((move_row, move_vals, len(line_commands)))
+                if len(pending_moves) >= self._EXACT_REPLAY_BATCH_SIZE:
+                    flush_pending_moves()
+            flush_pending_moves()
+            imported_moves = Move.browse(imported_move_ids)
+            move_materialization_seconds = (
+                time.perf_counter() - move_materialization_started
+            )
+            performance["stages"].extend((
+                {
+                    "name": "moves",
+                    "duration_seconds": round(move_create_seconds, 3),
+                    "move_count": len(imported_move_ids),
+                    "move_line_count": imported_line_count,
+                },
+                {
+                    "name": "posting",
+                    "duration_seconds": round(
+                        move_post_seconds + move_cancel_seconds,
+                        3,
+                    ),
+                    "posted_move_count": sum(
+                        row["state"] == "posted" for row in move_rows
+                    ),
+                    "cancelled_move_count": sum(
+                        row["state"] == "cancel" for row in move_rows
+                    ),
+                },
+                {
+                    "name": "move materialization total",
+                    "duration_seconds": round(
+                        move_materialization_seconds,
+                        3,
+                    ),
+                    "cancel_seconds": round(move_cancel_seconds, 3),
+                    "create_seconds": round(move_create_seconds, 3),
+                    "post_seconds": round(move_post_seconds, 3),
+                },
+            ))
 
+            stage_started = time.perf_counter()
             imported_move_map = self._source_trace_record_map(
                 "account.move",
                 [move_row["id"] for move_row in move_rows],
@@ -10097,6 +10244,11 @@ class RebuildAccountImportRun(models.Model):
             sequence_chronology_stats = self._sequence_chronology_stats(
                 [row for row in move_rows if row["state"] == "posted"],
                 imported_move_map,
+            )
+            record_stage(
+                "move chronology validation",
+                stage_started,
+                move_count=len(imported_move_map),
             )
             if not sequence_chronology_stats["target_matches_source"]:
                 raise ValueError(
@@ -10233,21 +10385,76 @@ class RebuildAccountImportRun(models.Model):
                 "native_source_line_count": len(non_posted_lines)
                 + len(posted_display_lines),
             }
+            stage_started = time.perf_counter()
             reconciliation_stats = self._import_reconciliations(conn, options, companies)
+            record_stage(
+                "reconciliations",
+                stage_started,
+                full_count=reconciliation_stats[
+                    "imported_full_reconcile_count"
+                ],
+                partial_count=reconciliation_stats[
+                    "imported_partial_reconcile_count"
+                ],
+            )
+            stage_started = time.perf_counter()
             payment_stats = self._import_payments(conn, options, companies, partners, accounts, journals, currencies)
+            record_stage(
+                "payments",
+                stage_started,
+                payment_count=payment_stats["imported_payment_count"],
+            )
+            stage_started = time.perf_counter()
             deferred_schedule_stats = self._import_deferred_schedules(
                 conn, options, companies, partners, journals, currencies
             )
+            record_stage(
+                "deferred schedules",
+                stage_started,
+                schedule_line_count=deferred_schedule_stats[
+                    "imported_deferred_schedule_line_count"
+                ],
+            )
+            stage_started = time.perf_counter()
             bank_statement_line_stats = self._import_bank_statement_lines(
                 conn, options, companies, partners, journals, currencies
             )
+            record_stage(
+                "bank statement lines",
+                stage_started,
+                line_count=bank_statement_line_stats[
+                    "imported_bank_statement_line_count"
+                ],
+            )
+            stage_started = time.perf_counter()
             asset_stats = self._import_assets(conn, options, companies, accounts, journals, currencies)
+            record_stage(
+                "assets",
+                stage_started,
+                asset_count=asset_stats["imported_asset_count"],
+            )
+            stage_started = time.perf_counter()
             analytic_stats = self._import_analytic_lines(
                 conn, options, companies, partners, accounts, analytic_plans, analytic_accounts
             )
+            record_stage(
+                "analytics",
+                stage_started,
+                line_count=analytic_stats["imported_analytic_line_count"],
+            )
+            stage_started = time.perf_counter()
             attachment_stats = self._import_attachments(conn, options, companies)
+            record_stage(
+                "attachments",
+                stage_started,
+                attachment_count=attachment_stats[
+                    "imported_attachment_count"
+                ],
+                bytes=attachment_stats["source_total_bytes"],
+            )
             external_report_values = self._seed_benchmark_external_report_values(companies)
 
+            stage_started = time.perf_counter()
             for row in company_rows:
                 company = companies[row["id"]]
                 lock_vals = {}
@@ -10392,6 +10599,17 @@ class RebuildAccountImportRun(models.Model):
             cca_configuration_stats = (
                 self.env["res.company"]._rebuild_apply_cca_projection_defaults()
             )
+            record_stage(
+                "final accounting validation",
+                stage_started,
+                company_count=len(companies),
+                discrepancy_count=len(self.discrepancy_ids),
+            )
+            performance["duration_seconds"] = round(
+                time.perf_counter() - exact_replay_started,
+                3,
+            )
+            performance["status"] = "passed"
             stats = {
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
@@ -10437,6 +10655,7 @@ class RebuildAccountImportRun(models.Model):
                 "source_reports": source_report_stats,
                 "deferred_schedules": deferred_schedule_stats,
                 "warnings": warnings,
+                "performance": performance,
             }
             if previous_sequence_constraint is None:
                 sequence_parameters.search([
@@ -10480,6 +10699,12 @@ class RebuildAccountImportRun(models.Model):
             })
             return stats
         except Exception:
+            performance["duration_seconds"] = round(
+                time.perf_counter() - exact_replay_started,
+                3,
+            )
+            performance["status"] = "failed"
+            stats.setdefault("performance", performance)
             self.write({
                 "status": "failed",
                 "finished_at": fields.Datetime.now(),

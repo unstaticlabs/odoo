@@ -4,17 +4,25 @@ This roadmap records the current product boundary and the work that remains.
 Historical implementation checklists and reconstruction notes belong in
 `docs/accounting/` and `docs/operations/`; they are not the product roadmap.
 
-## Current release — Accounting v1
+## Current release — Distribution production candidate
 
-Status date: 24 August 2026
+Status date: 25 August 2026
 
 - Branch: `19-usl`
 - Upstream baseline: `efb98f932f3a568ce550a26ebde06da0e14e65d3`
 - Developer/QA product database: `odoo_dev`
 - Read-only source snapshot: `odoo_online_source_saas_19_3`
 
-Accounting v1 is engineering-complete for internal daily use. The release is
-aligned with the frozen upstream `saas~19.3` baseline and preserves the current
+Accounting v1 is engineering-complete for internal daily use. The current
+`19-usl` baseline is not yet the final production release. Expense Analytics
+is now integrated at `aae5994a7ec`; B2C sales/inventory, Paperless 3.0, Native
+Sign and monthly bank-statement email ingestion remain independently reviewable
+workstreams. They must be reviewed and merged before the final full
+reconstruction; no feature worktree, old QA seed or rehearsal candidate can be
+promoted directly.
+
+The integrated baseline is aligned with the frozen upstream `saas~19.3`
+baseline and preserves the current
 Odoo Online `saas~19.3.1.3` accounting state while keeping
 USL behavior isolated in custom add-ons and maintained OCA dependencies.
 The same distribution now includes restored Projects, governed Pocket ID SSO,
@@ -79,6 +87,36 @@ Documents application.
   native record/chatter links and access inheritance.
 - Reproducible development, reconstruction, parity and evidence workflows.
 
+### Integrated migration and release foundations
+
+- Deterministic bounded Accounting replay with stage timings, source-identity
+  indexing and parity-preserving batching.
+- Fail-closed full-profile QA seed manifests and portable sanitized Odoo plus
+  Paperless production candidates.
+- External-Pocket-ID production preflight, stage, configure, gate, reset and
+  fingerprint-confirmed admission without owning or mutating Pocket ID.
+- Immutable GHCR `distribution` image publication and release/OCA label checks.
+- A focused launcher that de-emphasizes Discussion, To-do, Dashboards and Apps.
+- Contextual French terminology guards and corrected visible Accounting,
+  Documents, HR/Paie and navigation language.
+- Dump-bound source gap evidence that names every populated model, relation
+  table and stored/manual field under its delivered or blocked scope.
+- A pre-mutation Docker capacity guard and accurate exit-137 resource
+  classification, without stopping unrelated feature projects.
+
+These items are part of `19-usl` through merge `61580c1704c`. The complete
+reusable QA seed publication, two zero-OCR
+hydrations, current-source performance comparison and production dress
+rehearsal remain outstanding. A fresh no-Documents rehearsal reached the
+Accounting import but was OOM-killed by the shared 8 GiB Docker VM; its target
+must be reset and the run repeated on a responsive, sufficiently isolated
+runtime before it counts as evidence.
+
+The current candidate's isolated clean-install and repeated-update check passes
+for all twelve presently delivered product modules with no migration registry
+or schema residue. That closes the earlier partial-`odoo_dev` ambiguity; it is
+module-installation evidence, not a substitute for the final full migration.
+
 The current accounting counts, balances, source advisories and qualification
 evidence are recorded in
 [`docs/accounting/saas-19.3-alignment-register.md`](docs/accounting/saas-19.3-alignment-register.md).
@@ -102,16 +140,49 @@ the target must not introduce any additional exception.
 
 ## Next release gates
 
+The canonical, evidence-bearing sequence is maintained in the
+[production cut-over readiness register](docs/operations/production-cutover-readiness.md).
+
+### Merge train
+
+1. Migration-performance/portable-candidate — **merged through
+   `61580c1704c`**.
+2. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
+3. Review and merge B2C sales/inventory with complete historical source
+   disposition and analytics dimensions.
+4. Review and merge Paperless 3.0 and requalify the official export/import and
+   zero-OCR paths.
+5. Review and merge Native Sign with signing evidence and permission gates.
+6. Review and merge monthly bank-statement email ingestion with idempotence,
+   failure visibility and a manual-import fallback.
+7. From clean final `19-usl`, run clean install, update, repeated update, full
+   local reconstruction and complete product/migration boundary across every
+   delivered module.
+
+The exact merge order may change to resolve dependencies, but each feature
+remains independently reviewed and every merge invalidates earlier release
+evidence.
+
 ### Production cutover
 
-1. Approve the exact release commit and deployment configuration.
-2. Take and verify a final source backup and filestore.
-3. Run one clean reconstruction from that frozen source.
-4. Re-run parity, roles, reports, reconciliation, FEC and attachment controls.
-5. Obtain Accounting Manager acceptance and the required professional review.
-6. Execute the documented deployment and rollback rehearsal.
-7. Replace the development environment only through the approved cutover
-   process.
+1. Before freezing Online, qualify a full reconstruction from the most recent
+   available dump, publish/hydrate the reusable full QA seed and complete a
+   production dress rehearsal.
+2. Approve the exact release commit, immutable Distribution image, deployment
+   configuration, owners, monitoring and backup/recovery plan.
+3. Freeze Odoo Online read-only; take and verify a new final source backup and
+   filestore. Any resumed source activity invalidates the candidate.
+4. Run one clean full reconstruction, strict whole-source/attachment gates and
+   build an independently fingerprint-approved portable candidate.
+5. Stage into fresh production application volumes with cron, mail, providers,
+   OCR and ingress paused; preserve the existing Pocket ID and host policies.
+6. Configure identities, run parity, roles, reports, reconciliation, FEC,
+   Documents, B2C/inventory, Sign, email-bank and browser controls.
+7. Obtain technical, infrastructure, Accounting Manager, professional and
+   final business go/no-go decisions; admit the exact fingerprint.
+8. Activate ingress, backups, mail, bank ingestion and other external services
+   only through their explicit post-admission gates. Keep both regulatory live
+   flags at `0` until separate legal/provider runbooks are approved.
 
 ### September 2026 electronic-invoice activation
 

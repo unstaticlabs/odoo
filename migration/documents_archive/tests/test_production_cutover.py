@@ -1,0 +1,211 @@
+import importlib.util
+import json
+import os
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+SPEC = importlib.util.spec_from_file_location(
+    "production_cutover",
+    ROOT / "scripts/production_cutover.py",
+)
+cutover = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(cutover)
+
+
+class ProductionCutoverSafetyTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        self.fingerprint = "a" * 64
+        self.image = f"ghcr.io/usl/odoo@sha256:{'b' * 64}"
+        self.project = "usl-odoo-production-main"
+        self.candidate = {"identity": {"image_digest": self.image}}
+        self.values = {
+            "COMPOSE_PROJECT_NAME": self.project,
+            "USL_DEPLOYMENT_ENV": "production",
+            "POSTGRES_PASSWORD": "p" * 32,
+            "ODOO_ADMIN_PASSWORD": "a" * 32,
+            "ODOO_DB_PASSWORD": "p" * 32,
+            "ODOO_DB_NAME": "odoo_production",
+            "ODOO_INIT_DB": "odoo_production",
+            "ODOO_DB_FILTER": "^odoo_production$",
+            "ODOO_GEVENT_PORT": "18072",
+            "ODOO_HTTP_PORT": "18069",
+            "ODOO_IMAGE": self.image,
+            "ODOO_LIST_DB": "False",
+            "ODOO_MAX_CRON_THREADS": "0",
+            "ODOO_PUBLIC_BASE_URL": "https://odoo.usl.example",
+            "PAPERLESS_ALLOWED_HOSTS": "documents.usl.example,paperless-webserver",
+            "PAPERLESS_DB_NAME": "paperless",
+            "PAPERLESS_DB_PASSWORD": "d" * 32,
+            "PAPERLESS_DB_USER": "paperless",
+            "PAPERLESS_HTTP_PORT": "18010",
+            "PAPERLESS_SECRET_KEY": "s" * 64,
+            "PAPERLESS_PUBLIC_URL": "https://documents.usl.example",
+            "PAPERLESS_PUBLIC_BASE_URL": "https://documents.usl.example",
+            "PAPERLESS_SSO_BASE_GROUP": "USL Odoo document users",
+            "POCKET_ID_APP_URL": "https://identity.usl.example",
+            "POCKET_ID_CLIENT_ID": "usl-odoo-production",
+            "POCKET_ID_CLIENT_SECRET": "o" * 32,
+            "POCKET_ID_GROUP_NAME": "odoo-production",
+            "POCKET_ID_PAPERLESS_CLIENT_ID": "usl-paperless-production",
+            "POCKET_ID_PAPERLESS_CLIENT_SECRET": "q" * 32,
+            "USL_EINVOICE_LIVE_ENABLED": "0",
+            "USL_EREPORTING_LIVE_ENABLED": "0",
+            "USL_EXTERNAL_IDENTITY_NETWORK": "identity-production",
+            "USL_EXTERNAL_INGRESS_NETWORK": "ingress-production",
+            "USL_POCKET_ID_BREAK_GLASS_PASSWORD": "g" * 32,
+            "USL_PRODUCTION_CRON_THREADS": "1",
+        }
+        for key in cutover.VOLUME_KEYS:
+            suffix = key.lower().removeprefix("usl_").replace("_volume", "").replace("_", "-")
+            self.values[key] = f"{self.project}-{suffix}"
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
+    def _private_json(self, name, value):
+        path = self.root / name
+        path.write_text(json.dumps(value) + "\n", encoding="utf-8")
+        path.chmod(0o600)
+        return path
+
+    def test_environment_is_strict_and_candidate_image_bound(self):
+        cutover.validate_environment(self.values, self.candidate)
+
+        self.values["ODOO_IMAGE"] = f"ghcr.io/usl/odoo@sha256:{'c' * 64}"
+        with self.assertRaisesRegex(cutover.CutoverError, "approved candidate"):
+            cutover.validate_environment(self.values, self.candidate)
+
+    def test_unsafe_urls_database_manager_and_live_flags_are_rejected(self):
+        for key, value, message in (
+            ("POCKET_ID_APP_URL", "http://identity.usl.example", "HTTPS origin"),
+            ("ODOO_LIST_DB", "True", "database manager"),
+            ("USL_EINVOICE_LIVE_ENABLED", "1", "live flags"),
+            ("ODOO_DB_NAME", "odoo_dev", "database name"),
+        ):
+            with self.subTest(key=key):
+                changed = dict(self.values)
+                changed[key] = value
+                with self.assertRaisesRegex(cutover.CutoverError, message):
+                    cutover.validate_environment(changed, self.candidate)
+
+    def test_compose_rejects_managed_pocket_and_public_staging_ports(self):
+        config = {
+            "services": {
+                "odoo": {
+                    "ports": [{"host_ip": "127.0.0.1"}],
+                    "networks": {"external-identity": None, "external-ingress": None},
+                },
+                "paperless-webserver": {
+                    "ports": [{"host_ip": "127.0.0.1"}],
+                    "networks": {"external-identity": None, "external-ingress": None},
+                },
+            },
+            "networks": {
+                "identity": {"name": "identity-production", "external": True},
+                "ingress": {"name": "ingress-production", "external": True},
+            },
+            "volumes": {
+                str(index): {
+                    "name": self.values[key],
+                    "labels": {
+                        "com.unstaticlabs.migration.project": self.project,
+                    },
+                }
+                for index, key in enumerate(cutover.VOLUME_KEYS)
+            },
+        }
+        cutover.validate_compose(config, self.values)
+
+        config["services"]["pocket-id"] = {"image": "pocket-id"}
+        with self.assertRaisesRegex(cutover.CutoverError, "managed Pocket"):
+            cutover.validate_compose(config, self.values)
+        del config["services"]["pocket-id"]
+        config["services"]["odoo"]["ports"][0]["host_ip"] = "0.0.0.0"
+        with self.assertRaisesRegex(cutover.CutoverError, "loopback"):
+            cutover.validate_compose(config, self.values)
+
+    def test_foreign_and_non_empty_volumes_are_rejected(self):
+        volume = {
+            "name": self.values[cutover.VOLUME_KEYS[0]],
+            "labels": {"com.unstaticlabs.migration.project": self.project},
+            "file_count": 0,
+        }
+        cutover.validate_volume_state([volume], self.values, require_empty=True)
+
+        foreign = dict(volume, labels={"com.unstaticlabs.migration.project": "other"})
+        with self.assertRaisesRegex(cutover.CutoverError, "foreign/unowned"):
+            cutover.validate_volume_state([foreign], self.values, require_empty=True)
+        nonempty = dict(volume, file_count=1)
+        with self.assertRaisesRegex(cutover.CutoverError, "not empty"):
+            cutover.validate_volume_state([nonempty], self.values, require_empty=True)
+
+    def test_reset_restage_and_permanent_refusal_after_admission(self):
+        state = self.root / "state.json"
+        cutover.transition(state, self.fingerprint, "preflight")
+        cutover.transition(state, self.fingerprint, "stage")
+        cutover.transition(state, self.fingerprint, "reset")
+        cutover.transition(state, self.fingerprint, "stage")
+        cutover.transition(state, self.fingerprint, "configure")
+        cutover.transition(state, self.fingerprint, "gate")
+        admitted = cutover.transition(state, self.fingerprint, "admit")
+        self.assertFalse(admitted["reset_allowed"])
+        with self.assertRaisesRegex(cutover.CutoverError, "cannot reset"):
+            cutover.transition(state, self.fingerprint, "reset")
+
+    def test_policy_is_mode_0600_and_candidate_bound(self):
+        policy = self._private_json("identity-policy.json", {
+            "schema": cutover.POLICY_SCHEMA,
+            "candidate_fingerprint": self.fingerprint,
+            "approved_cron_xmlids": [],
+            "outbound_integrations_enabled": False,
+            "odoo_users": [{"login": "admin", "profile": "break_glass", "companies": "all"}],
+            "paperless_identities": [{
+                "subject": "subject",
+                "username": "user",
+                "email": "user@usl.example",
+                "display_name": "User",
+            }],
+        })
+        self.assertEqual(
+            cutover.validate_policy(policy, self.fingerprint)["schema"],
+            cutover.POLICY_SCHEMA,
+        )
+        os.chmod(policy, 0o640)
+        with self.assertRaisesRegex(cutover.CutoverError, "0600"):
+            cutover.validate_policy(policy, self.fingerprint)
+
+    def test_browser_journeys_prove_required_roles_and_unchanged_pocket_state(self):
+        evidence = self._private_json("journeys.json", {
+            "schema": cutover.JOURNEY_SCHEMA,
+            "candidate_fingerprint": self.fingerprint,
+            "status": "passed",
+            "external_pocket_state_before_sha256": "d" * 64,
+            "external_pocket_state_after_sha256": "d" * 64,
+            "journeys": [
+                {"name": name, "status": "passed"}
+                for name in (
+                    "odoo_administrator",
+                    "odoo_collaborator",
+                    "accounting_read_only",
+                    "multi_company_isolation",
+                    "paperless_documents",
+                )
+            ],
+        })
+        self.assertEqual(
+            cutover.validate_journeys(evidence, self.fingerprint)["status"],
+            "passed",
+        )
+        value = json.loads(evidence.read_text(encoding="utf-8"))
+        value["external_pocket_state_after_sha256"] = "e" * 64
+        evidence.write_text(json.dumps(value), encoding="utf-8")
+        with self.assertRaisesRegex(cutover.CutoverError, "Pocket ID state changed"):
+            cutover.validate_journeys(evidence, self.fingerprint)
+
+
+if __name__ == "__main__":
+    unittest.main()
