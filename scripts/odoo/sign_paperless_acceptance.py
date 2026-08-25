@@ -6,6 +6,8 @@ import time
 import uuid
 from io import BytesIO
 
+from psycopg2.errors import SerializationFailure
+
 from odoo.tools.pdf import PdfWriter
 from odoo.addons.usl_sign.services import base64_text, field_content, field_value
 
@@ -21,11 +23,16 @@ def _pdf():
 def _poll_until_archived(request, *, attempts=30):
     for _attempt in range(attempts):
         request.invalidate_recordset()
-        request._reconcile_archive()
-        env.cr.commit()
-        request.invalidate_recordset()
         if request.archive_status in {"archived", "failed"}:
             return request.archive_status
+        try:
+            request._reconcile_archive()
+            env.cr.commit()
+        except SerializationFailure:
+            # The running Odoo worker may finish the same queued operation
+            # between our status read and reconciliation write. Retry from a
+            # fresh transaction and observe its committed result.
+            env.cr.rollback()
         time.sleep(1)
     return request.archive_status
 
