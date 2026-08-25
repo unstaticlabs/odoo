@@ -39,6 +39,11 @@ Every populated persistent source model and every populated relation or
 unmapped table must resolve to one declared scope. Each scope states whether
 the source is translated to native Community records, archived, recomputed
 from version-controlled product configuration, or deliberately not copied.
+The inventory also records every stored or Studio/manual field belonging to a
+populated model. The dump-bound private gap report groups those fields with
+the exact model and relation-table counts under the delivered or blocked scope;
+it does not mistake a scope contract for value-level parity, which remains the
+responsibility of that scope's importer and validation evidence.
 
 The gate fails when:
 
@@ -55,6 +60,20 @@ USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
 ACCOUNTING_COMPAT_COMPOSE_PROJECT=codex-migration-audit \
 make migration-source-inventory
 ```
+
+Write the human- and machine-readable private gap report without weakening the
+strict gate:
+
+```bash
+USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
+ACCOUNTING_COMPAT_COMPOSE_PROJECT=codex-migration-audit \
+make migration-source-report
+```
+
+The files are written beside the inventory as
+`source-migration-gap-report.md` and `source-migration-gap-report.json`. A
+blocked scope means this commit has no qualified lossless destination for that
+data and therefore cannot produce a production candidate.
 
 Run the strict whole-source completeness gate:
 
