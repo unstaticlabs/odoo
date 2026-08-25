@@ -39,9 +39,9 @@ migration, accounting, release-cohort, or production-parity evidence.
 | Paperless | `http://paperless.localhost:19010` |
 | Pocket ID | `http://pocket-id.localhost:19411` |
 | Ollama | `http://127.0.0.1:19434` |
-| Odoo MCP development Worker | `http://127.0.0.1:19787/mcp` |
-| Focused Documents MCP | planned at `http://127.0.0.1:19787/documents/mcp` |
-| MCP Inspector | port `19788` reserved and currently unpublished |
+| Odoo MCP development Worker | `http://127.0.0.1:19787/mcp`, started on demand |
+| Focused Documents MCP | `http://127.0.0.1:19787/documents/mcp`, started on demand |
+| MCP Inspector | loopback port `19788` |
 | MCP development state | `/private/tmp/usl-odoo-paperless-193-0824-mcp-state` |
 
 The internal database name matches the conventional developer name, but it is
@@ -57,10 +57,11 @@ directory, e-reporting, or production provider.
 Paperless is exactly `3.0.5` at image digest
 `sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`.
 The qualified derived Paperless image is
-`usl-paperless-ngx:3.0.5-usl.1` at manifest digest
-`sha256:b811135ed1a675882be6b95d78c1753e8acfc8cf5837ffa30ace4d0b4f48ab3b`.
+`usl-paperless-ngx:3.0.5-usl.2` at manifest digest
+`sha256:9bac20850d764127a3f8dad98b8885ace9e62559cd47c0752c79d858832dae5f`.
 It is built from the exact base above and contains only the documented
-`semantic-search-api-v1` overlay. The isolated Ollama service is exactly `0.30.11` at image digest
+`semantic-search-api-v2` overlay. The isolated Ollama service is exactly
+`0.30.11` at image digest
 `sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca`.
 Its application-facing model is `usl-bge-m3:documents-20260824-rc1`, model
 digest `7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab`,
@@ -160,7 +161,7 @@ correspondent, type, or other user metadata.
 | A — policy engine | origin, mode, role, deterministic operation/link diagnostics, adapters, idempotent retry/backfill | validated 2026-08-24 |
 | B — local hybrid search | exact Paperless image, Ollama BGE-M3, Paperless-owned vector index/API, scoped fusion and outage behavior | validated 2026-08-25 |
 | C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | implementation and automated gates complete; manual SSO browser evidence pending |
-| D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | isolated Worker running; endpoint planned |
+| D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | validated 2026-08-25 |
 | E — personal Gemini | encrypted per-user key, activation/revocation, no chat UI, no search/index/MCP dependency | planned |
 | F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | planned |
 | G — production candidate | full security/functional matrix, install/upgrades, boundary/accounting/docs gates, release identity | planned |
@@ -277,7 +278,8 @@ boundary and the exact gate then passed.
 - Existing links cannot be promoted or demoted independently of the Paperless
   root.
 - Home/Recent does not yet suppress background-only roots.
-- The Odoo MCP has no `/documents/mcp` endpoint or Documents tools.
+- The Odoo MCP had no `/documents/mcp` endpoint or Documents tools; Checkpoint
+  D resolves this gap.
 - There is no per-user Gemini key boundary.
 - Ollama and MCP are isolated for QA but are not yet members of a portable,
   digest-bound release cohort.
@@ -407,3 +409,102 @@ Manual desktop/mobile SSO browser evidence is still required before creating
 `codex/checkpoint/documents-search-ux`. A local one-time Pocket ID link is a
 sensitive authentication action and is not generated or entered without
 action-time user confirmation.
+
+## Checkpoint D evidence — governed Documents MCP
+
+Validated Odoo/Paperless commits are:
+
+- `03ef6297d59` — versioned Paperless similar-document retrieval with a
+  mandatory authorized candidate scope;
+- `9ce5cbb3c38` — the current-user Odoo Documents MCP facade and its security,
+  output-bound, outage, company, and guessed-ID tests;
+- `d5101a44b60` — semantic chunk source-identity correction and isolated
+  unsynchronized-root regression, released as
+  `usl_documents saas~19.3.1.7.1`.
+
+The independent Odoo MCP branch contains:
+
+- `eaaabbc834c34787799fe99b281f2fa075c18dec` — nine read-only Documents tools,
+  `/documents/mcp`, full-surface composition, `DocumentsAgent` Durable Object
+  migration `v3`, and `SERVER_VERSION=0.20.0`;
+- `b9931e9fd12ff51ba29e6b886edd7eb780a2be47` — the accepted security,
+  disclosure, capacity, deployment, client-refresh, and rollback boundary.
+
+Three credible authorization designs were compared:
+
+1. Explicit public `usl.document.mcp_*` methods plus a dedicated Documents
+   tool module and fourth Durable Object are selected. Each call executes as
+   the current Odoo user; record rules, allowed companies, linked-record ACLs,
+   live archive state, and synchronized binary permission are resolved before
+   Paperless. Missing, guessed, and inaccessible IDs share one denial.
+2. Reusing generic `call_model_method` or raw read tools was rejected. It would
+   expose implementation methods, make OCR/output bounds optional, and blur
+   the deliberately indistinguishable document-denial contract.
+3. Calling Paperless directly from the Worker was rejected. A Worker-held
+   service token would create a second authorization plane, bypass current
+   Odoo company/record rules, and expose a credential that the existing BYO
+   Odoo connection does not need.
+
+For similar-document retrieval, the selected `semantic-search-api-v2` overlay
+accepts exactly one of a text query or an authorized source document, derives
+the source text inside Paperless, and intersects candidate roots before vector
+retrieval. Paperless's public `more_like_id` path remained a credible lexical
+alternative but was not used because its native helper has no service-scope
+contract, no distribution API schema, and no bounded semantic excerpt
+response. A second Odoo vector store was also rejected because it would split
+embedding/index lifecycle from the Paperless-owned archive.
+
+The exact final Paperless image passed 12 API tests in a network-disabled
+container. It runs healthy with image ID
+`sha256:9bac20850d764127a3f8dad98b8885ace9e62559cd47c0752c79d858832dae5f`,
+base-digest label
+`sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`,
+and overlay label `semantic-search-api-v2`. The final focused Odoo MCP gate
+passed 10 methods, 14 reported entries, 771 queries, zero failures, and zero
+errors. The repeated fresh installation passed 149 methods; Odoo reported 155
+`usl_documents` entries and 9,033 queries, plus 31 desktop tests/215
+assertions and 28 mobile tests/207 assertions. Two consecutive upgrades to
+`1.7.1`, scoped Ruff, Python compilation, and diff checks passed.
+
+The MCP repository passed TypeScript typecheck and 1,172 tests across 29 files
+with 4,523 assertions. Wrangler 4.113.0 dry-run produced a 3,478.15 KiB Worker
+(712.18 KiB gzip) with all four Durable Object bindings. Two consecutive
+bundles produced the same compiled `index.js` SHA-256:
+`a34daa7fa42866307a25a522c2df67f6b201a5a4d3ff3ef1f98035431bf3f8c9`.
+The final non-secret MCP identity is
+`38291baa9134226f4c61a11a00cd8dd595fdec52222d35f751d936a433694c2d`;
+it binds MCP commit `b9931e9fd12ff51ba29e6b886edd7eb780a2be47`, server
+version `0.20.0`, Worker digest, and both endpoint URLs. Local readiness reached
+`/mcp` and `/documents/mcp`, which correctly returned HTTP 401 without a user
+credential.
+
+Real MCP Inspector acceptance listed exactly the nine `documents.*` tools on
+the focused endpoint. A short-lived API key for the existing QA Documents user
+completed hybrid search, metadata, an 80-character OCR page, local
+similar-document retrieval, versions without checksums, tag catalog, and
+governed links. The hybrid result carried lexical/semantic provenance, bounded
+500-character excerpts, and clickable Odoo URLs. The key was removed after the
+run and was never printed, persisted, or included in evidence. Automated Odoo
+tests cover restricted-user, other-company, guessed-ID, unsynchronized-root,
+output-size, Paperless outage, and embedding-degradation paths.
+
+The first complete fresh Odoo gate found two defects rather than hiding them:
+semantic result merging shadowed the source variable and widened the second
+10,000-root chunk from `[10001]` to `[1, 10001]`, while one negative test
+silently depended on an already populated QA database. Production merging now
+uses a distinct candidate ID and the test creates its own synchronized control
+root with exact ID comparisons. Focused regressions and the complete clean gate
+then passed. Earlier harness failures—Redis-dependent Paperless tests, an
+incorrect effective-content method name, absent Ruff in the runtime image,
+Wrangler sandbox cache writes, and a reserved shell variable in the Inspector
+harness—were corrected at their respective boundaries without weakening a
+test. Temporary Inspector keys were explicitly removed.
+
+`deploy/documents/qa.env` and the pre-production template now carry only
+non-secret MCP release settings. `scripts/documents-mcp` verifies the
+independent clean checkout, tests and bundles the Cloudflare Worker, writes the
+non-secret artifact identity, starts isolated Wrangler state, and validates
+readiness. The deployment/rollback, capacity, content disclosure, Inspector,
+and client refresh procedure is maintained in
+`docs/operations/documents-mcp-runbook.md`. The Worker remains outside Compose
+and the Paperless service credential remains behind Odoo.
