@@ -251,3 +251,13 @@ reuses archive roots by checksum, applies current product context and records a
 private classification result. A full run fails on any eligible attachment
 that is not archived, or on any unaccounted source attachment. Partial semantic
 profiles deliberately skip this final gate and cannot qualify a release.
+
+Before a release cohort is sealed, `scripts/backfill_archive_roles.py` may be
+run through the dedicated migration service. It classifies accounting,
+expense, payroll, HR, and Platform Billing relationships as evidence; retains
+curated legal/company/reference material as library; and demotes historical
+project/task/contact context to background. The operation changes only Odoo's
+policy/presentation fields and never writes Paperless metadata or uploads a
+file. It emits a complete before/after JSON ledger outside the delivered
+database, preserves an already distinct user promotion/demotion, and is
+idempotent on repetition.
