@@ -2606,3 +2606,129 @@ msgstr "Fermer cette fenêtre"
 #. module: usl_sign
 msgid "A secure Pocket ID window will open. This step only connects your account."
 msgstr "Une fenêtre Pocket ID sécurisée va s’ouvrir. Cette étape connecte uniquement votre compte."
+
+#. module: usl_sign
+msgid "Choose a signing method"
+msgstr "Choisir une méthode de signature"
+
+#. module: usl_sign
+msgid "Confirm the context, then use the recommended method or choose another."
+msgstr "Confirmez le contexte, puis utilisez la méthode recommandée ou choisissez-en une autre."
+
+#. module: usl_sign
+msgid "1. Confirm the context"
+msgstr "1. Confirmer le contexte"
+
+#. module: usl_sign
+msgid "These required details determine the recommendation."
+msgstr "Ces informations obligatoires déterminent la recommandation."
+
+#. module: usl_sign
+msgid "Required"
+msgstr "Obligatoire"
+
+#. module: usl_sign
+msgid "Relationship to signer"
+msgstr "Relation avec le signataire"
+
+#. module: usl_sign
+msgid "Business risk"
+msgstr "Risque commercial"
+
+#. module: usl_sign
+msgid "A law, authority, or counterparty explicitly requires a qualified signature"
+msgstr "Une loi, une autorité ou une contrepartie exige explicitement une signature qualifiée"
+
+#. module: usl_sign
+msgid "Select this only when a formal qualified-signature requirement has been confirmed."
+msgstr "Sélectionnez cette option uniquement lorsqu’une exigence formelle de signature qualifiée a été confirmée."
+
+#. module: usl_sign
+msgid "2. Choose the method"
+msgstr "2. Choisir la méthode"
+
+#. module: usl_sign
+msgid "The method changes how signers confirm and what proof is produced."
+msgstr "La méthode détermine la manière dont les signataires confirment et les preuves produites."
+
+#. module: usl_sign
+msgid "Recommended for this document"
+msgstr "Recommandée pour ce document"
+
+#. module: usl_sign
+msgid "Required. Select one method, then review any requirement shown below."
+msgstr "Obligatoire. Sélectionnez une méthode, puis vérifiez les éventuelles exigences affichées ci-dessous."
+
+#. module: usl_sign
+msgid "Use the recommendation or ask an administrator."
+msgstr "Utilisez la recommandation ou demandez à un administrateur."
+
+#. module: usl_sign
+msgid "You do not have permission to choose a different signing method."
+msgstr "Vous n’avez pas l’autorisation de choisir une autre méthode de signature."
+
+#. module: usl_sign
+msgid "Reason for choosing a different method"
+msgstr "Motif du choix d’une autre méthode"
+
+#. module: usl_sign
+msgid "Required. This reason is kept with the request."
+msgstr "Obligatoire. Ce motif est conservé avec la demande."
+
+#. module: usl_sign
+msgid "Explain why the recommendation is not appropriate for this document…"
+msgstr "Expliquez pourquoi la recommandation ne convient pas à ce document…"
+
+#. module: usl_sign
+msgid "Qualified provider"
+msgstr "Prestataire qualifié"
+
+#. module: usl_sign
+msgid "Required. Choose the provider that will sign the frozen PDF outside Odoo."
+msgstr "Obligatoire. Choisissez le prestataire qui signera le PDF figé en dehors d’Odoo."
+
+#. module: usl_sign
+msgid "Apply signing method"
+msgstr "Appliquer la méthode de signature"
+
+#. module: usl_sign
+msgid "Select the recommended method to continue."
+msgstr "Sélectionnez la méthode recommandée pour continuer."
+
+#. module: usl_sign
+msgid "Each known signer confirms with Pocket ID before a personal digital signature is added."
+msgstr "Chaque signataire connu confirme avec Pocket ID avant l’ajout d’une signature numérique personnelle."
+
+#. module: usl_sign
+#, python-format
+msgid "Identity setup is still required for %(names)s."
+msgstr "La configuration de l’identité est encore nécessaire pour %(names)s."
+
+#. module: usl_sign
+msgid "Every signer has an approved signing identity."
+msgstr "Chaque signataire dispose d’une identité de signature approuvée."
+
+#. module: usl_sign
+msgid "Add the signers before checking identity readiness."
+msgstr "Ajoutez les signataires avant de vérifier la disponibilité de leur identité."
+
+#. module: usl_sign
+msgid "The frozen PDF is signed through an external qualified provider, then returned and checked here."
+msgstr "Le PDF figé est signé par un prestataire qualifié externe, puis renvoyé et vérifié ici."
+
+#. module: usl_sign
+#, python-format
+msgid "Provider selected: %(provider)s."
+msgstr "Prestataire sélectionné : %(provider)s."
+
+#. module: usl_sign
+msgid "Choose a qualified provider below."
+msgstr "Choisissez un prestataire qualifié ci-dessous."
+
+#. module: usl_sign
+msgid "Signers use private links. Their consent and actions are recorded, and the final PDF is independently checked."
+msgstr "Les signataires utilisent des liens privés. Leur consentement et leurs actions sont enregistrés, et le PDF final est vérifié de manière indépendante."
+
+#. module: usl_sign
+msgid "Ready once every signer and required field is set."
+msgstr "Prêt dès que chaque signataire et chaque champ obligatoire sont définis."
