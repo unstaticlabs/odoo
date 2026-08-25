@@ -164,6 +164,19 @@ class AccountBankIngestionConfig(models.Model):
         today = fields.Date.context_today(self)
         last_completed = (today.replace(day=1) - dt.timedelta(days=1))
         for config in self:
+            exceptional_statement = config.statement_ids.filtered(
+                lambda item: item.unresolved_exception_count
+            ).sorted(lambda item: (item.period_start or today, item.id))[:1]
+            if exceptional_statement:
+                config.expected_period_start = exceptional_statement.period_start
+                config.expected_period_end = exceptional_statement.period_end
+                config.expected_delivery_date = exceptional_statement.period_end + dt.timedelta(
+                    days=config.expected_delivery_day
+                )
+                config.expected_statement_id = exceptional_statement
+                config.review_status = "attention"
+                config.review_next_action = exceptional_statement.review_blocking_reason
+                continue
             start = (config.automatic_start_date or last_completed).replace(day=1)
             period_start = start
             statement = self.env["account.bank.statement"]
@@ -672,7 +685,12 @@ class AccountBankIngestionFile(models.Model):
     period_start = fields.Date(copy=False, index=True)
     period_end = fields.Date(copy=False, index=True)
     evidence_status = fields.Selection(
-        [("candidate", "Candidate"), ("accepted", "Accepted"), ("superseded", "Prior evidence")],
+        [
+            ("candidate", "Candidate"),
+            ("accepted", "Accepted"),
+            ("superseded", "Prior evidence"),
+            ("duplicate", "Duplicate copy"),
+        ],
         copy=False,
     )
     paperless_version = fields.Char(copy=False, readonly=True)
@@ -1053,7 +1071,19 @@ class AccountBankIngestionFile(models.Model):
         )
         for candidate in candidates:
             candidate.statement_id = statement
-            if not candidate.evidence_status:
+            if (
+                statement.accepted_evidence_id
+                and candidate != statement.accepted_evidence_id
+                and candidate.sha256 == statement.accepted_evidence_id.sha256
+            ):
+                candidate.write(
+                    {
+                        "evidence_status": "duplicate",
+                        "processing_state": "duplicate",
+                        "processing_detail": _("This exact PDF is already the accepted evidence."),
+                    }
+                )
+            elif not candidate.evidence_status:
                 candidate.evidence_status = "candidate"
         if not statement.accepted_evidence_id and candidates:
             candidates[0]._accept_evidence()
@@ -1097,6 +1127,14 @@ class AccountBankIngestionFile(models.Model):
             self.statement_id = statement
             if not statement.accepted_evidence_id:
                 self._accept_evidence()
+            elif statement.accepted_evidence_id.sha256 == self.sha256:
+                self.write(
+                    {
+                        "evidence_status": "duplicate",
+                        "processing_state": "duplicate",
+                        "processing_detail": _("This exact PDF is already the accepted evidence."),
+                    }
+                )
             else:
                 self._ensure_exception(
                     "evidence",
@@ -1125,6 +1163,12 @@ class AccountBankIngestionFile(models.Model):
         if self.classification != "pdf" or not self.statement_id:
             raise UserError(_("This PDF is not linked to a bank statement period."))
         statement = self.statement_id
+        self.env.cr.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+            [f"account.bank.statement.evidence:{statement.id}"],
+        )
+        self.invalidate_recordset()
+        statement.invalidate_recordset()
         if statement.certification_state == "certified" and statement.accepted_evidence_id != self:
             raise UserError(_("Reopen the certified statement before accepting replacement evidence."))
         previous = statement.accepted_evidence_id
@@ -1239,11 +1283,27 @@ class MailThread(models.AbstractModel):
                         }
                     )
                     return existing.id
-        return super().message_process(
+        record_id = super().message_process(
             model,
             message,
             custom_values=custom_values,
-            save_original=save_original or is_bank_route,
+            save_original=save_original,
             strip_attachments=strip_attachments,
             thread_id=thread_id,
         )
+        if is_bank_route and record_id and raw:
+            ingestion = self.env["account.bank.ingestion"].sudo().browse(
+                record_id
+            ).exists()
+            if ingestion:
+                self.env["ir.attachment"].sudo().create(
+                    {
+                        "name": "source-email.eml",
+                        "raw": raw,
+                        "mimetype": "message/rfc822",
+                        "res_model": ingestion._name,
+                        "res_id": ingestion.id,
+                        "company_id": ingestion.company_id.id,
+                    }
+                )
+        return record_id

@@ -171,7 +171,9 @@ class AccountBankStatement(models.Model):
             statement.can_certify = bool(statement.ingestion_config_id and not blockers)
             statement.review_blocking_reason = blockers[0] if blockers else False
             if statement.certification_state == "certified":
-                statement.review_status = "certified"
+                statement.review_status = (
+                    "attention" if statement.unresolved_exception_count else "certified"
+                )
             elif statement.certification_state == "reopened":
                 statement.review_status = "reopened" if not blockers else "attention"
             elif blockers:

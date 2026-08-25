@@ -1,5 +1,8 @@
 import datetime as dt
 import hashlib
+import zipfile
+from email.message import EmailMessage
+from io import BytesIO
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
@@ -148,6 +151,93 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertTrue(
             all(forwarded_ofx in line.ingestion_file_ids for line in statement.line_ids)
         )
+
+    def test_mail_gateway_retains_exact_rfc822_and_short_circuits_redelivery(self):
+        message = EmailMessage()
+        message["From"] = "Shine <hello@shine.example.invalid>"
+        message["To"] = self.config.alias_full_name
+        message["Subject"] = "Export comptable Synthetic - du 01/07/2026 au 31/07/2026"
+        message["Message-ID"] = "<synthetic-rfc822@example.invalid>"
+        message.set_content("Synthetic scheduled export.")
+        message.add_attachment(
+            self.ofx,
+            maintype="application",
+            subtype="x-ofx",
+            filename="transactions.ofx",
+        )
+        message.add_attachment(
+            self.pdf,
+            maintype="application",
+            subtype="pdf",
+            filename="statement.pdf",
+        )
+        raw = message.as_bytes()
+
+        ingestion_id = self.env["mail.thread"].message_process(
+            "account.bank.ingestion",
+            raw,
+            custom_values={"config_id": self.config.id},
+        )
+        ingestion = self.env["account.bank.ingestion"].browse(ingestion_id)
+        original = self.env["ir.attachment"].sudo().search(
+            [
+                ("res_model", "=", ingestion._name),
+                ("res_id", "=", ingestion.id),
+                ("mimetype", "=", "message/rfc822"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(original)
+        self.assertEqual(bytes(original.raw), raw)
+        attachment_count = self.env["ir.attachment"].sudo().search_count(
+            [("res_model", "=", ingestion._name), ("res_id", "=", ingestion.id)]
+        )
+
+        duplicate_id = self.env["mail.thread"].message_process(
+            "account.bank.ingestion",
+            raw,
+            custom_values={"config_id": self.config.id},
+        )
+        self.assertEqual(duplicate_id, ingestion.id)
+        self.assertEqual(ingestion.duplicate_delivery_count, 1)
+        self.assertEqual(
+            self.env["ir.attachment"].sudo().search_count(
+                [("res_model", "=", ingestion._name), ("res_id", "=", ingestion.id)]
+            ),
+            attachment_count,
+        )
+
+    def test_shine_archive_is_retained_and_safe_members_are_processed(self):
+        archive_buffer = BytesIO()
+        with zipfile.ZipFile(archive_buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("transactions.ofx", self.ofx)
+            archive.writestr("statement.pdf", self.pdf)
+            archive.writestr("transactions.csv", "Date,Amount\n2026-07-05,300\n")
+            archive.writestr("transactions.qif", "!Type:Bank\nD07/05/2026\nT300\n^")
+        ingestion = self._ingestion("<synthetic-zip@example.invalid>")
+        self.env["ir.attachment"].sudo().create(
+            {
+                "name": "scheduled-export.zip",
+                "raw": archive_buffer.getvalue(),
+                "mimetype": "application/zip",
+                "res_model": ingestion._name,
+                "res_id": ingestion.id,
+                "company_id": self.company.id,
+            }
+        )
+
+        ingestion.action_process_now()
+
+        self.assertEqual(ingestion.state, "done")
+        archive_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "zip"
+        )
+        self.assertEqual(archive_file.processing_state, "processed")
+        self.assertEqual(
+            set(archive_file.extracted_file_ids.mapped("classification")),
+            {"ofx", "pdf", "csv", "qif"},
+        )
+        self.assertEqual(len(ingestion.statement_ids.line_ids), 3)
 
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
         ingestion = self._ingestion(
