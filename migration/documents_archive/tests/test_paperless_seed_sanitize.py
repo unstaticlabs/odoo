@@ -47,6 +47,11 @@ class PaperlessSeedSanitizeTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "explicit migration decision"):
                 sanitizer.sanitize(export)
 
+            result = sanitizer.sanitize(export, remove_integrations=True)
+            stored = json.loads((export / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(result["removed_integrations"], 1)
+            self.assertNotIn("socialaccount.socialtoken", {item["model"] for item in stored})
+
     def test_database_sanitizer_is_clone_guarded_and_removes_identity_material(self):
         script = (ROOT / "scripts/paperless_release_sanitize.py").read_text(
             encoding="utf-8",

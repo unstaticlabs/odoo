@@ -26,7 +26,7 @@ REMOVED_CREDENTIAL_MODELS = {
 }
 
 
-def sanitize(export_dir: Path) -> dict:
+def sanitize(export_dir: Path, *, remove_integrations: bool = False) -> dict:
     manifest_path = export_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if not isinstance(manifest, list):
@@ -41,12 +41,15 @@ def sanitize(export_dir: Path) -> dict:
             record.get("fields", {}).get("llm_api_key")
         ):
             unexpected["paperless.applicationconfiguration.llm_api_key"] = 1
-    if unexpected:
+    if unexpected and not remove_integrations:
         details = ", ".join(f"{name}={count}" for name, count in sorted(unexpected.items()))
         raise ValueError(
             "Paperless export contains environment integrations that require "
             f"an explicit migration decision: {details}",
         )
+    removed_integrations = sum(
+        record.get("model") in FORBIDDEN_MODELS for record in manifest
+    )
     removed_credentials = sum(
         record.get("model") in REMOVED_CREDENTIAL_MODELS for record in manifest
     )
@@ -54,6 +57,7 @@ def sanitize(export_dir: Path) -> dict:
         record
         for record in manifest
         if record.get("model") not in REMOVED_CREDENTIAL_MODELS
+        and (not remove_integrations or record.get("model") not in FORBIDDEN_MODELS)
     ]
     sanitized_users = 0
     for record in manifest:
@@ -62,6 +66,11 @@ def sanitize(export_dir: Path) -> dict:
             fields["password"] = "!"
             fields["last_login"] = None
             sanitized_users += 1
+        if remove_integrations and record.get("model") == "paperless.applicationconfiguration":
+            fields = record.get("fields") or {}
+            for name in ("llm_api_key", "llm_model", "llm_endpoint", "llm_backend"):
+                if name in fields:
+                    fields[name] = None
     manifest_path.write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -69,6 +78,7 @@ def sanitize(export_dir: Path) -> dict:
     manifest_path.chmod(0o600)
     return {
         "removed_credentials": removed_credentials,
+        "removed_integrations": removed_integrations,
         "sanitized_users": sanitized_users,
         "status": "passed",
     }
@@ -77,9 +87,13 @@ def sanitize(export_dir: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("export_dir", type=Path)
+    parser.add_argument("--release-remove-integrations", action="store_true")
     args = parser.parse_args()
     try:
-        result = sanitize(args.export_dir.resolve())
+        result = sanitize(
+            args.export_dir.resolve(),
+            remove_integrations=args.release_remove_integrations,
+        )
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         raise SystemExit(f"Paperless seed sanitation failed: {error}") from error
     print(json.dumps(result, sort_keys=True))
