@@ -2033,10 +2033,21 @@ class TestCleanUslSign(TransactionCase):
             {"request_id": request.id},
         )
         self.assertEqual(method.requested_trust, "standard")
+        self.assertFalse(method.can_override_trust)
+        self.assertIn("private links", method.selected_method_summary)
+        self.assertIn("required field", method.selected_method_readiness)
         method.requested_trust = "strong_personal"
+        self.assertIn("Pocket ID", method.selected_method_summary)
+        self.assertIn(self.partner_one.name, method.selected_method_readiness)
         method.override_reason = "This agreement needs a known signer."
         with self.assertRaisesRegex(AccessError, "permission to override"):
             method.action_apply()
+
+        view_arch = self.env.ref("usl_sign.sign_request_method_form").arch_db
+        self.assertIn("1. Confirm the context", view_arch)
+        self.assertIn("2. Choose the method", view_arch)
+        self.assertIn("These required details determine the recommendation", view_arch)
+        self.assertNotIn("Change the recommendation inputs", view_arch)
 
     def test_configuration_guidance_uses_business_facing_role_and_capability_copy(self):
         role_labels = dict(
