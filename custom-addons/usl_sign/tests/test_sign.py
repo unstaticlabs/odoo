@@ -437,6 +437,81 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(updated["item"]["role_id"], self.role_customer.id)
         self.assertTrue(updated["item"]["required"])
 
+    def test_initials_can_be_placed_on_every_page_as_one_editor_command(self):
+        initials = self.env.ref("usl_sign.field_initials")
+        document = _pdf(pages=3)
+        values = {
+            "field_id": initials.id,
+            "role_id": self.role_customer.id,
+            "page": 2,
+            "position_x": 82,
+            "position_y": 91,
+            "width": 14,
+            "height": 5,
+        }
+        template = self.env["sign.oca.template"].create(
+            {
+                "name": "Initial every page",
+                "filename": "initial-every-page.pdf",
+                "data": field_value(document),
+                "company_id": self.company.id,
+            },
+        )
+        operation = str(uuid.uuid4())
+        placed = template.editor_apply_command(
+            operation,
+            1,
+            {"action": "create_all_pages", "values": values},
+        )
+        duplicate = template.editor_apply_command(
+            operation,
+            1,
+            {"action": "create_all_pages", "values": values},
+        )
+        self.assertEqual(placed, duplicate)
+        self.assertEqual([item["page"] for item in placed["items"]], [1, 2, 3])
+        self.assertEqual(sorted(template.item_ids.mapped("page")), [1, 2, 3])
+        removed = template.editor_apply_command(
+            str(uuid.uuid4()),
+            2,
+            {
+                "action": "delete_many",
+                "item_ids": [item["id"] for item in placed["items"]],
+            },
+        )
+        self.assertEqual(
+            set(removed["deleted_ids"]),
+            {item["id"] for item in placed["items"]},
+        )
+        self.assertFalse(template.item_ids)
+
+        request = self._request(data=field_value(document))
+        request_placed = request.editor_apply_command(
+            str(uuid.uuid4()),
+            1,
+            {"action": "create_all_pages", "values": values},
+        )
+        self.assertEqual([item["page"] for item in request_placed["items"]], [1, 2, 3])
+        self.assertEqual(
+            len(
+                [
+                    item
+                    for item in request.signatory_data.values()
+                    if item.get("kind") == "initials"
+                ],
+            ),
+            3,
+        )
+        with self.assertRaisesRegex(ValidationError, "Only an Initials field"):
+            request.editor_apply_command(
+                str(uuid.uuid4()),
+                2,
+                {
+                    "action": "create_all_pages",
+                    "values": {**values, "field_id": self.text_field.id},
+                },
+            )
+
     def test_template_editor_rejects_missing_role_and_out_of_page_geometry(self):
         template = self.env["sign.oca.template"].create(
             {
