@@ -61,6 +61,13 @@ new missing document, orphaned relationship, checksum mismatch or unmirrored
 Paperless record. This is recovery evidence only; the pre-production release
 gate remains fail-closed until the permission-failure set is empty.
 
+The transferable four-component workflow is documented in
+[Documents release cohort](documents-release-cohort.md). It binds Odoo,
+Paperless, Ollama and Odoo MCP, restores into new blue/green volumes, proves
+stable Paperless IDs and unchanged vector/accounting state, and reseals the
+cohort only after recovery parity passes. Never substitute a database-only
+restore or rebuild OCR/embeddings in production.
+
 ## Incident recovery
 
 When recovery is required:

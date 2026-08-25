@@ -163,7 +163,7 @@ correspondent, type, or other user metadata.
 | C — search UX | search-first information architecture, background visibility, Keep in Documents, promotion/demotion, desktop/mobile | implementation and automated gates complete; manual SSO browser evidence pending |
 | D — Documents MCP | Odoo JSON-2 facade, `/documents/mcp`, unified `/mcp`, read-only authorization, Inspector/stack acceptance | validated 2026-08-25 |
 | E — personal Gemini | encrypted per-user key, activation/revocation, no Odoo chat UI, no search/index/MCP dependency | implementation and automated gates complete; manual profile browser evidence pending |
-| F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | planned |
+| F — release cohort | migration role backfill, finalized indexes, coordinated bundle, independent/cross-architecture restore | local arm64 build/restore passed; full ledger and amd64 restore blocked |
 | G — production candidate | full security/functional matrix, install/upgrades, boundary/accounting/docs gates, release identity | planned |
 
 The final evidence set must account for every native attachment as archived
@@ -579,3 +579,75 @@ was supplied, so the provider request itself was validated with a mocked
 models-only call; live document generation is deliberately not claimed.
 Manual desktop/mobile **My profile** evidence remains required before creating
 `codex/checkpoint/personal-gemini-opt-in`.
+
+## Checkpoint F evidence — portable release cohort
+
+Checkpoint F is **partial** and its pointer has not been created.
+
+The migration role backfill assigns presentation roles from durable Odoo
+business relationships while preserving the Paperless root, version chain and
+user-managed metadata. Its first live pass changed 19 relationships. Emitted
+ledger review caught one evidence relationship that a single-link query would
+have demoted; the corrected monotonic/all-active-link resolver changed two
+records and an unchanged repeat changed zero. The focused migration suite
+passed 55 tests.
+
+Two release designs were rejected in favor of the coordinated cohort. The
+official Paperless exporter remains useful but cannot preserve live Tantivy,
+vector or Ollama state by itself. A raw database plus isolated
+`llmindex.db` copy cannot prove a coordinated SQLite/WAL snapshot and
+would require an unsafe production rebuild. The selected workflow quiesces the
+source, snapshots both databases and every authoritative volume, includes the
+compiled MCP Worker, sanitizes database clones, records exact identities and
+seals all artifacts.
+
+Four failed capture IDs remain diagnostic evidence:
+
+- the first found three official-export social-account records and failed
+  closed before the export was sanitized;
+- r2 found that Odoo OIDC identities could not be removed before their
+  Paperless mapping foreign keys;
+- r3 exposed that the Paperless service init ignored the requested Django
+  shell and launched a worker;
+- r4 exposed a literal `\n` suffix after extracted JSON.
+
+Each defect was fixed forward with a regression test. No failed cohort was
+renamed or accepted. r5 then built and restored locally; its old accounting
+serialization was deliberately rejected by the new parity checker.
+
+The current diagnostic cohort is
+`usl-documents-20260825-partial-arm64-r6`. Its initial manifest was
+`ad33ed297de2a8f66429abfbf7d2a6a1cdf6055c990cad51dd2263c8e799703e`.
+An independent project restored Odoo, Paperless, Tantivy, the complete vector
+database and the BGE volume. All Odoo Documents/accounting counts, Paperless
+stable IDs, vector counts/digest, BGE manifest and Tantivy no-op output matched.
+No OCR, re-ingestion, vector rebuild or model download ran. The recovery
+evidence passed and the final resealed manifest is
+`c3b811e90840b3bc1d69866e80140fd30d7e97393ea604988c034fb9b7501134`.
+The disposable restore containers, network, volumes and copied credential file
+were removed.
+
+The acceptance gate still rejects the cohort with exact source evidence:
+
+- 840 eligible attachments pending and 536 unresolved;
+- one failed, 180 pending and 23 processing Odoo archive operations;
+- missing C and E manual browser checkpoint pointers;
+- missing F/G and MCP production-candidate pointers;
+- arm64 images for a declared `linux/amd64` target.
+
+Paperless itself has 46 stable document identities (IDs 1–47), 44 live and two
+in Trash, with no active tasks and no personal Gemini profiles. The vector
+index has schema 2, 948 chunks/vectors, 46 document metadata rows, dimension
+1,024, chunk size 512 and overlap 200. The BGE alias manifest digest is
+`7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab`.
+Odoo has 44 roots, 29 active links and 46 versions. Accounting has 5,258
+posted moves and 12,991 move lines; posted debit and credit both equal
+2,900,936.82.
+
+Full reconciliation/OCR was not run merely to make the counters disappear.
+The active errors require source-wide classification and a deliberate bounded
+archive run. The amd64 gate requires target-platform artifacts and a real
+target-architecture restore. Until both are complete, this local cohort is
+useful recovery-mechanism evidence but must not be published or described as
+production-ready. The detailed procedure is in
+[Documents release cohort](documents-release-cohort.md).

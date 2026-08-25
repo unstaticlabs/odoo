@@ -313,6 +313,11 @@ procedure is maintained in `docs/operations/personal-gemini-runbook.md`.
 
 ## Acceptance and independent restore
 
+For the source-derived portable Odoo/Paperless/Ollama/MCP artifact, use
+[Documents release cohort](documents-release-cohort.md). The workflow below is
+the synthetic/local stack recovery suite; it does not replace the
+digest-bound cohort or its target-architecture gate.
+
 Local QA:
 
 ```bash
