@@ -100,6 +100,15 @@
                                 <span t-out="field.name"/>
                             </button>
                         </div>
+                        <div t-if="canPlaceOnEveryPage" class="border rounded bg-light p-3 mt-3">
+                            <div class="form-check form-switch mb-1">
+                                <input id="usl_sign_initials_every_page" class="form-check-input" type="checkbox"
+                                       t-att-checked="editor.placeOnEveryPage" t-on-change="toggleEveryPagePlacement"
+                                       t-att-disabled="!isEditable"/>
+                                <label class="form-check-label fw-semibold" for="usl_sign_initials_every_page">Every page</label>
+                            </div>
+                            <div class="small text-muted">Click once to place these initials in the same position on every page.</div>
+                        </div>
                     </div>
                 </aside>
 
@@ -175,6 +184,14 @@
                             <select class="form-select" t-on-change="selectContextRole">
                                 <option t-foreach="info.roles" t-as="role" t-key="role.id" t-att-value="role.id" t-att-selected="editor.selectedRoleId === role.id" t-out="roleLabel(role)"/>
                             </select>
+                        </div>
+                        <div t-if="canPlaceOnEveryPage" class="usl_sign_panel_section">
+                            <div class="form-check form-switch">
+                                <input id="usl_sign_context_initials_every_page" class="form-check-input" type="checkbox"
+                                       t-att-checked="editor.placeOnEveryPage" t-on-change="toggleEveryPagePlacement"/>
+                                <label class="form-check-label fw-semibold" for="usl_sign_context_initials_every_page">Every page</label>
+                            </div>
+                            <div class="small text-muted mt-1">Repeat at this position throughout the document.</div>
                         </div>
                         <div class="usl_sign_panel_section d-grid gap-2">
                             <button type="button" class="btn btn-primary" t-on-click="contextCreate">Add field</button>

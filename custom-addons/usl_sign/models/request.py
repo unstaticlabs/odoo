@@ -1015,15 +1015,19 @@ class SignRequest(models.Model):
             },
         )
 
-    def _validate_editor_page(self, page):
+    def _editor_page_count(self):
         self.ensure_one()
         try:
-            page_count = len(
+            return len(
                 PdfReader(BytesIO(field_content(self.with_context(bin_size=False).data))).pages,
             )
         except Exception as error:
             msg = "Attach a readable PDF before editing its fields."
             raise ValidationError(msg) from error
+
+    def _validate_editor_page(self, page):
+        self.ensure_one()
+        page_count = self._editor_page_count()
         if int(page) < 1 or int(page) > page_count:
             msg = "The selected PDF page does not exist."
             raise ValidationError(msg)
@@ -1053,8 +1057,10 @@ class SignRequest(models.Model):
         _validate_editor_geometry(values)
         data = {str(key): dict(value) for key, value in (self.signatory_data or {}).items()}
         item = False
+        items = []
         deleted_id = False
-        if action == "create":
+        deleted_ids = []
+        if action in {"create", "create_all_pages"}:
             if not values.get("field_id") or not values.get("role_id"):
                 msg = "Choose both a field type and a signer before placing it."
                 raise ValidationError(msg)
@@ -1064,33 +1070,49 @@ class SignRequest(models.Model):
             if not field or len(role) != 1:
                 msg = "The selected field type or signer is unavailable."
                 raise ValidationError(msg)
-            item_id = max([int(key) for key in data] or [0]) + 1
-            tabindex = max(
+            if action == "create_all_pages" and _field_kind(field) != "initials":
+                msg = "Only an Initials field can be placed on every page."
+                raise ValidationError(msg)
+            next_item_id = max([int(key) for key in data] or [0]) + 1
+            next_tabindex = max(
                 [int(value.get("tabindex") or 0) for value in data.values()] or [0],
             ) + 1
             presentation = FIELD_PRESENTATION[_field_kind(field)]
-            item = {
-                "id": item_id,
-                "tabindex": tabindex,
-                "field_id": field.id,
-                "field_type": field.field_type,
-                "kind": _field_kind(field),
-                "required": field.field_type == "signature",
-                "name": field.name,
-                "role_id": role.id,
-                "page": 1,
-                "position_x": 0,
-                "position_y": 0,
-                "width": presentation["width"],
-                "height": presentation["height"],
-                "value": False,
-                "default_value": field.default_value,
-                "placeholder": "",
-                **values,
-            }
-            self._validate_editor_page(item["page"])
-            data[str(item_id)] = item
-            _validate_complete_editor_geometry(item)
+            page_count = self._editor_page_count()
+            pages = (
+                range(1, page_count + 1)
+                if action == "create_all_pages"
+                else [int(values.get("page") or 1)]
+            )
+            for offset, page in enumerate(pages):
+                if page < 1 or page > page_count:
+                    msg = "The selected PDF page does not exist."
+                    raise ValidationError(msg)
+                created = {
+                    "id": next_item_id + offset,
+                    "tabindex": next_tabindex + offset,
+                    "field_id": field.id,
+                    "field_type": field.field_type,
+                    "kind": _field_kind(field),
+                    "required": field.field_type == "signature",
+                    "name": field.name,
+                    "role_id": role.id,
+                    "position_x": 0,
+                    "position_y": 0,
+                    "width": presentation["width"],
+                    "height": presentation["height"],
+                    "value": False,
+                    "default_value": field.default_value,
+                    "placeholder": "",
+                    **values,
+                    "page": page,
+                }
+                data[str(created["id"])] = created
+                _validate_complete_editor_geometry(created)
+                items.append(created)
+            if action == "create":
+                item = items[0]
+                items = []
         elif action == "update":
             item_id = str(int(command.get("item_id", 0)))
             if item_id not in data:
@@ -1123,6 +1145,23 @@ class SignRequest(models.Model):
                 raise ValidationError(msg)
             deleted_id = int(item_id)
             data.pop(item_id)
+        elif action == "delete_many":
+            raw_ids = command.get("item_ids")
+            if not isinstance(raw_ids, list) or not raw_ids:
+                msg = "Choose the fields to remove."
+                raise ValidationError(msg)
+            try:
+                requested_ids = list(dict.fromkeys(int(item_id) for item_id in raw_ids))
+            except (TypeError, ValueError) as error:
+                msg = "The fields to remove are invalid."
+                raise ValidationError(msg) from error
+            requested_keys = [str(item_id) for item_id in requested_ids]
+            if any(item_id not in data for item_id in requested_keys):
+                msg = "One or more fields no longer exist in this request."
+                raise ValidationError(msg)
+            for item_id in requested_keys:
+                data.pop(item_id)
+            deleted_ids = requested_ids
         else:
             msg = "The editor command action is unsupported."
             raise ValidationError(msg)
@@ -1131,7 +1170,9 @@ class SignRequest(models.Model):
             "status": "ok",
             "revision": new_revision,
             "item": item,
+            "items": items,
             "deleted_id": deleted_id,
+            "deleted_ids": deleted_ids,
         }
         self._editor_store_result(operation_uuid, result, data)
         return result
