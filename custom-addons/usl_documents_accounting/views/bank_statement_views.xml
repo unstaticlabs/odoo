@@ -5,6 +5,13 @@
         <field name="model">account.bank.statement</field>
         <field name="inherit_id" ref="usl_accounting.view_bank_statement_form_review"/>
         <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_certify']" position="before">
+                <button name="action_archive_bank_evidence" type="object" string="Archive in Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('not_requested', 'pending')"/>
+                <button name="action_archive_bank_evidence" type="object" string="Retry Documents archive" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('failed', 'unavailable')"/>
+            </xpath>
+            <xpath expr="//button[@name='action_open_evidence']" position="attributes">
+                <attribute name="invisible">not accepted_evidence_id or bank_evidence_archive_state != 'archived'</attribute>
+            </xpath>
             <xpath expr="//field[@name='accepted_evidence_id']" position="after">
                 <field name="bank_evidence_archive_state" widget="badge" readonly="1"/>
                 <field name="bank_evidence_archive_error" readonly="1" invisible="not bank_evidence_archive_error"/>
@@ -13,6 +20,10 @@
                 <button name="action_open_documents_workspace" type="object" class="oe_stat_button" icon="fa-archive" invisible="not archived_document_count" groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
                     <field name="archived_document_count" widget="statinfo" string="Archive"/>
                 </button>
+            </xpath>
+            <xpath expr="//field[@name='certification_ids']/list/field[@name='evidence_sha256']" position="after">
+                <field name="paperless_document_id" optional="hide"/>
+                <field name="paperless_version" optional="hide"/>
             </xpath>
         </field>
     </record>
@@ -27,7 +38,10 @@
                 <field name="paperless_archive_error" readonly="1" invisible="not paperless_archive_error"/>
                 <field name="paperless_document_id" readonly="1" invisible="not paperless_document_id"/>
                 <field name="paperless_version" readonly="1" invisible="not paperless_version"/>
+                <field name="paperless_requested_by_id" readonly="1" invisible="not paperless_requested_by_id"/>
+                <field name="paperless_archived_at" readonly="1" invisible="not paperless_archived_at"/>
             </xpath>
         </field>
     </record>
+
 </odoo>

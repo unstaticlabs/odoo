@@ -212,6 +212,8 @@ class AccountBankStatement(models.Model):
                 blockers.append(_("Confirm the statement period."))
             if not statement.accepted_evidence_id:
                 blockers.append(_("Accept the official PDF statement."))
+            else:
+                blockers.extend(statement._additional_bank_review_blockers())
             if not statement.balances_confirmed:
                 blockers.append(_("Confirm the bank-reported balances."))
             if not posted:
@@ -246,15 +248,28 @@ class AccountBankStatement(models.Model):
             statement.can_certify = bool(statement.ingestion_config_id and not blockers)
             statement.review_blocking_reason = blockers[0] if blockers else False
             if statement.certification_state == "certified":
-                statement.review_status = (
-                    "attention" if statement.unresolved_exception_count else "certified"
-                )
+                statement.review_status = "attention" if blockers else "certified"
             elif statement.certification_state == "reopened":
                 statement.review_status = "reopened" if not blockers else "attention"
             elif blockers:
                 statement.review_status = "attention"
             else:
                 statement.review_status = "ready"
+
+    def _additional_bank_review_blockers(self):
+        """Let optional evidence stores add certification prerequisites."""
+        self.ensure_one()
+        return []
+
+    def _bank_evidence_snapshot_values(self):
+        """Return the immutable evidence identity captured by lifecycle events."""
+        self.ensure_one()
+        evidence = self.accepted_evidence_id
+        return {
+            "evidence_attachment_id": evidence.attachment_id.id,
+            "evidence_sha256": evidence.sha256,
+            "paperless_version": evidence.paperless_version,
+        }
 
     def _assert_account_user(self):
         if not is_accounting_operator(self.env.user):
@@ -328,7 +343,6 @@ class AccountBankStatement(models.Model):
             ).encode(),
         ).hexdigest()
         now = fields.Datetime.now()
-        evidence = self.accepted_evidence_id
         self.env["account.bank.statement.certification"].sudo().create(
             {
                 "statement_id": self.id,
@@ -343,9 +357,7 @@ class AccountBankStatement(models.Model):
                 "balance_end_real": self.balance_end_real,
                 "transaction_count": len(identity_values),
                 "transaction_identity_digest": digest,
-                "evidence_attachment_id": evidence.attachment_id.id,
-                "evidence_sha256": evidence.sha256,
-                "paperless_version": evidence.paperless_version,
+                **self._bank_evidence_snapshot_values(),
             },
         )
         self.sudo().with_context(bank_review_internal=True).write(

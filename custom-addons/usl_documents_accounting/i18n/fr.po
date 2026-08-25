@@ -114,3 +114,119 @@ msgstr "Opération Paperless"
 #. module: usl_documents_accounting
 msgid "Waiting for archive"
 msgstr "En attente d’archivage"
+
+#. module: usl_documents_accounting
+msgid "Accept the official PDF statement before archiving it."
+msgstr "Acceptez le relevé PDF officiel avant de l’archiver."
+
+#. module: usl_documents_accounting
+msgid "Archive"
+msgstr "Archive"
+
+#. module: usl_documents_accounting
+msgid "Archive in Documents"
+msgstr "Archiver dans Documents"
+
+#. module: usl_documents_accounting
+msgid "Archive the official statement in Documents before certification."
+msgstr "Archivez le relevé officiel dans Documents avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Archive unavailable"
+msgstr "Archive indisponible"
+
+#. module: usl_documents_accounting
+msgid "Apply the accounting evidence retention hold before certification."
+msgstr "Appliquez la conservation du justificatif comptable avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Classify and review the archived original as accounting evidence before certification."
+msgstr "Classez et validez l’original archivé comme justificatif comptable avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Documents access is not synchronized for the archived original."
+msgstr "L’accès Documents n’est pas synchronisé pour l’original archivé."
+
+#. module: usl_documents_accounting
+msgid "Documents archived the original but could not synchronize its accounting access."
+msgstr "Documents a archivé l’original mais n’a pas pu synchroniser son accès comptable."
+
+#. module: usl_documents_accounting
+msgid "Documents did not return a file version matching the exact official statement checksum."
+msgstr "Documents n’a pas renvoyé de version correspondant exactement à l’empreinte du relevé officiel."
+
+#. module: usl_documents_accounting
+msgid "Documents found an existing copy that requires administrator review before it can support this statement."
+msgstr "Documents a trouvé une copie existante qui doit être examinée par un administrateur avant de pouvoir justifier ce relevé."
+
+#. module: usl_documents_accounting
+msgid "Documents has not verified an archived version with the exact official statement checksum."
+msgstr "Documents n’a pas vérifié de version archivée correspondant exactement à l’empreinte du relevé officiel."
+
+#. module: usl_documents_accounting
+msgid "Paperless Archived At"
+msgstr "Archivé dans Paperless le"
+
+#. module: usl_documents_accounting
+msgid "Paperless Requested By"
+msgstr "Archivage Paperless demandé par"
+
+#. module: usl_documents_accounting
+msgid "Resolve the Documents archive failure before certification."
+msgstr "Résolvez l’échec de l’archivage Documents avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Restore the archived original in Documents before certification."
+msgstr "Restaurez l’original archivé dans Documents avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Retry Documents archive"
+msgstr "Réessayer l’archivage Documents"
+
+#. module: usl_documents_accounting
+msgid "Synchronize Documents access for the archived original before certification."
+msgstr "Synchronisez l’accès Documents de l’original archivé avant la certification."
+
+#. module: usl_documents_accounting
+msgid "The archived document belongs to a different company."
+msgstr "Le document archivé appartient à une autre société."
+
+#. module: usl_documents_accounting
+msgid "The archived original is unavailable in Documents. Restore or repair it before relying on this checkpoint."
+msgstr "L’original archivé est indisponible dans Documents. Restaurez-le ou réparez-le avant de vous fier à ce contrôle."
+
+#. module: usl_documents_accounting
+msgid "The archived statement belongs to a different company."
+msgstr "Le relevé archivé appartient à une autre société."
+
+#. module: usl_documents_accounting
+msgid "The archived version is not pinned to this bank statement."
+msgstr "La version archivée n’est pas rattachée à ce relevé bancaire."
+
+#. module: usl_documents_accounting
+msgid "The official statement could not be archived. Correct the Documents issue shown on this statement, then retry."
+msgstr "Le relevé officiel n’a pas pu être archivé. Corrigez le problème Documents indiqué sur ce relevé, puis réessayez."
+
+#. module: usl_documents_accounting
+msgid "The official statement is archived and its exact version is verified."
+msgstr "Le relevé officiel est archivé et sa version exacte est vérifiée."
+
+#. module: usl_documents_accounting
+msgid "The official statement was sent to Documents. Certification becomes available after the exact archived version is verified."
+msgstr "Le relevé officiel a été envoyé à Documents. La certification sera disponible après vérification de la version exacte archivée."
+
+#. module: usl_documents_accounting
+msgid "This statement is already linked to another Documents archive record. A Documents administrator must resolve it."
+msgstr "Ce relevé est déjà lié à une autre archive Documents. Un administrateur Documents doit résoudre ce problème."
+
+#. module: usl_documents_accounting
+msgid "Configure the Documents Banking classification before certification."
+msgstr "Configurez le classement Banque de Documents avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Classify the archived original as a Banking document before certification."
+msgstr "Classez l’original archivé comme document bancaire avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Documents has no Banking classification. Synchronize its Paperless catalogs before retrying the archive."
+msgstr "Documents ne dispose d’aucun classement Banque. Synchronisez ses catalogues Paperless avant de relancer l’archivage."

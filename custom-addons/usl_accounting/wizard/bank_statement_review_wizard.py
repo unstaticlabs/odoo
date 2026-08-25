@@ -199,7 +199,6 @@ class AccountBankStatementReopen(models.TransientModel):
         digest = hashlib.sha256(
             json.dumps(identities, ensure_ascii=True, separators=(",", ":")).encode(),
         ).hexdigest()
-        evidence = statement.accepted_evidence_id
         self.env["account.bank.statement.certification"].sudo().create(
             {
                 "statement_id": statement.id,
@@ -215,9 +214,7 @@ class AccountBankStatementReopen(models.TransientModel):
                 "balance_end_real": statement.balance_end_real,
                 "transaction_count": len(identities),
                 "transaction_identity_digest": digest,
-                "evidence_attachment_id": evidence.attachment_id.id,
-                "evidence_sha256": evidence.sha256,
-                "paperless_version": evidence.paperless_version,
+                **statement._bank_evidence_snapshot_values(),
             },
         )
         statement.sudo().with_context(bank_review_internal=True).write(

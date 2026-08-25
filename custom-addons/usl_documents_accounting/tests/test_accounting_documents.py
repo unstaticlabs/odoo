@@ -1,8 +1,10 @@
 import datetime as dt
+import hashlib
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.tests import TransactionCase, tagged
+from odoo.exceptions import AccessError, UserError
+from odoo.tests import TransactionCase, new_test_user, tagged
 
 from odoo.addons.usl_documents.models.document import UslDocument
 from odoo.addons.usl_documents.models.paperless_client import PaperlessError
@@ -60,10 +62,24 @@ class TestAccountingDocumentContexts(TransactionCase):
             self.assertNotIn("Evidence", arch)
             self.assertNotIn("action_open_archived_documents", arch)
 
-    def test_accepted_bank_evidence_archives_asynchronously_and_failure_is_visible(
-        self,
-    ):
+    def _bank_evidence_fixture(self):
         company = self.env.company
+        banking_tag = (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .with_context(usl_documents_cache_write=True)
+            .create(
+                {
+                    "name": "Banking",
+                    "paperless_id": 97991,
+                    "matching_algorithm": "6",
+                    "active": True,
+                },
+            )
+        )
+        self.env.ref("usl_documents.smart_view_banking").sudo().with_context(
+            usl_documents_archive_view_sync=True,
+        ).write({"tag_ids": [Command.set(banking_tag.ids)]})
         bank_account = self.env["res.partner.bank"].create(
             {
                 "account_number": "FR7630001007941234567890185",
@@ -111,6 +127,9 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "journal_id": journal.id,
                 "date": dt.date(2026, 7, 15),
                 "amount": 10,
+                "provider_code": "shine",
+                "provider_account_id": bank_account.account_number,
+                "provider_transaction_id": "ARCHIVE-FITID-1",
             },
         )
         statement = self.env["account.bank.statement"].create(
@@ -120,6 +139,10 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "ingestion_config_id": config.id,
                 "period_start": dt.date(2026, 7, 1),
                 "period_end": dt.date(2026, 7, 31),
+                "balance_start": 0,
+                "balance_end_real": 10,
+                "balances_confirmed": True,
+                "cutover_baseline_confirmed": True,
                 "line_ids": [Command.set(bank_line.ids)],
             },
         )
@@ -155,9 +178,49 @@ class TestAccountingDocumentContexts(TransactionCase):
         )
 
         source_file._accept_evidence()
+        return statement, source_file, content
+
+    def _archived_document(self, source_file, checksum=None):
+        checksum = checksum or source_file.sha256
+        document = self.env["usl.document"].sudo().create(
+            {
+                "name": "Archived bank statement",
+                "paperless_id": 98001,
+                "company_id": source_file.company_id.id,
+                "confidentiality": "accounting",
+                "accounting_evidence": True,
+                "retention_hold": True,
+                "review_state": "classified",
+                "availability_state": "available",
+                "permission_sync_state": "synchronized",
+                "checksum": checksum,
+                "tag_ids": [
+                    Command.set(
+                        self.env.ref("usl_documents.smart_view_banking").tag_ids.ids,
+                    ),
+                ],
+            },
+        )
+        self.env["usl.document.version"].sudo().create(
+            {
+                "document_id": document.id,
+                "paperless_version_id": "bank-version-1",
+                "label": "Received original",
+                "checksum": checksum,
+                "is_current": True,
+                "is_received_original": True,
+                "source": "odoo_attachment",
+            },
+        )
+        return document
+
+    def test_archive_failure_is_visible_and_blocks_certification(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
 
         self.assertEqual(source_file.paperless_archive_state, "pending")
         self.assertEqual(statement.accepted_evidence_id, source_file)
+        self.assertFalse(statement.can_certify)
+        self.assertIn("Documents", statement.review_blocking_reason)
         with patch.object(
             UslDocument,
             "upload_from_odoo",
@@ -169,3 +232,214 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertEqual(source_file.paperless_archive_state, "failed")
         self.assertIn("Archive offline", source_file.paperless_archive_error)
         self.assertEqual(statement.accepted_evidence_id, source_file)
+        statement.invalidate_recordset()
+        self.assertFalse(statement.can_certify)
+        self.assertIn("archive failure", statement.review_blocking_reason)
+
+    def test_exact_archive_version_is_pinned_before_certification(self):
+        statement, source_file, content = self._bank_evidence_fixture()
+        document = self._archived_document(source_file)
+
+        with (
+            patch.object(
+                UslDocument,
+                "upload_from_odoo",
+                return_value={
+                    "state": "duplicate",
+                    "document_id": document.id,
+                },
+            ),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            statement.action_archive_bank_evidence()
+
+        self.assertEqual(source_file.paperless_archive_state, "archived")
+        self.assertEqual(source_file.paperless_document_id, document)
+        self.assertEqual(source_file.paperless_version, "bank-version-1")
+        self.assertTrue(
+            self.env.ref("usl_documents.smart_view_banking").tag_ids
+            <= document.tag_ids,
+        )
+        self.assertEqual(source_file.sha256, hashlib.sha256(content).hexdigest())
+        link = self.env["usl.document.link"].sudo().search(
+            [
+                ("document_id", "=", document.id),
+                ("res_model", "=", statement._name),
+                ("res_id", "=", statement.id),
+            ],
+        )
+        self.assertEqual(link.version_id, "bank-version-1")
+        statement.invalidate_recordset()
+        self.assertTrue(statement.can_certify)
+        action = statement.action_open_evidence()
+        self.assertIn(
+            f"/usl_documents/{document.id}/download?original=1",
+            action["url"],
+        )
+        self.assertIn("version=bank-version-1", action["url"])
+
+        account_only = new_test_user(
+            self.env,
+            login="bank-archive-account-only",
+            groups="account.group_account_user",
+        )
+        self.assertTrue(
+            account_only.has_group("usl_documents.group_documents_accountant"),
+        )
+        self.assertIn(
+            f"/usl_documents/{document.id}/download",
+            statement.with_user(account_only).action_open_evidence()["url"],
+        )
+        evidence_reader = new_test_user(
+            self.env,
+            login="bank-archive-evidence-reader",
+            groups=(
+                "account.group_account_user,"
+                "usl_documents.group_documents_accountant"
+            ),
+        )
+        self.assertIn(
+            f"/usl_documents/{document.id}/download",
+            statement.with_user(evidence_reader).action_open_evidence()["url"],
+        )
+        ordinary_user = new_test_user(
+            self.env,
+            login="bank-archive-ordinary-user",
+            groups="base.group_user",
+        )
+        with self.assertRaises(AccessError):
+            statement.with_user(ordinary_user).action_open_evidence()
+
+        statement.action_certify()
+
+        certification = statement.certification_ids.filtered(
+            lambda event: event.event_type == "certify",
+        )
+        self.assertEqual(certification.paperless_document_id, document)
+        self.assertEqual(certification.paperless_version, "bank-version-1")
+        self.assertEqual(certification.evidence_sha256, source_file.sha256)
+
+    def test_archive_without_exact_checksum_never_becomes_certifiable(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+        document = self._archived_document(source_file, checksum="f" * 64)
+
+        with patch.object(
+            UslDocument,
+            "upload_from_odoo",
+            return_value={"state": "duplicate", "document_id": document.id},
+        ):
+            statement.action_archive_bank_evidence()
+
+        self.assertEqual(source_file.paperless_archive_state, "failed")
+        self.assertIn("exact official statement checksum", source_file.paperless_archive_error)
+        self.assertFalse(source_file.paperless_document_id)
+        self.assertFalse(
+            self.env["usl.document.link"].sudo().search_count(
+                [
+                    ("res_model", "=", statement._name),
+                    ("res_id", "=", statement.id),
+                ],
+            ),
+        )
+        statement.invalidate_recordset()
+        self.assertFalse(statement.can_certify)
+
+    def test_replacement_is_a_new_pinned_version_after_reopening(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+        document = self._archived_document(source_file)
+        duplicate = {"state": "duplicate", "document_id": document.id}
+        with (
+            patch.object(UslDocument, "upload_from_odoo", return_value=duplicate),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            statement.action_archive_bank_evidence()
+        statement.action_certify()
+
+        document.sudo().with_context(usl_documents_cache_write=True).write(
+            {"availability_state": "trashed"},
+        )
+        statement.invalidate_recordset()
+        self.assertEqual(statement.review_status, "attention")
+        self.assertEqual(statement.bank_evidence_archive_state, "unavailable")
+        with self.assertRaisesRegex(UserError, "Restore the archived original"):
+            statement.action_open_evidence()
+        document.sudo().with_context(usl_documents_cache_write=True).write(
+            {"availability_state": "available"},
+        )
+
+        self.env["account.bank.statement.reopen"].create(
+            {
+                "statement_id": statement.id,
+                "reason": "The bank sent a corrected official PDF.",
+            },
+        ).action_reopen()
+        replacement_content = b"%PDF-1.4\ncorrected synthetic statement\n%%EOF\n"
+        replacement_attachment = self.env["ir.attachment"].sudo().create(
+            {
+                "name": "statement-corrected.pdf",
+                "raw": replacement_content,
+                "mimetype": "application/pdf",
+                "res_model": source_file.ingestion_id._name,
+                "res_id": source_file.ingestion_id.id,
+                "company_id": source_file.company_id.id,
+            },
+        )
+        replacement = (
+            self.env["account.bank.ingestion.file"]
+            .sudo()
+            ._from_attachment(source_file.ingestion_id, replacement_attachment)
+        )
+        replacement.sudo().write(
+            {
+                "statement_id": statement.id,
+                "period_start": statement.period_start,
+                "period_end": statement.period_end,
+            },
+        )
+        replacement._accept_evidence()
+        first_version = document.version_ids.filtered(
+            lambda version: version.paperless_version_id == "bank-version-1",
+        )
+        first_version.sudo().write({"is_current": False})
+        self.env["usl.document.version"].sudo().create(
+            {
+                "document_id": document.id,
+                "paperless_version_id": "bank-version-2",
+                "label": "Corrected official statement",
+                "checksum": replacement.sha256,
+                "is_current": True,
+                "source": "odoo_attachment",
+            },
+        )
+        document.invalidate_recordset(["version_ids"])
+
+        with patch.object(
+            UslDocument,
+            "action_sync_permissions",
+            return_value=True,
+        ):
+            statement.action_archive_bank_evidence()
+
+        self.assertEqual(source_file.evidence_status, "superseded")
+        self.assertEqual(replacement.paperless_document_id, document)
+        self.assertEqual(replacement.paperless_version, "bank-version-2")
+        self.assertEqual(
+            document.link_ids.filtered(
+                lambda link: (
+                    link.res_model == statement._name and link.res_id == statement.id
+                ),
+            ).version_id,
+            "bank-version-2",
+        )
+        statement.invalidate_recordset()
+        self.assertTrue(statement.can_certify)
+        statement.action_certify()
+        certification_versions = set(
+            statement.certification_ids.filtered(
+                lambda event: event.event_type == "certify",
+            ).mapped("paperless_version"),
+        )
+        self.assertEqual(
+            certification_versions,
+            {"bank-version-1", "bank-version-2"},
+        )
