@@ -164,9 +164,14 @@ class ProductSourceReader:
 
     def read(self):
         with self._connect() as connection, connection.cursor() as cursor:
+            cursor.execute("SET LOCAL ROLE accounting_source_ro")
             cursor.execute("SHOW transaction_read_only")
             if cursor.fetchone()["transaction_read_only"] != "on":
                 message = "Product source connection is not read-only"
+                raise RuntimeError(message)
+            cursor.execute("SELECT current_user")
+            if cursor.fetchone()["current_user"] != "accounting_source_ro":
+                message = "Product source role is not accounting_source_ro"
                 raise RuntimeError(message)
             result = {
                 "native_baseline": self._native_baseline(cursor),
