@@ -1543,6 +1543,7 @@ export class DocumentsWorkspaceView extends Component {
         }
         if (returnRecord) {
             this.closingDetail = false;
+            this.clearWorkspaceRouteState();
             await this.action.doAction(
                 {
                     type: "ir.actions.act_window",
@@ -1617,6 +1618,52 @@ export class DocumentsWorkspaceView extends Component {
         this.closingDetail = false;
         this.hasLocalListHistory = true;
         await this.openDocumentById(documentId, versionId);
+    }
+
+    clearWorkspaceRouteState() {
+        try {
+            const url = new URL(browser.location.href);
+            for (const key of [
+                "domain",
+                "groupBy",
+                "orderBy",
+                "usl_document",
+                "usl_version",
+                "usl_filters",
+            ]) {
+                url.searchParams.delete(key);
+            }
+            const currentState = { ...(browser.history.state || {}) };
+            const nextState = {
+                ...(currentState.nextState || router.urlToState(url)),
+            };
+            for (const key of [
+                "domain",
+                "groupBy",
+                "orderBy",
+                "usl_document",
+                "usl_version",
+                "usl_filters",
+            ]) {
+                delete nextState[key];
+            }
+            browser.history.replaceState(
+                {
+                    ...currentState,
+                    nextState,
+                    skipRouteChange: true,
+                    uslDocumentsWorkspace: false,
+                    uslDocumentId: null,
+                    uslVersionId: null,
+                    uslDocumentsRecordContext: null,
+                    uslDocumentsReturnRecord: null,
+                },
+                "",
+                url
+            );
+        } catch {
+            // The record action remains a safe fallback if History API is blocked.
+        }
     }
 
     workspaceKwargs() {

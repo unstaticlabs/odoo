@@ -880,13 +880,36 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
 test("Back from a record-context workspace returns to the linked record", async () => {
     let returnedAction = null;
     let returnedOptions = null;
+    let returnedLocation = null;
+    let returnedHistoryState = null;
     mockService("action", {
         async doAction(actionToRun, options) {
             returnedAction = actionToRun;
             returnedOptions = options;
+            returnedLocation = browser.location.href;
+            returnedHistoryState = browser.history.state;
         },
     });
     onRpc("usl.document", "workspace_data", () => emptyWorkspace);
+
+    const documentsUrl = new URL(browser.location.href);
+    documentsUrl.searchParams.set(
+        "domain",
+        '[["linked_record_ref","=","account.move:12"]]'
+    );
+    documentsUrl.searchParams.set("groupBy", "tag_ids");
+    documentsUrl.searchParams.set("usl_filters", "{}");
+    browser.history.replaceState(
+        {
+            nextState: {
+                domain: '[["linked_record_ref","=","account.move:12"]]',
+                groupBy: "tag_ids",
+                usl_filters: "{}",
+            },
+        },
+        "",
+        documentsUrl
+    );
 
     await mountWithCleanup(DocumentsWorkspace, {
         props: {
@@ -919,6 +942,13 @@ test("Back from a record-context workspace returns to the linked record", async 
         target: "current",
     });
     expect(returnedOptions).toEqual({ clearBreadcrumbs: true });
+    const returnedUrl = new URL(returnedLocation);
+    expect(returnedUrl.searchParams.has("domain")).toBe(false);
+    expect(returnedUrl.searchParams.has("groupBy")).toBe(false);
+    expect(returnedUrl.searchParams.has("usl_filters")).toBe(false);
+    expect("domain" in returnedHistoryState.nextState).toBe(false);
+    expect("groupBy" in returnedHistoryState.nextState).toBe(false);
+    expect("usl_filters" in returnedHistoryState.nextState).toBe(false);
 });
 
 test("native search defaults to broad archive search and keeps specialist fields advanced", async () => {
