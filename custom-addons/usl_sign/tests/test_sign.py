@@ -20,7 +20,7 @@ from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools.pdf import PdfWriter
 
-from ..controllers.strong import StrongSignController
+from ..controllers.strong import StrongSignController, _personal_certificate_subject
 from ..models.constants import INTERNAL_OPERATION, REQUEST_STATES, TRUST_LEVELS
 from ..services import (
     DSSClient,
@@ -570,6 +570,108 @@ class TestCleanUslSign(TransactionCase):
             {"signed_on": fields.Datetime.now(), "state": "signed"},
         )
         self.assertEqual(signer.invitation_delivery_state, "resolved")
+
+    def test_internal_signer_uses_odoo_when_email_delivery_fails(self):
+        internal_signer = new_test_user(
+            self.env,
+            login="usl-sign-mail-fallback",
+            groups="usl_sign.group_sign_user",
+            company_id=self.company.id,
+        )
+        internal_signer.partner_id.email = "odoo-fallback@example.test"
+        request = self._ready(
+            self._request(partners=[internal_signer.partner_id]),
+        )
+        request.with_context(
+            usl_sign_share_confirmed=INTERNAL_OPERATION,
+        ).action_send()
+        signer = request.signer_ids
+        signer.invitation_mail_id.write(
+            {"state": "exception", "failure_reason": "Synthetic SMTP outage"},
+        )
+
+        self.env["sign.oca.request"]._cron_sign_operations()
+
+        self.assertEqual(request.state, "sent")
+        self.assertEqual(signer.invitation_delivery_state, "available_in_odoo")
+        self.assertTrue(signer.invitation_fallback_at)
+        self.assertTrue(
+            request.event_ids.filtered(
+                lambda event: event.event_type == "invitation_available_in_odoo",
+            ),
+        )
+        self.assertTrue(signer.with_user(internal_signer).is_allow_signature)
+
+    def test_identity_setup_email_copy_review_and_request_resume(self):
+        self.company.email = "identity-review@example.test"
+        enrollment = self.env["usl.sign.enrollment"].create(
+            {
+                "partner_id": self.partner_one.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+                "relationship_reference": "Partner record 2026-014",
+                "policy_version": "2026.1",
+            },
+        )
+        copy_action = enrollment.with_user(self.reviewer).action_copy_invitation()
+        self.assertEqual(copy_action["res_model"], "usl.sign.enrollment.invitation")
+        self.assertNotEqual(copy_action["type"], "ir.actions.act_url")
+        copy_link = copy_action["context"]["default_invitation_url"]
+        self.assertIn(f"/sign/enroll/{enrollment.id}/", copy_link)
+        first_hash = enrollment.invitation_token_sha256
+
+        sent = enrollment.with_user(self.reviewer).action_send_invitation()
+        self.assertEqual(sent["tag"], "display_notification")
+        self.assertTrue(enrollment.invitation_sent_at)
+        self.assertEqual(enrollment.invitation_delivery_state, "queued")
+        self.assertNotEqual(enrollment.invitation_token_sha256, first_hash)
+        self.assertIn(
+            f"/sign/enroll/{enrollment.id}/",
+            str(enrollment.sudo().invitation_mail_id.body_html),
+        )
+
+        sign_request = self._ready(
+            self._request(
+                partners=[self.partner_one],
+                policy_id=self.env.ref(
+                    "usl_sign.policy_material_recurring_strong",
+                ).id,
+                document_category="commercial",
+                signer_type="recurring",
+                risk_level="material",
+                requested_trust="strong_personal",
+            ),
+        )
+        sign_request.action_send()
+        self.assertEqual(sign_request.state, "waiting_enrollment")
+
+        enrollment._bind_pocket_identity(
+            issuer="https://id.example.test",
+            claims={"sub": "review-and-resume", "name": self.partner_one.name},
+        )
+        self.assertEqual(enrollment.state, "pending_review")
+        self.assertTrue(enrollment.activity_ids)
+        enrollment.with_user(self.reviewer).action_confirm_identity()
+
+        self.assertEqual(enrollment.state, "active")
+        self.assertFalse(enrollment.activity_ids)
+        self.assertEqual(sign_request.state, "sent")
+        self.assertEqual(
+            _personal_certificate_subject(sign_request.signer_ids),
+            f"USL Sign Personal: {self.partner_one.name}",
+        )
+
+    def test_identity_review_reference_rejects_empty_values(self):
+        with self.assertRaises(ValidationError):
+            self.env["usl.sign.enrollment"].create(
+                {
+                    "partner_id": self.partner_one.id,
+                    "company_id": self.company.id,
+                    "relationship_basis": "employee",
+                    "relationship_reference": "   ",
+                    "policy_version": "2026.1",
+                },
+            )
 
     def test_policy_recommendation_and_authorized_override(self):
         request = self._request(risk_level="material", signer_type="recurring")

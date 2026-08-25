@@ -419,13 +419,16 @@ class TestSignBrowserJourneys(HttpCase):
                 "review_note": "Identity reviewed after Pocket ID connection.",
             },
         )
-        action = enrollment.with_user(self.reviewer).action_create_invitation()
-        response = self.url_open(urlsplit(action["url"]).path)
+        action = enrollment.with_user(self.reviewer).action_copy_invitation()
+        self.assertEqual(action["res_model"], "usl.sign.enrollment.invitation")
+        invitation_url = action["context"]["default_invitation_url"]
+        response = self.url_open(urlsplit(invitation_url).path)
         self.assertEqual(response.status_code, 200)
         page = response.text
         self.assertIn("Connect your signing identity", page)
         self.assertIn(self.company.name, page)
         self.assertIn("Your account stays under your control", page)
+        self.assertIn("This step only connects your account", page)
         self.assertIn("Secure signing", page)
         self.assertNotIn("Pocket ID verified", page)
         self.assertEqual(response.headers["Cache-Control"], "no-store, max-age=0")

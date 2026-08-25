@@ -21,7 +21,8 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_create_invitation" type="object" string="Send setup invitation" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_send_invitation" type="object" string="Send setup email" class="btn-primary" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
+                    <button name="action_copy_invitation" type="object" string="Copy setup link" invisible="state != 'pending_pocket'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <button name="action_confirm_identity" type="object" string="Approve identity" class="btn-primary" invisible="state != 'pending_review'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <button name="action_open_revoke" type="object" string="Revoke identity" invisible="state == 'revoked'" groups="usl_sign.group_sign_identity_reviewer"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
@@ -32,7 +33,7 @@
                         <h1><field name="partner_id"/></h1>
                     </div>
                     <div class="alert alert-info" role="status" invisible="state != 'pending_pocket'">
-                        <strong>Next: connect the signing identity.</strong> Send the invitation so this person can connect their Pocket ID account.
+                        <strong>Next: send the setup email.</strong> The person connects their Pocket ID account; no document is signed during setup.
                     </div>
                     <div class="alert alert-warning" role="status" invisible="state != 'pending_review'">
                         <strong>Next: review the identity.</strong> Check that the Pocket ID account belongs to this person and that your organization already knows them.
@@ -47,11 +48,13 @@
                         <group string="Reviewed relationship">
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="relationship_basis" string="Why we know this person" readonly="state not in ['pending_pocket', 'pending_review']"/>
-                            <field name="relationship_reference" string="Relationship reference" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Employee record, contractor agreement, or reviewer reference"/>
+                            <field name="relationship_reference" string="Review record" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Employee number, contract, partner record, or review note" help="Internal reference used by the reviewer to confirm how the organization knows this person. It is locked after approval; it is not a Pocket ID identifier."/>
                             <field name="policy_version" string="Identity policy version" readonly="state not in ['pending_pocket', 'pending_review']"/>
                             <field name="review_note" string="Reviewer note" readonly="state not in ['pending_pocket', 'pending_review']" placeholder="Record the checks performed; do not attach identity documents by default."/>
                         </group>
                         <group string="Pocket ID connection">
+                            <field name="invitation_delivery_state" string="Setup email" invisible="state != 'pending_pocket'"/>
+                            <field name="invitation_sent_at" string="Last queued on" invisible="not invitation_sent_at"/>
                             <field name="reviewer_id"/>
                             <field name="reviewed_at"/>
                             <field name="pocket_display_name" invisible="not pocket_subject"/>
@@ -67,6 +70,68 @@
                         <summary>How identity data is handled</summary>
                         Pocket ID manages passkeys and account recovery. The signing application keeps the Pocket ID account link and this review decision; it does not copy the person's passkeys.
                     </details>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_enrollment_my_list" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.list.my.identity</field>
+        <field name="model">usl.sign.enrollment</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-success="state == 'active'" decoration-danger="state == 'revoked'">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" string="Status"/>
+                <field name="pocket_display_name" string="Pocket ID account"/>
+                <field name="reviewer_id" string="Reviewed by"/>
+                <field name="reviewed_at" string="Reviewed on"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sign_enrollment_my_form" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.form.my.identity</field>
+        <field name="model">usl.sign.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="My Signing Identity" create="0" edit="0" delete="0">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="pending_pocket,pending_review,active,revoked"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <p class="text-muted mb-1">Strong personal signatures</p>
+                        <h1><field name="partner_id"/></h1>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'pending_pocket'">
+                        Your setup invitation has not been completed. Ask the sender or identity reviewer for a new email if the link has expired.
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state != 'pending_review'">
+                        <strong>Your Pocket ID account is connected.</strong> Your organization must now review the identity link. You do not need to register another passkey.
+                    </div>
+                    <div class="alert alert-success" role="status" invisible="state != 'active'">
+                        <strong>Ready.</strong> Pocket ID will ask for a fresh passkey confirmation whenever you make a strong personal signature.
+                    </div>
+                    <div class="alert alert-danger" role="status" invisible="state != 'revoked'">
+                        This identity link can no longer authorize new strong signatures. Completed documents are unchanged.
+                    </div>
+                    <group>
+                        <group string="Pocket ID account">
+                            <field name="pocket_display_name" invisible="not pocket_subject"/>
+                            <field name="pocket_email" invisible="not pocket_subject"/>
+                            <field name="pocket_linked_at" string="Connected on" invisible="not pocket_subject"/>
+                            <field name="pocket_last_authorized_at" string="Last confirmed on" invisible="not pocket_subject"/>
+                        </group>
+                        <group string="Organization review">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="relationship_basis" string="Known as"/>
+                            <field name="relationship_reference" string="Review record" help="Internal record used by the reviewer to confirm how the organization knows you. It is not your Pocket ID identifier."/>
+                            <field name="reviewer_id" string="Reviewed by" invisible="not reviewer_id"/>
+                            <field name="reviewed_at" string="Reviewed on" invisible="not reviewed_at"/>
+                        </group>
+                    </group>
+                    <p class="text-muted small mt-3">
+                        Pocket ID manages your passkeys and account recovery. This application stores the account link and the organization’s review decision, not your passkeys.
+                    </p>
                 </sheet>
             </form>
         </field>
@@ -97,6 +162,26 @@
                 <footer>
                     <button name="action_apply" type="object" string="Revoke" class="btn-danger"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sign_enrollment_invitation_form" model="ir.ui.view">
+        <field name="name">usl.sign.enrollment.invitation.form</field>
+        <field name="model">usl.sign.enrollment.invitation</field>
+        <field name="arch" type="xml">
+            <form string="Copy setup link" create="0" edit="0" delete="0">
+                <sheet>
+                    <field name="enrollment_id" invisible="1"/>
+                    <p>Share this personal link with the intended person through a trusted channel.</p>
+                    <field name="invitation_url" string="Setup link" widget="CopyClipboardURL"/>
+                    <div class="alert alert-warning mt-3 mb-0" role="status">
+                        Creating this link replaces any earlier setup link. It expires after 24 hours and must not be forwarded.
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Done" special="cancel" class="btn-primary"/>
                 </footer>
             </form>
         </field>
