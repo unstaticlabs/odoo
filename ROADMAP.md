@@ -87,7 +87,7 @@ Documents application.
   native record/chatter links and access inheritance.
 - Reproducible development, reconstruction, parity and evidence workflows.
 
-### Implemented on the migration-performance candidate, pending integration
+### Integrated migration and release foundations
 
 - Deterministic bounded Accounting replay with stage timings, source-identity
   indexing and parity-preserving batching.
@@ -104,8 +104,8 @@ Documents application.
 - A pre-mutation Docker capacity guard and accurate exit-137 resource
   classification, without stopping unrelated feature projects.
 
-These items are not marked shipped until their branch is reviewed and merged
-into `19-usl`. The complete reusable QA seed publication, two zero-OCR
+These items are part of `19-usl` through merge `61580c1704c`. The complete
+reusable QA seed publication, two zero-OCR
 hydrations, current-source performance comparison and production dress
 rehearsal remain outstanding. A fresh no-Documents rehearsal reached the
 Accounting import but was OOM-killed by the shared 8 GiB Docker VM; its target
@@ -145,7 +145,8 @@ The canonical, evidence-bearing sequence is maintained in the
 
 ### Merge train
 
-1. Review and merge the migration-performance/portable-candidate work.
+1. Migration-performance/portable-candidate — **merged through
+   `61580c1704c`**.
 2. Expense Analytics — **merged into `19-usl` at `aae5994a7ec`**.
 3. Review and merge B2C sales/inventory with complete historical source
    disposition and analytics dimensions.

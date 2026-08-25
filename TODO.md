@@ -7,23 +7,24 @@
 ## Current release preparation — updated 2026-08-25
 
 Status: **Accounting v1 is engineering-complete, but the Distribution is not
-yet production-ready.** The current `19-usl` integration baseline is
-`aae5994a7ec`. Expense Analytics has now been reviewed and fast-forwarded into
-`19-usl`; its aligned feature tip is preserved at
+yet production-ready.** The current `19-usl` history contains the reviewed
+Expense Analytics baseline at `aae5994a7ec` and the migration-performance merge
+at `61580c1704c`. The aligned Expense feature tip is preserved at
 `archive/expense-batch-context-20260825`.
 B2C, Paperless 3.0, Native Sign and monthly bank-statement email ingestion
 remain independent review branches. None may be treated as shipped until it
 has been reviewed, merged into `19-usl`, and included in a fresh complete
 reconstruction.
 
-The migration-performance candidate now implements deterministic batched
+`19-usl` now contains the reviewed migration-performance work through merge
+`61580c1704c`. It implements deterministic batched
 Accounting replay, fail-closed reusable QA seeds, portable sanitized production
 candidates, an external-Pocket-ID cut-over topology, immutable Distribution
 images, a focused application launcher and contextual French regression guards.
 It now also emits dump-bound model/table/stored-field gap evidence and refuses
-to start reconstruction on an unsafe shared low-memory Docker runtime. These
-changes are still pending review/merge into `19-usl`; their reusable full QA
-seed and a final production candidate have **not** been published. The latest
+to start reconstruction on an unsafe shared low-memory Docker runtime. Its
+reusable full QA seed and a final production candidate have **not** been
+published. The latest
 fresh no-Documents rehearsal was correctly invalidated when Docker Desktop's
 8 GiB shared VM OOM-killed the atomic Accounting import; the interrupted target
 is not reusable, and no unrelated feature project may be stopped automatically
@@ -2050,11 +2051,10 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Define the authoritative production cut-off.
 - [x] Define source backup requirements.
 - [x] Define a fail-closed portable production-candidate format and independent
-  fingerprint approval workflow (implemented on the migration-performance
-  candidate; merge pending).
+  fingerprint approval workflow (integrated into `19-usl`).
 - [x] Define external-Pocket-ID preflight, fresh-volume stage, configuration,
-  gate, pre-admission reset and permanent admission semantics (implemented on
-  the migration-performance candidate; merge pending).
+  gate, pre-admission reset and permanent admission semantics (integrated into
+  `19-usl`).
 - [x] Define version compatibility requirements.
 - [x] Define Enterprise-to-Community Accounting transformation rules.
 - [x] Define Studio Accounting-field and view transformation rules.
