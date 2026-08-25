@@ -31,6 +31,7 @@ _logger = logging.getLogger(__name__)
 _TRANSACTION_TTL = 300
 _SESSION_TRANSACTIONS = "usl_sign_pocketid_transactions"
 _SESSION_ENROLMENTS = "usl_sign_pocketid_enrolments"
+_SESSION_ENROLLMENT_FAILURES = "usl_sign_pocketid_enrollment_failures"
 _SESSION_COMPLETIONS = "usl_sign_strong_completions"
 
 
@@ -48,7 +49,22 @@ def _canonical_json(value):
 
 
 def _personal_certificate_subject(signer):
-    return f"Personal document signature: {signer.partner_id.name}".replace(",", " ")
+    # This prefix is enforced by the pinned step-ca certificate template and
+    # classified by DSS as a local personal certificate.  Keep it stable and
+    # test it as one contract across the browser CSR, CA, and validator.
+    return f"USL Sign Personal: {signer.partner_id.name}".replace(",", " ")
+
+
+def _public_failure_code(error):
+    if isinstance(error, PocketIDAccessDenied):
+        return "pocket_id_rejected"
+    if isinstance(error, StepCAError):
+        return "certificate_service"
+    if isinstance(error, DSSServiceError):
+        return "signature_service"
+    if isinstance(error, AccessError):
+        return "identity_check"
+    return "request_invalid"
 
 
 def _fresh_passkey_claims_summary(claims, *, transaction_created, now=None):
@@ -255,6 +271,9 @@ class StrongSignController(http.Controller):
     )
     def enrollment_begin(self, enrollment_id, token):
         enrollment = self._enrollment(enrollment_id, token)
+        failures = dict(request.session.get(_SESSION_ENROLLMENT_FAILURES, {}))
+        failures.pop(str(enrollment.id), None)
+        request.session[_SESSION_ENROLLMENT_FAILURES] = failures
         nonce = _base64url(secrets.token_bytes(32))
         _state, authorization_url = self._create_oidc_transaction(
             purpose="enrollment",
@@ -272,9 +291,14 @@ class StrongSignController(http.Controller):
     def enrollment_status(self, enrollment_id, token):
         enrollment = request.env["usl.sign.enrollment"].sudo().browse(enrollment_id).exists()
         completed = set(request.session.get(_SESSION_ENROLMENTS, []))
+        failure = request.session.get(_SESSION_ENROLLMENT_FAILURES, {}).get(
+            str(enrollment_id),
+        )
         if not enrollment:
             msg = "This enrolment is unavailable."
             raise AccessError(msg)
+        if failure and int(failure.get("expires_unix", 0)) >= int(time.time()):
+            return {"state": "failed", "failure_code": failure.get("code")}
         if enrollment.id not in completed:
             if enrollment.state != "pending_pocket":
                 msg = "This enrolment is unavailable."
@@ -610,17 +634,29 @@ class StrongSignController(http.Controller):
                 raise AccessError(msg)  # noqa: TRY301 - normalized by the safe callback page
         except (AccessError, ValidationError, PocketIDAccessDenied, StepCAError, DSSServiceError) as exc:
             _logger.warning("Pocket ID Sign authorization failed: %s", type(exc).__name__)
+            failure_code = _public_failure_code(exc)
             if transaction and transaction.get("ceremony_id"):
                 ceremony = request.env["usl.sign.ceremony"].sudo().browse(
                     transaction["ceremony_id"],
                 ).exists()
                 if ceremony and ceremony.state == "authorizing":
                     ceremony.with_context(usl_sign_ceremony_transition=INTERNAL_OPERATION).write(
-                        {"state": "failed", "failure_code": type(exc).__name__},
+                        {"state": "failed", "failure_code": failure_code},
                     )
+            elif transaction and transaction.get("enrollment_id"):
+                failures = dict(request.session.get(_SESSION_ENROLLMENT_FAILURES, {}))
+                failures[str(transaction["enrollment_id"])] = {
+                    "code": failure_code,
+                    "expires_unix": int(time.time()) + _TRANSACTION_TTL,
+                }
+                request.session[_SESSION_ENROLLMENT_FAILURES] = failures
             return self._secure_page(
                 "usl_sign.pocketid_callback_result",
-                {"successful": False, **self._callback_context(transaction)},
+                {
+                    "successful": False,
+                    "failure_code": failure_code,
+                    **self._callback_context(transaction),
+                },
             )
         return self._secure_page(
             "usl_sign.pocketid_callback_result",

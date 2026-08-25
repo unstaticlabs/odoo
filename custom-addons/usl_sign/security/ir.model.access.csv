@@ -24,6 +24,7 @@ access_sign_template_role_evidence_reviewer,sign.template.role.evidence.reviewer
 access_sign_enrollment_reviewer,sign.enrollment.reviewer,model_usl_sign_enrollment,group_sign_identity_reviewer,1,1,1,0
 access_sign_enrollment_user,sign.enrollment.user,model_usl_sign_enrollment,group_sign_user,1,0,0,0
 access_sign_enrollment_revoke_wizard_reviewer,sign.enrollment.revoke.wizard.reviewer,model_usl_sign_enrollment_revoke_wizard,group_sign_identity_reviewer,1,1,1,1
+access_sign_enrollment_invitation_reviewer,sign.enrollment.invitation.reviewer,model_usl_sign_enrollment_invitation,group_sign_identity_reviewer,1,1,1,1
 access_sign_ceremony_reviewer,sign.ceremony.reviewer,model_usl_sign_ceremony,group_sign_evidence_reviewer,1,0,0,0
 access_sign_external_provider_user,sign.external.provider.user,model_usl_sign_external_provider,group_sign_user,1,0,0,0
 access_sign_external_provider_admin,sign.external.provider.admin,model_usl_sign_external_provider,group_sign_admin,1,1,1,1
