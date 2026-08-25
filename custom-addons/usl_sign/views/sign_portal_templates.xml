@@ -253,13 +253,14 @@
                       class="usl-sign-shell usl-sign-shell--compact"
                       data-phase="review"
                       t-att-data-enrollment-id="enrollment.id"
-                      t-att-data-enrollment-token="enrollment_token">
+                      t-att-data-enrollment-token="enrollment_token"
+                      t-att-data-company-name="enrollment.company_id.name">
                     <t t-set="company" t-value="enrollment.company_id"/>
                     <t t-call="usl_sign.secure_company_brand"/>
                     <section class="usl-sign-public-card__body">
                         <p class="usl-sign-eyebrow">Strong signature identity</p>
                         <h1>Connect your signing identity</h1>
-                        <p class="usl-sign-lead">Choose the Pocket ID account you’ll use when <t t-out="enrollment.company_id.name"/> asks for a strong personal signature.</p>
+                        <p class="usl-sign-lead">Connect the Pocket ID account you’ll use for strong personal signatures requested by <t t-out="enrollment.company_id.name"/>.</p>
                         <dl class="usl-sign-summary">
                             <div><dt>Identity</dt><dd t-out="enrollment.partner_id.name"/></div>
                             <div><dt>Next step</dt><dd>Review by <t t-out="enrollment.company_id.name"/></dd></div>
@@ -274,7 +275,7 @@
                             <i class="fa fa-shield" aria-hidden="true"/>
                             <span class="usl-sign-button__label">Connect Pocket ID</span>
                         </button>
-                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> Pocket ID will open in a small window. This does not sign a document.</p>
+                        <p class="usl-sign-action-note"><i class="fa fa-external-link" aria-hidden="true"/> A secure Pocket ID window will open. This step only connects your account.</p>
                         <div id="usl_enroll_status" class="usl-sign-inline-status" role="status" aria-live="polite" aria-atomic="true" hidden="hidden">
                             <span class="usl-sign-status-icon" aria-hidden="true"><i class="fa fa-circle-o-notch"/></span>
                             <span><strong data-status-title=""/><small data-status-message=""/></span>
@@ -315,11 +316,15 @@
                         <h1>Identity confirmed</h1>
                         <p>Returning to your document to complete the signature…</p>
                     </t>
-                    <t t-else="">
-                        <h1>Confirmation stopped</h1>
-                        <p>No signature was applied. Return to the document and try again.</p>
+                    <t t-elif="callback_purpose == 'enrollment'">
+                        <h1>Account not connected</h1>
+                        <p>Return to the setup page for a clear next step. You can safely try again.</p>
                     </t>
-                    <button id="usl_callback_close" class="usl-sign-button usl-sign-button--quiet" type="button">Return to document</button>
+                    <t t-else="">
+                        <h1>Signature not completed</h1>
+                        <p>Nothing was signed. Return to the document for a clear next step.</p>
+                    </t>
+                    <button id="usl_callback_close" class="usl-sign-button usl-sign-button--quiet" type="button">Close this window</button>
                 </main>
                 <script type="text/javascript" src="/usl_sign/static/src/js/strong_sign.js"></script>
             </body>

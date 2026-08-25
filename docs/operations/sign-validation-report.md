@@ -70,6 +70,13 @@ menus, included in the dashboard, or seeded in QA.
   Expired, Cancelled or Result rejected instead of collapsing to Done. Strong
   and external journeys use short action-led phases, and protocol details stay
   behind reviewer or security disclosures.
+- **Strong identity setup:** reviewers now send the personal Pocket ID setup
+  link by email; copying it is an explicit fallback and never navigates to or
+  consumes it. The relationship field is presented as the organization's own
+  review record, not a Pocket ID identifier. Connecting Pocket ID creates a
+  reviewer activity, approval automatically resumes waiting requests, and a
+  failed callback remains visible with a safe next step. Internal Odoo signers
+  can continue from My Signatures when SMTP delivery fails.
 - **Paperless retrieval:** the external Paperless action is offered only when
   the current user's archive identity and this document's permission are both
   synchronized. Authorized Odoo preview and download remain available, so a
@@ -104,8 +111,8 @@ The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
 - the final isolated `scripts/sign-qa-stack test /usl_sign` run installed the
-  module from clean state and completed 72 post-test entries with zero failures
-  and zero errors. Odoo's per-module statistics reported 78 Sign tests plus the
+  module from clean state and completed 77 post-test entries with zero failures
+  and zero errors. Odoo's per-module statistics reported 83 Sign tests plus the
   six web-suite wrappers;
 - desktop and mobile frontend suites each passed 15 tests and 65 assertions.
   They cover the stale palette-drag regression, whole-field movement, the
@@ -139,6 +146,10 @@ authenticator:
 - live System Status refresh: Standard, Strong personal and Daily timestamps
   Ready; Qualified external Action required because the lightweight QA tenant
   has no trusted-list feed; optional PDF signing timestamps Not configured.
+- the CA/DSS service smoke reproduced certificate issuance with the template's
+  enforced personal-certificate subject and passed PAdES construction,
+  validation, dossier, replay and alteration checks. The previously blocked QA
+  request 7 was recovered to Sent with Roger's invitation available in Odoo.
 
 The final source gates passed: clean Sign product boundary, reproducible
 browser-worker/private-key boundary, product/migration source boundary, Python
@@ -173,6 +184,13 @@ JWK, PKCS#8, seed or private `CryptoKey` in automated traffic inspection.
 That remains architectural evidence, not a fresh acceptance of this UI tip.
 No Touch ID or other physical-authenticator prompt was triggered during this
 closure.
+
+A new virtual-authenticator rerun was attempted after correcting its dynamic
+worktree URLs and Node `.localhost` resolution. It did not reach Pocket ID or
+the signature ceremony because the installed host Chrome 151 aborts in
+headless mode on this macOS 14 machine. No acceptance result is claimed from
+that environment-limited attempt; clean headless Odoo browser suites and the
+non-biometric CA/DSS service smoke are the newly reproduced evidence.
 
 ## Genuine release limitations
 
