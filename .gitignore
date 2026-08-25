@@ -73,3 +73,4 @@ usl-online-dump/
 /tmp/
 /.pocket-id.env
 /.pocket-id-*.env
+/.documents-personal-ai-keys.json
