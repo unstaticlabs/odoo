@@ -11,6 +11,7 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Experience principles](experience-principles.md)
 - [Structured operational memory](structured-operational-memory.md)
 - [Accounting core](accounting-core.md)
+- [Scheduled bank-statement review](scheduled-bank-statements.md)
 - [Company-paid expense bank matching](expense-bank-matching.md)
 - [Lightweight expense batches](expense-batches.md)
 - [Paie TESE](paie-tese.md)

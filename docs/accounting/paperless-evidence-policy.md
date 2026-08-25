@@ -102,7 +102,12 @@ Representative preview, checksum, permissions, and orphan checks returned
 evidence.
 
 The optional `usl_documents_accounting` bridge extends the generic relationship
-contract to installed tax declaration and accounting closing-period models. It
+contract to installed tax declaration, accounting closing-period and managed
+bank-statement models. An accepted bank PDF is queued asynchronously; a later
+accepted PDF becomes a Paperless version while the exact Odoo attachment is
+retained. Certification pins the supporting checksum and available Paperless
+version. An archive outage is visible but does not invalidate the Odoo evidence
+or bank-balance certification. The bridge otherwise
 uses the same single contextual smart button: **Upload** when empty and
 **N Documents** when evidence exists. It does not alter posting,
 reconciliation, tax computation, or report semantics.
