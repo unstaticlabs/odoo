@@ -88,6 +88,25 @@ sequence. The underlying `ir.filters` record remains authoritative but is no
 longer exposed as a separate item that users must open. Personal Favorites
 remain private.
 
+### Optional personal Gemini
+
+An active Pocket-mapped internal user may opt into Gemini from Paperless
+**My profile** without administrator approval. Metadata suggestions and
+Paperless document chat are separate switches and both start off. The user
+supplies and owns their Google API key; USL encrypts it per user, never shows it
+again, and never sends it to Odoo or MCP. Disable stops both features while
+retaining the encrypted key; delete removes the credential and disables both.
+
+Before opt-in, Paperless explains that the relevant document text, filename,
+metadata, and prompt will leave USL for Google Gemini when the user invokes an
+enabled feature. The connection test sends no document. Suggestions remain
+proposals for human review, and chat has no tools or write access. Portal,
+anonymous, inactive, unmapped, and service identities cannot opt in.
+
+Gemini is not used for upload, OCR, indexing, search, synchronization, or MCP.
+Those local/core paths keep working when Gemini is disabled or unavailable.
+There is deliberately no Odoo chat UI.
+
 Managers create shared navigation views under **Configuration > Smart views**.
 A new view receives a stable identity, appears immediately in every authorized
 user's Documents sidebar, and provides **Open Documents** for direct review.

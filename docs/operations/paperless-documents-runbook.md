@@ -278,6 +278,39 @@ defaults.
 
 The exporter is a portable additional copy, not the operational backup.
 
+## Personal Gemini
+
+Personal Gemini is optional, per-user, and Paperless-only. It must not be
+configured through Paperless's native global LLM settings. The distribution
+migration clears those fields, the frontend hides them, and
+`check_personal_ai_release` rejects any later global value.
+
+The master-key ring is an independently protected Docker secret. The only
+runtime variable is
+`USL_PERSONAL_AI_MASTER_KEYS_PATH=/run/secrets/usl_personal_ai_master_keys`;
+never use an inline value or a variable ending in `_FILE`. Back up the key ring
+separately from the Paperless database and never place it in Paperless exports.
+
+After deployment, migration, restore, or rotation run inside the Paperless
+webserver:
+
+```bash
+python manage.py showmigrations paperless_personal_ai
+python manage.py makemigrations --check --dry-run paperless_personal_ai
+python manage.py check_personal_ai_release
+```
+
+The first command must show `0001_initial` applied, the second must report no
+changes, and the third must print only the active non-secret key identity.
+Then run the backend and exact-source frontend gates described in
+`docs/operations/personal-gemini-runbook.md`.
+
+Users manage their own keys under **My profile → Personal Gemini**. Support may
+explain privacy, disablement, deletion, and provider-side revocation, but must
+never ask for, copy, test, export, or impersonate a user's key. The complete
+privacy, eligibility, rotation, incident-response, and independent-restore
+procedure is maintained in `docs/operations/personal-gemini-runbook.md`.
+
 ## Acceptance and independent restore
 
 Local QA:
