@@ -50,11 +50,11 @@ enrollment = enrollments.create(
         ),
     },
 )
-invitation = enrollment.action_create_invitation()
+invitation = enrollment.action_copy_invitation()
 env.cr.commit()
 payload = {
     "enrollment_id": enrollment.id,
-    "invitation_url": invitation["url"],
+    "invitation_url": invitation["context"]["default_invitation_url"],
     "partner_id": partner.id,
     "authenticator": authenticator,
     "run_id": os.environ.get("USL_SIGN_ACCEPTANCE_RUN_ID", ""),
