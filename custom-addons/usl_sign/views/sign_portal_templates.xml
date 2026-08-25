@@ -88,7 +88,7 @@
                             <div><dt>Signing as</dt><dd t-out="signer.partner_id.name"/></div>
                             <div><dt>Your role</dt><dd t-out="signer.role_id.name"/></div>
                             <div t-if="signer.request_id.requested_trust != 'standard'"><dt>Signing method</dt><dd t-out="requested_trust_display"/></div>
-                            <div t-if="signer.request_id.expires_at"><dt>Complete by</dt><dd t-out="signer.request_id.expires_at"/></div>
+                            <div t-if="due_display"><dt>Complete by</dt><dd t-out="due_display"/></div>
                         </dl>
                         <a class="usl-sign-button usl-sign-button--wide" t-att-href="'/sign/session/%s/%s?review=1' % (signer.id, access_token)">
                             Review document

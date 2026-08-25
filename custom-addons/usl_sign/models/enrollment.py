@@ -23,9 +23,9 @@ class SignEnrollment(models.Model):
     )
     state = fields.Selection(
         [
-            ("pending_pocket", "Pocket ID connection required"),
-            ("pending_review", "Identity review required"),
-            ("active", "Active"),
+            ("pending_pocket", "Waiting for account connection"),
+            ("pending_review", "Ready for review"),
+            ("active", "Ready"),
             ("revoked", "Revoked"),
         ],
         required=True,
@@ -33,10 +33,10 @@ class SignEnrollment(models.Model):
     )
     relationship_basis = fields.Selection(
         [
-            ("pocket_id", "Existing Pocket ID account"),
-            ("employee", "Employee relationship"),
-            ("contractor", "Contractor relationship"),
-            ("recurring_partner", "Known recurring partner"),
+            ("pocket_id", "Existing Pocket ID user"),
+            ("employee", "Employee"),
+            ("contractor", "Contractor"),
+            ("recurring_partner", "Recurring partner"),
         ],
         required=True,
     )
