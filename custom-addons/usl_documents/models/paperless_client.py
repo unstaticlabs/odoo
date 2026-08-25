@@ -464,12 +464,12 @@ class PaperlessClient:
             )[0]
             warnings.extend(payload.get("warnings") or [])
             for item in payload.get("results") or []:
-                document_id = int(item["id"])
-                existing = candidates.get(document_id)
+                candidate_id = int(item["id"])
+                existing = candidates.get(candidate_id)
                 if existing is None or float(item.get("similarity") or 0) > float(
                     existing.get("similarity") or 0,
                 ):
-                    candidates[document_id] = item
+                    candidates[candidate_id] = item
         results = sorted(
             candidates.values(),
             key=lambda item: (-float(item.get("similarity") or 0), int(item["id"])),

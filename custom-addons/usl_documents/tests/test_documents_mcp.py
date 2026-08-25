@@ -171,6 +171,7 @@ class TestDocumentsMcp(TransactionCase):
         self.assertEqual(result["warnings"][0]["code"], "semantic_unavailable")
 
     def test_search_never_sends_unsynchronized_roots_to_paperless(self):
+        allowed = self._document(51071, name="Synchronized comparison root")
         blocked = self._document(
             5107,
             name="Cached blocked title",
@@ -198,12 +199,25 @@ class TestDocumentsMcp(TransactionCase):
             "odoo_metadata",
         )
         for call in lexical.call_args_list:
+            remote_scope = {
+                int(item)
+                for item in call.kwargs["filters"]["id__in"].split(",")
+                if item
+            }
             self.assertNotIn(
-                str(blocked.paperless_id),
-                str(call.kwargs.get("filters") or {}),
+                blocked.paperless_id,
+                remote_scope,
+            )
+            self.assertIn(
+                allowed.paperless_id,
+                remote_scope,
             )
         self.assertNotIn(
             blocked.paperless_id,
+            semantic.call_args.kwargs["document_ids"],
+        )
+        self.assertIn(
+            allowed.paperless_id,
             semantic.call_args.kwargs["document_ids"],
         )
 
