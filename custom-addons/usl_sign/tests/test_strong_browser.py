@@ -919,6 +919,7 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertEqual(sign_request.evidence_status, "complete")
         self.assertEqual(sign_request.archive_status, "archived")
         self.assertTrue(sign_request.archive_document_id)
+        self.assertTrue(sign_request.archive_dossier_document_id)
         self.assertTrue(sign_request.final_data)
         self.assertTrue(sign_request.completion_certificate)
         self.assertTrue(sign_request.dossier_data)

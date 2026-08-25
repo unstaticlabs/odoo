@@ -17,6 +17,19 @@ class SignRequestArchive(models.Model):
     )
     archive_document_id = fields.Many2one(
         "usl.document", readonly=True, copy=False, ondelete="restrict",
+        string="Archived signed document",
+        help="The final validated signed PDF. This is the primary archived document.",
+    )
+    dossier_archive_operation_id = fields.Many2one(
+        "usl.document.operation", readonly=True, copy=False, ondelete="restrict",
+    )
+    archive_dossier_document_id = fields.Many2one(
+        "usl.document", readonly=True, copy=False, ondelete="restrict",
+        string="Archived proof package",
+        help=(
+            "The companion PDF/A-3 proof package containing the signed PDF, "
+            "source files, completion certificate, manifest, and validation reports."
+        ),
     )
     archive_status = fields.Selection(
         [
