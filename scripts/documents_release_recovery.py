@@ -134,6 +134,17 @@ def render_text(evidence: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def persist(evidence: dict, output: Path, text_output: Path) -> bool:
+    atomic_write(
+        output,
+        json.dumps(evidence, indent=2, sort_keys=True) + "\n",
+    )
+    if evidence["status"] != "passed":
+        return False
+    atomic_write(text_output, render_text(evidence))
+    return True
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bundle", type=Path, required=True)
@@ -161,12 +172,7 @@ def main() -> None:
         )
     except (OSError, RecoveryError, release_bundle.BundleError) as error:
         raise SystemExit(f"Documents recovery evidence rejected: {error}") from error
-    atomic_write(
-        args.output,
-        json.dumps(evidence, indent=2, sort_keys=True) + "\n",
-    )
-    atomic_write(args.text_output, render_text(evidence))
-    if evidence["status"] != "passed":
+    if not persist(evidence, args.output, args.text_output):
         raise SystemExit(
             "Documents recovery evidence rejected: "
             + ", ".join(evidence["blockers"]),

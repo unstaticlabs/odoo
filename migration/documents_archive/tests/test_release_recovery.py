@@ -1,4 +1,5 @@
 import importlib.util
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -99,6 +100,27 @@ class DocumentsReleaseRecoveryTest(unittest.TestCase):
         self.assertEqual(evidence["status"], "failed")
         self.assertIn("tantivy_noop", evidence["blockers"])
         self.assertIn("bge_manifest_equal", evidence["blockers"])
+
+    def test_failed_recovery_does_not_replace_bundle_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output = root / "external.json"
+            bundle_evidence = root / "recovery-rehearsal.txt"
+            bundle_evidence.write_text("status=pending\n", encoding="utf-8")
+            failed = self.build(tantivy_output="Index changed")
+
+            persisted = recovery.persist(
+                failed,
+                output,
+                bundle_evidence,
+            )
+
+            self.assertFalse(persisted)
+            self.assertTrue(output.is_file())
+            self.assertEqual(
+                bundle_evidence.read_text(encoding="utf-8"),
+                "status=pending\n",
+            )
 
 
 if __name__ == "__main__":
