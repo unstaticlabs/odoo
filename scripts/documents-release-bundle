@@ -48,7 +48,7 @@ matches = [line[len(prefix):] for line in source.read_text(encoding="utf-8").spl
 if len(matches) != 1:
     raise SystemExit(f"expected one {prefix} record, found {len(matches)}")
 value = json.loads(matches[0])
-output.write_text(json.dumps(value, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+output.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 output.chmod(0o600)
 ' "$input" "$prefix" "$output"
 }

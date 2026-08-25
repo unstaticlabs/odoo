@@ -137,6 +137,20 @@ class DocumentsReleaseBundleTest(unittest.TestCase):
         )
         self.assertIn('paperless-webserver manage.py shell \\\n', script)
 
+    def test_extracted_inventory_ends_with_a_real_newline(self):
+        script = (ROOT / "scripts/documents-release-bundle").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn(
+            'json.dumps(value, indent=2, sort_keys=True) + "\\n"',
+            script,
+        )
+        self.assertNotIn(
+            'json.dumps(value, indent=2, sort_keys=True) + "\\\\n"',
+            script,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
