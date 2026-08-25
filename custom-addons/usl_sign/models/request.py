@@ -107,8 +107,17 @@ class SignRequest(models.Model):
         """
         partner = self.env.user.partner_id
         for request in self:
-            assigned = request.signer_ids.filtered(
-                lambda signer: signer.partner_id == partner,
+            # ``request.signer_ids`` contains every recipient id.  A recipient
+            # may read only their own row, so traversing the whole relation can
+            # fail as soon as another recipient is prefetched.  Resolve the
+            # exact identity under sudo, then let normal rules protect any
+            # later access to the selected row.
+            assigned = self.env["sign.oca.request.signer"].sudo().search(
+                [
+                    ("request_id", "=", request.id),
+                    ("partner_id", "=", partner.id),
+                ],
+                order="sequence, id",
             )
             allowed = assigned.filtered("is_allow_signature")
             request.signer_id = allowed[:1] if allowed else assigned[:1]
@@ -259,6 +268,10 @@ class SignRequest(models.Model):
     has_signing_fields = fields.Boolean(compute="_compute_workspace_presentation")
     can_coordinate = fields.Boolean(compute="_compute_user_capabilities")
     can_send = fields.Boolean(compute="_compute_user_capabilities")
+    managed_by_current_user = fields.Boolean(
+        compute="_compute_managed_by_current_user",
+        search="_search_managed_by_current_user",
+    )
     last_error = fields.Text(readonly=True, copy=False)
     recovery_action = fields.Char(readonly=True, copy=False)
 
@@ -417,7 +430,10 @@ class SignRequest(models.Model):
                 )
                 continue
             if request.state in {"sent", "viewed", "partial"}:
-                waiting = request.signer_ids.filtered(
+                # Only expose a business-safe summary.  Recipient rows include
+                # private invitation and ceremony material and remain visible
+                # only to their owner, the requester, and coordinators.
+                waiting = request.sudo().signer_ids.filtered(
                     lambda signer: signer.state not in {"signed", "declined"},
                 ).sorted(lambda signer: (signer.sequence, signer.id))
                 if len(waiting) == 1 or (request.signing_order and waiting):
@@ -497,8 +513,9 @@ class SignRequest(models.Model):
                 request.state,
                 _("In progress"),
             )
-            total = len(request.signer_ids)
-            signed = len(request.signer_ids.filtered(lambda signer: signer.state == "signed"))
+            signers = request.sudo().signer_ids
+            total = len(signers)
+            signed = len(signers.filtered(lambda signer: signer.state == "signed"))
             request.signer_progress = (
                 _("%(signed)s of %(total)s signed", signed=signed, total=total)
                 if total
@@ -558,6 +575,74 @@ class SignRequest(models.Model):
                 or self.env.user in request.coordinator_ids,
             )
             request.can_send = bool(is_admin or request.user_id == self.env.user)
+
+    @api.depends("user_id", "coordinator_ids")
+    @api.depends_context("uid")
+    def _compute_managed_by_current_user(self):
+        review_all = self.env.su or self.env.user.has_group(
+            "usl_sign.group_sign_evidence_reviewer",
+        )
+        for request in self:
+            request.managed_by_current_user = bool(
+                review_all
+                or request.user_id == self.env.user
+                or self.env.user in request.coordinator_ids
+            )
+
+    @api.model
+    def _search_managed_by_current_user(self, operator, value):
+        if operator not in {"=", "!="}:
+            raise NotImplementedError()
+        wanted = bool(value)
+        if operator == "!=":
+            wanted = not wanted
+        review_all = self.env.su or self.env.user.has_group(
+            "usl_sign.group_sign_evidence_reviewer",
+        )
+        if review_all:
+            return fields.Domain.TRUE if wanted else fields.Domain.FALSE
+        managed = fields.Domain.OR(
+            [
+                [("user_id", "=", self.env.user.id)],
+                [("coordinator_ids", "in", [self.env.user.id])],
+            ],
+        )
+        return managed if wanted else ~managed
+
+    def _internal_signer_users(self):
+        """Return invited backend users without exposing unrelated contacts."""
+        self.ensure_one()
+        users = self.sudo().signer_ids.partner_id.user_ids.filtered(
+            lambda user: (
+                user.active
+                and not user.share
+                and self.company_id in user.company_ids
+                and user != self.user_id
+            ),
+        )
+        return users.sorted(lambda user: (user.name.casefold(), user.id))
+
+    def _share_confirmation_action(self, message):
+        self.ensure_one()
+        recipients = self._internal_signer_users()
+        if not recipients:
+            return False
+        wizard = self.env["usl.sign.share.confirm"].create(
+            {
+                "request_id": self.id,
+                "recipient_names": ", ".join(recipients.mapped("name")),
+                "recipient_count": len(recipients),
+                "message": message or "",
+            },
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Share and send"),
+            "res_model": wizard._name,
+            "res_id": wizard.id,
+            "views": [(self.env.ref("usl_sign.sign_share_confirm_form").id, "form")],
+            "target": "new",
+        }
 
     def _check_prepare_access(self):
         for request in self:
@@ -1134,6 +1219,10 @@ class SignRequest(models.Model):
                 msg = "Only a ready request can be sent."
                 raise ValidationError(msg)
             request._validate_preparation()
+            if self.env.context.get("usl_sign_share_confirmed") is not INTERNAL_OPERATION:
+                confirmation = request._share_confirmation_action(message)
+                if confirmation:
+                    return confirmation
             request._freeze_document()
             request.responsible_message = message or request.responsible_message
             if request.requested_trust == "qualified_external":
@@ -2768,7 +2857,9 @@ class SignRequestSigner(models.Model):
             "name": self.request_id.name,
             "res_model": "sign.oca.request",
             "res_id": self.request_id.id,
-            "views": [(False, "form")],
+            "views": [
+                (self.env.ref("usl_sign.sign_request_signer_result_form").id, "form"),
+            ],
             "target": "current",
         }
 
@@ -2858,7 +2949,7 @@ class SignRequestSigner(models.Model):
     def _compute_is_allow_signature(self):
         current_partner = self.env.user.partner_id
         for signer in self:
-            order_ready = not signer.request_id.signer_ids.filtered(
+            order_ready = not signer.request_id.sudo().signer_ids.filtered(
                 lambda other: signer.request_id.signing_order
                 and other.sequence < signer.sequence
                 and other.state != "signed",
