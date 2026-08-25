@@ -138,6 +138,14 @@ the secure invitation, a portal account or Pocket ID. The signer page works on
 mobile, captures field values and explicit consent, and records the
 authentication method, timestamp, IP address and user agent.
 
+When a recipient is an internal Odoo user, the Share and send confirmation
+grants the bounded Sign user role and creates a native **Review and sign**
+activity on that recipient's signing assignment. Ordered requests notify only
+the signer whose turn is available. Reminders update the same activity rather
+than creating duplicates; signing, declining, cancelling or expiring removes
+outstanding assignments. The lifecycle cron repairs a missing activity without
+depending on email delivery.
+
 After the last signer, Odoo renders the final PDF, asks the internal DSS
 service to apply the USL platform seal, re-reads the persisted bytes and runs
 independent validation. The completion certificate describes the ceremony and
