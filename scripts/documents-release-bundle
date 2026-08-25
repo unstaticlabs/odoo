@@ -402,6 +402,7 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
 restore_bundle() {
   local bundle="${1:-}" option="${2:-}" restore_project="${3:-}"
   local env_file restore_database source_database evidence_file odoo_uid odoo_gid
+  local restored_odoo_output restored_paperless_output restored_bge_digest
   [[ -d "$bundle" && "$option" = --project && -n "$restore_project" ]] || usage
   bundle="$(cd "$bundle" && pwd -P)"
   require_safe_name "restore project" "$restore_project"
@@ -486,9 +487,41 @@ chmod 700 /target/sessions
     > "/private/tmp/${restore_project}-sanity.txt"
   "${COMPOSE[@]}" up -d --wait --pull never odoo
   evidence_file="/private/tmp/${restore_project}-recovery-rehearsal.json"
-  python3 -c 'import json,sys; value={"schema":"usl-documents-recovery-rehearsal-v1","status":"passed","project":sys.argv[1],"database":sys.argv[2],"mass_ocr":False,"llm_rebuild":False,"model_download":False,"stable_ids":True}; open(sys.argv[3],"w").write(json.dumps(value,indent=2,sort_keys=True)+"\n")' \
-    "$restore_project" "$restore_database" "$evidence_file"
-  chmod 600 "$evidence_file"
+  restored_odoo_output="/private/tmp/${restore_project}-odoo-inventory.out"
+  restored_paperless_output="/private/tmp/${restore_project}-paperless-inventory.out"
+  "${COMPOSE[@]}" exec -T odoo odoo shell \
+    --config=/etc/odoo/odoo.conf --database="$restore_database" \
+    --shell-interface=python < scripts/odoo/documents_release_inventory.py \
+    > "$restored_odoo_output"
+  extract_prefixed_json "$restored_odoo_output" \
+    "USL_DOCUMENTS_RELEASE_INVENTORY=" \
+    "/private/tmp/${restore_project}-odoo-inventory.json"
+  "${COMPOSE[@]}" exec -T paperless-webserver python manage.py shell \
+    < scripts/paperless_release_inventory.py > "$restored_paperless_output"
+  extract_prefixed_json "$restored_paperless_output" \
+    "USL_PAPERLESS_RELEASE_INVENTORY=" \
+    "/private/tmp/${restore_project}-paperless-inventory.json"
+  extract_prefixed_json "$restored_paperless_output" \
+    "USL_PAPERLESS_VECTOR_INVENTORY=" \
+    "/private/tmp/${restore_project}-vector-inventory.json"
+  restored_bge_digest="$(
+    "${COMPOSE[@]}" exec -T paperless-ollama sha256sum \
+      /root/.ollama/models/manifests/registry.ollama.ai/library/usl-bge-m3/documents-20260824-rc1 \
+      | awk '{print $1}'
+  )"
+  python3 scripts/documents_release_recovery.py \
+    --bundle "$bundle" \
+    --odoo "/private/tmp/${restore_project}-odoo-inventory.json" \
+    --paperless "/private/tmp/${restore_project}-paperless-inventory.json" \
+    --vector "/private/tmp/${restore_project}-vector-inventory.json" \
+    --bge-manifest-sha256 "$restored_bge_digest" \
+    --tantivy-output "/private/tmp/${restore_project}-tantivy-noop.txt" \
+    --project "$restore_project" --database "$restore_database" \
+    --output "$evidence_file" \
+    --text-output "$bundle/evidence/recovery-rehearsal.txt"
+  python3 scripts/documents_release_bundle.py seal "$bundle" \
+    --identity "$bundle/evidence/release-identity.json"
+  python3 scripts/documents_release_bundle.py verify "$bundle"
   printf 'Documents cohort restored without OCR/rebuild/model download: %s\n' \
     "$restore_project"
   printf 'Recovery evidence: %s\n' "$evidence_file"

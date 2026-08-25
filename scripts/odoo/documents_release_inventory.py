@@ -99,9 +99,9 @@ result = {
     "accounting": {
         "posted_moves": posted_moves,
         "move_lines": move_lines,
-        "posted_debit": str(Decimal(posted_debit)),
-        "posted_credit": str(Decimal(posted_credit)),
-        "balanced": Decimal(posted_debit) == Decimal(posted_credit),
+        "posted_debit": str(Decimal(str(posted_debit))),
+        "posted_credit": str(Decimal(str(posted_credit))),
+        "balanced": Decimal(str(posted_debit)) == Decimal(str(posted_credit)),
     },
     "qualification_counters": blocking_states,
     "blockers": blockers,
