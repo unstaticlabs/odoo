@@ -62,6 +62,68 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "http://paperless.localhost:21946",
         )
 
+    def test_generated_environment_allows_explicit_tailscale_qa_host(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / ".pocket-id.env"
+            with patch.dict(
+                os.environ,
+                {
+                    "USL_POCKET_ID_DEV_PRIVATE_QA": "1",
+                    "USL_POCKET_ID_DEV_ODOO_HOSTNAME": "100.100.10.20",
+                    "USL_POCKET_ID_DEV_POCKET_HOSTNAME": "100.100.10.20",
+                    "USL_POCKET_ID_DEV_PAPERLESS_URL": (
+                        "http://100.100.10.20:21946"
+                    ),
+                },
+                clear=True,
+            ):
+                POCKET_ID_DEV._write_new_env(path)
+            values = POCKET_ID_DEV._read_env(path)
+
+        self.assertEqual(
+            values["ODOO_PUBLIC_BASE_URL"],
+            "http://100.100.10.20:8069",
+        )
+        self.assertEqual(
+            values["POCKET_ID_APP_URL"],
+            "http://100.100.10.20:1411",
+        )
+        self.assertIn("100.100.10.20", values["PAPERLESS_ALLOWED_HOSTS"])
+
+    def test_generated_environment_rejects_unapproved_remote_host(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / ".pocket-id.env"
+            with (
+                patch.dict(
+                    os.environ,
+                    {"USL_POCKET_ID_DEV_ODOO_HOSTNAME": "100.100.10.20"},
+                    clear=True,
+                ),
+                self.assertRaisesRegex(
+                    POCKET_ID_DEV.PocketIDError,
+                    "explicit private QA",
+                ),
+            ):
+                POCKET_ID_DEV._write_new_env(path)
+
+    def test_sign_test_cleanup_reuses_the_built_test_image(self):
+        stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
+            encoding="utf-8",
+        )
+        test_body = stack[
+            stack.index("test_stack() {") : stack.index("\n}\n\ntest_pocket_patch()")
+        ]
+
+        self.assertIn("--no-deps --entrypoint sh", test_body)
+        self.assertIn(
+            'TEST_DATABASE="$database" test -c',
+            test_body,
+        )
+        self.assertNotIn(
+            'TEST_DATABASE="$database" init-db -c',
+            test_body,
+        )
+
     def test_existing_environment_is_upgraded_with_separate_paperless_client(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             path = Path(temporary_directory) / ".pocket-id.env"
