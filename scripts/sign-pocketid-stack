@@ -11,6 +11,8 @@ POCKET_PORT="${USL_SIGN_POCKETID_POCKET_PORT:-16411}"
 PAPERLESS_PORT="${USL_SIGN_POCKETID_PAPERLESS_PORT:-16810}"
 ODOO_HOSTNAME="${USL_SIGN_POCKETID_ODOO_HOSTNAME:-odoo-sign-qa.localhost}"
 POCKET_HOSTNAME="${USL_SIGN_POCKETID_POCKET_HOSTNAME:-pocket-id-sign-qa.localhost}"
+BIND_ADDRESS="${USL_SIGN_POCKETID_BIND_ADDRESS:-127.0.0.1}"
+PAPERLESS_PUBLIC_URL="${USL_SIGN_POCKETID_PAPERLESS_PUBLIC_URL:-http://127.0.0.1:$PAPERLESS_PORT}"
 QA_READY_MARKER="$SECRET_ROOT/qa-bootstrap-complete"
 PYTHON_HELPER="$ROOT/scripts/pocket_id_dev.py"
 COMPOSE_FILES=(
@@ -20,6 +22,20 @@ COMPOSE_FILES=(
 )
 
 bootstrap_environment() {
+  python3 - "$BIND_ADDRESS" <<'PY'
+import ipaddress
+import sys
+
+address = ipaddress.ip_address(sys.argv[1])
+tailscale = ipaddress.ip_network("100.64.0.0/10")
+if (
+    address.version != 4
+    or address.is_unspecified
+    or address.is_multicast
+    or not (address.is_loopback or address.is_private or address in tailscale)
+):
+    raise SystemExit("Sign QA bind address must be loopback or a private/Tailscale IPv4 address.")
+PY
   USL_POCKET_ID_DEV_COMPOSE_PROJECT="$PROJECT" \
   USL_POCKET_ID_DEV_ODOO_DB=odoo_dev \
   USL_POCKET_ID_DEV_ODOO_PORT="$ODOO_PORT" \
@@ -27,7 +43,8 @@ bootstrap_environment() {
   USL_POCKET_ID_DEV_POCKET_PORT="$POCKET_PORT" \
   USL_POCKET_ID_DEV_ODOO_HOSTNAME="$ODOO_HOSTNAME" \
   USL_POCKET_ID_DEV_POCKET_HOSTNAME="$POCKET_HOSTNAME" \
-  USL_POCKET_ID_DEV_PAPERLESS_URL="http://127.0.0.1:$PAPERLESS_PORT" \
+  USL_POCKET_ID_DEV_PAPERLESS_URL="$PAPERLESS_PUBLIC_URL" \
+  USL_POCKET_ID_DEV_PRIVATE_QA="${USL_SIGN_POCKETID_PRIVATE_QA:-0}" \
     python3 "$PYTHON_HELPER" --env-file "$ENV_FILE" bootstrap
 }
 
@@ -53,6 +70,7 @@ load_environment() {
     return 2
   fi
   export PAPERLESS_HTTP_PORT="$PAPERLESS_PORT"
+  export USL_SIGN_POCKETID_BIND_ADDRESS="$BIND_ADDRESS"
   export USL_SIGN_SECRET_ROOT="$SECRET_ROOT"
   export USL_SIGN_STEP_CA_DIR="$SECRET_ROOT/step-ca"
   export USL_SIGN_DSS_SECRET_DIR="$SECRET_ROOT/dss"
@@ -290,8 +308,8 @@ test_stack() {
     --log-level=test || status=$?
   "${COMPOSE[@]}" exec -T -e TEST_DATABASE="$database" db sh -c \
     'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
-  "${COMPOSE[@]}" --profile init run --rm --entrypoint sh \
-    -e TEST_DATABASE="$database" init-db -c '
+  "${COMPOSE[@]}" --profile test run --rm --no-deps --entrypoint sh \
+    -e TEST_DATABASE="$database" test -c '
       directory="/var/lib/odoo/filestore/$TEST_DATABASE"
       if [ -d "$directory" ]; then
         find "$directory" -mindepth 1 -delete
