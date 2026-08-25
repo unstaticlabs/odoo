@@ -1,11 +1,35 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
+from .constants import INTERNAL_OPERATION
+
 SHORT_TRUST_LEVELS = [
     ("standard", "Standard"),
     ("strong_personal", "Strong personal"),
     ("qualified_external", "Qualified external"),
 ]
+
+
+class SignShareConfirm(models.TransientModel):
+    _name = "usl.sign.share.confirm"
+    _description = "Confirm access for invited Odoo users"
+
+    request_id = fields.Many2one(
+        "sign.oca.request",
+        required=True,
+        readonly=True,
+        ondelete="cascade",
+    )
+    recipient_names = fields.Char(readonly=True, required=True)
+    recipient_count = fields.Integer(readonly=True, required=True)
+    message = fields.Text(readonly=True)
+
+    def action_confirm(self):
+        self.ensure_one()
+        self.request_id._check_owner_access()
+        return self.request_id.with_context(
+            usl_sign_share_confirmed=INTERNAL_OPERATION,
+        ).action_send(message=self.message)
 
 
 class SignTemplateGenerate(models.TransientModel):

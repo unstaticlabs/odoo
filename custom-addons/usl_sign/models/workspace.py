@@ -56,6 +56,27 @@ class SignWorkspace(models.AbstractModel):
         }
 
     @api.model
+    def _completed_item(self, request):
+        if request.managed_by_current_user:
+            return self._request_item(request)
+        signer = self.env["sign.oca.request.signer"].sudo().search(
+            [
+                ("request_id", "=", request.id),
+                ("partner_id", "=", self.env.user.partner_id.id),
+            ],
+            order="sequence, id",
+            limit=1,
+        )
+        item = self._request_item(request)
+        item["action"] = {
+            "type": "call",
+            "model": "sign.oca.request.signer",
+            "id": signer.id,
+            "method": "action_open_request",
+        }
+        return item
+
+    @api.model
     def _section(self, model, domain, item_builder, *, order, limit=6):
         count = self.env[model].search_count(domain)
         records = self.env[model].search(domain, order=order, limit=limit)
@@ -159,7 +180,7 @@ class SignWorkspace(models.AbstractModel):
                         ],
                     ],
                 ),
-                self._request_item,
+                self._completed_item,
                 order="completed_at desc, id desc",
             ),
         }

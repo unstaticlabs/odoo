@@ -1486,6 +1486,126 @@ class TestCleanUslSign(TransactionCase):
         ]:
             self.assertIn(f'name="{filter_name}"', search_arch)
 
+        completed_action = self.env.ref("usl_sign.completed_documents_action")
+        self.assertIn("managed_by_current_user", completed_action.domain)
+
+    def test_internal_signer_dashboard_and_result_do_not_expose_other_signer_rows(self):
+        internal_signer = new_test_user(
+            self.env,
+            login="usl-sign-invited-user",
+            groups="usl_sign.group_sign_user",
+            company_id=self.company.id,
+        )
+        internal_signer.partner_id.email = "invited@example.test"
+        request = self._request(
+            partners=[internal_signer.partner_id, self.partner_two],
+            roles=[self.role_customer, self.role_employee],
+            user_id=self.sign_user.id,
+        )
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {"state": "sent"},
+        )
+        own_signer, other_signer = request.sudo().signer_ids.sorted("sequence")
+        own_signer.with_context(
+            usl_sign_signer_transition=INTERNAL_OPERATION,
+        ).write({"state": "notified"})
+
+        participant_request = request.with_user(internal_signer)
+        self.assertTrue(own_signer.with_user(internal_signer).is_allow_signature)
+        self.assertEqual(participant_request.signer_progress, "0 of 2 signed")
+        self.assertEqual(participant_request.next_step, "Waiting for 2 signers.")
+        landing = self.env["usl.sign.workspace"].with_user(
+            internal_signer,
+        ).get_landing()
+        self.assertEqual(landing["sections"]["sign_now"]["count"], 1)
+        self.assertEqual(
+            landing["sections"]["sign_now"]["items"][0]["progress"],
+            "0 of 2 signed",
+        )
+        with self.assertRaises(AccessError):
+            other_signer.with_user(internal_signer).read(["state"])
+
+        own_signer.with_context(
+            usl_sign_signer_transition=INTERNAL_OPERATION,
+        ).write({"state": "signed", "signed_on": fields.Datetime.now()})
+        request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+            {
+                "state": "completed",
+                "validation_status": "valid",
+                "evidence_status": "complete",
+                "archive_status": "archived",
+                "final_data": field_value(self.pdf),
+                "final_filename": "signed.pdf",
+                "completion_certificate": field_value(self.pdf),
+                "completion_filename": "certificate.pdf",
+                "dossier_data": field_value(self.pdf),
+                "dossier_filename": "proof.pdf",
+                "completed_at": fields.Datetime.now(),
+            },
+        )
+        result_action = own_signer.with_user(internal_signer).action_open_request()
+        self.assertEqual(
+            result_action["views"][0][0],
+            self.env.ref("usl_sign.sign_request_signer_result_form").id,
+        )
+        self.assertEqual(participant_request.preview()["type"], "ir.actions.act_url")
+        completed_landing = self.env["usl.sign.workspace"].with_user(
+            internal_signer,
+        ).get_landing()
+        completed_item = completed_landing["sections"]["completed"]["items"][0]
+        self.assertEqual(completed_item["action"]["method"], "action_open_request")
+        self.assertFalse(
+            self.env["sign.oca.request"].with_user(internal_signer).search(
+                [
+                    ("id", "=", request.id),
+                    ("managed_by_current_user", "=", True),
+                ],
+            ),
+        )
+        self.assertEqual(
+            self.env["sign.oca.request"].with_user(self.sign_user).search(
+                [
+                    ("id", "=", request.id),
+                    ("managed_by_current_user", "=", True),
+                ],
+            ),
+            request,
+        )
+
+    def test_send_confirms_backend_access_for_invited_odoo_users(self):
+        internal_signer = new_test_user(
+            self.env,
+            login="usl-sign-share-confirm-user",
+            groups="usl_sign.group_sign_user",
+            company_id=self.company.id,
+        )
+        internal_signer.partner_id.email = "share-confirm@example.test"
+        request = self._ready(
+            self._request(
+                partners=[internal_signer.partner_id],
+                user_id=self.sign_user.id,
+            ),
+        )
+        action = request.with_user(self.sign_user).action_send(
+            message="Please review this agreement.",
+        )
+        self.assertEqual(action["res_model"], "usl.sign.share.confirm")
+        self.assertEqual(request.state, "ready")
+        wizard = self.env["usl.sign.share.confirm"].with_user(
+            self.sign_user,
+        ).browse(action["res_id"])
+        self.assertEqual(wizard.recipient_names, internal_signer.name)
+        self.assertEqual(wizard.recipient_count, 1)
+        with patch.object(
+            type(request.signer_ids),
+            "_send_signer_invitation",
+            return_value=True,
+        ):
+            self.assertTrue(wizard.action_confirm())
+        request.invalidate_recordset()
+        self.assertEqual(request.state, "sent")
+        self.assertEqual(request.responsible_message, "Please review this agreement.")
+
     def test_one_off_upload_starts_with_a_signer_and_opens_field_placement(self):
         start = self.env["usl.sign.start"].with_user(self.sign_user).create(
             {
