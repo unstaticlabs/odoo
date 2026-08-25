@@ -5227,6 +5227,54 @@ msgstr "Facette de recherche sémantique non prise en charge."
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Exact archive search reached its bounded result window."
+msgstr "La recherche exacte dans l’archive a atteint la limite de sa fenêtre de résultats."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid catalog pagination."
+msgstr "Pagination de catalogue non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid document content pagination."
+msgstr "Pagination du contenu du document non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid document search pagination."
+msgstr "Pagination de la recherche de documents non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid document search query."
+msgstr "Requête de recherche de documents non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid document tag filter."
+msgstr "Filtre d’étiquettes de documents non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document is unavailable."
+msgstr "Le document n’est pas disponible."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/paperless_client.py:0
+msgid "The similar-document source is outside the authorized scope."
+msgstr "Le document source de la recherche similaire est hors du périmètre autorisé."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/attachment_bridge.py:0
 msgid "Untitled attachment"
 msgstr "Pièce jointe sans titre"

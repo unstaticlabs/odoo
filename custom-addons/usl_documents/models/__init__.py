@@ -2,6 +2,7 @@
 from . import (
     business_record,
     document,
+    document_mcp,
     metadata,
     paperless_client,
     pocketid,

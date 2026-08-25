@@ -381,9 +381,47 @@ class PaperlessClient:
 
     def semantic_search(self, text, *, document_ids, limit=50, facets=None):
         """Search Paperless vectors inside an explicit Odoo-authorized scope."""
+        return self._semantic_search(
+            query=str(text or ""),
+            document_id=None,
+            document_ids=document_ids,
+            limit=limit,
+            facets=facets,
+        )
+
+    def semantic_search_by_document(
+        self,
+        document_id,
+        *,
+        document_ids,
+        limit=50,
+        facets=None,
+    ):
+        """Find similar roots without moving source OCR across the API boundary."""
+        return self._semantic_search(
+            query=None,
+            document_id=int(document_id),
+            document_ids=document_ids,
+            limit=limit,
+            facets=facets,
+        )
+
+    def _semantic_search(
+        self,
+        *,
+        query,
+        document_id,
+        document_ids,
+        limit,
+        facets,
+    ):
         scope = sorted({int(document_id) for document_id in document_ids})
         if not scope:
             return {"results": [], "warnings": []}
+        if document_id is not None and document_id not in scope:
+            raise PaperlessError(
+                _("The similar-document source is outside the authorized scope."),
+            )
         allowed_facets = {
             "tag_ids",
             "correspondent_ids",
@@ -400,12 +438,24 @@ class PaperlessClient:
         # The distribution endpoint caps one explicit service scope at 10,000
         # roots. Chunk larger authorized populations and merge comparable cosine
         # similarities; no request ever widens to an unscoped service search.
-        for offset in range(0, len(scope), 10000):
+        chunk_size = 9999 if document_id is not None else 10000
+        scoped_candidates = (
+            [item for item in scope if item != document_id]
+            if document_id is not None
+            else scope
+        )
+        for offset in range(0, len(scoped_candidates), chunk_size):
+            chunk = scoped_candidates[offset : offset + chunk_size]
+            if document_id is not None:
+                chunk = [document_id, *chunk]
             body = {
-                "query": str(text or ""),
                 "limit": bounded_limit,
-                "document_ids": scope[offset : offset + 10000],
+                "document_ids": chunk,
             }
+            if document_id is None:
+                body["query"] = query
+            else:
+                body["document_id"] = document_id
             body.update(facets or {})
             payload = self._request(
                 "POST",
