@@ -397,7 +397,11 @@ class B2cAccountingLink(models.Model):
         ondelete="restrict",
         index=True,
     )
-    attachment_id = fields.Many2one("ir.attachment", ondelete="restrict")
+    attachment_id = fields.Many2one(
+        "ir.attachment",
+        check_company=True,
+        ondelete="restrict",
+    )
     evidence_note = fields.Text()
     reviewed_by_id = fields.Many2one("res.users", readonly=True, copy=False)
     reviewed_at = fields.Datetime(readonly=True, copy=False)
@@ -520,8 +524,31 @@ class B2cAccountingLink(models.Model):
         if self.session_id.filtered(lambda session: session.state == "locked"):
             raise UserError(self.env._("Links in a locked B2C session are immutable."))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        session_ids = {
+            vals["session_id"]
+            for vals in vals_list
+            if vals.get("session_id")
+        }
+        if session_ids and self.env["b2c.accounting.session"].browse(
+            session_ids,
+        ).filtered(lambda session: session.state == "locked"):
+            raise UserError(
+                self.env._("Links cannot be added to a locked B2C session."),
+            )
+        return super().create(vals_list)
+
     def write(self, vals):
         self._check_locked_session()
+        if vals.get("session_id"):
+            target_session = self.env["b2c.accounting.session"].browse(
+                vals["session_id"],
+            )
+            if target_session.state == "locked":
+                raise UserError(
+                    self.env._("Links cannot be moved into a locked B2C session."),
+                )
         return super().write(vals)
 
     def unlink(self):

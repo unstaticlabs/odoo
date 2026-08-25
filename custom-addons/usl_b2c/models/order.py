@@ -178,6 +178,7 @@ class B2cOrder(models.Model):
     supporting_attachment_id = fields.Many2one(
         "ir.attachment",
         string="Supporting Attachment",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )
@@ -333,6 +334,7 @@ class B2cOrderLine(models.Model):
     )
     evidence_id = fields.Many2one(
         "b2c.provider.evidence",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )
@@ -395,6 +397,7 @@ class B2cOrderSource(models.Model):
     evidence_id = fields.Many2one(
         "b2c.provider.evidence",
         required=True,
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )

@@ -141,6 +141,35 @@ class TestB2cFoundation(TransactionCase):
         )
         self.assertEqual(visible, order)
 
+        other_evidence = (
+            self.env["b2c.provider.evidence"]
+            .sudo()
+            .with_context(b2c_evidence_import=True)
+            .create(
+                {
+                    "evidence_key": "test:evidence:other-company",
+                    "company_id": self.other_company.id,
+                    "source_provider": "manual",
+                    "source_name": "other-company.csv",
+                    "source_checksum": "1" * 64,
+                    "schema_digest": "2" * 64,
+                    "payload_digest": "3" * 64,
+                    "payload_json": {"fixture": True},
+                    "contains_pii": False,
+                },
+            )
+        )
+        with self.assertRaises(UserError):
+            self.env["b2c.product.alias"].create(
+                {
+                    "company_id": self.company.id,
+                    "channel_id": self.channel.id,
+                    "source_provider": "manual",
+                    "original_sku": "CROSS-COMPANY",
+                    "evidence_id": other_evidence.id,
+                },
+            )
+
     def test_raw_evidence_is_access_scoped_and_immutable(self):
         self.assertEqual(
             self.evidence.with_user(self.manager).payload_json,
@@ -311,6 +340,29 @@ class TestB2cFoundation(TransactionCase):
         session.action_lock()
         with self.assertRaises(UserError):
             session.write({"review_note": "locked"})
+        with self.assertRaises(UserError):
+            self.env["b2c.accounting.link"].create(
+                {
+                    "name": "Late locked-session evidence",
+                    "company_id": self.company.id,
+                    "link_type": "supporting",
+                    "link_state": "pending",
+                    "session_id": session.id,
+                    "attachment_id": attachment.id,
+                },
+            )
+        unlocked_link = self.env["b2c.accounting.link"].create(
+            {
+                "name": "Unscoped evidence",
+                "company_id": self.company.id,
+                "link_type": "revenue",
+                "link_state": "pending",
+                "order_id": order.id,
+                "attachment_id": attachment.id,
+            },
+        )
+        with self.assertRaises(UserError):
+            unlocked_link.write({"session_id": session.id})
         with self.assertRaises(AccessError):
             session.with_user(self.operator).action_unlock()
         session.with_user(self.manager).action_unlock()

@@ -43,6 +43,7 @@ class B2cProviderEvidence(models.Model):
     attachment_id = fields.Many2one(
         "ir.attachment",
         string="Source Attachment",
+        check_company=True,
         ondelete="restrict",
         copy=False,
         readonly=True,

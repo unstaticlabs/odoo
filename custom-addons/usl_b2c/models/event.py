@@ -171,11 +171,13 @@ class B2cPaymentEvent(models.Model):
     )
     supporting_attachment_id = fields.Many2one(
         "ir.attachment",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )
     evidence_id = fields.Many2one(
         "b2c.provider.evidence",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )
@@ -336,11 +338,13 @@ class B2cFulfilmentEvent(models.Model):
     )
     supporting_attachment_id = fields.Many2one(
         "ir.attachment",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )
     evidence_id = fields.Many2one(
         "b2c.provider.evidence",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )

@@ -62,6 +62,7 @@ class B2cProductAlias(models.Model):
     evidence_note = fields.Text()
     evidence_id = fields.Many2one(
         "b2c.provider.evidence",
+        check_company=True,
         ondelete="restrict",
         copy=False,
     )

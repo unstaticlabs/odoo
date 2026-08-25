@@ -110,7 +110,8 @@ class UslB2cRestoreRun(models.Model):
     def _target_company(self, source_company):
         required = {"id", "name", "vat", "company_registry"}
         if set(source_company) != required or not all(source_company.values()):
-            raise RuntimeError("Source company business identity is incomplete")
+            message = "Source company business identity is incomplete"
+            raise RuntimeError(message)
         company = (
             self.env["res.company"]
             .sudo()

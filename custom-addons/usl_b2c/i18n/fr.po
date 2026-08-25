@@ -1316,6 +1316,18 @@ msgid "Links in a locked B2C session are immutable."
 msgstr "Les liens d’une session B2C verrouillée sont immuables."
 
 #. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Links cannot be added to a locked B2C session."
+msgstr "Il est impossible d’ajouter des liens à une session B2C verrouillée."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Links cannot be moved into a locked B2C session."
+msgstr "Les liens ne peuvent pas être déplacés vers une session B2C verrouillée."
+
+#. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
 msgid "Lock Session"
 msgstr "Verrouiller la session"
