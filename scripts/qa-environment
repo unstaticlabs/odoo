@@ -200,7 +200,11 @@ hydrate_seed() {
     "$odoo_volume" >/dev/null
   docker run --rm \
     -v "$odoo_volume:/target" -v "$qa_seed_dir:/seed:ro" alpine:3.24.1 \
-    sh -ec 'mkdir -p /target/filestore && tar -C /target/filestore -xzf /seed/odoo-filestore.tgz'
+    sh -ec '
+      mkdir -p /target/filestore /target/sessions
+      tar -C /target/filestore -xzf /seed/odoo-filestore.tgz
+      chown -R 1000:1000 /target
+    '
 
   paperless_export_volume="${COMPOSE_PROJECT_NAME}_paperless-export"
   docker volume create \

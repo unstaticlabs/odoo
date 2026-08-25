@@ -240,9 +240,9 @@ stage() {
   docker run --rm -v "$odoo_volume:/target" -v "$candidate:/candidate:ro" \
     alpine:3.24.1 sh -ec "
       test ! -e '/target/filestore/$database'
-      mkdir -p '/target/filestore/$database'
+      mkdir -p '/target/filestore/$database' /target/sessions
       tar -C '/target/filestore/$database' -xzf /candidate/odoo-filestore.tgz
-      chown -R 1000:1000 '/target/filestore/$database'
+      chown -R 1000:1000 /target
     "
   target_inventory="$(mktemp "${TMPDIR:-/tmp}/usl-production-filestore.XXXXXX.tsv")"
   TEMP_FILES+=("$target_inventory")
