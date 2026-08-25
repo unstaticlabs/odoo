@@ -50,6 +50,34 @@ assert run.protected_before_json == run.protected_after_json == current_protecte
 
 company = run._target_company(source["source_company"])
 domain = [("company_id", "=", company.id)]
+assert source["analytic_baseline"] == {
+    "analytic_line_count": 1085,
+    "channel_line_count": 246,
+    "channel_product_line_count": 0,
+    "cost_purpose_line_count": 0,
+    "epic_line_count": 116,
+}
+analytic_lines = env["account.analytic.line"].sudo().search(domain)
+target_analytic_baseline = {
+    "analytic_line_count": len(analytic_lines),
+    "channel_line_count": 0,
+    "channel_product_line_count": 0,
+    "cost_purpose_line_count": 0,
+    "epic_line_count": 0,
+}
+for analytic_line in analytic_lines:
+    plan_names = set(
+        analytic_line._get_analytic_accounts().mapped("plan_id.name"),
+    )
+    if "Channel" in plan_names:
+        target_analytic_baseline["channel_line_count"] += 1
+        if analytic_line.product_id:
+            target_analytic_baseline["channel_product_line_count"] += 1
+    if "Epic" in plan_names:
+        target_analytic_baseline["epic_line_count"] += 1
+    if "B2C Cost Purpose" in plan_names:
+        target_analytic_baseline["cost_purpose_line_count"] += 1
+assert target_analytic_baseline == source["analytic_baseline"]
 counts = {
     "evidence": env["b2c.provider.evidence"].sudo().search_count(domain),
     "fulfilments": env["b2c.fulfilment.event"].sudo().search_count(domain),
@@ -176,6 +204,10 @@ assert env["stock.picking"].sudo().search_count([]) == 0
 assert env["stock.quant"].sudo().search_count([]) == 0
 
 report = {
+    "analytic_baseline": {
+        "source": source["analytic_baseline"],
+        "target": target_analytic_baseline,
+    },
     "archive_baseline": baseline,
     "files": [
         {

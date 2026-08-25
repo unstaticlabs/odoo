@@ -203,6 +203,56 @@ class B2cSourceReader:
                     "WHERE company.id = 1",
                 )
                 source_company = dict(cursor.fetchone() or {})
+                cursor.execute(
+                    """
+                    WITH expanded AS (
+                        SELECT analytic.id,
+                               analytic.product_id,
+                               COALESCE(
+                                   plan.name ->> 'en_US',
+                                   plan.name ->> 'fr_FR'
+                               ) AS plan_name
+                          FROM account_analytic_line analytic
+                         CROSS JOIN LATERAL jsonb_each_text(
+                             jsonb_strip_nulls(to_jsonb(analytic))
+                         ) dimension
+                          JOIN account_analytic_account account
+                            ON account.id = dimension.value::integer
+                          JOIN account_analytic_plan plan
+                            ON plan.id = account.plan_id
+                         WHERE analytic.company_id = 1
+                           AND (
+                               dimension.key = 'account_id'
+                               OR dimension.key ~ '^x_plan[0-9]+_id$'
+                           )
+                    ), classified AS (
+                        SELECT id,
+                               bool_or(plan_name = 'Channel') AS has_channel,
+                               bool_or(plan_name = 'Epic') AS has_epic,
+                               bool_or(
+                                   plan_name = 'B2C Cost Purpose'
+                               ) AS has_cost_purpose,
+                               bool_or(product_id IS NOT NULL) AS has_product
+                          FROM expanded
+                         GROUP BY id
+                    )
+                    SELECT count(*)::integer AS analytic_line_count,
+                           count(*) FILTER (
+                               WHERE has_channel
+                           )::integer AS channel_line_count,
+                           count(*) FILTER (
+                               WHERE has_channel AND has_product
+                           )::integer AS channel_product_line_count,
+                           count(*) FILTER (
+                               WHERE has_epic
+                           )::integer AS epic_line_count,
+                           count(*) FILTER (
+                               WHERE has_cost_purpose
+                           )::integer AS cost_purpose_line_count
+                      FROM classified
+                    """,
+                )
+                analytic_baseline = dict(cursor.fetchone() or {})
         finally:
             connection.rollback()
             connection.close()
@@ -245,6 +295,7 @@ class B2cSourceReader:
                     ),
                 )
         return {
+            "analytic_baseline": analytic_baseline,
             "catalog_skus": catalog_skus,
             "documents": dict(documents),
             "files": tuple(files),

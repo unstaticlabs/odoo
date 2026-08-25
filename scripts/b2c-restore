@@ -75,7 +75,10 @@ if "${compose[@]}" ps --status running --services | grep -qx odoo; then
 fi
 restore_product_service() {
     if ((product_was_running)); then
-        "${compose[@]}" up -d --wait odoo
+        # Start the stopped container in place.  Re-running ``compose up`` can
+        # reinterpret unset custom-port variables and recreate an isolated QA
+        # service on the default ports after a focused migration test.
+        "${compose[@]}" start odoo
     fi
 }
 trap restore_product_service EXIT INT TERM
