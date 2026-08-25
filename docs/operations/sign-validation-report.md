@@ -101,31 +101,28 @@ menus, included in the dashboard, or seeded in QA.
 The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
-- after the 2026-08-25 journey-language pass, four focused backend tests for
-  My Signatures statuses/actions, terminal request presentation, external
-  next-step gating and configuration guidance passed with zero failures and
-  zero errors. The first focused status test correctly exposed that its setup
-  had not made the signer eligible; the presentation rule was fixed to use the
-  controlled signer state and the rerun passed;
+- the final isolated `scripts/sign-qa-stack test /usl_sign` run installed the
+  module from clean state and completed 71 post-test entries with zero failures
+  and zero errors. Odoo's per-module statistics reported 77 Sign tests plus the
+  six web-suite wrappers;
+- desktop and mobile frontend suites each passed 15 tests and 65 assertions.
+  They cover the stale palette-drag regression, whole-field movement, the
+  iframe pointer bridge, autosave rollback, template upload, dashboard
+  scrolling and action routing;
+- six headless Chrome 151 journeys passed without biometrics: native template
+  creation, requester preparation/send/monitoring, Standard public signing and
+  archival, identity-connection presentation, Strong signing presentation,
+  and the dashboard/Start flow;
+- the first final run found one stale requester-test selector: Odoo 19.3 stores
+  radio values in `data-value`. The test was corrected to use Odoo's native
+  renderer contract, the focused requester journey passed, and the complete
+  suite then passed;
+- four focused backend tests for My Signatures statuses/actions, terminal
+  request presentation, external next-step gating and configuration guidance
+  passed with zero failures and zero errors;
 - clean Sign boundary and reproducible browser-worker/private-key checks
-  passed again; Python compilation, `git diff --check`, and French catalogue
+  passed; Python compilation, `git diff --check`, and French catalogue
   validation across 13 maintained catalogues also passed;
-
-- clean `usl_sign` installation and focused QA bootstrap from module state,
-  with `--without-demo` and no SQL dump;
-- backend `TestCleanUslSign`: 51 test methods, with Odoo test statistics
-  reporting 53 counted tests, zero failures and zero errors;
-- desktop frontend: 15 tests and 65 assertions, all passed. This includes the
-  stale palette-drag regression, whole-field movement, iframe pointer bridge,
-  autosave rollback, template upload and dashboard routing;
-- the preceding checkpoint's mobile frontend run passed 15 tests and 65
-  assertions. It was not repeated for this copy-and-view-focused closure;
-- six headless browser journeys covering the native template workspace,
-  requester preparation/send/monitoring, Standard public signing and archival,
-  Pocket ID enrolment presentation, Strong signing presentation, and the Sign
-  dashboard/Start flow. Five passed in the combined run; the dashboard test
-  then exposed a faulty no-overflow assumption, was corrected, and passed in a
-  focused rerun on Chrome 151;
 - XML syntax, Python compilation, shell syntax and `git diff --check`;
 - French catalogue format and product-language checks for all maintained USL
   catalogues. The new dashboard, simple upload, request, field-group, System
@@ -137,15 +134,14 @@ authenticator:
   Ready; Qualified external Action required because the lightweight QA tenant
   has no trusted-list feed; optional PDF signing timestamps Not configured.
 
-The exact release-gate and final QA deployment results are recorded in the
-feature handoff. The final source gates passed: clean Sign product boundary,
-reproducible browser-worker/private-key boundary, product/migration source
-boundary, Python compilation, XML parsing, shell syntax, French catalogue
-validation, and `git diff --check`. The full-product database boundary is not
-a Sign-only gate: the worktree guard correctly refused the canonical project,
-and the isolated lightweight QA database correctly reported unrelated
-Accounting and Project product modules as uninstalled. No canonical database
-was opened from this feature checkout.
+The final source gates passed: clean Sign product boundary, reproducible
+browser-worker/private-key boundary, product/migration source boundary, Python
+compilation, XML parsing, shell syntax, French catalogue validation, and
+`git diff --check`. The full-product database boundary is not a Sign-only gate:
+the worktree guard correctly refused the canonical project, and the isolated
+lightweight QA database correctly reported unrelated Accounting and Project
+product modules as uninstalled. No canonical database was opened from this
+feature checkout.
 
 The final `usl-sign-0a32-qa` tenant was rebuilt from empty project-scoped
 PostgreSQL, Odoo filestore, Pocket ID and Paperless volumes. It installed
