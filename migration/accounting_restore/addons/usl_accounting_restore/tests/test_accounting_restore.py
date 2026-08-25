@@ -171,6 +171,33 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Canada migration employee",
             "company_id": self.company.id,
         })
+        france = self.env.ref("base.fr")
+        united_states = self.env.ref("base.us")
+        self.company.account_fiscal_country_id = france
+
+        def purchase_tax(name, country):
+            tax_group = self.env["account.tax.group"].create({
+                "name": f"{name} group",
+                "company_id": self.company.id,
+                "country_id": country.id,
+            })
+            return self.env["account.tax"].create({
+                "name": name,
+                "type_tax_use": "purchase",
+                "amount": 10,
+                "company_id": self.company.id,
+                "country_id": country.id,
+                "tax_group_id": tax_group.id,
+            })
+
+        compatible_tax = purchase_tax("Canada transition FR tax", france)
+        incompatible_tax = purchase_tax(
+            "Canada transition US tax",
+            united_states,
+        )
+        transport.supplier_taxes_id = [
+            Command.set((compatible_tax | incompatible_tax).ids),
+        ]
 
         def expense(name, state="draft"):
             record = self.env["hr.expense"].create({
@@ -208,12 +235,19 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(result["batched_expense_count"], 4)
         self.assertEqual(result["newly_batched_expense_count"], 4)
         self.assertEqual(result["normalized_inherited_count"], 0)
+        self.assertEqual(result["normalized_incompatible_tax_count"], 4)
         self.assertEqual(result["exception_expense_count"], 0)
         self.assertEqual(result["cleaned_context_message_count"], 0)
         self.assertEqual(result["migration_summary_message_count"], 1)
         self.assertEqual(result["ambiguous_count"], 1)
         self.assertTrue(result["historical_unchanged"])
         self.assertEqual(uber.product_id, transport)
+        self.assertEqual(uber.tax_ids, compatible_tax)
+        self.assertFalse(
+            uber.expense_batch_id.expense_ids.filtered(
+                lambda expense: incompatible_tax in expense.tax_ids,
+            ),
+        )
         self.assertEqual(meal.product_id, foreign_meals)
         self.assertNotEqual(meal.product_id, meals)
         self.assertEqual(present.product_id, gift)
@@ -268,6 +302,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(rerun["archived_trip_product_count"], 0)
         self.assertEqual(rerun["ambiguous_count"], 0)
         self.assertEqual(rerun["normalized_inherited_count"], 1)
+        self.assertEqual(rerun["normalized_incompatible_tax_count"], 0)
         self.assertEqual(rerun["migration_summary_message_count"], 0)
         self.assertTrue(rerun["historical_unchanged"])
         self.assertEqual(uber.account_context_source, "batch")
@@ -284,6 +319,7 @@ class TestRebuildAccountMigration(TransactionCase):
             )
         cleanup = run.run_expense_batch_transition()
         self.assertEqual(cleanup["cleaned_context_message_count"], 2)
+        self.assertEqual(cleanup["normalized_incompatible_tax_count"], 0)
         self.assertEqual(cleanup["migration_summary_message_count"], 0)
         self.assertEqual(len(migration_messages.exists()), 1)
 

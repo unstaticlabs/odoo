@@ -170,6 +170,21 @@ if any(
     for expense in canada_batch.expense_ids
 ):
     raise RuntimeError("The final Canada expenses are not Batch-inherited.")
+incompatible_tax_expenses = canada_batch.expense_ids.filtered(
+    lambda expense: any(
+        tax.country_id
+        and tax.country_id
+        != (
+            expense.company_id.account_fiscal_country_id
+            or expense.company_id.country_id
+        )
+        for tax in expense.tax_ids
+    ),
+)
+if incompatible_tax_expenses:
+    raise RuntimeError(
+        "The final Canada expenses retain taxes outside their fiscal country.",
+    )
 
 summary = {
     "migration_module_state": module.state if module else "absent",
@@ -191,6 +206,7 @@ summary = {
         "canada_expenses": canada_batch.expense_count,
         "canada_exceptions": canada_batch.exception_count,
         "ambiguous_canada_expenses": len(ambiguous_expense),
+        "incompatible_tax_expenses": len(incompatible_tax_expenses),
         "trip_products_archived": len(trip_products),
     },
 }

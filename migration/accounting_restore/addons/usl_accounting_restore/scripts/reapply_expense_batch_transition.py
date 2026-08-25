@@ -29,6 +29,7 @@ checks = {
         and repair["reclassified_expense_count"] == 0
         and repair["created_batch_count"] == 0
         and repair["normalized_inherited_count"] == 0
+        and repair["normalized_incompatible_tax_count"] == 0
         and repair["archived_trip_product_count"] == 4
         and repair["archived_trip_product_codes"] == expected_codes
     ),
@@ -37,6 +38,7 @@ checks = {
         and rerun["reclassified_expense_count"] == 0
         and rerun["created_batch_count"] == 0
         and rerun["normalized_inherited_count"] == 0
+        and rerun["normalized_incompatible_tax_count"] == 0
         and rerun["archived_trip_product_count"] == 0
     ),
     "trip_products_archived": (

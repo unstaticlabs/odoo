@@ -8432,6 +8432,7 @@ class RebuildAccountImportRun(models.Model):
                 newly_batched |= expenses_to_link
 
         normalized = Expense.browse()
+        normalized_incompatible_taxes = Expense.browse()
         cleaned_context_messages = self.env["mail.message"]
         migration_summary_count = 0
         batches = Batch.browse(batch_ids).exists()
@@ -8444,6 +8445,24 @@ class RebuildAccountImportRun(models.Model):
             for expense in batch.expense_ids.filtered(
                 lambda item: item.state == "draft",
             ):
+                fiscal_country = (
+                    expense.company_id.account_fiscal_country_id
+                    or expense.company_id.country_id
+                )
+                incompatible_taxes = expense.tax_ids.filtered(
+                    lambda tax: (
+                        tax.country_id
+                        and fiscal_country
+                        and tax.country_id != fiscal_country
+                    ),
+                )
+                if incompatible_taxes:
+                    expense.write({
+                        "tax_ids": [
+                            Command.set((expense.tax_ids - incompatible_taxes).ids),
+                        ],
+                    })
+                    normalized_incompatible_taxes |= expense
                 values = {}
                 if (
                     batch.account_override_id
@@ -8505,6 +8524,7 @@ class RebuildAccountImportRun(models.Model):
                 (newly_batched & batch.expense_ids)
                 or (transitioned & batch.expense_ids)
                 or (normalized & batch.expense_ids)
+                or (normalized_incompatible_taxes & batch.expense_ids)
                 or generated_context_messages,
             )
             if batch_changed and not existing_migration_summaries:
@@ -8521,11 +8541,16 @@ class RebuildAccountImportRun(models.Model):
                         "Canada draft transition prepared %(count)s expense(s): "
                         "%(inherited)s use shared context, %(exceptions)s keep "
                         "line exceptions and %(incomplete)s need information. "
+                        "%(normalized_taxes)s incompatible imported tax "
+                        "selection(s) were removed. "
                         "Nothing was submitted or posted.",
                         count=batch.expense_count,
                         inherited=inherited_count,
                         exceptions=batch.exception_count,
                         incomplete=batch.incomplete_count,
+                        normalized_taxes=len(
+                            normalized_incompatible_taxes & batch.expense_ids
+                        ),
                     ),
                 )
                 migration_summary_count += 1
@@ -8554,6 +8579,9 @@ class RebuildAccountImportRun(models.Model):
             "batched_expense_count": sum(batches.mapped("expense_count")),
             "newly_batched_expense_count": len(newly_batched),
             "normalized_inherited_count": len(normalized),
+            "normalized_incompatible_tax_count": len(
+                normalized_incompatible_taxes
+            ),
             "incomplete_expense_count": sum(batches.mapped("incomplete_count")),
             "exception_expense_count": sum(batches.mapped("exception_count")),
             "cleaned_context_message_count": len(cleaned_context_messages),

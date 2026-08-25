@@ -22,7 +22,14 @@ ambiguous. The Batch applies the Missions account and combined SBFH/Epic
 analytic distribution. Missing evidence remains missing and nothing is
 submitted. Matching account and analytic values are recorded as Batch-inherited;
 only effective differences remain exceptions. The transition links the draft
-recordset once and writes one summarized Batch audit message.
+recordset once, removes only imported taxes whose country conflicts with the
+company fiscal country, and writes one summarized Batch audit message. Native
+posting validation remains enabled.
+
+The transition deliberately repairs the imported draft data instead of
+overriding `account.move` tax-country validation at runtime. Likewise, the QA
+bootstrap selects an already-active native payment method instead of
+reactivating archived accounts during Batch posting.
 
 Non-draft signatures—Product, account, analytics, move and state—are captured
 before and checked after the operation. Finally `AUS26`, `CA26`, `LPASUM26`
@@ -37,7 +44,9 @@ Kyoto Product classification and the absence of false context exceptions.
 
 For local acceptance, `make expense-batch-qa-bootstrap` creates the separate,
 synthetic **QA — Mixed payment Batch** in `odoo_dev`. It never changes the
-factual Canada Batch and refuses to replace later-stage QA expenses.
+factual Canada Batch and refuses to replace later-stage QA expenses. Synthetic
+company-paid lines explicitly use an active outbound bank payment method rather
+than whichever reconstructed method happens to sort first.
 
 Run the focused migration tests, then the isolated
 `accounting-dev-reset`, `accounting-dev-import` and

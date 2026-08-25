@@ -270,6 +270,13 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn('"${COMPOSE[@]}" up -d --wait db', helper)
         self.assertNotIn("require_target_database", helper)
 
+        bootstrap = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "expense_batch_qa_bootstrap.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("def _active_company_payment_method", bootstrap)
+        self.assertIn('(\"payment_account_id.active\", \"=\", True)', bootstrap)
+        self.assertIn("payment_method_line=company_payment_method", bootstrap)
+
     def test_worktree_odoo_dev_restores_its_pocket_id_runtime(self):
         helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
             encoding="utf-8",

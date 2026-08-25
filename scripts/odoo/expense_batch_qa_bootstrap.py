@@ -11,6 +11,9 @@ LIVE_GUARD_ENABLED = "QA bootstrap refuses to run with a live guard enabled."
 NON_EMPTY_LEDGER = "QA bootstrap refuses a database that already has posted entries."
 TARGET_DATABASE_REQUIRED = "Target QA bootstrap requires the odoo_dev database."
 TARGET_ACCOUNT_REQUIRED = "Target QA bootstrap requires account 625600."
+ACTIVE_PAYMENT_METHOD_REQUIRED = (
+    "Expense Batch QA requires an active outbound bank payment method."
+)
 LATER_STAGE_QA_DATA = "Refusing to replace later-stage mixed-payer QA data."
 QA_DATA_ELSEWHERE = "Mixed-payer QA expenses already belong elsewhere."
 
@@ -98,6 +101,18 @@ def _product(env, *, name, code, account):
     return product
 
 
+def _active_company_payment_method(env, company):
+    payment_method = env["account.payment.method.line"].sudo().search([
+        ("journal_id.company_id", "=", company.id),
+        ("journal_id.type", "=", "bank"),
+        ("payment_method_id.payment_type", "=", "outbound"),
+        ("payment_account_id.active", "=", True),
+    ], order="journal_id, sequence, id", limit=1)
+    if not payment_method:
+        raise RuntimeError(ACTIVE_PAYMENT_METHOD_REQUIRED)
+    return payment_method
+
+
 def _expense(
     env,
     *,
@@ -107,6 +122,7 @@ def _expense(
     date,
     amount,
     payment_mode,
+    payment_method_line=None,
     analytic_distribution=None,
     explicit=False,
     receipt=True,
@@ -123,6 +139,9 @@ def _expense(
         "name": name,
         "date": date,
         "payment_mode": payment_mode,
+        "payment_method_line_id": (
+            payment_method_line.id if payment_method_line else False
+        ),
         "total_amount_currency": amount,
         "analytic_distribution": analytic_distribution or False,
     }
@@ -229,6 +248,7 @@ def bootstrap(env):
         code="FOOD-QA",
         account=mission_account,
     )
+    company_payment_method = _active_company_payment_method(env, company)
 
     base_user = env.ref("base.group_user")
     submitter = _user(
@@ -306,6 +326,9 @@ def bootstrap(env):
             raise RuntimeError(LATER_STAGE_QA_DATA)
         if existing_expenses.filtered(lambda expense: expense.expense_batch_id != batch):
             raise RuntimeError(QA_DATA_ELSEWHERE)
+        existing_expenses.filtered(
+            lambda expense: expense.payment_mode == "company_account",
+        ).write({"payment_method_line_id": company_payment_method.id})
         env.cr.commit()
         return
 
@@ -328,6 +351,7 @@ def bootstrap(env):
         date=fields.Date.from_string("2026-07-11"),
         amount=45,
         payment_mode="company_account",
+        payment_method_line=company_payment_method,
         analytic_distribution=distribution,
     )
     expenses |= _expense(
@@ -349,6 +373,7 @@ def bootstrap(env):
         date=fields.Date.from_string("2026-07-13"),
         amount=18,
         payment_mode="company_account",
+        payment_method_line=company_payment_method,
         receipt=False,
     )
     if target_mode:
