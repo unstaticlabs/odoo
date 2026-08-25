@@ -258,7 +258,7 @@ class TestSignBrowserJourneys(HttpCase):
 
                 const prepareDialog = await waitFor(
                     () => Array.from(document.querySelectorAll(".o_dialog")).find(
-                        (dialog) => dialog.textContent.includes("Who will sign?"),
+                        (dialog) => dialog.textContent.includes("1. Choose the people"),
                     ),
                     "The Prepare request dialog did not open.",
                 );
@@ -286,7 +286,7 @@ class TestSignBrowserJourneys(HttpCase):
                 for (const expected of [
                     "Recommended",
                     "Ready. Each signer receives a private link",
-                    "Continue",
+                    "Review request",
                 ]) {{
                     if (!prepareText.includes(expected)) {{
                         throw new Error(`Preparation is missing: ${{expected}}`);

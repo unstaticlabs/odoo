@@ -5,7 +5,7 @@
         <field name="model">sign.oca.request</field>
         <field name="priority">2</field>
         <field name="arch" type="xml">
-            <form create="1" delete="0">
+            <form create="0" delete="0">
                 <header>
                     <button name="configure" type="object" string="Add signing fields" class="btn-primary" invisible="state != 'draft' or has_signing_fields or not can_coordinate"/>
                     <button name="action_mark_ready" type="object" string="Check and continue" class="btn-primary" invisible="state != 'draft' or not has_signing_fields or not can_coordinate"/>
@@ -48,7 +48,7 @@
                         <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                             <div>
                                 <strong class="d-block mb-1">Signed files are ready; final storage failed.</strong>
-                                <span class="d-block">The validated signed PDF and proof are safe in Odoo. Paperless has not stored the final copies yet.</span>
+                                <span class="d-block">The signed PDF and proof are safe here. Their final archive copy has not been stored yet.</span>
                                 <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
                                 <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
                             </div>
@@ -80,8 +80,8 @@
                                     <field name="responsible_message" string="Message to signers" readonly="state != 'draft'" placeholder="Optional note shown with the invitation"/>
                                 </group>
                                 <group string="Signing method">
-                                    <field name="requested_trust_short" string="Method" readonly="1"/>
-                                    <field name="achieved_trust_short" string="Result" readonly="1" invisible="not achieved_trust_short"/>
+                                    <field name="requested_trust_short" string="Requested" readonly="1"/>
+                                    <field name="achieved_trust_short" string="Achieved" readonly="1" invisible="not achieved_trust_short"/>
                                     <field name="signing_method_summary" nolabel="1" readonly="1"/>
                                     <button name="action_open_signing_method" type="object" string="Change signing method" class="oe_link" invisible="state != 'draft' or not can_send"/>
                                 </group>
@@ -152,7 +152,7 @@
                             </group>
                             <div class="alert alert-light border mt-3" role="status" invisible="not final_data">
                                 <strong>Which file should I use?</strong>
-                                <span>The signed PDF is the document to read and share. The completion certificate is a short summary. The proof package is for audit and contains the signed PDF, source files, consent, activity record, certificates, and validation reports as embedded attachments.</span>
+                                <span>Use the signed PDF day to day. The certificate is a short receipt. The complete proof package keeps every file and check an auditor may need.</span>
                             </div>
                             <group string="Independent timestamp" invisible="state != 'completed'">
                                 <group>
@@ -205,7 +205,19 @@
                             </field>
                         </page>
                         <page string="External signing" name="external" invisible="requested_trust != 'qualified_external'">
-                            <field name="external_journey_id" readonly="1" nolabel="1"><list create="0" delete="0" edit="0"><field name="provider_id"/><field name="state"/><field name="exported_at"/><field name="imported_at"/><button name="action_open_details" type="object" string="Open"/></list></field>
+                            <div class="border rounded bg-light p-3 mb-3" role="status">
+                                Complete these steps outside Odoo, then return the signed PDF. Uploading it starts verification; it does not finish the request by itself.
+                            </div>
+                            <field name="external_journey_id" readonly="1" nolabel="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="provider_id" string="Provider"/>
+                                    <field name="next_step" string="Next step"/>
+                                    <field name="state" string="Status" optional="hide"/>
+                                    <field name="exported_at" string="Downloaded on" optional="hide"/>
+                                    <field name="imported_at" string="Returned on" optional="hide"/>
+                                    <button name="action_open_details" type="object" string="Continue" class="btn-primary"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
@@ -243,7 +255,7 @@
                         <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                             <div>
                                 <strong class="d-block mb-1">Your signed files are ready.</strong>
-                                <span class="d-block">The validated signed PDF and proof are safe here, but Paperless has not stored the final copies yet.</span>
+                                <span class="d-block">The signed PDF and proof are safe here. Their final archive copy has not been stored yet.</span>
                                 <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
                                 <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
                             </div>
@@ -442,6 +454,45 @@
         </field>
     </record>
 
+    <record id="sign_request_completed_list_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.list.usl.completed</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="completed_at desc">
+                <field name="name" string="Document"/>
+                <field name="record_ref" string="Linked record" optional="show"/>
+                <field name="completed_at" string="Completed on"/>
+                <field name="signer_progress" string="Signatures"/>
+                <field name="achieved_trust_short" string="Signing method"/>
+                <field name="completed_proof_label" string="Proof" widget="badge"/>
+                <field name="completed_storage_label" string="Final storage" widget="badge"/>
+                <field name="daily_timestamp_status" string="Independent timestamp" widget="badge" optional="hide"/>
+                <button name="preview" type="object" string="Open signed PDF" class="btn-primary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sign_request_completed_search_usl" model="ir.ui.view">
+        <field name="name">sign.oca.request.search.usl.completed</field>
+        <field name="model">sign.oca.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Document"/>
+                <field name="record_ref"/>
+                <field name="signer_ids" string="Signer"/>
+                <filter name="completed_this_month" string="Completion date" date="completed_at" default_period="month"/>
+                <separator/>
+                <filter name="standard" string="Standard" domain="[('achieved_trust', '=', 'standard')]"/>
+                <filter name="strong" string="Strong personal" domain="[('achieved_trust', '=', 'strong_personal')]"/>
+                <filter name="qualified" string="Qualified external" domain="[('achieved_trust', '=', 'qualified_external')]"/>
+                <group>
+                    <filter name="group_method" string="Signing method" context="{'group_by': 'achieved_trust'}"/>
+                    <filter name="group_month" string="Completion month" context="{'group_by': 'completed_at:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="my_signature_list_usl" model="ir.ui.view">
         <field name="name">sign.oca.request.signer.list.usl.mine</field>
         <field name="model">sign.oca.request.signer</field>
@@ -564,8 +615,13 @@
         <field name="name">Completed Documents</field>
         <field name="res_model">sign.oca.request</field>
         <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('sign_request_completed_list_usl')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('sign_request_form_usl')})
+        ]"/>
+        <field name="search_view_id" ref="sign_request_completed_search_usl"/>
         <field name="domain">[('state', '=', 'completed'), ('managed_by_current_user', '=', True)]</field>
-        <field name="context">{'search_default_completed': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No completed documents yet</p>
             <p>Final documents from requests you sent or coordinate appear here. Documents you signed are kept under <strong>My Signatures</strong>.</p>
