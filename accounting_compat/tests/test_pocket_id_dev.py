@@ -344,6 +344,10 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL:",
             pocket_overlay,
         )
+        self.assertEqual(
+            pocket_overlay.count("POCKET_ID_EXTRA_USERS_JSON: >-"),
+            2,
+        )
         self.assertIn(
             'run --rm --no-deps paperless-access-init',
             stack,
