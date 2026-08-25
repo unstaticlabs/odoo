@@ -1,6 +1,6 @@
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -29,6 +29,7 @@ class TestExpenseBatch(TestExpenseCommon):
             "payment_mode": payment_mode,
             "total_amount_currency": amount,
             "analytic_distribution": {str(self.analytic_account_1.id): 100},
+            "analytic_context_source": "product",
         })
         if with_receipt:
             attachment = self.env["ir.attachment"].sudo().create({
@@ -102,6 +103,11 @@ class TestExpenseBatch(TestExpenseCommon):
             .action_open_expense_batch_wizard(complete.ids)
         )
         wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertIn("analytic_precision", wizard._fields)
+        self.assertIn(
+            "analytic_precision",
+            wizard.read(["analytic_precision"])[0],
+        )
         self.assertEqual(action["views"], [(False, "form")])
         self.assertEqual(wizard.expense_ids, complete)
         self.assertEqual(wizard.expense_count, 1)
@@ -169,15 +175,17 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(approved.state, "approved")
         self.assertEqual(batch.state, "approved")
 
-    def test_wizard_actions_create_then_close_the_modal(self):
+    def test_wizard_actions_create_then_confirm_and_close_the_modal(self):
         create_expense = self._expense("Toronto create and close")
         create_wizard = self.env[
             "usl.expense.batch.create.wizard"
         ].with_user(self.expense_user_employee).create({
             "expense_ids": [Command.set(create_expense.ids)],
         })
+        create_action = create_wizard.action_create_batch()
+        self.assertEqual(create_action["tag"], "display_notification")
         self.assertEqual(
-            create_wizard.action_create_batch(),
+            create_action["params"]["next"],
             {"type": "ir.actions.act_window_close"},
         )
         self.assertTrue(create_expense.expense_batch_id)
@@ -189,8 +197,10 @@ class TestExpenseBatch(TestExpenseCommon):
         ].with_user(self.expense_user_employee).create({
             "expense_ids": [Command.set(submit_expense.ids)],
         })
+        submit_action = submit_wizard.action_create_and_submit()
+        self.assertEqual(submit_action["tag"], "display_notification")
         self.assertEqual(
-            submit_wizard.action_create_and_submit(),
+            submit_action["params"]["next"],
             {"type": "ir.actions.act_window_close"},
         )
         self.assertTrue(submit_expense.expense_batch_id)
@@ -253,6 +263,62 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(batch.state, "posted")
         self.assertEqual(posted.expense_batch_id, batch)
         self.assertEqual(posted.account_move_id.expense_batch_id, batch)
+
+    def test_approved_and_posted_expenses_can_join_existing_batch(self):
+        existing = self.env["usl.expense.batch"].with_user(
+            self.expense_user_employee,
+        ).create({
+            "name": "Toronto retrospective review",
+            "purpose": "Group later-stage expenses without rewriting accounting",
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+        })
+        approved = self._expense("Toronto approved retrospective")
+        approved.sudo().approval_state = "approved"
+        posted = self._expense("Toronto posted retrospective", amount=44)
+        posted.sudo().approval_state = "approved"
+        self.post_expenses_with_wizard(posted.with_user(self.env.user))
+
+        wizard = self.env[
+            "usl.expense.batch.create.wizard"
+        ].with_user(self.expense_user_employee).create({
+            "mode": "existing",
+            "batch_id": existing.id,
+            "expense_ids": [Command.set((approved + posted).ids)],
+        })
+        self.assertEqual(wizard._create_batch(), existing)
+
+        self.assertEqual(approved.expense_batch_id, existing)
+        self.assertEqual(posted.expense_batch_id, existing)
+        self.assertEqual(approved.state, "approved")
+        self.assertEqual(posted.state, "posted")
+        self.assertEqual(posted.account_move_id.expense_batch_id, existing)
+
+    def test_add_expenses_service_enforces_batch_state_and_readonly_access(self):
+        candidate = self._expense("Toronto controlled grouping")
+        target = self._batch(self._expense("Toronto submitted grouping"))
+        target.with_user(self.expense_user_employee).action_submit()
+
+        with self.assertRaisesRegex(
+            UserError,
+            "Expenses can only be added to a draft Batch",
+        ):
+            target.with_user(self.expense_user_employee).add_expenses(candidate.ids)
+
+        draft_target = self._batch(
+            self._expense("Toronto readonly grouping target"),
+            name="Toronto readonly grouping",
+        )
+        reviewer = mail_new_test_user(
+            self.env,
+            name="Expense batch grouping reviewer",
+            login="expense.batch.grouping.reviewer@example.invalid",
+            groups="base.group_user,account.group_account_readonly",
+            company_id=self.env.company.id,
+            company_ids=[Command.set(self.env.companies.ids)],
+        )
+        with self.assertRaisesRegex(AccessError, "Read-only accountants"):
+            draft_target.with_user(reviewer).add_expenses(candidate.ids)
 
     def test_submit_approve_and_return_one_expense(self):
         first = self._expense("Toronto flight")
@@ -357,6 +423,233 @@ class TestExpenseBatch(TestExpenseCommon):
             ),
         )
 
+    def test_shared_context_precedence_revision_idempotence_and_removal(self):
+        inherited = self._expense("Toronto inherited", amount=121)
+        exception = self._expense("Toronto exception", amount=122)
+        original_account = inherited.account_id
+        original_distribution = inherited.analytic_distribution
+        exception.write({
+            "account_id": original_account.id,
+            "analytic_distribution": {str(self.analytic_account_2.id): 100},
+        })
+        batch_account = self.expense_account
+        batch = self.env["usl.expense.batch"].with_user(
+            self.expense_user_manager,
+        ).create({
+            "name": "SBFH — Canada 2026",
+            "purpose": "SBFH travel workshops",
+            "context_type": "travel",
+            "context_date_from": fields.Date.from_string("2026-07-01"),
+            "context_date_to": fields.Date.from_string("2026-07-31"),
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+            "account_override_id": batch_account.id,
+            "analytic_distribution": {str(self.analytic_account_1.id): 100},
+            "expense_ids": [Command.set((inherited + exception).ids)],
+        })
+
+        self.assertEqual(inherited.account_id, batch_account)
+        self.assertEqual(inherited.account_context_source, "batch")
+        self.assertEqual(inherited.analytic_context_source, "batch")
+        self.assertEqual(exception.account_id, original_account)
+        self.assertEqual(exception.account_context_source, "explicit")
+        self.assertEqual(
+            exception.analytic_distribution,
+            {str(self.analytic_account_2.id): 100},
+        )
+        self.assertEqual(exception.batch_context_status, "exception")
+        self.assertEqual(exception.batch_attention_level, "warning")
+        self.assertIn("analytics", exception.batch_attention_message)
+        self.assertEqual(batch.exception_count, 1)
+
+        inherited.product_id = self.product_a
+        self.assertEqual(inherited.account_id, batch_account)
+        self.assertEqual(
+            inherited.analytic_distribution,
+            {str(self.analytic_account_1.id): 100},
+        )
+
+        previous_revision = batch.context_revision
+        batch.with_user(self.expense_user_employee).write({
+            "analytic_distribution": {str(self.analytic_account_2.id): 100},
+        })
+        self.assertEqual(batch.context_revision, previous_revision + 1)
+        self.assertEqual(inherited.batch_context_status, "stale")
+        with self.assertRaisesRegex(UserError, "context changed"):
+            batch.apply_context(expected_revision=previous_revision)
+        applied = batch.apply_context(expected_revision=batch.context_revision)
+        self.assertEqual(applied["applied"], 1)
+        self.assertEqual(
+            inherited.analytic_distribution,
+            {str(self.analytic_account_2.id): 100},
+        )
+        self.assertEqual(
+            batch.apply_context(expected_revision=batch.context_revision)["applied"],
+            0,
+        )
+
+        inherited.expense_batch_id = False
+        self.assertEqual(inherited.account_id, original_account)
+        self.assertEqual(inherited.analytic_distribution, original_distribution)
+        self.assertEqual(exception.expense_batch_id, batch)
+        self.assertEqual(exception.account_context_source, "explicit")
+
+    def test_matching_explicit_context_is_not_reported_as_an_exception(self):
+        expense = self._expense("Toronto matching context")
+        expense.with_context(usl_batch_context_internal=True).write({
+            "account_context_source": "explicit",
+            "analytic_context_source": "explicit",
+        })
+        batch = self.env["usl.expense.batch"].with_user(
+            self.expense_user_manager,
+        ).create({
+            "name": "Matching context",
+            "purpose": "Prove semantic comparison",
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+            "account_override_id": expense.account_id.id,
+            "analytic_distribution": expense.analytic_distribution,
+            "expense_ids": [Command.set(expense.ids)],
+        })
+
+        self.assertEqual(expense.batch_context_status, "inherited")
+        self.assertEqual(batch.exception_count, 0)
+        self.assertEqual(batch.preview_context_application()["exceptions"], 0)
+        self.assertFalse(expense.batch_attention_message)
+
+    def test_analytic_distribution_comparison_is_order_independent(self):
+        expense_model = self.env["hr.expense"]
+        left = {f"{self.analytic_account_1.id},{self.analytic_account_2.id}": 100}
+        right = {f"{self.analytic_account_2.id},{self.analytic_account_1.id}": 100.0}
+        self.assertTrue(expense_model._analytic_distributions_equal(left, right))
+
+    def test_batch_form_onchange_does_not_compute_duplicates_on_new_ids(self):
+        expense = self._expense("Toronto onchange")
+        batch = self._batch(expense)
+
+        with Form(
+            batch,
+            view=self.env.ref("usl_expense_batch.view_expense_batch_form"),
+        ) as batch_form:
+            batch_form.purpose = "Updated safely through the Batch form"
+
+        self.assertEqual(batch.purpose, "Updated safely through the Batch form")
+
+    def test_candidate_service_and_create_or_select_flow(self):
+        existing = self.env["usl.expense.batch"].with_user(
+            self.expense_user_employee,
+        ).create({
+            "name": "SBFH — Canada 2026",
+            "purpose": "Canada travel",
+            "context_type": "travel",
+            "context_date_from": fields.Date.from_string("2026-07-01"),
+            "context_date_to": fields.Date.from_string("2026-07-31"),
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+            "analytic_distribution": {str(self.analytic_account_1.id): 100},
+        })
+        self.assertEqual(existing.state, "draft")
+        self.assertEqual(existing.expense_count, 0)
+        with self.assertRaisesRegex(UserError, "Add at least one expense"):
+            existing.action_submit()
+        expense = self._expense("Canada candidate", amount=73)
+        candidates = self.env["hr.expense"].get_expense_batch_candidates(
+            expense.ids,
+        )
+        self.assertEqual(candidates[0]["id"], existing.id)
+        self.assertTrue(candidates[0]["date_overlap"])
+        self.assertEqual(candidates[0]["analytic_overlap"], 1)
+
+        wizard = self.env["usl.expense.batch.create.wizard"].create({
+            "expense_ids": [Command.set(expense.ids)],
+        })
+        self.assertEqual(wizard.mode, "existing")
+        self.assertEqual(wizard.batch_id, existing)
+        self.assertEqual(wizard._create_batch(), existing)
+        self.assertEqual(expense.expense_batch_id, existing)
+
+    def test_mixed_payer_posting_keeps_one_batch_and_remaining_action(self):
+        employee_paid = self._expense("Canada hotel", amount=215)
+        company_paid = self._expense(
+            "Canada company card",
+            amount=76,
+            payment_mode="company_account",
+        )
+        batch = self._batch(employee_paid + company_paid, "SBFH — Canada 2026")
+        batch.with_user(self.expense_user_employee).action_submit()
+        batch.with_user(self.expense_user_manager).action_approve()
+
+        post_action = batch.with_user(self.env.user).action_post()
+        self.assertEqual(post_action["res_model"], "hr.expense.post.wizard")
+        self.assertTrue(company_paid.account_move_id)
+        self.assertEqual(company_paid.account_move_id.expense_batch_id, batch)
+        self.assertEqual(company_paid.account_move_id.ref, batch.name)
+        self.assertEqual(employee_paid.state, "approved")
+        self.assertEqual(batch.state, "approved")
+        self.assertEqual(batch.employee_paid_open_count, 1)
+        self.assertEqual(batch.company_paid_open_count, 0)
+
+        post_wizard = self.env[post_action["res_model"]].with_context(
+            post_action["context"],
+        ).browse(post_action["res_id"])
+        post_wizard.action_post_entry()
+        self.assertEqual(employee_paid.state, "posted")
+        self.assertEqual(employee_paid.account_move_id.expense_batch_id, batch)
+        self.assertEqual(employee_paid.account_move_id.ref, batch.name)
+        self.assertEqual(batch.state, "posted")
+        self.assertEqual(batch.accounting_reconciliation_state, "matched")
+        self.assertEqual(batch.accounting_difference, 0.0)
+
+    def test_employee_cannot_set_general_ledger_override(self):
+        batch = self._batch(self._expense("Canada access", amount=57))
+        with self.assertRaisesRegex(AccessError, "Only Expense or Accounting Managers"):
+            batch.with_user(self.expense_user_employee).write({
+                "account_override_id": self.expense_account.id,
+            })
+        batch.with_user(self.expense_user_employee).write({
+            "analytic_distribution": {str(self.analytic_account_2.id): 100},
+        })
+        self.assertEqual(
+            batch.analytic_distribution,
+            {str(self.analytic_account_2.id): 100},
+        )
+
+        accounting_manager = mail_new_test_user(
+            self.env,
+            name="Expense batch accounting manager",
+            login="expense.batch.accounting.manager@example.invalid",
+            groups="base.group_user,account.group_account_manager",
+            company_id=self.env.company.id,
+            company_ids=[Command.set(self.env.companies.ids)],
+        )
+        self.assertTrue(
+            accounting_manager.has_group("hr_expense.group_hr_expense_manager"),
+        )
+        managed_batch = batch.with_user(accounting_manager)
+        self.assertEqual(managed_batch.name, batch.name)
+        managed_batch.account_override_id = self.expense_account
+        self.assertEqual(batch.account_override_id, self.expense_account)
+
+    def test_explicit_and_inferred_provenance_is_not_silently_reclassified(self):
+        explicit = self.env["hr.expense"].create({
+            "name": "Deliberate analytic exception",
+            "date": fields.Date.from_string("2026-07-10"),
+            "employee_id": self.expense_employee.id,
+            "product_id": self.product_c.id,
+            "company_id": self.env.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 49,
+            "analytic_distribution": {str(self.analytic_account_2.id): 100},
+        })
+        self.assertEqual(explicit.analytic_context_source, "explicit")
+
+        suggested = self._expense("Inferred analytic suggestion", amount=51)
+        suggested.write({
+            "analytic_distribution": {str(self.analytic_account_2.id): 100},
+            "analytic_context_source": "inferred",
+        })
+        self.assertEqual(suggested.analytic_context_source, "inferred")
+
     def test_readonly_accountant_can_review_but_cannot_mutate(self):
         expense = self._expense("Toronto review")
         batch = self._batch(expense)
@@ -372,6 +665,9 @@ class TestExpenseBatch(TestExpenseCommon):
             self.env["usl.expense.batch"].with_user(reviewer).browse(batch.id).name,
             batch.name,
         )
+        self.assertEqual(expense.with_user(reviewer).name, expense.name)
+        with self.assertRaises(AccessError):
+            expense.with_user(reviewer).write({"name": "Forbidden expense edit"})
         with self.assertRaisesRegex(AccessError, "Read-only accountants"):
             batch.with_user(reviewer).write({"purpose": "Forbidden edit"})
         with self.assertRaisesRegex(AccessError, "Read-only accountants"):
@@ -383,6 +679,16 @@ class TestExpenseBatch(TestExpenseCommon):
         )
         self.assertIn('edit="false"', form["arch"])
         self.assertNotIn('name="action_submit"', form["arch"])
+        self.assertNotIn('name="action_return_from_batch"', form["arch"])
+
+        expense_form = self.env["hr.expense"].with_user(reviewer).get_view(
+            self.env.ref("hr_expense.hr_expense_view_form").id,
+            "form",
+        )
+        self.assertIn('edit="false"', expense_form["arch"])
+        self.assertNotIn('name="action_submit"', expense_form["arch"])
+        self.assertNotIn('name="action_split_wizard"', expense_form["arch"])
+        self.assertNotIn('name="attach_document"', expense_form["arch"])
 
     def test_views_keep_readiness_out_of_list_and_expose_drill_down(self):
         expense_list = self.env.ref(
@@ -458,6 +764,15 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertTrue(
             expense_lines.xpath("./field[@name='batch_attachment_status']"),
         )
+        self.assertEqual(expense_lines.get("delete"), "false")
+        self.assertFalse(
+            expense_lines.xpath("./field[@name='batch_context_status']"),
+        )
+        attention = expense_lines.xpath(
+            "./field[@name='batch_attention_level']",
+        )[0]
+        self.assertEqual(attention.get("widget"), "expense_batch_attention")
+        self.assertEqual(attention.get("string"), "")
         self.assertTrue(expense_lines.xpath("./field[@name='state']"))
         missing_information = expense_lines.xpath(
             "./field[@name='batch_incomplete_reason']",
@@ -467,9 +782,44 @@ class TestExpenseBatch(TestExpenseCommon):
             "Missing information",
         )
         self.assertTrue(batch_form.xpath("//field[@name='readiness_state']"))
+        self.assertFalse(batch_form.xpath("//page[@name='review']"))
+        self.assertTrue(batch_form.xpath("//page[@name='accounting_history']"))
+        analytic_fields = batch_form.xpath(
+            "//group[@string='Shared context']/field[@name='analytic_distribution']",
+        )
+        self.assertEqual(analytic_fields[0].get("widget"), "analytic_distribution")
+        self.assertNotEqual(analytic_fields[0].get("invisible"), "1")
+        context_period = batch_form.xpath(
+            "//group[@string='Shared context']/div[@name='context_period']",
+        )
+        self.assertEqual(
+            context_period[0].xpath("./field/@name"),
+            ["context_date_from", "context_date_to"],
+        )
+        remove_actions = expense_lines.xpath(
+            "./button[@name='action_return_from_batch']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in remove_actions},
+            {"Remove from Batch", "Return for correction"},
+        )
+        apply_context = batch_form.xpath(
+            "//button[@name='action_open_context_wizard']",
+        )[0]
+        self.assertIn("Line-specific choices", apply_context.get("title"))
+        self.assertIn("expense_count == 0", apply_context.get("invisible"))
         submit = batch_form.xpath("//button[@name='action_submit']")[0]
         self.assertIn("only the draft expenses", submit.get("title"))
         self.assertIn("does not post", submit.get("title").lower())
+        self.assertIn("expense_count == 0", submit.get("invisible"))
+
+        context_wizard = self.env.ref(
+            "usl_expense_batch.view_expense_batch_context_apply_wizard_form",
+        )._get_combined_arch()
+        apply_context = context_wizard.xpath(
+            "//button[@name='action_apply']",
+        )[0]
+        self.assertIn("Explicit line exceptions", apply_context.get("title"))
 
         wizard_form = self.env.ref(
             "usl_expense_batch.view_expense_batch_create_wizard_form",

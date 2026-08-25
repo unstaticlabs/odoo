@@ -6,6 +6,12 @@ Deploy an approved Odoo release without losing data, weakening controls or leavi
 
 For the exact USL distribution build, reconstruction, identity and local
 qualification command, follow [Pre-production release](preproduction-release.md).
+For the final freeze, portable sanitized assets, external-Pocket staging and
+fingerprint-confirmed admission, follow
+[Portable production migration candidate](portable-production-migration.md).
+Track feature integration, owner assignments, infrastructure inputs, service
+activation and go/no-go evidence in the
+[Production cut-over readiness register](production-cutover-readiness.md).
 
 ## Before deployment
 

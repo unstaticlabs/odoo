@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from accounting_compat.cli import (
     build_parser,
+    classify_product_import_failure,
     configure_source_mount,
     git_tracking_status,
     source_snapshot_id,
@@ -20,6 +21,24 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class OdooTestHarnessTest(unittest.TestCase):
+    def test_import_exit_137_is_reported_as_resource_exhaustion(self):
+        evidence = classify_product_import_failure(137, "registry loaded\nKilled\n")
+
+        self.assertEqual(
+            evidence["classification"],
+            "MIGRATION_RESOURCE_EXHAUSTION",
+        )
+        self.assertEqual(evidence["failure_mode"], "process_killed")
+        self.assertIn("reset", evidence["recovery"])
+
+    def test_ordinary_import_failure_remains_a_product_defect(self):
+        evidence = classify_product_import_failure(1, "Traceback: invalid source")
+
+        self.assertEqual(
+            evidence["classification"],
+            "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
+        )
+
     def test_source_validation_accepts_external_absolute_package_path(self):
         with TemporaryDirectory() as directory:
             package = Path(directory)
@@ -260,6 +279,125 @@ class OdooTestHarnessTest(unittest.TestCase):
         self.assertIn("odoo_online_source_saas_19_3", disable_helper)
         self.assertIn("USL_EINVOICE_LIVE_ENABLED", disable_helper)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED", disable_helper)
+
+    def test_expense_batch_qa_bootstrap_uses_defined_target_guard(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn('if [[ "$DEV_DB" != "odoo_dev" ]]', helper)
+        self.assertIn('"${COMPOSE[@]}" up -d --wait db', helper)
+        self.assertNotIn("require_target_database", helper)
+
+        bootstrap = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "expense_batch_qa_bootstrap.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("def _active_company_payment_method", bootstrap)
+        self.assertIn('(\"payment_account_id.active\", \"=\", True)', bootstrap)
+        self.assertIn("payment_method_line=company_payment_method", bootstrap)
+
+    def test_worktree_odoo_dev_restores_its_pocket_id_runtime(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "odoo-dev").read_text(
+            encoding="utf-8",
+        )
+        runtime_guard = helper.split(
+            "\nuses_pocket_id_runtime() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        restore = helper.split(
+            "\nrestore_development_runtime() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+
+        self.assertIn('[[ "$DEV_DB" == "odoo_dev" ]]', runtime_guard)
+        self.assertIn('[[ -f "$ROOT/.git" ]]', runtime_guard)
+        self.assertIn("pocket_id_env_project", runtime_guard)
+        self.assertIn("uses_pocket_id_runtime", restore)
+        self.assertIn('"$ROOT/scripts/pocket-id-dev" start-runtime', restore)
+        self.assertGreaterEqual(helper.count("if uses_pocket_id_runtime"), 8)
+        self.assertIn('"$ROOT/scripts/pocket-id-dev" update-odoo', helper)
+
+        pocket_helper = (
+            REPOSITORY_ROOT / "scripts" / "pocket-id-dev"
+        ).read_text(encoding="utf-8")
+        self.assertIn('local skip_paperless="${2:-0}"', pocket_helper)
+        self.assertIn('local apply_identity_policy="${3:-1}"', pocket_helper)
+        self.assertIn('configure_odoo "${2:-usl_pocketid}" 1 1', pocket_helper)
+        self.assertIn('configure_odoo "${2:-usl_pocketid}" 0 0', pocket_helper)
+        self.assertIn('[[ "$apply_identity_policy" == "0" ]]', pocket_helper)
+        verify_runtime = pocket_helper.split(
+            "\nverify_odoo_runtime() {\n",
+            1,
+        )[1].split("\n}\n", 1)[0]
+        self.assertIn("load_environment 0", verify_runtime)
+
+    def test_login_link_refuses_a_broken_odoo_pocket_runtime(self):
+        helper = (REPOSITORY_ROOT / "scripts" / "pocket-id-dev").read_text(
+            encoding="utf-8",
+        )
+        makefile = (REPOSITORY_ROOT / "Makefile").read_text(encoding="utf-8")
+        one_time_link = helper.split("\none_time_link() {\n", 1)[1].split(
+            "\n}\n",
+            1,
+        )[0]
+        doctor = (
+            REPOSITORY_ROOT / "scripts" / "odoo-dev"
+        ).read_text(encoding="utf-8").split("\ndoctor() {\n", 1)[1].split(
+            "\n}\n",
+            1,
+        )[0]
+
+        self.assertLess(
+            one_time_link.index("verify_odoo_runtime"),
+            one_time_link.index('one-time-link "$username"'),
+        )
+        self.assertIn("make COMPOSE_PROJECT=%s repair-pocket-id", one_time_link)
+        self.assertIn("Pocket ID: %s", doctor)
+        self.assertIn("Pocket ID repair", doctor)
+        self.assertIn("repair-pocket-id:", makefile)
+
+    def test_pocket_id_runtime_check_compares_process_and_database(self):
+        runtime_check = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "pocket_id_runtime_check.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('env.ref("usl_pocketid.provider_pocketid"', runtime_check)
+        self.assertIn('"USL_POCKET_ID_CLIENT_SECRET"', runtime_check)
+        self.assertIn('"usl_public_base_url"', runtime_check)
+        self.assertIn('"usl_required_group"', runtime_check)
+        self.assertIn("POCKET_ID_RUNTIME_CHECK=", runtime_check)
+        self.assertIn('"secret_present": True', runtime_check)
+
+        repair = (
+            REPOSITORY_ROOT / "scripts" / "odoo" / "pocket_id_runtime_repair.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_usl_pocketid_apply_environment", repair)
+        self.assertNotIn("_usl_pocketid_apply_user_configuration", repair)
+
+    def test_reconstruction_repairs_trip_products_after_product_restore(self):
+        reconstruction = (REPOSITORY_ROOT / "scripts" / "target-reconstruct").read_text(
+            encoding="utf-8",
+        )
+        accounting_restore = (
+            REPOSITORY_ROOT / "scripts" / "accounting-restore"
+        ).read_text(encoding="utf-8")
+        repair_script = (
+            REPOSITORY_ROOT
+            / "migration/accounting_restore/addons/usl_accounting_restore/scripts"
+            / "reapply_expense_batch_transition.py"
+        ).read_text(encoding="utf-8")
+        product_restore = reconstruction.index("scripts/product-restore all")
+        transition = reconstruction.index(
+            "scripts/accounting-restore expense-batch-transition",
+        )
+        hr_restore = reconstruction.index("scripts/hr-restore all")
+
+        self.assertLess(product_restore, transition)
+        self.assertLess(transition, hr_restore)
+        self.assertIn("expense-batch-transition)", accounting_restore)
+        self.assertEqual(repair_script.count("run_expense_batch_transition()"), 2)
+        self.assertIn('"rerun_is_noop"', repair_script)
+        self.assertIn('"trip_products_archived"', repair_script)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,22 @@
+.o_usl_batch_summary {
+    border-block: 1px solid var(--border-color, #dee2e6);
+
+    .o_usl_batch_metric {
+        min-width: 9rem;
+    }
+}
+
+.o_list_view th[data-name="batch_attention_level"],
+.o_list_view td[name="batch_attention_level"] {
+    width: 2rem;
+    max-width: 2rem;
+    padding-inline: 0.25rem;
+    text-align: center;
+}
+
+.o_usl_batch_attention {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.75rem;
+    opacity: 0.8;
+}

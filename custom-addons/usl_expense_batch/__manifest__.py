@@ -1,12 +1,13 @@
 {
     "name": "USL Expense Batches",
-    "summary": "Submit and review related expenses as a lightweight claim",
-    "version": "saas~19.3.1.1.0",
+    "summary": "Review related expenses with shared business and accounting context",
+    "version": "saas~19.3.1.2.5",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
-    "depends": ["hr_expense", "usl_documents"],
+    "depends": ["hr_expense"],
     "data": [
+        "security/account_manager_groups.xml",
         "security/expense_batch_security.xml",
         "security/ir.model.access.csv",
         "wizard/expense_batch_create_wizard_views.xml",
@@ -17,10 +18,16 @@
     "assets": {
         "web.assets_backend": [
             "usl_expense_batch/static/src/js/expense_batch_list.js",
+            "usl_expense_batch/static/src/js/expense_batch_attention_field.js",
             "usl_expense_batch/static/src/xml/expense_batch_list.xml",
+            "usl_expense_batch/static/src/xml/expense_batch_attention_field.xml",
+            "usl_expense_batch/static/src/scss/expense_batch.scss",
         ],
         "web.assets_unit_tests": [
             "usl_expense_batch/static/tests/expense_batch_list.test.js",
+        ],
+        "web.assets_tests": [
+            "usl_expense_batch/static/tests/tours/expense_batch_tour.js",
         ],
     },
     "application": False,

@@ -36,6 +36,7 @@ print_command_context() {
 doctor() {
   local mode="${1:-doctor}"
   local volume_count volume_names database_status
+  local pocket_status="not-required" pocket_output configured_project
   if [[ "$mode" == "doctor" ]]; then
     usl_cli_title "Environment doctor"
   else
@@ -62,6 +63,29 @@ doctor() {
     database_status="$USL_COMPOSE_DATABASE_STATUS"
   fi
   printf '  Target:   %s\n' "$database_status"
+  if uses_pocket_id_runtime; then
+    configured_project="$(pocket_id_env_project 2>/dev/null || true)"
+    if [[ -z "$configured_project" ]]; then
+      pocket_status="not-configured"
+    elif [[ "$configured_project" != "$COMPOSE_PROJECT" ]]; then
+      pocket_status="wrong-project ($configured_project)"
+    elif [[ "$USL_COMPOSE_SCOPE_STATE" == "owned" \
+        && "$database_status" == "present" ]]; then
+      if pocket_output="$(
+        COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT" \
+          "$ROOT/scripts/pocket-id-dev" verify-odoo 2>&1
+      )"; then
+        pocket_status="ready"
+      elif [[ "$pocket_output" == *"Odoo is not running"* ]]; then
+        pocket_status="not-running"
+      else
+        pocket_status="broken"
+      fi
+    else
+      pocket_status="not-checked"
+    fi
+  fi
+  printf '  Pocket ID: %s\n' "$pocket_status"
   printf '  Configured URLs:\n'
   printf '             http://odoo.localhost:%s/odoo\n' "${ODOO_HTTP_PORT:-8069}"
   printf '             http://paperless.localhost:%s\n' "${PAPERLESS_HTTP_PORT:-8010}"
@@ -107,6 +131,18 @@ doctor() {
       printf '  Docker is unavailable. Start Docker, then rerun make doctor.\n'
       ;;
   esac
+  if uses_pocket_id_runtime \
+      && [[ "$pocket_status" != "ready" \
+        && "$pocket_status" != "not-running" \
+        && "$pocket_status" != "not-checked" ]]; then
+    printf '\nPocket ID repair\n'
+    printf '  Odoo and its project-bound SSO configuration are not aligned.\n'
+    printf '  Run:\n'
+    printf '    make COMPOSE_PROJECT=%s ODOO_HTTP_PORT=%s ODOO_GEVENT_PORT=%s \\\n' \
+      "$COMPOSE_PROJECT" "${ODOO_HTTP_PORT:-8069}" "${ODOO_GEVENT_PORT:-8072}"
+    printf '      POCKET_ID_HTTP_PORT=%s PAPERLESS_HTTP_PORT=%s repair-pocket-id\n' \
+      "${POCKET_ID_HTTP_PORT:-1411}" "${PAPERLESS_HTTP_PORT:-8010}"
+  fi
 }
 
 reclaim_development_project() {
@@ -211,8 +247,27 @@ is_canonical_target() {
     && "$COMPOSE_PROJECT" == "$CANONICAL_COMPOSE_PROJECT" ]]
 }
 
+pocket_id_env_project() {
+  local env_file="${POCKET_ID_ENV_FILE:-$ROOT/.pocket-id.env}"
+  [[ -f "$env_file" ]] || return 1
+  awk -F= '$1 == "COMPOSE_PROJECT_NAME" {print substr($0, index($0, "=") + 1); exit}' \
+    "$env_file"
+}
+
+uses_pocket_id_runtime() {
+  local configured_project
+  [[ "$DEV_DB" == "odoo_dev" ]] || return 1
+  is_canonical_target && return 0
+  # Every linked worktree owns an isolated, SSO-governed odoo_dev. Requiring
+  # its project-bound environment prevents a plain Compose restart from
+  # silently stripping Pocket ID credentials from the Odoo container.
+  [[ -f "$ROOT/.git" ]] && return 0
+  configured_project="$(pocket_id_env_project 2>/dev/null || true)"
+  [[ -n "$configured_project" && "$configured_project" == "$COMPOSE_PROJECT" ]]
+}
+
 restore_development_runtime() {
-  if is_canonical_target; then
+  if uses_pocket_id_runtime; then
     "$ROOT/scripts/pocket-id-dev" start-runtime
   else
     "${COMPOSE[@]}" up -d --wait odoo
@@ -288,6 +343,13 @@ deploy() {
     sync_product_french_translations
     disable_dev_tours
     usl_cli_success "modules updated and the development runtime is healthy."
+    return
+  fi
+  if uses_pocket_id_runtime; then
+    "$ROOT/scripts/pocket-id-dev" update-odoo "$update_modules"
+    usl_cli_step "$settings_step" "Apply local QA preferences"
+    disable_dev_tours
+    usl_cli_success "modules updated and the isolated SSO runtime is healthy."
     return
   fi
   "${COMPOSE[@]}" up -d --wait db
@@ -449,9 +511,37 @@ bootstrap_platform_billing_qa() {
   printf 'Accountant without app access: qa.platform.accountant / qa-platform-accountant\n'
 }
 
+bootstrap_expense_batch_qa() {
+  local status=0
+  if [[ "$DEV_DB" != "odoo_dev" ]]; then
+    printf 'Expense Batch target QA requires database odoo_dev, got %s.\n' \
+      "$DEV_DB" >&2
+    return 2
+  fi
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_EXPENSE_BATCH_TARGET_QA_BOOTSTRAP=1 \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" < \
+    "$ROOT/scripts/odoo/expense_batch_qa_bootstrap.py" \
+    || status=$?
+  restore_development_runtime
+  if ((status)); then
+    return "$status"
+  fi
+  printf '\nExpense Batch QA is ready.\n'
+  printf 'Batch: QA — Mixed payment Batch\n'
+  printf 'Use the configured Pocket ID users for role validation.\n'
+}
+
 configure_pocket_id() {
   local status=0
-  if is_canonical_target; then
+  if uses_pocket_id_runtime; then
     "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
     return
   fi
@@ -476,6 +566,14 @@ configure_pocket_id() {
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
   print_url
   return "$status"
+}
+
+repair_pocket_id() {
+  if ! uses_pocket_id_runtime; then
+    printf 'Pocket ID runtime repair is restricted to a governed odoo_dev.\n' >&2
+    return 2
+  fi
+  "$ROOT/scripts/pocket-id-dev" repair-odoo
 }
 
 bootstrap_immediate_settlement_qa() {
@@ -635,6 +733,8 @@ case "$command_name" in
     usl_cli_step "1/1" "Start Odoo, Pocket ID, and Paperless"
     if is_canonical_target; then
       "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
+    elif uses_pocket_id_runtime; then
+      "$ROOT/scripts/pocket-id-dev" start-runtime
     else
       "${COMPOSE[@]}" up -d --wait db odoo
     fi
@@ -652,7 +752,7 @@ case "$command_name" in
     ;;
   stop)
     usl_cli_step "1/1" "Stop project containers without deleting data"
-    if is_canonical_target; then
+    if uses_pocket_id_runtime; then
       "$ROOT/scripts/pocket-id-dev" stop-stack
     else
       "${COMPOSE[@]}" down
@@ -661,7 +761,7 @@ case "$command_name" in
     ;;
   restart)
     usl_cli_step "1/1" "Restart selected services"
-    if is_canonical_target; then
+    if uses_pocket_id_runtime; then
       "$ROOT/scripts/pocket-id-dev" start-runtime
     else
       "${COMPOSE[@]}" restart "${@:2}"
@@ -669,7 +769,7 @@ case "$command_name" in
     usl_cli_success "services restarted."
     ;;
   logs)
-    if is_canonical_target; then
+    if uses_pocket_id_runtime; then
       "$ROOT/scripts/pocket-id-dev" logs "${@:2}"
     else
       "${COMPOSE[@]}" logs -f "${@:2}"
@@ -678,7 +778,7 @@ case "$command_name" in
   init-db)
     "${COMPOSE[@]}" build odoo
     "${COMPOSE[@]}" --profile init run --rm init-db
-    if is_canonical_target; then
+    if uses_pocket_id_runtime; then
       "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
     fi
     ;;
@@ -705,8 +805,14 @@ case "$command_name" in
   bootstrap-platform-billing-qa)
     bootstrap_platform_billing_qa
     ;;
+  bootstrap-expense-batch-qa)
+    bootstrap_expense_batch_qa
+    ;;
   configure-pocket-id)
     configure_pocket_id
+    ;;
+  repair-pocket-id)
+    repair_pocket_id
     ;;
   disable-tours)
     disable_dev_tours
@@ -768,8 +874,12 @@ Commands:
                 Prepare safe e-invoicing QA data and local test accounts
   bootstrap-platform-billing-qa
                 Prepare deterministic Platform Billing QA records and users
+  bootstrap-expense-batch-qa
+                Prepare idempotent mixed-payer Expense Batch QA records
   configure-pocket-id
                 Dry-run or apply Pocket ID environment and named-user policy
+  repair-pocket-id
+                Repair running Odoo/provider alignment without changing users
   disable-tours
                 Disable automatic tours for internal dev/QA users
   bootstrap-immediate-settlement-qa

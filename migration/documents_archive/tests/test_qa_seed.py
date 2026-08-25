@@ -35,10 +35,33 @@ class QaSeedManifestTest(unittest.TestCase):
         (self.seed / "odoo-filestore.tgz").write_bytes(b"filestore")
         (self.seed / "paperless-export").mkdir()
         (self.seed / "paperless-export/manifest.json").write_text("{}", encoding="utf-8")
-        self.runtime = Path(self.temporary.name) / "runtime.json"
+        self.runtime = self.seed / "runtime.json"
         self.runtime.write_text('{"images":{"paperless":"qualified"}}', encoding="utf-8")
         self.qualification = Path(self.temporary.name) / "qualification.json"
-        self.qualification.write_text('{"status":"passed"}', encoding="utf-8")
+        self.qualification.write_text(
+            """{
+                "accounting": {
+                    "controls": {"move_count": 1},
+                    "performance": {
+                        "schema": "timing-v1",
+                        "stages": [{"name": "moves", "duration_seconds": 1}]
+                    },
+                    "status": "passed"
+                },
+                "documents": {
+                    "controls": {"odoo_document_count": 1},
+                    "paperless_document_count": 1,
+                    "status": "passed"
+                },
+                "migration_boundary": "passed",
+                "product_database_boundary": "passed",
+                "profile": "full",
+                "regulatory_live_guards": "disabled",
+                "module_versions": {"usl_accounting": "19.0.1.0.0"},
+                "status": "passed"
+            }""",
+            encoding="utf-8",
+        )
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -58,6 +81,7 @@ class QaSeedManifestTest(unittest.TestCase):
         manifest = qa_seed.verify(self.args())
 
         self.assertEqual(manifest["qualification"]["status"], "passed")
+        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v2")
         self.assertIn("source_filestore_sha256", manifest["identity"])
         self.assertEqual((self.seed / "manifest.json").stat().st_mode & 0o777, 0o600)
 
@@ -81,6 +105,14 @@ class QaSeedManifestTest(unittest.TestCase):
 
         with self.assertRaisesRegex(qa_seed.SeedError, "runtime"):
             qa_seed.verify(self.args())
+
+    def test_changed_release_commit_is_rejected(self):
+        qa_seed.seal(self.args())
+        arguments = self.args()
+        arguments.commit = "different"
+
+        with self.assertRaisesRegex(qa_seed.SeedError, "release commit"):
+            qa_seed.verify(arguments)
 
     def test_runtime_uses_resolved_compose_images(self):
         config = {
@@ -115,14 +147,15 @@ class QaSeedManifestTest(unittest.TestCase):
             encoding="utf-8",
         )
 
-        self.assertIn("UPDATE res_users SET password = NULL", script)
+        self.assertIn('null_column("res_users", "password")', script)
         self.assertIn("DELETE FROM", script)
         self.assertIn("usl_documents.paperless_token", script)
-        self.assertIn("UPDATE auth_oauth_provider SET client_secret = NULL", script)
-        self.assertLess(
-            script.index('"usl_paperless_user_mapping"'),
-            script.index('"usl_oidc_identity"'),
-        )
+        self.assertIn('if table_exists("auth_oauth_provider")', script)
+        self.assertIn('"client_secret"', script)
+        self.assertIn('delete_table("usl_paperless_user_mapping")', script)
+        self.assertIn('delete_table("usl_oidc_identity")', script)
+        self.assertIn('if table_exists("payment_provider")', script)
+        self.assertIn("Migration source-binding columns remain", script)
 
 
 if __name__ == "__main__":

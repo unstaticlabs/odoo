@@ -60,7 +60,7 @@ msgstr "ID"
 #. module: usl_documents_accounting
 #: model:ir.model,name:usl_documents_accounting.model_rebuild_account_closing_period
 msgid "USL Accounting Closing Workspace"
-msgstr "espaces de clôture comptable USL"
+msgstr "Espace de clôture comptable USL"
 
 #. module: usl_documents_accounting
 #: model:ir.model,name:usl_documents_accounting.model_rebuild_account_declaration
@@ -71,4 +71,4 @@ msgstr "Obligation de déclaration USL en France"
 #: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_closing_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_declaration_documents
 msgid "Upload"
-msgstr "Charger"
+msgstr "Importer"

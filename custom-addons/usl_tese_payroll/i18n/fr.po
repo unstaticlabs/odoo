@@ -69,7 +69,7 @@ msgstr ""
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "<span class=\"badge text-bg-success\">Matched</span>"
-msgstr "<span class=\"badge text-bg-success\">Corrigé</span>"
+msgstr "<span class=\"badge text-bg-success\">Rapproché</span>"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -111,7 +111,7 @@ msgstr "<span class=\"text-muted\">Jusqu'à</span>"
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_settings_revision_form
 msgid "<strong>TESE and HR differ</strong>"
-msgstr "<strong>TESE et HR diffèrent</strong>"
+msgstr "<strong>Écart entre TESE et les données RH</strong>"
 
 #. module: usl_tese_payroll
 #: model:ir.model.constraint,message:usl_tese_payroll.constraint_account_move_tese_payslip_role_unique
@@ -709,8 +709,8 @@ msgid ""
 "Create a dated TESE settings version and, if needed, a native HR contract "
 "version. The previous versions remain in history."
 msgstr ""
-"Créez une version de paramètres TESE datée et, si nécessaire, une version de"
-" contrat HR native. Les versions précédentes restent dans l'histoire."
+"Créez une version datée des paramètres TESE et, si nécessaire, une version "
+"native du contrat RH. Les versions précédentes restent dans l’historique."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
@@ -1177,7 +1177,7 @@ msgstr "Salaire mensuel RH"
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__has_hr_mismatch
 msgid "Has Hr Mismatch"
-msgstr "A Hr Mismatch"
+msgstr "Présente un écart RH"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_payslip__has_message
@@ -1353,7 +1353,7 @@ msgstr "Date de la dernière utilisation"
 #. module: usl_tese_payroll
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_payslip__document_status__warning
 msgid "Link to review"
-msgstr "Lien pour revoir"
+msgstr "Lien de vérification"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
@@ -1364,7 +1364,7 @@ msgstr "Charger les comptes français"
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_diagnostic.py:0
 msgid "Load and review the 11 French accounting components."
-msgstr "Chargez et révisez les 11 composants comptables français."
+msgstr "Charger et vérifier les 11 composants comptables français."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_form
@@ -1705,11 +1705,10 @@ msgid ""
 "                                the declared liabilities stay unchanged, and a safe\n"
 "                                difference is carried forward on 431000."
 msgstr ""
-"Seul changement <strong>Débit bancaire prévu / assorti</strong>\n"
-"                                lorsque TESE annonce un montant de collecte différent\n"
-"du total déclaré. Il guide l'appariement des banques;\n"
-"le passif déclaré reste inchangé, et un\n"
-"la différence est reportée sur 431000."
+"Ne modifiez <strong>Prélèvement bancaire attendu / rapproché</strong>\n"
+"                                que si TESE annonce un prélèvement différent du total déclaré.\n"
+"                                Ce montant guide le rapprochement bancaire ; les dettes déclarées\n"
+"                                restent inchangées et un écart sûr est reporté sur le compte 431000."
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_diagnostic_list
@@ -1737,8 +1736,8 @@ msgid ""
 "Open unmatched bank transactions for this company. Use this for missing or "
 "ambiguous salary and URSSAF payments."
 msgstr ""
-"Ouvrir des transactions bancaires non assorties pour cette société. Utilisez"
-" ceci pour les salaires manquants ou ambigus et les paiements de l'URSSAF."
+"Ouvrir les opérations bancaires non rapprochées de cette société. Utilisez "
+"cette vue pour les paiements de salaires ou d’URSSAF manquants ou ambigus."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,help:usl_tese_payroll.field_usl_tese_profile__hr_version_id
@@ -1874,7 +1873,7 @@ msgstr "Mois de paie"
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid "Payroll posted. Reconcile the salary payment and TESE collection next."
 msgstr ""
-"Paie comptabilisée. Rapprochez ensuite le paiement du salaire et la "
+"Paie comptabilisée. Rapprochez ensuite le paiement du salaire et le "
 "prélèvement TESE."
 
 #. module: usl_tese_payroll
@@ -2288,19 +2287,19 @@ msgid ""
 "Return this cancelled payroll to Prepared so its draft entry can be reviewed"
 " again."
 msgstr ""
-"Retourner cette paye annulée à Préparé afin que son avant-projet "
-"d'inscription puisse être revu à nouveau."
+"Ramener cette paie annulée à l’état Préparée afin de pouvoir vérifier à "
+"nouveau son écriture comptable en brouillon."
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__review_message
 msgid "Review Message"
-msgstr "Message de révision"
+msgstr "Message de vérification"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__review_status
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_profile_search
 msgid "Review Status"
-msgstr "Statut de l'examen"
+msgstr "État de la vérification"
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -2951,9 +2950,8 @@ msgid ""
 "The PDF is linked but is not yet the payroll record's native attachment. "
 "Next: keep it as evidence and continue the payroll review."
 msgstr ""
-"L'PDF est lié mais n'est pas encore la pièce jointe native du dossier de "
-"paie. Ensuite, conservez-le comme justificatif et poursuivez l'examen des "
-"états de paie."
+"Le PDF est lié, mais n’est pas encore la pièce jointe native de la paie. "
+"Conservez-le comme justificatif, puis poursuivez la vérification de la paie."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -3003,8 +3001,8 @@ msgstr ""
 msgid ""
 "The best candidate is not a unique safe match. Review it in Bank Matching."
 msgstr ""
-"Le meilleur candidat n’est pas un rapprochement unique et sûr. Vérifiez-le "
-"dans le rapprochement bancaire."
+"La meilleure proposition n’est pas unique et suffisamment sûre. Vérifiez-la "
+"dans le Rapprochement bancaire."
 
 #. module: usl_tese_payroll
 #. odoo-python
@@ -3284,7 +3282,7 @@ msgstr "À rapprocher"
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile__display_review_status__to_review
 #: model:ir.model.fields.selection,name:usl_tese_payroll.selection__usl_tese_profile__review_status__to_review
 msgid "To review"
-msgstr "À revoir"
+msgstr "À vérifier"
 
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
@@ -3400,7 +3398,7 @@ msgstr "Mettre à jour les paramètres de paie récurrents"
 #. module: usl_tese_payroll
 #: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_payslip_form
 msgid "Upload"
-msgstr "Charger"
+msgstr "Importer"
 
 #. module: usl_tese_payroll
 #: model:ir.model.fields,field_description:usl_tese_payroll.field_usl_tese_profile__valid_from

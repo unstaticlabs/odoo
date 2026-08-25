@@ -202,6 +202,10 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         script = (ROOT / "scripts" / "target-reconstruct").read_text(
             encoding="utf-8",
         )
+        execution = script.split(
+            'run_stage "target identity preflight"',
+            1,
+        )[1]
         ordered_steps = [
             'run_stage "reset target database" scripts/accounting-compat dev-reset',
             'run_stage "import accounting" scripts/accounting-compat dev-import',
@@ -211,7 +215,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "scripts/platform-billing-restore all",
             "scripts/target-finalize",
         ]
-        positions = [script.index(step) for step in ordered_steps]
+        positions = []
+        cursor = 0
+        for step in ordered_steps:
+            position = execution.index(step, cursor)
+            positions.append(position)
+            cursor = position + len(step)
 
         self.assertEqual(positions, sorted(positions))
         self.assertGreaterEqual(script.count("stop_product"), 5)
@@ -254,6 +263,12 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             "Linked-worktree Pocket ID bootstrap requires",
             script,
         )
+        self.assertIn("Use the configured QA environment with:", script)
+        self.assertIn(
+            "make COMPOSE_PROJECT=%s login-link USER=%s",
+            script,
+        )
+        self.assertIn('POCKET_ID_LOGIN_HINT_USER="$username"', script)
         self.assertIn("USL_POCKET_ID_DEV_PAPERLESS_PORT", script)
         self.assertIn("requested_paperless_http_port", script)
         self.assertIn(
@@ -263,6 +278,16 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         )
         self.assertIn('module_args+=("--init=', script)
         self.assertIn('module_args+=("--update=', script)
+        self.assertIn("init_modules=()", script)
+        self.assertIn("update_modules=()", script)
+        self.assertLess(
+            script.index("init_modules=()"),
+            script.index("${#init_modules[@]}"),
+        )
+        self.assertLess(
+            script.index("update_modules=()"),
+            script.index("${#update_modules[@]}"),
+        )
         self.assertIn("SELECT state FROM ir_module_module", script)
         self.assertIn(
             'export PAPERLESS_HTTP_PORT="$requested_paperless_http_port"',

@@ -104,6 +104,306 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         return message.as_bytes()
 
+    def test_expense_batch_transition_is_deterministic_and_preserves_history(self):
+        mission_account = self._account(
+            "625600",
+            "Missions",
+            "expense",
+        )
+        product_values = {
+            "can_be_expensed": True,
+            "property_account_expense_id": mission_account.id,
+        }
+        transport = self.env["product.product"].create({
+            **product_values,
+            "name": "Transport & Accommodation",
+            "default_code": "TRANS",
+        })
+        meals = self.env["product.product"].create({
+            **product_values,
+            "name": "Meals",
+            "default_code": "FOOD",
+        })
+        foreign_meals = self.env["product.product"].create({
+            **product_values,
+            "name": "Meals & Invitations (Abroad)",
+            "default_code": "FOOD",
+        })
+        gift = self.env["product.product"].create({
+            **product_values,
+            "name": "Gifts – Non-deductible VAT",
+            "default_code": "GIFT_NOVAT",
+        })
+        trip_products = self.env["product.product"]
+        for code, name in (
+            ("AUS26", "Australia 2026"),
+            ("CA26", "Canada 2026"),
+            ("LPASUM26", "LPA Pride May 2026"),
+            ("BCN2602", "BCN February 2026"),
+        ):
+            trip_products |= self.env["product.product"].create({
+                **product_values,
+                "name": name,
+                "default_code": code,
+            })
+        canada = trip_products.filtered(lambda product: product.default_code == "CA26")
+        project_plan = self.env["account.analytic.plan"].search([
+            ("name", "=", "Projet"),
+        ], limit=1) or self.env["account.analytic.plan"].create({"name": "Projet"})
+        epic_plan = self.env["account.analytic.plan"].search([
+            ("name", "=", "Epic"),
+        ], limit=1) or self.env["account.analytic.plan"].create({"name": "Epic"})
+        project = self.env["account.analytic.account"].search([
+            ("name", "=", "SBFH prod"),
+            ("plan_id", "=", project_plan.id),
+        ], limit=1) or self.env["account.analytic.account"].create({
+            "name": "SBFH prod",
+            "plan_id": project_plan.id,
+        })
+        epic = self.env["account.analytic.account"].search([
+            ("name", "=", "Canada 2026"),
+            ("plan_id", "=", epic_plan.id),
+        ], limit=1) or self.env["account.analytic.account"].create({
+            "name": "Canada 2026",
+            "plan_id": epic_plan.id,
+        })
+        employee = self.env["hr.employee"].create({
+            "name": "Canada migration employee",
+            "company_id": self.company.id,
+        })
+        france = self.env.ref("base.fr")
+        united_states = self.env.ref("base.us")
+        self.company.account_fiscal_country_id = france
+
+        def purchase_tax(name, country):
+            tax_group = self.env["account.tax.group"].create({
+                "name": f"{name} group",
+                "company_id": self.company.id,
+                "country_id": country.id,
+            })
+            return self.env["account.tax"].create({
+                "name": name,
+                "type_tax_use": "purchase",
+                "amount": 10,
+                "company_id": self.company.id,
+                "country_id": country.id,
+                "tax_group_id": tax_group.id,
+            })
+
+        compatible_tax = purchase_tax("Canada transition FR tax", france)
+        incompatible_tax = purchase_tax(
+            "Canada transition US tax",
+            united_states,
+        )
+        transport.supplier_taxes_id = [
+            Command.set((compatible_tax | incompatible_tax).ids),
+        ]
+
+        def expense(name, state="draft"):
+            record = self.env["hr.expense"].create({
+                "name": name,
+                "date": fields.Date.from_string("2026-07-10"),
+                "employee_id": employee.id,
+                "company_id": self.company.id,
+                "product_id": canada.id,
+                "payment_mode": "own_account",
+                "total_amount_currency": 50,
+            })
+            if state == "refused":
+                record.sudo().approval_state = "refused"
+            return record
+
+        uber = expense("[CA26] Uber Toronto")
+        meal = expense("Repas en mission")
+        present = expense("Cadeau collaborateur")
+        ambiguous = expense("Dépense à revoir")
+        historical = expense("Canada historical refusal", state="refused")
+        historical_signature = (
+            historical.product_id,
+            historical.account_id,
+            historical.analytic_distribution,
+            historical.state,
+        )
+        run = self.env["rebuild.account.import.run"].create({
+            "name": "Expense Batch transition test",
+        })
+
+        result = run.run_expense_batch_transition()
+        self.assertEqual(result["candidate_draft_count"], 4)
+        self.assertEqual(result["reclassified_expense_count"], 3)
+        self.assertEqual(result["created_batch_count"], 1)
+        self.assertEqual(result["batched_expense_count"], 4)
+        self.assertEqual(result["newly_batched_expense_count"], 4)
+        self.assertEqual(result["normalized_inherited_count"], 0)
+        self.assertEqual(result["normalized_incompatible_tax_count"], 4)
+        self.assertEqual(result["exception_expense_count"], 0)
+        self.assertEqual(result["cleaned_context_message_count"], 0)
+        self.assertEqual(result["migration_summary_message_count"], 1)
+        self.assertEqual(result["ambiguous_count"], 1)
+        self.assertTrue(result["historical_unchanged"])
+        self.assertEqual(uber.product_id, transport)
+        self.assertEqual(uber.tax_ids, compatible_tax)
+        self.assertFalse(
+            uber.expense_batch_id.expense_ids.filtered(
+                lambda expense: incompatible_tax in expense.tax_ids,
+            ),
+        )
+        self.assertEqual(meal.product_id, foreign_meals)
+        self.assertNotEqual(meal.product_id, meals)
+        self.assertEqual(present.product_id, gift)
+        self.assertEqual(ambiguous.product_id, canada)
+        batch = uber.expense_batch_id
+        self.assertEqual(batch, meal.expense_batch_id)
+        self.assertEqual(batch, present.expense_batch_id)
+        self.assertEqual(batch, ambiguous.expense_batch_id)
+        self.assertEqual(batch.account_override_id, mission_account)
+        self.assertEqual(
+            batch.analytic_distribution,
+            {f"{project.id},{epic.id}": 100.0},
+        )
+        self.assertEqual(
+            set(batch.expense_ids.mapped("account_context_source")),
+            {"batch"},
+        )
+        self.assertEqual(
+            set(batch.expense_ids.mapped("analytic_context_source")),
+            {"batch"},
+        )
+        self.assertEqual(batch.exception_count, 0)
+        migration_messages = batch.message_ids.filtered(
+            lambda message: "Canada draft transition prepared" in (message.body or ""),
+        )
+        self.assertEqual(len(migration_messages), 1)
+        self.assertFalse(
+            batch.message_ids.filtered(
+                lambda message: "Shared context revision" in (message.body or ""),
+            ),
+        )
+        self.assertEqual(
+            historical_signature,
+            (
+                historical.product_id,
+                historical.account_id,
+                historical.analytic_distribution,
+                historical.state,
+            ),
+        )
+        self.assertFalse(any(trip_products.product_tmpl_id.mapped("active")))
+
+        uber.with_context(usl_batch_context_internal=True).write({
+            "account_context_source": "explicit",
+            "analytic_context_source": "explicit",
+        })
+        self.assertEqual(uber.batch_context_status, "inherited")
+        rerun = run.run_expense_batch_transition()
+        self.assertEqual(rerun["candidate_draft_count"], 0)
+        self.assertEqual(rerun["reclassified_expense_count"], 0)
+        self.assertEqual(rerun["created_batch_count"], 0)
+        self.assertEqual(rerun["archived_trip_product_count"], 0)
+        self.assertEqual(rerun["ambiguous_count"], 0)
+        self.assertEqual(rerun["normalized_inherited_count"], 1)
+        self.assertEqual(rerun["normalized_incompatible_tax_count"], 0)
+        self.assertEqual(rerun["migration_summary_message_count"], 0)
+        self.assertTrue(rerun["historical_unchanged"])
+        self.assertEqual(uber.account_context_source, "batch")
+        self.assertEqual(uber.analytic_context_source, "batch")
+        self.assertEqual(len(migration_messages.exists()), 1)
+
+        for _index in range(2):
+            batch.message_post(
+                body=(
+                    "Shared context revision 1 applied to 1 expense(s); "
+                    "0 explicit exception(s) were preserved and 0 later-stage "
+                    "expense(s) were skipped."
+                ),
+            )
+        cleanup = run.run_expense_batch_transition()
+        self.assertEqual(cleanup["cleaned_context_message_count"], 2)
+        self.assertEqual(cleanup["normalized_incompatible_tax_count"], 0)
+        self.assertEqual(cleanup["migration_summary_message_count"], 0)
+        self.assertEqual(len(migration_messages.exists()), 1)
+
+    def test_source_identity_index_is_unique_and_composite(self):
+        for table_name in (
+            "account_move",
+            "account_move_line",
+            "account_partial_reconcile",
+            "account_asset_profile",
+            "ir_attachment",
+            "res_partner",
+        ):
+            self.env.cr.execute(
+                """
+                SELECT indexdef
+                  FROM pg_indexes
+                 WHERE schemaname = current_schema()
+                   AND tablename = %s
+                   AND indexname = %s
+                """,
+                [
+                    table_name,
+                    f"{table_name}_rebuild_source_identity_uniq",
+                ],
+            )
+            definition = self.env.cr.fetchone()
+            self.assertTrue(definition, table_name)
+            self.assertIn("CREATE UNIQUE INDEX", definition[0])
+            self.assertIn(
+                "rebuild_source_snapshot, rebuild_source_model, "
+                "rebuild_source_id",
+                definition[0],
+            )
+
+        values = {
+            "name": "Unique source identity",
+            "rebuild_source_model": "res.partner",
+            "rebuild_source_id": 987654,
+            "rebuild_source_snapshot": "source-unit-test",
+        }
+        self.env["res.partner"].create(values)
+        with self.assertRaises(IntegrityError), self.env.cr.savepoint():
+            self.env["res.partner"].create(values)
+
+    def test_replay_batches_preserve_order_and_bounds(self):
+        run = self.env["rebuild.account.import.run"]
+        values = list(range(777))
+        batches = list(run._batched(values, run._EXACT_REPLAY_BATCH_SIZE))
+
+        self.assertEqual([len(batch) for batch in batches], [250, 250, 250, 27])
+        self.assertEqual(
+            [value for batch in batches for value in batch],
+            values,
+        )
+
+    def test_source_identity_prefetch_includes_binary_field_attachments(self):
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2025-01-01",
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+        })
+        attachment = self.env["ir.attachment"].create({
+            "name": "unit-source-identity.xml",
+            "raw": b"<Invoice/>",
+            "mimetype": "application/xml",
+            "res_model": "account.move",
+            "res_id": move.id,
+            "res_field": "ubl_cii_xml_file",
+            "rebuild_source_model": "ir.attachment",
+            "rebuild_source_id": 987653,
+            "rebuild_source_snapshot": "source-unit-test",
+        })
+
+        prefetched = self.env[
+            "rebuild.account.import.run"
+        ]._source_trace_record_map(
+            "ir.attachment",
+            [987653],
+            {"source_snapshot_id": "source-unit-test"},
+        )
+
+        self.assertEqual(prefetched, {987653: attachment})
+
     def test_historical_no_entry_payment_is_native_and_immutable(self):
         journal = self._journal("bank")
         method_line = journal.inbound_payment_method_line_ids[:1]
@@ -2928,7 +3228,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_account_migration.menu_rebuild_account_review_issues_priority",
         )
         hygiene_action = self.env.ref(
-            "rebuild_account_migration.action_rebuild_account_hygiene",
+            "rebuild_account_migration.action_open_current_company_hygiene",
         )
         hygiene_client_action = self.env.ref(
             "rebuild_account_migration.action_open_current_company_hygiene",
@@ -2943,8 +3243,12 @@ class TestRebuildAccountMigration(TransactionCase):
             hygiene_menu.parent_id,
             self.env.ref("account.account_audit_control_menu"),
         )
+        self.assertEqual(hygiene_action.tag, "rebuild_accounting_hygiene")
+        hygiene_window_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_hygiene",
+        )
         self.assertEqual(
-            [tuple(view) for view in hygiene_action.views],
+            [tuple(view) for view in hygiene_window_action.views],
             [
                 (
                     self.env.ref(
@@ -5266,7 +5570,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "company_ids": [Command.set([self.company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
-        self.assertEqual(attachment.with_user(reviewer).raw, raw)
+        self.assertEqual(attachment.with_user(reviewer).raw.content, raw)
 
     def test_native_expense_attachment_preserves_source_url_evidence(self):
         snapshot = "unit-native-expense-url-attachment"
@@ -5633,10 +5937,17 @@ class TestRebuildAccountMigration(TransactionCase):
             "source_database": "unit_source",
         }
 
-        with patch.object(
-            type(import_run),
-            "_fetchall",
-            side_effect=[source_rows, source_rows],
+        with (
+            patch.object(
+                type(import_run),
+                "_source_table_exists",
+                return_value=True,
+            ),
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                side_effect=[source_rows, source_rows],
+            ),
         ):
             first = import_run._account_group_map(
                 object(),
@@ -5847,10 +6158,17 @@ class TestRebuildAccountMigration(TransactionCase):
             "active_journal_count": 1,
         }]
 
-        with patch.object(
-            type(import_run),
-            "_fetchall",
-            return_value=source_rows,
+        with (
+            patch.object(
+                type(import_run),
+                "_source_table_exists",
+                return_value=False,
+            ),
+            patch.object(
+                type(import_run),
+                "_fetchall",
+                return_value=source_rows,
+            ),
         ):
             passed = import_run._company_configuration_parity(
                 object(),
@@ -7974,7 +8292,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_source_model": "ir.attachment",
             "rebuild_source_id": 990001,
         })
-        self.assertEqual(accounting_attachment.with_user(reviewer).raw, b"accounting evidence")
+        self.assertEqual(
+            accounting_attachment.with_user(reviewer).raw.content,
+            b"accounting evidence",
+        )
         with self.assertRaises(AccessError):
             move.with_user(reviewer).message_post(body="Reviewer cannot post")
         with self.assertRaises(AccessError):
@@ -9714,9 +10035,7 @@ class TestRebuildAccountMigration(TransactionCase):
             },
         )
         Report.report_client_export(sig_caf["wizard_id"], "pdf")
-        sig_pdf = base64.b64decode(
-            Report.browse(sig_caf["wizard_id"]).export_file,
-        )
+        sig_pdf = Report.browse(sig_caf["wizard_id"]).export_file.content
         self.assertEqual(len(PdfReader(BytesIO(sig_pdf)).pages), 2)
 
         profit_loss = Report.report_client_load(
@@ -9758,9 +10077,9 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(legacy_alias["report_type"], "profit_loss")
         self.assertEqual(legacy_alias["definition"]["code"], "profit_loss")
         Report.report_client_export(profit_loss["wizard_id"], "pdf")
-        profit_loss_pdf = base64.b64decode(
-            Report.browse(profit_loss["wizard_id"]).export_file,
-        )
+        profit_loss_pdf = Report.browse(
+            profit_loss["wizard_id"],
+        ).export_file.content
         profit_loss_pdf_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(BytesIO(profit_loss_pdf)).pages
@@ -9797,9 +10116,9 @@ class TestRebuildAccountMigration(TransactionCase):
             ["gross_amount", "depreciation_amount", "net_amount"],
         )
         Report.report_client_export(french_annual["wizard_id"], "pdf")
-        french_annual_pdf = base64.b64decode(
-            Report.browse(french_annual["wizard_id"]).export_file,
-        )
+        french_annual_pdf = Report.browse(
+            french_annual["wizard_id"],
+        ).export_file.content
         french_annual_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(BytesIO(french_annual_pdf)).pages
@@ -10300,6 +10619,97 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(rehomed, 1)
         self.assertEqual(attachment.res_model, "account.asset")
         self.assertEqual(attachment.res_id, asset.id)
+
+    def test_native_asset_profiles_use_asset_source_identity(self):
+        journal = self._journal()
+        depreciation_account = self._account(
+            "T281897",
+            "Unit projected asset depreciation",
+            "asset_fixed",
+        )
+        expense_account = self._account(
+            "T681197",
+            "Unit projected asset expense",
+            "expense_depreciation",
+        )
+        first_asset_account = self._account(
+            "T218397",
+            "Unit projected asset first",
+            "asset_fixed",
+        )
+        second_asset_account = self._account(
+            "T218396",
+            "Unit projected asset second",
+            "asset_fixed",
+        )
+        options = {"source_snapshot_id": "unit-native-asset-profile"}
+
+        def source_row(source_id, account):
+            return {
+                "id": source_id,
+                "model_id": 7,
+                "account_asset_id": account.id,
+                "account_depreciation_id": depreciation_account.id,
+                "account_depreciation_expense_id": expense_account.id,
+                "analytic_distribution": False,
+                "method_period": "1",
+                "method": "linear",
+                "method_number": 36,
+                "method_progress_factor": 0.3,
+                "salvage_value": 0,
+                "prorata_date": "2025-01-01",
+            }
+
+        ImportRun = self.env["rebuild.account.import.run"]
+        first, first_created = ImportRun._native_asset_profile(
+            options,
+            source_row(991997, first_asset_account),
+            self.company,
+            {
+                first_asset_account.id: first_asset_account,
+                depreciation_account.id: depreciation_account,
+                expense_account.id: expense_account,
+            },
+            journal,
+            {},
+        )
+        second, second_created = ImportRun._native_asset_profile(
+            options,
+            source_row(991996, second_asset_account),
+            self.company,
+            {
+                second_asset_account.id: second_asset_account,
+                depreciation_account.id: depreciation_account,
+                expense_account.id: expense_account,
+            },
+            journal,
+            {},
+        )
+        replayed, replayed_created = ImportRun._native_asset_profile(
+            options,
+            source_row(991997, first_asset_account),
+            self.company,
+            {
+                first_asset_account.id: first_asset_account,
+                depreciation_account.id: depreciation_account,
+                expense_account.id: expense_account,
+            },
+            journal,
+            {},
+        )
+
+        self.assertTrue(first_created)
+        self.assertTrue(second_created)
+        self.assertFalse(replayed_created)
+        self.assertNotEqual(first, second)
+        self.assertEqual(first, replayed)
+        self.assertEqual(first.rebuild_source_model, "account.asset")
+        self.assertEqual(first.rebuild_source_id, 991997)
+        self.assertEqual(second.rebuild_source_id, 991996)
+        self.assertEqual(first.rebuild_source_depreciation_model_id, 7)
+        self.assertEqual(second.rebuild_source_depreciation_model_id, 7)
+        self.assertEqual(first.account_asset_id, first_asset_account)
+        self.assertEqual(second.account_asset_id, second_asset_account)
 
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(

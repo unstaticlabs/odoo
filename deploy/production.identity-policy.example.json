@@ -1,0 +1,30 @@
+{
+  "approved_cron_xmlids": [],
+  "candidate_fingerprint": "CHANGE_ME_APPROVED_64_HEX_FINGERPRINT",
+  "odoo_users": [
+    {
+      "companies": "all",
+      "login": "admin",
+      "profile": "break_glass"
+    },
+    {
+      "companies": "all",
+      "create_if_missing": true,
+      "email": "CHANGE_ME@example.invalid",
+      "login": "CHANGE_ME",
+      "name": "CHANGE_ME",
+      "profile": "administrator",
+      "subject": "CHANGE_ME_EXISTING_POCKET_SUBJECT"
+    }
+  ],
+  "outbound_integrations_enabled": false,
+  "paperless_identities": [
+    {
+      "display_name": "CHANGE_ME",
+      "email": "CHANGE_ME@example.invalid",
+      "subject": "CHANGE_ME_EXISTING_POCKET_SUBJECT",
+      "username": "CHANGE_ME"
+    }
+  ],
+  "schema": "usl-external-identity-policy-v1"
+}

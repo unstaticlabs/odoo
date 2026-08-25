@@ -95,16 +95,29 @@ verify_seed() {
         --root "$ROOT" \
         --seed-dir "$seed_dir" \
         --source-dump "$source_dump" \
-        --runtime-json "$runtime_json"
+        --runtime-json "$runtime_json" \
+        --commit "$(git rev-parse HEAD)"
 }
 
 capture() {
+    local accounting_controls accounting_status documents_controls
     local runtime_json export_name odoo_volume commit qualification_json module_versions
     local paperless_documents
     require_source
     require_safe_cache_root
     if [[ "$ROOT" != "$main_checkout" ]]; then
         printf 'QA seed refresh is reserved for the main checkout: %s\n' "$main_checkout" >&2
+        exit 2
+    fi
+    if [[ "${USL_MIGRATION_PURPOSE:-}" != qa-cache \
+        || "${USL_QA_DATA_PROFILE:-}" != full \
+        || "${USL_QA_SEED_REFRESH:-}" != 1 ]]; then
+        printf 'QA seed capture requires the canonical fresh full qa-cache run.\n' >&2
+        exit 2
+    fi
+    if [[ "$(git branch --show-current)" != 19-usl \
+        || -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
+        printf 'QA seed publication requires the clean 19-usl main checkout.\n' >&2
         exit 2
     fi
     usl_require_explicit_compose_project "QA seed capture"
@@ -182,19 +195,65 @@ capture() {
     qualification_json="$pending_dir/qualification.json"
     module_versions="$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev -c \
         "SELECT COALESCE(json_object_agg(name, latest_version ORDER BY name)::text, '{}') FROM ir_module_module WHERE state='installed' AND (name LIKE 'usl_%' OR name='rebuild_account_migration')")"
-    python3 - "$qualification_json" "$compose_project" "$module_versions" "$paperless_documents" <<'PY'
+    accounting_status="$ROOT/artifacts/accounting-compat/private/dev-import-status.json"
+    if [[ ! -f "$accounting_status" ]] \
+        || ! python3 - "$accounting_status" "$source_dump" <<'PY'
+import hashlib
+import json
+import sys
+value = json.load(open(sys.argv[1], encoding="utf-8"))
+digest = hashlib.sha256()
+with open(sys.argv[2], "rb") as stream:
+    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+        digest.update(chunk)
+if value.get("status") != "passed" or value.get("source_dump_sha256") != digest.hexdigest():
+    raise SystemExit(1)
+PY
+    then
+        printf 'The passed Accounting import evidence is missing; refusing seed capture.\n' >&2
+        exit 1
+    fi
+    accounting_controls="$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev -c "
+        SELECT json_build_object(
+            'move_count', (SELECT count(*) FROM account_move),
+            'move_line_count', (SELECT count(*) FROM account_move_line),
+            'partial_reconcile_count', (SELECT count(*) FROM account_partial_reconcile),
+            'full_reconcile_count', (SELECT count(*) FROM account_full_reconcile),
+            'posted_debit', (SELECT COALESCE(sum(line.debit), 0)::text FROM account_move_line line JOIN account_move move ON move.id=line.move_id WHERE move.state='posted'),
+            'posted_credit', (SELECT COALESCE(sum(line.credit), 0)::text FROM account_move_line line JOIN account_move move ON move.id=line.move_id WHERE move.state='posted')
+        )::text")"
+    documents_controls="$("${compose[@]}" exec -T db psql -X -qAt -U odoo -d odoo_dev -c "
+        SELECT json_build_object(
+            'odoo_document_count', (SELECT count(*) FROM usl_document),
+            'active_link_count', (SELECT count(*) FROM usl_document_link WHERE active)
+        )::text")"
+    python3 - "$qualification_json" "$compose_project" "$module_versions" \
+        "$paperless_documents" "$accounting_status" "$accounting_controls" \
+        "$documents_controls" <<'PY'
 import json
 import sys
 from datetime import UTC, datetime
 
+accounting = json.load(open(sys.argv[5], encoding="utf-8"))
 with open(sys.argv[1], "w", encoding="utf-8") as stream:
     json.dump(
         {
+            "accounting": {
+                "controls": json.loads(sys.argv[6]),
+                "performance": accounting.get("performance", {}),
+                "status": accounting["status"],
+            },
             "captured_at": datetime.now(UTC).isoformat(),
             "compose_project": sys.argv[2],
+            "documents": {
+                "controls": json.loads(sys.argv[7]),
+                "paperless_document_count": int(sys.argv[4]),
+                "status": "passed",
+            },
             "migration_boundary": "passed",
             "module_versions": json.loads(sys.argv[3]),
             "paperless_documents": int(sys.argv[4]),
+            "profile": "full",
             "product_database_boundary": "passed",
             "regulatory_live_guards": "disabled",
             "status": "passed",
@@ -264,7 +323,8 @@ status() {
         --root "$ROOT" \
         --seed-dir "$seed_dir" \
         --source-dump "$source_dump" \
-        --runtime-json "$runtime_json"
+        --runtime-json "$runtime_json" \
+        --commit "$(git rev-parse HEAD)"
     rm -f "$runtime_json"
 }
 

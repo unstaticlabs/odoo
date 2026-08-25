@@ -204,6 +204,30 @@ class HarnessError(RuntimeError):
     pass
 
 
+def classify_product_import_failure(returncode: int, output: str) -> dict[str, str]:
+    """Classify failed imports without misreporting host exhaustion as bad data."""
+    killed = returncode in {-9, 137} or bool(
+        re.search(r"(?:^|\n)Killed\s*$", output.rstrip()),
+    )
+    if killed:
+        return {
+            "classification": "MIGRATION_RESOURCE_EXHAUSTION",
+            "failure_mode": "process_killed",
+            "recovery": (
+                "Restore Docker capacity, reset the candidate-owned target database, "
+                "and rerun the atomic import; do not reuse the interrupted target."
+            ),
+        }
+    return {
+        "classification": "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
+        "failure_mode": "import_command_failed",
+        "recovery": (
+            "Inspect the private output, correct the migration defect, reset the "
+            "candidate-owned target database, and rerun the atomic import."
+        ),
+    }
+
+
 @dataclass
 class SourcePackage:
     path: Path
@@ -3792,6 +3816,17 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                   AND expense.date BETWEEN DATE '2024-01-10'
                                        AND source_end.date_to
             ),
+            'source_canada_draft_expense_count', (
+                SELECT count(*)
+                FROM hr_expense expense
+                JOIN product_product product
+                  ON product.id = expense.product_id
+                WHERE expense.company_id = 1
+                  AND expense.state = 'draft'
+                  AND product.default_code = 'CA26'
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
+            ),
             'source_expense_split_count', (
                 SELECT count(*)
                 FROM hr_expense expense
@@ -3881,6 +3916,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
     import_script.write_text(
         "\n".join([
             "import json",
+            "import time",
+            "import_started = time.monotonic()",
             "run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL complete source-faithful product snapshot',",
             "    'mode': 'exact_ledger_replay',",
@@ -3890,6 +3927,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.3',",
             f"    'target_database': {DEV_QA_DB!r},",
             "})",
+            "stage_started = time.monotonic()",
             "stats = run.run_exact_ledger_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_3',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -3901,6 +3939,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_company_ids': [1, 8],",
             "    'preserve_business_documents': True,",
             "})",
+            "exact_replay_seconds = time.monotonic() - stage_started",
             "expense_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native expenses',",
             "    'mode': 'exact_ledger_replay',",
@@ -3910,6 +3949,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.3',",
             f"    'target_database': {DEV_QA_DB!r},",
             "})",
+            "stage_started = time.monotonic()",
             "expense_stats = expense_run.run_source_faithful_expense_materialization_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_3',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -3920,6 +3960,9 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             f"    'date_to': {source_date_to!r},",
             "    'source_company_ids': [1],",
             "})",
+            "expense_batch_transition = expense_run.run_expense_batch_transition()",
+            "expense_batch_transition_rerun = expense_run.run_expense_batch_transition()",
+            "expense_replay_seconds = time.monotonic() - stage_started",
             "asset_run = env['rebuild.account.import.run'].create({",
             "    'name': 'USL source-faithful native assets',",
             "    'mode': 'exact_ledger_replay',",
@@ -3929,6 +3972,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.3',",
             f"    'target_database': {DEV_QA_DB!r},",
             "})",
+            "stage_started = time.monotonic()",
             "asset_stats = asset_run.run_native_asset_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_3',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -3941,6 +3985,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'opening_depreciation_date': '2025-09-30',",
             "    'use_exact_imported_moves': True,",
             "})",
+            "asset_replay_seconds = time.monotonic() - stage_started",
             "currency_rate_cron = env.ref(",
             "    'rebuild_account_migration.ir_cron_rebuild_currency_rate_provider',",
             ")",
@@ -4063,9 +4108,34 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'expense_run_id': expense_run.id,",
             "    'expense_run_status': expense_run.status,",
             "    'expense_stats': expense_stats,",
+            "    'expense_batch_transition': expense_batch_transition,",
+            "    'expense_batch_transition_rerun': expense_batch_transition_rerun,",
             "    'asset_run_id': asset_run.id,",
             "    'asset_run_status': asset_run.status,",
             "    'asset_stats': asset_stats,",
+            "    'performance': {",
+            "        'schema': 'usl-accounting-import-run-performance-v1',",
+            "        'duration_seconds': time.monotonic() - import_started,",
+            "        'exact_ledger': stats.get('performance', {}),",
+            "        'stages': [",
+            "            {",
+            "                'name': 'exact ledger replay',",
+            "                'duration_seconds': exact_replay_seconds,",
+            "                'move_count': stats.get('source_move_count', 0),",
+            "                'move_line_count': stats.get('source_move_line_count', 0),",
+            "            },",
+            "            {",
+            "                'name': 'expenses',",
+            "                'duration_seconds': expense_replay_seconds,",
+            "                'expense_count': expense_stats.get('source_expense_count', 0),",
+            "            },",
+            "            {",
+            "                'name': 'assets',",
+            "                'duration_seconds': asset_replay_seconds,",
+            "                'asset_count': asset_stats.get('source_asset_count', 0),",
+            "            },",
+            "        ],",
+            "    },",
             "    'users': {",
             "        'manager': {",
             "            'id': manager_user.id,",
@@ -4143,28 +4213,48 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                 "REBUILD_REPLACEMENT_IMPORT_RESULT=",
             )
     if result.returncode or not marker:
+        combined_output = result.stdout + result.stderr
+        failure = classify_product_import_failure(
+            result.returncode,
+            combined_output,
+        )
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
             "stage": "dev-import",
             "status": "failed",
-            "classification": "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
+            **failure,
             "database": DEV_QA_DB,
             "exit_code": result.returncode,
-            "output_tail": (result.stdout + result.stderr)[-12000:],
+            "output_tail": combined_output[-12000:],
         }
         write_json(
             PRIVATE_ARTIFACTS / "dev-import-status.json",
             status,
         )
-        message = "Product source-snapshot import failed. See the private artifact."
+        message = (
+            "Product source-snapshot import was killed by resource exhaustion; "
+            "the interrupted target must be reset before retry."
+            if failure["classification"] == "MIGRATION_RESOURCE_EXHAUSTION"
+            else "Product source-snapshot import failed. See the private artifact."
+        )
         raise HarnessError(message)
     payload = json.loads(marker)
+    analyze_started = time.monotonic()
+    psql_exec(
+        DEV_QA_DB,
+        "ANALYZE account_move, account_move_line, account_partial_reconcile, "
+        "account_full_reconcile, account_analytic_line, ir_attachment;",
+    )
+    analyze_seconds = time.monotonic() - analyze_started
     stats = payload["stats"]
     expected = {
         "source_move_count": source_profile["source_move_count"],
         "imported_move_line_count": source_profile["source_move_line_count"],
         "source_expense_count": source_profile["source_expense_count"],
+        "source_canada_draft_expense_count": source_profile[
+            "source_canada_draft_expense_count"
+        ],
         "source_asset_count": source_profile["source_asset_count"],
         "source_posted_asset_move_count": (
             source_profile["source_posted_asset_move_count"]
@@ -4176,6 +4266,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         for key, expected_value in expected.items()
         if key not in {
             "source_expense_count",
+            "source_canada_draft_expense_count",
             "source_asset_count",
             "source_posted_asset_move_count",
         }
@@ -4240,6 +4331,43 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "legacy_target_schema"
         ]["absent"]
     )
+    transition = payload["expense_batch_transition"]
+    transition_rerun = payload["expense_batch_transition_rerun"]
+    source_canada_draft_count = source_profile[
+        "source_canada_draft_expense_count"
+    ]
+    expected_ambiguous = [{
+        "name": "Zen Kyoto — Canada 2026 — 18,08 CAD / 11,18 EUR",
+        "reason": "description_not_confidently_mapped",
+    }]
+    actual_ambiguous = [
+        {
+            "name": example["name"],
+            "reason": example["reason"],
+        }
+        for example in transition["ambiguous_examples"]
+    ]
+    checks["expense_batch_transition_matches"] = (
+        transition["candidate_draft_count"] == source_canada_draft_count
+        and transition["reclassified_expense_count"]
+        == source_canada_draft_count - len(expected_ambiguous)
+        and transition["created_batch_count"] == 1
+        and transition["batched_expense_count"] == source_canada_draft_count
+        and transition["newly_batched_expense_count"]
+        == source_canada_draft_count
+        and transition["incomplete_expense_count"] == 4
+        and transition["ambiguous_count"] == len(expected_ambiguous)
+        and actual_ambiguous == expected_ambiguous
+        and transition["archived_trip_product_count"] == 4
+        and transition["archived_trip_product_codes"]
+        == ["AUS26", "BCN2602", "CA26", "LPASUM26"]
+        and transition["historical_unchanged"] is True
+        and transition_rerun["candidate_draft_count"] == 0
+        and transition_rerun["reclassified_expense_count"] == 0
+        and transition_rerun["created_batch_count"] == 0
+        and transition_rerun["archived_trip_product_count"] == 0
+        and transition_rerun["historical_unchanged"] is True
+    )
     checks["native_expense_url_evidence_matches"] = (
         query_json(
             DEV_QA_DB,
@@ -4297,6 +4425,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "status": "passed" if all(checks.values()) else "failed",
         "classification": "COMPLETE_SOURCE_FAITHFUL_PRODUCT_IMPORT",
         "database": DEV_QA_DB,
+        "source_dump_sha256": dump_sha,
         "date_from": USL_BENCHMARK_START,
         "date_to": source_date_to,
         "run_id": payload["run_id"],
@@ -4311,7 +4440,19 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "checks": checks,
         "statistics": stats,
         "expense_statistics": payload["expense_stats"],
+        "expense_batch_transition": transition,
+        "expense_batch_transition_rerun": transition_rerun,
         "asset_statistics": payload["asset_stats"],
+        "performance": {
+            **payload["performance"],
+            "stages": [
+                *payload["performance"]["stages"],
+                {
+                    "name": "post-import analyze",
+                    "duration_seconds": analyze_seconds,
+                },
+            ],
+        },
         "users": payload["users"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)

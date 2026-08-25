@@ -66,6 +66,18 @@ class TestDocuments(TransactionCase):
         )
         self.assertTrue(menu.web_icon_data)
 
+    def test_french_navigation_and_matching_terms_are_contextual(self):
+        smart_view = self.env.ref(
+            "usl_documents.smart_view_hr",
+        ).with_context(lang="fr_FR")
+        self.assertEqual(smart_view.name, "RH")
+
+        tags = self.env["usl.paperless.tag"].with_context(lang="fr_FR")
+        matching_labels = dict(
+            tags._fields["matching_algorithm"]._description_selection(tags.env),
+        )
+        self.assertEqual(matching_labels["3"], "Correspondance exacte")
+
     def _document(self, paperless_id, **values):
         return self.env["usl.document"].create({
             "name": values.pop("name", f"Document {paperless_id}"),

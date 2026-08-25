@@ -65,6 +65,47 @@ class PaperlessSeedSanitizeTest(unittest.TestCase):
         self.assertIn("release-disabled-", script)
         self.assertIn("set_unusable_password", script)
 
+    def test_portable_candidate_removes_identity_and_environment_configuration(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            export = Path(temporary)
+            manifest = [
+                {
+                    "model": "socialaccount.socialaccount",
+                    "fields": {"uid": "pocket-subject"},
+                },
+                {
+                    "model": "documents.workflowactionwebhook",
+                    "fields": {"url": "https://old.example/hook"},
+                },
+                {
+                    "model": "paperless.applicationconfiguration",
+                    "fields": {
+                        "llm_api_key": "secret",
+                        "public_url": "https://old.example",
+                        "app_title": "USL Documents",
+                    },
+                },
+            ]
+            (export / "manifest.json").write_text(
+                json.dumps(manifest),
+                encoding="utf-8",
+            )
+
+            result = sanitizer.sanitize(export, portable_candidate=True)
+            stored = json.loads(
+                (export / "manifest.json").read_text(encoding="utf-8"),
+            )
+
+            self.assertEqual(stored, [])
+            self.assertEqual(
+                result["removed_environment_models"],
+                {
+                    "documents.workflowactionwebhook": 1,
+                    "paperless.applicationconfiguration": 1,
+                    "socialaccount.socialaccount": 1,
+                },
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

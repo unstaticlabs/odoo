@@ -1,5 +1,9 @@
 # Pre-production release
 
+> The reusable QA seed and pre-production stack are not production migration
+> evidence. Final production uses the strict whole-source candidate workflow in
+> [Portable production migration candidate](portable-production-migration.md).
+
 ## Outcome
 
 The qualified release is one commit-tagged Docker image containing Odoo core,

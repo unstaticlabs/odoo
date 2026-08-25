@@ -1,1 +1,1 @@
-from . import ir_http, res_company
+from . import ir_http, ir_ui_menu, res_company

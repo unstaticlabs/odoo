@@ -1,5 +1,13 @@
 # Pocket ID SSO runbook
 
+## Existing production Pocket ID
+
+Final migration uses `compose.external-pocket-id.yaml`, which contains no Pocket
+service, volume, provisioning or restore action. The mode-`0600` external
+identity policy is applied only to Odoo and Paperless. Follow
+[Portable production migration candidate](portable-production-migration.md)
+and require matching read-only Pocket state hashes around rehearsal journeys.
+
 This runbook configures Pocket ID as the sole human login without making it an
 authorization source. Local integration QA uses canonical `odoo_dev`, the
 disposable production-shaped target reconstructed from the Online dump. The
@@ -29,7 +37,7 @@ Before changing a database:
 Never paste tokens, client secrets, passkeys or raw Pocket ID subjects into a
 commit, ticket, screenshot or validation artifact.
 
-## 2. Canonical local target
+## 2. Local target and parallel worktrees
 
 The repository provides a pinned Pocket ID v2.13.0 Compose overlay and an
 idempotent helper. It:
@@ -37,7 +45,7 @@ idempotent helper. It:
 - binds Pocket ID to `127.0.0.1:1411`;
 - serves Odoo on the normal local port at `http://odoo.localhost:8069`;
 - accepts local HTTP only for RFC-reserved `.localhost` names;
-- targets only canonical `odoo_dev`;
+- targets only the selected project's `odoo_dev`;
 - refuses either enabled regulatory live guard;
 - writes generated secrets and immutable test subjects only to the ignored
   `.pocket-id.env` with mode 0600;
@@ -51,6 +59,46 @@ scripts/pocket-id-dev bootstrap
 scripts/pocket-id-dev configure-odoo
 scripts/pocket-id-dev status
 ```
+
+The main checkout may use the default project and ports. Every linked worktree
+must use its own Compose project and four non-conflicting ports. Keep those
+values together for reconstruction, deploy, diagnostics and login:
+
+```bash
+COMPOSE_PROJECT=usl-odoo-my-feature-a1b2 \
+ODOO_HTTP_PORT=18669 ODOO_GEVENT_PORT=18672 \
+POCKET_ID_HTTP_PORT=11411 PAPERLESS_HTTP_PORT=18010 \
+USL_ONLINE_DUMP_DIR=/absolute/path/to/usl-online-dump \
+make target-reconstruct
+
+make COMPOSE_PROJECT=usl-odoo-my-feature-a1b2 doctor
+make COMPOSE_PROJECT=usl-odoo-my-feature-a1b2 deploy
+make COMPOSE_PROJECT=usl-odoo-my-feature-a1b2 login-link USER=valentin
+```
+
+The first command creates an ignored `.pocket-id.env` bound to that project.
+Do not copy it to another worktree and do not switch project names afterward.
+Tests and QA bootstraps restore Odoo with this same overlay automatically.
+
+`make doctor` reports `Pocket ID: ready` only when the running Odoo process has
+all environment-only credentials and the database provider matches its issuer,
+client, public URL and required group. If it reports `broken`,
+`not-configured`, or `wrong-project`, run the exact repair command it prints.
+The short form, when the worktree environment already exists, is:
+
+```bash
+make COMPOSE_PROJECT=usl-odoo-my-feature-a1b2 repair-pocket-id
+```
+
+`make login-link` performs the same verification before creating a one-time
+link. It refuses a link that would redirect to an Odoo runtime with missing or
+mismatched Pocket ID settings and prints the repair command instead.
+
+Runtime repair reapplies only the environment-owned provider configuration and
+recreates Odoo with the project overlay. It never changes user classification,
+groups or permissions. Use `make configure-pocket-id` only for the stricter
+full named-user policy operation; that command deliberately refuses
+unclassified QA or human users.
 
 Generate a one-hour, single-user test login link without exposing a password.
 Pass the exact username of any existing user in the local Pocket ID tenant:
@@ -89,7 +137,7 @@ scripts/pocket-id-dev configure-odoo
 ```
 
 Normal development does not require cleanup. `make dev`, `make deploy` and
-`make rebuild` keep the canonical target and local identity provider running.
+`make rebuild` keep the selected target and local identity provider running.
 
 The local overlay deliberately enables insecure callback URLs only inside this
 loopback target topology. Staging and production require HTTPS, require each
