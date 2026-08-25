@@ -3390,8 +3390,11 @@ class UslDocumentOperation(models.Model):
                         },
                     )
                 if operation.res_model and operation.res_id:
-                    document.with_user(operation.user_id).link_to_record(
-                        operation.res_model, operation.res_id,
+                    (
+                        document.with_user(operation.user_id)
+                        .with_context(allowed_company_ids=operation.company_id.ids)
+                        .with_company(operation.company_id)
+                        .link_to_record(operation.res_model, operation.res_id)
                     )
                 if document.permission_sync_state != "synchronized":
                     document.with_user(
