@@ -4,6 +4,7 @@ import {patch} from "@web/core/utils/patch";
 import {registry} from "@web/core/registry";
 import {Component, useState} from "@odoo/owl";
 import {Dialog} from "@web/core/dialog/dialog";
+import {_t} from "@web/core/l10n/translation";
 import {renderToString} from "@web/core/utils/render";
 import {useService} from "@web/core/utils/hooks";
 import {SignOcaPdfPortal} from "@sign_oca/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm";
@@ -181,6 +182,55 @@ patch(SignOcaPdfPortal.prototype, {
         this.dialog = useService("dialog");
     },
 
+    checkToSign() {
+        super.checkToSign(...arguments);
+        this._syncConsentState();
+    },
+
+    _syncConsentState() {
+        const consent = document.getElementById("usl_sign_consent");
+        const button = document.getElementById("sign_oca_button");
+        if (!consent || !button) {
+            return;
+        }
+        const isSubmitting = button.dataset.submitting === "true";
+        button.disabled = !this.to_sign_update || !consent.checked || isSubmitting;
+        consent.closest(".usl_sign_consent_choice")?.classList.toggle(
+            "is-checked",
+            consent.checked
+        );
+    },
+
+    _onConsentChanged(event) {
+        if (event.currentTarget.checked) {
+            document.getElementById("usl_sign_consent_error")?.classList.add("d-none");
+        }
+        this._syncConsentState();
+    },
+
+    _setSubmissionState(button, {busy, label, complete = false}) {
+        const consent = document.getElementById("usl_sign_consent");
+        const spinner = document.getElementById("usl_sign_submission_spinner");
+        const buttonLabel = document.getElementById("usl_sign_submission_label");
+        const status = document.getElementById("usl_sign_submission_status");
+        button.dataset.submitting = busy ? "true" : "false";
+        button.setAttribute("aria-busy", busy ? "true" : "false");
+        spinner?.classList.toggle("d-none", !busy || complete);
+        if (buttonLabel) {
+            buttonLabel.textContent = label;
+        }
+        if (consent) {
+            consent.disabled = busy;
+        }
+        status?.classList.toggle("d-none", !busy);
+        if (complete && status) {
+            status.querySelector("span").textContent =
+                _t("Signature saved. Opening the result…");
+            status.querySelector("i")?.classList.replace("fa-lock", "fa-check-circle");
+        }
+        this._syncConsentState();
+    },
+
     postIframeFields() {
         super.postIframeFields(...arguments);
         const iframeDocument = this.iframe.el.contentDocument;
@@ -213,6 +263,10 @@ patch(SignOcaPdfPortal.prototype, {
     },
 
     async _onClickSign(ev) {
+        const button = ev.currentTarget;
+        if (button.dataset.submitting === "true") {
+            return;
+        }
         const invalidInput = this.iframe.el.contentDocument.querySelector(
             ".o_sign_oca_field input:invalid"
         );
@@ -231,7 +285,7 @@ patch(SignOcaPdfPortal.prototype, {
         error?.classList.add("d-none");
         const submissionError = document.getElementById("usl_sign_submission_error");
         submissionError?.classList.add("d-none");
-        ev.target.disabled = true;
+        this._setSubmissionState(button, {busy: true, label: _t("Finalizing…")});
         try {
             const position = await this.getLocation();
             const action = await this.rpc(
@@ -244,16 +298,26 @@ patch(SignOcaPdfPortal.prototype, {
                     longitude: position?.coords?.longitude,
                 }
             );
+            this._setSubmissionState(button, {
+                busy: true,
+                complete: true,
+                label: _t("Signed"),
+            });
             window.location = action.type === "ir.actions.act_url" ? action.url : window.location;
         } catch (rpcError) {
             if (submissionError) {
                 submissionError.textContent =
                     rpcError?.data?.message ||
-                    "The signature could not be submitted. Reload the document and try again.";
+                    _t(
+                        "The signature could not be submitted. Reload the document and try again."
+                    );
                 submissionError.classList.remove("d-none");
                 submissionError.focus();
             }
-            ev.target.disabled = false;
+            this._setSubmissionState(button, {
+                busy: false,
+                label: _t("Confirm and sign"),
+            });
         }
     },
 
