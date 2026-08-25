@@ -20,6 +20,14 @@ cache_root="${USL_QA_SEED_CACHE_DIR:-$main_checkout/artifacts/migration/private/
 pending_dir="$cache_root/.pending-$compose_project"
 current_link="$cache_root/current"
 compose=(docker compose -p "$compose_project")
+if [[ -n "${POCKET_ID_ENV_FILE:-}" ]]; then
+    # Canonical Documents reconstruction initializes Paperless with the
+    # project-bound generated database password.  Every later Compose action
+    # on those same volumes must resolve the identical environment; otherwise
+    # recreating the web/database containers silently falls back to the public
+    # development defaults and makes the archive unavailable.
+    compose+=(--env-file "$POCKET_ID_ENV_FILE")
+fi
 
 export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0

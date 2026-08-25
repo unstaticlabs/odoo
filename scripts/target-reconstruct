@@ -116,11 +116,33 @@ if [[ "$qa_profile" != full && "$reuse_documents" == 1 ]]; then
   printf 'Paperless checkpoint reuse is only valid for the full profile.\n' >&2
   exit 2
 fi
+resume_finalized="${USL_RECONSTRUCT_RESUME_FINALIZED:-0}"
+case "$resume_finalized" in
+  0) ;;
+  1)
+    if [[ "$migration_purpose" != qa-cache ]]; then
+      printf 'Finalized-target resume is restricted to QA cache qualification.\n' >&2
+      exit 2
+    fi
+    if [[ "$reuse_documents" != 0 ]]; then
+      printf 'Finalized-target resume does not replay or reuse Documents ingestion.\n' >&2
+      exit 2
+    fi
+    ;;
+  *)
+    printf 'USL_RECONSTRUCT_RESUME_FINALIZED must be 0 or 1.\n' >&2
+    exit 2
+    ;;
+esac
 case "$reuse_documents" in
   0)
     documents_reset=1
     documents_require_checkpoint=0
-    printf 'Documents archive: fresh deterministic ingestion.\n'
+    if [[ "$resume_finalized" == 1 ]]; then
+      printf 'Documents archive: finalized QA state will be revalidated without replay.\n'
+    else
+      printf 'Documents archive: fresh deterministic ingestion.\n'
+    fi
     ;;
   1)
     documents_reset=0
@@ -139,6 +161,10 @@ case "$resume_accounting" in
   1)
     if [[ "$migration_purpose" == production ]]; then
       printf 'Production migration cannot resume from development evidence.\n' >&2
+      exit 2
+    fi
+    if [[ "$resume_finalized" == 1 ]]; then
+      printf 'Accounting and finalized-target resume modes are mutually exclusive.\n' >&2
       exit 2
     fi
     printf 'Accounting: resume requested; exact source parity will be revalidated before reuse.\n'
@@ -170,6 +196,7 @@ migration_code_sha256="$(
 )"
 seed_pending=0
 accounting_validated=0
+migration_finalized=0
 
 run_stage() {
   local label="$1" started status
@@ -271,7 +298,10 @@ cleanup() {
   [[ "$seed_pending" == 0 ]] || scripts/qa-seed discard >/dev/null 2>&1 || true
   if ((status)); then
     write_timing failed
-    if [[ "$accounting_validated" == 1 && "$migration_purpose" != production ]]; then
+    if [[ "$migration_finalized" == 1 && "$migration_purpose" == qa-cache ]]; then
+      printf '\nThe migration boundary remains finalized. Resume qualification without replaying source data:\n' >&2
+      printf '  make qa-cache-qualify-resume\n' >&2
+    elif [[ "$accounting_validated" == 1 && "$migration_purpose" != production ]]; then
       printf '\nAccounting remains validated. Resume without replaying it:\n' >&2
       printf '  make qa-cache-resume\n' >&2
     fi
@@ -385,61 +415,79 @@ finalize_migration_boundary() {
   scripts/accounting-restore finalize
 }
 
+revalidate_finalized_qa_cache() {
+  # This mode is intentionally QA-only.  It never reinstalls a migration
+  # module or guesses source identities after the technical provenance has
+  # been removed.  The seed capturer separately verifies the exact source
+  # dump, Accounting evidence, clean branch, and runtime image identities.
+  # Full delivered-module validation follows in target-finalize because a
+  # prior interruption may have happened before product configuration.
+  scripts/check-product-migration-boundary
+  scripts/accounting-restore product-validate
+}
+
 run_stage "Docker resource preflight" scripts/migration-resource-preflight
 run_stage "target identity preflight" preflight_target_identity
 start_target_database
 stop_product
-run_stage "restore source database" scripts/accounting-compat source-restore
-run_stage "source coverage gate" scripts/migration-source-truth "$source_gate"
-run_stage "attachment disposition gate" scripts/attachment-ledger "$attachment_gate"
-run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
-run_stage "source accounting controls" scripts/accounting-compat source-controls
-run_stage "extract accounting source" scripts/accounting-compat extract
-if [[ "$resume_accounting" == 1 ]]; then
-  stop_product
-  run_stage "revalidate reusable accounting" validate_reusable_accounting
+if [[ "$resume_finalized" == 1 ]]; then
+  run_stage "revalidate finalized QA target" revalidate_finalized_qa_cache
+  accounting_validated=1
+  migration_finalized=1
 else
-  run_stage "reset target database" scripts/accounting-compat dev-reset
+  run_stage "restore source database" scripts/accounting-compat source-restore
+  run_stage "source coverage gate" scripts/migration-source-truth "$source_gate"
+  run_stage "attachment disposition gate" scripts/attachment-ledger "$attachment_gate"
+  run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
+  run_stage "source accounting controls" scripts/accounting-compat source-controls
+  run_stage "extract accounting source" scripts/accounting-compat extract
+  if [[ "$resume_accounting" == 1 ]]; then
+    stop_product
+    run_stage "revalidate reusable accounting" validate_reusable_accounting
+  else
+    run_stage "reset target database" scripts/accounting-compat dev-reset
+    stop_product
+    run_stage "import accounting" scripts/accounting-compat dev-import
+    stop_product
+    run_stage "validate accounting" scripts/accounting-compat dev-validate
+  fi
+  accounting_validated=1
   stop_product
-  run_stage "import accounting" scripts/accounting-compat dev-import
-  stop_product
-  run_stage "validate accounting" scripts/accounting-compat dev-validate
-fi
-accounting_validated=1
-stop_product
-run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
-  DOCUMENTS_TARGET_DATABASE=odoo_dev \
-  COMPOSE_PROJECT_NAME="$compose_project" \
-  scripts/documents-restore prepare-target
-stop_product
-run_stage "restore identities" scripts/identity-restore all
-stop_product
-run_stage "restore product data" scripts/product-restore all
-stop_product
-run_stage "repair Expense Batch transition" scripts/accounting-restore expense-batch-transition
-stop_product
-run_stage "restore HR" scripts/hr-restore all
-stop_product
-run_stage "restore Projects" restore_projects_for_reconstruction
-stop_product
-if [[ "$documents_enabled" == 1 ]]; then
-  run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
-    DOCUMENTS_CANONICAL_RESET="$documents_reset" \
-    DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint" \
-    DOCUMENTS_RESTORE_PROFILE="$documents_profile" \
-    DOCUMENTS_PAPERLESS_TASK_WORKERS="$documents_task_workers" \
+  run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
     DOCUMENTS_TARGET_DATABASE=odoo_dev \
     COMPOSE_PROJECT_NAME="$compose_project" \
-    scripts/documents-restore all
+    scripts/documents-restore prepare-target
   stop_product
-else
-  printf 'Documents archive: skipped by explicit no-documents QA profile.\n'
+  run_stage "restore identities" scripts/identity-restore all
+  stop_product
+  run_stage "restore product data" scripts/product-restore all
+  stop_product
+  run_stage "repair Expense Batch transition" scripts/accounting-restore expense-batch-transition
+  stop_product
+  run_stage "restore HR" scripts/hr-restore all
+  stop_product
+  run_stage "restore Projects" restore_projects_for_reconstruction
+  stop_product
+  if [[ "$documents_enabled" == 1 ]]; then
+    run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
+      DOCUMENTS_CANONICAL_RESET="$documents_reset" \
+      DOCUMENTS_REQUIRE_CHECKPOINT="$documents_require_checkpoint" \
+      DOCUMENTS_RESTORE_PROFILE="$documents_profile" \
+      DOCUMENTS_PAPERLESS_TASK_WORKERS="$documents_task_workers" \
+      DOCUMENTS_TARGET_DATABASE=odoo_dev \
+      COMPOSE_PROJECT_NAME="$compose_project" \
+      scripts/documents-restore all
+    stop_product
+  else
+    printf 'Documents archive: skipped by explicit no-documents QA profile.\n'
+  fi
+  run_stage "restore Paie TESE" restore_tese_for_reconstruction
+  stop_product
+  run_stage "restore Platform Billing" restore_platform_billing_for_reconstruction
+  stop_product
+  run_stage "finalize migration boundary" finalize_migration_boundary
+  migration_finalized=1
 fi
-run_stage "restore Paie TESE" restore_tese_for_reconstruction
-stop_product
-run_stage "restore Platform Billing" restore_platform_billing_for_reconstruction
-stop_product
-run_stage "finalize migration boundary" finalize_migration_boundary
 
 seed_refresh="${USL_QA_SEED_REFRESH:-0}"
 case "$seed_refresh" in
@@ -449,8 +497,6 @@ case "$seed_refresh" in
       printf 'QA seed refresh requires a full fresh Documents reconstruction.\n' >&2
       exit 2
     fi
-    run_stage "capture pending QA seed" scripts/qa-seed capture
-    seed_pending=1
     ;;
   *)
     printf 'USL_QA_SEED_REFRESH must be 0 or 1.\n' >&2
@@ -459,6 +505,17 @@ case "$seed_refresh" in
 esac
 
 run_stage "apply target configuration" env USL_QA_DATA_PROFILE="$qa_profile" scripts/target-finalize
+if [[ "$seed_refresh" == 1 ]]; then
+  # Arm cleanup before capture: failures after the pending directory is created
+  # must never leave an ambiguous partial seed that blocks the next retry.
+  seed_pending=1
+  run_stage "capture pending QA seed" scripts/qa-seed capture
+  # Capture deliberately sanitizes runtime credentials in the database.  The
+  # shared seed remains sanitized, while the canonical QA target is configured
+  # again so it remains usable and the final acceptance exercises that state.
+  run_stage "restore target configuration after seed capture" env \
+    USL_QA_DATA_PROFILE="$qa_profile" scripts/target-finalize
+fi
 if [[ "$qa_profile" == full ]]; then
   run_stage "multi-company acceptance" make \
     COMPOSE_PROJECT="$compose_project" accounting-multicompany-acceptance

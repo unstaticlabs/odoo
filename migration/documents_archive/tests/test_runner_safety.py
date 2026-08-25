@@ -144,6 +144,36 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("Production migration cannot resume", script)
         self.assertIn("Accounting remains validated", script)
 
+    def test_finalized_qa_refresh_resumes_qualification_without_source_replay(self):
+        script = TARGET_SCRIPT.read_text(encoding="utf-8")
+        seed = SEED_SCRIPT.read_text(encoding="utf-8")
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("qa-cache-qualify-resume:", makefile)
+        self.assertIn("USL_RECONSTRUCT_RESUME_FINALIZED=1", makefile)
+        self.assertIn("revalidate_finalized_qa_cache", script)
+        self.assertIn('migration_purpose" != qa-cache', script)
+        self.assertIn('if [[ "$resume_finalized" == 1 ]]; then', script)
+        finalized_branch = script[
+            script.index('if [[ "$resume_finalized" == 1 ]]; then', script.index('start_target_database')):
+            script.index('seed_refresh="${USL_QA_SEED_REFRESH:-0}"')
+        ]
+        self.assertIn('run_stage "revalidate finalized QA target"', finalized_branch)
+        self.assertNotIn('run_stage "import accounting"', finalized_branch.split("else", 1)[0])
+        self.assertIn('compose+=(--env-file "$POCKET_ID_ENV_FILE")', seed)
+        self.assertLess(
+            script.index('run_stage "apply target configuration"'),
+            script.index('run_stage "capture pending QA seed"'),
+        )
+        self.assertLess(
+            script.index('run_stage "capture pending QA seed"'),
+            script.index('run_stage "restore target configuration after seed capture"'),
+        )
+        self.assertLess(
+            script.index('run_stage "restore target configuration after seed capture"'),
+            script.index('run_stage "multi-company acceptance"'),
+        )
+
     def test_downstream_source_bindings_survive_until_global_finalization(self):
         script = TARGET_SCRIPT.read_text(encoding="utf-8")
 

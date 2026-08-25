@@ -421,6 +421,7 @@ make qa PROFILE=documents-smoke      # deterministic source-derived document sam
 make qa PROFILE=clean-install        # clean product plus self-contained fixtures
 make qa-cache-status                 # read-only cache identity/freshness check
 make qa-cache-refresh                # fresh migration, then atomic seed publication
+make qa-cache-qualify-resume         # retry qualification after migration finalization
 make qa-cache-prune CONFIRM=qa-seeds # remove superseded private seeds; keep current
 ```
 
@@ -611,8 +612,15 @@ and `scripts/`; it is not installed or exposed in the normal Odoo UI.
 A failed QA cache refresh no longer requires another full ledger replay. After
 Accounting has passed exact parity, the failure output offers
 `make qa-cache-resume`; it revalidates the same source and target Accounting
-state before continuing downstream stages. The production migration command
-never uses this development shortcut and always reconstructs from source.
+state before continuing downstream stages. If the migration boundary was
+already finalized and only seed capture or final QA qualification failed, use
+`make qa-cache-qualify-resume`; it revalidates the finalized business state and
+runtime without reinstalling migration modules or replaying source identities.
+Cache refresh configures and validates the complete delivered product before
+capturing a credential-sanitized seed, then reapplies local identity settings
+before the final multi-company acceptance.
+Both shortcuts are QA-only. The production migration command always
+reconstructs from source.
 
 The local Pocket ID workflow is pinned in `compose.pocket-id.yaml`, binds only
 to loopback, and stores generated secrets and stable immutable subjects in the
