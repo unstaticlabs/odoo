@@ -29,4 +29,22 @@
             <p t-out="record.company_id.name"/>
         </div>
     </template>
+
+    <template id="strong_enrollment_invitation_body" name="Strong signing identity setup invitation">
+        <div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">
+            <p>Hello <t t-out="enrollment.partner_id.name"/>,</p>
+            <p>
+                <t t-out="enrollment.company_id.name"/> would like you to set up your identity for strong personal signatures.
+            </p>
+            <p>
+                Connect your Pocket ID account below. This setup does not sign a document.
+            </p>
+            <p>
+                <a t-att-href="link" style="background:#714B67;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px;display:inline-block;">
+                    Set up signing identity
+                </a>
+            </p>
+            <p>The link is personal and expires after 24 hours. Please do not forward it.</p>
+        </div>
+    </template>
 </odoo>

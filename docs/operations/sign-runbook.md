@@ -254,9 +254,13 @@ authenticator. Never label a virtual-credential result as Touch ID, Face ID,
 Windows Hello or another platform product.
 
 1. Create an enrolment for a synthetic known partner and record the relationship
-   basis, reviewer and identity policy.
-2. Connect the correct Pocket ID subject and have an identity reviewer confirm
-   it. Add and recover passkeys in Pocket ID, not Odoo.
+   basis, the internal employee/contract/partner review reference and identity
+   policy. Send the setup email; use **Copy setup link** only when a separate
+   trusted delivery channel is required. Copying creates a replacement link and
+   never navigates the reviewer's browser to it.
+2. Connect the correct Pocket ID subject. Odoo schedules a review activity for
+   an identity reviewer; after approval, waiting requests resume automatically.
+   Add and recover passkeys in Pocket ID, not Odoo.
 3. Sign a frozen request through the dedicated Pocket ID popup with a fresh
    passkey interaction.
 4. Inspect browser network traffic and assert that no private JWK, PKCS#8,
