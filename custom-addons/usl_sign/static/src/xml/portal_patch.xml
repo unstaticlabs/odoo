@@ -39,19 +39,27 @@
         </xpath>
         <xpath expr="//div[hasclass('o_sign_validation_buttons')]" position="replace">
             <div class="o_sign_validation_buttons">
-                <div class="usl_sign_consent">
-                    <div class="form-check">
-                        <input id="usl_sign_consent" class="form-check-input" type="checkbox"/>
-                        <label class="form-check-label" for="usl_sign_consent">I reviewed this document and consent to use an electronic signature.</label>
-                    </div>
+                <div class="usl_sign_consent" role="group" aria-labelledby="usl_sign_consent_title">
+                    <label class="usl_sign_consent_choice" for="usl_sign_consent">
+                        <input id="usl_sign_consent" class="form-check-input" type="checkbox" t-on-change="(ev) => this._onConsentChanged(ev)"/>
+                        <span>
+                            <strong id="usl_sign_consent_title">Before you sign</strong>
+                            <span>I reviewed this document and consent to use an electronic signature.</span>
+                        </span>
+                    </label>
                     <div id="usl_sign_consent_error" class="text-danger small d-none">Consent is required.</div>
                     <div id="usl_sign_submission_error" class="alert alert-warning py-2 mt-2 mb-0 d-none" role="alert" tabindex="-1"></div>
                 </div>
                 <div class="usl_sign_portal_actions">
                     <button type="button" class="btn btn-outline-secondary" t-on-click="() => this._onClickDecline()">Decline</button>
-                    <button type="button" class="btn btn-primary" id="sign_oca_button" aria-label="Confirm consent and submit my signature" t-on-click="(ev) => this._onClickSign(ev)">
-                        Confirm and sign
+                    <button type="button" class="btn btn-primary" id="sign_oca_button" aria-label="Confirm consent and submit my signature" aria-describedby="usl_sign_submission_status" disabled="disabled" t-on-click="(ev) => this._onClickSign(ev)">
+                        <span id="usl_sign_submission_spinner" class="spinner-border spinner-border-sm me-2 d-none" aria-hidden="true"/>
+                        <span id="usl_sign_submission_label">Confirm and sign</span>
                     </button>
+                </div>
+                <div id="usl_sign_submission_status" class="usl_sign_submission_status d-none" role="status" aria-live="polite">
+                    <i class="fa fa-lock" aria-hidden="true"/>
+                    <span>Saving your signature and checking the document. Keep this tab open.</span>
                 </div>
             </div>
         </xpath>
