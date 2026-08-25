@@ -515,6 +515,55 @@
     width: auto;
 }
 
+.usl_sign_method_wizard {
+    .o_form_sheet {
+        max-width: 62rem;
+    }
+
+    .usl_sign_method_radio.o_field_radio .o_horizontal {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .75rem;
+        width: 100%;
+
+        .o_radio_item {
+            position: relative;
+            align-items: center;
+            min-height: 3.25rem;
+            margin: 0;
+            padding: 0;
+            border: 1px solid var(--o-border-color, #dee2e6);
+            border-radius: .5rem;
+            background: var(--o-view-background-color, #fff);
+            cursor: pointer;
+
+            .o_radio_input {
+                position: absolute;
+                z-index: 1;
+                top: 50%;
+                left: 1rem;
+                margin: 0;
+                transform: translateY(-50%);
+            }
+
+            .o_form_label {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                min-height: 3.25rem;
+                padding: .75rem 1rem .75rem 2.5rem;
+                cursor: pointer;
+            }
+
+            &:has(.o_radio_input:checked) {
+                border-color: var(--o-brand-primary, #714b67);
+                box-shadow: 0 0 0 1px var(--o-brand-primary, #714b67);
+                background: rgba(var(--o-brand-primary-rgb, 113, 75, 103), .06);
+            }
+        }
+    }
+}
+
 @media (max-width: 1199.98px) {
     .usl_sign_editor_workspace {
         grid-template-columns: 15rem minmax(0, 1fr) 16rem;
@@ -526,6 +575,10 @@
 }
 
 @media (max-width: 991.98px) {
+    .usl_sign_method_wizard .usl_sign_method_radio.o_field_radio .o_horizontal {
+        grid-template-columns: 1fr;
+    }
+
     .usl_sign_editor_toolbar,
     .usl_sign_field_library,
     .usl_sign_field_inspector,
