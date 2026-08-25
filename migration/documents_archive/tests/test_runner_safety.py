@@ -87,6 +87,9 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         )
         self.assertIn("bounded resumable queue checkpoint", script)
         self.assertIn("Commit every bounded worker pass", script)
+        self.assertIn("usl_documents_trusted_backfill_access=True", script)
+        self.assertIn('(\"res_field\", \"=\", False)', script)
+        self.assertIn('(\"res_field\", \"!=\", False)', script)
         runner = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(
             '-e DOCUMENTS_PAPERLESS_TOKEN="$documents_paperless_token"',

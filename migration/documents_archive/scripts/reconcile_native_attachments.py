@@ -16,7 +16,9 @@ from odoo.addons.usl_documents.models.paperless_client import PaperlessNotFound
 
 Attachment = env["ir.attachment"].sudo()  # noqa: F821 - provided by Odoo shell
 Document = env["usl.document"].sudo()  # noqa: F821
-Operation = env["usl.document.operation"].sudo()  # noqa: F821
+Operation = env["usl.document.operation"].sudo().with_context(  # noqa: F821
+    usl_documents_trusted_backfill_access=True,
+)
 
 # A previous attempt may have committed a Paperless upload before the Odoo
 # shell transaction failed. Reconcile the supported remote API first so a
@@ -110,10 +112,14 @@ taxonomy_consolidation = consolidate_expense_tags(migration_client)
 # queue starts so an interrupted run never repeats all archive mutations.
 env.cr.commit()  # noqa: F821 - provided by Odoo shell
 
-attachments = Attachment.search(
-    [("type", "=", "binary"), ("res_id", ">", 0)],
-    order="id",
-)
+attachment_domain = [("type", "=", "binary"), ("res_id", ">", 0)]
+# Odoo deliberately adds ``res_field = False`` to generic ir.attachment
+# searches. Name both halves explicitly so the final ledger also classifies
+# image/binary-field storage without treating it as a Paperless source file.
+attachments = (
+    Attachment.search([*attachment_domain, ("res_field", "=", False)])
+    | Attachment.search([*attachment_domain, ("res_field", "!=", False)])
+).sorted("id")
 excluded = Counter()
 eligible_ids = []
 for index, attachment in enumerate(attachments, start=1):
