@@ -4,8 +4,9 @@
 
 Keep the configuration paused until cut-over is proven:
 
-1. deploy and upgrade `usl_accounting`; optionally upgrade
-   `usl_documents_accounting` for Paperless mirroring;
+1. deploy and upgrade `usl_accounting`, `usl_documents` and
+   `usl_documents_accounting`; Paperless archival is required for the official
+   bank statement;
 2. create one **Scheduled Bank Export** for the company and Shine bank journal;
 3. enter the exact bank account, `hello@shine.fr`,
    `accounting.files.shine.fr`, the responsible accountant, start month and
@@ -28,10 +29,11 @@ duplicate or conflicting identities and never uses label-based matching.
 ## Normal operation
 
 At the start of each month, check the Shine journal or Accounting Overview. A
-successful source produces one monthly statement. Open the official PDF,
-choose **Confirm bank balances**, and compare the displayed period, opening and
-closing values with the PDF. Resolve any exact difference or continuity issue,
-then certify.
+successful source produces one monthly statement. Confirm that its official
+PDF is **Archived**, then open the version-specific original through the
+**Official PDF** action. Choose **Confirm bank balances** and compare the
+displayed period, opening and closing values with that PDF. Resolve any exact
+difference, continuity or Documents issue, then certify.
 
 The two scheduled jobs process retained sources every ten minutes and update
 expected-period activities daily. Pausing a configuration stops scheduled
@@ -58,16 +60,23 @@ processing; it does not delete sources or change accounting.
   balancing line.
 - **Replacement PDF:** retain both versions. Reopen first if the statement is
   certified, accept the reviewed replacement, then certify again.
-- **Archive failure:** Odoo evidence remains immutable and certification stays
-  valid. Correct Paperless access/connectivity and retry the archive job; do
-  not remove the Odoo attachment.
+- **Archive failure:** the Odoo source attachment remains immutable, but it is
+  provenance/recovery material and certification stays blocked. Correct
+  Paperless access, connectivity, catalog synchronization or classification,
+  then choose **Retry
+  Documents archive**. Do not remove or replace the retained Odoo attachment.
+- **Archived original unavailable:** restore the same Paperless root/version or
+  repair its object permissions. An earlier certification snapshot remains in
+  history, but the period shows **Needs attention** until the exact original is
+  available again.
 
 ## Monitoring and rollback
 
 Monitor overdue journal activities, received exports in **Needs attention** or
-**Import failed**, open statement exceptions, and Paperless archive failures.
-Investigate with the record history; application logs intentionally omit file
-contents and signed query strings.
+**Import failed**, open statement exceptions, and Documents archive failures or
+unavailable originals. Investigate with the statement, its Documents link and
+record history; application logs intentionally omit file contents and signed
+query strings.
 
 To stop new consequences, pause the route and disable the two bank-export
 scheduled jobs if required. Preserve all received sources, statements and

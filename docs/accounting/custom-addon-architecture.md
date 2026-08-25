@@ -110,7 +110,7 @@ identifiers. It is explicitly rejected for this increment.
 | External-provider payroll and TESE settlement | `usl_tese_payroll` | focused product module over native HR/Accounting and OCA matching | clean module, security, accounting and settlement tests |
 | TESE closing control | `usl_tese_accounting` | focused bridge from TESE payroll to the Accounting closing workspace | period, evidence, posting and liability-state tests |
 | Documents archive and access policy | `usl_documents` | Paperless-backed product module over native companies, contacts and access groups | backend/frontend suites, API/read-back and migration parity |
-| Accounting document evidence | `usl_documents_accounting` | focused bridge from Documents to Accounting records | record-link, authorization and accounting-view tests |
+| Accounting document evidence | `usl_documents_accounting` | focused bridge from the Paperless source of truth to Accounting records, including mandatory exact-version bank evidence | checksum/version pinning, record-link, retry, authorization and accounting-view tests |
 | Overview and cash projections | compatibility module for this stage | operational cross-feature behavior, left unchanged | native ledger, controls and report tests |
 | Currency automation | compatibility module for this stage | stable wizard-model ownership, left unchanged | ECB parsing/upsert and provider ACL tests |
 | Source trace, importer, native replay, parity evidence and reconstruction models | temporary `migration/accounting_restore` add-on | migration-only and uninstalled at finalization | canonical harness, idempotency and final-registry boundary gates |

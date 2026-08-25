@@ -9,6 +9,9 @@
 - The machine-readable OFX supplies movements and initial balance values.
 - The unchanged official PDF supplies external evidence; a person confirms the
   bank-reported opening and closing balances against it.
+- Paperless-backed Documents is authoritative for durable bank-statement files
+  and version history. Odoo retains the received email/PDF as integration
+  provenance and pins the exact Paperless root/version to the checkpoint.
 - Mail, file and download metadata is integration provenance, not a ledger.
 
 No process creates a balancing movement. The currency-aware controls are:
@@ -48,9 +51,12 @@ on retry.
 ## Certification and mutation boundary
 
 Certification snapshots user/time, period, balances, movement total/count,
-accepted evidence checksum and version, and a digest of reviewed transaction
-identities. Repeated certification is idempotent. Certification does not move
-company lock dates and does not require invoice/payment matching.
+accepted evidence checksum, Paperless root/version, and a digest of reviewed
+transaction identities. Before certification, the Paperless version checksum,
+company, active statement relationship, object permissions and availability
+must all agree, and the archive record must be reviewed as accounting evidence.
+Repeated certification is idempotent. Certification does not
+move company lock dates and does not require invoice/payment matching.
 
 While certified, statement membership, period, reference, reported balances,
 accepted evidence, transaction date/amount/bank identity and the liquidity
