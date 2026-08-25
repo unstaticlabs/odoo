@@ -7,7 +7,7 @@ import uuid
 from io import BytesIO
 
 from odoo.tools.pdf import PdfWriter
-from odoo.addons.usl_sign.services import field_content, field_value
+from odoo.addons.usl_sign.services import base64_text, field_content, field_value
 
 
 def _pdf():
@@ -92,7 +92,13 @@ def _complete_standard(label):
     session_token = signer._exchange_access_token(access_token)
     items = json.loads(json.dumps(request.frozen_layout))
     items["1"]["value"] = "QA Sign Archive Signer"
-    signer.action_sign(items, access_token=session_token, consent=True)
+    reviewed_document_sha256 = hashlib.sha256(field_content(request.data)).hexdigest()
+    signer.action_sign(
+        items,
+        access_token=session_token,
+        document_sha256=reviewed_document_sha256,
+        consent=True,
+    )
     env.cr.commit()
     request.invalidate_recordset()
     return request
@@ -122,7 +128,7 @@ try:
         )
     duplicate = env["usl.document"].sudo().upload_from_odoo(
         direct.dossier_filename,
-        direct.dossier_data,
+        base64_text(field_content(direct.dossier_data)),
         "application/pdf",
         res_model=direct._name,
         res_id=direct.id,
@@ -132,7 +138,7 @@ try:
     )
     if (
         duplicate.get("state") != "duplicate"
-        or duplicate.get("document_id") != direct.archive_document_id.id
+        or duplicate.get("document_id") != direct.archive_dossier_document_id.id
     ):
         raise RuntimeError("A checksum-identical dossier was not reused")
 
@@ -160,6 +166,9 @@ try:
             {
                 "direct": {
                     "archive_document_id": direct.archive_document_id.id,
+                    "archive_dossier_document_id": (
+                        direct.archive_dossier_document_id.id
+                    ),
                     "archive_status": direct.archive_status,
                     "dossier_sha256": hashlib.sha256(direct_dossier).hexdigest(),
                     "request_id": direct.id,
@@ -168,6 +177,9 @@ try:
                 "duplicate_reused": True,
                 "recovery": {
                     "archive_document_id": recovery.archive_document_id.id,
+                    "archive_dossier_document_id": (
+                        recovery.archive_dossier_document_id.id
+                    ),
                     "archive_status": recovery.archive_status,
                     "dossier_sha256": hashlib.sha256(recovery_dossier).hexdigest(),
                     "request_id": recovery.id,
