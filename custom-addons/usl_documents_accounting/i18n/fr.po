@@ -62,3 +62,55 @@ msgstr "Obligation de déclaration USL en France"
 #: model_terms:ir.ui.view,arch_db:usl_documents_accounting.view_rebuild_account_declaration_documents
 msgid "Upload"
 msgstr "Charger"
+
+#. module: usl_documents_accounting
+msgid "Archive failed"
+msgstr "Échec de l’archivage"
+
+#. module: usl_documents_accounting
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: usl_documents_accounting
+msgid "Archiving"
+msgstr "Archivage en cours"
+
+#. module: usl_documents_accounting
+msgid "Bank Evidence Archive Error"
+msgstr "Erreur d’archivage du justificatif bancaire"
+
+#. module: usl_documents_accounting
+msgid "Bank Evidence Archive State"
+msgstr "État d’archivage du justificatif bancaire"
+
+#. module: usl_documents_accounting
+msgid "Bank statement %(period)s"
+msgstr "Relevé bancaire %(period)s"
+
+#. module: usl_documents_accounting
+msgid "Documents: archive accepted bank statements"
+msgstr "Documents : archiver les relevés bancaires acceptés"
+
+#. module: usl_documents_accounting
+msgid "Not sent"
+msgstr "Non envoyé"
+
+#. module: usl_documents_accounting
+msgid "Paperless Archive Error"
+msgstr "Erreur d’archivage Paperless"
+
+#. module: usl_documents_accounting
+msgid "Paperless Archive State"
+msgstr "État d’archivage Paperless"
+
+#. module: usl_documents_accounting
+msgid "Paperless Document"
+msgstr "Document Paperless"
+
+#. module: usl_documents_accounting
+msgid "Paperless Operation"
+msgstr "Opération Paperless"
+
+#. module: usl_documents_accounting
+msgid "Waiting for archive"
+msgstr "En attente d’archivage"

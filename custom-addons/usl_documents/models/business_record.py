@@ -1,3 +1,5 @@
+import base64
+
 from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError
 
@@ -7,7 +9,8 @@ class DocumentLinkMixin(models.AbstractModel):
     _description = "Archived Document Link Mixin"
 
     archived_document_count = fields.Integer(
-        string="Archived Documents", compute="_compute_archived_document_count",
+        string="Archived Documents",
+        compute="_compute_archived_document_count",
     )
 
     def _compute_archived_document_count(self):
@@ -65,16 +68,17 @@ class DocumentLinkMixin(models.AbstractModel):
             raise UserError(_("The attachment no longer exists."))
         attachment.check_access("read")
         if attachment.res_model != self._name or attachment.res_id != self.id:
-            raise AccessError(_("This attachment does not belong to the current record."))
-        if attachment.type != "binary" or not attachment.datas:
+            raise AccessError(
+                _("This attachment does not belong to the current record."),
+            )
+        content = bytes(attachment.raw or b"")
+        if attachment.type != "binary" or not content:
             raise UserError(_("Only stored binary attachments can be archived."))
         # Existing attachments are intentionally retained. The checksum associates
         # both copies while Paperless processing completes.
         return self.env["usl.document"].upload_from_odoo(
             attachment.name,
-            attachment.datas.decode()
-            if isinstance(attachment.datas, bytes)
-            else attachment.datas,
+            base64.b64encode(content).decode(),
             attachment.mimetype,
             res_model=self._name,
             res_id=self.id,
@@ -130,9 +134,13 @@ class IrAttachment(models.Model):
                 raise UserError(
                     _("Select an attachment belonging to a supported business record."),
                 )
-            record = self.env[attachment.res_model].browse(
-                attachment.res_id,
-            ).exists()
+            record = (
+                self.env[attachment.res_model]
+                .browse(
+                    attachment.res_id,
+                )
+                .exists()
+            )
             if not record:
                 raise UserError(_("The attachment's business record no longer exists."))
             source = "odoo_attachment"
@@ -153,7 +161,8 @@ class IrAttachment(models.Model):
                 "title": _("Archive request created"),
                 "message": _(
                     "%(count)s attachment(s) sent to Paperless. Odoo copies were retained.",
-                ) % {"count": len(results)},
+                )
+                % {"count": len(results)},
                 "type": "success",
                 "sticky": False,
             },
