@@ -18,9 +18,13 @@ REQUIRED_KEYS = {
     "ODOO_INIT_DB",
     "ODOO_PUBLIC_BASE_URL",
     "PAPERLESS_DISABLE_REGULAR_LOGIN",
+    "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL",
+    "PAPERLESS_DB_PASSWORD",
     "PAPERLESS_OIDC_ENABLED",
     "PAPERLESS_PUBLIC_BASE_URL",
+    "PAPERLESS_PUBLIC_URL",
     "PAPERLESS_REDIRECT_LOGIN_TO_SSO",
+    "PAPERLESS_SECRET_KEY",
     "POCKET_ID_APP_URL",
     "POCKET_ID_CLIENT_ID",
     "POCKET_ID_CLIENT_SECRET",
@@ -40,11 +44,21 @@ REQUIRED_KEYS = {
     "USL_EREPORTING_LIVE_ENABLED",
     "USL_POCKET_ID_BREAK_GLASS_PASSWORD",
 }
+LEGACY_REQUIRED_KEYS = REQUIRED_KEYS - {
+    "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL",
+    "PAPERLESS_DB_PASSWORD",
+    "PAPERLESS_PUBLIC_URL",
+    "PAPERLESS_SECRET_KEY",
+}
 QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:18010"
 LEGACY_QA_PAPERLESS_PUBLIC_BASE_URL = "http://127.0.0.1:8010"
 
 
-def read_env(path: Path) -> dict[str, str]:
+def read_env(
+    path: Path,
+    *,
+    required_keys: set[str] = REQUIRED_KEYS,
+) -> dict[str, str]:
     mode = stat.S_IMODE(path.stat().st_mode)
     if mode & 0o077:
         raise RuntimeError(f"{path} must have mode 0600")
@@ -60,7 +74,7 @@ def read_env(path: Path) -> dict[str, str]:
         if not separator or not key or any(character.isspace() for character in key):
             raise RuntimeError(f"invalid environment line {line_number}")
         values[key] = value
-    missing = sorted(REQUIRED_KEYS - values.keys())
+    missing = sorted(required_keys - values.keys())
     if missing:
         raise RuntimeError(f"missing QA SSO keys: {', '.join(missing)}")
     return values
@@ -68,10 +82,21 @@ def read_env(path: Path) -> dict[str, str]:
 
 def ensure_env(path: Path) -> None:
     if path.exists():
-        values = read_env(path)
+        values = read_env(path, required_keys=LEGACY_REQUIRED_KEYS)
         extra_users = json.loads(values["POCKET_ID_EXTRA_USERS_JSON"])
         lines = path.read_text(encoding="utf-8").splitlines()
         changed = False
+        additions = {}
+        if not values.get("PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL"):
+            additions["PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL"] = "http"
+        if not values.get("PAPERLESS_DB_PASSWORD"):
+            additions["PAPERLESS_DB_PASSWORD"] = secrets.token_urlsafe(36)
+        if not values.get("PAPERLESS_PUBLIC_URL"):
+            additions["PAPERLESS_PUBLIC_URL"] = QA_PAPERLESS_PUBLIC_BASE_URL
+        if not values.get("PAPERLESS_SECRET_KEY"):
+            additions["PAPERLESS_SECRET_KEY"] = secrets.token_urlsafe(64)
+        if additions:
+            changed = True
         if not any(
             item.get("username") == "documents-sso-user"
             for item in extra_users
@@ -93,20 +118,26 @@ def ensure_env(path: Path) -> None:
                 "QA Paperless public base URL must use isolated port 18010"
             )
         if changed:
-            path.write_text(
-                "\n".join(
-                    "PAPERLESS_PUBLIC_BASE_URL="
-                    + QA_PAPERLESS_PUBLIC_BASE_URL
-                    if line.startswith("PAPERLESS_PUBLIC_BASE_URL=")
-                    else (
-                        "POCKET_ID_EXTRA_USERS_JSON="
-                        + json.dumps(extra_users, separators=(",", ":"))
-                    )
-                    if line.startswith("POCKET_ID_EXTRA_USERS_JSON=")
-                    else line
-                    for line in lines
+            upgraded_lines = [
+                "PAPERLESS_PUBLIC_BASE_URL=" + QA_PAPERLESS_PUBLIC_BASE_URL
+                if line.startswith("PAPERLESS_PUBLIC_BASE_URL=")
+                else (
+                    "POCKET_ID_EXTRA_USERS_JSON="
+                    + json.dumps(extra_users, separators=(",", ":"))
                 )
-                + "\n",
+                if line.startswith("POCKET_ID_EXTRA_USERS_JSON=")
+                else line
+                for line in lines
+            ]
+            if additions:
+                upgraded_lines.extend(
+                    ["", "# Generated Paperless QA service configuration."]
+                )
+                upgraded_lines.extend(
+                    f"{key}={value}" for key, value in additions.items()
+                )
+            path.write_text(
+                "\n".join(upgraded_lines) + "\n",
                 encoding="utf-8",
             )
             path.chmod(0o600)
@@ -134,9 +165,13 @@ def ensure_env(path: Path) -> None:
         "ODOO_INIT_DB": "odoo_usl_documents_test",
         "ODOO_PUBLIC_BASE_URL": "http://odoo-documents.localhost:18080",
         "PAPERLESS_DISABLE_REGULAR_LOGIN": "false",
+        "PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL": "http",
+        "PAPERLESS_DB_PASSWORD": secrets.token_urlsafe(36),
         "PAPERLESS_OIDC_ENABLED": "1",
         "PAPERLESS_PUBLIC_BASE_URL": QA_PAPERLESS_PUBLIC_BASE_URL,
+        "PAPERLESS_PUBLIC_URL": QA_PAPERLESS_PUBLIC_BASE_URL,
         "PAPERLESS_REDIRECT_LOGIN_TO_SSO": "false",
+        "PAPERLESS_SECRET_KEY": secrets.token_urlsafe(64),
         "POCKET_ID_APP_URL": "http://pocket-id-documents.localhost:18110",
         "POCKET_ID_CLIENT_ID": "usl-odoo-documents-qa",
         "POCKET_ID_CLIENT_SECRET": secrets.token_urlsafe(36),

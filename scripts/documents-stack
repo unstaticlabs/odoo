@@ -481,8 +481,8 @@ print(
         -e TEST_DATABASE="$TEST_DATABASE" db sh -c \
         'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"' \
         >/dev/null
-      "${COMPOSE[@]}" --profile init run --rm --no-deps \
-        --entrypoint sh -e TEST_DATABASE="$TEST_DATABASE" init-db -c '
+      "${COMPOSE[@]}" --profile test run --rm --no-deps \
+        --entrypoint sh -e TEST_DATABASE="$TEST_DATABASE" test -c '
           directory="/var/lib/odoo/filestore/$TEST_DATABASE"
           if [ -d "$directory" ]; then
             find "$directory" -mindepth 1 -delete
