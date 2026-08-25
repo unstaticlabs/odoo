@@ -2180,6 +2180,98 @@ msgid "Your status"
 msgstr "Votre statut"
 
 #. module: usl_sign
+msgid "What happens next"
+msgstr "Suite"
+
+#. module: usl_sign
+msgid "Next step"
+msgstr "Prochaine étape"
+
+#. module: usl_sign
+msgid "View identity status"
+msgstr "Voir l’état de mon identité"
+
+#. module: usl_sign
+msgid "Open external signing"
+msgstr "Ouvrir la signature externe"
+
+#. module: usl_sign
+msgid "Identity setup"
+msgstr "Configuration de l’identité"
+
+#. module: usl_sign
+msgid "External signing"
+msgstr "Signature externe"
+
+#. module: usl_sign
+msgid "Waiting for sender"
+msgstr "En attente de l’expéditeur"
+
+#. module: usl_sign
+msgid "Identity setup needed"
+msgstr "Identité à configurer"
+
+#. module: usl_sign
+msgid "Identity review in progress"
+msgstr "Vérification de l’identité en cours"
+
+#. module: usl_sign
+msgid "Open the completed files."
+msgstr "Ouvrez les fichiers finalisés."
+
+#. module: usl_sign
+msgid "Nothing else is needed from you."
+msgstr "Aucune autre action n’est requise de votre part."
+
+#. module: usl_sign
+msgid "Review the document and sign it."
+msgstr "Vérifiez le document et signez-le."
+
+#. module: usl_sign
+msgid "Use your setup invitation to connect Pocket ID."
+msgstr "Utilisez votre invitation de configuration pour connecter Pocket ID."
+
+#. module: usl_sign
+msgid "Your identity is connected. An identity reviewer must approve it."
+msgstr "Votre identité est connectée. Un vérificateur d’identité doit l’approuver."
+
+#. module: usl_sign
+msgid "Your identity is ready. The sender must continue the request."
+msgstr "Votre identité est prête. L’expéditeur doit poursuivre la demande."
+
+#. module: usl_sign
+msgid "The sender must arrange identity setup before you can sign."
+msgstr "L’expéditeur doit organiser la configuration de votre identité avant que vous puissiez signer."
+
+#. module: usl_sign
+msgid "Open the provider instructions to continue."
+msgstr "Ouvrez les instructions du prestataire pour continuer."
+
+#. module: usl_sign
+msgid "The sender is preparing the external signing journey."
+msgstr "L’expéditeur prépare le parcours de signature externe."
+
+#. module: usl_sign
+msgid "Another signer goes first. You will be notified when it is your turn."
+msgstr "Une autre personne signe avant vous. Vous serez averti lorsque ce sera votre tour."
+
+#. module: usl_sign
+msgid "Nothing is needed from you while the sender completes the final checks."
+msgstr "Aucune action n’est requise pendant que l’expéditeur effectue les vérifications finales."
+
+#. module: usl_sign
+msgid "The sender is still preparing the request."
+msgstr "L’expéditeur prépare encore la demande."
+
+#. module: usl_sign
+msgid "The sender has not started identity setup yet."
+msgstr "L’expéditeur n’a pas encore lancé la configuration de l’identité."
+
+#. module: usl_sign
+msgid "External signing instructions are not available yet."
+msgstr "Les instructions de signature externe ne sont pas encore disponibles."
+
+#. module: usl_sign
 msgid "View result"
 msgstr "Voir le résultat"
 
