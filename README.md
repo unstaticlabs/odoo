@@ -618,7 +618,9 @@ already finalized and only seed capture or final QA qualification failed, use
 runtime without reinstalling migration modules or replaying source identities.
 Cache refresh configures and validates the complete delivered product before
 capturing a credential-sanitized seed, then reapplies local identity settings
-before the final multi-company acceptance.
+before the final multi-company acceptance. Paperless OIDC subjects and other
+environment-bound integrations are stripped from the seed and reprovisioned
+for each isolated QA project.
 Both shortcuts are QA-only. The production migration command always
 reconstructs from source.
 

@@ -186,7 +186,12 @@ capture() {
     docker cp \
         "$("${compose[@]}" ps -q paperless-webserver):/usr/src/paperless/export/$export_name/." \
         "$pending_dir/paperless-export"
-    python3 scripts/paperless_seed_sanitize.py "$pending_dir/paperless-export"
+    # A reusable seed must not retain Paperless OIDC subjects, sessions,
+    # provider applications, mail/webhook integrations, or environment-bound
+    # application configuration.  Hydration provisions fresh identities and
+    # configuration for its isolated Compose project.
+    python3 scripts/paperless_seed_sanitize.py --portable-candidate \
+        "$pending_dir/paperless-export"
 
     usl_cli_step 3 "Snapshot Odoo database and filestore"
     "${compose[@]}" stop odoo >/dev/null 2>&1 || true
