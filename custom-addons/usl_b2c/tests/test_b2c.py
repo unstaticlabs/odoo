@@ -104,6 +104,27 @@ class TestB2cFoundation(TransactionCase):
         provider = self.env.ref("delivery.payment_provider_cod")
         self.assertEqual(provider.state, "disabled")
 
+    def test_coverage_fields_keep_zero_to_one_hundred_display_contract(self):
+        self.assertEqual(
+            self.env["b2c.order"]._fields[
+                "line_revenue_coverage_percent"
+            ].string,
+            "Line Revenue Coverage (%)",
+        )
+        self.assertEqual(
+            self.env["b2c.accounting.session"]._fields[
+                "accounting_link_coverage_percent"
+            ].string,
+            "Accounting Link Coverage (%)",
+        )
+        for xmlid in (
+            "usl_b2c.view_b2c_order_list",
+            "usl_b2c.view_b2c_order_form",
+            "usl_b2c.view_b2c_accounting_session_list",
+            "usl_b2c.view_b2c_accounting_session_form",
+        ):
+            self.assertNotIn('widget="percentage"', self.env.ref(xmlid).arch_db)
+
     def test_acl_and_company_isolation(self):
         order = self.env["b2c.order"].create(self._order_values("acl"))
         self.assertEqual(order.with_user(self.reader).name, "B2C-acl")

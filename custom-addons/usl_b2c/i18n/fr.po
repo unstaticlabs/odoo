@@ -135,8 +135,8 @@ msgstr "justificatif comptable"
 
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__accounting_link_coverage_percent
-msgid "Accounting Link Coverage Percent"
-msgstr "Taux de couverture des liens comptables"
+msgid "Accounting Link Coverage (%)"
+msgstr "Taux de couverture des liens comptables (%)"
 
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_fulfilment_event__accounting_link_state
@@ -1280,8 +1280,8 @@ msgstr "Chiffre d’affaires de ligne en devise de la société"
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__line_revenue_coverage_percent
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_order__line_revenue_coverage_percent
-msgid "Line Revenue Coverage Percent"
-msgstr "Taux de couverture du chiffre d’affaires par les lignes"
+msgid "Line Revenue Coverage (%)"
+msgstr "Taux de couverture du chiffre d’affaires par les lignes (%)"
 
 #. module: usl_b2c
 #: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_order_line_analytics

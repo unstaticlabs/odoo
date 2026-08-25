@@ -90,8 +90,14 @@ class B2cAccountingSession(models.Model):
         currency_field="company_currency_id",
         readonly=True,
     )
-    line_revenue_coverage_percent = fields.Float(readonly=True)
-    accounting_link_coverage_percent = fields.Float(readonly=True)
+    line_revenue_coverage_percent = fields.Float(
+        string="Line Revenue Coverage (%)",
+        readonly=True,
+    )
+    accounting_link_coverage_percent = fields.Float(
+        string="Accounting Link Coverage (%)",
+        readonly=True,
+    )
     pending_mapping_count = fields.Integer(readonly=True)
     pending_link_count = fields.Integer(readonly=True)
     pending_conversion_count = fields.Integer(

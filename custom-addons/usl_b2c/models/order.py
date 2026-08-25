@@ -216,6 +216,7 @@ class B2cOrder(models.Model):
         store=True,
     )
     line_revenue_coverage_percent = fields.Float(
+        string="Line Revenue Coverage (%)",
         compute="_compute_line_coverage",
         store=True,
         aggregator="avg",
