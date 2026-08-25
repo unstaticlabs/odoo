@@ -228,16 +228,14 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index('stage "verify qualified seed (read only)"'),
             script.index('stage "reset isolated QA project"'),
         )
-        self.assertIn(
-            "--no-progress-bar /usr/src/paperless/export/qa-seed",
-            script,
-        )
+        self.assertIn("/usr/src/paperless/export/qa-seed", script)
         self.assertIn("usl-odoo-qa-?*", script)
         self.assertIn("No containers or data volumes were changed", script)
         self.assertIn("pg_restore -U odoo -d odoo_dev --exit-on-error", script)
         self.assertIn('--jobs="$RESTORE_JOBS"', script)
         self.assertIn("PaperlessTask.objects.count()", script)
-        self.assertIn("--entrypoint document_importer paperless-webserver", script)
+        self.assertIn("--user paperless --entrypoint python paperless-webserver", script)
+        self.assertIn("manage.py document_importer --no-progress-bar", script)
         self.assertIn("verify_hydrated_controls", script)
 
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
@@ -333,9 +331,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertIn("pg_dump -U \"$POSTGRES_USER\" -Fc", candidate)
         self.assertNotIn("compose.pocket-id.yaml", cutover)
         self.assertIn("candidate reset is permanently disabled", cutover.lower())
-        self.assertIn("--no-progress-bar /usr/src/paperless/export/candidate", cutover)
+        self.assertIn("/usr/src/paperless/export/candidate", cutover)
         self.assertIn("PaperlessTask.objects.count()", cutover)
-        self.assertIn("--entrypoint document_importer paperless-webserver", cutover)
+        self.assertIn("--user paperless --entrypoint python paperless-webserver", cutover)
+        self.assertIn("manage.py document_importer --no-progress-bar", cutover)
         self.assertIn('--jobs="$RESTORE_JOBS"', cutover)
         self.assertIn("USL_PRODUCTION_CRON_ALLOWLIST_JSON", cutover)
         self.assertIn("journeys --evidence", cutover)

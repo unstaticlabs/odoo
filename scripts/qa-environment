@@ -220,8 +220,9 @@ hydrate_seed() {
       | tail -n 1
   )"
   "${compose[@]}" --profile paperless run --rm --no-deps \
-    --entrypoint document_importer paperless-webserver \
-    --no-progress-bar /usr/src/paperless/export/qa-seed
+    --user paperless --entrypoint python paperless-webserver \
+    manage.py document_importer --no-progress-bar \
+    /usr/src/paperless/export/qa-seed
   after_queue="$("${compose[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   after_tasks="$(
     "${compose[@]}" --profile paperless run --rm --no-deps \

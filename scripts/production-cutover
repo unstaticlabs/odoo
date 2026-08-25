@@ -283,8 +283,9 @@ stage() {
     --entrypoint python paperless-webserver manage.py shell -c \
     'from documents.models import PaperlessTask; print(PaperlessTask.objects.count())' | tail -n 1)"
   "${COMPOSE[@]}" --profile paperless run --rm --no-deps \
-    --entrypoint document_importer paperless-webserver \
-    --no-progress-bar /usr/src/paperless/export/candidate
+    --user paperless --entrypoint python paperless-webserver \
+    manage.py document_importer --no-progress-bar \
+    /usr/src/paperless/export/candidate
   queue_after="$("${COMPOSE[@]}" exec -T paperless-broker valkey-cli LLEN celery)"
   tasks_after="$("${COMPOSE[@]}" --profile paperless run --rm --no-deps \
     --entrypoint python paperless-webserver manage.py shell -c \
