@@ -65,6 +65,29 @@ PDF/A-3 dossier, veraPDF, replay and alteration checks. `stop` leaves all
 project volumes intact, so the same `start` command brings the tenant back.
 Remove project volumes only when deliberately requesting a new clean seed.
 
+Loopback is the default and must remain the normal developer setting. For an
+explicitly authorized private-network review, bind only the Mac's exact
+private or Tailscale IPv4 address and use that same address (or its `*.ts.net`
+name) in the three browser-facing URLs:
+
+```shell
+export USL_SIGN_POCKETID_BIND_ADDRESS=100.64.0.10
+export USL_SIGN_POCKETID_PRIVATE_QA=1
+export USL_SIGN_POCKETID_ODOO_HOSTNAME=100.64.0.10
+export USL_SIGN_POCKETID_POCKET_HOSTNAME=100.64.0.10
+export USL_SIGN_POCKETID_PAPERLESS_PUBLIC_URL=http://100.64.0.10:PORT
+scripts/sign-qa-stack start
+```
+
+Use the Paperless port printed by `scripts/sign-qa-stack info`. The Sign QA
+Compose overlay publishes only Odoo, its gevent endpoint, Pocket ID and
+Paperless on that one address. PostgreSQL, CA and DSS remain internal to the
+isolated Compose project. The helper rejects wildcard, public and multicast
+bind addresses; an explicit private-QA opt-in is required for non-localhost
+OIDC hostnames. Plain HTTP on a private address is suitable only for this
+disposable synthetic review tenant, not for production or a real passkey
+ceremony.
+
 ## Product workspaces
 
 The installed Sign application is document-only. Its navigation is:
