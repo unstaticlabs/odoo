@@ -9,6 +9,12 @@ After admission, candidate reset is permanently disabled; use the coordinated
 Odoo/Paperless backup procedure below. Pocket ID remains independently operated
 and is never restored from an application candidate.
 
+Before final freeze, assign and evidence the production RPO/RTO, schedule,
+retention, separate failure domain, encryption/access policy, missed-backup
+alerts and restore-test owner in the
+[production cut-over readiness register](production-cutover-readiness.md).
+Do not admit the candidate on the assumption that these will be decided later.
+
 ## Recovery objective
 
 USL must be able to restore a coherent Odoo service containing the database, documents and required configuration to an understood point in time.
