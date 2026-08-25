@@ -806,3 +806,54 @@ concurrent insert then reached the unique constraint for Paperless ID 349; the
 constraint prevented duplicate state, and the final single-worker bridge and
 integrity manifest passed. No container, volume, database or port outside
 `usl-odoo-paperless-193-0824` was used.
+
+### 2026-08-26 QA identity and permission follow-up
+
+The source-complete database did not initially contain governed Pocket
+identities for every manual persona. Six synthetic identities—manager, ordinary
+user, read-only reviewer, restricted user, HR user and two-company user—were
+provisioned in the existing isolated Pocket tenant, mapped through the official
+Odoo/Paperless identity workflow and synchronized without changing source
+business records. The final identity boundary covers all nine governed human
+users, with zero unverified mappings and zero unsynchronized visible roots.
+Personal Gemini remains opt-in and has zero configured profiles before manual
+QA.
+
+That first source-wide permission synchronization also exposed unnecessary
+upstream task fan-out. Paperless's standard `set_permissions` bulk-edit method
+always schedules its supported search/vector refresh. Calling it once for each
+of 865 live roots therefore created 865 tasks even though most roots shared an
+identical ACL. Three alternatives were compared:
+
+1. Keep the one-root standard API calls. This is correct but produces avoidable
+   queue and embedding work, so it was superseded.
+2. Group roots with an identical Odoo-derived ACL and send bounded 100-root
+   calls through the same standard Paperless endpoint. This is selected. It
+   retains supported lifecycle behavior, deterministic Odoo authorization,
+   fail-closed error state for every root in a failed batch and a small request
+   bound.
+3. Add a custom permission-only Paperless endpoint that skips index refresh.
+   This could avoid more work, but it was rejected because it would introduce
+   a second security-sensitive write contract and bypass Paperless's normal
+   lifecycle.
+
+While the pre-existing per-root queue was draining, nine tasks—Paperless task
+rows 2420–2427 and 2429—failed with `attempt to write a readonly database`.
+The vector database and its WAL/SHM files were owned by root because earlier
+release management commands had used the container default user; the worker
+runs as `paperless`. Deleting or rebuilding the index would discard transferable
+index state and was rejected. Ownership was corrected only on those three
+files, the supported queue was allowed to drain, and all release, recovery,
+seed and QA importer commands that write Paperless volumes now run explicitly
+as the `paperless` runtime user. The nine failed audit rows remain failed; a
+final supported incremental vector update reconciles their document state
+without rewriting task history.
+
+Odoo module `usl_documents` is deployed as `saas~19.3.1.7.2` in the isolated
+QA database. A fresh full backend run reports 153 post-test methods and 161
+tagged entries with zero failures or errors; the bounded batching regression
+also passes independently. Installation, update, repeated update, the 19-test
+runner-safety suite, scoped Ruff, compilation, shell syntax, source boundary
+and 12-module product-database boundary all pass. The manual tour and current
+SSO persona paths are maintained in
+[Try the Documents application](../users/guides/test-paperless-documents.md).
