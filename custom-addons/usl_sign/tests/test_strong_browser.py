@@ -12,7 +12,7 @@ from odoo.tests.common import (
 )
 from odoo.tools.pdf import PdfWriter
 
-from ..services import field_content, field_value
+from odoo.addons.usl_sign.services import field_content, field_value
 
 
 @tagged("post_install", "-at_install")

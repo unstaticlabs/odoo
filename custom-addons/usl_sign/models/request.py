@@ -17,17 +17,10 @@ from odoo.http import request as http_request
 from odoo.tools.misc import format_datetime
 from odoo.tools.pdf import PdfReader, PdfWriter
 
-from ..services import (
-    DSSClient,
-    DSSRejectedError,
-    DSSServiceError,
-    base64_text,
-    field_content,
-    field_value,
-)
 from .constants import (
     AUTHENTICATION_METHODS,
     CANCELLABLE_REQUEST_STATES,
+    DOCUMENT_CATEGORIES,
     EXPIRABLE_REQUEST_STATES,
     INTERNAL_OPERATION,
     MUTABLE_REQUEST_STATES,
@@ -45,6 +38,14 @@ from .template import (
     _validate_complete_editor_geometry,
     _validate_editor_geometry,
     _validate_editor_uuid,
+)
+from odoo.addons.usl_sign.services import (
+    DSSClient,
+    DSSRejectedError,
+    DSSServiceError,
+    base64_text,
+    field_content,
+    field_value,
 )
 
 TRANSITIONS = {
@@ -137,16 +138,7 @@ class SignRequest(models.Model):
         REQUEST_STATES, default="draft", required=True, copy=False, tracking=True,
     )
     document_category = fields.Selection(
-        [
-            ("internal_decision", "Corporate decision document"),
-            ("routine_agreement", "Routine agreement"),
-            ("employment", "Employment document"),
-            ("intellectual_property", "Intellectual property"),
-            ("commercial", "Commercial agreement"),
-            ("finance_guarantee", "Financing or guarantee"),
-            ("mandate", "Mandate"),
-            ("other", "Other"),
-        ],
+        DOCUMENT_CATEGORIES,
         default="routine_agreement",
         required=True,
     )
@@ -164,7 +156,6 @@ class SignRequest(models.Model):
         default="low",
         required=True,
     )
-    requires_signed_pdf = fields.Boolean(default=True)
     formal_qes_required = fields.Boolean()
     policy_id = fields.Many2one("usl.sign.policy", ondelete="restrict")
     policy_version = fields.Char(readonly=True, copy=False)
@@ -177,7 +168,6 @@ class SignRequest(models.Model):
     recommendation_reason = fields.Text(readonly=True, copy=False)
     recommendation_consequence = fields.Text(readonly=True, copy=False)
     override_reason = fields.Text(copy=False)
-    approval_recommended = fields.Boolean(readonly=True, copy=False)
     authentication_method = fields.Selection(
         AUTHENTICATION_METHODS, readonly=True, copy=False,
     )
@@ -610,7 +600,7 @@ class SignRequest(models.Model):
             request.managed_by_current_user = bool(
                 review_all
                 or request.user_id == self.env.user
-                or self.env.user in request.coordinator_ids
+                or self.env.user in request.coordinator_ids,
             )
 
     @api.model
@@ -693,7 +683,6 @@ class SignRequest(models.Model):
 
     def action_compute_recommendation(self, apply_timing_defaults=True):
         for request in self:
-            request.approval_recommended = False
             policy = self.env["usl.sign.policy"].recommend(
                 request.company_id,
                 category=request.document_category,
@@ -729,11 +718,6 @@ class SignRequest(models.Model):
             request.update(values)
         return True
 
-    def action_create_approval(self):
-        raise AccessError(
-            "Internal Decision requests are not part of the document-signing product.",
-        )
-
     def action_open_signing_method(self):
         self.ensure_one()
         self._check_owner_access()
@@ -762,7 +746,7 @@ class SignRequest(models.Model):
             user_agent = user_agent or http_request.httprequest.headers.get(
                 "User-Agent", "",
             )
-        return self.env["usl.sign.event"].append(
+        return self.env["usl.sign.event"]._append(
             self,
             event_type,
             ip_address=ip_address,
@@ -811,9 +795,6 @@ class SignRequest(models.Model):
 
     def _validate_preparation(self):
         self.ensure_one()
-        if not self.requires_signed_pdf:
-            msg = "Every request in Sign must produce a signed PDF."
-            raise ValidationError(msg)
         if not self.signer_ids:
             msg = "Add at least one signer."
             raise ValidationError(msg)
@@ -891,7 +872,7 @@ class SignRequest(models.Model):
         try:
             consolidated, _page_map = self.env[
                 "usl.sign.request.document"
-            ].consolidate(self.document_ids)
+            ]._consolidate(self.document_ids)
             page_count = len(PdfReader(BytesIO(consolidated)).pages)
         except Exception as error:
             msg = "Every request document must remain a readable PDF."
@@ -1224,7 +1205,7 @@ class SignRequest(models.Model):
         self.ensure_one()
         if self.original_data:
             return
-        consolidated, page_map = self.env["usl.sign.request.document"].consolidate(
+        consolidated, page_map = self.env["usl.sign.request.document"]._consolidate(
             self.document_ids,
         )
         digest = hashlib.sha256(consolidated).hexdigest()
@@ -1350,6 +1331,7 @@ class SignRequest(models.Model):
         return True
 
     def action_resume_after_enrollment(self):
+        self._check_prepare_access()
         for request in self:
             if request.state != "waiting_enrollment":
                 continue
@@ -1402,6 +1384,7 @@ class SignRequest(models.Model):
 
     def action_validate_external(self):
         self.ensure_one()
+        self._check_prepare_access()
         journey = self.external_journey_id
         if self.state != "signed_to_import" or not journey.imported_pdf:
             msg = "Import the externally signed document first."
@@ -1562,7 +1545,6 @@ class SignRequest(models.Model):
                 "document_category": self.document_category,
                 "signer_type": self.signer_type,
                 "risk_level": self.risk_level,
-                "requires_signed_pdf": self.requires_signed_pdf,
                 "formal_qes_required": self.formal_qes_required,
                 "policy_id": self.policy_id.id,
                 "requested_trust": self.requested_trust,
@@ -2362,7 +2344,7 @@ class SignRequest(models.Model):
                 continue
             request.invalidate_recordset()
             archive_complete = bool(
-                request.archive_document_id and request.archive_dossier_document_id
+                request.archive_document_id and request.archive_dossier_document_id,
             )
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                 {
@@ -2437,7 +2419,7 @@ class SignRequest(models.Model):
                 continue
             request.invalidate_recordset()
             archive_complete = bool(
-                request.archive_document_id and request.archive_dossier_document_id
+                request.archive_document_id and request.archive_dossier_document_id,
             )
             request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
                 {
@@ -2527,6 +2509,7 @@ class SignRequest(models.Model):
             )
 
     def action_send_reminder(self):
+        self._check_prepare_access()
         return self._send_due_reminders(force=True)
 
     def _send_due_reminders(self, force=False):
@@ -2747,6 +2730,7 @@ class SignRequest(models.Model):
         )
 
     def action_retry_validation(self):
+        self._check_prepare_access()
         for request in self:
             if request.state != "action_required":
                 continue
@@ -2841,7 +2825,6 @@ class SignRequest(models.Model):
             "document_category",
             "signer_type",
             "risk_level",
-            "requires_signed_pdf",
             "formal_qes_required",
             "original_data",
             "original_filename",
@@ -2860,7 +2843,6 @@ class SignRequest(models.Model):
             "recommendation_reason",
             "recommendation_consequence",
             "override_reason",
-            "approval_recommended",
             "company_id",
             "external_provider_id",
             "expires_at",
@@ -3012,12 +2994,12 @@ class SignRequestSigner(models.Model):
             signer.can_open_signing_identity = bool(
                 owns_assignment
                 and signer.request_id.state == "waiting_enrollment"
-                and enrollment
+                and enrollment,
             )
             signer.can_open_external_signing = bool(
                 owns_assignment
                 and signer.request_id.state == "waiting_external"
-                and signer.request_id.external_journey_id
+                and signer.request_id.external_journey_id,
             )
             if signer.state in signer_labels:
                 signer.personal_status = signer_labels[signer.state]

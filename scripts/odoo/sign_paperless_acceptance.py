@@ -1,3 +1,4 @@
+# ruff: noqa: F821, T201 -- Odoo shell injects env; stdout is the test result.
 """Exercise a real Standard Sign completion and Paperless recovery journey."""
 
 import hashlib
@@ -9,6 +10,7 @@ from io import BytesIO
 from psycopg2.errors import SerializationFailure
 
 from odoo.tools.pdf import PdfWriter
+
 from odoo.addons.usl_sign.services import base64_text, field_content, field_value
 
 
@@ -114,7 +116,8 @@ def _complete_standard(label):
 params = env["ir.config_parameter"].sudo()
 paperless_url = params.get_str("usl_documents.paperless_url", "")
 if not paperless_url or not params.get_str("usl_documents.paperless_token", ""):
-    raise RuntimeError("Paperless is not configured for the Sign acceptance")
+    msg = "Paperless is not configured for the Sign acceptance"
+    raise RuntimeError(msg)
 
 company = env.company
 original_company_email = company.email
@@ -147,7 +150,8 @@ try:
         duplicate.get("state") != "duplicate"
         or duplicate.get("document_id") != direct.archive_dossier_document_id.id
     ):
-        raise RuntimeError("A checksum-identical dossier was not reused")
+        msg = "A checksum-identical dossier was not reused"
+        raise RuntimeError(msg)
 
     params.set_str("usl_documents.paperless_url", "http://127.0.0.1:9")
     recovery = _complete_standard(f"QA Sign archive recovery {run_id}")
@@ -156,7 +160,8 @@ try:
         or recovery.archive_status != "failed"
         or recovery.completed_at
     ):
-        raise RuntimeError("The Paperless outage did not fail closed")
+        msg = "The Paperless outage did not fail closed"
+        raise RuntimeError(msg)
     params.set_str("usl_documents.paperless_url", paperless_url)
     env.cr.commit()
     recovery.action_retry_archive()

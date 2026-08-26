@@ -1,7 +1,7 @@
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
-from .constants import INTERNAL_OPERATION
+from .constants import DOCUMENT_CATEGORIES, INTERNAL_OPERATION
 
 SHORT_TRUST_LEVELS = [
     ("standard", "Standard"),
@@ -68,16 +68,7 @@ class SignTemplateGenerate(models.TransientModel):
         string="Linked record",
     )
     document_category = fields.Selection(
-        [
-            ("internal_decision", "Corporate decision document"),
-            ("routine_agreement", "Routine agreement"),
-            ("employment", "Employment document"),
-            ("intellectual_property", "Intellectual property"),
-            ("commercial", "Commercial agreement"),
-            ("finance_guarantee", "Financing or guarantee"),
-            ("mandate", "Mandate"),
-            ("other", "Other"),
-        ],
+        DOCUMENT_CATEGORIES,
         default=_default_document_category,
         required=True,
     )
@@ -97,7 +88,6 @@ class SignTemplateGenerate(models.TransientModel):
         required=True,
         string="Business risk",
     )
-    requires_signed_pdf = fields.Boolean(default=True)
     formal_qes_required = fields.Boolean(string="A formal QES is required")
     policy_id = fields.Many2one("usl.sign.policy", readonly=True)
     recommended_trust = fields.Selection(
@@ -114,7 +104,6 @@ class SignTemplateGenerate(models.TransientModel):
     recommendation_reason = fields.Text(readonly=True)
     recommendation_consequence = fields.Text(readonly=True)
     override_reason = fields.Text()
-    approval_recommended = fields.Boolean(readonly=True)
     journey_availability = fields.Text(string="Before you continue", readonly=True)
     external_provider_id = fields.Many2one(
         "usl.sign.external.provider",
@@ -150,7 +139,6 @@ class SignTemplateGenerate(models.TransientModel):
     def _refresh_usl_journey(self):
         for wizard in self:
             previous_recommendation = wizard.recommended_trust
-            wizard.approval_recommended = False
             policy = self.env["usl.sign.policy"].recommend(
                 wizard.company_id or self.env.company,
                 category=wizard.document_category,
@@ -242,7 +230,6 @@ class SignTemplateGenerate(models.TransientModel):
                 "document_category": self.document_category,
                 "signer_type": self.signer_type,
                 "risk_level": self.risk_level,
-                "requires_signed_pdf": True,
                 "formal_qes_required": self.formal_qes_required,
                 "requested_trust": self.requested_trust,
                 "override_reason": self.override_reason,
@@ -293,11 +280,6 @@ class SignTemplateGenerate(models.TransientModel):
             "target": "current",
         }
 
-    def action_request_approval(self):
-        raise AccessError(
-            "Internal Decision requests are not part of the document-signing product.",
-        )
-
 
 class SignRequestMethod(models.TransientModel):
     _name = "usl.sign.request.method"
@@ -305,19 +287,7 @@ class SignRequestMethod(models.TransientModel):
 
     request_id = fields.Many2one("sign.oca.request", required=True, readonly=True)
     company_id = fields.Many2one(related="request_id.company_id", readonly=True)
-    document_category = fields.Selection(
-        [
-            ("internal_decision", "Corporate decision document"),
-            ("routine_agreement", "Routine agreement"),
-            ("employment", "Employment document"),
-            ("intellectual_property", "Intellectual property"),
-            ("commercial", "Commercial agreement"),
-            ("finance_guarantee", "Financing or guarantee"),
-            ("mandate", "Mandate"),
-            ("other", "Other"),
-        ],
-        required=True,
-    )
+    document_category = fields.Selection(DOCUMENT_CATEGORIES, required=True)
     signer_type = fields.Selection(
         [
             ("internal", "Internal user"),
@@ -404,7 +374,7 @@ class SignRequestMethod(models.TransientModel):
                         ],
                     )
                     .mapped("partner_id")
-                    .ids
+                    .ids,
                 )
                 missing = partners.filtered(
                     lambda partner: partner.id not in enrolled_partner_ids,

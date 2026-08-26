@@ -44,8 +44,6 @@ msgstr "Archivé"
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__state__cancelled
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__invitation_delivery_state__cancelled
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request_signer__state__cancelled
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_approval__state__cancelled
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_approval_event__event_type__cancelled
 #: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_external_journey__state__cancelled
 #: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
 msgid "Cancelled"
@@ -323,7 +321,6 @@ msgstr "Clé d’accès avec vérification de l’utilisateur"
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__archive_status__pending
 #: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__validation_status__pending
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_approval__state__pending
 msgid "Pending"
 msgstr "En attente"
 
@@ -1023,12 +1020,6 @@ msgstr "Modèle utilisé"
 #: model_terms:ir.ui.view,arch_db:usl_sign.sign_request_form_usl
 msgid "Request due date"
 msgstr "Échéance"
-
-#. module: usl_sign
-#: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__internal_decision
-#: model:ir.model.fields.selection,name:usl_sign.selection__sign_oca_request__document_category__internal_decision
-msgid "Internal decision"
-msgstr "Décision interne"
 
 #. module: usl_sign
 #: model:ir.model.fields.selection,name:usl_sign.selection__usl_sign_policy__document_category__routine_agreement

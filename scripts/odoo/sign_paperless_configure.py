@@ -1,13 +1,14 @@
+# ruff: noqa: F821, T201 -- Odoo shell injects env; stdout is wrapper input.
 """Configure and verify the isolated Sign-to-Paperless connection."""
 
 import json
 import os
 
-
 token = os.environ.get("PAPERLESS_SIGN_TOKEN", "").strip()
 service_user_id = int(os.environ.get("PAPERLESS_SIGN_SERVICE_USER_ID", "0"))
 if not token or service_user_id <= 0:
-    raise RuntimeError("The Paperless Sign integration identity is incomplete")
+    msg = "The Paperless Sign integration identity is incomplete"
+    raise RuntimeError(msg)
 
 params = env["ir.config_parameter"].sudo()
 params.set_str(

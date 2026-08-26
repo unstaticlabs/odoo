@@ -372,7 +372,8 @@ archive_acceptance() {
 passkey_acceptance() {
   load_environment
   "${COMPOSE[@]}" up -d --wait pocket-id
-  node "$ROOT/scripts/sign-pocketid-virtual-authenticator.mjs"
+  USL_POCKET_ID_ADMIN_API_URL="http://$BIND_ADDRESS:$POCKET_PORT" \
+    node "$ROOT/scripts/sign-pocketid-virtual-authenticator.mjs"
 }
 
 strong_acceptance_shell() {
@@ -423,7 +424,8 @@ strong_acceptance() {
   load_environment
   "${COMPOSE[@]}" up -d --wait \
     db pocket-id usl-sign-step-ca usl-sign-dss paperless-webserver odoo
-  USL_SIGN_FULL_ACCEPTANCE=1 \
+  USL_POCKET_ID_ADMIN_API_URL="http://$BIND_ADDRESS:$POCKET_PORT" \
+    USL_SIGN_FULL_ACCEPTANCE=1 \
     node "$ROOT/scripts/sign-pocketid-virtual-authenticator.mjs"
 }
 

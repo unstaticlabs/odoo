@@ -4,8 +4,8 @@ from urllib.parse import urlsplit
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
-from ..services import field_content
 from .constants import INTERNAL_OPERATION
+from odoo.addons.usl_sign.services import field_content
 
 
 class SignExternalProvider(models.Model):
@@ -230,6 +230,7 @@ class SignExternalJourney(models.Model):
 
     def action_open_import(self):
         self.ensure_one()
+        self.request_id._check_prepare_access()
         if self.request_id.state != "waiting_external" or self.state != "waiting":
             msg = "This external journey is not waiting for a signed result."
             raise ValidationError(
@@ -252,6 +253,7 @@ class SignExternalJourney(models.Model):
 
     def action_import(self):
         self.ensure_one()
+        self.request_id._check_prepare_access()
         if not self.imported_pdf or not self.proof_package:
             msg = "Import both the signed PDF and the provider proof package."
             raise ValidationError(msg)
@@ -278,20 +280,8 @@ class SignExternalJourney(models.Model):
         }
 
     def write(self, values):
-        protected = {
-            "state",
-            "provider_snapshot",
-            "exported_at",
-            "imported_pdf",
-            "imported_filename",
-            "imported_sha256",
-            "proof_package",
-            "proof_filename",
-            "imported_at",
-            "validation_id",
-            "rejection_reason",
-        }
-        if protected.intersection(values) and self.env.context.get(
+        chatter_fields = {"message_follower_ids", "activity_ids"}
+        if set(values) - chatter_fields and self.env.context.get(
             "usl_sign_external_transition",
         ) is not INTERNAL_OPERATION:
             msg = "Use a controlled external-signature action."
@@ -320,6 +310,7 @@ class SignExternalImportWizard(models.TransientModel):
 
     def action_import(self):
         self.ensure_one()
+        self.journey_id.request_id._check_prepare_access()
         self.journey_id.with_context(usl_sign_external_transition=INTERNAL_OPERATION).write(
             {
                 "imported_pdf": self.signed_pdf,
