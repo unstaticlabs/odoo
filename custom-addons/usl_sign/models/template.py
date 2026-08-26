@@ -519,7 +519,19 @@ class SignTemplate(models.Model):
         items = []
         deleted_id = False
         deleted_ids = []
-        if action in {"create", "create_all_pages"}:
+        if action in {"create", "create_all_pages", "copy_all_pages"}:
+            if action == "copy_all_pages":
+                source = self.item_ids.filtered(
+                    lambda row: row.id == int(command.get("item_id", 0)),
+                )
+                if len(source) != 1:
+                    msg = "The field no longer exists in this template."
+                    raise ValidationError(msg)
+                values = {
+                    key: value
+                    for key, value in source.get_info().items()
+                    if key in allowed
+                }
             if not values.get("field_id") or not values.get("role_id"):
                 msg = "Choose both a field type and a signer before placing it."
                 raise ValidationError(msg)
@@ -530,7 +542,10 @@ class SignTemplate(models.Model):
             if not field or not role:
                 msg = "The selected field type or signer role is unavailable."
                 raise ValidationError(msg)
-            if action == "create_all_pages" and _field_kind(field) != "initials":
+            if (
+                action in {"create_all_pages", "copy_all_pages"}
+                and _field_kind(field) != "initials"
+            ):
                 msg = "Only an Initials field can be placed on every page."
                 raise ValidationError(msg)
             defaults = FIELD_PRESENTATION[_field_kind(field)]
@@ -539,11 +554,26 @@ class SignTemplate(models.Model):
             values.setdefault("required", field.field_type == "signature")
             values.setdefault("page", 1)
             page_count = self._editor_page_count()
-            pages = (
-                range(1, page_count + 1)
-                if action == "create_all_pages"
-                else [int(values["page"])]
-            )
+            if action == "copy_all_pages":
+                compare_keys = allowed - {"page"}
+                occupied_pages = {
+                    int(existing.page)
+                    for existing in self.item_ids
+                    if all(
+                        existing.get_info().get(key) == values.get(key)
+                        for key in compare_keys
+                    )
+                }
+                pages = [
+                    page for page in range(1, page_count + 1)
+                    if page not in occupied_pages
+                ]
+            else:
+                pages = (
+                    range(1, page_count + 1)
+                    if action == "create_all_pages"
+                    else [int(values["page"])]
+                )
             for page in pages:
                 if page < 1 or page > page_count:
                     msg = "The selected PDF page does not exist."

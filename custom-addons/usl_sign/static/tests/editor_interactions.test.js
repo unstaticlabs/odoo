@@ -123,6 +123,21 @@ test("the whole PDF field starts movement and remains selectable", () => {
     cleanup();
 });
 
+test("right-clicking a PDF field deletes it without opening the page menu", () => {
+    const {fixture, item, cleanup} = editorFixture();
+    const deleted = [];
+    fixture.deleteField = (deletedItem) => deleted.push(deletedItem.id);
+    const element = UslSignTemplateEditor.prototype.renderField.call(fixture, item);
+    const event = new MouseEvent("contextmenu", {button: 2, bubbles: true, cancelable: true});
+
+    element.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(deleted).toEqual([item.id]);
+    expect(fixture.editor.selectedItemId).toBe(item.id);
+    cleanup();
+});
+
 test("field movement safely clears missing and stale manipulation state", () => {
     const {fixture, item, page, cleanup} = editorFixture();
     const element = document.createElement("div");

@@ -2836,3 +2836,121 @@ msgstr "Les signataires utilisent des liens privés. Leur consentement et leurs 
 #. module: usl_sign
 msgid "Ready once every signer and required field is set."
 msgstr "Prêt dès que chaque signataire et chaque champ obligatoire sont définis."
+
+#. module: usl_sign
+msgid "Documents to be Signed"
+msgstr "Documents à signer"
+
+#. module: usl_sign
+msgid "No signing identity has been set up for you in this company. Ask an identity reviewer to start the setup."
+msgstr "Aucune identité de signature n’a été configurée pour vous dans cette société. Demandez à une personne chargée de vérifier les identités de lancer la configuration."
+
+#. module: usl_sign
+#, python-format
+msgid "Signer %(number)s"
+msgstr "Signataire %(number)s"
+
+#. module: usl_sign
+msgid "Add at least one person who should sign this document."
+msgstr "Ajoutez au moins une personne qui doit signer ce document."
+
+#. module: usl_sign
+#, python-format
+msgid "Add an email address for: %(names)s"
+msgstr "Ajoutez une adresse e-mail pour : %(names)s"
+
+#. module: usl_sign
+msgid "Identity evidence reference"
+msgstr "Référence de vérification d’identité"
+
+#. module: usl_sign
+msgid "Your Odoo contact"
+msgstr "Votre contact Odoo"
+
+#. module: usl_sign
+msgid "How the match was checked"
+msgstr "Méthode de vérification"
+
+#. module: usl_sign
+msgid "How signers confirm"
+msgstr "Comment les signataires confirment"
+
+#. module: usl_sign
+msgid "The method controls the confirmation step and the proof kept with this request."
+msgstr "La méthode détermine l’étape de confirmation et la preuve conservée avec cette demande."
+
+#. module: usl_sign
+msgid "Requested method"
+msgstr "Méthode demandée"
+
+#. module: usl_sign
+msgid "Method achieved"
+msgstr "Méthode obtenue"
+
+#. module: usl_sign
+msgid "Choose how each signer confirms and what proof is kept."
+msgstr "Choisissez comment chaque signataire confirme et quelle preuve est conservée."
+
+#. module: usl_sign
+msgid "Use and sign myself"
+msgstr "Utiliser et signer moi-même"
+
+#. module: usl_sign
+msgid "Starts a request with you as the only signer. You will review the request before signing."
+msgstr "Lance une demande dont vous êtes l’unique signataire. Vous vérifierez la demande avant de signer."
+
+#. module: usl_sign
+msgid "2. Add the signers"
+msgstr "2. Ajoutez les signataires"
+
+#. module: usl_sign
+msgid "Add everyone who must sign. On the next screen, choose the fields each person completes."
+msgstr "Ajoutez toutes les personnes qui doivent signer. Sur l’écran suivant, choisissez les champs que chaque personne remplit."
+
+#. module: usl_sign
+msgid "Who needs to sign?"
+msgstr "Qui doit signer ?"
+
+#. module: usl_sign
+msgid "Add one or more contacts"
+msgstr "Ajoutez un ou plusieurs contacts"
+
+#. module: usl_sign
+msgid "Place on every page"
+msgstr "Placer sur chaque page"
+
+#. module: usl_sign
+msgid "Copies these initials to the same position on every page that does not already have them."
+msgstr "Copie ces initiales au même emplacement sur chaque page qui ne les contient pas déjà."
+
+#. module: usl_sign
+msgid "Tip: right-click a field on the PDF to delete it."
+msgstr "Astuce : faites un clic droit sur un champ du PDF pour le supprimer."
+
+#. module: usl_sign
+msgid "These initials are already placed on every page."
+msgstr "Ces initiales sont déjà placées sur chaque page."
+
+#. module: usl_sign
+msgid "Initials placed on every page."
+msgstr "Initiales placées sur chaque page."
+
+#. module: usl_sign
+msgid "For example: employee EMP-1042 or contract C-2026-18"
+msgstr "Par exemple : salarié EMP-1042 ou contrat C-2026-18"
+
+#. module: usl_sign
+msgid "Enter a short reference your organization can recognize later, such as an employee number or contract number. This is plain text, not a link and not a Pocket ID identifier."
+msgstr "Saisissez une référence courte que votre organisation pourra reconnaître ultérieurement, comme un matricule ou un numéro de contrat. Il s’agit d’un texte, pas d’un lien ni d’un identifiant Pocket ID."
+
+#. module: usl_sign
+msgid "The short internal reference used to match you to a person the organization already knows. It is explanatory text, not a link."
+msgstr "La référence interne courte utilisée pour vous associer à une personne que l’organisation connaît déjà. Il s’agit d’un texte explicatif, pas d’un lien."
+
+#. module: usl_sign
+msgid "Click once to place these initials in the same position on every page."
+msgstr "Cliquez une fois pour placer ces initiales au même emplacement sur chaque page."
+
+#. module: usl_sign
+msgid "Repeat at this position throughout the document."
+msgstr "Répéter à cet emplacement dans tout le document."
