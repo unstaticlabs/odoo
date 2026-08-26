@@ -303,28 +303,13 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         viewer.dataset.uslScrollReady = "1";
         viewer.style.overflow = "auto";
         viewer.style.overscrollBehavior = "contain";
-        const wheel = (event) => {
-            if (event.ctrlKey || event.metaKey) {
-                return;
-            }
-            const unit = event.deltaMode === 1 ? 32 : event.deltaMode === 2
-                ? viewer.clientHeight : 1;
-            const deltaX = event.deltaX * unit;
-            const deltaY = event.deltaY * unit;
-            const canScrollX = viewer.scrollWidth > viewer.clientWidth && deltaX;
-            const canScrollY = viewer.scrollHeight > viewer.clientHeight && deltaY;
-            if (!canScrollX && !canScrollY) {
-                return;
-            }
-            event.preventDefault();
-            viewer.scrollLeft += deltaX;
-            viewer.scrollTop += deltaY;
-        };
-        document.addEventListener("wheel", wheel, {capture: true, passive: false});
         this.pageListeners.push(() => {
-            document.removeEventListener("wheel", wheel, {capture: true});
             delete viewer.dataset.uslScrollReady;
         });
+    }
+
+    runEditorAction(action) {
+        return Promise.resolve().then(action).catch(() => undefined);
     }
 
     bindPage(page) {
@@ -345,14 +330,14 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 page.getBoundingClientRect(), event.clientX, event.clientY,
                 field.default_width, field.default_height
             );
-            this.placeField({
+            this.runEditorAction(() => this.placeField({
                 field_id: field.id,
                 role_id: this.editor.selectedRoleId,
                 page: Number(page.dataset.pageNumber),
                 ...placement,
                 width: field.default_width,
                 height: field.default_height,
-            });
+            }));
         };
         const contextmenu = (event) => {
             if (!this.isEditable || event.target.closest(".o_sign_oca_field")) {
@@ -446,7 +431,7 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 this.editor.selectedItemId = item.id;
                 this.editor.contextPlacement = false;
                 this.refreshSelection();
-                this.deleteField(item);
+                this.runEditorAction(() => this.deleteField(item));
             });
         }
         element.addEventListener("keydown", (event) => this.onFieldKeydown(event, item));
@@ -716,14 +701,14 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
                 pageRectangle, iframeX, iframeY, field.default_width, field.default_height
             );
             this.editor.selectedFieldId = field.id;
-            this.placeField({
+            this.runEditorAction(() => this.placeField({
                 field_id: field.id,
                 role_id: this.editor.selectedRoleId,
                 page: Number(page.dataset.pageNumber),
                 ...placement,
                 width: field.default_width,
                 height: field.default_height,
-            });
+            }));
         };
         const up = (pointerEvent) => {
             if (pointerEvent.pointerId === pointerId) {
@@ -755,20 +740,24 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         }
     }
 
-    contextCreate() {
+    async contextCreate() {
         const field = this.selectedField;
         if (!field || !this.editor.selectedRoleId || !this.editor.contextPlacement) {
             this.notification.add(_t("Choose a field type and signer first."), {type: "warning"});
             return;
         }
-        this.placeField({
-            field_id: field.id,
-            role_id: this.editor.selectedRoleId,
-            ...this.editor.contextPlacement,
-            width: field.default_width,
-            height: field.default_height,
-        });
-        this.editor.contextPlacement = false;
+        try {
+            await this.placeField({
+                field_id: field.id,
+                role_id: this.editor.selectedRoleId,
+                ...this.editor.contextPlacement,
+                width: field.default_width,
+                height: field.default_height,
+            });
+            this.editor.contextPlacement = false;
+        } catch (_error) {
+            // applyCommand already reports the actionable save failure.
+        }
     }
 
     cancelContextPlacement() {
@@ -1050,9 +1039,13 @@ export class UslSignTemplateEditor extends SignOcaConfigure {
         this.updateField(this.selectedItem, {[name]: value});
     }
 
-    deleteSelectedField() {
+    async deleteSelectedField() {
         if (this.selectedItem) {
-            this.deleteField(this.selectedItem);
+            try {
+                await this.deleteField(this.selectedItem);
+            } catch (_error) {
+                // applyCommand already reports the actionable save failure.
+            }
         }
     }
 

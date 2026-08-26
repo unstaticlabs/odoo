@@ -4,6 +4,7 @@ import {
     clamp,
     contrastForeground,
     editableItemValues,
+    operationUuid,
     pointToPlacement,
     roleTint,
 } from "../src/js/editor_utils.esm";
@@ -57,4 +58,19 @@ test("history snapshots keep only editable field values", () => {
         width: 25,
         height: 8,
     });
+});
+
+test("operation identifiers remain secure when randomUUID is unavailable", () => {
+    const bytes = Uint8Array.from({length: 16}, (_value, index) => index);
+    const fallback = operationUuid({
+        getRandomValues(target) {
+            target.set(bytes);
+            return target;
+        },
+    });
+    expect(fallback).toBe("00010203-0405-4607-8809-0a0b0c0d0e0f");
+    expect(fallback).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+
+    const native = operationUuid({randomUUID: () => "native-operation-id"});
+    expect(native).toBe("native-operation-id");
 });

@@ -2936,6 +2936,75 @@ msgid "Initials placed on every page."
 msgstr "Initiales placées sur chaque page."
 
 #. module: usl_sign
+#, python-format
+msgid "Identity review checklist · %(version)s"
+msgstr "Liste de contrôle d’identité · %(version)s"
+
+#. module: usl_sign
+msgid "Person and relationship"
+msgstr "Personne et relation"
+
+#. module: usl_sign
+msgid "What you checked"
+msgstr "Vérification effectuée"
+
+#. module: usl_sign
+msgid "For example: matched the Pocket ID account to the employee contact."
+msgstr "Par exemple : rapprochement du compte Pocket ID avec le contact salarié."
+
+#. module: usl_sign
+msgid "Briefly record the relationship check. Do not attach identity documents by default."
+msgstr "Consignez brièvement la vérification de la relation. Ne joignez pas de pièces d’identité par défaut."
+
+#. module: usl_sign
+msgid "Review and privacy details"
+msgstr "Détails du contrôle et de la confidentialité"
+
+#. module: usl_sign
+msgid "Review standard"
+msgstr "Référentiel de contrôle"
+
+#. module: usl_sign
+msgid "The review standard identifies the checklist used for this approval. It is retained as an audit snapshot rather than linked to a record that could later change."
+msgstr "Le référentiel indique la liste de contrôle utilisée pour cette validation. Il est conservé comme instantané d’audit plutôt que lié à une fiche susceptible d’être modifiée ultérieurement."
+
+#. module: usl_sign
+msgid "Connected Pocket ID account"
+msgstr "Compte Pocket ID connecté"
+
+#. module: usl_sign
+msgid "Reviewed by your organization"
+msgstr "Vérifié par votre organisation"
+
+#. module: usl_sign
+msgid "Choose the document and the people who need to sign it."
+msgstr "Choisissez le document et les personnes qui doivent le signer."
+
+#. module: usl_sign
+msgid "Document"
+msgstr "Document"
+
+#. module: usl_sign
+msgid "Upload the PDF you want people to sign."
+msgstr "Importez le PDF que les personnes doivent signer."
+
+#. module: usl_sign
+msgid "People"
+msgstr "Personnes"
+
+#. module: usl_sign
+msgid "Add everyone who must sign. You will place each person’s fields next."
+msgstr "Ajoutez toutes les personnes qui doivent signer. Vous placerez ensuite les champs de chacune."
+
+#. module: usl_sign
+msgid "Choose a ready template. You will assign each signing role next."
+msgstr "Choisissez un modèle prêt. Vous attribuerez ensuite chaque rôle de signature."
+
+#. module: usl_sign
+msgid "Related Odoo record"
+msgstr "Élément Odoo associé"
+
+#. module: usl_sign
 msgid "For example: employee EMP-1042 or contract C-2026-18"
 msgstr "Par exemple : salarié EMP-1042 ou contrat C-2026-18"
 
@@ -2954,3 +3023,23 @@ msgstr "Cliquez une fois pour placer ces initiales au même emplacement sur chaq
 #. module: usl_sign
 msgid "Repeat at this position throughout the document."
 msgstr "Répéter à cet emplacement dans tout le document."
+
+#. module: usl_sign
+msgid "USL identity review checklist · version 1"
+msgstr "Liste de contrôle d’identité USL · version 1"
+
+#. module: usl_sign
+msgid "Account name"
+msgstr "Nom du compte"
+
+#. module: usl_sign
+msgid "Account email"
+msgstr "Adresse e-mail du compte"
+
+#. module: usl_sign
+msgid "Pocket ID audit reference"
+msgstr "Référence d’audit Pocket ID"
+
+#. module: usl_sign
+msgid "Last confirmed on"
+msgstr "Dernière confirmation le"

@@ -9,6 +9,8 @@ import {getDataURLFromFile} from "@web/core/utils/urls";
 import {KanbanController} from "@web/views/kanban/kanban_controller";
 import {kanbanView} from "@web/views/kanban/kanban_view";
 
+import {operationUuid} from "./editor_utils.esm";
+
 const MAX_DOCUMENTS = 20;
 const MAX_ENVELOPE_BYTES = 50 * 1024 * 1024;
 
@@ -76,7 +78,7 @@ export class SignTemplateKanbanController extends KanbanController {
                 [],
                 {
                     documents,
-                    operation_uuid: globalThis.crypto.randomUUID(),
+                    operation_uuid: operationUuid(),
                 },
             );
             await this.actionService.doAction(action);
