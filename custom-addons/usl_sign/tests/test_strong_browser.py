@@ -218,7 +218,15 @@ class TestSignBrowserJourneys(HttpCase):
                     throw new Error("The Initials field type is missing.");
                 }
                 initials.click();
-                const firstPage = iframeDocument.querySelector('.page[data-page-number="1"]');
+                const firstPage = await waitFor(
+                    () => {
+                        const candidate = iframeDocument.querySelector(
+                            '.page[data-page-number="1"]',
+                        );
+                        return candidate?.dataset.uslEditorReady === "1" ? candidate : null;
+                    },
+                    "The first PDF page was not ready for field placement.",
+                );
                 const rectangle = firstPage.getBoundingClientRect();
                 firstPage.dispatchEvent(new MouseEvent("click", {
                     bubbles: true,

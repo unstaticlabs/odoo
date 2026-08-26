@@ -204,7 +204,7 @@ test("pointer movement is normalized to page percentages and saved once", () => 
     cleanup();
 });
 
-test("palette drag crosses the same-origin iframe through the controlled pointer bridge", () => {
+test("palette drag crosses the same-origin iframe through the controlled pointer bridge", async () => {
     const {fixture, cleanup} = editorFixture();
     const created = [];
     fixture.createField = (values) => created.push(values);
@@ -229,6 +229,8 @@ test("palette drag crosses the same-origin iframe through the controlled pointer
     window.dispatchEvent(
         new PointerEvent("pointerup", {clientX: 55, clientY: 35, pointerId: 7})
     );
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(created).toHaveLength(1);
     expect(created[0].field_id).toBe(TEXT_FIELD.id);
