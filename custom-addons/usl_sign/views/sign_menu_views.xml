@@ -60,11 +60,12 @@
     <record id="my_sign_identity_server_action" model="ir.actions.server">
         <field name="name">My Signing Identity</field>
         <field name="model_id" ref="model_usl_sign_enrollment"/>
+        <field name="group_ids" eval="[(6, 0, [ref('usl_sign.group_sign_user')])]"/>
         <field name="state">code</field>
         <field name="code">action = model.action_open_my_identity()</field>
     </record>
 
-    <menuitem id="sign_dashboard_menu" name="Sign Dashboard" parent="sign_oca.sign_oca_root_menu" action="sign_landing_action" sequence="5" groups="usl_sign.group_sign_user,usl_sign.group_sign_identity_reviewer,usl_sign.group_sign_evidence_reviewer"/>
+    <menuitem id="sign_dashboard_menu" name="Sign Dashboard" parent="sign_oca.sign_oca_root_menu" action="sign_landing_action" sequence="5" active="False" groups="usl_sign.group_sign_user,usl_sign.group_sign_identity_reviewer,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="request_signature_menu" name="Request Signature" parent="sign_oca.sign_oca_root_menu" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="request_signature_templates_menu" name="Templates" parent="request_signature_menu" action="sign_oca.sign_oca_template_act_window" sequence="10" groups="usl_sign.group_sign_user,usl_sign.group_sign_evidence_reviewer"/>
     <menuitem id="request_signature_open_menu" name="Open Requests" parent="request_signature_menu" action="sign_request_action" sequence="20" groups="usl_sign.group_sign_user"/>

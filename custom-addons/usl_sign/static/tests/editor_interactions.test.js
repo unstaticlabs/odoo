@@ -75,6 +75,7 @@ function editorFixture() {
         activeManipulation: null,
         cancelPaletteDrag: UslSignTemplateEditor.prototype.cancelPaletteDrag,
         cancelManipulation: UslSignTemplateEditor.prototype.cancelManipulation,
+        runEditorAction: UslSignTemplateEditor.prototype.runEditorAction,
         placeField: UslSignTemplateEditor.prototype.placeField,
         role(roleId) {
             return this.info.roles.find((role) => role.id === Number(roleId));
@@ -123,7 +124,7 @@ test("the whole PDF field starts movement and remains selectable", () => {
     cleanup();
 });
 
-test("right-clicking a PDF field deletes it without opening the page menu", () => {
+test("right-clicking a PDF field deletes it without opening the page menu", async () => {
     const {fixture, item, cleanup} = editorFixture();
     const deleted = [];
     fixture.deleteField = (deletedItem) => deleted.push(deletedItem.id);
@@ -131,6 +132,8 @@ test("right-clicking a PDF field deletes it without opening the page menu", () =
     const event = new MouseEvent("contextmenu", {button: 2, bubbles: true, cancelable: true});
 
     element.dispatchEvent(event);
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(event.defaultPrevented).toBe(true);
     expect(deleted).toEqual([item.id]);

@@ -819,6 +819,24 @@ class TestCleanUslSign(TransactionCase):
                 },
             )
 
+    def test_identity_review_uses_the_linked_contact_as_its_default_reference(self):
+        enrollment = self.env["usl.sign.enrollment"].create(
+            {
+                "partner_id": self.partner_one.id,
+                "company_id": self.company.id,
+                "relationship_basis": "recurring_partner",
+            },
+        )
+        self.assertEqual(
+            enrollment.relationship_reference,
+            f"res.partner,{self.partner_one.id}",
+        )
+        self.assertEqual(enrollment.policy_version, "usl-identity-review-v1")
+        self.assertEqual(
+            enrollment.review_standard_label,
+            "USL identity review checklist · version 1",
+        )
+
     def test_policy_recommendation_and_authorized_override(self):
         request = self._request(risk_level="material", signer_type="recurring")
         self.assertEqual(request.recommended_trust, "strong_personal")
@@ -1701,7 +1719,6 @@ class TestCleanUslSign(TransactionCase):
 
     def test_document_navigation_and_retrieval_views_match_the_product_boundary(self):
         expected = [
-            ("usl_sign.sign_dashboard_menu", "Sign Dashboard", "sign_oca.sign_oca_root_menu"),
             ("usl_sign.request_signature_menu", "Request Signature", "sign_oca.sign_oca_root_menu"),
             ("usl_sign.request_signature_templates_menu", "Templates", "usl_sign.request_signature_menu"),
             ("usl_sign.request_signature_open_menu", "Open Requests", "usl_sign.request_signature_menu"),
@@ -1713,6 +1730,7 @@ class TestCleanUslSign(TransactionCase):
             self.assertTrue(menu.active)
             self.assertEqual(menu.name, name)
             self.assertEqual(menu.parent_id, self.env.ref(parent_xml_id))
+        self.assertFalse(self.env.ref("usl_sign.sign_dashboard_menu").active)
         self.assertFalse(
             self.env.ref("usl_sign.sign_library_menu", raise_if_not_found=False),
         )
@@ -2043,6 +2061,11 @@ class TestCleanUslSign(TransactionCase):
         ).action_open_my_identity()
         self.assertEqual(own_identity_action["res_id"], enrollment.id)
         self.assertEqual(own_identity_action["views"][0][1], "form")
+        menu_action = self.env.ref("usl_sign.my_sign_identity_server_action").with_user(
+            signer_user,
+        ).run()
+        self.assertEqual(menu_action["res_id"], enrollment.id)
+        self.assertEqual(menu_action["views"][0][1], "form")
 
         provider = self.env["usl.sign.external.provider"].create(
             {
