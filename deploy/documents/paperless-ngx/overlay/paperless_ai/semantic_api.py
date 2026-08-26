@@ -4,9 +4,14 @@ import re
 from collections.abc import Iterable
 from itertools import islice
 
+import tantivy
+from django.conf import settings
 from django.db.models import Q
+from documents.filters import CustomFieldQueryParser
 from documents.models import Document
 from documents.permissions import ViewDocumentsPermissions, permitted_document_ids
+from documents.search import get_backend
+from documents.search._query import parse_simple_query
 from drf_spectacular.utils import extend_schema
 from paperless.config import AIConfig
 from paperless_ai.db import db_connection_released
@@ -30,6 +35,9 @@ logger = logging.getLogger("paperless_ai.semantic_api")
 MAX_QUERY_LENGTH = 2048
 MAX_RESULT_LIMIT = 50
 MAX_SCOPE_LENGTH = 10000
+MAX_LEXICAL_SCOPE_LENGTH = 50000
+MAX_LEXICAL_RESULT_LIMIT = 10000
+MAX_LEXICAL_EXCERPT_RESULTS = 50
 MAX_EXCERPT_LENGTH = 500
 _VECTOR_FILTER_BATCH_SIZE = 30000
 _RETRIEVAL_OVERSAMPLE = 4
@@ -43,6 +51,20 @@ _SERVICE_SCOPE_REQUIRED_MESSAGE = (
 )
 _QUERY_MODE_MESSAGE = "Specify exactly one of query or document_id."
 _SOURCE_UNAVAILABLE_MESSAGE = "The source document is unavailable."
+_LEXICAL_QUERY_REQUIRED_MESSAGE = (
+    "Specify query, custom_field_query, or both."
+)
+
+_LEXICAL_FIELDS = {
+    "all": [
+        "simple_title",
+        "simple_content",
+        "simple_metadata",
+        "simple_custom_fields",
+    ],
+    "content": ["simple_title", "simple_content", "simple_metadata"],
+    "custom_fields": ["simple_custom_fields"],
+}
 
 
 class SemanticSearchUnavailable(RuntimeError):
@@ -119,6 +141,69 @@ class SemanticSearchResultSerializer(serializers.Serializer):
 class SemanticSearchResponseSerializer(serializers.Serializer):
     results = SemanticSearchResultSerializer(many=True)
     warnings = serializers.ListField(child=serializers.DictField())
+
+
+class ScopedSearchRequestSerializer(serializers.Serializer):
+    query = serializers.CharField(
+        max_length=MAX_QUERY_LENGTH,
+        trim_whitespace=True,
+        required=False,
+        allow_blank=True,
+    )
+    document_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=True,
+        max_length=MAX_LEXICAL_SCOPE_LENGTH,
+    )
+    fields = serializers.ChoiceField(
+        choices=tuple(_LEXICAL_FIELDS),
+        default="all",
+    )
+    custom_field_query = serializers.CharField(
+        max_length=8192,
+        required=False,
+        allow_blank=False,
+    )
+    limit = serializers.IntegerField(
+        default=MAX_LEXICAL_RESULT_LIMIT,
+        min_value=1,
+        max_value=MAX_LEXICAL_RESULT_LIMIT,
+    )
+    include_excerpt = serializers.BooleanField(default=False)
+
+    def validate(self, attrs):
+        if not attrs.get("query", "").strip() and not attrs.get(
+            "custom_field_query",
+        ):
+            raise serializers.ValidationError(_LEXICAL_QUERY_REQUIRED_MESSAGE)
+        if (
+            attrs.get("include_excerpt")
+            and attrs["limit"] > MAX_LEXICAL_EXCERPT_RESULTS
+        ):
+            raise serializers.ValidationError(
+                {
+                    "limit": (
+                        "Excerpt requests are limited to "
+                        f"{MAX_LEXICAL_EXCERPT_RESULTS} results."
+                    ),
+                },
+            )
+        return attrs
+
+
+class ScopedSearchResultSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    rank = serializers.IntegerField()
+    excerpt = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=MAX_EXCERPT_LENGTH,
+    )
+
+
+class ScopedSearchResponseSerializer(serializers.Serializer):
+    results = ScopedSearchResultSerializer(many=True)
+    truncated = serializers.BooleanField()
 
 
 def _batched(values: list[int], size: int) -> Iterable[list[int]]:
@@ -216,6 +301,131 @@ def _scoped_service_usernames() -> set[str]:
         "odoo-integration",
     )
     return {item.strip() for item in value.split(",") if item.strip()}
+
+
+def query_lexical_index(
+    query: str,
+    *,
+    document_ids: list[int],
+    field_scope: str,
+    limit: int,
+    user,
+) -> tuple[list[int], bool]:
+    """Run one native Tantivy query inside one explicit ID-set filter."""
+    if not document_ids:
+        return [], False
+    backend = get_backend()
+    backend._ensure_open()
+    user_query = parse_simple_query(
+        backend._index,
+        query,
+        _LEXICAL_FIELDS[field_scope],
+    )
+    final_query = backend._apply_permission_filter(user_query, user)
+    scope_query = tantivy.Query.term_set_query(
+        backend._schema,
+        "id",
+        document_ids,
+    )
+    final_query = tantivy.Query.boolean_query(
+        [
+            (tantivy.Occur.Must, final_query),
+            (tantivy.Occur.Must, scope_query),
+        ],
+    )
+    searcher = backend._index.searcher()
+    results = searcher.search(final_query, limit=min(limit + 1, len(document_ids)))
+    hits = [(address, score) for score, address in results.hits]
+    threshold = settings.ADVANCED_FUZZY_SEARCH_THRESHOLD
+    if threshold is not None and hits:
+        maximum = max(score for _address, score in hits) or 1.0
+        hits = [
+            (address, score)
+            for address, score in hits
+            if score / maximum >= threshold
+        ]
+    ids = searcher.fast_field_values(
+        "id",
+        [address for address, _score in hits],
+    )
+    return [int(item) for item in ids[:limit]], len(ids) > limit
+
+
+class ScopedSearchView(APIView):
+    permission_classes = (IsAuthenticated, ViewDocumentsPermissions)
+
+    @extend_schema(
+        request=ScopedSearchRequestSerializer,
+        responses={200: ScopedSearchResponseSerializer, 400: None, 403: None},
+        description=(
+            "Search Paperless's native lexical index across configured archive "
+            "fields inside one explicit Odoo authorization scope."
+        ),
+    )
+    def post(self, request):
+        serializer = ScopedSearchRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        values = serializer.validated_data
+        requested_ids = values["document_ids"]
+
+        roots = Document.objects.filter(
+            root_document__isnull=True,
+            id__in=permitted_document_ids(request.user),
+        ).filter(id__in=requested_ids)
+        if custom_field_query := values.get("custom_field_query"):
+            parser = CustomFieldQueryParser("custom_field_query")
+            custom_filter, annotations = parser.parse(custom_field_query)
+            roots = roots.annotate(**annotations).filter(custom_filter)
+        root_ids = list(roots.order_by().values_list("id", flat=True).distinct())
+        limit = values["limit"]
+        if not root_ids:
+            return Response({"results": [], "truncated": False})
+
+        query = values.get("query", "").strip()
+        if query:
+            result_ids, truncated = query_lexical_index(
+                query,
+                document_ids=root_ids,
+                field_scope=values["fields"],
+                limit=limit,
+                user=None if request.user.is_superuser else request.user,
+            )
+        else:
+            result_ids = sorted(root_ids)[:limit]
+            truncated = len(root_ids) > limit
+        root_id_set = set(root_ids)
+        result_ids = [
+            int(document_id)
+            for document_id in result_ids
+            if int(document_id) in root_id_set
+        ][:limit]
+        excerpts = {}
+        if values["include_excerpt"]:
+            excerpts = {
+                document_id: _WHITESPACE.sub(" ", content or "").strip()[
+                    :MAX_EXCERPT_LENGTH
+                ]
+                for document_id, content in Document.objects.filter(
+                    id__in=result_ids,
+                ).values_list("id", "content")
+            }
+        return Response(
+            {
+                "results": [
+                    {
+                        "id": document_id,
+                        "rank": rank,
+                        **(
+                            {"excerpt": excerpts.get(document_id, "")}
+                            if values["include_excerpt"]
+                            else {}
+                        ),
+                    }
+                    for rank, document_id in enumerate(result_ids, start=1)
+                ],
+                "truncated": truncated,
+            },
+        )
 
 
 class SemanticSearchView(APIView):

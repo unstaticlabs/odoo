@@ -13,14 +13,21 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `semantic-search-api-v2+personal-gemini-v1` has two bounded feature
+Patch level `scoped-lexical-search-v1+semantic-search-api-v2+personal-gemini-v1` has three bounded feature
 groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
+   `POST /api/documents/scoped_search/` endpoint. One request carries the
+   complete explicit Odoo authorization scope (up to 50,000 root IDs) and runs
+   one native Tantivy query across title/OCR, archive metadata, and every
+   indexed custom-field name/value. Exact-source schema/backend patches add
+   the two plain-text companion fields; Paperless rebuilds only its search
+   index when schema version 2 is first detected.
+2. The same module adds the authenticated, read-only
    `POST /api/documents/semantic_search/` endpoint. It uses Paperless's native
    Ollama embedding client and `llmindex.db`; it never opens the vector database
    from Odoo.
-2. `paperless_personal_ai` is a supported Django app loaded through
+3. `paperless_personal_ai` is a supported Django app loaded through
    `PAPERLESS_APPS`. It owns per-user Gemini configuration, an encrypted
    user-bound credential, profile-only APIs, release checks, and runtime
    permission rechecks. The exact-source backend patch removes native global
@@ -30,17 +37,31 @@ groups:
    generative entry points independently, removes the native global LLM
    settings, and compiles the normal localized frontend.
 
-`tests/test_semantic_api.py` is an upstream-style DRF test module covering
-permission resolution before retrieval, object grants, mandatory service
-scope, indistinguishable source-document denial, source exclusion,
-empty-scope fail-closed behavior, facets, request limits, and embedding outage
-behavior.
+`tests/test_semantic_api.py` is an upstream-style DRF test module covering both
+bounded endpoints: permission resolution before retrieval, object grants,
+mandatory service scope, indistinguishable source-document denial, source
+exclusion, empty-scope fail-closed behavior, configured lexical fields,
+facets, request limits, and embedding outage behavior.
 
 No OCR, Tantivy, local embedding, vector-index, version, ingestion, or MCP path
 can resolve a Gemini credential. The only external generation paths are the
 two explicitly enabled personal features. There is no Odoo chat UI.
 
-## API contract
+## Scoped lexical API contract
+
+The lexical request requires `document_ids` (at most 50,000 root IDs), accepts
+plain `query` text, a bounded `limit` of at most 10,000, and one indexed field
+set: `all`, `content`, or `custom_fields`. An optional structured
+`custom_field_query` is applied before Tantivy retrieval. The endpoint
+intersects the supplied roots with Paperless object permission and live root
+identity, then applies that resulting ID set as one Tantivy term-set query.
+An empty scope returns no result without opening the index. The response
+contains only ranked root IDs and a truncation flag by default. MCP callers may
+request a whitespace-normalized OCR excerpt capped at 500 characters; that
+mode is additionally limited to 50 results and still uses the same POST. It is
+read-only and never invokes embedding or generative models.
+
+## Semantic API contract
 
 The request accepts:
 

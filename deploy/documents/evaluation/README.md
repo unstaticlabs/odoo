@@ -11,8 +11,9 @@ credential is present.
 `paperless_hybrid_evaluation.py` runs inside the qualified Paperless image. It
 seeds idempotently under the `USL hybrid evaluation v1` tag, measures native
 Tantivy lexical results, the permission-scoped semantic endpoint, and the same
-reciprocal-rank fusion used by Odoo. Lexical calls include an explicit
-authorized `id__in` scope; semantic calls require `document_ids`. It records
+exact-first refinement used by Odoo. Lexical calls send the full explicit
+authorized `document_ids` scope once to the bounded POST endpoint; semantic
+calls require the same scope. It records
 per-question top-five rankings, recall, MRR, latency, permission leaks, exact
 identifier regressions, and vector-index identity.
 

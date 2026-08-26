@@ -99,46 +99,31 @@ def percentile(values, percent):
     return round(ordered[position], 3)
 
 
-def fuse(lexical_ids, semantic_ids, query):
+def fuse(lexical_ids, semantic_ids):
     lexical_ids = list(dict.fromkeys(lexical_ids))
     semantic_ids = list(dict.fromkeys(semantic_ids))
-    if EXACT_QUERY.search(query):
-        lexical = set(lexical_ids)
-        return lexical_ids + [item for item in semantic_ids if item not in lexical]
-    scores = {}
-    for ranking in (lexical_ids, semantic_ids):
-        for rank, document_id in enumerate(ranking, start=1):
-            scores[document_id] = scores.get(document_id, 0.0) + 1.0 / (60 + rank)
-    lexical_rank = {item: rank for rank, item in enumerate(lexical_ids, start=1)}
-    semantic_rank = {item: rank for rank, item in enumerate(semantic_ids, start=1)}
-    return sorted(
-        scores,
-        key=lambda item: (
-            -scores[item],
-            lexical_rank.get(item, 1_000_000),
-            semantic_rank.get(item, 1_000_000),
-            item,
-        ),
-    )
+    lexical = set(lexical_ids)
+    return lexical_ids + [item for item in semantic_ids if item not in lexical]
 
 
 def request_rankings(client, query, scope):
     started = time.perf_counter()
-    lexical_response = client.get(
-        "/api/documents/",
+    lexical_response = client.post(
+        "/api/documents/scoped_search/",
         {
-            "text": query,
-            "id__in": ",".join(str(item) for item in scope),
-            "page_size": 10,
+            "query": query,
+            "document_ids": scope,
+            "fields": "all",
+            "limit": 10,
         },
+        format="json",
         HTTP_ACCEPT="application/json; version=10",
         HTTP_HOST="paperless-webserver",
     )
     lexical_ms = (time.perf_counter() - started) * 1000
     if lexical_response.status_code != 200:
         raise RuntimeError(f"Lexical request failed: {lexical_response.status_code}")
-    lexical_payload = lexical_response.data
-    lexical_ids = [item["id"] for item in lexical_payload.get("results", [])]
+    lexical_ids = [item["id"] for item in lexical_response.data.get("results", [])]
 
     started = time.perf_counter()
     semantic_response = client.post(
@@ -251,7 +236,7 @@ def evaluate(definition):
             case["query"],
             scope,
         )
-        hybrid = fuse(lexical, semantic, case["query"])
+        hybrid = fuse(lexical, semantic)
         latencies["lexical_ms"].append(lexical_ms)
         latencies["semantic_ms"].append(semantic_ms)
         unauthorized += sum(

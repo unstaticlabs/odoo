@@ -39,6 +39,7 @@ patch_file(
             "from paperless.views import UserViewSet\n",
             (
                 "from paperless.views import UserViewSet\n"
+                "from paperless_ai.semantic_api import ScopedSearchView\n"
                 "from paperless_ai.semantic_api import SemanticSearchView\n"
             ),
         ),
@@ -53,6 +54,11 @@ patch_file(
                                 "^selection_data/",
                                 SelectionDataView.as_view(),
                                 name="selection_data",
+                            ),
+                            re_path(
+                                "^scoped_search/",
+                                ScopedSearchView.as_view(),
+                                name="scoped_search",
                             ),
                             re_path(
                                 "^semantic_search/",
@@ -76,6 +82,125 @@ patch_file(
                                 include("paperless_personal_ai.urls"),
                             ),
 """,
+        ),
+    ),
+)
+
+patch_file(
+    "documents/search/_schema.py",
+    "3acf00eecd2bf0c4991f0453bf0ec6219af03871b00462fad289277972d92479",
+    (
+        ("SCHEMA_VERSION: Final[int] = 1", "SCHEMA_VERSION: Final[int] = 2"),
+        (
+            '''    sb.add_text_field(
+        "simple_content",
+        stored=False,
+        tokenizer_name="simple_search_analyzer",
+    )
+''',
+            '''    sb.add_text_field(
+        "simple_content",
+        stored=False,
+        tokenizer_name="simple_search_analyzer",
+    )
+    sb.add_text_field(
+        "simple_metadata",
+        stored=False,
+        tokenizer_name="simple_search_analyzer",
+    )
+    sb.add_text_field(
+        "simple_custom_fields",
+        stored=False,
+        tokenizer_name="simple_search_analyzer",
+    )
+''',
+        ),
+    ),
+)
+
+patch_file(
+    "documents/search/_backend.py",
+    "ac9664e79a96530dad5b6e79290db2a5f29bb591208c5acd387fca402dc50da3",
+    (
+        (
+            '''        # Original filename - only add if not None/empty
+        if document.original_filename:
+            doc.add_text("original_filename", document.original_filename)
+''',
+            '''        # Plain-text companion fields keep broad scoped search in one
+        # native Tantivy query instead of one API request per custom field.
+        metadata_text: list[str] = []
+        if document.original_filename:
+            doc.add_text("original_filename", document.original_filename)
+            metadata_text.append(document.original_filename)
+''',
+        ),
+        (
+            '''            doc.add_text("correspondent_sort", document.correspondent.name)
+''',
+            '''            doc.add_text("correspondent_sort", document.correspondent.name)
+            metadata_text.append(document.correspondent.name)
+''',
+        ),
+        (
+            '''            doc.add_text("type_sort", document.document_type.name)
+''',
+            '''            doc.add_text("type_sort", document.document_type.name)
+            metadata_text.append(document.document_type.name)
+''',
+        ),
+        (
+            '''            doc.add_text("storage_path", document.storage_path.name)
+''',
+            '''            doc.add_text("storage_path", document.storage_path.name)
+            metadata_text.append(document.storage_path.name)
+''',
+        ),
+        (
+            '''            tag_names.append(tag.name)
+''',
+            '''            tag_names.append(tag.name)
+            metadata_text.append(tag.name)
+''',
+        ),
+        (
+            '''        # Custom fields — JSON for structured queries (custom_fields.name:x, custom_fields.value:y),
+        # companion text field for default full-text search.
+        for cfi in document.custom_fields.all():
+''',
+            '''        if metadata_text:
+            doc.add_text("simple_metadata", " ".join(metadata_text))
+
+        # Custom fields retain their structured JSON representation and also
+        # share one plain-text field for the bounded scoped-search endpoint.
+        custom_field_text: list[str] = []
+        for cfi in document.custom_fields.all():
+''',
+        ),
+        (
+            '''            doc.add_json(
+                "custom_fields",
+                {
+                    "name": cfi.field.name,
+                    "value": search_value,
+                },
+            )
+
+        # Dates
+''',
+            '''            doc.add_json(
+                "custom_fields",
+                {
+                    "name": cfi.field.name,
+                    "value": search_value,
+                },
+            )
+            custom_field_text.extend((cfi.field.name, str(search_value)))
+        if custom_field_text:
+            doc.add_text("simple_custom_fields", " ".join(custom_field_text))
+
+        # Dates
+''',
         ),
     ),
 )
