@@ -511,11 +511,13 @@
         if (!enrollment && !signing) {
             return;
         }
-        if (!window.isSecureContext || !window.crypto?.subtle || (signing && !window.Worker)) {
-            const container = enrollment || signing;
-            const action = container.querySelector(".usl-sign-button");
+        if (
+            signing &&
+            (!window.isSecureContext || !window.crypto?.subtle || !window.Worker)
+        ) {
+            const action = signing.querySelector(".usl-sign-button");
             action.disabled = true;
-            setPhase(container, "error", {
+            setPhase(signing, "error", {
                 tone: "danger",
                 title: "A secure browser is required",
                 message: "Open this page over HTTPS in a current browser, or ask the sender for another signing option.",
