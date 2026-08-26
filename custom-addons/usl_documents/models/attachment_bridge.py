@@ -723,6 +723,18 @@ class IrAttachment(models.Model):
     def action_keep_in_documents(self):
         if not self.env.user.has_group("usl_documents.group_documents_user"):
             raise AccessError(_("Documents access is required to keep this file."))
+        required_crons = (
+            self.env.ref("usl_documents.ir_cron_usl_documents_attachment_queue"),
+            self.env.ref("usl_documents.ir_cron_usl_documents_poll"),
+        )
+        if any(not cron.sudo().active for cron in required_crons):
+            raise UserError(
+                _(
+                    "Documents archiving is paused. The original file is still "
+                    "attached to this record; ask a Documents administrator to "
+                    "resume archive processing.",
+                ),
+            )
         operations = self.env["usl.document.operation"]
         for attachment in self:
             attachment.check_access("read")
@@ -735,6 +747,16 @@ class IrAttachment(models.Model):
 
     @api.model
     def get_keep_in_documents_states(self, attachment_ids):
+        return {
+            attachment_id: detail["state"]
+            for attachment_id, detail in self.get_keep_in_documents_details(
+                attachment_ids,
+            ).items()
+            if detail["state"] == "available"
+        }
+
+    @api.model
+    def get_keep_in_documents_details(self, attachment_ids):
         if not self.env.user.has_group("usl_documents.group_documents_user"):
             return {}
         try:
@@ -745,19 +767,94 @@ class IrAttachment(models.Model):
             )[:200]
         except (TypeError, ValueError) as error:
             raise ValidationError(_("Invalid attachment selection.")) from error
-        states = {}
-        for attachment in self.browse(normalized_ids).exists():
+        attachments = self.browse(normalized_ids).exists()
+        visible_attachments = self.browse()
+        for attachment in attachments:
             try:
                 attachment.check_access("read")
             except AccessError:
+                continue
+            visible_attachments |= attachment
+        operations = self.env["usl.document.operation"].sudo().search(
+            [("source_attachment_id", "in", visible_attachments.ids)],
+            order="id desc",
+        )
+        latest_by_attachment = {}
+        for operation in operations:
+            latest_by_attachment.setdefault(
+                operation.source_attachment_id.id,
+                operation,
+            )
+        details = {}
+        for attachment in visible_attachments:
+            operation = latest_by_attachment.get(attachment.id)
+            if operation:
+                document = operation.document_id or operation.target_document_id
+                visible_document = self.env["usl.document"]
+                if document:
+                    visible_document = document.with_user(
+                        self.env.user,
+                    )._filtered_access("read")
+                state = operation.state
+                status_label = {
+                    "pending": _("Queued for Documents"),
+                    "uploading": _("Sending to Documents"),
+                    "processing": _("Documents is indexing this file"),
+                    "archived": _("Open in Documents"),
+                    "duplicate": _("Review the matching document"),
+                    "failed": _("Documents archiving needs review"),
+                }[state]
+                details[str(attachment.id)] = {
+                    "state": state,
+                    "status_label": status_label,
+                    "operation_id": operation.id,
+                    "document_id": visible_document.id or False,
+                    "error": operation.error_message or False,
+                }
                 continue
             if (
                 attachment.usl_documents_archive_mode == "on_request"
                 and attachment.usl_documents_ledger_state
                 == "native_only_on_request"
             ):
-                states[str(attachment.id)] = "available"
-        return states
+                details[str(attachment.id)] = {
+                    "state": "available",
+                    "status_label": _("Keep in Documents"),
+                    "operation_id": False,
+                    "document_id": False,
+                    "error": False,
+                }
+        return details
+
+    def action_open_in_documents(self):
+        self.ensure_one()
+        self.check_access("read")
+        operation = self.env["usl.document.operation"].sudo().search(
+            [
+                ("source_attachment_id", "=", self.id),
+                ("state", "in", ("archived", "duplicate")),
+                "|",
+                ("document_id", "!=", False),
+                ("target_document_id", "!=", False),
+            ],
+            order="id desc",
+            limit=1,
+        )
+        document = operation.document_id or operation.target_document_id
+        if not document:
+            raise UserError(_("This attachment is not yet available in Documents."))
+        document = document.with_user(self.env.user)
+        document.check_access("read")
+        action = self.env.ref("usl_documents.action_documents_workspace").read()[0]
+        record_name = self.res_name or self.name
+        action["params"] = {
+            "initial_document_id": document.id,
+            "res_model": self.res_model,
+            "res_id": self.res_id,
+            "record_name": record_name,
+            "linked_filter": True,
+        }
+        return action
 
     def action_keep_in_documents_from_ui(self):
         self.ensure_one()
@@ -766,7 +863,14 @@ class IrAttachment(models.Model):
             "attachment_id": self.id,
             "operation_id": operation.id,
             "state": operation.state,
-            "message": _("This file will be kept in Documents."),
+            "detail": self.get_keep_in_documents_details([self.id]).get(
+                str(self.id),
+            ),
+            "message": _(
+                "Archiving started. The original stays attached here; Documents "
+                "will reuse an identical archived file when safe, or create one "
+                "linked archive document.",
+            ),
         }
 
 

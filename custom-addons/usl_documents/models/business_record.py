@@ -61,12 +61,11 @@ class DocumentLinkMixin(models.AbstractModel):
         self.ensure_one()
         self.check_access("read")
         action = self.env.ref("usl_documents.action_documents_workspace").read()[0]
-        linked = bool(self.archived_document_count)
         action["params"] = {
             "res_model": self._name,
             "res_id": self.id,
             "record_name": self.display_name,
-            "linked_filter": bool(linked),
+            "linked_filter": True,
             "mapped_partner_id": self.id if self._name == "res.partner" else False,
         }
         return action

@@ -244,11 +244,25 @@ Removing a relationship never trashes or deletes the archived root.
 
 Automatic archiving normally keeps supporting attachments in the background
 so routine record evidence does not flood Home. An authorized attachment menu
-offers **Keep in Documents** when that relationship may be promoted. The
-document detail can likewise add a background relationship to **My library**
-or remove a library relationship from it. Both actions change only the Odoo
-presentation role: they reuse the same Paperless root, versions, checksum,
-operation history, and business link. Required evidence cannot be demoted.
+offers **Keep in Documents** for a native attachment whose policy is archive on
+request. That action starts asynchronous archiving; the original remains on
+the Odoo record and continues to open normally. Documents reuses an existing
+archive root when content and classification match, otherwise creates one root
+and links it back to the record. Replacing the content of that same attachment
+later creates a new version rather than a second root.
+
+The attachment card shows whether the request is queued, being sent, indexed,
+or needs review. After completion, **Open in Documents** opens that exact
+archive identity in the Documents app. The record smart button shows one native
+state at a time—Documents, Archiving, or Needs review—rather than stacking
+several counters in a broken stat-button layout. If archive schedulers are
+paused, **Keep in Documents** fails before queuing and explicitly confirms that
+the original is safe on the record.
+
+The separate document-detail action can add a background relationship to **My
+library** or remove a library relationship from it. That action changes only
+the Odoo presentation role; it does not archive another file. Required
+evidence cannot be demoted.
 
 Context is additive. Projects receive **Projects** and one stable
 **Project · Name** tag, Platform Billing receives one stable platform tag,

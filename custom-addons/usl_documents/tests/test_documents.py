@@ -218,6 +218,12 @@ class TestDocuments(TransactionCase):
             ),
             {str(attachment.id): "available"},
         )
+        self.assertEqual(
+            self.env["ir.attachment"].get_keep_in_documents_details(
+                [attachment.id],
+            )[str(attachment.id)]["status_label"],
+            "Keep in Documents",
+        )
 
         first = attachment.action_keep_in_documents()
         second = attachment.action_keep_in_documents()
@@ -231,11 +237,54 @@ class TestDocuments(TransactionCase):
         self.assertEqual(first.context_json["archive_mode"], "on_request")
         self.assertEqual(first.context_json["document_role"], "library")
         self.assertEqual(attachment.usl_documents_ledger_state, "pending")
+        self.assertIn("original stays attached", ui_result["message"])
+        self.assertEqual(ui_result["detail"]["state"], "pending")
         self.assertEqual(
             self.env["ir.attachment"].get_keep_in_documents_states(
                 [attachment.id],
             ),
             {},
+        )
+        archived = self._document(72001)
+        first.sudo().write({"state": "archived", "document_id": archived.id})
+        archived_detail = self.env[
+            "ir.attachment"
+        ].get_keep_in_documents_details([attachment.id])[str(attachment.id)]
+        self.assertEqual(archived_detail["state"], "archived")
+        self.assertEqual(archived_detail["document_id"], archived.id)
+        action = attachment.action_open_in_documents()
+        self.assertEqual(action["tag"], "usl_documents.workspace")
+        self.assertEqual(action["params"]["initial_document_id"], archived.id)
+        self.assertEqual(action["params"]["res_model"], "project.task")
+        self.assertEqual(action["params"]["res_id"], task.id)
+
+    def test_keep_in_documents_fails_clearly_when_scheduler_is_paused(self):
+        project = self.env["project.project"].create({"name": "Paused archive"})
+        task = self.env["project.task"].create(
+            {"name": "Paused archive task", "project_id": project.id},
+        )
+        message = task.message_post(
+            body="The native attachment must remain available.",
+            attachments=[("paused.txt", b"not silently queued")],
+        )
+        attachment = message.attachment_ids.filtered(
+            lambda item: item.name == "paused.txt",
+        )
+        self.env.ref(
+            "usl_documents.ir_cron_usl_documents_attachment_queue",
+        ).sudo().write({"active": False})
+
+        with self.assertRaisesRegex(UserError, "archiving is paused"):
+            attachment.action_keep_in_documents()
+
+        self.assertEqual(
+            attachment.usl_documents_ledger_state,
+            "native_only_on_request",
+        )
+        self.assertFalse(
+            self.env["usl.document.operation"].sudo().search_count(
+                [("source_attachment_id", "=", attachment.id)],
+            ),
         )
 
     def test_search_workspaces_keep_background_out_of_home_until_promoted(self):

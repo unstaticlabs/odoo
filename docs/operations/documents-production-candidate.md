@@ -319,26 +319,45 @@ Three credible presentation designs were compared:
    set. Paperless also cannot enforce the Odoo relationship/evidence rule that
    prevents required evidence from being demoted.
 
-The selected actions change only Odoo presentation. **Keep in Documents** is
-available from the native attachment list when policy permits. The document
-detail can promote or demote one accessible link, but evidence remains
-prominent. Both paths retain the Paperless root, version chain, checksum,
-operation history, business relationship, and Paperless-managed metadata.
+The selected bridge retains the native chatter attachment and one governed
+archive identity. **Keep in Documents** is available when policy permits and
+starts the idempotent asynchronous archive operation: matching content and
+classification reuse a root, while later changed content on that same source
+attachment becomes a version. The document-detail action is different: it only
+promotes or demotes one accessible presentation link, and evidence remains
+prominent. Neither path deletes the native message attachment or creates a
+second competing archive root.
 
-Backend validation passed 137 test methods (141 reported test entries and 8,457
-queries), zero failures and zero errors, after focused regressions for private
+Restored QA databases may have all crons disabled by neutralization. The QA
+bootstrap explicitly re-enables only the three Documents synchronization,
+attachment-queue, and ingestion-poll schedulers. Product UI refuses a new
+**Keep in Documents** request when either required worker is paused, instead of
+showing an operation that can never progress. This is preferred to activating
+the schedulers from a module migration: a migration would silently override an
+administrator's intentional production pause on every update, whereas the QA
+bootstrap is an explicit environment-recovery action and the product check
+leaves the original attachment safe and explains the operational remedy.
+
+Backend validation passed 170 test methods (178 reported test entries), zero
+failures and zero errors, after focused regressions for private
 state, read-only accounting access, manager-only views, empty archive search,
 background visibility, multi-company scope, attachment promotion,
 root/version identity, unchanged policy/synchronization writes, and trusted
-generated-final provenance. One preceding fresh run correctly exposed an
-over-specific mock assertion in the new synchronization test; the assertion
-was moved to the Paperless client boundary and the focused retry plus complete
-fresh-database run passed without changing production behavior. Frontend
-validation passed 31 desktop tests with 215 assertions and 28 mobile tests with
-207 assertions, with zero Odoo failures or errors. Two consecutive module
-updates installed `usl_documents saas~19.3.1.6.1`; Python, XML, JavaScript
+generated-final provenance, observable attachment ingestion, exact-document
+opening, and paused-worker handling. Frontend validation passed 34 desktop
+tests with 233 assertions and 29 mobile tests with 216 assertions, with zero
+Odoo failures or errors. Two consecutive scoped module updates installed
+`usl_documents saas~19.3.1.7.9`; Python, XML, JavaScript
 asset, translation, manifest, production-model Ruff, shell-syntax, static, and
 product/migration source and database checks passed.
+
+The reported QA attachment was recovered without replacement: Odoo attachment
+1922 remains on project task 671, operation 1768 completed, and it points to
+one accessible Documents root (Odoo 928 / Paperless 880) with one active task
+relationship and no competing current-checksum root. A Valentin-context probe
+returned the completed status and an exact-document workspace action. The
+restored attachment backfill is complete, all three Documents schedulers are
+active, and no ingestion operation remains active.
 
 The exact authoritative dump was reconstructed in the isolated project with
 the deterministic `documents-smoke` profile. Eight selected source identity

@@ -5763,6 +5763,100 @@ msgstr ""
 "« %(document)s » a été restauré. Ses liens Odoo et son identité d'archive "
 "ont été préservés."
 
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Documents archiving is paused. The original file is still attached to this record; ask a Documents administrator to resume archive processing."
+msgstr "L’archivage Documents est en pause. Le fichier d’origine reste joint à cet enregistrement ; demandez à un administrateur Documents de reprendre le traitement."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Queued for Documents"
+msgstr "En attente pour Documents"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Sending to Documents"
+msgstr "Envoi vers Documents"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Documents is indexing this file"
+msgstr "Documents indexe ce fichier"
+
+#. module: usl_documents
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+#: code:addons/usl_documents/static/src/attachment_list_patch.xml:0
+msgid "Open in Documents"
+msgstr "Ouvrir dans Documents"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Review the matching document"
+msgstr "Examiner le document correspondant"
+
+#. module: usl_documents
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+#: code:addons/usl_documents/static/src/attachment_list_patch.xml:0
+msgid "Documents archiving needs review"
+msgstr "L’archivage Documents doit être vérifié"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "This attachment is not yet available in Documents."
+msgstr "Cette pièce jointe n’est pas encore disponible dans Documents."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Archiving started. The original stays attached here; Documents will reuse an identical archived file when safe, or create one linked archive document."
+msgstr "L’archivage a démarré. L’original reste joint ici ; Documents réutilisera un fichier archivé identique lorsque cela est sûr ou créera un document d’archive lié."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Starting Documents archiving"
+msgstr "Démarrage de l’archivage Documents"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Queued"
+msgstr "En attente"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Indexing in Documents"
+msgstr "Indexation dans Documents"
+
+#. module: usl_documents
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "The original remains attached to its Odoo record. Documents will reuse identical archived content when safe or create one linked archive document."
+msgstr "L’original reste joint à son enregistrement Odoo. Documents réutilisera un contenu archivé identique lorsque cela est sûr ou créera un document d’archive lié."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_move_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_expense_view_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_partner_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_project_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.project_task_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.hr_employee_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_company_form_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.account_payment_form_documents
+msgid "Archiving"
+msgstr "Archivage"
+
 #~ msgid ""
 #~ "%(count)s attachment(s) sent to Paperless. Odoo copies were retained."
 #~ msgstr ""

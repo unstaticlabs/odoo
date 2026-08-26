@@ -367,8 +367,12 @@
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <i t-att-class="'fa ' + (state.operation.state === 'failed' ? 'fa-times-circle' : state.operation.state === 'archived' ? 'fa-check-circle' : 'fa-circle-o-notch fa-spin')"/>
                             <strong t-esc="state.operation.name"/>
-                            <span class="text-capitalize" t-esc="state.operation.state"/>
+                            <span t-esc="state.operation.status_label || state.operation.state"/>
                             <span t-if="state.operation.error" t-esc="state.operation.error"/>
+                        </div>
+                        <div t-if="['pending', 'uploading', 'processing'].includes(state.operation.state)"
+                             class="small mt-1">
+                            The original remains attached to its Odoo record. Documents will reuse identical archived content when safe or create one linked archive document.
                         </div>
                     </div>
                 </div>

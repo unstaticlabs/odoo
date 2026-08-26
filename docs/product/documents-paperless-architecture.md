@@ -243,6 +243,14 @@ same attachment becomes a Paperless version. Retry identity is the native
 attachment, content hash and metadata hash. Failed operations stay visible until
 retry or acknowledgement.
 
+The native attachment remains the record's immediate copy throughout this
+flow. Its card reads the latest operation in one bounded query, polls only while
+that operation is active, and exposes **Open in Documents** after completion.
+The action passes the exact authorized `usl.document` identity to the client
+workspace; it does not send a raw Paperless URL to the browser. New on-request
+operations fail before queue creation when the required attachment or polling
+scheduler is inactive.
+
 Content-only reuse was rejected because the same bytes can carry different
 company, HR or accounting meaning. Including target record IDs in the metadata
 hash was also rejected because it would force a redundant archive upload for

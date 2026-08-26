@@ -4341,6 +4341,14 @@ class UslDocumentOperation(models.Model):
             "id": self.id,
             "name": self.name,
             "state": self.state,
+            "status_label": {
+                "pending": _("Queued"),
+                "uploading": _("Sending to Documents"),
+                "processing": _("Indexing in Documents"),
+                "archived": _("Archived"),
+                "duplicate": _("Needs review"),
+                "failed": _("Failed"),
+            }[self.state],
             "error": self.error_message,
             "document_id": self.document_id.id,
             "document_name": document.name or self.name,
@@ -4354,7 +4362,7 @@ class UslDocumentOperation(models.Model):
         if not self.env.user.has_group("usl_documents.group_documents_user"):
             return False
         operation = self.search(
-            [("state", "in", ("uploading", "processing"))],
+            [("state", "in", ("pending", "uploading", "processing"))],
             order="create_date desc, id desc",
             limit=1,
         )
@@ -4630,6 +4638,14 @@ class UslDocumentOperation(models.Model):
                 "id": operation.id,
                 "name": operation.name,
                 "state": operation.state,
+                "status_label": {
+                    "pending": _("Queued"),
+                    "uploading": _("Sending to Documents"),
+                    "processing": _("Indexing in Documents"),
+                    "archived": _("Archived"),
+                    "duplicate": _("Needs review"),
+                    "failed": _("Failed"),
+                }[operation.state],
                 "document_id": operation.document_id.id,
                 "document_name": (
                     operation.document_id.name
