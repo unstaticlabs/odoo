@@ -214,7 +214,7 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             'run_stage "restore B2C commerce evidence"',
             'run_stage "restore Projects"',
             'run_stage "restore Documents archive"',
-            'run_stage "refresh B2C Documents links"',
+            'run_stage "finalize B2C relationships and Documents links"',
             'run_stage "restore Paie TESE"',
             'run_stage "restore Platform Billing"',
             'run_stage "finalize migration boundary"',
