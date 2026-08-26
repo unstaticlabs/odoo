@@ -44,16 +44,27 @@ or a bare `docker compose --profile paperless up` during the tour.
 
 ## 1. Find text inside a document
 
-1. In Documents, type `heliotrope`.
-2. Choose the first suggestion, **Search everywhere for: heliotrope**. It
-   becomes a removable **Search everywhere** facet.
-3. Click the top **Accounting** tag chip. It is applied on top of the search,
-   leaving **Alpine Office Supplies — Invoice SI-2026-0715**.
-4. Open the document and confirm the preview contains the OCR-only sentence.
+First exercise progressive exact-first search:
 
-You should get one authorized result. The preview contains the searched words.
-The panel immediately explains the date, correspondent, type, tags, company,
-and Odoo links. Healthy synchronization and checksum messages are absent.
+1. In Documents, type `INV-QA-2026-0042`.
+2. Choose **Search everywhere — words + meaning**. The exact Alpine invoice
+   must appear first, normally in under one second on the local stack.
+3. While the local BGE-M3 index adds meaning-based matches, an **Exact matches
+   are ready** banner is visible. The exact invoice must remain first after the
+   banner disappears; semantic results may only be appended.
+
+Then exercise meaning-only search:
+
+1. Remove the first facet and type `heliotrope cobalt compliance evidence`.
+2. Choose **Semantic search — meaning only**.
+3. Confirm **Alpine Office Supplies — Invoice SI-2026-0715** is returned, then
+   open it and confirm the preview contains the OCR-only sentence.
+
+The exact marker should identify one authorized invoice; meaning-only search
+may return additional authorized candidates, with the intended invoice near
+the top. The preview contains the searched words. The panel immediately
+explains the date, correspondent, type, tags, company, and Odoo links. Healthy
+synchronization and checksum messages are absent.
 
 Open the search dropdown. It must be Odoo's normal three-column menu:
 
@@ -65,12 +76,19 @@ Open the search dropdown. It must be Odoo's normal three-column menu:
 
 There is no separate **More filters** form.
 
-The initial suggestions deliberately keep only frequent choices: Search
-everywhere, Title, Document content, Tags, Correspondent, Type, Company, and
-Date. Use **Filters > Add Custom Filter** for archive identity, source,
+The initial suggestions deliberately expose exactly two meaning-based choices:
+**Search everywhere — words + meaning** and **Semantic search — meaning only**.
+Title, Document content, Tags, Correspondent, Type, Company, and Date remain
+lexical. Use **Filters > Add Custom Filter** for archive identity, source,
 privacy, review state, availability, mapped Contact, employee, or a Paperless
 custom field. Every choice remains a normal removable Odoo facet and still
-passes through Odoo authorization.
+passes through Odoo authorization. Search uses local BGE-M3 embeddings only;
+Gemini and other generative models are not part of either search path.
+
+To check the one-request custom-field path, use **Filters > Add Custom
+Filter**, select the Paperless invoice-number field, and enter
+`INV-QA-2026-0042`. It must return the same invoice without one Paperless call
+per configured custom field.
 
 The small chips below the search bar are deliberate shortcuts:
 
