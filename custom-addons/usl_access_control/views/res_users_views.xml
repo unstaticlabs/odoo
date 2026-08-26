@@ -22,4 +22,3 @@
         <field name="group_ids" eval="[Command.set([ref('base.group_system')])]"/>
     </record>
 </odoo>
-

@@ -62,4 +62,3 @@
               sequence="90"
               groups="usl_access_control.group_audit_reader,usl_access_control.group_accounting_reviewer"/>
 </odoo>
-
