@@ -89,6 +89,19 @@ The workspace does not expose healthy synchronization state. It returns a
 document-level access error only when permission synchronization failed.
 Checksums, archive IDs, and last access checks are manager diagnostics.
 
+The read-only MCP contract is implemented only by explicit
+`usl.document.mcp_*` facade methods. It covers governed exact/hybrid/semantic
+search, similar-document retrieval, bounded OCR pages, versions, links,
+archive catalogs, and saved views. `mcp_list_saved_views` returns active shared
+views and only the current user's personal views. Passing a returned
+`saved_view_id` to search or similarity adds the view's complete domain and
+stored company, metadata, date, source, confidentiality, review, and link
+filters before Odoo derives the Paperless candidate scope. An empty search
+query browses a metadata-only view without calling Paperless, or replays a
+stored saved-view query. Missing and inaccessible personal views share one
+denial. The facade contains no saved-view write method; lifecycle changes stay
+in the Documents UI.
+
 Configuration keys use the `usl_documents.*` namespace. The service URL and
 token are server-only; the public URL is used solely for permission-synchronized
 individual deep links. Extend supported business models through

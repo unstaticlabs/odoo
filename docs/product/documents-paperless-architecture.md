@@ -167,6 +167,16 @@ relevance is preserved.
 Explicit compact-list ordering is accepted only through a server allowlist of
 synchronized stored fields.
 
+The read-only Documents MCP facade exposes this same retrieval boundary rather
+than generic model calls. It lists only accessible shared and caller-owned
+Smart Views, and accepts a returned view ID as an additive candidate scope for
+exact, hybrid, semantic, or similar-document retrieval. Stored structured
+filters are replayed server-side; explicit MCP filters may narrow or replace
+the matching stored value but cannot remove the Smart View domain or Odoo
+record rules. A view with no text query can be browsed without Paperless
+search. Another user's private view and a nonexistent view are
+indistinguishable. Saved-view writes remain in the native Documents UI.
+
 ## Personal generative boundary
 
 Gemini is neither an archive dependency nor a search component. Paperless owns
