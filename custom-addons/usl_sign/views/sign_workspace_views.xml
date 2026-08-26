@@ -8,38 +8,45 @@
         <field name="name">usl.sign.start.form</field>
         <field name="model">usl.sign.start</field>
         <field name="arch" type="xml">
-            <form string="Start">
+            <form string="Request signatures" class="usl_sign_start_wizard">
                 <sheet>
                     <field name="company_id" invisible="1"/>
                     <div class="oe_title">
                         <h2>Request signatures</h2>
-                        <p class="text-muted">Start with a PDF or a reusable template.</p>
+                        <p class="text-muted">Choose the document and the people who need to sign it.</p>
                     </div>
                     <field name="signature_source" widget="radio" options="{'horizontal': true}" nolabel="1" class="mb-3"/>
-                    <group string="1. Choose the document" invisible="signature_source != 'upload'">
-                        <field name="document_data" filename="document_filename" string="PDF to sign" required="signature_source == 'upload'"/>
-                        <field name="document_filename" invisible="1"/>
-                    </group>
-                    <section class="mt-4" invisible="signature_source != 'upload'">
-                        <h3 class="h5 mb-1">2. Add the signers</h3>
-                        <p class="text-muted mb-3">Add everyone who must sign. On the next screen, choose the fields each person completes.</p>
-                        <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label fw-semibold d-block mb-1"/>
-                        <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
-                               required="signature_source == 'upload'" options="{'no_quick_create': true}"
-                               placeholder="Add one or more contacts"/>
-                        <div class="mt-3">
-                            <label for="message" string="Message" class="o_form_label fw-semibold d-block mb-1"/>
-                            <field name="message" nolabel="1" placeholder="Optional note shown with the invitation"/>
+                    <section class="usl_sign_start_section" invisible="signature_source != 'upload'">
+                        <h3>Document</h3>
+                        <p class="text-muted">Upload the PDF you want people to sign.</p>
+                        <div class="usl_sign_start_input">
+                            <field name="document_data" filename="document_filename" string="PDF to sign" required="signature_source == 'upload'"/>
+                            <field name="document_filename" invisible="1"/>
                         </div>
                     </section>
-                    <group string="Choose a template" invisible="signature_source != 'template'">
-                        <field name="template_id" required="signature_source == 'template'" options="{'no_create': true}"/>
-                    </group>
-                    <details class="mt-3">
-                        <summary class="text-muted">Link this request to an Odoo record</summary>
+                    <section class="usl_sign_start_section" invisible="signature_source != 'upload'">
+                        <h3>People</h3>
+                        <p class="text-muted">Add everyone who must sign. You will place each person’s fields next.</p>
+                        <div class="usl_sign_start_input">
+                            <label for="signer_partner_ids" string="Who needs to sign?" class="o_form_label fw-semibold d-block mb-1"/>
+                            <field name="signer_partner_ids" widget="many2many_tags" nolabel="1"
+                                   required="signature_source == 'upload'" options="{'no_quick_create': true}"
+                                   placeholder="Add one or more contacts"/>
+                        </div>
+                    </section>
+                    <section class="usl_sign_start_section" invisible="signature_source != 'template'">
+                        <h3>Template</h3>
+                        <p class="text-muted">Choose a ready template. You will assign each signing role next.</p>
+                        <div class="usl_sign_start_input">
+                            <field name="template_id" nolabel="1" required="signature_source == 'template'" options="{'no_create': true}"/>
+                        </div>
+                    </section>
+                    <details class="usl_sign_start_more">
+                        <summary>More options</summary>
                         <group class="mt-2">
-                            <field name="name" placeholder="Defaults to the PDF or template name"/>
-                            <field name="record_ref"/>
+                            <field name="name" string="Request name" placeholder="Defaults to the PDF or template name"/>
+                            <field name="message" string="Message to signers" placeholder="Optional note shown with the invitation"/>
+                            <field name="record_ref" string="Related Odoo record"/>
                         </group>
                     </details>
                 </sheet>
