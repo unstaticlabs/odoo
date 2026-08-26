@@ -311,6 +311,23 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
                 self.assertNotIn("XXXXXX.json", script)
                 self.assertNotIn("XXXXXX.tsv", script)
 
+    def test_qa_persona_bootstrap_cannot_race_product_crons(self):
+        qa = QA_SCRIPT.read_text(encoding="utf-8")
+        start = qa.index("b2c_qa_bootstrap() {")
+        function = qa[start : qa.index("\nusl_cli_title", start)]
+
+        self.assertIn('"${compose[@]}" stop odoo', function)
+        self.assertIn("--profile init run --rm -T --no-deps", function)
+        self.assertIn('"${compose[@]}" up -d --wait odoo', function)
+        self.assertLess(
+            function.index('"${compose[@]}" stop odoo'),
+            function.index("b2c_qa_bootstrap.py"),
+        )
+        self.assertGreater(
+            function.index('"${compose[@]}" up -d --wait odoo'),
+            function.index("b2c_qa_bootstrap.py"),
+        )
+
     def test_source_identity_index_is_removed_with_migration_columns(self):
         finalizer = (
             ROOT / "migration/accounting_restore/scripts/finalize_schema.py"
