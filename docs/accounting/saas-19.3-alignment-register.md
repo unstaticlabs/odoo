@@ -97,3 +97,34 @@ reconstruction must confirm the product total remains the 1,910 source tasks.
 The complete Paperless archive, pre-production and coordinated recovery gates
 remain outstanding. The 19.2 register remains historical and must not be edited
 to describe 19.3 evidence.
+
+## Upstream ancestry refresh: 26 August 2026
+
+The Distribution refreshed its official `saas-19.3` ancestry without changing
+the generation or rewriting the original frozen alignment evidence above:
+
+- Distribution base: `f302ae6cdb43b47e1bb2c705e1f4f716a27ce7d5`;
+- previous upstream: `efb98f932f3a568ce550a26ebde06da0e14e65d3`;
+- refreshed upstream: `aef56898d9ea5a97948af04c03ae101d17b8b4a3`;
+- upstream delta: 106 commits, 1,013 files, 19,857 insertions and 10,697
+  deletions;
+- upstream migrations and runtime dependency changes: none; the only manifest
+  change adds demo warehouse data for the Indian localization;
+- overlapping downstream/core file: `addons/account/models/account_move.py`.
+
+The merge completed without textual conflicts. In the overlapping file,
+upstream removed an obsolete invoice-line onchange ordering workaround while
+the independent USL fiscal-year sequence adaptation remained intact. The
+matching `addons/account/wizard/account_resequence.py` adaptation also remains:
+the refreshed upstream still has no equivalent company-governed extension
+point. Removing either downstream patch was therefore rejected in favor of
+retaining the documented fiscal-year boundary contract and its focused tests.
+
+The upstream delta is translation-heavy and also changes Accounting, ORM date
+handling, Mail and attachment storage, authentication, HR, Projects, stock,
+POS, Sales, Website and localization behavior. The refresh therefore requires
+focused upstream and USL module tests, clean-install and partial Documents QA,
+a fresh product reconstruction, product/migration boundary checks and the
+French catalogue and user-documentation gates. The shared full-QA cache is not
+refreshed by a linked worktree; that release-only gate remains separate from
+this integration candidate.

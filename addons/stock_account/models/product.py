@@ -490,7 +490,7 @@ class ProductProduct(models.Model):
                         ignore_manual_update = False
                         if self.env.cr.cache.get('moves_with_manual_value', {}).get((at_date, move.product_id)):
                             ignore_manual_update = move.id not in self.env.cr.cache['moves_with_manual_value'][at_date, move.product_id]
-                        in_value = move._get_value(at_date=at_date, forced_std_price=average_cost, ignore_manual_update=ignore_manual_update)
+                        in_value = move.sudo()._get_value(at_date=at_date, forced_std_price=average_cost, ignore_manual_update=ignore_manual_update)
                     if lot:
                         lot_qty = move._get_valued_qty(lot)
                         in_value = (in_value * lot_qty / in_qty) if in_qty else 0
@@ -649,14 +649,14 @@ class ProductProduct(models.Model):
                 continue
             products_by_cost_method[product.cost_method].add(product.id)
         for cost_method, product_ids in products_by_cost_method.items():
-            products = self.env['product.product'].browse(product_ids)
+            products = self.env['product.product'].sudo().browse(product_ids)
             if cost_method == 'standard':
                 continue
 
             if extra_value is not None and extra_quantity is not None:
                 products_with_incremental_recompute = (
                     self.env['product.product'].concat(extra_value.keys()) & products
-                ).with_context(
+                ).sudo().with_context(
                     allowed_company_ids=self.env.company.ids
                 )._with_valuation_context()
                 products_with_incremental_recompute.fetch(['qty_available'])
