@@ -1,0 +1,20 @@
+{
+    "name": "USL Collaboration Restoration",
+    "summary": "Temporary source-wide chatter and Discuss reconstruction",
+    "version": "saas~19.3.1.0.0",
+    "category": "Technical/Migration",
+    "author": "Unstatic Labs",
+    "license": "LGPL-3",
+    "depends": [
+        "usl_accounting_restore",
+        "usl_identity_restore",
+        "usl_product_restore",
+        "usl_hr_restore",
+        "usl_project_restore",
+        "usl_tese_restore",
+        "usl_documents",
+        "rebuild_account_migration",
+    ],
+    "application": False,
+    "installable": True,
+}

@@ -14,7 +14,7 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-SCHEMA = "usl-qa-reconstruction-seed-v2"
+SCHEMA = "usl-qa-reconstruction-seed-v3"
 MIGRATION_INPUTS = (
     "Dockerfile",
     "accounting_compat",
@@ -28,6 +28,7 @@ MIGRATION_INPUTS = (
     "scripts/accounting-compat",
     "scripts/accounting-restore",
     "scripts/attachment-ledger",
+    "scripts/collaboration-restore",
     "scripts/documents-restore",
     "scripts/hr-restore",
     "scripts/identity-restore",
@@ -240,6 +241,7 @@ def atomic_json(path: Path, value: dict) -> None:
 def validate_qualification(qualification: dict) -> None:
     required = {
         "accounting": "passed",
+        "collaboration": "passed",
         "documents": "passed",
         "migration_boundary": "passed",
         "product_database_boundary": "passed",
@@ -282,6 +284,14 @@ def validate_qualification(qualification: dict) -> None:
         or documents["paperless_document_count"] < 0
     ):
         raise SeedError("seed qualification has incomplete Documents controls")
+    collaboration = qualification["collaboration"]
+    if (
+        collaboration.get("visible_message_count") != 49451
+        or collaboration.get("external_message_count") != 554
+        or not isinstance(collaboration.get("evidence_sha256"), str)
+        or len(collaboration["evidence_sha256"]) != 64
+    ):
+        raise SeedError("seed qualification has incomplete Collaboration evidence")
 
 
 def seal(args: argparse.Namespace) -> None:

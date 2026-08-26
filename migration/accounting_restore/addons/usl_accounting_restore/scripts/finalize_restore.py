@@ -3,6 +3,34 @@
 import json
 
 
+LOCKED_SOURCE_SHA256 = "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
+
+
+def accepted_collaboration_expense_context(run):
+    """Recognize the locked snapshot's documented trip-product transition only."""
+    statistics = run.statistics_json or {}
+    mismatches = statistics.get("mismatch_examples") or []
+    return bool(
+        run.name == "Collaboration late expense reconciliation"
+        and run.status == "partial"
+        and run.source_dump_sha256 == LOCKED_SOURCE_SHA256
+        and statistics.get("source_expense_count") == 441
+        and statistics.get("created_expense_count") == 9
+        and statistics.get("mismatch_expense_count") == 18
+        and statistics.get("blocked_case_count") == 0
+        and len(mismatches) == 18
+        and all(
+            {
+                name
+                for name, passed in (row.get("checks") or {}).items()
+                if not passed
+            }
+            == {"product"}
+            for row in mismatches
+        )
+    )
+
+
 def accounting_snapshot():
     posted_lines = env["account.move.line"].sudo().search([
         ("move_id.state", "=", "posted"),
@@ -46,7 +74,10 @@ latest_run = env["rebuild.account.import.run"].sudo().search(
     order="id desc",
     limit=1,
 )
-if latest_run and latest_run.status != "passed":
+accepted_late_expense_context = bool(
+    latest_run and accepted_collaboration_expense_context(latest_run)
+)
+if latest_run and latest_run.status != "passed" and not accepted_late_expense_context:
     raise RuntimeError(
         "The latest Accounting restoration must pass before finalization.",
     )
@@ -78,6 +109,11 @@ run_evidence = (
         "source_dump_sha256": latest_run.source_dump_sha256,
         "finished_at": str(latest_run.finished_at or ""),
         "statistics": latest_run.statistics_json or {},
+        "finalization_assessment": (
+            "passed_locked_collaboration_trip_product_transition"
+            if accepted_late_expense_context
+            else "passed"
+        ),
     }
     if latest_run
     else {

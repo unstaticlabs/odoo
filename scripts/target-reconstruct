@@ -276,6 +276,34 @@ if ledger_path.is_file():
         "evidence_sha256": sha256(ledger_path),
         "summary": ledger.get("summary", {}),
     }
+collaboration_path = (
+    source_evidence
+    / "collaboration"
+    / sys.argv[12]
+    / "collaboration-disposition.json"
+)
+if collaboration_path.is_file() and collaboration_path.stat().st_mtime >= int(sys.argv[5]):
+    collaboration = json.loads(collaboration_path.read_text(encoding="utf-8"))
+    collaboration_summary = collaboration.get("summary") or {
+        "complete": (
+            collaboration.get("visible_message_count") == 49451
+            and collaboration.get("external_message_count") == 554
+            and len(collaboration.get("dispositions", {}).get("messages", [])) == 50005
+            and len(collaboration.get("dispositions", {}).get("tracking", [])) == 36946
+            and len(collaboration.get("dispositions", {}).get("followers", [])) == 5862
+            and len(collaboration.get("dispositions", {}).get("activities", [])) == 895
+            and not any(collaboration.get("outbound_side_effect_delta", {}).values())
+        ),
+        "external_messages": collaboration.get("external_message_count"),
+        "visible_messages": collaboration.get("visible_message_count"),
+    }
+    payload["collaboration_coverage"] = {
+        "complete": collaboration_summary["complete"],
+        "evidence": str(collaboration_path),
+        "evidence_sha256": sha256(collaboration_path),
+        "source_dump_sha256": collaboration.get("source_dump_sha256"),
+        "summary": collaboration_summary,
+    }
 evidence = sorted(
     Path(sys.argv[7]).glob("accounting_compat/private/snapshots/*/evidence/documents-restore-*.json"),
     key=lambda path: path.stat().st_mtime,
@@ -380,7 +408,9 @@ PY
     'Accounting ledger parity passed, but a downstream stage detached the manager HR identity.' \
     'Replaying the idempotent HR restore before one strict revalidation.'
   stop_product
-  scripts/hr-restore all
+  scripts/hr-restore install
+  scripts/hr-restore import
+  scripts/hr-restore validate
   stop_product
   scripts/accounting-compat dev-validate
 }
@@ -409,10 +439,16 @@ finalize_migration_boundary() {
   # Keep downstream source identities until every fallible restore has passed.
   # A Documents interruption can then replay Projects, TESE, and Platform
   # Billing by exact source identity instead of guessing from business names.
+  if [[ "$qa_profile" == full ]]; then
+    scripts/collaboration-restore finalize
+  fi
   PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1 \
     scripts/platform-billing-restore finalize
   TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore finalize
   PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore finalize
+  scripts/hr-restore finalize
+  scripts/product-restore finalize
+  scripts/identity-restore finalize
   scripts/accounting-restore finalize
   # Platform Billing has an additional schema scrub. Run it only after every
   # temporary module has been removed, so this product-only registry check
@@ -464,9 +500,13 @@ else
     COMPOSE_PROJECT_NAME="$compose_project" \
     scripts/documents-restore prepare-target
   stop_product
-  run_stage "restore identities" scripts/identity-restore all
+  run_stage "install identity restoration" scripts/identity-restore install
+  run_stage "restore identities" scripts/identity-restore import
+  run_stage "validate identities" scripts/identity-restore validate
   stop_product
-  run_stage "restore product data" scripts/product-restore all
+  run_stage "install product restoration" scripts/product-restore install
+  run_stage "restore product data" scripts/product-restore import
+  run_stage "validate product data" scripts/product-restore validate
   stop_product
   run_stage "repair Expense Batch transition" scripts/accounting-restore expense-batch-transition
   stop_product
@@ -476,7 +516,9 @@ else
   run_stage "restore B2C commerce evidence" env \
     B2C_REQUIRE_FINAL_RELATIONSHIPS=0 scripts/b2c-restore all
   stop_product
-  run_stage "restore HR" scripts/hr-restore all
+  run_stage "install HR restoration" scripts/hr-restore install
+  run_stage "restore HR" scripts/hr-restore import
+  run_stage "validate HR" scripts/hr-restore validate
   stop_product
   run_stage "restore Projects" restore_projects_for_reconstruction
   stop_product
@@ -503,6 +545,12 @@ else
   stop_product
   run_stage "restore Platform Billing" restore_platform_billing_for_reconstruction
   stop_product
+  if [[ "$qa_profile" == full ]]; then
+    run_stage "restore Collaboration history" scripts/collaboration-restore all
+    stop_product
+  else
+    printf 'Collaboration restoration: skipped by partial QA profile %s.\n' "$qa_profile"
+  fi
   run_stage "finalize migration boundary" finalize_migration_boundary
   migration_finalized=1
 fi

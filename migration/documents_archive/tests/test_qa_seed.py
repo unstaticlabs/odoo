@@ -53,6 +53,12 @@ class QaSeedManifestTest(unittest.TestCase):
                     "paperless_document_count": 1,
                     "status": "passed"
                 },
+                "collaboration": {
+                    "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "external_message_count": 554,
+                    "status": "passed",
+                    "visible_message_count": 49451
+                },
                 "migration_boundary": "passed",
                 "product_database_boundary": "passed",
                 "profile": "full",
@@ -81,7 +87,7 @@ class QaSeedManifestTest(unittest.TestCase):
         manifest = qa_seed.verify(self.args())
 
         self.assertEqual(manifest["qualification"]["status"], "passed")
-        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v2")
+        self.assertEqual(qa_seed.SCHEMA, "usl-qa-reconstruction-seed-v3")
         self.assertIn("source_filestore_sha256", manifest["identity"])
         self.assertEqual((self.seed / "manifest.json").stat().st_mode & 0o777, 0o600)
 

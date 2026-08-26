@@ -407,6 +407,7 @@ services:
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
+      - ./artifacts/migration/private:/mnt/migration-evidence:ro
 
   accounting-migration:
     profiles: ["accounting-migration"]
@@ -477,7 +478,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons
+      - --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/accounting-migration-addons,/mnt/identity-migration-addons,/mnt/product-migration-addons,/mnt/b2c-migration-addons,/mnt/hr-migration-addons,/mnt/project-migration-addons,/mnt/tese-migration-addons,/mnt/platform-billing-migration-addons,/mnt/collaboration-migration-addons
       - --database=${ODOO_INIT_DB:-odoo_dev}
       - --without-demo=true
       - --stop-after-init
@@ -493,11 +494,14 @@ services:
       - ./migration/hr_restore/addons:/mnt/hr-migration-addons:ro
       - ./migration/tese_restore/addons:/mnt/tese-migration-addons:ro
       - ./migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro
+      - ./migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro
       - ./migration/documents_archive:/mnt/documents-archive-migration:ro
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
+      - ./accounting_compat/private:/mnt/accounting-private:ro
+      - ./artifacts/migration/private:/mnt/migration-evidence
 
   b2c-migration:
     profiles: ["b2c-migration"]

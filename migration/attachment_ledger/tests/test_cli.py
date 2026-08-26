@@ -74,6 +74,18 @@ class AttachmentClassificationTest(unittest.TestCase):
         self.assertEqual(actions[0]["kind"], "revoke_and_reenroll")
         self.assertEqual(actions[0]["state"], "implemented")
 
+    def test_sign_and_ownerless_chatter_evidence_are_implemented(self):
+        sign = self.classify({"id": 8, "res_model": "sign.request"}, sign={8})
+        chatter = self.classify({"id": 9}, messages={9})
+        self.assertEqual(
+            next(item for item in sign if item["kind"] == "archive_signing_evidence")["state"],
+            "implemented",
+        )
+        self.assertEqual(
+            next(item for item in chatter if item["kind"] == "restore_collaboration_attachment")["state"],
+            "implemented",
+        )
+
     def test_file_integrity_is_checked(self):
         with tempfile.TemporaryDirectory() as directory:
             filestore = Path(directory)
