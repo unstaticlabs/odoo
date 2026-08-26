@@ -157,6 +157,13 @@ class SignPortalController(PortalSign):
                 },
             )
         if signer.request_id.requested_trust == "strong_personal":
+            if not signer._active_enrollment():
+                return _secure_strong_response(
+                    request.render(
+                        "usl_sign.strong_identity_required_page",
+                        {"signer": signer},
+                    ),
+                )
             return _secure_strong_response(
                 request.render(
                     "usl_sign.strong_sign_page",

@@ -53,6 +53,15 @@
                                                 <span t-out="item.progress"/>
                                                 <span t-if="item.due"><span aria-hidden="true">·</span> Due <t t-out="item.due"/></span>
                                             </div>
+                                            <div t-if="item.signers?.length" class="usl_sign_signer_chips mt-2" aria-label="Signer progress">
+                                                <span t-foreach="item.signers" t-as="signer" t-key="signer.id"
+                                                      t-attf-class="usl_sign_signer_chip usl_sign_signer_chip--{{ signer.tone }}"
+                                                      t-att-title="`${signer.name}: ${signer.label}`">
+                                                    <i t-att-class="'fa ' + signer.icon" aria-hidden="true"/>
+                                                    <span t-out="signer.name"/>
+                                                    <small t-out="signer.label"/>
+                                                </span>
+                                            </div>
                                             <div t-if="item.next_step" class="small mt-1 text-start"><strong>Next:</strong> <t t-out="item.next_step"/></div>
                                         </button>
                                         <div t-if="!content.items.length" class="p-4 text-center text-muted small">

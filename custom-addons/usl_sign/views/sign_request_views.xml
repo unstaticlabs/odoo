@@ -47,8 +47,9 @@
                     <div class="alert alert-warning" role="alert" invisible="state != 'evidence_incomplete'">
                         <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                             <div>
-                                <strong class="d-block mb-1">Signed files are ready; final storage failed.</strong>
-                                <span class="d-block">The signed PDF and proof are safe here. Their final archive copy has not been stored yet.</span>
+                                <strong class="d-block mb-1">Paperless has not stored both final files.</strong>
+                                <span class="d-block">Odoo retained the signed PDF and proof package, but this request is not complete until Paperless confirms both archive copies.</span>
+                                <field name="archive_last_error" nolabel="1" readonly="1" class="d-block mt-1" invisible="not archive_last_error or not can_coordinate"/>
                                 <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
                                 <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
                             </div>
@@ -251,6 +252,7 @@
                     <field name="state" invisible="1"/>
                     <field name="validation_status" invisible="1"/>
                     <field name="archive_status" invisible="1"/>
+                    <field name="archive_last_error" invisible="1"/>
                     <field name="can_coordinate" invisible="1"/>
                 </header>
                 <sheet>
@@ -268,8 +270,8 @@
                     <div class="alert alert-warning" role="alert" invisible="state != 'evidence_incomplete'">
                         <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                             <div>
-                                <strong class="d-block mb-1">Your signed files are ready.</strong>
-                                <span class="d-block">The signed PDF and proof are safe here. Their final archive copy has not been stored yet.</span>
+                                <strong class="d-block mb-1">Final storage is delayed.</strong>
+                                <span class="d-block">Your signature is recorded, but the request is not complete until Paperless stores both the signed PDF and proof package.</span>
                                 <field name="recovery_action" nolabel="1" readonly="1" class="d-block mt-1" invisible="not recovery_action or not can_coordinate"/>
                                 <span class="d-block mt-1" invisible="can_coordinate">The requester or a Sign administrator needs to retry final storage.</span>
                             </div>
@@ -390,7 +392,7 @@
 
                         <label for="requested_trust" class="o_form_label fw-semibold">Signing method <span class="text-danger" aria-hidden="true">*</span></label>
                         <p class="small text-muted mb-2">Required. Select one method, then review any requirement shown below.</p>
-                        <field name="requested_trust" widget="radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
+                        <field name="requested_trust" widget="usl_sign_method_radio" options="{'horizontal': true}" nolabel="1" class="usl_sign_method_radio"/>
 
                         <div class="rounded border bg-light-subtle p-3 mt-3 mb-3" aria-live="polite">
                             <field name="selected_method_summary" nolabel="1" readonly="1" class="fw-semibold"/>
@@ -512,7 +514,7 @@
         <field name="model">sign.oca.request.signer</field>
         <field name="priority">2</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0"
+            <list create="0" edit="0" delete="0" action="action_open_my_signature" type="object"
                 decoration-success="state == 'signed'"
                 decoration-danger="state == 'declined' or request_state == 'validation_failed'"
                 decoration-muted="request_state in ['expired', 'cancelled']"
@@ -529,7 +531,6 @@
                 <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
                 <button name="action_open_signing_identity" type="object" string="View identity status" invisible="not can_open_signing_identity"/>
                 <button name="action_open_external_signing" type="object" string="Open external signing" class="btn-primary" invisible="not can_open_external_signing"/>
-                <button name="action_open_request" type="object" string="View result" invisible="state != 'signed' and request_state not in ['completed', 'evidence_incomplete', 'validation_failed']"/>
                 <field name="is_allow_signature" column_invisible="1"/>
                 <field name="can_open_signing_identity" column_invisible="1"/>
                 <field name="can_open_external_signing" column_invisible="1"/>
@@ -548,7 +549,6 @@
                     <button name="sign" type="object" string="Review and sign" class="btn-primary" invisible="not is_allow_signature"/>
                     <button name="action_open_signing_identity" type="object" string="View identity status" class="btn-primary" invisible="not can_open_signing_identity"/>
                     <button name="action_open_external_signing" type="object" string="Open external signing" class="btn-primary" invisible="not can_open_external_signing"/>
-                    <button name="action_open_request" type="object" string="View result" invisible="state != 'signed' and request_state not in ['completed', 'evidence_incomplete', 'validation_failed']"/>
                 </header>
                 <sheet>
                     <field name="is_allow_signature" invisible="1"/>
