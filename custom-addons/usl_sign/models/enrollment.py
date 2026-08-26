@@ -164,7 +164,7 @@ class SignEnrollment(models.Model):
         if not enrollment:
             msg = _(
                 "No signing identity has been set up for you in this company. "
-                "Ask an identity reviewer to start the setup."
+                "Ask an identity reviewer to start the setup.",
             )
             raise UserError(msg)
         return {

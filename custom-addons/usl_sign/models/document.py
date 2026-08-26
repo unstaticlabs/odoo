@@ -7,8 +7,8 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.pdf import PdfReader, PdfWriter
 
-from ..services import field_content
 from .constants import MUTABLE_REQUEST_STATES
+from odoo.addons.usl_sign.services import field_content
 
 
 def _add_page(writer, page):
@@ -134,7 +134,7 @@ class SignRequestDocument(models.Model):
             raise ValidationError(msg) from error
 
     @api.model
-    def consolidate(self, documents):
+    def _consolidate(self, documents):
         documents = documents.sorted(lambda document: (document.sequence, document.id))
         if not documents:
             msg = "Add at least one PDF before preparing the request."
