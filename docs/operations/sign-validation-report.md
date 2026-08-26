@@ -34,6 +34,8 @@ the application and use the native workflow of the relevant Odoo business app.
 - **Dashboard:** the action uses Odoo's content scroller and remains usable when
   its cards exceed the viewport. It focuses on documents to sign, requests to
   prepare, problems to resolve, requests waiting on others, and recent results.
+  Empty sections are compact, signer chips expose each person's progress, and a
+  Strong draft whose signer identity is not ready moves to Needs attention.
 - **Templates:** the default workspace is the native OCA kanban. Upload and
   empty-space drop create one validated template envelope and open the editor.
   Native cards, prepare/use, duplicate, archive and immutable-version behavior
@@ -43,14 +45,17 @@ the application and use the native workflow of the relevant Odoo business app.
   from its entire body, while its explicit controls retain their own actions.
   The adapter handles pointer cancellation, iframe reload and normalized page
   coordinates.
-- **Simple PDF requests:** Start now defaults to upload, asks only for the PDF,
-  signer and an optional note, derives the document name, and opens field
-  placement immediately. Advanced linking and template reuse stay available
-  without interrupting the common journey.
+- **Simple PDF requests:** Request signatures defaults to upload, accepts one or
+  more signers, derives the document name, and opens field placement
+  immediately. Optional naming, message, record linking and template reuse stay
+  available without interrupting the common journey.
 - **Requests:** Open Requests contains only requests owned or coordinated by
   the current user. The form leads with people, signing method, deadline,
   progress and one next action. Verification and file fingerprints stay in a
-  reviewer-only disclosure under Result & proof.
+  reviewer-only disclosure under Result & proof. Ready requests provide a
+  check-before-you-send summary of the document, signer roles, signing method,
+  proof level, deadline and message. Strong requests identify missing personal
+  identity setup before any invitation can be sent.
 - **My Signatures:** the native list includes both pending and historical
   signer records. Filters separate Ready to sign, Waiting for my turn, Signed
   by me, Completed, Closed and due-dated items without hiding history by
@@ -86,6 +91,9 @@ the application and use the native workflow of the relevant Odoo business app.
   reviewer activity, approval automatically resumes waiting requests, and a
   failed callback remains visible with a safe next step. Internal Odoo signers
   can continue from My Signatures when SMTP delivery fails.
+  My Signing Identity is a single direct record rather than a list and presents
+  the two human steps—connect Pocket ID, then organization review—without
+  exposing internal policy versions or evidence identifiers.
 - **Paperless retrieval:** the external Paperless action is offered only when
   the current user's archive identity and this document's permission are both
   synchronized. Authorized Odoo preview and download remain available, so a
@@ -131,10 +139,10 @@ The following checks were run on the saas-19.3 worktree without a physical
 authenticator:
 
 - `scripts/sign-qa-stack test /usl_sign` installed the module in a disposable
-  database and finished 84 post-test entries with zero failures and zero
-  errors. Odoo reported 90 Sign tests plus six web-suite wrappers;
+  database and finished 86 post-test entries with zero failures and zero
+  errors. Odoo reported 92 Sign tests plus six web-suite wrappers;
 - desktop and mobile Sign frontend suites each passed 20 tests and 78
-  assertions. Seven headless Chrome journeys covered dashboard/Start,
+  assertions. Seven headless Chrome journeys covered dashboard/Request signatures,
   requester prepare/send/monitor, template creation, the iframe field editor,
   Standard public signing and archival, identity setup presentation and the
   Strong signing page;

@@ -120,13 +120,13 @@ class TestSignBrowserJourneys(HttpCase):
                 const startButton = document.querySelector(
                     ".usl_sign_workspace header .btn-primary",
                 );
-                if (!startButton || startButton.textContent.trim() !== "Start") {
-                    throw new Error("The primary Start action is missing.");
+                if (!startButton || startButton.textContent.trim() !== "Request signatures") {
+                    throw new Error("The primary Request signatures action is missing.");
                 }
                 startButton.click();
                 const dialog = await waitFor(
                     () => document.querySelector(".o_dialog"),
-                    "The Start dialog did not open.",
+                    "The Request signatures dialog did not open.",
                 );
                 const dialogText = dialog.textContent.replace(/\\s+/g, " ").trim();
                 for (const expected of [
@@ -134,11 +134,11 @@ class TestSignBrowserJourneys(HttpCase):
                     "Use a template",
                     "Upload a PDF",
                     "Document",
-                    "People",
-                    "More options",
+                    "Signers",
+                    "Request name, message and linked record",
                 ]) {
                     if (!dialogText.includes(expected)) {
-                        throw new Error(`The Start dialog is missing: ${expected}`);
+                        throw new Error(`The Request signatures dialog is missing: ${expected}`);
                     }
                 }
                 console.log("test successful");
@@ -382,7 +382,7 @@ class TestSignBrowserJourneys(HttpCase):
                 document.querySelector(".usl_sign_workspace header .btn-primary").click();
                 const startDialog = await waitFor(
                     () => document.querySelector(".o_dialog"),
-                    "The Start dialog did not open.",
+                    "The Request signatures dialog did not open.",
                 );
                 const templateChoice = startDialog.querySelector(
                     'input[type="radio"][data-value="template"]',

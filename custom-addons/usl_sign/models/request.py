@@ -255,6 +255,7 @@ class SignRequest(models.Model):
     )
     lifecycle_stage_label = fields.Char(compute="_compute_workspace_presentation")
     signer_progress = fields.Char(compute="_compute_workspace_presentation")
+    signer_names_summary = fields.Char(compute="_compute_workspace_presentation")
     requested_trust_short = fields.Char(compute="_compute_workspace_presentation")
     recommended_trust_short = fields.Char(compute="_compute_workspace_presentation")
     achieved_trust_short = fields.Char(compute="_compute_workspace_presentation")
@@ -264,6 +265,8 @@ class SignRequest(models.Model):
     signing_method_summary = fields.Char(compute="_compute_workspace_presentation")
     due_date_summary = fields.Char(compute="_compute_workspace_presentation")
     has_signing_fields = fields.Boolean(compute="_compute_workspace_presentation")
+    strong_enrollment_missing = fields.Boolean(compute="_compute_workspace_presentation")
+    strong_enrollment_summary = fields.Char(compute="_compute_workspace_presentation")
     can_coordinate = fields.Boolean(compute="_compute_user_capabilities")
     can_send = fields.Boolean(compute="_compute_user_capabilities")
     managed_by_current_user = fields.Boolean(
@@ -461,6 +464,11 @@ class SignRequest(models.Model):
         "archive_status",
         "signer_ids.state",
         "signer_ids.signed_on",
+        "signer_ids.partner_id",
+        "signer_ids.partner_id.name",
+        "signer_ids.partner_id.sign_enrollment_ids.state",
+        "signer_ids.role_id.name",
+        "company_id",
         "last_error",
         "recovery_action",
         "recommended_trust",
@@ -469,6 +477,7 @@ class SignRequest(models.Model):
     )
     @api.depends_context("lang")
     def _compute_workspace_presentation(self):
+        missing_by_request = self._missing_strong_enrollments_by_request()
         stage_by_state = {
             "draft": "draft",
             "ready": "ready",
@@ -525,6 +534,21 @@ class SignRequest(models.Model):
                 if total
                 else _("No signers")
             )
+            request.signer_names_summary = ", ".join(
+                f"{signer.partner_id.name} ({signer.role_id.name})"
+                for signer in signers.sorted(lambda row: (row.sequence, row.id))
+            ) or _("No signers")
+            missing_enrollments = missing_by_request[request.id]
+            request.strong_enrollment_missing = bool(missing_enrollments)
+            request.strong_enrollment_summary = (
+                _(
+                    "Strong signing cannot start yet. An identity reviewer must send "
+                    "setup instructions and approve: %(names)s.",
+                    names=", ".join(missing_enrollments.mapped("partner_id.name")),
+                )
+                if missing_enrollments
+                else ""
+            )
             request.requested_trust_short = trust_labels.get(request.requested_trust, "")
             request.recommended_trust_short = trust_labels.get(
                 request.recommended_trust,
@@ -568,6 +592,43 @@ class SignRequest(models.Model):
                 )
             else:
                 request.blocking_summary = request.next_step or ""
+
+    def _missing_strong_enrollments_by_request(self):
+        """Batch strong-identity readiness without per-request queries."""
+        signer_model = self.env["sign.oca.request.signer"]
+        strong_requests = self.filtered(
+            lambda request: request.requested_trust == "strong_personal",
+        )
+        enrollments = self.env["usl.sign.enrollment"].sudo().search(
+            [
+                ("partner_id", "in", strong_requests.signer_ids.partner_id.ids),
+                ("company_id", "in", strong_requests.company_id.ids),
+                ("state", "=", "active"),
+            ],
+        )
+        active_identities = {
+            (enrollment.partner_id.id, enrollment.company_id.id)
+            for enrollment in enrollments
+        }
+        return {
+            request.id: (
+                request.signer_ids.filtered(
+                    lambda signer: (
+                        signer.partner_id.id,
+                        request.company_id.id,
+                    )
+                    not in active_identities,
+                )
+                if request in strong_requests
+                else signer_model
+            )
+            for request in self
+        }
+
+    def _missing_strong_enrollments(self):
+        """Return strong signers without an active, company-scoped identity."""
+        self.ensure_one()
+        return self._missing_strong_enrollments_by_request()[self.id]
 
     def _user_can_coordinate(self):
         self.ensure_one()
