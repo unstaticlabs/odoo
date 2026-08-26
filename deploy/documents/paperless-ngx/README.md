@@ -13,7 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+semantic-search-api-v2+personal-gemini-v1` has three bounded feature
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+semantic-search-api-v2+personal-gemini-v1` has four bounded feature
 groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
@@ -23,11 +23,16 @@ groups:
    indexed custom-field name/value. Exact-source schema/backend patches add
    the two plain-text companion fields; Paperless rebuilds only its search
    index when schema version 2 is first detected.
-2. The same module adds the authenticated, read-only
+2. The exact-source permission patch keeps Paperless's supported bulk
+   permission lifecycle and native Tantivy refresh, but marks ownership/ACL-only
+   edits as embedding-invariant. Those edits no longer recompute unchanged
+   BGE-M3 vectors or hit the 30-minute task limit. Every other bulk metadata or
+   content edit retains the upstream vector refresh.
+3. The same module adds the authenticated, read-only
    `POST /api/documents/semantic_search/` endpoint. It uses Paperless's native
    Ollama embedding client and `llmindex.db`; it never opens the vector database
    from Odoo.
-3. `paperless_personal_ai` is a supported Django app loaded through
+4. `paperless_personal_ai` is a supported Django app loaded through
    `PAPERLESS_APPS`. It owns per-user Gemini configuration, an encrypted
    user-bound credential, profile-only APIs, release checks, and runtime
    permission rechecks. The exact-source backend patch removes native global
@@ -37,8 +42,9 @@ groups:
    generative entry points independently, removes the native global LLM
    settings, and compiles the normal localized frontend.
 
-`tests/test_semantic_api.py` is an upstream-style DRF test module covering both
-bounded endpoints: permission resolution before retrieval, object grants,
+`tests/test_semantic_api.py` is an upstream-style Django/DRF test module
+covering both bounded endpoints and permission-vector invariance: permission
+resolution before retrieval, object grants,
 mandatory service scope, indistinguishable source-document denial, source
 exclusion, empty-scope fail-closed behavior, configured lexical fields,
 facets, request limits, and embedding outage behavior.

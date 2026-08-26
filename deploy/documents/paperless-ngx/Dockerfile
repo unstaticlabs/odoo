@@ -47,8 +47,10 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
     && python -m compileall -q \
         /usr/src/paperless/src/paperless_ai/semantic_api.py \
         /usr/src/paperless/src/paperless_personal_ai \
+        /usr/src/paperless/src/documents/bulk_edit.py \
         /usr/src/paperless/src/documents/search/_backend.py \
         /usr/src/paperless/src/documents/search/_schema.py \
+        /usr/src/paperless/src/documents/tasks.py \
         /usr/src/paperless/src/paperless/urls.py \
         /usr/src/paperless/src/paperless/serialisers.py \
         /usr/src/paperless/src/paperless_ai/client.py \
@@ -58,7 +60,7 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
     && rm /tmp/usl-apply-paperless-overlay.py
 
 LABEL org.opencontainers.image.title="USL Paperless-ngx Distribution" \
-      org.opencontainers.image.version="3.0.5-usl.4" \
+      org.opencontainers.image.version="3.0.5-usl.5" \
       org.opencontainers.image.revision="8fb73b2709e4c38180a7632edf32f32fe2315961" \
       com.unstaticlabs.paperless.base-digest="sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" \
-      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+semantic-search-api-v2+personal-gemini-v1"
+      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+semantic-search-api-v2+personal-gemini-v1"

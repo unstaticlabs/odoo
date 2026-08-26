@@ -41,7 +41,7 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.4}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.30.11@sha256:c484b703176aa19dfc0a54cbfb60ab8094b38faa04283fb77eba1d33319e5eca}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
@@ -220,7 +220,7 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.4}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
@@ -303,7 +303,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.4}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -324,7 +324,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.4}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.5}
     restart: "no"
     depends_on:
       paperless-webserver:

@@ -2,11 +2,101 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import Permission, User
 from django.db.models import Q
-from documents.models import Document
+from django.test import TestCase
+from documents.bulk_edit import set_permissions
+from documents.models import Document, PaperlessTask
+from documents.tasks import bulk_update_documents
 from guardian.shortcuts import assign_perm
 from paperless_ai.semantic_api import SemanticSearchUnavailable, query_lexical_index
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+
+class TestPermissionVectorInvariance(TestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(username="permission-owner")
+        self.document = Document.objects.create(
+            title="permission-only update",
+            content="unchanged embedding content",
+            checksum="permission-vector-invariance",
+            mime_type="application/pdf",
+            owner=self.user,
+        )
+
+    @patch("documents.bulk_edit.bulk_update_documents.apply_async")
+    @patch("documents.bulk_edit.set_permissions_for_object")
+    def test_permission_edit_requests_tantivy_without_vector_refresh(
+        self,
+        set_object_permissions,
+        enqueue,
+    ):
+        set_permissions([self.document.id], {}, owner=self.user)
+
+        set_object_permissions.assert_called_once()
+        enqueue.assert_called_once_with(
+            kwargs={
+                "document_ids": [self.document.id],
+                "skip_llm_index": True,
+            },
+            headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
+        )
+
+    @patch("documents.tasks.update_llm_index")
+    @patch("documents.tasks.AIConfig")
+    @patch("documents.search.get_backend")
+    @patch("documents.tasks.post_save.send")
+    @patch("documents.tasks.document_updated.send")
+    @patch("documents.tasks.clear_document_caches")
+    def test_permission_bulk_task_keeps_tantivy_and_skips_embeddings(
+        self,
+        clear_caches,
+        document_updated,
+        post_save,
+        get_backend,
+        ai_config,
+        update_llm_index,
+    ):
+        ai_config.return_value.llm_index_enabled = True
+        batch = get_backend.return_value.batch_update.return_value.__enter__.return_value
+
+        bulk_update_documents(
+            [self.document.id],
+            skip_llm_index=True,
+        )
+
+        clear_caches.assert_called_once_with(self.document.id)
+        document_updated.assert_called_once()
+        post_save.assert_called_once()
+        batch.add_or_update.assert_called_once_with(self.document)
+        update_llm_index.assert_not_called()
+
+    @patch("documents.tasks.update_llm_index")
+    @patch("documents.tasks.AIConfig")
+    @patch("documents.search.get_backend")
+    @patch("documents.tasks.post_save.send")
+    @patch("documents.tasks.document_updated.send")
+    @patch("documents.tasks.clear_document_caches")
+    def test_other_bulk_tasks_still_refresh_embeddings(
+        self,
+        clear_caches,
+        document_updated,
+        post_save,
+        get_backend,
+        ai_config,
+        update_llm_index,
+    ):
+        ai_config.return_value.llm_index_enabled = True
+
+        bulk_update_documents([self.document.id])
+
+        clear_caches.assert_called_once_with(self.document.id)
+        document_updated.assert_called_once()
+        post_save.assert_called_once()
+        get_backend.return_value.batch_update.assert_called_once()
+        update_llm_index.assert_called_once_with(
+            rebuild=False,
+            document_ids=[self.document.id],
+        )
 
 
 class TestSemanticSearchApi(APITestCase):

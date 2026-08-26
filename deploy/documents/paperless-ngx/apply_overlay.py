@@ -206,6 +206,67 @@ patch_file(
 )
 
 patch_file(
+    "documents/tasks.py",
+    "a397d85e482531a4357da017d7b401f0e2566acdb1d4de575ce5e196c46b30af",
+    (
+        (
+            "def bulk_update_documents(document_ids) -> None:\n",
+            "def bulk_update_documents(document_ids, *, skip_llm_index=False) -> None:\n",
+        ),
+        (
+            (
+                "    if ai_config.llm_index_enabled:\n"
+                "        update_llm_index(\n"
+                "            rebuild=False,\n"
+                "            document_ids=document_ids,\n"
+                "        )\n"
+            ),
+            (
+                "    if ai_config.llm_index_enabled and not skip_llm_index:\n"
+                "        update_llm_index(\n"
+                "            rebuild=False,\n"
+                "            document_ids=document_ids,\n"
+                "        )\n"
+            ),
+        ),
+    ),
+)
+
+patch_file(
+    "documents/bulk_edit.py",
+    "f233105bb95c8ad406b006705c55218011f47fd3cfbe263d10e07064537e6058",
+    (
+        (
+            '''    bulk_update_documents.apply_async(
+        kwargs={"document_ids": affected_docs},
+        headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
+    )
+
+    return "OK"
+
+
+def rotate(
+''',
+            '''    bulk_update_documents.apply_async(
+        kwargs={
+            "document_ids": affected_docs,
+            # Permissions and ownership are authorization metadata, not
+            # embedding inputs. Tantivy is still refreshed by the bulk task.
+            "skip_llm_index": True,
+        },
+        headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
+    )
+
+    return "OK"
+
+
+def rotate(
+''',
+        ),
+    ),
+)
+
+patch_file(
     "paperless_ai/client.py",
     "253a058a3d91bb2a7f7ac388590202f988f5f9fea70a17ffc6db1ec425c91351",
     (
