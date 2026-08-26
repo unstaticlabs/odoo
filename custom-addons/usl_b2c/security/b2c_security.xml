@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="res_groups_privilege_b2c" model="res.groups.privilege">
+        <field name="name">B2C Sales and Inventory</field>
+        <field name="category_id" ref="base.module_category_sales_sales"/>
+        <field name="sequence">18</field>
+    </record>
+
+    <record id="group_b2c_reader" model="res.groups">
+        <field name="name">Read-only reviewer</field>
+        <field name="privilege_id" ref="res_groups_privilege_b2c"/>
+        <field name="comment">Inspect B2C commerce, mappings, sessions and linked business evidence without changing them.</field>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
+
+    <record id="group_b2c_operator" model="res.groups">
+        <field name="name">Operator</field>
+        <field name="privilege_id" ref="res_groups_privilege_b2c"/>
+        <field name="comment">Operate B2C records and native Sales, Inventory and Purchase workflows.</field>
+        <field name="implied_ids" eval="[
+            (4, ref('group_b2c_reader')),
+            (4, ref('sales_team.group_sale_salesman')),
+            (4, ref('stock.group_stock_user')),
+            (4, ref('purchase.group_purchase_user'))
+        ]"/>
+    </record>
+
+    <record id="group_b2c_sensitive_evidence" model="res.groups">
+        <field name="name">Sensitive provider evidence</field>
+        <field name="privilege_id" ref="res_groups_privilege_b2c"/>
+        <field name="comment">Inspect access-scoped provider payloads that can contain customer personal data.</field>
+        <field name="implied_ids" eval="[(4, ref('group_b2c_reader'))]"/>
+    </record>
+
+    <record id="group_b2c_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="res_groups_privilege_b2c"/>
+        <field name="comment">Configure channels, govern mappings and evidence, and unlock accounting sessions.</field>
+        <field name="implied_ids" eval="[
+            (4, ref('group_b2c_operator')),
+            (4, ref('group_b2c_sensitive_evidence')),
+            (4, ref('account.group_account_manager')),
+            (4, ref('sales_team.group_sale_manager')),
+            (4, ref('stock.group_stock_manager')),
+            (4, ref('purchase.group_purchase_manager')),
+            (4, ref('analytic.group_analytic_accounting'))
+        ]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="rule_b2c_channel_company" model="ir.rule">
+        <field name="name">B2C channels: allowed companies</field>
+        <field name="model_id" ref="model_b2c_channel"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_order_company" model="ir.rule">
+        <field name="name">B2C orders: allowed companies</field>
+        <field name="model_id" ref="model_b2c_order"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_order_line_company" model="ir.rule">
+        <field name="name">B2C order lines: allowed companies</field>
+        <field name="model_id" ref="model_b2c_order_line"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_order_source_company" model="ir.rule">
+        <field name="name">B2C order sources: allowed companies</field>
+        <field name="model_id" ref="model_b2c_order_source"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_payment_event_company" model="ir.rule">
+        <field name="name">B2C payment events: allowed companies</field>
+        <field name="model_id" ref="model_b2c_payment_event"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_fulfilment_event_company" model="ir.rule">
+        <field name="name">B2C fulfilment events: allowed companies</field>
+        <field name="model_id" ref="model_b2c_fulfilment_event"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_product_alias_company" model="ir.rule">
+        <field name="name">B2C product aliases: allowed companies</field>
+        <field name="model_id" ref="model_b2c_product_alias"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_session_company" model="ir.rule">
+        <field name="name">B2C accounting sessions: allowed companies</field>
+        <field name="model_id" ref="model_b2c_accounting_session"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_accounting_link_company" model="ir.rule">
+        <field name="name">B2C accounting links: allowed companies</field>
+        <field name="model_id" ref="model_b2c_accounting_link"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_provider_evidence_company" model="ir.rule">
+        <field name="name">B2C provider evidence: allowed companies</field>
+        <field name="model_id" ref="model_b2c_provider_evidence"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

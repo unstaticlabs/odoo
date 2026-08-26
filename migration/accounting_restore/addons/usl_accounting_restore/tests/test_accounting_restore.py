@@ -5209,6 +5209,110 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(mapping[901], expected_line)
 
+    def test_analytic_import_restores_all_plan_dimensions_and_product(self):
+        primary_plan = self.env["account.analytic.plan"].search(
+            [],
+            order="id",
+            limit=1,
+        )
+        secondary_plan = self.env["account.analytic.plan"].create({
+            "name": "Analytic import secondary plan",
+        })
+        (primary_plan | secondary_plan)._sync_all_plan_column()
+        primary_account = self.env["account.analytic.account"].create({
+            "name": "Analytic import primary account",
+            "plan_id": primary_plan.id,
+        })
+        secondary_account = self.env["account.analytic.account"].create({
+            "name": "Analytic import secondary account",
+            "plan_id": secondary_plan.id,
+        })
+        product = self.env["product.product"].create({
+            "name": "Analytic import product",
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Analytic dimension parity test",
+        })
+        options = {
+            "source_snapshot_id": "analytic-dimension-parity-test",
+            "date_from": "2025-01-01",
+            "date_to": "2025-12-31",
+        }
+        source_row = {
+            "id": 990001,
+            "account_id": 11,
+            "x_plan987_id": 22,
+            "partner_id": None,
+            "company_id": 1,
+            "currency_id": None,
+            "name": "Source multi-plan analytic line",
+            "category": "other",
+            "date": fields.Date.from_string("2025-07-01"),
+            "amount": -42.5,
+            "unit_amount": 1.0,
+            "general_account_id": None,
+            "journal_id": None,
+            "move_line_id": None,
+            "code": None,
+            "ref": "AN-PARITY",
+            "product_id": 33,
+        }
+        method_args = (
+            object(),
+            options,
+            {1: self.company},
+            {},
+            {},
+            {1: primary_plan, 2: secondary_plan},
+            {11: primary_account, 22: secondary_account},
+            {33: product},
+        )
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[
+                [{"column_name": "x_plan987_id"}],
+                [source_row],
+            ],
+        ):
+            stats = import_run._import_analytic_lines(*method_args)
+
+        analytic_line = self.env["account.analytic.line"].search([
+            ("rebuild_source_model", "=", "account.analytic.line"),
+            ("rebuild_source_id", "=", 990001),
+        ])
+        self.assertEqual(len(analytic_line), 1)
+        self.assertEqual(
+            set(analytic_line._get_analytic_accounts().ids),
+            {primary_account.id, secondary_account.id},
+        )
+        self.assertEqual(analytic_line.product_id, product)
+        self.assertEqual(stats["linked_product_count"], 1)
+        self.assertFalse(stats["missing_dimension_account_count"])
+        self.assertFalse(stats["missing_product_count"])
+
+        cleared_source_row = {
+            **source_row,
+            "x_plan987_id": None,
+            "product_id": None,
+        }
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[
+                [{"column_name": "x_plan987_id"}],
+                [cleared_source_row],
+            ],
+        ):
+            import_run._import_analytic_lines(*method_args)
+
+        self.assertEqual(
+            analytic_line._get_analytic_accounts(),
+            primary_account,
+        )
+        self.assertFalse(analytic_line.product_id)
+
     def test_source_payment_method_with_distinct_account_gets_distinct_line(self):
         journal = self._journal("bank")
         payment_method = self.env["account.payment.method"].search([

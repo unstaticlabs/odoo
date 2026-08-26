@@ -15,6 +15,7 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Lightweight expense batches](expense-batches.md)
 - [Paie TESE](paie-tese.md)
 - [Content-platform payout billing](platform-billing.md)
+- [B2C sales, products and inventory](b2c-sales-inventory.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
 - [Pocket ID SSO architecture](pocket-id-sso.md)

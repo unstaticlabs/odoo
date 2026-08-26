@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_accounting_session_search" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.search</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="period_start"/>
+                <field name="channel_id"/>
+                <filter name="open" string="Open" domain="[('state', '!=', 'locked')]"/>
+                <filter name="blocked_coverage" string="Incomplete Coverage" domain="['|', '|', ('pending_link_count', '&gt;', 0), ('pending_mapping_count', '&gt;', 0), ('pending_conversion_count', '&gt;', 0)]"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'period_start:month'}"/>
+                    <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_provider" string="Provider" context="{'group_by': 'source_provider'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_b2c_accounting_session_list" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.list</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'locked'" decoration-warning="pending_link_count or pending_mapping_count or pending_conversion_count">
+                <field name="period_start"/>
+                <field name="name"/>
+                <field name="channel_id" optional="show"/>
+                <field name="source_provider" optional="show"/>
+                <field name="order_count" sum="Orders"/>
+                <field name="units_sold" sum="Units"/>
+                <field name="revenue_company_amount" sum="Revenue"/>
+                <field name="refund_company_amount" sum="Refunds"/>
+                <field name="fee_company_amount" sum="Fees"/>
+                <field name="cogs_company_amount" sum="COGS"/>
+                <field name="gross_margin_company_amount" sum="Gross Margin"/>
+                <field name="unallocated_revenue_company_amount" sum="Unallocated"/>
+                <field name="line_revenue_coverage_percent"/>
+                <field name="accounting_link_coverage_percent"/>
+                <field name="pending_mapping_count"/>
+                <field name="pending_link_count"/>
+                <field name="pending_conversion_count"/>
+                <field name="state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_accounting_session_form" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.form</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_refresh" type="object" string="Refresh Evidenced Totals" title="Recalculate evidenced totals and coverage without changing linked accounting entries." class="btn-primary" invisible="state == 'locked'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_mark_reviewed" type="object" string="Mark Reviewed" title="Mark this session reviewed after checking totals, mappings, conversions, and evidence links." invisible="state != 'draft'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_lock" type="object" string="Lock Session" title="Lock this reviewed session to prevent further changes." invisible="state != 'reviewed'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_unlock" type="object" string="Unlock" title="Unlock this session to allow review and refresh actions again." invisible="state != 'locked'" groups="usl_b2c.group_b2c_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,reviewed,locked"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Immutable" bg_color="text-bg-success" invisible="state != 'locked'"/>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Monthly Scope">
+                            <field name="period_start" readonly="state != 'draft'"/>
+                            <field name="period_end" readonly="1"/>
+                            <field name="channel_id" readonly="state != 'draft'"/>
+                            <field name="source_provider" readonly="state != 'draft'"/>
+                            <field name="company_id" readonly="state != 'draft'" groups="base.group_multi_company"/>
+                            <field name="company_currency_id" readonly="1"/>
+                            <field name="refreshed_at" readonly="1"/>
+                        </group>
+                        <group string="Coverage Controls">
+                            <field name="line_revenue_coverage_percent" readonly="1"/>
+                            <field name="accounting_link_coverage_percent" readonly="1"/>
+                            <field name="unallocated_revenue_company_amount" readonly="1"/>
+                            <field name="unknown_amount_company_amount" readonly="1"/>
+                            <field name="pending_mapping_count" readonly="1"/>
+                            <field name="pending_link_count" readonly="1"/>
+                            <field name="pending_conversion_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Company-Currency Metrics" col="7">
+                        <field name="order_count" readonly="1"/>
+                        <field name="units_sold" readonly="1"/>
+                        <field name="revenue_company_amount" readonly="1"/>
+                        <field name="refund_company_amount" readonly="1"/>
+                        <field name="fee_company_amount" readonly="1"/>
+                        <field name="cogs_company_amount" readonly="1"/>
+                        <field name="gross_margin_company_amount" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Accounting and Bank Links">
+                            <field name="accounting_link_ids" readonly="state == 'locked'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="link_type"/>
+                                    <field name="link_state" widget="badge"/>
+                                    <field name="account_move_id"/>
+                                    <field name="account_move_line_id"/>
+                                    <field name="bank_statement_line_id"/>
+                                    <field name="account_payment_id" optional="hide"/>
+                                    <field name="attachment_id" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Review">
+                            <group>
+                                <field name="reviewed_by_id" readonly="1"/>
+                                <field name="reviewed_at" readonly="1"/>
+                                <field name="locked_by_id" readonly="1"/>
+                                <field name="locked_at" readonly="1"/>
+                            </group>
+                            <field name="review_note" readonly="state == 'locked'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_b2c_accounting_session" model="ir.actions.act_window">
+        <field name="name">Monthly Accounting Sessions</field>
+        <field name="res_model">b2c.accounting.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_b2c_accounting_session_search"/>
+    </record>
+
+    <record id="view_b2c_accounting_link_search" model="ir.ui.view">
+        <field name="name">b2c.accounting.link.search</field>
+        <field name="model">b2c.accounting.link</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="payment_event_id"/>
+                <field name="fulfilment_event_id"/>
+                <field name="account_move_id"/>
+                <field name="bank_statement_line_id"/>
+                <filter name="pending" string="Pending" domain="[('link_state', '=', 'pending')]"/>
+                <filter name="verified" string="Verified" domain="[('link_state', '=', 'verified')]"/>
+                <group>
+                    <filter name="group_type" string="Link Type" context="{'group_by': 'link_type'}"/>
+                    <filter name="group_state" string="Review Status" context="{'group_by': 'link_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_b2c_accounting_link_list" model="ir.ui.view">
+        <field name="name">b2c.accounting.link.list</field>
+        <field name="model">b2c.accounting.link</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="link_state == 'pending'" decoration-success="link_state == 'verified'" decoration-muted="link_state == 'rejected'">
+                <field name="name"/>
+                <field name="link_type"/>
+                <field name="link_state" widget="badge"/>
+                <field name="order_id" optional="show"/>
+                <field name="payment_event_id" optional="show"/>
+                <field name="fulfilment_event_id" optional="show"/>
+                <field name="session_id" optional="show"/>
+                <field name="account_move_id"/>
+                <field name="account_move_line_id"/>
+                <field name="bank_statement_line_id"/>
+                <field name="account_payment_id" optional="hide"/>
+                <field name="payment_transaction_id" optional="hide"/>
+                <field name="sale_order_id" optional="hide"/>
+                <field name="stock_picking_id" optional="hide"/>
+                <field name="stock_move_id" optional="hide"/>
+                <field name="attachment_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_accounting_link_form" model="ir.ui.view">
+        <field name="name">b2c.accounting.link.form</field>
+        <field name="model">b2c.accounting.link</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_verify" type="object" string="Verify" title="Confirm that the evidence supports this link without changing the linked accounting or operational record." class="btn-primary" invisible="link_state == 'verified'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_reject" type="object" string="Reject" title="Reject this proposed link without changing the linked accounting or operational record." invisible="link_state == 'rejected'" groups="usl_b2c.group_b2c_operator"/>
+                    <field name="link_state" widget="statusbar" statusbar_visible="pending,verified,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="B2C Business Record">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="link_type"/>
+                            <field name="order_id"/>
+                            <field name="payment_event_id"/>
+                            <field name="fulfilment_event_id"/>
+                            <field name="session_id"/>
+                        </group>
+                        <group string="Immutable Native Evidence">
+                            <field name="account_move_id"/>
+                            <field name="account_move_line_id"/>
+                            <field name="bank_statement_line_id"/>
+                            <field name="account_payment_id"/>
+                            <field name="payment_transaction_id"/>
+                            <field name="sale_order_id"/>
+                            <field name="stock_picking_id"/>
+                            <field name="stock_move_id"/>
+                            <field name="attachment_id"/>
+                        </group>
+                    </group>
+                    <field name="evidence_note" placeholder="Explain the business evidence supporting or rejecting this link…"/>
+                    <group>
+                        <field name="reviewed_by_id" readonly="1"/>
+                        <field name="reviewed_at" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_b2c_accounting_link" model="ir.actions.act_window">
+        <field name="name">Accounting and Bank Links</field>
+        <field name="res_model">b2c.accounting.link</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_b2c_accounting_link_search"/>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+</odoo>

@@ -1488,15 +1488,15 @@ def source_report_target_action(row: dict[str, Any]) -> str:
     if "tax report" in normalized or "rapport de taxes" in normalized or "déclaration fiscale" in normalized:
         return f"{module}.action_rebuild_account_tax_report_line"
     if "deferred expense" in normalized or "charges constatées d'avance" in normalized:
-        return f"{module}.action_rebuild_account_deferred_expense_line"
+        return f"{module}.action_rebuild_interactive_deferred_schedule"
     if "deferred revenue" in normalized or "produits constatés d'avance" in normalized:
-        return f"{module}.action_rebuild_account_deferred_revenue_line"
+        return f"{module}.action_rebuild_interactive_deferred_schedule"
     if "depreciation" in normalized or "amortissement" in normalized:
-        return f"{module}.action_rebuild_account_asset_depreciation_schedule_line"
+        return f"{module}.action_rebuild_interactive_depreciation_schedule"
     if "group by: account" in normalized or "regrouper par : compte" in normalized:
-        return f"{module}.action_rebuild_account_asset_group_account"
+        return f"{module}.action_rebuild_account_report_export_fixed_asset_group_account"
     if "asset group" in normalized or "immobilisations" in normalized:
-        return f"{module}.action_rebuild_account_asset"
+        return f"{module}.action_rebuild_interactive_fixed_assets"
     if "balance sheet" in normalized or "bilan comptable" in normalized or normalized.strip() == "bilan":
         if country_code == "FR" or "bilan comptable" in normalized:
             return f"{module}.action_rebuild_account_french_balance_sheet_line"
@@ -6644,7 +6644,7 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
                 "    'source_company_ids': [1, 8],",
                 "})",
                 "env.cr.commit()",
-                "print('REBUILD_IMPORT_RESULT=' + json.dumps({'run_id': run.id, 'status': run.status, 'stats': stats}, sort_keys=True))",
+                "print('REBUILD_IMPORT_RESULT=' + json.dumps({'run_id': run.id, 'status': run.status, 'stats': stats}, sort_keys=True, default=str))",
                 "",
             ],
         ),
@@ -7368,8 +7368,20 @@ def source_analytic_line_rows() -> list[dict[str, Any]]:
         f"""
         SELECT aal.id::text AS source_analytic_line_id,
                aal.account_id::text AS source_analytic_account_id,
+               COALESCE((
+                   SELECT string_agg(
+                              dimension.value,
+                              ',' ORDER BY dimension.value::integer
+                          )
+                     FROM jsonb_each_text(
+                              jsonb_strip_nulls(to_jsonb(aal))
+                          ) dimension
+                    WHERE dimension.key = 'account_id'
+                       OR dimension.key ~ '^x_plan[0-9]+_id$'
+               ), '') AS source_analytic_account_ids,
                aal.company_id::text AS source_company_id,
                COALESCE(aal.partner_id::text, '') AS source_partner_id,
+               COALESCE(aal.product_id::text, '') AS source_product_id,
                aal.date::text AS date,
                COALESCE(aal.name::text, '') AS name,
                COALESCE(aal.category::text, '') AS category,
@@ -7395,8 +7407,22 @@ def target_analytic_line_rows() -> list[dict[str, Any]]:
         f"""
         SELECT aal.rebuild_source_id::text AS source_analytic_line_id,
                aal.rebuild_source_analytic_account_id::text AS source_analytic_account_id,
+               COALESCE((
+                   SELECT string_agg(
+                              source_account.rebuild_source_id::text,
+                              ',' ORDER BY source_account.rebuild_source_id
+                          )
+                     FROM jsonb_each_text(
+                              jsonb_strip_nulls(to_jsonb(aal))
+                          ) dimension
+                     JOIN account_analytic_account source_account
+                       ON source_account.id = dimension.value::integer
+                    WHERE dimension.key = 'account_id'
+                       OR dimension.key ~ '^x_plan[0-9]+_id$'
+               ), '') AS source_analytic_account_ids,
                company.rebuild_source_id::text AS source_company_id,
                COALESCE(partner.rebuild_source_id::text, '') AS source_partner_id,
+               COALESCE(product.rebuild_source_id::text, '') AS source_product_id,
                aal.date::text AS date,
                COALESCE(aal.name::text, '') AS name,
                COALESCE(aal.category::text, '') AS category,
@@ -7410,6 +7436,7 @@ def target_analytic_line_rows() -> list[dict[str, Any]]:
         FROM account_analytic_line aal
         JOIN res_company company ON company.id = aal.company_id
         LEFT JOIN res_partner partner ON partner.id = aal.partner_id
+        LEFT JOIN product_product product ON product.id = aal.product_id
         WHERE aal.rebuild_source_model = 'account.analytic.line'
           AND company.rebuild_source_id IN (1, 8)
           AND aal.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
@@ -9724,8 +9751,10 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             key="source_analytic_line_id",
             fields=[
                 "source_analytic_account_id",
+                "source_analytic_account_ids",
                 "source_company_id",
                 "source_partner_id",
+                "source_product_id",
                 "date",
                 "name",
                 "category",

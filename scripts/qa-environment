@@ -151,7 +151,7 @@ reset_project() {
   "${compose[@]}" --profile paperless down --volumes --remove-orphans
 }
 
-product_modules='rebuild_account_migration,usl_accounting,usl_documents,usl_documents_accounting,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
+product_modules='rebuild_account_migration,usl_accounting,usl_b2c,usl_documents,usl_documents_accounting,usl_expense_batch,usl_locale,usl_platform_billing,usl_platform_billing_pocketid,usl_pocketid,usl_project,usl_tese_accounting,usl_tese_payroll'
 
 verify_seed() {
   local runtime_json
@@ -332,6 +332,15 @@ clean_install() {
   scripts/check-product-database-boundary
 }
 
+b2c_qa_bootstrap() {
+  "${compose[@]}" exec -T \
+    -e USL_QA_DATA_PROFILE="$profile" \
+    -e USL_EINVOICE_LIVE_ENABLED=0 \
+    -e USL_EREPORTING_LIVE_ENABLED=0 \
+    odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+    < "$ROOT/scripts/odoo/b2c_qa_bootstrap.py"
+}
+
 usl_cli_title "provision isolated QA target"
 printf '  Profile:  %s\n  Project:  %s\n  Database: odoo_dev\n' "$profile" "$COMPOSE_PROJECT_NAME"
 if [[ "$profile" == full ]]; then
@@ -366,6 +375,7 @@ case "$profile" in
     stage "clean product installation" clean_install
     ;;
 esac
+stage "B2C QA personas and tour baseline" b2c_qa_bootstrap
 
 write_report passed
 trap - EXIT

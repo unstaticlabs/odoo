@@ -424,6 +424,7 @@ revalidate_finalized_qa_cache() {
   # prior interruption may have happened before product configuration.
   scripts/check-product-migration-boundary
   scripts/accounting-restore product-validate
+  scripts/b2c-restore product-validate
 }
 
 run_stage "Docker resource preflight" scripts/migration-resource-preflight
@@ -464,6 +465,8 @@ else
   stop_product
   run_stage "repair Expense Batch transition" scripts/accounting-restore expense-batch-transition
   stop_product
+  run_stage "restore B2C commerce evidence" scripts/b2c-restore all
+  stop_product
   run_stage "restore HR" scripts/hr-restore all
   stop_product
   run_stage "restore Projects" restore_projects_for_reconstruction
@@ -477,6 +480,11 @@ else
       DOCUMENTS_TARGET_DATABASE=odoo_dev \
       COMPOSE_PROJECT_NAME="$compose_project" \
       scripts/documents-restore all
+    stop_product
+    # Documents can materialize a native attachment after the first B2C pass.
+    # Repeating the governed importer links that evidence without duplicating
+    # business records and independently proves that the restore is rerunnable.
+    run_stage "refresh B2C Documents links" scripts/b2c-restore all
     stop_product
   else
     printf 'Documents archive: skipped by explicit no-documents QA profile.\n'

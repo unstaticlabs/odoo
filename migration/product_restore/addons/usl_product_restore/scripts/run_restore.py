@@ -4,11 +4,11 @@ import json
 import os
 
 from odoo import fields
+
 from odoo.addons.usl_product_restore.models.restore import (
     ProductSourceReader,
     source_options,
 )
-
 
 source = ProductSourceReader(source_options()).read()
 run = env["usl.product.restore.run"].sudo().create(

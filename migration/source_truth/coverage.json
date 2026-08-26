@@ -6,6 +6,11 @@
       "disposition": "translated",
       "evidence": "accounting compatibility import and parity controls"
     },
+    "b2c_commerce": {
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "the dump-bound B2C stage checksum-locks 39 commerce evidence files, retains every CSV row and parsed Printful row as restricted immutable business evidence, resolves overlapping Etsy and Medusa orders into 304 canonical orders, and validates idempotency plus zero Accounting or stock side effects"
+    },
     "projects": {
       "status": "implemented",
       "disposition": "translated",
@@ -74,12 +79,12 @@
     "product_master": {
       "status": "implemented",
       "disposition": "translated",
-      "evidence": "temporary product restore imports the complete service catalog, variants, original product images, categories, attributes, prices, taxes and pricelists with multilingual digest parity"
+      "evidence": "temporary product restore imports all 46 templates and variants, including the archived capability-test artifact, original images, categories, attributes, Sales fields, prices, company costs, taxes, pricelists and all 45 product.value cost-history rows with source-mapped digest parity"
     },
     "inventory_manufacturing": {
-      "status": "incomplete",
-      "disposition": "translate_or_recompute",
-      "evidence": "the current source has Inventory, Manufacturing and Quality configuration but no stock moves, pickings, quants, manufacturing orders, bills of materials or quality alerts; warehouse, route, location, valuation and quality setup is inventoried but is not yet delivered by the Distribution"
+      "status": "implemented",
+      "disposition": "translated",
+      "evidence": "the product stage restores the one warehouse, 23 locations, six routes, seven rules and 11 operation types and validates exact zero source stock moves, move lines, pickings, quants, valuation layers, BOMs, manufacturing orders and quality records; physical opening stock remains a separately governed not-evidenced release blocker rather than an inferred source fact"
     },
     "sales_marketing": {
       "status": "incomplete",

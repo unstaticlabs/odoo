@@ -2,10 +2,21 @@
 
 import json
 
-
 run = env["usl.product.restore.run"].sudo().search([], order="id desc", limit=1)
 assert run and run.status == "passed"
-models = ("product.category", "product.template", "product.product", "product.attribute", "product.pricelist")
+models = (
+    "product.category",
+    "product.template",
+    "product.product",
+    "product.attribute",
+    "product.pricelist",
+    "product.value",
+    "stock.warehouse",
+    "stock.location",
+    "stock.route",
+    "stock.rule",
+    "stock.picking.type",
+)
 before = {
     model: env[model].sudo().with_context(active_test=False).search_count([])
     for model in models

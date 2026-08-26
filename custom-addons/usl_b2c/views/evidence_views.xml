@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_provider_evidence_list" model="ir.ui.view">
+        <field name="name">b2c.provider.evidence.list</field>
+        <field name="model">b2c.provider.evidence</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="source_provider"/>
+                <field name="source_name"/>
+                <field name="occurred_at"/>
+                <field name="evidence_key" optional="hide"/>
+                <field name="source_checksum"/>
+                <field name="schema_digest" optional="hide"/>
+                <field name="payload_digest" optional="hide"/>
+                <field name="contains_pii"/>
+                <field name="attachment_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_provider_evidence_form" model="ir.ui.view">
+        <field name="name">b2c.provider.evidence.form</field>
+        <field name="model">b2c.provider.evidence</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">This immutable provider payload can contain customer personal data. It is access-scoped and excluded from analytics.</div>
+                    <group>
+                        <group>
+                            <field name="source_provider"/>
+                            <field name="source_name"/>
+                            <field name="occurred_at"/>
+                            <field name="attachment_id"/>
+                            <field name="contains_pii"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="evidence_key"/>
+                            <field name="source_checksum"/>
+                            <field name="schema_digest"/>
+                            <field name="payload_digest"/>
+                        </group>
+                    </group>
+                    <field name="payload_json" widget="json" groups="usl_b2c.group_b2c_sensitive_evidence"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_b2c_provider_evidence" model="ir.actions.act_window">
+        <field name="name">Restricted Provider Evidence</field>
+        <field name="res_model">b2c.provider.evidence</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

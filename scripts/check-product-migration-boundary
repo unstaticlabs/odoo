@@ -13,6 +13,7 @@ MIGRATION_ADDONS = {
     "usl_project_restore": ROOT / "migration" / "project_restore" / "addons",
     "usl_identity_restore": ROOT / "migration" / "identity_restore" / "addons",
     "usl_product_restore": ROOT / "migration" / "product_restore" / "addons",
+    "usl_b2c_restore": ROOT / "migration" / "b2c_restore" / "addons",
     "usl_hr_restore": ROOT / "migration" / "hr_restore" / "addons",
     "usl_tese_restore": ROOT / "migration" / "tese_restore" / "addons",
     "usl_platform_billing_restore": (
@@ -27,6 +28,10 @@ MIGRATION_PATHS = {
         "/mnt/identity-migration-addons",
         "/mnt/product-migration-addons",
         "/mnt/hr-migration-addons",
+    ),
+    "b2c-migration": (
+        "/mnt/accounting-migration-addons",
+        "/mnt/b2c-migration-addons",
     ),
     "tese-migration": (
         "/mnt/accounting-migration-addons",
@@ -124,7 +129,10 @@ service_text = {
         compose, "accounting-migration", "project-migration",
     ),
     "project-migration": compose_service(
-        compose, "project-migration", "tese-migration",
+        compose, "project-migration", "b2c-migration",
+    ),
+    "b2c-migration": compose_service(
+        compose, "b2c-migration", "tese-migration",
     ),
     "tese-migration": compose_service(
         compose, "tese-migration", "platform-billing-migration",
@@ -161,6 +169,7 @@ restore_harnesses = {
     "Projects": ROOT / "scripts" / "project-restore",
     "Identity": ROOT / "scripts" / "identity-restore",
     "Product": ROOT / "scripts" / "product-restore",
+    "B2C": ROOT / "scripts" / "b2c-restore",
     "HR": ROOT / "scripts" / "hr-restore",
     "TESE": ROOT / "scripts" / "tese-restore",
     "Platform Billing": ROOT / "scripts" / "platform-billing-restore",
@@ -182,6 +191,13 @@ if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
     errors.append("The platform restoration harness lacks its project guard.")
 
 runtime_modules = {
+    PRODUCT_ADDONS / "usl_b2c": (
+        "usl.b2c.restore",
+        "usl_b2c_restore",
+        "rebuild_source_",
+        "source_snapshot",
+        "/mnt/b2c-migration-addons",
+    ),
     PRODUCT_ADDONS / "usl_project": (
         "usl.project.restore",
         "rebuild_source_",

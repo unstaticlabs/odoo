@@ -196,31 +196,40 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         script = (
             REPOSITORY_ROOT / "scripts" / "target-reconstruct"
         ).read_text(encoding="utf-8")
+        execution = script.split(
+            'run_stage "target identity preflight"',
+            1,
+        )[1]
         ordered_steps = [
-            "scripts/accounting-compat source-restore",
-            "scripts/accounting-compat source-controls",
-            "scripts/accounting-compat extract",
-            "scripts/accounting-compat dev-reset",
-            "scripts/accounting-compat dev-import",
-            "scripts/project-restore all",
-            "scripts/tese-restore all",
-            "scripts/accounting-restore finalize",
-            "scripts/target-finalize",
+            'run_stage "restore source database"',
+            'run_stage "source accounting controls"',
+            'run_stage "extract accounting source"',
+            'run_stage "reset target database"',
+            'run_stage "import accounting"',
+            'run_stage "validate accounting"',
+            'run_stage "prepare Documents product"',
+            'run_stage "restore identities"',
+            'run_stage "restore product data"',
+            'run_stage "repair Expense Batch transition"',
+            'run_stage "restore B2C commerce evidence"',
+            'run_stage "restore HR"',
+            'run_stage "restore Projects"',
+            'run_stage "restore Documents archive"',
+            'run_stage "refresh B2C Documents links"',
+            'run_stage "restore Paie TESE"',
+            'run_stage "restore Platform Billing"',
+            'run_stage "finalize migration boundary"',
+            'run_stage "apply target configuration"',
         ]
 
-        positions = [script.index(step) for step in ordered_steps]
-        fresh_validation = script.index(
-            "scripts/accounting-compat dev-validate",
-            script.index("scripts/accounting-compat dev-import"),
-        )
-        positions.insert(5, fresh_validation)
+        positions = [execution.index(step) for step in ordered_steps]
         self.assertEqual(positions, sorted(positions))
-        resume_validation = script.index(
-            "scripts/accounting-compat dev-validate",
+        resume_validation = execution.index(
+            'run_stage "revalidate reusable accounting"',
         )
         self.assertLess(
             resume_validation,
-            script.index("scripts/accounting-compat dev-reset"),
+            execution.index('run_stage "reset target database"'),
         )
         self.assertIn('USL_RECONSTRUCT_REUSE_DOCUMENTS:-0', script)
         self.assertIn('DOCUMENTS_CANONICAL_RESET="$documents_reset"', script)

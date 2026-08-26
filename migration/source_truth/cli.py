@@ -31,10 +31,12 @@ INVENTORY_SCHEMA = "usl-source-truth-inventory-v2"
 GAP_REPORT_SCHEMA = "usl-source-migration-gap-report-v1"
 CURRENT_DISTRIBUTION_SCOPES = {
     "accounting",
+    "b2c_commerce",
     "credential_state",
     "documents",
     "hr",
     "identity",
+    "inventory_manufacturing",
     "native_reference",
     "platform_billing",
     "product_master",

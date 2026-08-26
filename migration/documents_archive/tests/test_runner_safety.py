@@ -103,6 +103,7 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("allowed_company_ids=target_companies.ids", restore)
+        self.assertIn("allowed_company_ids=operation.company_id.ids", restore)
         self.assertIn("documents_model.with_env(admin.env)", restore)
         self.assertIn('item["document"].with_env(admin.env)', restore)
         self.assertNotIn("QUALIFIED_SOURCE", restore)

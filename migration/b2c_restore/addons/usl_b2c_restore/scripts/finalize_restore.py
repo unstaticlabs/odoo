@@ -1,0 +1,34 @@
+# ruff: noqa: F821, T201
+
+import json
+
+run = env["usl.b2c.restore.run"].sudo().search([], order="id desc", limit=1)
+assert run and run.status == "passed"
+models = (
+    "b2c.channel",
+    "b2c.order",
+    "b2c.order.line",
+    "b2c.order.source",
+    "b2c.payment.event",
+    "b2c.fulfilment.event",
+    "b2c.product.alias",
+    "b2c.accounting.session",
+    "b2c.accounting.link",
+    "b2c.provider.evidence",
+)
+before = {model: env[model].sudo().search_count([]) for model in models}
+module = env["ir.module.module"].sudo().search(
+    [("name", "=", "usl_b2c_restore")],
+    limit=1,
+)
+module.button_immediate_uninstall()
+env.cr.commit()
+after = {model: env[model].sudo().search_count([]) for model in models}
+assert before == after
+print(
+    json.dumps(
+        {"migration_module": "uninstalled", "before": before, "after": after},
+        indent=2,
+        sort_keys=True,
+    ),
+)

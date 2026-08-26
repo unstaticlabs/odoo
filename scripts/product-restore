@@ -61,7 +61,7 @@ install_module() {
     local operation="--init=usl_product_restore"
     if "${compose[@]}" exec -T db psql -U "${ODOO_DB_USER:-odoo}" \
         -d "$target_database" -Atc \
-        "SELECT 1 FROM ir_module_module WHERE name='usl_product_restore' AND state='installed'" \
+        "SELECT 1 FROM ir_module_module WHERE name='usl_product_restore' AND state IN ('installed', 'to upgrade')" \
         | grep -qx 1; then
         operation="--update=usl_product_restore"
     fi

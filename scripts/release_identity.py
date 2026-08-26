@@ -22,6 +22,7 @@ SYNC_REPOSITORY = re.compile(
 PRODUCT_MODULES = {
     "rebuild_account_migration",
     "usl_accounting",
+    "usl_b2c",
     "usl_documents",
     "usl_documents_accounting",
     "usl_expense_batch",

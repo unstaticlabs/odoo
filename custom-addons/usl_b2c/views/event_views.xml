@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_payment_event_search" model="ir.ui.view">
+        <field name="name">b2c.payment.event.search</field>
+        <field name="model">b2c.payment.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="external_transaction_id"/>
+                <field name="external_payment_intent_id"/>
+                <field name="external_session_id"/>
+                <field name="external_checkout_session_id"/>
+                <field name="external_payout_id"/>
+                <field name="order_id"/>
+                <filter name="pending" string="Pending Review" domain="[('review_state', '=', 'pending')]"/>
+                <filter name="refunds" string="Refunds" domain="[('event_type', '=', 'refund')]"/>
+                <filter name="fees" string="Fees" domain="[('event_type', '=', 'fee')]"/>
+                <filter name="event_date" string="Event Date" date="event_date"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'event_date:month'}"/>
+                    <filter name="group_provider" string="Provider" context="{'group_by': 'source_provider'}"/>
+                    <filter name="group_type" string="Event Type" context="{'group_by': 'event_type'}"/>
+                    <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_currency" string="Transaction Currency" context="{'group_by': 'currency_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_b2c_payment_event_list" model="ir.ui.view">
+        <field name="name">b2c.payment.event.list</field>
+        <field name="model">b2c.payment.event</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="review_state == 'pending'" decoration-danger="review_state == 'blocked'">
+                <field name="event_date"/>
+                <field name="name"/>
+                <field name="source_provider"/>
+                <field name="event_type"/>
+                <field name="order_id" optional="show"/>
+                <field name="currency_id"/>
+                <field name="amount" sum="Transaction Amount"/>
+                <field name="fee_amount" sum="Fees"/>
+                <field name="refund_amount" sum="Refunds"/>
+                <field name="net_amount" sum="Net"/>
+                <field name="company_amount" sum="Company Amount" optional="show"/>
+                <field name="fee_company_amount" sum="Company Fees"/>
+                <field name="refund_company_amount" sum="Company Refunds"/>
+                <field name="net_company_amount" sum="Company Net"/>
+                <field name="completeness_state" widget="badge"/>
+                <field name="review_state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_payment_event_form" model="ir.ui.view">
+        <field name="name">b2c.payment.event.form</field>
+        <field name="model">b2c.payment.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Provider Identity">
+                            <field name="source_provider"/>
+                            <field name="origin"/>
+                            <field name="event_type"/>
+                            <field name="provider_event_key" readonly="1"/>
+                            <field name="external_transaction_id"/>
+                            <field name="external_payment_intent_id"/>
+                            <field name="external_session_id"/>
+                            <field name="external_checkout_session_id"/>
+                            <field name="external_payout_id"/>
+                            <field name="external_refund_id"/>
+                            <field name="external_original_payment_id"/>
+                            <field name="original_event_id"/>
+                        </group>
+                        <group string="Business Scope">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="channel_id"/>
+                            <field name="order_id"/>
+                            <field name="event_date"/>
+                            <field name="original_provider_state"/>
+                            <field name="state"/>
+                            <field name="mapping_state"/>
+                            <field name="review_state"/>
+                            <field name="completeness_state"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Transaction Currency">
+                            <field name="currency_id"/>
+                            <field name="amount"/>
+                            <field name="fee_amount"/>
+                            <field name="tax_amount"/>
+                            <field name="refund_amount"/>
+                            <field name="net_amount"/>
+                        </group>
+                        <group string="Company Currency and Evidence">
+                            <field name="company_currency_id"/>
+                            <field name="company_amount"/>
+                            <field name="fee_company_amount"/>
+                            <field name="tax_company_amount"/>
+                            <field name="refund_company_amount"/>
+                            <field name="net_company_amount"/>
+                            <field name="conversion_state"/>
+                            <field name="evidenced_conversion_rate"/>
+                            <field name="conversion_evidence"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Native and Accounting Links">
+                            <group>
+                                <field name="payment_transaction_id"/>
+                                <field name="account_payment_id"/>
+                                <field name="supporting_attachment_id"/>
+                            </group>
+                            <field name="accounting_link_ids" readonly="1">
+                                <list>
+                                    <field name="link_type"/>
+                                    <field name="link_state" widget="badge"/>
+                                    <field name="account_move_id"/>
+                                    <field name="account_move_line_id"/>
+                                    <field name="bank_statement_line_id"/>
+                                    <field name="attachment_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_b2c_payment_event_pivot" model="ir.ui.view">
+        <field name="name">b2c.payment.event.pivot</field>
+        <field name="model">b2c.payment.event</field>
+        <field name="arch" type="xml">
+            <pivot string="B2C Payments, Refunds and Fees" sample="0">
+                <field name="event_date" interval="month" type="row"/>
+                <field name="source_provider" type="col"/>
+                <field name="company_amount" type="measure"/>
+                <field name="refund_company_amount" type="measure"/>
+                <field name="fee_company_amount" type="measure"/>
+                <field name="net_company_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_b2c_payment_event_graph" model="ir.ui.view">
+        <field name="name">b2c.payment.event.graph</field>
+        <field name="model">b2c.payment.event</field>
+        <field name="arch" type="xml">
+            <graph string="B2C Refunds and Fees by Month" type="bar" stacked="1" sample="0">
+                <field name="event_date" interval="month"/>
+                <field name="event_type"/>
+                <field name="net_company_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_b2c_payment_event" model="ir.actions.act_window">
+        <field name="name">Payments, Refunds and Fees</field>
+        <field name="res_model">b2c.payment.event</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_b2c_payment_event_search"/>
+    </record>
+
+    <record id="view_b2c_fulfilment_event_search" model="ir.ui.view">
+        <field name="name">b2c.fulfilment.event.search</field>
+        <field name="model">b2c.fulfilment.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="external_order_id"/>
+                <field name="external_fulfilment_id"/>
+                <field name="external_printful_id"/>
+                <field name="order_id"/>
+                <filter name="pending" string="Pending Review" domain="[('review_state', '=', 'pending')]"/>
+                <filter name="unknown_cogs" string="Unknown / Partial COGS" domain="[('completeness_state', '!=', 'complete')]"/>
+                <filter name="event_date" string="Event Date" date="event_date"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'event_date:month'}"/>
+                    <filter name="group_provider" string="Provider" context="{'group_by': 'source_provider'}"/>
+                    <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
+                    <filter name="group_country" string="Destination Country" context="{'group_by': 'destination_country_id'}"/>
+                    <filter name="group_mode" string="Fulfilment Mode" context="{'group_by': 'fulfilment_mode'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_b2c_fulfilment_event_list" model="ir.ui.view">
+        <field name="name">b2c.fulfilment.event.list</field>
+        <field name="model">b2c.fulfilment.event</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="review_state == 'pending'" decoration-danger="review_state == 'blocked'">
+                <field name="event_date"/>
+                <field name="name"/>
+                <field name="source_provider"/>
+                <field name="order_id" optional="show"/>
+                <field name="external_printful_id" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="fulfilment_mode"/>
+                <field name="destination_country_id"/>
+                <field name="currency_id"/>
+                <field name="cogs_amount" sum="Transaction COGS"/>
+                <field name="company_cogs_amount" sum="Company COGS"/>
+                <field name="vat_amount" sum="VAT Evidence" optional="show"/>
+                <field name="completeness_state" widget="badge"/>
+                <field name="review_state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_fulfilment_event_form" model="ir.ui.view">
+        <field name="name">b2c.fulfilment.event.form</field>
+        <field name="model">b2c.fulfilment.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Provider and Order">
+                            <field name="source_provider"/>
+                            <field name="origin"/>
+                            <field name="provider_event_key" readonly="1"/>
+                            <field name="order_id"/>
+                            <field name="external_order_id"/>
+                            <field name="external_fulfilment_id"/>
+                            <field name="external_printful_id"/>
+                            <field name="original_provider_state"/>
+                        </group>
+                        <group string="Fulfilment">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="channel_id"/>
+                            <field name="event_date"/>
+                            <field name="state"/>
+                            <field name="fulfilment_mode"/>
+                            <field name="origin_country_codes"/>
+                            <field name="destination_country_id"/>
+                            <field name="completeness_state"/>
+                            <field name="review_state"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Cost and VAT Evidence">
+                            <field name="currency_id"/>
+                            <field name="product_cost_amount"/>
+                            <field name="discount_amount"/>
+                            <field name="shipping_cost_amount"/>
+                            <field name="digitalization_cost_amount"/>
+                            <field name="tax_amount"/>
+                            <field name="vat_amount"/>
+                            <field name="cogs_amount"/>
+                        </group>
+                        <group string="Company Currency and Native Links">
+                            <field name="company_currency_id"/>
+                            <field name="company_cogs_amount"/>
+                            <field name="conversion_state"/>
+                            <field name="evidenced_conversion_rate"/>
+                            <field name="conversion_evidence"/>
+                            <field name="stock_picking_id"/>
+                            <field name="stock_move_id"/>
+                            <field name="purchase_order_id"/>
+                            <field name="supporting_attachment_id"/>
+                        </group>
+                    </group>
+                    <field name="accounting_link_ids" readonly="1">
+                        <list>
+                            <field name="link_type"/>
+                            <field name="link_state" widget="badge"/>
+                            <field name="account_move_id"/>
+                            <field name="account_move_line_id"/>
+                            <field name="attachment_id"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_b2c_fulfilment_event_pivot" model="ir.ui.view">
+        <field name="name">b2c.fulfilment.event.pivot</field>
+        <field name="model">b2c.fulfilment.event</field>
+        <field name="arch" type="xml">
+            <pivot string="B2C Fulfilment and COGS" sample="0">
+                <field name="event_date" interval="month" type="row"/>
+                <field name="source_provider" type="col"/>
+                <field name="company_cogs_amount" type="measure"/>
+                <field name="vat_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_b2c_fulfilment_event_graph" model="ir.ui.view">
+        <field name="name">b2c.fulfilment.event.graph</field>
+        <field name="model">b2c.fulfilment.event</field>
+        <field name="arch" type="xml">
+            <graph string="B2C COGS by Month and Provider" type="bar" stacked="1" sample="0">
+                <field name="event_date" interval="month"/>
+                <field name="source_provider"/>
+                <field name="company_cogs_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_b2c_fulfilment_event" model="ir.actions.act_window">
+        <field name="name">Fulfilment and COGS</field>
+        <field name="res_model">b2c.fulfilment.event</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_b2c_fulfilment_event_search"/>
+    </record>
+</odoo>

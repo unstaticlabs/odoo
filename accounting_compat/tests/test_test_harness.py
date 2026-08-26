@@ -386,14 +386,20 @@ class OdooTestHarnessTest(unittest.TestCase):
             / "migration/accounting_restore/addons/usl_accounting_restore/scripts"
             / "reapply_expense_batch_transition.py"
         ).read_text(encoding="utf-8")
-        product_restore = reconstruction.index("scripts/product-restore all")
-        transition = reconstruction.index(
-            "scripts/accounting-restore expense-batch-transition",
+        execution = reconstruction.split(
+            'run_stage "target identity preflight"',
+            1,
+        )[1]
+        product_restore = execution.index('run_stage "restore product data"')
+        transition = execution.index(
+            'run_stage "repair Expense Batch transition"',
         )
-        hr_restore = reconstruction.index("scripts/hr-restore all")
+        b2c_restore = execution.index('run_stage "restore B2C commerce evidence"')
+        hr_restore = execution.index('run_stage "restore HR"')
 
         self.assertLess(product_restore, transition)
-        self.assertLess(transition, hr_restore)
+        self.assertLess(transition, b2c_restore)
+        self.assertLess(b2c_restore, hr_restore)
         self.assertIn("expense-batch-transition)", accounting_restore)
         self.assertEqual(repair_script.count("run_expense_batch_transition()"), 2)
         self.assertIn('"rerun_is_noop"', repair_script)

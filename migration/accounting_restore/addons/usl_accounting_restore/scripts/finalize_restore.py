@@ -42,28 +42,36 @@ if not module or module.state != "installed":
     )
 
 latest_run = env["rebuild.account.import.run"].sudo().search([], limit=1)
-if not latest_run or latest_run.status != "passed":
+if latest_run and latest_run.status != "passed":
     raise RuntimeError(
         "The latest Accounting restoration must pass before finalization.",
     )
-blocking = env["rebuild.account.discrepancy"].sudo().search_count([
-    ("severity", "in", ["P0", "P1"]),
-    ("status", "in", ["open", "investigating"]),
-])
-if blocking:
-    raise RuntimeError(
-        f"{blocking} P0/P1 restoration discrepancy record(s) remain open.",
-    )
+if latest_run:
+    blocking = env["rebuild.account.discrepancy"].sudo().search_count([
+        ("severity", "in", ["P0", "P1"]),
+        ("status", "in", ["open", "investigating"]),
+    ])
+    if blocking:
+        raise RuntimeError(
+            f"{blocking} P0/P1 restoration discrepancy record(s) remain open.",
+        )
 
 before = accounting_snapshot()
-run_evidence = {
-    "name": latest_run.name,
-    "status": latest_run.status,
-    "source_snapshot_id": latest_run.source_snapshot_id,
-    "source_dump_sha256": latest_run.source_dump_sha256,
-    "finished_at": str(latest_run.finished_at or ""),
-    "statistics": latest_run.statistics_json or {},
-}
+run_evidence = (
+    {
+        "name": latest_run.name,
+        "status": latest_run.status,
+        "source_snapshot_id": latest_run.source_snapshot_id,
+        "source_dump_sha256": latest_run.source_dump_sha256,
+        "finished_at": str(latest_run.finished_at or ""),
+        "statistics": latest_run.statistics_json or {},
+    }
+    if latest_run
+    else {
+        "status": "not_run",
+        "reason": "empty temporary module reinstall cleanup",
+    }
+)
 module.button_immediate_uninstall()
 env.cr.commit()
 after = accounting_snapshot()
