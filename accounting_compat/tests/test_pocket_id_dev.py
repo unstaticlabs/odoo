@@ -106,6 +106,38 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
             ):
                 POCKET_ID_DEV._write_new_env(path)
 
+    def test_admin_api_can_use_a_private_origin_separate_from_public_issuer(self):
+        values = {
+            "POCKET_ID_APP_URL": "https://pocket-id.example.test",
+            "POCKET_ID_STATIC_API_KEY": "test-key",
+        }
+        with patch.dict(
+            os.environ,
+            {"USL_POCKET_ID_ADMIN_API_URL": "http://100.79.30.44:19025"},
+            clear=True,
+        ):
+            api = POCKET_ID_DEV.PocketIDAPI(values)
+
+        self.assertEqual(api.base_url, "http://100.79.30.44:19025")
+
+    def test_admin_api_override_rejects_a_public_origin(self):
+        values = {
+            "POCKET_ID_APP_URL": "https://pocket-id.example.test",
+            "POCKET_ID_STATIC_API_KEY": "test-key",
+        }
+        with (
+            patch.dict(
+                os.environ,
+                {"USL_POCKET_ID_ADMIN_API_URL": "https://api.example.test"},
+                clear=True,
+            ),
+            self.assertRaisesRegex(
+                POCKET_ID_DEV.PocketIDError,
+                "private or localhost",
+            ),
+        ):
+            POCKET_ID_DEV.PocketIDAPI(values)
+
     def test_sign_test_cleanup_reuses_the_built_test_image(self):
         stack = (ROOT / "scripts" / "sign-pocketid-stack").read_text(
             encoding="utf-8",
