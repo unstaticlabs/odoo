@@ -627,14 +627,15 @@ def odoo_policy(values: dict[str, str]) -> None:
             "login": "roger@unstaticlabs.com",
             "name": "Roger",
             "email": USER_DEFINITIONS["roger"]["email"],
-            "profile": "collaborator",
-            "companies": ["Unstatic Labs"],
+            "profile": "technical_operator",
+            "companies": "all",
             "subject": values["POCKET_ID_ROGER_ID"],
             "create_if_missing": True,
         },
         {
             "login": "roger@xaic.cat",
             "profile": "historical",
+            "optional_if_missing": True,
         },
         {
             "login": "prosper",
