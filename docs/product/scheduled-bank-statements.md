@@ -57,11 +57,13 @@ accepted. The reviewed replacement becomes a new version of the same Paperless
 root. Certification history pins the accepted PDF checksum, Paperless root and
 exact Paperless version, so a later current version cannot change earlier proof.
 
-The **Official PDF** action downloads the pinned original through the Documents
+The **Official statement** action opens the pinned original through the Documents
 authorization boundary. The Odoo attachment remains available in source
 details for provenance and recovery, but it is not a substitute for a completed
-Documents archive. An archive failure blocks certification and presents a
-focused retry action on the statement.
+Documents record. A temporary Documents outage presents **Retry Documents**;
+a damaged or incomplete PDF instead presents **Replace statement PDF** and
+explains that the original bank PDF must be selected. Both actions are on the
+monthly statement, and the replaced source remains in the audit history.
 
 Certified bank facts and the liquidity side of each bank entry cannot be
 silently changed. Reconciliation, partner categorization and legitimate
@@ -94,6 +96,8 @@ design extends native statements, lines, attachments, mail and activities and
 reuses maintained OCA OFX import behavior.
 
 CSV and QIF copies are retained but are not fallback transaction sources. An
-expired Shine link requires attaching a newly downloaded export archive to the
-retained source and retrying. OCR, PDF transaction extraction, PayPal and
+expired Shine link requires using **Add missing file** on the received email to
+attach a newly downloaded export archive, then retrying. This technical source
+screen is a recovery path; ordinary monthly work remains on the statement.
+OCR, PDF transaction extraction, PayPal and
 automatic accounting reconciliation remain outside this product.

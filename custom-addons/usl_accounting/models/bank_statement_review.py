@@ -480,6 +480,35 @@ class AccountBankStatement(models.Model):
             "target": "self",
         }
 
+    def action_open_statement_pdf_upload(self):
+        """Keep evidence recovery on the monthly review instead of mail internals."""
+        self.ensure_one()
+        self._assert_account_user()
+        ingestion = self.accepted_evidence_id.ingestion_id
+        if not ingestion:
+            ingestion = self.bank_source_file_ids.sorted(
+                lambda item: (item.ingestion_id.received_at, item.ingestion_id.id),
+                reverse=True,
+            ).ingestion_id[:1]
+        if not ingestion:
+            raise UserError(
+                _(
+                    "No received bank email is linked to this month. Wait for the "
+                    "scheduled export or ask an Accounting Manager to check the email setup.",
+                ),
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Add the official statement PDF"),
+            "res_model": "account.bank.ingestion.upload",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_ingestion_id": ingestion.id,
+                "default_statement_id": self.id,
+            },
+        }
+
     def _bank_review_notification(self, message, notification_type):
         return {
             "type": "ir.actions.client",
@@ -845,11 +874,11 @@ class AccountBankStatementException(models.Model):
     )
     resolution = fields.Selection(
         [
-            ("corrected_source", "Corrected source"),
-            ("map_existing", "Mapped to existing transaction"),
-            ("approve_new", "Approved as a new transaction"),
-            ("accept_evidence", "Accepted evidence"),
-            ("not_relevant", "Not relevant"),
+            ("corrected_source", "The bank sent a corrected file"),
+            ("map_existing", "Link to an existing bank transaction"),
+            ("approve_new", "Import as a separate bank transaction"),
+            ("accept_evidence", "Use as the official statement"),
+            ("not_relevant", "Ignore this file for the monthly check"),
         ],
     )
     resolution_reason = fields.Text()
@@ -864,7 +893,7 @@ class AccountBankStatementException(models.Model):
             )
         return {
             "type": "ir.actions.act_window",
-            "name": _("Review bank statement issue"),
+            "name": _("Resolve monthly check issue"),
             "res_model": self._name,
             "res_id": self.id,
             "view_mode": "form",
@@ -897,8 +926,13 @@ class AccountBankStatementException(models.Model):
                     "resolved_at": fields.Datetime.now(),
                 },
             )
-            exception.ingestion_id.message_post(
-                body=_("Bank export exception resolved: %(name)s", name=exception.name),
+            exception.ingestion_id.sudo().message_post(
+                body=_(
+                    "Bank statement issue resolved by %(user)s: %(name)s",
+                    user=self.env.user.display_name,
+                    name=exception.name,
+                ),
+                author_id=self.env.user.partner_id.id,
             )
             exception.ingestion_id._refresh_processing_state()
         return True

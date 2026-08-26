@@ -152,14 +152,6 @@ msgid "Retry Documents filing"
 msgstr "Réessayer le classement Documents"
 
 #. module: usl_documents_accounting
-msgid "File the official statement in Documents before certification."
-msgstr "Classez le relevé officiel dans Documents avant la certification."
-
-#. module: usl_documents_accounting
-msgid "The official statement is not available in Documents. Retry filing before certification."
-msgstr "Le relevé officiel n’est pas disponible dans Documents. Réessayez son classement avant la certification."
-
-#. module: usl_documents_accounting
 msgid "Documents has not verified a version with the exact official statement checksum."
 msgstr "Documents n’a pas vérifié de version correspondant exactement à l’empreinte du relevé officiel."
 
@@ -248,8 +240,44 @@ msgid "Paperless Requested By"
 msgstr "Archivage Paperless demandé par"
 
 #. module: usl_documents_accounting
-msgid "Resolve the Documents archive failure before certification."
-msgstr "Résolvez l’échec de l’archivage Documents avant la certification."
+msgid "Save in Documents"
+msgstr "Enregistrer dans Documents"
+
+#. module: usl_documents_accounting
+msgid "Retry Documents"
+msgstr "Réessayer Documents"
+
+#. module: usl_documents_accounting
+msgid "Replace statement PDF"
+msgstr "Remplacer le PDF du relevé"
+
+#. module: usl_documents_accounting
+msgid "The official PDF has been received but is not yet saved in Documents. Choose Save in Documents."
+msgstr "Le PDF officiel a bien été reçu, mais n’est pas encore enregistré dans Documents. Choisissez Enregistrer dans Documents."
+
+#. module: usl_documents_accounting
+msgid "Documents is saving and verifying the official PDF. Wait for this check to finish before certification."
+msgstr "Documents enregistre et vérifie le PDF officiel. Attendez la fin de cette vérification avant de certifier."
+
+#. module: usl_documents_accounting
+msgid "Documents could not save the official PDF. Try again; if the problem continues, replace the PDF with the original from the bank."
+msgstr "Documents n’a pas pu enregistrer le PDF officiel. Réessayez ; si le problème persiste, remplacez le PDF par l’original fourni par la banque."
+
+#. module: usl_documents_accounting
+msgid "Send the exact received PDF to Documents, verify its checksum, and retain that Documents version for certification."
+msgstr "Envoyer dans Documents le PDF reçu à l’identique, vérifier son empreinte et conserver cette version Documents pour la certification."
+
+#. module: usl_documents_accounting
+msgid "Try saving the same PDF again after a temporary Documents outage. If the PDF is damaged, replace it instead."
+msgstr "Réessayer d’enregistrer le même PDF après une indisponibilité temporaire de Documents. Si le PDF est endommagé, remplacez-le."
+
+#. module: usl_documents_accounting
+msgid "Choose a valid original PDF from the bank. The damaged copy remains in the audit history and the replacement becomes the official statement."
+msgstr "Choisissez un PDF original valide fourni par la banque. La copie endommagée reste dans l’historique et le remplacement devient le relevé officiel."
+
+#. module: usl_documents_accounting
+msgid "Official statement is not safely stored in Documents."
+msgstr "Le relevé officiel n’est pas conservé de manière fiable dans Documents."
 
 #. module: usl_documents_accounting
 msgid "Restore the archived original in Documents before certification."

@@ -55,6 +55,14 @@ class AccountBankStatement(models.Model):
             evidence = statement.accepted_evidence_id
             state = evidence.paperless_archive_state if evidence else "not_requested"
             error = evidence.paperless_archive_error if evidence else False
+            pdf_error = (
+                evidence._pdf_integrity_error(evidence._content())
+                if evidence and evidence.classification == "pdf"
+                else False
+            )
+            if pdf_error:
+                state = "failed"
+                error = pdf_error
             integrity_error = (
                 evidence._paperless_integrity_error()
                 if evidence and state == "archived"
@@ -95,9 +103,10 @@ class AccountBankStatement(models.Model):
         self.invalidate_recordset()
         if evidence.paperless_archive_state == "failed":
             return self._bank_review_notification(
-                _(
-                    "The official statement could not be saved in Documents. Correct the "
-                    "Documents issue shown on this statement, then retry.",
+                evidence.paperless_archive_error
+                or _(
+                    "Documents could not save the official PDF. Try again; if the "
+                    "problem continues, replace the PDF with the original from the bank.",
                 ),
                 "danger",
             )
@@ -237,6 +246,15 @@ class AccountBankIngestionFile(models.Model):
 
     def _archive_or_reconcile_bank_evidence(self):
         self.ensure_one()
+        pdf_error = self._pdf_integrity_error(self._content())
+        if pdf_error:
+            self.sudo().write(
+                {
+                    "paperless_archive_state": "failed",
+                    "paperless_archive_error": pdf_error,
+                },
+            )
+            return None
         if self.paperless_archive_state == "processing":
             return self._reconcile_bank_evidence_operation()
         statement = self.statement_id
@@ -356,13 +374,24 @@ class AccountBankIngestionFile(models.Model):
 
     def _paperless_integrity_error(self):
         self.ensure_one()
+        pdf_error = self._pdf_integrity_error(self._content())
+        if pdf_error:
+            return pdf_error
         if self.paperless_archive_state == "failed":
-            return _(
-                "The official statement is not available in Documents. "
-                "Retry filing before certification.",
+            return self.paperless_archive_error or _(
+                "Documents could not save the official PDF. Try again; if the "
+                "problem continues, replace the PDF with the original from the bank.",
             )
-        if self.paperless_archive_state in ("not_requested", "pending", "processing"):
-            return _("File the official statement in Documents before certification.")
+        if self.paperless_archive_state == "not_requested":
+            return _(
+                "The official PDF has been received but is not yet saved in Documents. "
+                "Choose Save in Documents.",
+            )
+        if self.paperless_archive_state in ("pending", "processing"):
+            return _(
+                "Documents is saving and verifying the official PDF. Wait for this "
+                "check to finish before certification.",
+            )
         document = self.paperless_document_id.sudo()
         if not document or not self.paperless_version or not self._paperless_version_record():
             return _(

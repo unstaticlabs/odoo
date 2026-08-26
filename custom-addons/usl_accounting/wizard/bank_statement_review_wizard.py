@@ -14,11 +14,15 @@ MAX_RECOVERED_FILE_BYTES = 50 * 1024 * 1024
 
 class AccountBankIngestionUpload(models.TransientModel):
     _name = "account.bank.ingestion.upload"
-    _description = "Add Recovered Bank Export"
+    _description = "Add Missing Bank Export File"
 
     ingestion_id = fields.Many2one(
         "account.bank.ingestion",
         required=True,
+        readonly=True,
+    )
+    statement_id = fields.Many2one(
+        "account.bank.statement",
         readonly=True,
     )
     source_file = fields.Binary(required=True)
@@ -27,13 +31,23 @@ class AccountBankIngestionUpload(models.TransientModel):
     def action_add_file(self):
         self.ensure_one()
         if not is_accounting_operator(self.env.user):
-            raise AccessError(_("Only an accountant can add a recovered bank export."))
+            raise AccessError(_("Only an accountant can add a missing bank export file."))
         self.ingestion_id.check_access("read")
         content = bytes(self.source_file.content or b"")
         if not content:
-            raise UserError(_("Choose a bank export file to retain."))
+            raise UserError(_("Choose the file downloaded from the bank."))
         if len(content) > MAX_RECOVERED_FILE_BYTES:
-            raise UserError(_("The recovered bank export exceeds the 50 MiB limit."))
+            raise UserError(_("The selected file exceeds the 50 MiB limit."))
+        if self.statement_id:
+            if self.statement_id.ingestion_config_id != self.ingestion_id.config_id:
+                raise UserError(
+                    _("The received email belongs to another bank account."),
+                )
+            pdf_error = self.env[
+                "account.bank.ingestion.file"
+            ]._pdf_integrity_error(content)
+            if pdf_error:
+                raise UserError(pdf_error)
         attachment = (
             self.env["ir.attachment"]
             .sudo()
@@ -56,20 +70,65 @@ class AccountBankIngestionUpload(models.TransientModel):
                 recovered_upload=True,
             )
         )
-        self.ingestion_id.sudo().write({"state": "received", "last_error": False})
-        self.ingestion_id.message_post(
+        if self.statement_id:
+            source_file.sudo()._associate_pdf()
+            source_file.invalidate_recordset()
+            if source_file.statement_id != self.statement_id:
+                raise UserError(
+                    _(
+                        "This PDF does not belong to the selected statement month. "
+                        "Choose the official PDF for %(period)s.",
+                        period=self.statement_id.display_name,
+                    ),
+                )
+            source_file.with_user(self.env.user)._accept_evidence()
+            archive = getattr(
+                source_file.with_user(self.env.user),
+                "_process_bank_evidence_archive",
+                None,
+            )
+            if archive:
+                archive()
+        else:
+            self.ingestion_id.sudo().write({"state": "received", "last_error": False})
+        self.ingestion_id.sudo().message_post(
             body=_(
-                "Recovered bank export retained: %(name)s",
+                "Bank export file added by %(user)s: %(name)s",
+                user=self.env.user.display_name,
                 name=source_file.filename,
             ),
             attachment_ids=[attachment.id],
+            author_id=self.env.user.partner_id.id,
         )
+        if self.statement_id:
+            source_file.invalidate_recordset()
+            archive_failed = (
+                "paperless_archive_state" in source_file._fields
+                and source_file.paperless_archive_state == "failed"
+            )
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "message": (
+                        source_file.paperless_archive_error
+                        if archive_failed
+                        else _(
+                            "The replacement PDF is now the official statement and "
+                            "has been sent to Documents.",
+                        )
+                    ),
+                    "type": "warning" if archive_failed else "success",
+                    "sticky": False,
+                    "next": {"type": "ir.actions.client", "tag": "reload"},
+                },
+            }
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "message": _(
-                    "The recovered export was retained. Process the source again.",
+                    "The missing file was added. Process the received email again.",
                 ),
                 "type": "success",
                 "sticky": False,

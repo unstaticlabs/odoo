@@ -6,8 +6,9 @@
         <field name="inherit_id" ref="usl_accounting.view_bank_statement_form_review"/>
         <field name="arch" type="xml">
             <xpath expr="//header/button[@name='action_certify']" position="before">
-                <button name="action_archive_bank_evidence" type="object" string="Save in Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('not_requested', 'pending')"/>
-                <button name="action_archive_bank_evidence" type="object" string="Retry Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('failed', 'unavailable')"/>
+                <button name="action_archive_bank_evidence" type="object" string="Save in Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('not_requested', 'pending')" title="Send the exact received PDF to Documents, verify its checksum, and retain that Documents version for certification."/>
+                <button name="action_archive_bank_evidence" type="object" string="Retry Documents" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('failed', 'unavailable')" title="Try saving the same PDF again after a temporary Documents outage. If the PDF is damaged, replace it instead."/>
+                <button name="action_open_statement_pdf_upload" type="object" string="Replace statement PDF" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not accepted_evidence_id or bank_evidence_archive_state not in ('failed', 'unavailable') or certification_state == 'certified'" title="Choose a valid original PDF from the bank. The damaged copy remains in the audit history and the replacement becomes the official statement."/>
             </xpath>
             <xpath expr="//button[@name='action_open_evidence']" position="attributes">
                 <attribute name="string">Official statement</attribute>
@@ -26,7 +27,11 @@
                 <div class="alert alert-danger" role="alert" invisible="not bank_evidence_archive_error">
                     <strong>Official statement is not safely stored in Documents.</strong>
                     <div><field name="bank_evidence_archive_error" readonly="1" nolabel="1"/></div>
-                    <div class="mt-1">Correct the Documents issue, then use <em>Retry Documents</em>.</div>
+                    <div class="mt-1">
+                        Use <em>Retry Documents</em> after a temporary outage. If the PDF is
+                        damaged or incomplete, use <em>Replace statement PDF</em> and choose
+                        the original downloaded from the bank.
+                    </div>
                 </div>
             </xpath>
             <xpath expr="//field[@name='certification_ids']/list/field[@name='evidence_sha256']" position="after">

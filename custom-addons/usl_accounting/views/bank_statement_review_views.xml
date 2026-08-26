@@ -4,19 +4,22 @@
         <field name="name">account.bank.statement.issue.resolution.form</field>
         <field name="model">account.bank.statement.exception</field>
         <field name="arch" type="xml">
-            <form string="Review bank statement issue" create="false" delete="false">
+            <form string="Resolve monthly check issue" create="false" delete="false">
                 <group>
                     <field name="name" string="Issue" readonly="1"/>
                     <field name="detail" string="What to check" readonly="1"/>
                     <field name="file_id" string="Related file" readonly="1"/>
                 </group>
                 <group string="Decision">
+                    <div class="alert alert-info" role="status" colspan="2">
+                        Choose what you verified. The decision and reason remain in the monthly statement history.
+                    </div>
                     <field name="resolution" required="1"/>
                     <field name="mapped_line_id" invisible="resolution != 'map_existing'" required="resolution == 'map_existing'"/>
                     <field name="resolution_reason" string="Reason" required="1" placeholder="Explain what you checked and why this decision is safe."/>
                 </group>
                 <footer>
-                    <button name="action_resolve" type="object" string="Apply decision" class="btn-primary"/>
+                    <button name="action_resolve" type="object" string="Apply decision" class="btn-primary" title="Record this reviewed decision, clear the issue, and keep the decision in the audit history."/>
                     <button string="Cancel" special="cancel"/>
                 </footer>
             </form>
@@ -59,11 +62,12 @@
         <field name="arch" type="xml">
             <form string="Bank Statement Review" create="false" delete="false">
                 <header>
-                    <button name="action_open_confirm_balances" type="object" string="Confirm bank balances" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or balances_confirmed or certification_state == 'certified'"/>
-                    <button name="action_open_confirm_balances" type="object" string="Update bank balances" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or not balances_confirmed or certification_state == 'certified'"/>
+                    <button name="action_open_confirm_balances" type="object" string="Confirm bank balances" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or balances_confirmed or certification_state == 'certified'" title="Enter the opening and closing balances shown on the official PDF. Odoo keeps any difference visible instead of creating a balancing transaction."/>
+                    <button name="action_open_confirm_balances" type="object" string="Update bank balances" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or not balances_confirmed or certification_state == 'certified'" title="Correct the balances copied from the official PDF and recalculate the monthly check."/>
                     <button name="action_confirm_cutover_baseline" type="object" string="Confirm cut-over baseline" groups="account.group_account_manager" invisible="not ingestion_config_id or continuity_status != 'baseline' or certification_state == 'certified'" title="Accept this opening balance as the starting continuity checkpoint because no preceding certified statement exists."/>
-                    <button name="action_certify" type="object" string="Certify" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not can_certify or certification_state == 'certified'"/>
-                    <button name="action_open_reopen" type="object" string="Reopen" groups="account.group_account_manager" invisible="certification_state != 'certified'"/>
+                    <button name="action_open_statement_pdf_upload" type="object" string="Add official PDF" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not ingestion_config_id or accepted_evidence_id or certification_state == 'certified'" title="Choose the original monthly statement PDF downloaded from the bank. Odoo will retain it with the received email and save it in Documents."/>
+                    <button name="action_certify" type="object" string="Certify" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="not can_certify or certification_state == 'certified'" title="Confirm that the official PDF in Documents, imported movements, bank balances, and previous-month continuity have all been checked. This does not close the accounting period or match individual transactions."/>
+                    <button name="action_open_reopen" type="object" string="Reopen" groups="account.group_account_manager" invisible="certification_state != 'certified'" title="Allow a correction to this certified month. A reason is required and the statement must be certified again."/>
                     <field name="review_status" widget="statusbar" statusbar_visible="expected,processing,attention,ready,certified,reopened"/>
                 </header>
                 <sheet>
@@ -73,7 +77,7 @@
                         <button name="action_open_transactions" type="object" class="oe_stat_button" icon="fa-list">
                             <field name="movement_total" widget="statinfo" string="Movements"/>
                         </button>
-                        <button name="action_open_evidence" type="object" class="oe_stat_button" icon="fa-file-pdf-o" invisible="not accepted_evidence_id">
+                        <button name="action_open_evidence" type="object" class="oe_stat_button" icon="fa-file-pdf-o" invisible="not accepted_evidence_id" title="Open the exact official statement version retained in Documents for this month.">
                             <div class="o_stat_info"><span class="o_stat_text">Official statement</span></div>
                         </button>
                     </div>
@@ -95,7 +99,7 @@
                                 <field name="name" string="Issue" readonly="1"/>
                                 <field name="detail" string="What to check" readonly="1"/>
                                 <field name="file_id" string="Related file" readonly="1" optional="show"/>
-                                <button name="action_open_resolution" type="object" string="Review" groups="account.group_account_manager"/>
+                                <button name="action_open_resolution" type="object" string="Resolve" groups="account.group_account_manager" title="Review this specific issue, record the decision and reason, and clear it from the monthly check."/>
                             </list>
                         </field>
                     </div>

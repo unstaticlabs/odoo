@@ -3327,10 +3327,6 @@ msgid "Scheduled Bank Export Route"
 msgstr "Route d’export bancaire planifié"
 
 #. module: usl_accounting
-msgid "Scheduled Bank Exports"
-msgstr "Exports bancaires planifiés"
-
-#. module: usl_accounting
 msgid "Scheduled exports"
 msgstr "Exports planifiés"
 
@@ -3443,16 +3439,236 @@ msgid "Retry"
 msgstr "Réessayer"
 
 #. module: usl_accounting
-msgid "Add Recovered Bank Export"
-msgstr "Ajouter un export bancaire récupéré"
+msgid "Bank Statement Emails"
+msgstr "E-mails de relevés bancaires"
 
 #. module: usl_accounting
-msgid "Add recovered bank export"
-msgstr "Ajouter un export bancaire récupéré"
+msgid "Receive and process emails"
+msgstr "Recevoir et traiter les e-mails"
 
 #. module: usl_accounting
-msgid "Add recovered export"
-msgstr "Ajouter un export récupéré"
+msgid "When enabled, Odoo accepts bank-export emails sent to this address, imports their OFX transactions, and saves the official PDF in Documents."
+msgstr "Lorsque cette option est activée, Odoo reçoit les e-mails d’export bancaire envoyés à cette adresse, importe leurs opérations OFX et conserve le PDF officiel dans Documents."
+
+#. module: usl_accounting
+msgid "Bank account identifier"
+msgstr "Identifiant du compte bancaire"
+
+#. module: usl_accounting
+msgid "The IBAN or account number stated in the bank export."
+msgstr "L’IBAN ou le numéro de compte indiqué dans l’export bancaire."
+
+#. module: usl_accounting
+msgid "Expected by day"
+msgstr "Attendu avant le"
+
+#. module: usl_accounting
+msgid "Day of the following month by which the bank email should arrive."
+msgstr "Jour du mois suivant avant lequel l’e-mail de la banque doit arriver."
+
+#. module: usl_accounting
+msgid "Send bank exports to"
+msgstr "Envoyer les exports bancaires à"
+
+#. module: usl_accounting
+msgid "Month to review"
+msgstr "Mois à vérifier"
+
+#. module: usl_accounting
+msgid "Email processing"
+msgstr "Traitement des e-mails"
+
+#. module: usl_accounting
+msgid "Open current month"
+msgstr "Ouvrir le mois en cours"
+
+#. module: usl_accounting
+msgid "Open the oldest monthly bank statement that still needs review."
+msgstr "Ouvrir le plus ancien relevé bancaire mensuel restant à vérifier."
+
+#. module: usl_accounting
+msgid "Shine sends its monthly accounting export to the address below. Odoo imports the OFX transactions and saves the official PDF in Documents for the monthly review."
+msgstr "Shine envoie son export comptable mensuel à l’adresse ci-dessous. Odoo importe les opérations OFX et conserve le PDF officiel dans Documents pour la vérification mensuelle."
+
+#. module: usl_accounting
+msgid "Statement review"
+msgstr "Vérification du relevé"
+
+#. module: usl_accounting
+msgid "Review statements from"
+msgstr "Vérifier les relevés à partir du"
+
+#. module: usl_accounting
+msgid "Email delivery"
+msgstr "Réception par e-mail"
+
+#. module: usl_accounting
+msgid "Current month"
+msgstr "Mois en cours"
+
+#. module: usl_accounting
+msgid "Email expected by"
+msgstr "E-mail attendu avant le"
+
+#. module: usl_accounting
+msgid "Next step"
+msgstr "Étape suivante"
+
+#. module: usl_accounting
+msgid "Email history"
+msgstr "Historique des e-mails"
+
+#. module: usl_accounting
+msgid "Advanced safeguards"
+msgstr "Protections avancées"
+
+#. module: usl_accounting
+msgid "These restrictions prevent an email or download link from sending files to the wrong bank account. Change them only when the bank changes its delivery details."
+msgstr "Ces restrictions empêchent un e-mail ou un lien de téléchargement d’envoyer des fichiers vers le mauvais compte bancaire. Ne les modifiez que si la banque change ses modalités d’envoi."
+
+#. module: usl_accounting
+msgid "Bank export format"
+msgstr "Format d’export bancaire"
+
+#. module: usl_accounting
+msgid "Accepted sender addresses"
+msgstr "Adresses d’expéditeur autorisées"
+
+#. module: usl_accounting
+msgid "Accepted download sites"
+msgstr "Sites de téléchargement autorisés"
+
+#. module: usl_accounting
+msgid "Email address setup"
+msgstr "Configuration de l’adresse e-mail"
+
+#. module: usl_accounting
+msgid "Address name"
+msgstr "Nom de l’adresse"
+
+#. module: usl_accounting
+msgid "Email domain"
+msgstr "Domaine de messagerie"
+
+#. module: usl_accounting
+msgid "Add missing file"
+msgstr "Ajouter le fichier manquant"
+
+#. module: usl_accounting
+msgid "Only an accountant can add a missing bank export file."
+msgstr "Seul un comptable peut ajouter un fichier d’export bancaire manquant."
+
+#. module: usl_accounting
+msgid "Add a missing bank export file"
+msgstr "Ajouter un fichier d’export bancaire manquant"
+
+#. module: usl_accounting
+msgid "Import the OFX transactions, link the monthly statement, and send its official PDF to Documents."
+msgstr "Importer les opérations OFX, rattacher le relevé mensuel et envoyer son PDF officiel dans Documents."
+
+#. module: usl_accounting
+msgid "Try processing the retained email and files again. Existing transactions will not be duplicated."
+msgstr "Retraiter l’e-mail et les fichiers conservés. Les opérations existantes ne seront pas dupliquées."
+
+#. module: usl_accounting
+msgid "Add a bank file that was missing from the email or could not be downloaded. The file remains linked to this received email."
+msgstr "Ajouter un fichier bancaire absent de l’e-mail ou qui n’a pas pu être téléchargé. Le fichier reste rattaché à l’e-mail reçu."
+
+#. module: usl_accounting
+msgid "The received PDF is password-protected. Replace it with an unlocked original PDF from the bank."
+msgstr "Le PDF reçu est protégé par mot de passe. Remplacez-le par le PDF original non verrouillé fourni par la banque."
+
+#. module: usl_accounting
+msgid "The received PDF is damaged or incomplete. Replace it with the original PDF downloaded from the bank."
+msgstr "Le PDF reçu est endommagé ou incomplet. Remplacez-le par le PDF original téléchargé depuis la banque."
+
+#. module: usl_accounting
+msgid "Replace the damaged bank statement"
+msgstr "Remplacer le relevé bancaire endommagé"
+
+#. module: usl_accounting
+msgid "Add the official statement PDF"
+msgstr "Ajouter le PDF du relevé officiel"
+
+#. module: usl_accounting
+msgid "No received bank email is linked to this month. Wait for the scheduled export or ask an Accounting Manager to check the email setup."
+msgstr "Aucun e-mail bancaire reçu n’est rattaché à ce mois. Attendez l’export planifié ou demandez à un Responsable comptable de vérifier la configuration de l’adresse."
+
+#. module: usl_accounting
+msgid "The bank sent a corrected file"
+msgstr "La banque a envoyé un fichier corrigé"
+
+#. module: usl_accounting
+msgid "Link to an existing bank transaction"
+msgstr "Rattacher à une opération bancaire existante"
+
+#. module: usl_accounting
+msgid "Import as a separate bank transaction"
+msgstr "Importer comme une opération bancaire distincte"
+
+#. module: usl_accounting
+msgid "Use as the official statement"
+msgstr "Utiliser comme relevé officiel"
+
+#. module: usl_accounting
+msgid "Ignore this file for the monthly check"
+msgstr "Ignorer ce fichier pour la vérification mensuelle"
+
+#. module: usl_accounting
+msgid "Resolve monthly check issue"
+msgstr "Résoudre le problème de vérification mensuelle"
+
+#. module: usl_accounting
+msgid "Bank statement issue resolved by %(user)s: %(name)s"
+msgstr "Problème du relevé bancaire résolu par %(user)s : %(name)s"
+
+#. module: usl_accounting
+msgid "Add Missing Bank Export File"
+msgstr "Ajouter un fichier d’export bancaire manquant"
+
+#. module: usl_accounting
+msgid "Choose the file downloaded from the bank."
+msgstr "Choisissez le fichier téléchargé depuis la banque."
+
+#. module: usl_accounting
+msgid "The received email belongs to another bank account."
+msgstr "L’e-mail reçu appartient à un autre compte bancaire."
+
+#. module: usl_accounting
+msgid "This PDF does not belong to the selected statement month. Choose the official PDF for %(period)s."
+msgstr "Ce PDF ne correspond pas au mois du relevé sélectionné. Choisissez le PDF officiel pour %(period)s."
+
+#. module: usl_accounting
+msgid "The replacement PDF is now the official statement and has been sent to Documents."
+msgstr "Le PDF de remplacement est désormais le relevé officiel et a été envoyé dans Documents."
+
+#. module: usl_accounting
+msgid "The missing file was added. Process the received email again."
+msgstr "Le fichier manquant a été ajouté. Traitez à nouveau l’e-mail reçu."
+
+#. module: usl_accounting
+msgid "Bank export file added by %(user)s: %(name)s"
+msgstr "Fichier d’export bancaire ajouté par %(user)s : %(name)s"
+
+#. module: usl_accounting
+msgid "Add Bank Export File"
+msgstr "Ajouter un fichier d’export bancaire"
+
+#. module: usl_accounting
+msgid "Original bank file"
+msgstr "Fichier bancaire original"
+
+#. module: usl_accounting
+msgid "Use this PDF"
+msgstr "Utiliser ce PDF"
+
+#. module: usl_accounting
+msgid "Add official PDF"
+msgstr "Ajouter le PDF officiel"
+
+#. module: usl_accounting
+msgid "Apply decision"
+msgstr "Appliquer la décision"
 
 #. module: usl_accounting
 msgid "Retain file"
@@ -3693,10 +3909,6 @@ msgstr "Aucune transaction bancaire n’est liée à cette période."
 #. module: usl_accounting
 msgid "An Accounting Manager must confirm the cut-over baseline."
 msgstr "Un responsable comptable doit confirmer le solde initial de reprise."
-
-#. module: usl_accounting
-msgid "Resolve the remaining bank export exceptions."
-msgstr "Résolvez les exceptions restantes de l’export bancaire."
 
 #. module: usl_accounting
 msgid "Resolve transaction identity for every statement movement."

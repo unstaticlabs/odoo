@@ -10,7 +10,7 @@ from psycopg2 import IntegrityError
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools import BinaryBytes, file_open, mute_logger
 
 
@@ -515,6 +515,52 @@ class TestBankStatementIngestion(TransactionCase):
         action = open_issue.action_open_resolution()
         self.assertEqual(action["res_id"], open_issue.id)
 
+    def test_accounting_manager_can_resolve_issue_without_ingestion_write_access(self):
+        ingestion = self._ingestion(
+            "<synthetic-manager-resolution@example.invalid>",
+            ofx=self.ofx,
+            pdf=self.pdf,
+        )
+        self.env["ir.attachment"].sudo().create(
+            {
+                "name": "readme.txt",
+                "raw": b"not part of the scheduled bank export",
+                "mimetype": "text/plain",
+                "res_model": ingestion._name,
+                "res_id": ingestion.id,
+                "company_id": self.company.id,
+            },
+        )
+        ingestion.action_process_now()
+        issue = ingestion.exception_ids.filtered(
+            lambda item: item.kind == "unsupported" and item.state == "open",
+        )
+        manager = new_test_user(
+            self.env,
+            login="bank-ingestion-issue-manager",
+            groups="account.group_account_manager",
+            company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)],
+        )
+        self.assertFalse(
+            ingestion.with_user(manager).has_access("write"),
+        )
+
+        issue.with_user(manager).write(
+            {
+                "resolution": "not_relevant",
+                "resolution_reason": "This text file is not part of the bank statement.",
+            },
+        )
+        issue.with_user(manager).action_resolve()
+
+        self.assertEqual(issue.state, "resolved")
+        audit_message = ingestion.message_ids.filtered(
+            lambda message: "Bank statement issue resolved" in (message.body or ""),
+        )[:1]
+        self.assertTrue(audit_message)
+        self.assertEqual(audit_message.author_id, manager.partner_id)
+
     def test_monthly_review_view_prioritizes_visible_accounting_checks(self):
         architecture = self.env.ref(
             "usl_accounting.view_bank_statement_form_review",
@@ -539,6 +585,20 @@ class TestBankStatementIngestion(TransactionCase):
             architecture,
         )
         self.assertNotIn("Resolve the remaining bank export exceptions", architecture)
+        self.assertIn(
+            "Confirm that the official PDF in Documents, imported movements",
+            architecture,
+        )
+        self.assertIn('string="Add official PDF"', architecture)
+        self.assertIn('string="Resolve"', architecture)
+
+        config_architecture = self.env.ref(
+            "usl_accounting.view_bank_ingestion_config_form",
+        ).arch_db
+        self.assertIn("Bank Statement Emails", config_architecture)
+        self.assertIn("Send bank exports to", config_architecture)
+        self.assertIn("Advanced safeguards", config_architecture)
+        self.assertNotIn("Scheduled export address", config_architecture)
 
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
         ingestion = self._ingestion("<synthetic-no-pdf@example.invalid>", ofx=self.ofx)
@@ -858,6 +918,30 @@ class TestBankStatementIngestion(TransactionCase):
                 lambda item: (
                     item.recovered_upload and item.processing_state == "processed"
                 ),
+            ),
+        )
+
+    def test_damaged_pdf_is_retained_but_never_accepted_as_evidence(self):
+        damaged_pdf = b"%PDF-1.4\nthis file has no valid trailer"
+        ingestion = self._ingestion(
+            "<synthetic-damaged-pdf@example.invalid>",
+            ofx=self.ofx,
+            pdf=damaged_pdf,
+        )
+
+        ingestion.action_process_now()
+
+        source_file = ingestion.file_ids.filtered(
+            lambda item: item.classification == "pdf",
+        )
+        self.assertEqual(source_file._content(), damaged_pdf)
+        self.assertEqual(source_file.processing_state, "failed")
+        self.assertEqual(source_file.evidence_status, "candidate")
+        self.assertIn("damaged or incomplete", source_file.processing_detail)
+        self.assertFalse(ingestion.statement_ids.accepted_evidence_id)
+        self.assertTrue(
+            ingestion.exception_ids.filtered(
+                lambda item: item.kind == "evidence" and item.state == "open",
             ),
         )
 

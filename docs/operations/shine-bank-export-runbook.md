@@ -7,7 +7,7 @@ Keep the configuration paused until cut-over is proven:
 1. deploy and upgrade `usl_accounting`, `usl_documents` and
    `usl_documents_accounting`; Paperless archival is required for the official
    bank statement;
-2. create one **Scheduled Bank Export** for the company and Shine bank journal;
+2. create one **Bank Statement Email** for the company and Shine bank journal;
 3. enter the exact bank account, `hello@shine.fr`,
    `accounting.files.shine.fr`, the responsible accountant, start month and
    expected delivery day (default 5);
@@ -17,8 +17,8 @@ Keep the configuration paused until cut-over is proven:
    private JSON report, apply, and repeat preview until `candidate_count` is 0;
 6. send a synthetic email with scrubbed OFX/PDF fixtures to the alias and prove
    source retention, company/journal mapping, import and duplicate delivery;
-7. set the alias as Shine's scheduled accounting-export recipient, then enable
-   **Process received exports**.
+7. set the displayed **Send bank exports to** address as Shine's scheduled
+   accounting-export recipient, then enable **Receive and process emails**.
 
 Do not place real exports, reports containing line IDs, or signed Shine URLs in
 Git, tickets or normal logs. Follow
@@ -30,8 +30,8 @@ duplicate or conflicting identities and never uses label-based matching.
 
 At the start of each month, check the Shine journal or Accounting Overview. A
 successful source produces one monthly statement. Confirm that its official
-PDF is **Archived**, then open the version-specific original through the
-**Official PDF** action. Choose **Confirm bank balances** and compare the
+statement is **Available** in Documents, then open the version-specific
+original through the **Official statement** action. Choose **Confirm bank balances** and compare the
 displayed period, opening and closing values with that PDF. Resolve any exact
 difference, continuity or Documents issue, then certify.
 
@@ -50,8 +50,10 @@ processing; it does not delete sources or change accounting.
   and retry. When the retained recovery imports successfully, Odoo records the
   prior import failure as corrected while preserving both files. Retry cannot
   duplicate already accepted FITIDs.
-- **Missing PDF:** transactions remain imported. Attach or redeliver the
-  official statement later; certification remains blocked meanwhile.
+- **Missing PDF:** transactions remain imported. From the monthly statement,
+  choose **Add official PDF** and select the original PDF downloaded from the
+  bank. Odoo retains it with the received email and saves it in Documents;
+  certification remains blocked until Documents verifies the exact version.
 - **Unsupported file:** inspect the retained original. CSV/QIF copies are
   expected alternatives and need no action when OFX is present; an actually
   unsupported attachment remains an explicit exception.
@@ -60,11 +62,16 @@ processing; it does not delete sources or change accounting.
   balancing line.
 - **Replacement PDF:** retain both versions. Reopen first if the statement is
   certified, accept the reviewed replacement, then certify again.
-- **Archive failure:** the Odoo source attachment remains immutable, but it is
-  provenance/recovery material and certification stays blocked. Correct
-  Paperless access, connectivity, catalog synchronization or classification,
-  then choose **Retry
-  Documents archive**. Do not remove or replace the retained Odoo attachment.
+- **Documents temporarily unavailable:** choose **Retry Documents**. Odoo
+  resubmits the exact retained PDF; retrying does not create another accounting
+  transaction or discard the original email.
+- **Damaged or incomplete PDF:** retry cannot repair the file. Choose **Replace
+  statement PDF** on the monthly statement and select the original PDF
+  downloaded from the bank. Odoo keeps the damaged copy in the audit history,
+  makes the replacement the official statement, and saves it in Documents.
+- **Documents classification or access issue:** follow the exact statement
+  message (for example review the document as Banking evidence or synchronize
+  access), correct that property in Documents, then choose **Retry Documents**.
 - **Archived original unavailable:** restore the same Paperless root/version or
   repair its object permissions. An earlier certification snapshot remains in
   history, but the period shows **Needs attention** until the exact original is

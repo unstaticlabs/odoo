@@ -21,6 +21,7 @@ from psycopg2 import IntegrityError
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import BinaryBytes, format_date
+from odoo.tools.pdf import PdfReader
 
 from .bank_statement_review import REVIEW_STATES, is_accounting_operator
 from odoo.addons.base.models.res_partner_bank import sanitize_account_number
@@ -57,9 +58,13 @@ class AccountBankIngestionConfig(models.Model):
     name = fields.Char(required=True, tracking=True)
     active = fields.Boolean(default=True, tracking=True)
     processing_enabled = fields.Boolean(
-        string="Process received exports",
+        string="Receive and process emails",
         default=False,
         tracking=True,
+        help=(
+            "When enabled, Odoo accepts bank-export emails sent to this address, "
+            "imports their OFX transactions, and saves the official PDF in Documents."
+        ),
     )
     company_id = fields.Many2one(
         "res.company",
@@ -80,7 +85,12 @@ class AccountBankIngestionConfig(models.Model):
         required=True,
         tracking=True,
     )
-    source_account_identifier = fields.Char(required=True, tracking=True)
+    source_account_identifier = fields.Char(
+        string="Bank account identifier",
+        required=True,
+        tracking=True,
+        help="The IBAN or account number stated in the bank export.",
+    )
     allowed_senders = fields.Text(
         default="hello@shine.fr",
         help="Exact sender addresses separated by commas or line breaks.",
@@ -96,7 +106,12 @@ class AccountBankIngestionConfig(models.Model):
         default=lambda self: self.env.user,
     )
     automatic_start_date = fields.Date(required=True, tracking=True)
-    expected_delivery_day = fields.Integer(default=5, required=True)
+    expected_delivery_day = fields.Integer(
+        string="Expected by day",
+        default=5,
+        required=True,
+        help="Day of the following month by which the bank email should arrive.",
+    )
     ingestion_ids = fields.One2many("account.bank.ingestion", "config_id")
     statement_ids = fields.One2many("account.bank.statement", "ingestion_config_id")
     expected_period_start = fields.Date(compute="_compute_expected_review")
@@ -557,11 +572,11 @@ class AccountBankIngestion(models.Model):
     def action_open_add_source_file(self):
         self.ensure_one()
         if not is_accounting_operator(self.env.user):
-            raise AccessError(_("Only an accountant can add a recovered bank export."))
+            raise AccessError(_("Only an accountant can add a missing bank export file."))
         self.check_access("read")
         return {
             "type": "ir.actions.act_window",
-            "name": _("Add recovered bank export"),
+            "name": _("Add a missing bank export file"),
             "res_model": "account.bank.ingestion.upload",
             "view_mode": "form",
             "target": "new",
@@ -1145,6 +1160,26 @@ class AccountBankIngestionFile(models.Model):
                 _("The retained source file no longer matches its recorded checksum."),
             )
         return content
+
+    @api.model
+    def _pdf_integrity_error(self, content):
+        """Return user-facing guidance when a retained PDF cannot be opened."""
+        damaged_message = _(
+            "The received PDF is damaged or incomplete. Replace it with the "
+            "original PDF downloaded from the bank.",
+        )
+        try:
+            reader = PdfReader(BytesIO(content), strict=False)
+            if reader.is_encrypted and not reader.decrypt(""):
+                return _(
+                    "The received PDF is password-protected. Replace it with an "
+                    "unlocked original PDF from the bank.",
+                )
+            if not len(reader.pages):
+                return damaged_message
+        except Exception:  # noqa: BLE001 - third-party PDF readers raise varied errors
+            return damaged_message
+        return False
 
     def _extract_zip(self):
         self.ensure_one()
@@ -1737,6 +1772,21 @@ class AccountBankIngestionFile(models.Model):
 
     def _associate_pdf(self):
         self.ensure_one()
+        integrity_error = self._pdf_integrity_error(self._content())
+        if integrity_error:
+            self.write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": integrity_error,
+                    "evidence_status": "candidate",
+                },
+            )
+            self._ensure_exception(
+                "evidence",
+                _("Replace the damaged bank statement"),
+                integrity_error,
+            )
+            return
         period_start = self.ingestion_id.period_start
         period_end = self.ingestion_id.period_end
         if not period_start or not period_end:

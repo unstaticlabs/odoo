@@ -4,12 +4,22 @@
         <field name="name">account.bank.ingestion.upload.form</field>
         <field name="model">account.bank.ingestion.upload</field>
         <field name="arch" type="xml">
-            <form string="Add Recovered Bank Export">
+            <form string="Add Bank Export File">
                 <field name="ingestion_id" invisible="1"/>
-                <field name="source_file" filename="source_filename"/>
+                <field name="statement_id" invisible="1"/>
+                <div class="alert alert-info" role="status" invisible="not statement_id">
+                    Choose the original PDF downloaded from the bank. It will replace the
+                    damaged copy for this month and be saved in Documents.
+                </div>
+                <div class="alert alert-info" role="status" invisible="statement_id">
+                    Add a missing attachment or a freshly downloaded export when the email
+                    link has expired. Odoo retains the file with the original email.
+                </div>
+                <field name="source_file" string="Original bank file" filename="source_filename"/>
                 <field name="source_filename" invisible="1"/>
                 <footer>
-                    <button name="action_add_file" type="object" string="Retain file" class="btn-primary" data-hotkey="s"/>
+                    <button name="action_add_file" type="object" string="Use this PDF" class="btn-primary" data-hotkey="s" invisible="not statement_id" title="Verify the PDF, make it the official statement for this month, and send the exact file to Documents."/>
+                    <button name="action_add_file" type="object" string="Add file" class="btn-primary" data-hotkey="s" invisible="statement_id" title="Keep this file with the received bank email so the export can be processed again."/>
                     <button string="Cancel" special="cancel" data-hotkey="x"/>
                 </footer>
             </form>

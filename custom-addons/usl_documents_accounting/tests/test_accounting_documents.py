@@ -5,6 +5,7 @@ from unittest.mock import patch
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
+from odoo.tools import BinaryBytes, file_open
 
 from odoo.addons.usl_documents.models.document import UslDocument
 from odoo.addons.usl_documents.models.paperless_client import PaperlessError
@@ -81,7 +82,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertNotIn('string="Archive"', arch)
         self.assertNotIn('name="action_open_documents_workspace"', arch)
 
-    def _bank_evidence_fixture(self):
+    def _bank_evidence_fixture(self, content=None):
         company = self.env.company
         banking_tag = (
             self.env["usl.paperless.tag"]
@@ -165,7 +166,12 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "line_ids": [Command.set(bank_line.ids)],
             },
         )
-        content = b"%PDF-1.4\nsynthetic bank evidence\n%%EOF\n"
+        if content is None:
+            with file_open(
+                "usl_accounting/tests/fixtures/shine_statement.pdf",
+                "rb",
+            ) as fixture:
+                content = fixture.read()
         attachment = (
             self.env["ir.attachment"]
             .sudo()
@@ -253,7 +259,64 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertEqual(statement.accepted_evidence_id, source_file)
         statement.invalidate_recordset()
         self.assertFalse(statement.can_certify)
-        self.assertIn("not available in Documents", statement.review_blocking_reason)
+        self.assertIn("Archive offline", statement.review_blocking_reason)
+
+    def test_damaged_pdf_explains_replacement_and_is_not_sent_to_documents(self):
+        statement, source_file, _content = self._bank_evidence_fixture(
+            b"%PDF-1.4\ntruncated bank statement",
+        )
+
+        with patch.object(UslDocument, "upload_from_odoo") as upload:
+            statement.action_archive_bank_evidence()
+
+        upload.assert_not_called()
+        self.assertEqual(source_file.paperless_archive_state, "failed")
+        self.assertIn("damaged or incomplete", source_file.paperless_archive_error)
+        statement.invalidate_recordset()
+        self.assertIn("damaged or incomplete", statement.review_blocking_reason)
+
+    def test_accountant_can_replace_damaged_pdf_from_the_monthly_statement(self):
+        statement, damaged_source, _content = self._bank_evidence_fixture(
+            b"%PDF-1.4\ntruncated bank statement",
+        )
+        with file_open(
+            "usl_accounting/tests/fixtures/shine_statement.pdf",
+            "rb",
+        ) as fixture:
+            replacement_content = fixture.read()
+        replacement_checksum = hashlib.sha256(replacement_content).hexdigest()
+        document = self._archived_document(
+            damaged_source,
+            checksum=replacement_checksum,
+        )
+        action = statement.action_open_statement_pdf_upload()
+        self.assertEqual(action["context"]["default_statement_id"], statement.id)
+
+        with (
+            patch.object(
+                UslDocument,
+                "upload_from_odoo",
+                return_value={"state": "duplicate", "document_id": document.id},
+            ),
+            patch.object(UslDocument, "action_sync_permissions", return_value=True),
+        ):
+            result = self.env["account.bank.ingestion.upload"].create(
+                {
+                    "ingestion_id": damaged_source.ingestion_id.id,
+                    "statement_id": statement.id,
+                    "source_file": BinaryBytes(replacement_content),
+                    "source_filename": "statement-original.pdf",
+                },
+            ).action_add_file()
+
+        statement.invalidate_recordset()
+        replacement = statement.accepted_evidence_id
+        self.assertNotEqual(replacement, damaged_source)
+        self.assertEqual(damaged_source.evidence_status, "superseded")
+        self.assertEqual(replacement.sha256, replacement_checksum)
+        self.assertEqual(replacement.paperless_archive_state, "archived")
+        self.assertEqual(replacement.paperless_document_id, document)
+        self.assertEqual(result["params"]["type"], "success")
 
     def test_exact_archive_version_is_pinned_before_certification(self):
         statement, source_file, content = self._bank_evidence_fixture()
@@ -374,7 +437,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertFalse(statement.can_certify)
 
     def test_replacement_is_a_new_pinned_version_after_reopening(self):
-        statement, source_file, _content = self._bank_evidence_fixture()
+        statement, source_file, content = self._bank_evidence_fixture()
         document = self._archived_document(source_file)
         duplicate = {"state": "duplicate", "document_id": document.id}
         with (
@@ -402,7 +465,7 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "reason": "The bank sent a corrected official PDF.",
             },
         ).action_reopen()
-        replacement_content = b"%PDF-1.4\ncorrected synthetic statement\n%%EOF\n"
+        replacement_content = content + b"\n% corrected synthetic statement\n"
         replacement_attachment = self.env["ir.attachment"].sudo().create(
             {
                 "name": "statement-corrected.pdf",
