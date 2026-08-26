@@ -281,8 +281,10 @@ Windows Hello or another platform product.
 1. Create an enrolment for a synthetic known partner and record the relationship
    basis, the internal employee/contract/partner review reference and identity
    policy. Send the setup email; use **Copy setup link** only when a separate
-   trusted delivery channel is required. Copying creates a replacement link and
-   never navigates the reviewer's browser to it.
+   trusted delivery channel is required. The action creates a replacement link,
+   copies it immediately when the browser permits clipboard access, and keeps a
+   visible copy control as a fallback. It never navigates the reviewer's browser
+   to the setup page.
 2. Connect the correct Pocket ID subject. Odoo schedules a review activity for
    an identity reviewer; after approval, waiting requests resume automatically.
    Add and recover passkeys in Pocket ID, not Odoo.

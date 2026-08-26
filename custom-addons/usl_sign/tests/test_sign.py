@@ -362,6 +362,7 @@ class TestCleanUslSign(TransactionCase):
         self.assertIn("usl_sign_method_recommendation", preparation_arch)
         self.assertIn("Recommended method", preparation_arch)
         self.assertIn("Availability", preparation_arch)
+        self.assertIn('widget="usl_sign_method_radio"', preparation_arch)
         action = wizard.generate()
         self.assertEqual(action["type"], "ir.actions.act_window")
         request = self.env["sign.oca.request"].browse(action["res_id"])
@@ -760,9 +761,16 @@ class TestCleanUslSign(TransactionCase):
             },
         )
         copy_action = enrollment.with_user(self.reviewer).action_copy_invitation()
-        self.assertEqual(copy_action["res_model"], "usl.sign.enrollment.invitation")
-        self.assertNotEqual(copy_action["type"], "ir.actions.act_url")
-        copy_link = copy_action["context"]["default_invitation_url"]
+        self.assertEqual(copy_action["tag"], "usl_sign.copy_setup_link")
+        self.assertEqual(
+            copy_action["params"]["next"]["res_model"],
+            "usl.sign.enrollment.invitation",
+        )
+        copy_link = copy_action["params"]["url"]
+        self.assertEqual(
+            copy_link,
+            copy_action["params"]["next"]["context"]["default_invitation_url"],
+        )
         self.assertIn(f"/sign/enroll/{enrollment.id}/", copy_link)
         first_hash = enrollment.invitation_token_sha256
 
@@ -1874,6 +1882,18 @@ class TestCleanUslSign(TransactionCase):
             landing["sections"]["sign_now"]["items"][0]["progress"],
             "0 of 2 signed",
         )
+        self.assertEqual(
+            landing["sections"]["sign_now"]["items"][0]["signers"],
+            [
+                {
+                    "id": own_signer.id,
+                    "name": internal_signer.partner_id.display_name,
+                    "label": "Invited",
+                    "tone": "ready",
+                    "icon": "fa-envelope",
+                },
+            ],
+        )
         with self.assertRaises(AccessError):
             other_signer.with_user(internal_signer).read(["state"])
 
@@ -1900,15 +1920,26 @@ class TestCleanUslSign(TransactionCase):
             result_action["views"][0][0],
             self.env.ref("usl_sign.sign_request_signer_result_form").id,
         )
+        self.assertEqual(
+            own_signer.with_user(internal_signer).action_open_my_signature()[
+                "res_model"
+            ],
+            "sign.oca.request",
+        )
         result_view = self.env.ref("usl_sign.sign_request_signer_result_form")
         self.assertIn("action_retry_archive", result_view.arch_db)
-        self.assertIn("Your signed files are ready.", result_view.arch_db)
+        self.assertIn("Final storage is delayed.", result_view.arch_db)
         self.assertEqual(participant_request.preview()["type"], "ir.actions.act_url")
         completed_landing = self.env["usl.sign.workspace"].with_user(
             internal_signer,
         ).get_landing()
         completed_item = completed_landing["sections"]["completed"]["items"][0]
         self.assertEqual(completed_item["action"]["method"], "action_open_request")
+        self.assertEqual(
+            [chip["name"] for chip in completed_item["signers"]],
+            [internal_signer.partner_id.display_name],
+        )
+        self.assertEqual(completed_item["signers"][0]["tone"], "signed")
         self.assertFalse(
             self.env["sign.oca.request"].with_user(internal_signer).search(
                 [
@@ -2010,7 +2041,8 @@ class TestCleanUslSign(TransactionCase):
         self.assertIn('string="Review and sign"', view_arch)
         self.assertIn('string="View identity status"', view_arch)
         self.assertIn('string="Open external signing"', view_arch)
-        self.assertIn('string="View result"', view_arch)
+        self.assertIn('action="action_open_my_signature"', view_arch)
+        self.assertNotIn('string="View result"', view_arch)
         self.assertNotIn('string="View details"', view_arch)
         self.assertNotIn('string="Your signature"', view_arch)
 

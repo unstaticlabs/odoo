@@ -94,8 +94,8 @@ without interrupting everyday work.
 - **Goal:** see what needs signing and retrieve what was already signed.
 - **Ideal path:** My Signatures → Ready to sign or Signed by me → review/sign or
   open the result.
-- **Primary action:** **Review and sign** for pending work; **View result** for
-  history.
+- **Primary action:** select a pending row to review and sign, or select a
+  completed row to open the signed record and its proof directly.
 - **Expectation:** personal status and overall document status are separate;
   waiting for another signer is not presented as an error.
 - **Release check:** identity matching and company rules prevent sibling
@@ -110,7 +110,10 @@ without interrupting everyday work.
   confirms relationship → identity becomes ready.
 - **Primary actions:** **Connect Pocket ID**, then **Approve identity**.
 - **Expectation:** the signer understands that setup does not sign a document;
-  the reviewer sees the exact next check and the effect of revocation.
+  the setup action disappears after a successful connection, and the reviewer
+  sees the exact next check and the effect of revocation. If a signer reaches a
+  Strong request without an active identity, the journey explains how to get a
+  personal setup link instead of failing during signing.
 - **Release check:** issuer/subject binding, fresh authorization, revocation and
   re-enrolment preserve completed signatures and expose no passkey material.
 

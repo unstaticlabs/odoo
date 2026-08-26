@@ -1,4 +1,3 @@
-import base64
 import json
 from io import BytesIO
 from unittest.mock import patch
@@ -568,8 +567,8 @@ class TestSignBrowserJourneys(HttpCase):
             },
         )
         action = enrollment.with_user(self.reviewer).action_copy_invitation()
-        self.assertEqual(action["res_model"], "usl.sign.enrollment.invitation")
-        invitation_url = action["context"]["default_invitation_url"]
+        self.assertEqual(action["tag"], "usl_sign.copy_setup_link")
+        invitation_url = action["params"]["url"]
         response = self.url_open(urlsplit(invitation_url).path)
         self.assertEqual(response.status_code, 200)
         page = response.text
@@ -684,6 +683,20 @@ class TestSignBrowserJourneys(HttpCase):
             "publickey-credentials-get=()",
             response.headers["Permissions-Policy"],
         )
+        enrollment.with_user(self.reviewer).action_revoke(
+            reason="Exercise the missing-identity signer guidance.",
+        )
+        unavailable_response = self.url_open(
+            f"/sign/session/{signer.id}/{session_token}?review=1",
+        )
+        self.assertEqual(unavailable_response.status_code, 200)
+        self.assertIn("Set up your signing identity first", unavailable_response.text)
+        self.assertIn("personal setup link", unavailable_response.text)
+        self.assertNotIn("id=\"usl_strong_sign_button\"", unavailable_response.text)
+        self.assertIn(
+            "frame-ancestors 'none'",
+            unavailable_response.headers["Content-Security-Policy"],
+        )
 
     def test_standard_signature_through_public_browser_and_archive(self):
         origin = self._localhost_origin()
@@ -696,6 +709,7 @@ class TestSignBrowserJourneys(HttpCase):
         phone_field = self.env.ref("sign_oca.sign_field_phone")
         checkbox_field = self.env.ref("sign_oca.sign_field_check")
         signature_field = self.env.ref("sign_oca.sign_field_signature")
+        initials_field = self.env.ref("usl_sign.field_initials")
         layout = {
             "1": {
                 "id": 1,
@@ -798,6 +812,24 @@ class TestSignBrowserJourneys(HttpCase):
                 "height": 8,
                 "value": False,
                 "default_value": signature_field.default_value,
+                "placeholder": "",
+            },
+            "7": {
+                "id": 7,
+                "field_id": initials_field.id,
+                "field_type": initials_field.field_type,
+                "kind": "initials",
+                "required": True,
+                "name": initials_field.name,
+                "role_id": role.id,
+                "tabindex": 7,
+                "page": 1,
+                "position_x": 53,
+                "position_y": 88,
+                "width": 24,
+                "height": 8,
+                "value": False,
+                "default_value": initials_field.default_value,
                 "placeholder": "",
             },
         }
@@ -1012,6 +1044,16 @@ class TestSignBrowserJourneys(HttpCase):
                     if (!adoptButton) {
                         throw new Error("The visual signature dialog was not ready.");
                     }
+                    if (
+                        document.querySelectorAll(".modal").length !== 1 ||
+                        !document.querySelector(".modal")?.textContent.includes(
+                            "Adopt Your Signature"
+                        )
+                    ) {
+                        throw new Error(
+                            "The signature field opened more than one dialog."
+                        );
+                    }
                     adoptButton.click();
                     for (
                         let attempt = 0;
@@ -1026,6 +1068,59 @@ class TestSignBrowserJourneys(HttpCase):
                         '.o_sign_oca_field[data-field="6"] img',
                     )) {
                         throw new Error("The adopted visual signature was not placed.");
+                    }
+                    const initialsField = iframe.contentDocument?.querySelector(
+                        '.o_sign_oca_field[data-field="7"]',
+                    );
+                    if (!initialsField) {
+                        throw new Error("The initials field did not render.");
+                    }
+                    initialsField.click();
+                    let initialsButton;
+                    for (let attempt = 0; attempt < 200 && !initialsButton; attempt++) {
+                        initialsButton = Array.from(
+                            document.querySelectorAll(".modal .btn-primary"),
+                        ).find((candidate) =>
+                            candidate.textContent.includes("Adopt Initials")
+                        );
+                        if (!initialsButton || initialsButton.disabled) {
+                            initialsButton = null;
+                            await new Promise((resolve) => setTimeout(resolve, 50));
+                        }
+                    }
+                    const initialsModal = document.querySelector(".modal");
+                    if (
+                        !initialsButton ||
+                        document.querySelectorAll(".modal").length !== 1 ||
+                        !initialsModal.textContent.includes("Adopt Your Initials") ||
+                        initialsModal.textContent.includes("Adopt Your Signature")
+                    ) {
+                        throw new Error(
+                            "The initials field did not open its dedicated dialog."
+                        );
+                    }
+                    const initialsName = initialsModal.querySelector(
+                        ".o_web_sign_name_input",
+                    );
+                    if (initialsName?.value !== "Browser Passkey Signer") {
+                        throw new Error(
+                            "The initials suggestion did not use the signer name."
+                        );
+                    }
+                    initialsButton.click();
+                    for (
+                        let attempt = 0;
+                        attempt < 200 && !iframe.contentDocument?.querySelector(
+                            '.o_sign_oca_field[data-field="7"] img',
+                        );
+                        attempt++
+                    ) {
+                        await new Promise((resolve) => setTimeout(resolve, 50));
+                    }
+                    if (!iframe.contentDocument?.querySelector(
+                        '.o_sign_oca_field[data-field="7"] img',
+                    )) {
+                        throw new Error("The adopted initials were not placed.");
                     }
                     emailInput.value = "invalid-address";
                     emailInput.dispatchEvent(new InputEvent("input", {bubbles: true}));
@@ -1107,6 +1202,11 @@ class TestSignBrowserJourneys(HttpCase):
         self.assertTrue(sign_request.signatory_data["5"]["value"])
         self.assertTrue(
             sign_request.signatory_data["6"]["value"].startswith(
+                "data:image/png;base64,",
+            ),
+        )
+        self.assertTrue(
+            sign_request.signatory_data["7"]["value"].startswith(
                 "data:image/png;base64,",
             ),
         )
