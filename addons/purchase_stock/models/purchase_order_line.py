@@ -221,7 +221,7 @@ class PurchaseOrderLine(models.Model):
                     move.product_uom_qty *= -1
                     move.location_id = picking.location_id
                     move.location_dest_id = move.location_final_id = picking.location_dest_id
-                move._action_confirm()._action_assign()
+                move.with_context(move_picking_partner_id=line.partner_id)._action_confirm()._action_assign()
 
     def _get_move_dests_initial_demand(self, move_dests):
         return self.product_id.uom_id._compute_quantity(
@@ -408,9 +408,15 @@ class PurchaseOrderLine(models.Model):
         description_picking = ''
         if values.get('product_description_variants'):
             description_picking = values['product_description_variants']
+        has_temp_manual_orderpoint = (
+            values.get('orderpoint_id')
+            and values['orderpoint_id'].create_uid.id == SUPERUSER_ID
+            and values['orderpoint_id'].trigger == 'manual'
+        )
         lines = self.filtered(
             lambda l: l.propagate_cancel == values['propagate_cancel']
-            and (l.orderpoint_id in [values['orderpoint_id'], False] if values['orderpoint_id'] and not values['move_dest_ids'] else True)
+            and (l.orderpoint_id in [values['orderpoint_id'], False] if values['orderpoint_id']
+            and not values['move_dest_ids'] and not has_temp_manual_orderpoint else True)
             and (l.uom_id == product_uom if values.get('force_uom') else True)
         )
 

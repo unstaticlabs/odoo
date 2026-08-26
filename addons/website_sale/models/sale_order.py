@@ -1074,7 +1074,7 @@ class SaleOrder(models.Model):
 
         :rtype: bool
         """
-        return bool(self)
+        return bool(self.order_line)
 
     def _check_cart_is_ready_to_be_paid(self):
         """Whether the cart is valid and the user can proceed to the payment.
@@ -1097,6 +1097,8 @@ class SaleOrder(models.Model):
         """Recompute taxes and prices for the current cart."""
         self._recompute_taxes()
         self._recompute_prices()
+        if self.carrier_id:
+            self.with_context(keep_pickup_location=True)._set_delivery_method(self.carrier_id)
 
     def _archive_partner_if_no_user(self):  # TODO: remove in master
         """Archive SO customer if it has no linked users."""
