@@ -44,6 +44,10 @@ class PaperlessClient:
     _SCOPED_SEARCH_CACHE_LIMIT = 128
     _scoped_search_cache = {}
     _scoped_search_cache_lock = threading.Lock()
+    _SEMANTIC_SEARCH_CACHE_TTL = 30.0
+    _SEMANTIC_SEARCH_CACHE_LIMIT = 64
+    _semantic_search_cache = {}
+    _semantic_search_cache_lock = threading.Lock()
 
     def __init__(self, env):
         self.env = env
@@ -497,6 +501,26 @@ class PaperlessClient:
         if unsupported_facets:
             raise PaperlessError(_("Unsupported semantic search facet."))
         bounded_limit = min(50, max(1, int(limit)))
+        cache_material = json.dumps(
+            {
+                "base_url": self.base_url,
+                "token": hashlib.sha256(self.token.encode()).hexdigest(),
+                "query": query,
+                "document_id": document_id,
+                "document_ids": scope,
+                "limit": bounded_limit,
+                "facets": facets or {},
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+        cache_key = hashlib.sha256(cache_material).digest()
+        now = time.monotonic()
+        with self._semantic_search_cache_lock:
+            cached = self._semantic_search_cache.get(cache_key)
+            if cached and now - cached[0] <= self._SEMANTIC_SEARCH_CACHE_TTL:
+                return copy.deepcopy(cached[1])
+            self._semantic_search_cache.pop(cache_key, None)
         candidates = {}
         warnings = []
         # The distribution endpoint caps one explicit service scope at 10,000
@@ -540,7 +564,19 @@ class PaperlessClient:
         )[:bounded_limit]
         for rank, item in enumerate(results, start=1):
             item["rank"] = rank
-        return {"results": results, "warnings": warnings}
+        result = {"results": results, "warnings": warnings}
+        with self._semantic_search_cache_lock:
+            if len(self._semantic_search_cache) >= self._SEMANTIC_SEARCH_CACHE_LIMIT:
+                oldest_key = min(
+                    self._semantic_search_cache,
+                    key=lambda key: self._semantic_search_cache[key][0],
+                )
+                self._semantic_search_cache.pop(oldest_key, None)
+            self._semantic_search_cache[cache_key] = (
+                time.monotonic(),
+                copy.deepcopy(result),
+            )
+        return result
 
     def get_document(self, document_id, *, version_id=None):
         query = {"version": version_id} if version_id else None

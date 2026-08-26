@@ -498,6 +498,20 @@ class TestDocuments(TransactionCase):
         self.assertTrue(document.is_prominent)
         self.assertFalse(document.with_user(self.user).is_prominent)
 
+    def test_root_prominence_keeps_readable_inactive_relationships(self):
+        partner = self.env["res.partner"].create(
+            {"name": "Archived but readable partner", "active": False},
+        )
+        document = self._document(9702, intake_role="background")
+        document.link_to_record(
+            "res.partner",
+            partner.id,
+            policy_role="library",
+            policy_reason="archived_contact_reference",
+        )
+
+        self.assertTrue(document.with_user(self.user).is_prominent)
+
     def test_attachment_reparent_and_repeat_queue_are_idempotent(self):
         task = self.env["project.task"].create({"name": "Final owner"})
         attachment = self.env["ir.attachment"].create(
@@ -4595,6 +4609,7 @@ class TestPaperlessClientContract(TransactionCase):
 
     def test_semantic_search_chunks_large_authorized_scopes(self):
         client = PaperlessClient(self.env)
+        PaperlessClient._semantic_search_cache.clear()
 
         def response(_method, _path, *, body):
             document_id = body["document_ids"][0]
@@ -4628,6 +4643,33 @@ class TestPaperlessClientContract(TransactionCase):
             [10001],
         )
         self.assertEqual([item["id"] for item in result["results"]], [10001, 1])
+
+    def test_semantic_search_briefly_reuses_the_exact_authorized_request(self):
+        client = PaperlessClient(self.env)
+        PaperlessClient._semantic_search_cache.clear()
+        response = {
+            "results": [{"id": 7, "rank": 1, "similarity": 0.8}],
+            "warnings": [],
+        }
+        with patch.object(client, "_request", return_value=(response, {})) as request:
+            first = client.semantic_search("meaning", document_ids=[7, 8])
+            second = client.semantic_search("meaning", document_ids=[7, 8])
+
+        self.assertEqual(first, second)
+        request.assert_called_once()
+
+    def test_semantic_search_cache_isolated_by_authorization_scope(self):
+        client = PaperlessClient(self.env)
+        PaperlessClient._semantic_search_cache.clear()
+        with patch.object(
+            client,
+            "_request",
+            return_value=({"results": [], "warnings": []}, {}),
+        ) as request:
+            client.semantic_search("same meaning", document_ids=[1])
+            client.semantic_search("same meaning", document_ids=[2])
+
+        self.assertEqual(request.call_count, 2)
 
     def test_semantic_facets_cannot_override_authorized_scope(self):
         client = PaperlessClient(self.env)

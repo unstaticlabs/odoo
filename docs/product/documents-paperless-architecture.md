@@ -155,9 +155,18 @@ amounts, dates, codes, and ordinary word matches never move behind approximate
 matches. A five-second, scope-sensitive process cache removes the duplicate
 lexical network call made by the refinement pass. The client also keeps the
 already-loaded workspace catalogs and asks the server to omit their invariant
-payload during later keystroke searches.
+payload during later keystroke searches. An independent 30-second semantic
+cache includes the Paperless URL, integration-token hash, full authorized
+root scope, query or source document, limit, and facets. It therefore reuses
+only an identical authorized request and never substitutes a stale broader
+scope after permissions change.
 
-**Search everywhere** is the progressive hybrid path. **Meaning (Semantic)**
+Workspace role and linked-record filters batch target visibility through
+Odoo's native record-rule access domain once per linked model. They do not
+cache authorization decisions or check hundreds of target records one by one;
+inactive but readable business records remain valid relationship targets.
+
+**Everywhere** is the progressive hybrid path. **Meaning (Semantic)**
 is an explicit vector-only path. Exact-only
 and meaning-only modes remain bounded advanced options. If the index or Ollama
 is unavailable, hybrid search keeps the already-visible lexical result plus one

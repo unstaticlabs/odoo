@@ -95,7 +95,7 @@ const searchViewArch = `
 const searchViewFields = {
     all_text: {
         name: "all_text",
-        string: "Search everywhere",
+        string: "Everywhere",
         type: "char",
     },
     semantic_text: {
@@ -357,7 +357,7 @@ test("native search facets survive a linked-record round trip", async () => {
                 facets: [
                     {
                         type: "field",
-                        title: "Search everywhere",
+                        title: "Everywhere",
                         values: ["embedded cobalt phrase"],
                         separator: "or",
                         domain: '[("all_text", "ilike", "embedded cobalt phrase")]',
@@ -381,7 +381,7 @@ test("native search facets survive a linked-record round trip", async () => {
     expect(searchDomain).toEqual([
         ["all_text", "ilike", "embedded cobalt phrase"],
     ]);
-    expect(".o_searchview_facet").toHaveText(/Search everywhere/);
+    expect(".o_searchview_facet").toHaveText(/Everywhere/);
     expect(".o_searchview_facet").toHaveText(/embedded cobalt phrase/);
 });
 
@@ -944,7 +944,7 @@ test("native search defaults to broad archive search and keeps specialist fields
 
     await contains(".o_searchview_input").fill("heliotrope");
     expect(".o_searchview_autocomplete").toHaveText(
-        /Search everywhere/
+        /Everywhere/
     );
     expect(".o_searchview_autocomplete").toHaveText(
         /Meaning \(Semantic\)/
@@ -956,7 +956,7 @@ test("native search defaults to broad archive search and keeps specialist fields
     expect(lastDomain).toEqual([
         ["all_text", "ilike", "heliotrope"],
     ]);
-    expect(".o_searchview_facet").toHaveText(/Search everywhere/);
+    expect(".o_searchview_facet").toHaveText(/Everywhere/);
     expect(".o_searchview_facet").toHaveText(/heliotrope/);
     const encodedDomain = browser.location.href
         .split("domain=")[1]

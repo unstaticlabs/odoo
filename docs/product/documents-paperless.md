@@ -52,14 +52,16 @@ The detailed integration contract is in
 
 The workspace uses Odoo's native search model and SearchBar rather than a
 Documents-only filter form. Its first two suggestions state their behavior:
-**Search everywhere** is progressive hybrid search, while **Meaning
+**Everywhere** is progressive hybrid search, while **Meaning
 (Semantic)** goes directly to the local BGE-M3 vector
 index. The hybrid path sends one authorization-scoped POST to Paperless's
 native Tantivy index across OCR, title, correspondent, type, tags, and all
 accessible custom fields together, adds authorized Odoo link labels, and shows
 those exact results immediately. A clear banner remains visible while BGE-M3
 adds semantic-only matches; the exact ordering is never displaced. Repeated
-identical lexical searches are cached for five seconds, and already-loaded
+identical lexical searches are cached for five seconds; identical semantic
+requests with the same complete authorization scope are cached for 30 seconds
+so paging and quick reloads do not recompute embeddings. Already-loaded
 workspace catalogs are not rebuilt or resent on each keystroke. If local
 embeddings are unavailable, the exact results remain with a short warning.
 Neither search path calls a generative provider. Frequent field-specific

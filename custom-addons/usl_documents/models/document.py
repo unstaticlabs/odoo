@@ -61,7 +61,7 @@ class UslDocument(models.Model):
 
     name = fields.Char(required=True, readonly=True, tracking=True)
     all_text = fields.Char(
-        string="Search everywhere",
+        string="Everywhere",
         compute="_compute_search_helpers",
         search="_search_all_text",
         help=(
@@ -411,28 +411,42 @@ class UslDocument(models.Model):
                 ("document_role", "in", list(roles)),
             ],
         )
-        visible_ids = set()
-        for link in links:
-            if link.res_model not in self.env:
-                continue
-            record = self.env[link.res_model].browse(link.res_id).exists()
-            if not record:
-                continue
-            try:
-                record.check_access("read")
-            except AccessError:
-                continue
-            visible_ids.add(link.document_id.id)
-        return visible_ids
+        return self._accessible_link_document_ids(links)
 
     @api.model
     def _accessible_project_document_ids(self):
+        accessible_ids = self.search([]).ids
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("document_id", "in", accessible_ids),
+                ("active", "=", True),
+                ("res_model", "in", ("project.project", "project.task")),
+            ],
+        )
+        return self._accessible_link_document_ids(links)
+
+    @api.model
+    def _accessible_link_document_ids(self, links):
+        """Return linked document IDs using one ACL-aware query per model."""
         visible_ids = set()
-        for document in self.search([]):
-            if document._accessible_active_links().filtered(
-                lambda link: link.res_model in {"project.project", "project.task"},
-            ):
-                visible_ids.add(document.id)
+        for model_name in sorted(set(links.mapped("res_model"))):
+            if model_name not in self.env:
+                continue
+            model_links = links.filtered(
+                lambda link, name=model_name: link.res_model == name,
+            )
+            visible_target_ids = set(
+                self.env[model_name]
+                .browse(model_links.mapped("res_id"))
+                .exists()
+                ._filtered_access("read")
+                .ids,
+            )
+            visible_ids.update(
+                link.document_id.id
+                for link in model_links
+                if link.res_id in visible_target_ids
+            )
         return visible_ids
 
     @api.model
@@ -615,25 +629,7 @@ class UslDocument(models.Model):
                 ("record_name", "ilike", text),
             ],
         )
-        for model_name in links.mapped("res_model"):
-            if model_name not in self.env:
-                continue
-            model_links = links.filtered(lambda link: link.res_model == model_name)
-            target_model = self.env[model_name]
-            try:
-                target_model.check_access("read")
-            except AccessError:
-                continue
-            visible_target_ids = set(
-                target_model.search(
-                    [("id", "in", model_links.mapped("res_id"))],
-                ).ids,
-            )
-            matching_document_ids.update(
-                link.document_id.id
-                for link in model_links
-                if link.res_id in visible_target_ids
-            )
+        matching_document_ids.update(self._accessible_link_document_ids(links))
         return sorted(
             document.paperless_id
             for document in documents
@@ -912,35 +908,13 @@ class UslDocument(models.Model):
         if operator == "!=":
             wanted = not wanted
         accessible_document_ids = self.search([]).ids
-        visible_linked_ids = set()
         links = self.env["usl.document.link"].sudo().search(
             [
                 ("document_id", "in", accessible_document_ids),
                 ("active", "=", True),
             ],
         )
-        for model_name in links.mapped("res_model"):
-            if model_name not in self.env:
-                continue
-            target_model = self.env[model_name]
-            target_ids = links.filtered(
-                lambda link: link.res_model == model_name,
-            ).mapped("res_id")
-            try:
-                target_model.check_access("read")
-                visible_target_ids = set(
-                    target_model.search([("id", "in", target_ids)]).ids,
-                )
-            except AccessError:
-                continue
-            visible_linked_ids.update(
-                links.filtered(
-                    lambda link: (
-                        link.res_model == model_name
-                        and link.res_id in visible_target_ids
-                    ),
-                ).mapped("document_id").ids,
-            )
+        visible_linked_ids = self._accessible_link_document_ids(links)
         if not visible_linked_ids:
             return Domain.FALSE if wanted else Domain.TRUE
         return Domain(

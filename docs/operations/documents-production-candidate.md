@@ -956,11 +956,11 @@ and this rehearsal are intentionally ARM64. The sealed deterministic
 
 ### 2026-08-26 scoped lexical and progressive search qualification
 
-Documents search now presents exactly two meaning-based paths. **Search
-everywhere** returns the exact lexical result set first and
+Documents search now presents exactly two meaning-based paths. **Everywhere**
+returns the exact lexical result set first and
 then appends new BGE-M3 matches without changing the lexical order. **Meaning
 (Semantic)** goes directly to the local BGE-M3 index. The French labels are
-`Rechercher partout` and `Sens (sémantique)`. Specific title, OCR/archive, tag,
+`Partout` and `Sens (sémantique)`. Specific title, OCR/archive, tag,
 correspondent, document-type and custom-field suggestions remain lexical; no
 Gemini or other generative model participates in search.
 
@@ -1048,6 +1048,36 @@ evidence intentionally use ARM64. A warm semantic response can make the
 progress banner brief, and an unrelated Pocket profile-page console exception
 was observed immediately after one-time-link login, with no Documents-page
 error observed.
+
+### 2026-08-26 Odoo search hot-path optimization
+
+The live 871-document, 920-link ARM64 QA database showed that Paperless was
+not the exact-search bottleneck. For the same `facture` query, native
+Paperless measured 83.6 ms warm and its scoped Tantivy endpoint measured
+23.4 ms inside Paperless. Odoo exact search measured 214.0 ms warm and
+813.2 ms on its first call because Home and Library role filters checked
+linked business records one at a time.
+
+Two authorization optimizations were compared. A short-lived per-user cache
+of visible link IDs was rejected because target record rules, selected
+companies, or link state could change during the cache lifetime. Denormalizing
+per-user visibility onto Documents was also rejected because it would create
+a second authorization truth requiring broad invalidation. The selected
+implementation groups active links by target model and applies Odoo's native
+batch access filter to the exact target IDs. It preserves current record rules
+on every request, remains fail-closed, and retains inactive-but-readable
+business records. The same helper now serves prominent, library, project,
+linked-record, and local linked-label searches.
+
+After that change, the same Odoo exact search measured 44.0 ms warm and
+134.0 ms on its first call; a plain Home load measured 51.7 ms warm. Native
+Paperless semantic search measured 5.10 seconds and Odoo hybrid refinement
+4.02 seconds on the ARM64 embedding runtime, confirming that remaining first-
+query meaning latency is model inference rather than Odoo overhead. A bounded
+30-second semantic result cache was added for identical URL, token, query,
+scope, limit, and facet payloads. Scope changes cannot hit the old entry,
+failed requests are not cached, and exact results still render before this
+background refinement.
 
 ### 2026-08-26 permission-reconciliation hardening
 
