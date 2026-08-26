@@ -1857,9 +1857,13 @@ class TestCleanUslSign(TransactionCase):
             internal_signer,
         ).get_landing()
         self.assertEqual(landing["sections"]["sign_now"]["count"], 1)
-        pencil_groups = internal_signer.sign_oca_request_user_count()
+        pencil_groups = internal_signer.with_user(
+            internal_signer,
+        ).sign_oca_request_user_count()
         self.assertEqual(sum(group["total_records"] for group in pencil_groups), 1)
-        pencil_action = internal_signer.action_open_usl_sign_requests()
+        pencil_action = internal_signer.with_user(
+            internal_signer,
+        ).action_open_usl_sign_requests()
         self.assertEqual(
             self.env["sign.oca.request.signer"].with_user(internal_signer).search_count(
                 pencil_action["domain"],
