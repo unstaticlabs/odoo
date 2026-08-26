@@ -198,6 +198,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             script.index("finalize_migration_boundary()") :
             script.index('run_stage "Docker resource preflight"')
         ]
+        self.assertIn(
+            "PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1",
+            finalizer,
+        )
         self.assertLess(
             finalizer.index("scripts/platform-billing-restore finalize"),
             finalizer.index("scripts/tese-restore finalize"),
@@ -209,6 +213,10 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
         self.assertLess(
             finalizer.index("scripts/project-restore finalize"),
             finalizer.index("scripts/accounting-restore finalize"),
+        )
+        self.assertLess(
+            finalizer.index("scripts/accounting-restore finalize"),
+            finalizer.index("scripts/platform-billing-restore schema-finalize"),
         )
 
     def test_documents_migration_workers_are_bounded_and_production_is_conservative(self):

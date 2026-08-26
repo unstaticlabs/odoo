@@ -181,8 +181,10 @@ validate_history() {
 finalize_history() {
     run_shell \
         migration/platform_billing_restore/addons/usl_platform_billing_restore/scripts/finalize_restore.py
-    finalize_product_schema
-    validate_product_boundary
+    if [[ "${PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE:-0}" != "1" ]]; then
+        finalize_product_schema
+        validate_product_boundary
+    fi
 }
 
 finalize_product_schema() {
@@ -266,6 +268,10 @@ case "$command_name" in
     finalize)
         finalize_history
         ;;
+    schema-finalize)
+        finalize_product_schema
+        validate_product_boundary
+        ;;
     product-validate)
         validate_product_boundary
         ;;
@@ -281,7 +287,7 @@ case "$command_name" in
         finalize_history
         ;;
     *)
-        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|product-validate|test|all]"
+        echo "Usage: scripts/platform-billing-restore [install|import|validate|idempotence|finalize|schema-finalize|product-validate|test|all]"
         exit 2
         ;;
 esac

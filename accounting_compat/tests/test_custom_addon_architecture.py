@@ -287,6 +287,24 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         self.assertIn("USL_TESE_RECOVER_PARTIAL_RERUN", recovery_script)
         self.assertIn("migration_modules.button_immediate_uninstall()", recovery_script)
 
+    def test_platform_finalization_defers_product_registry_until_global_cleanup(self):
+        platform_script = (
+            REPOSITORY_ROOT / "scripts/platform-billing-restore"
+        ).read_text(encoding="utf-8")
+        target_script = (REPOSITORY_ROOT / "scripts/target-reconstruct").read_text(
+            encoding="utf-8",
+        )
+
+        self.assertIn(
+            "PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE",
+            platform_script,
+        )
+        self.assertIn("schema-finalize)", platform_script)
+        self.assertIn(
+            "PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1",
+            target_script,
+        )
+
     def test_staged_migration_runners_share_the_complete_temporary_registry(self):
         helper_path = REPOSITORY_ROOT / "scripts/lib/migration-addons.sh"
         helper = helper_path.read_text(encoding="utf-8")

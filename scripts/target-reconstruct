@@ -409,10 +409,15 @@ finalize_migration_boundary() {
   # Keep downstream source identities until every fallible restore has passed.
   # A Documents interruption can then replay Projects, TESE, and Platform
   # Billing by exact source identity instead of guessing from business names.
-  scripts/platform-billing-restore finalize
+  PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1 \
+    scripts/platform-billing-restore finalize
   TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/tese-restore finalize
   PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 scripts/project-restore finalize
   scripts/accounting-restore finalize
+  # Platform Billing has an additional schema scrub. Run it only after every
+  # temporary module has been removed, so this product-only registry check
+  # never starts while an earlier restore module is still installed.
+  scripts/platform-billing-restore schema-finalize
 }
 
 revalidate_finalized_qa_cache() {
