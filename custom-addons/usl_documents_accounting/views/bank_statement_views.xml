@@ -20,7 +20,7 @@
             <xpath expr="//field[@name='accepted_evidence_id']" position="after">
                 <field name="bank_evidence_document_id" string="Documents record" readonly="1" invisible="not bank_evidence_document_id"/>
                 <field name="bank_evidence_document_version" string="Saved version" readonly="1" invisible="not bank_evidence_document_version"/>
-                <field name="bank_evidence_archive_state" string="Documents status" widget="badge" readonly="1"/>
+                <field name="bank_evidence_archive_state" string="Documents status" widget="badge" readonly="1" decoration-danger="bank_evidence_archive_state in ('not_requested', 'failed', 'unavailable')" decoration-warning="bank_evidence_archive_state in ('pending', 'processing')" decoration-success="bank_evidence_archive_state == 'archived'"/>
             </xpath>
             <xpath expr="//div[@name='review_issues']" position="before">
                 <div class="alert alert-danger" role="alert" invisible="not bank_evidence_archive_error">

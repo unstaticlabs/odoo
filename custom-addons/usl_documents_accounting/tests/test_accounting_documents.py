@@ -69,6 +69,15 @@ class TestAccountingDocumentContexts(TransactionCase):
 
         self.assertIn("Official statement", arch)
         self.assertIn('name="bank_evidence_document_id"', arch)
+        self.assertIn(
+            "decoration-danger=\"bank_evidence_archive_state in "
+            "('not_requested', 'failed', 'unavailable')\"",
+            arch,
+        )
+        self.assertIn(
+            'decoration-success="bank_evidence_archive_state == \'archived\'"',
+            arch,
+        )
         self.assertNotIn('string="Archive"', arch)
         self.assertNotIn('name="action_open_documents_workspace"', arch)
 

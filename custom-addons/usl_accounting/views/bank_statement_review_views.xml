@@ -103,27 +103,27 @@
                     <h2>Monthly checks</h2>
                     <group>
                         <group string="Official statement">
-                            <field name="evidence_check_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="evidence_check_status" string="Status" widget="badge" readonly="1" decoration-danger="evidence_check_status == 'missing'" decoration-success="evidence_check_status == 'ready'"/>
                             <field name="accepted_evidence_id" string="Received PDF" readonly="1"/>
                             <field name="balances_confirmed" string="Compared with the PDF" readonly="1"/>
                             <field name="balances_confirmed_by_id" string="Checked by" readonly="1" invisible="not balances_confirmed"/>
                         </group>
                         <group string="Imported transactions">
-                            <field name="transaction_check_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="transaction_check_status" string="Status" widget="badge" readonly="1" decoration-danger="transaction_check_status == 'missing'" decoration-warning="transaction_check_status == 'attention'" decoration-success="transaction_check_status == 'ready'"/>
                             <field name="movement_total" string="Net movement" readonly="1"/>
                             <field name="unreconciled_line_count" string="Still to match" readonly="1" help="Matching transactions to invoices is separate work and does not block this monthly bank check."/>
                         </group>
                     </group>
                     <group>
                         <group string="Bank balances">
-                            <field name="balance_check_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="balance_check_status" string="Status" widget="badge" readonly="1" decoration-warning="balance_check_status == 'unconfirmed'" decoration-danger="balance_check_status == 'mismatch'" decoration-success="balance_check_status == 'ready'"/>
                             <field name="balance_start" string="Opening balance" readonly="1"/>
                             <field name="movement_total" string="Plus net movement" readonly="1"/>
                             <field name="balance_end_real" string="Bank closing balance" readonly="1"/>
                             <field name="balance_difference" string="Difference" readonly="1"/>
                         </group>
                         <group string="Previous month">
-                            <field name="continuity_status" string="Status" widget="badge" readonly="1"/>
+                            <field name="continuity_status" string="Status" widget="badge" readonly="1" decoration-warning="continuity_status == 'baseline'" decoration-danger="continuity_status == 'broken'" decoration-success="continuity_status == 'valid'"/>
                             <field name="previous_certified_statement_id" string="Previous certified month" readonly="1" invisible="not previous_certified_statement_id"/>
                             <div class="text-muted" invisible="continuity_status != 'baseline'">
                                 No earlier certified month exists. An Accounting Manager must confirm this starting balance once.

@@ -526,6 +526,18 @@ class TestBankStatementIngestion(TransactionCase):
         self.assertIn("Imported transactions", architecture)
         self.assertIn("Bank balances", architecture)
         self.assertIn("What to check", architecture)
+        self.assertIn(
+            'decoration-danger="evidence_check_status == \'missing\'"',
+            architecture,
+        )
+        self.assertIn(
+            'decoration-warning="balance_check_status == \'unconfirmed\'"',
+            architecture,
+        )
+        self.assertIn(
+            'decoration-success="continuity_status == \'valid\'"',
+            architecture,
+        )
         self.assertNotIn("Resolve the remaining bank export exceptions", architecture)
 
     def test_missing_pdf_blocks_certification_without_blocking_import(self):
