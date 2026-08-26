@@ -51,16 +51,19 @@ The detailed integration contract is in
 ## Find and navigate
 
 The workspace uses Odoo's native search model and SearchBar rather than a
-Documents-only filter form. **Search everywhere** is the first/default
-suggestion and combines Paperless Tantivy lexical retrieval with its local
-BGE-M3 semantic index across OCR, title, correspondent, type, tags, and
-accessible custom fields together with authorized Odoo link labels. Odoo
-supplies the current record-rule and company-authorized root scope before
-semantic retrieval, then fuses both rankings while preserving exact reference,
-VAT, amount, date, and code matches. If local embeddings are unavailable,
-lexical results remain available with a short warning. Search does not call a
-generative provider. Frequent
-field-specific suggestions remain available for Title, Document content, Tags,
+Documents-only filter form. Its first two suggestions state their behavior:
+**Search everywhere — words + meaning** is progressive hybrid search, while
+**Semantic search — meaning only** goes directly to the local BGE-M3 vector
+index. The hybrid path sends one authorization-scoped POST to Paperless's
+native Tantivy index across OCR, title, correspondent, type, tags, and all
+accessible custom fields together, adds authorized Odoo link labels, and shows
+those exact results immediately. A clear banner remains visible while BGE-M3
+adds semantic-only matches; the exact ordering is never displaced. Repeated
+identical lexical searches are cached for five seconds, and already-loaded
+workspace catalogs are not rebuilt or resent on each keystroke. If local
+embeddings are unavailable, the exact results remain with a short warning.
+Neither search path calls a generative provider. Frequent field-specific
+suggestions remain available for Title, Document content, Tags,
 Correspondent, Type, Company, and Date. Specialist fields such as archive
 identity, source, privacy, review state, availability, mapped Contact, and
 employee remain available through the native custom-filter menu without

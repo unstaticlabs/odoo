@@ -132,25 +132,32 @@ Paperless requests or inconsistent pagination.
 
 `all_text` is a virtual search field. Odoo first derives the stable Paperless
 root IDs permitted by current Documents record rules and allowed companies.
-It sends that mandatory scope to the distribution's authenticated semantic
-endpoint, where Paperless intersects its own object permissions and metadata
-facets before querying its native vector index. In parallel, Paperless's
-simple Tantivy text surface searches OCR and archive metadata; using simple
-text keeps ordinary French and English punctuation out of the advanced query
-language. The lexical and custom-field requests carry the same explicit scope
-in bounded 500-root filters; an empty scope makes no Paperless request, and
-equal ranks are interleaved across large-scope chunks rather than favoring a
-numeric ID range. Odoo adds only local relationship labels the current user can
-already read, rechecks returned root IDs, and combines lexical and semantic
-rankings with reciprocal-rank fusion.
+It sends that complete scope in one POST request to the distribution's bounded
+lexical endpoint. Paperless intersects its own object permissions, applies the
+result as one Tantivy term-set filter, and searches title/OCR, archive metadata,
+and every indexed custom-field name/value in one native query. Plain text keeps
+ordinary French and English punctuation out of the advanced query language.
+An empty scope makes no Paperless request. Odoo adds only local relationship
+labels the current user can already read and rechecks every returned root ID.
 
-Identifier-like queries preserve lexical order before semantic additions, so
-invoice/reference numbers, VAT numbers, amounts, dates, and codes do not lose
-their exact ranking. Exact-only and meaning-only modes are bounded advanced
-options; ordinary search is hybrid. If the index or Ollama is unavailable,
-hybrid search returns lexical results plus one structured warning. A
-meaning-only request fails honestly. Search never invokes a generative model.
-When no explicit list order is selected, fused relevance is preserved.
+The browser publishes that exact lexical result immediately, with a visible
+semantic-refinement banner, then sends the same mandatory scope to the
+authenticated semantic endpoint. Paperless intersects permissions again before
+querying its native vector index. The final ranking always retains the complete
+lexical order and appends only semantic-only IDs, so references, VAT numbers,
+amounts, dates, codes, and ordinary word matches never move behind approximate
+matches. A five-second, scope-sensitive process cache removes the duplicate
+lexical network call made by the refinement pass. The client also keeps the
+already-loaded workspace catalogs and asks the server to omit their invariant
+payload during later keystroke searches.
+
+**Search everywhere — words + meaning** is the progressive hybrid path.
+**Semantic search — meaning only** is an explicit vector-only path. Exact-only
+and meaning-only modes remain bounded advanced options. If the index or Ollama
+is unavailable, hybrid search keeps the already-visible lexical result plus one
+structured warning; a meaning-only request fails honestly. Search never invokes
+a generative model. When no explicit list order is selected, this exact-first
+relevance is preserved.
 Explicit compact-list ordering is accepted only through a server allowlist of
 synchronized stored fields.
 

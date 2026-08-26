@@ -3,7 +3,6 @@ import hashlib
 import json
 import logging
 import os
-import re
 from datetime import UTC, datetime, timedelta
 
 from odoo import Command, _, api, fields, models
@@ -62,13 +61,19 @@ class UslDocument(models.Model):
 
     name = fields.Char(required=True, readonly=True, tracking=True)
     all_text = fields.Char(
-        string="Search everywhere",
+        string="Search everywhere — words + meaning",
         compute="_compute_search_helpers",
         search="_search_all_text",
         help=(
             "Search OCR content, title, Paperless metadata, additional details, "
             "and accessible linked Odoo records."
         ),
+    )
+    semantic_text = fields.Char(
+        string="Semantic search — meaning only",
+        compute="_compute_search_helpers",
+        search="_search_semantic_text",
+        help="Search by meaning with the local BGE-M3 semantic index.",
     )
     archive_text = fields.Char(
         string="Document content",
@@ -532,6 +537,7 @@ class UslDocument(models.Model):
     def _compute_search_helpers(self):
         for document in self:
             document.all_text = False
+            document.semantic_text = False
             document.archive_text = False
             document.custom_field_text = False
             document.has_linked_record = bool(document._accessible_active_links())
@@ -572,34 +578,67 @@ class UslDocument(models.Model):
         ids, _truncated = self._permission_scoped_paperless_search_ids(
             str(value),
             self._authorized_paperless_scope(),
+            fields="content",
         )
         negative = operator in ("!=", "not like", "not ilike")
         return [("paperless_id", "not in" if negative else "in", ids)]
 
     @api.model
-    def _accessible_local_text_ids(self, value):
+    def _accessible_local_text_ids(self, value, *, documents=None):
         """Supplement Paperless full text with Odoo-owned, authorized labels."""
-        needle = str(value or "").strip().casefold()
-        if not needle:
+        text = str(value or "").strip()
+        if not text:
             return []
-        matching = set()
-        documents = self.search([])
-        for document in documents:
-            searchable = [
-                document.name,
-                document.original_filename,
-                document.company_id.display_name,
-                document.correspondent_id.name,
-                document.document_type_id.name,
-                document.tag_sort_key,
-            ]
-            searchable.extend(
-                link.record_name
-                for link in document._accessible_active_links()
+        documents = documents if documents is not None else self.search([])
+        if not documents:
+            return []
+        matching_document_ids = set(
+            self.search(
+                Domain("id", "in", documents.ids)
+                & Domain.OR(
+                    Domain(field_name, "ilike", text)
+                    for field_name in (
+                        "name",
+                        "original_filename",
+                        "company_id.name",
+                        "correspondent_id.name",
+                        "document_type_id.name",
+                        "tag_sort_key",
+                    )
+                ),
+            ).ids,
+        )
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("document_id", "in", documents.ids),
+                ("active", "=", True),
+                ("record_name", "ilike", text),
+            ],
+        )
+        for model_name in links.mapped("res_model"):
+            if model_name not in self.env:
+                continue
+            model_links = links.filtered(lambda link: link.res_model == model_name)
+            target_model = self.env[model_name]
+            try:
+                target_model.check_access("read")
+            except AccessError:
+                continue
+            visible_target_ids = set(
+                target_model.search(
+                    [("id", "in", model_links.mapped("res_id"))],
+                ).ids,
             )
-            if any(needle in (item or "").casefold() for item in searchable):
-                matching.add(document.paperless_id)
-        return sorted(matching)
+            matching_document_ids.update(
+                link.document_id.id
+                for link in model_links
+                if link.res_id in visible_target_ids
+            )
+        return sorted(
+            document.paperless_id
+            for document in documents
+            if document.id in matching_document_ids and document.paperless_id
+        )
 
     @api.model
     def _all_text_search_ids(self, value):
@@ -612,8 +651,19 @@ class UslDocument(models.Model):
         return ids, truncated
 
     @api.model
-    def _lexical_all_text_search_ids(self, value):
-        scope = self._authorized_paperless_scope()
+    def _lexical_all_text_search_ids(
+        self,
+        value,
+        *,
+        scope=None,
+        authorized_documents=None,
+        local_documents=None,
+    ):
+        scope = (
+            self._authorized_paperless_scope(authorized_documents)
+            if scope is None
+            else scope
+        )
         ids, truncated = self._permission_scoped_paperless_search_ids(
             str(value),
             scope,
@@ -621,11 +671,12 @@ class UslDocument(models.Model):
             # Tantivy query language. The simple text surface safely handles
             # apostrophes and other natural French/English punctuation.
             full_text=False,
+            fields="all",
         )
         seen = set(ids)
-        for document_id in (
-            self._custom_field_search_ids(value, document_ids=scope)
-            + self._accessible_local_text_ids(value)
+        for document_id in self._accessible_local_text_ids(
+            value,
+            documents=local_documents,
         ):
             if document_id not in seen:
                 ids.append(document_id)
@@ -633,80 +684,64 @@ class UslDocument(models.Model):
         return ids, truncated
 
     @api.model
-    def _authorized_paperless_scope(self):
+    def _authorized_paperless_scope(self, documents=None):
+        documents = documents if documents is not None else self.search(
+            [
+                (
+                    "availability_state",
+                    "not in",
+                    ("trashed", "permanently_deleted"),
+                ),
+            ],
+        )
         return sorted(
             {
                 document.paperless_id
-                for document in self.search(
-                    [
-                        (
-                            "availability_state",
-                            "not in",
-                            ("trashed", "permanently_deleted"),
-                        ),
-                    ],
-                )
+                for document in documents
                 if document.paperless_id
             },
         )
 
-    @staticmethod
-    def _looks_like_exact_query(value):
-        text = str(value or "")
-        return bool(
-            re.search(r"\d{3,}|\b[A-Z]{2}[A-Z0-9 -]{5,}\b|[€$£]|\d+[.,]\d{2}", text),
-        )
-
     @api.model
-    def _fuse_search_rankings(self, lexical_ids, semantic_ids, query):
+    def _fuse_search_rankings(self, lexical_ids, semantic_ids):
         lexical_ids = list(dict.fromkeys(int(item) for item in lexical_ids))
         semantic_ids = list(dict.fromkeys(int(item) for item in semantic_ids))
-        if self._looks_like_exact_query(query):
-            lexical_set = set(lexical_ids)
-            return lexical_ids + [
-                document_id
-                for document_id in semantic_ids
-                if document_id not in lexical_set
-            ]
-        scores = {}
-        for weight, ranking in (
-            (1.0, lexical_ids),
-            (1.0, semantic_ids),
-        ):
-            for rank, document_id in enumerate(ranking, start=1):
-                scores[document_id] = scores.get(document_id, 0.0) + weight / (
-                    60 + rank
-                )
-        lexical_rank = {
-            document_id: rank
-            for rank, document_id in enumerate(lexical_ids, start=1)
-        }
-        semantic_rank = {
-            document_id: rank
-            for rank, document_id in enumerate(semantic_ids, start=1)
-        }
-        return sorted(
-            scores,
-            key=lambda document_id: (
-                -scores[document_id],
-                lexical_rank.get(document_id, 1_000_000),
-                semantic_rank.get(document_id, 1_000_000),
-                document_id,
-            ),
-        )
+        lexical_set = set(lexical_ids)
+        return lexical_ids + [
+            document_id
+            for document_id in semantic_ids
+            if document_id not in lexical_set
+        ]
 
     @api.model
-    def _hybrid_search_ids(self, value, *, mode="hybrid"):
+    def _hybrid_search_ids(
+        self,
+        value,
+        *,
+        mode="hybrid",
+        scope=None,
+        authorized_documents=None,
+        local_documents=None,
+    ):
         if mode not in ("hybrid", "exact", "semantic"):
             raise ValidationError(_("Unsupported archive search mode."))
         lexical_ids = []
         truncated = False
         warnings = []
+        scope = (
+            self._authorized_paperless_scope(authorized_documents)
+            if scope is None
+            else scope
+        )
         if mode != "semantic":
-            lexical_ids, truncated = self._lexical_all_text_search_ids(value)
+            lexical_ids, truncated = self._lexical_all_text_search_ids(
+                value,
+                scope=scope,
+                authorized_documents=authorized_documents,
+                local_documents=local_documents,
+            )
         semantic_ids = []
         if mode != "exact":
-            scope = self._authorized_paperless_scope()
             try:
                 payload = self._paperless().semantic_search(
                     str(value),
@@ -737,7 +772,7 @@ class UslDocument(models.Model):
         if mode == "semantic":
             return semantic_ids, False, warnings
         return (
-            self._fuse_search_rankings(lexical_ids, semantic_ids, value),
+            self._fuse_search_rankings(lexical_ids, semantic_ids),
             truncated,
             warnings,
         )
@@ -753,51 +788,31 @@ class UslDocument(models.Model):
         return [("paperless_id", "not in" if negative else "in", ids)]
 
     @api.model
+    def _search_semantic_text(self, operator, value):
+        if operator not in ("=", "!=", "like", "not like", "ilike", "not ilike"):
+            raise ValidationError(_("Unsupported semantic search operator."))
+        if not value:
+            return []
+        ids, _truncated, _warnings = self._hybrid_search_ids(
+            value,
+            mode="semantic",
+        )
+        negative = operator in ("!=", "not like", "not ilike")
+        return [("paperless_id", "not in" if negative else "in", ids)]
+
+    @api.model
     def _custom_field_search_ids(self, value, *, document_ids=None):
         scope = (
             self._authorized_paperless_scope()
             if document_ids is None
             else document_ids
         )
-        definitions = json.loads(
-            self.env["ir.config_parameter"].sudo().get_str(
-                "usl_documents.paperless_custom_fields",
-                "[]",
-            ),
+        ids, _truncated = self._permission_scoped_paperless_search_ids(
+            str(value),
+            scope,
+            fields="custom_fields",
         )
-        matching_ids = set()
-        for definition in definitions[:100]:
-            data_type = definition.get("data_type") or "string"
-            parsed_value = value
-            operator = "icontains"
-            try:
-                if data_type == "integer":
-                    parsed_value = int(value)
-                    operator = "exact"
-                elif data_type in ("float", "monetary"):
-                    parsed_value = float(value)
-                    operator = "exact"
-                elif data_type == "boolean":
-                    normalized = str(value).strip().lower()
-                    if normalized not in ("1", "0", "true", "false", "yes", "no"):
-                        continue
-                    parsed_value = normalized in ("1", "true", "yes")
-                    operator = "exact"
-                elif data_type in ("date", "select", "documentlink"):
-                    operator = "exact"
-            except (TypeError, ValueError):
-                continue
-            ids, _truncated = self._permission_scoped_paperless_search_ids(
-                "",
-                scope,
-                filters={
-                    "custom_field_query": json.dumps(
-                        [definition["name"], operator, parsed_value],
-                    ),
-                },
-            )
-            matching_ids.update(ids)
-        return sorted(matching_ids)
+        return ids
 
     @api.model
     def _search_custom_field_text(self, operator, value):
@@ -810,7 +825,15 @@ class UslDocument(models.Model):
         return [("paperless_id", "not in" if negative else "in", ids)]
 
     @api.model
-    def _resolve_remote_search_domain(self, domain, resolved_ids=None):
+    def _resolve_remote_search_domain(
+        self,
+        domain,
+        resolved_ids=None,
+        *,
+        authorized_scope=None,
+        authorized_documents=None,
+        local_documents=None,
+    ):
         """Resolve each Paperless text condition once before Odoo paginates.
 
         ``search_count`` and ``search`` both expand custom search fields.  If
@@ -818,10 +841,15 @@ class UslDocument(models.Model):
         requests and could even observe different results between count and
         page retrieval.
         """
+        if authorized_scope is None:
+            authorized_scope = self._authorized_paperless_scope(
+                authorized_documents,
+            )
 
         def resolve(condition):
             if condition.field_expr not in (
                 "all_text",
+                "semantic_text",
                 "archive_text",
                 "custom_field_text",
             ):
@@ -843,16 +871,30 @@ class UslDocument(models.Model):
             if resolved_ids and cache_key in resolved_ids:
                 ids = resolved_ids[cache_key]
             elif condition.field_expr == "all_text":
-                ids, _truncated = self._all_text_search_ids(
+                ids, _truncated, _warnings = self._hybrid_search_ids(
                     str(condition.value),
+                    scope=authorized_scope,
+                    authorized_documents=authorized_documents,
+                    local_documents=local_documents,
+                )
+            elif condition.field_expr == "semantic_text":
+                ids, _truncated, _warnings = self._hybrid_search_ids(
+                    str(condition.value),
+                    mode="semantic",
+                    scope=authorized_scope,
+                    authorized_documents=authorized_documents,
                 )
             elif condition.field_expr == "archive_text":
                 ids, _truncated = self._permission_scoped_paperless_search_ids(
                     str(condition.value),
-                    self._authorized_paperless_scope(),
+                    authorized_scope,
+                    fields="content",
                 )
             else:
-                ids = self._custom_field_search_ids(condition.value)
+                ids = self._custom_field_search_ids(
+                    condition.value,
+                    document_ids=authorized_scope,
+                )
             negative = condition.operator in ("!=", "not like", "not ilike")
             return Domain(
                 "paperless_id",
@@ -1811,6 +1853,7 @@ class UslDocument(models.Model):
         filters=None,
         *,
         full_text=False,
+        fields="all",
     ):
         """Search Paperless only inside the current Odoo-authorized roots."""
         scope = sorted({int(document_id) for document_id in document_ids})
@@ -1819,40 +1862,24 @@ class UslDocument(models.Model):
         maximum = self.env["ir.config_parameter"].sudo().get_int(
             "usl_documents.max_search_results", 10000,
         )
-        rankings = []
-        truncated = False
-        # Keep the comma-separated GET filter below ordinary proxy request-line
-        # limits. Interleave equal ranks across chunks so a numeric ID range
-        # cannot dominate the merged result merely because it was sent first.
-        for offset in range(0, len(scope), 500):
-            scoped_filters = dict(filters or {})
-            scoped_filters["id__in"] = ",".join(
-                str(document_id) for document_id in scope[offset : offset + 500]
-            )
-            ids, chunk_truncated = self._paperless_search_ids(
-                query,
-                filters=scoped_filters,
-                full_text=full_text,
-            )
-            rankings.append(ids)
-            truncated = truncated or chunk_truncated
-
-        merged = []
-        seen = set()
-        for rank in range(max(map(len, rankings), default=0)):
-            for ranking in rankings:
-                if rank >= len(ranking):
-                    continue
-                document_id = ranking[rank]
-                if document_id in seen:
-                    continue
-                merged.append(document_id)
-                seen.add(document_id)
-                if len(merged) >= maximum:
-                    return merged, truncated or any(
-                        len(candidate) > rank + 1 for candidate in rankings
-                    )
-        return merged, truncated
+        scoped_filters = dict(filters or {})
+        unsupported_filters = set(scoped_filters) - {"custom_field_query"}
+        if full_text or unsupported_filters:
+            raise ValidationError(_("Unsupported bounded archive search filter."))
+        payload = self._paperless().scoped_search(
+            str(query or ""),
+            document_ids=scope,
+            limit=maximum,
+            fields=fields,
+            custom_field_query=scoped_filters.get("custom_field_query"),
+        )
+        allowed = set(scope)
+        ids = [
+            int(item["id"])
+            for item in payload.get("results") or []
+            if int(item["id"]) in allowed
+        ]
+        return ids, bool(payload.get("truncated"))
 
     @api.model
     def _workspace_correspondent_values(self, correspondent):
@@ -1881,11 +1908,11 @@ class UslDocument(models.Model):
                 return
             if (
                 len(node) >= 3
-                and node[0] == "all_text"
+                and node[0] in ("all_text", "semantic_text")
                 and node[1] in ("=", "like", "ilike")
                 and node[2]
             ):
-                terms.append(str(node[2]))
+                terms.append((node[0], str(node[2])))
                 return
             for child in node:
                 visit(child)
@@ -2051,6 +2078,7 @@ class UslDocument(models.Model):
         order_by=None,
         search_mode="hybrid",
         background_mode="include",
+        include_workspace_metadata=True,
     ):
         page = max(1, int(page))
         page_size = min(100, max(1, int(page_size)))
@@ -2058,6 +2086,8 @@ class UslDocument(models.Model):
             raise ValidationError(_("Unsupported archive search mode."))
         if background_mode not in ("include", "exclude", "only"):
             raise ValidationError(_("Unsupported archive visibility filter."))
+        if not isinstance(include_workspace_metadata, bool):
+            raise ValidationError(_("Invalid workspace metadata option."))
         smart_views = self.env["usl.document.smart.view"].accessible_views()
         selected_view = smart_views.filtered(
             lambda item: (item.key or f"view:{item.id}") == workspace,
@@ -2078,17 +2108,26 @@ class UslDocument(models.Model):
         if search_domain:
             if not isinstance(search_domain, list):
                 raise ValidationError(_("Invalid search filters."))
+        accessible_documents = self.search([])
+        authorized_documents = accessible_documents.filtered(
+            lambda document: document.availability_state
+            not in ("trashed", "permanently_deleted"),
+        )
+        authorized_scope = self._authorized_paperless_scope(authorized_documents)
         broad_terms = self._broad_search_terms(search_domain)
         resolved_ids = {}
         relevance_paperless_ids = []
         search_warnings = []
         truncated = False
-        for term in broad_terms:
+        for field_name, term in broad_terms:
             ids, term_truncated, term_warnings = self._hybrid_search_ids(
                 term,
-                mode=search_mode,
+                mode="semantic" if field_name == "semantic_text" else search_mode,
+                scope=authorized_scope,
+                authorized_documents=authorized_documents,
+                local_documents=accessible_documents,
             )
-            resolved_ids["all_text", term] = ids
+            resolved_ids[field_name, term] = ids
             truncated = truncated or term_truncated
             search_warnings.extend(term_warnings)
             for paperless_document_id in ids:
@@ -2098,6 +2137,9 @@ class UslDocument(models.Model):
             native_domain = self._resolve_remote_search_domain(
                 Domain(search_domain or []),
                 resolved_ids=resolved_ids,
+                authorized_scope=authorized_scope,
+                authorized_documents=authorized_documents,
+                local_documents=accessible_documents,
             )
         except PaperlessError as error:
             return {
@@ -2292,7 +2334,7 @@ class UslDocument(models.Model):
             try:
                 ids, query_truncated = self._permission_scoped_paperless_search_ids(
                     query,
-                    self._authorized_paperless_scope(),
+                    authorized_scope,
                     filters=paperless_filters or None,
                 )
                 truncated = truncated or query_truncated
@@ -2350,29 +2392,29 @@ class UslDocument(models.Model):
                 "degraded": True,
                 "error": str(error),
             }
-        accessible_documents = self.search([])
         link_facets = []
-        seen_links = set()
-        for document in accessible_documents:
-            for link in document._accessible_active_links():
-                key = f"{link.res_model}:{link.res_id}"
-                if key in seen_links:
-                    continue
-                seen_links.add(key)
-                model_label = self.env["ir.model"]._get(link.res_model).name
-                link_facets.append(
-                    {
-                        "key": key,
-                        "model": link.res_model,
-                        "res_id": link.res_id,
-                        "label": f"{model_label} — {link.record_name}",
-                    },
-                )
+        if include_workspace_metadata:
+            seen_links = set()
+            for document in accessible_documents:
+                for link in document._accessible_active_links():
+                    key = f"{link.res_model}:{link.res_id}"
+                    if key in seen_links:
+                        continue
+                    seen_links.add(key)
+                    model_label = self.env["ir.model"]._get(link.res_model).name
+                    link_facets.append(
+                        {
+                            "key": key,
+                            "model": link.res_model,
+                            "res_id": link.res_id,
+                            "label": f"{model_label} — {link.record_name}",
+                        },
+                    )
+                    if len(link_facets) >= 200:
+                        break
                 if len(link_facets) >= 200:
                     break
-            if len(link_facets) >= 200:
-                break
-        return {
+        result = {
             "documents": [self._workspace_document_values(item) for item in documents],
             "count": count,
             "page": page,
@@ -2387,6 +2429,22 @@ class UslDocument(models.Model):
             "search_mode": search_mode,
             "background_mode": background_mode,
             "truncated": truncated,
+            "metadata_included": include_workspace_metadata,
+            "can_upload": self.env.user.has_group(
+                "usl_documents.group_documents_user",
+            ),
+            "active_operation": self.env[
+                "usl.document.operation"
+            ].current_workspace_operation(),
+            "failed_operations": (
+                self.env["usl.document.operation"].workspace_failures()
+                if selected_view and selected_view.system_rule == "attention"
+                else []
+            ),
+        }
+        if not include_workspace_metadata:
+            return result
+        result.update({
             "companies": [
                 {"id": company.id, "name": company.display_name}
                 for company in self.env.companies
@@ -2420,18 +2478,8 @@ class UslDocument(models.Model):
             "custom_fields": custom_fields,
             "smart_views": [view.workspace_values() for view in smart_views],
             "link_facets": sorted(link_facets, key=lambda item: item["label"]),
-            "can_upload": self.env.user.has_group(
-                "usl_documents.group_documents_user",
-            ),
-            "active_operation": self.env[
-                "usl.document.operation"
-            ].current_workspace_operation(),
-            "failed_operations": (
-                self.env["usl.document.operation"].workspace_failures()
-                if selected_view and selected_view.system_rule == "attention"
-                else []
-            ),
-        }
+        })
+        return result
 
     @api.model
     def document_detail(self, document_id, check_archive=False):

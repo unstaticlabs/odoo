@@ -6,8 +6,11 @@
         <field name="arch" type="xml">
             <search string="Search Documents">
                 <field name="all_text"
-                       string="Search everywhere"
+                       string="Search everywhere — words + meaning"
                        filter_domain="[('all_text', 'ilike', self)]"/>
+                <field name="semantic_text"
+                       string="Semantic search — meaning only"
+                       filter_domain="[('semantic_text', 'ilike', self)]"/>
                 <field name="name" string="Title"/>
                 <field name="archive_text"
                        string="Document content"

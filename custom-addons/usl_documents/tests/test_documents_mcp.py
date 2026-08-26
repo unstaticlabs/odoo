@@ -92,14 +92,21 @@ class TestDocumentsMcp(TransactionCase):
         with (
             patch.object(
                 PaperlessClient,
-                "search",
+                "scoped_search",
                 return_value={
-                    "count": 2,
-                    "next": None,
                     "results": [
-                        {"id": hidden.paperless_id, "content": "hidden OCR"},
-                        {"id": allowed.paperless_id, "content": "allowed OCR"},
+                        {
+                            "id": hidden.paperless_id,
+                            "rank": 1,
+                            "excerpt": "hidden lexical OCR",
+                        },
+                        {
+                            "id": allowed.paperless_id,
+                            "rank": 2,
+                            "excerpt": "allowed lexical OCR",
+                        },
                     ],
+                    "truncated": False,
                 },
             ) as lexical,
             patch.object(
@@ -131,14 +138,17 @@ class TestDocumentsMcp(TransactionCase):
         self.assertEqual([item["id"] for item in result["results"]], [allowed.id])
         self.assertNotIn("hidden", str(result).lower())
         self.assertEqual(
-            lexical.call_args.kwargs["filters"]["id__in"],
-            str(allowed.paperless_id),
+            lexical.call_args.kwargs["document_ids"],
+            [allowed.paperless_id],
         )
+        self.assertEqual(lexical.call_args.kwargs["fields"], "all")
+        self.assertTrue(lexical.call_args.kwargs["include_excerpt"])
         self.assertEqual(
             semantic.call_args.kwargs["document_ids"],
             [allowed.paperless_id],
         )
         self.assertLessEqual(len(result["results"][0]["excerpt"]), 500)
+        self.assertEqual(result["results"][0]["excerpt"], "allowed lexical OCR")
         self.assertEqual(
             {item["source"] for item in result["results"][0]["provenance"]},
             {"paperless_lexical", "paperless_semantic"},
@@ -150,13 +160,12 @@ class TestDocumentsMcp(TransactionCase):
         with (
             patch.object(
                 PaperlessClient,
-                "search",
+                "scoped_search",
                 return_value={
-                    "count": 1,
-                    "next": None,
                     "results": [
-                        {"id": document.paperless_id, "content": "continuity"},
+                        {"id": document.paperless_id, "rank": 1},
                     ],
+                    "truncated": False,
                 },
             ),
             patch.object(
@@ -181,8 +190,8 @@ class TestDocumentsMcp(TransactionCase):
         with (
             patch.object(
                 PaperlessClient,
-                "search",
-                return_value={"count": 0, "next": None, "results": []},
+                "scoped_search",
+                return_value={"results": [], "truncated": False},
             ) as lexical,
             patch.object(
                 PaperlessClient,
@@ -198,20 +207,10 @@ class TestDocumentsMcp(TransactionCase):
             result["results"][0]["provenance"][0]["source"],
             "odoo_metadata",
         )
-        for call in lexical.call_args_list:
-            remote_scope = {
-                int(item)
-                for item in call.kwargs["filters"]["id__in"].split(",")
-                if item
-            }
-            self.assertNotIn(
-                blocked.paperless_id,
-                remote_scope,
-            )
-            self.assertIn(
-                allowed.paperless_id,
-                remote_scope,
-            )
+        remote_scope = lexical.call_args.kwargs["document_ids"]
+        lexical.assert_called_once()
+        self.assertNotIn(blocked.paperless_id, remote_scope)
+        self.assertIn(allowed.paperless_id, remote_scope)
         self.assertNotIn(
             blocked.paperless_id,
             semantic.call_args.kwargs["document_ids"],

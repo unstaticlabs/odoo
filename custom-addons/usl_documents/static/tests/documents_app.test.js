@@ -39,6 +39,7 @@ const emptyWorkspace = {
     page: 1,
     page_size: 24,
     degraded: false,
+    metadata_included: true,
     truncated: false,
     can_upload: true,
     active_operation: false,
@@ -73,6 +74,7 @@ const emptyWorkspace = {
 const searchViewArch = `
     <search>
         <field name="all_text"/>
+        <field name="semantic_text"/>
         <field name="name"/>
         <field name="archive_text"/>
         <field name="tag_ids"/>
@@ -91,7 +93,16 @@ const searchViewArch = `
 `;
 
 const searchViewFields = {
-    all_text: { name: "all_text", string: "Search everywhere", type: "char" },
+    all_text: {
+        name: "all_text",
+        string: "Search everywhere — words + meaning",
+        type: "char",
+    },
+    semantic_text: {
+        name: "semantic_text",
+        string: "Semantic search — meaning only",
+        type: "char",
+    },
     name: { name: "name", string: "Title", type: "char" },
     archive_text: { name: "archive_text", string: "Document content", type: "char" },
     custom_field_text: {
@@ -932,7 +943,12 @@ test("native search defaults to broad archive search and keeps specialist fields
     });
 
     await contains(".o_searchview_input").fill("heliotrope");
-    expect(".o_searchview_autocomplete").toHaveText(/Search everywhere/);
+    expect(".o_searchview_autocomplete").toHaveText(
+        /Search everywhere — words \+ meaning/
+    );
+    expect(".o_searchview_autocomplete").toHaveText(
+        /Semantic search — meaning only/
+    );
     expect(".o_searchview_autocomplete").toHaveText(/Document content/);
     expect(".o_searchview_autocomplete").not.toHaveText(/Additional details/);
     await contains(".o_searchview_autocomplete .o-dropdown-item").click();
@@ -949,6 +965,55 @@ test("native search defaults to broad archive search and keeps specialist fields
     expect(decodeURIComponent(encodedDomain)).toBe(
         '[("all_text", "ilike", "heliotrope")]'
     );
+});
+
+test("broad search shows exact results before semantic refinement", async () => {
+    const calls = [];
+    let releaseSemantic;
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        calls.push(kwargs);
+        const isBroadSearch = JSON.stringify(kwargs.search_domain).includes(
+            "all_text"
+        );
+        if (isBroadSearch && kwargs.search_mode === "hybrid") {
+            return new Promise((resolve) => {
+                releaseSemantic = () =>
+                    resolve({
+                        ...emptyWorkspace,
+                        metadata_included: false,
+                        count: 2,
+                        documents: [
+                            { id: 1, name: "Exact match", tags: [] },
+                            { id: 2, name: "Meaning match", tags: [] },
+                        ],
+                });
+            });
+        }
+        if (!isBroadSearch) {
+            return emptyWorkspace;
+        }
+        return {
+            ...emptyWorkspace,
+            count: 1,
+            documents: [{ id: 1, name: "Exact match", tags: [] }],
+        };
+    });
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+
+    await contains(".o_searchview_input").fill("renewal obligation");
+    await contains(".o_searchview_autocomplete .o-dropdown-item").click();
+    expect(calls.at(-1).search_mode).toBe("hybrid");
+    expect(calls.at(-2).search_mode).toBe("exact");
+    expect(calls.at(-1).include_workspace_metadata).toBe(false);
+    expect(".o_usl_document_card").toHaveCount(1);
+    expect(".alert-info").toHaveText(/Exact matches are ready/);
+
+    releaseSemantic();
+    await animationFrame();
+    expect(".o_usl_document_card").toHaveCount(2);
+    expect(".alert-info").toHaveCount(0);
 });
 
 test.tags("desktop");

@@ -2838,42 +2838,57 @@ class TestDocuments(TransactionCase):
             list_documents.call_args_list[1].kwargs["modified_before"],
         )
 
-    def test_search_collects_all_paperless_pages_before_odoo_pagination(self):
+    def test_search_uses_one_bounded_paperless_request_before_odoo_pagination(self):
         first = self._document(182, name="First OCR match")
         second = self._document(183, name="Second OCR match")
         with patch.object(
             PaperlessClient,
-            "search",
-            side_effect=[
-                {
-                    "count": 2,
-                    "next": "http://paperless/api/documents/?page=2",
-                    "results": [{"id": first.paperless_id}],
-                },
-                {
-                    "count": 2,
-                    "next": None,
-                    "results": [{"id": second.paperless_id}],
-                },
-            ],
+            "scoped_search",
+            return_value={
+                "results": [
+                    {"id": first.paperless_id},
+                    {"id": second.paperless_id},
+                ],
+                "truncated": False,
+            },
         ) as search:
             result = self.env["usl.document"].workspace_data(
                 query="OCR-only phrase", workspace="all", page=1, page_size=1,
             )
         self.assertEqual(result["count"], 2)
         self.assertEqual(len(result["documents"]), 1)
-        self.assertEqual(search.call_count, 2)
+        search.assert_called_once()
+        self.assertEqual(search.call_args.kwargs["document_ids"], [182, 183])
+
+    def test_repeated_search_can_omit_invariant_workspace_metadata(self):
+        self._document(1181, name="Metadata-light result")
+
+        result = self.env["usl.document"].workspace_data(
+            workspace="all",
+            include_workspace_metadata=False,
+        )
+
+        self.assertFalse(result["metadata_included"])
+        for key in (
+            "companies",
+            "tags",
+            "correspondents",
+            "document_types",
+            "custom_fields",
+            "smart_views",
+            "link_facets",
+        ):
+            self.assertNotIn(key, result)
 
     def test_native_search_domain_combines_ocr_and_structured_filters(self):
         visible = self._document(1182, name="Visible OCR match")
         self._document(1183, company_id=self.company_b.id)
         with patch.object(
             PaperlessClient,
-            "search",
+            "scoped_search",
             return_value={
-                "count": 2,
-                "next": None,
                 "results": [{"id": 1182}, {"id": 1183}],
+                "truncated": False,
             },
         ) as search:
             result = self.env["usl.document"].with_user(self.user).workspace_data(
@@ -2886,6 +2901,7 @@ class TestDocuments(TransactionCase):
         self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
         search.assert_called_once()
         self.assertEqual(search.call_args.args[0], "embedded cobalt phrase")
+        self.assertEqual(search.call_args.kwargs["fields"], "content")
 
     def test_search_everywhere_uses_paperless_relevance_and_odoo_authorization(self):
         first = self._document(2182, name="First authorized result")
@@ -2894,11 +2910,10 @@ class TestDocuments(TransactionCase):
         first.link_to_record("res.partner", self.partner_a.id)
         with patch.object(
             PaperlessClient,
-            "search",
+            "scoped_search",
             return_value={
-                "count": 3,
-                "next": None,
                 "results": [{"id": 2183}, {"id": 2184}, {"id": 2182}],
+                "truncated": False,
             },
         ) as search:
             result = self.env["usl.document"].with_user(self.user).workspace_data(
@@ -2913,12 +2928,12 @@ class TestDocuments(TransactionCase):
         )
         search.assert_called_once()
         self.assertEqual(search.call_args.args[0], "quarterly archive phrase")
-        self.assertFalse(search.call_args.kwargs["full_text"])
+        self.assertEqual(search.call_args.kwargs["fields"], "all")
 
         with patch.object(
             PaperlessClient,
-            "search",
-            return_value={"count": 0, "next": None, "results": []},
+            "scoped_search",
+            return_value={"results": [], "truncated": False},
         ):
             linked_label = (
                 self.env["usl.document"]
@@ -2935,6 +2950,30 @@ class TestDocuments(TransactionCase):
             [first.id],
         )
 
+    def test_exact_local_title_search_remains_available_in_trash(self):
+        trashed = self._document(
+            2186,
+            name="Retained trash search title",
+            availability_state="trashed",
+        )
+        with patch.object(
+            PaperlessClient,
+            "scoped_search",
+            return_value={"results": [], "truncated": False},
+        ):
+            result = self.env["usl.document"].workspace_data(
+                workspace="trash",
+                search_mode="exact",
+                search_domain=[
+                    ["all_text", "ilike", "Retained trash search title"],
+                ],
+            )
+
+        self.assertEqual(
+            [item["id"] for item in result["documents"]],
+            [trashed.id],
+        )
+
     def test_hybrid_search_scopes_semantics_before_retrieval_and_fuses_ranks(self):
         first = self._document(2282, name="Lexical only")
         overlap = self._document(2283, name="Both retrieval paths")
@@ -2943,11 +2982,10 @@ class TestDocuments(TransactionCase):
         with (
             patch.object(
                 PaperlessClient,
-                "search",
+                "scoped_search",
                 return_value={
-                    "count": 2,
-                    "next": None,
                     "results": [{"id": 2282}, {"id": 2283}],
+                    "truncated": False,
                 },
             ) as lexical_search,
             patch.object(
@@ -2970,21 +3008,18 @@ class TestDocuments(TransactionCase):
 
         self.assertEqual(
             ids,
-            [overlap.paperless_id, first.paperless_id, semantic.paperless_id],
+            [first.paperless_id, overlap.paperless_id, semantic.paperless_id],
         )
         self.assertFalse(truncated)
         self.assertEqual(warnings, [])
         scope = semantic_search.call_args.kwargs["document_ids"]
         self.assertEqual(set(scope), {2282, 2283, 2284})
         self.assertNotIn(2285, scope)
-        self.assertEqual(
-            lexical_search.call_args.kwargs["filters"]["id__in"],
-            "2282,2283,2284",
-        )
+        self.assertEqual(lexical_search.call_args.kwargs["document_ids"], scope)
 
     def test_empty_authorized_scope_never_queries_paperless_search(self):
         documents = self.env["usl.document"]
-        with patch.object(PaperlessClient, "search") as search:
+        with patch.object(PaperlessClient, "scoped_search") as search:
             ids, truncated = documents._permission_scoped_paperless_search_ids(
                 "private",
                 [],
@@ -2993,23 +3028,14 @@ class TestDocuments(TransactionCase):
         self.assertFalse(truncated)
         search.assert_not_called()
 
-    def test_large_lexical_scope_is_chunked_and_rank_interleaved(self):
+    def test_large_lexical_scope_is_sent_in_one_bounded_post(self):
         documents = self.env["usl.document"]
-
-        def scoped_results(_query, *, filters, **_kwargs):
-            first_id = int(filters["id__in"].split(",", 1)[0])
-            return [first_id, first_id + 1], False
-
         with patch.object(
             PaperlessClient,
-            "search",
-            side_effect=lambda query, **kwargs: {
-                "count": 2,
-                "next": None,
-                "results": [
-                    {"id": document_id}
-                    for document_id in scoped_results(query, **kwargs)[0]
-                ],
+            "scoped_search",
+            return_value={
+                "results": [{"id": 1}, {"id": 501}, {"id": 1001}],
+                "truncated": False,
             },
         ) as search:
             ids, truncated = documents._permission_scoped_paperless_search_ids(
@@ -3017,8 +3043,9 @@ class TestDocuments(TransactionCase):
                 range(1, 1002),
             )
 
-        self.assertEqual(search.call_count, 3)
-        self.assertEqual(ids, [1, 501, 1001, 2, 502, 1002])
+        search.assert_called_once()
+        self.assertEqual(len(search.call_args.kwargs["document_ids"]), 1001)
+        self.assertEqual(ids, [1, 501, 1001])
         self.assertFalse(truncated)
 
     def test_exact_identifier_search_preserves_lexical_order(self):
@@ -3026,7 +3053,6 @@ class TestDocuments(TransactionCase):
         fused = documents._fuse_search_rankings(
             [2301, 2302, 2303],
             [2303, 2304, 2302],
-            "INV-2026-000123",
         )
         self.assertEqual(fused, [2301, 2302, 2303, 2304])
 
@@ -3035,11 +3061,10 @@ class TestDocuments(TransactionCase):
         with (
             patch.object(
                 PaperlessClient,
-                "search",
+                "scoped_search",
                 return_value={
-                    "count": 1,
-                    "next": None,
                     "results": [{"id": first.paperless_id}],
+                    "truncated": False,
                 },
             ),
             patch.object(
@@ -3060,7 +3085,7 @@ class TestDocuments(TransactionCase):
     def test_semantic_only_mode_does_not_call_lexical_search(self):
         document = self._document(2321, name="Semantic mode")
         with (
-            patch.object(PaperlessClient, "search") as lexical_search,
+            patch.object(PaperlessClient, "scoped_search") as lexical_search,
             patch.object(
                 PaperlessClient,
                 "semantic_search",
@@ -3078,6 +3103,33 @@ class TestDocuments(TransactionCase):
         self.assertFalse(truncated)
         self.assertEqual(warnings, [])
         lexical_search.assert_not_called()
+
+    def test_semantic_search_field_uses_only_meaning_path(self):
+        document = self._document(2322, name="Meaning suggestion result")
+        with (
+            patch.object(PaperlessClient, "scoped_search") as lexical_search,
+            patch.object(
+                PaperlessClient,
+                "semantic_search",
+                return_value={
+                    "results": [{"id": document.paperless_id, "similarity": 0.9}],
+                    "warnings": [],
+                },
+            ) as semantic_search,
+        ):
+            result = self.env["usl.document"].workspace_data(
+                workspace="all",
+                search_domain=[
+                    ["semantic_text", "ilike", "renewal obligation"],
+                ],
+            )
+
+        self.assertEqual(
+            [item["id"] for item in result["documents"]],
+            [document.id],
+        )
+        lexical_search.assert_not_called()
+        semantic_search.assert_called_once()
 
     def test_workspace_validates_and_applies_every_native_list_order(self):
         tag_a = self._tag(2190, "Alpha")
@@ -3147,11 +3199,10 @@ class TestDocuments(TransactionCase):
         )
         with patch.object(
             PaperlessClient,
-            "search",
+            "scoped_search",
             return_value={
-                "count": 2,
-                "next": None,
                 "results": [{"id": 1184}, {"id": 1185}],
+                "truncated": False,
             },
         ) as search:
             result = self.env["usl.document"].with_user(self.user).workspace_data(
@@ -3163,11 +3214,8 @@ class TestDocuments(TransactionCase):
             )
         self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
         search.assert_called_once()
-        self.assertEqual(search.call_args.args[0], "")
-        self.assertEqual(
-            search.call_args.kwargs["filters"]["custom_field_query"],
-            '["Invoice reference", "icontains", "INV-QA-2026-0042"]',
-        )
+        self.assertEqual(search.call_args.args[0], "INV-QA-2026-0042")
+        self.assertEqual(search.call_args.kwargs["fields"], "custom_fields")
 
     def test_archive_id_and_custom_field_filters_keep_odoo_authorization(self):
         visible = self._document(420)
@@ -3178,11 +3226,10 @@ class TestDocuments(TransactionCase):
         )
         with patch.object(
             PaperlessClient,
-            "search",
+            "scoped_search",
             return_value={
-                "count": 2,
-                "next": None,
                 "results": [{"id": 420}, {"id": 421}],
+                "truncated": False,
             },
         ) as search:
             result = self.env["usl.document"].with_user(self.user).workspace_data(
@@ -3192,7 +3239,7 @@ class TestDocuments(TransactionCase):
             )
         self.assertEqual([item["id"] for item in result["documents"]], [visible.id])
         self.assertEqual(
-            search.call_args.kwargs["filters"]["custom_field_query"],
+            search.call_args.kwargs["custom_field_query"],
             '["Invoice reference", "icontains", "INV-QA"]',
         )
         by_id = self.env["usl.document"].with_user(self.user).workspace_data(
@@ -4503,6 +4550,48 @@ class TestPaperlessClientContract(TransactionCase):
             empty = client.semantic_search("meaning", document_ids=[])
         self.assertEqual(empty, {"results": [], "warnings": []})
         request.assert_not_called()
+
+    def test_scoped_search_posts_scope_once_and_briefly_reuses_result(self):
+        client = PaperlessClient(self.env)
+        PaperlessClient._scoped_search_cache.clear()
+        response = {
+            "results": [{"id": 7, "rank": 1}],
+            "truncated": False,
+        }
+        with patch.object(
+            client,
+            "_request",
+            return_value=(response, {}),
+        ) as request:
+            first = client.scoped_search(
+                "invoice reference",
+                document_ids=range(1, 1002),
+            )
+            second = client.scoped_search(
+                "invoice reference",
+                document_ids=range(1, 1002),
+            )
+
+        self.assertEqual(first, second)
+        request.assert_called_once()
+        self.assertEqual(
+            request.call_args.args,
+            ("POST", "/api/documents/scoped_search/"),
+        )
+        self.assertEqual(len(request.call_args.kwargs["body"]["document_ids"]), 1001)
+
+    def test_scoped_search_cache_isolated_by_authorization_scope(self):
+        client = PaperlessClient(self.env)
+        PaperlessClient._scoped_search_cache.clear()
+        with patch.object(
+            client,
+            "_request",
+            return_value=({"results": [], "truncated": False}, {}),
+        ) as request:
+            client.scoped_search("same words", document_ids=[1])
+            client.scoped_search("same words", document_ids=[2])
+
+        self.assertEqual(request.call_count, 2)
 
     def test_semantic_search_chunks_large_authorized_scopes(self):
         client = PaperlessClient(self.env)

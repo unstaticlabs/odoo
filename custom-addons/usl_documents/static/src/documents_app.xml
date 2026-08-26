@@ -379,6 +379,13 @@
                         <span t-esc="warning"/>
                     </div>
                 </div>
+                <div t-if="state.semanticRefining" class="px-3 pt-3">
+                    <div class="alert alert-info mb-0" role="status">
+                        <i class="fa fa-circle-o-notch fa-spin me-2"/>
+                        <strong>Exact matches are ready.</strong>
+                        Semantic search is still refining these results.
+                    </div>
+                </div>
                 <div t-if="state.failedOperations.length" class="px-3 pt-3">
                     <div t-foreach="state.failedOperations" t-as="operation"
                          t-key="operation.id"

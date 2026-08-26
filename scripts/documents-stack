@@ -590,37 +590,44 @@ print(
     ;;
   test-js)
     validate_config
-    provision_qa_sso
-    test_modules="$(
-      "${COMPOSE[@]}" exec -T db psql \
-        -U odoo -d "$DATABASE" -Atqc \
-        "SELECT name || ':' || state FROM ir_module_module WHERE name IN ('usl_documents', 'usl_locale') ORDER BY name"
-    )"
-    [[ "$test_modules" = $'usl_documents:installed\nusl_locale:installed' ]] || {
-      printf '%s\n' \
-        "Documents frontend tests require installed usl_documents and usl_locale modules." \
-        "Run: scripts/documents-stack $ENVIRONMENT update" \
-        "Current module states:" \
-        "${test_modules:-<missing>}" >&2
-      exit 2
+    TEST_DATABASE="${1:-odoo_test_usl_documents_js}"
+    case "$TEST_DATABASE" in
+      ""|"$DATABASE"|odoo_dev|*[!A-Za-z0-9_]*)
+        printf 'Refusing unsafe Documents frontend test database: %s\n' \
+          "$TEST_DATABASE" >&2
+        exit 2
+        ;;
+    esac
+    cleanup_js_test() {
+      "${COMPOSE[@]}" exec -T \
+        -e TEST_DATABASE="$TEST_DATABASE" db sh -c \
+        'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"' \
+        >/dev/null
+      "${COMPOSE[@]}" --profile init run --rm --no-deps \
+        --entrypoint sh -e TEST_DATABASE="$TEST_DATABASE" init-db -c '
+          directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+          if [ -d "$directory" ]; then
+            find "$directory" -mindepth 1 -delete
+            rmdir "$directory"
+          fi
+        ' >/dev/null
     }
+    trap cleanup_js_test EXIT
+    "${COMPOSE[@]}" up -d --wait --pull never db
     "${COMPOSE[@]}" --profile test build test
-    "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
-    restore_qa_odoo() {
-      "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo >/dev/null 2>&1 || true
-    }
-    trap restore_qa_odoo EXIT INT TERM
-    js_status=0
-    "${COMPOSE[@]}" --profile test run --rm test odoo \
+    cleanup_js_test
+    "${COMPOSE[@]}" --profile test run --rm \
+      -e "ODOO_DB_FILTER=^${TEST_DATABASE}$" test odoo \
       --config=/etc/odoo/odoo.conf \
-      --database="$DATABASE" \
+      --database="$TEST_DATABASE" \
+      --init=usl_documents,usl_locale \
+      --without-demo=true \
+      --test-enable \
       --test-tags="/usl_documents:WebSuite.test_unit_desktop,/usl_documents:MobileWebSuite.test_unit_mobile" \
       --stop-after-init \
-      --log-level=test \
-      || js_status=$?
-    "${COMPOSE[@]}" up -d --force-recreate --wait --pull never odoo
-    trap - EXIT INT TERM
-    ((js_status == 0)) || exit "$js_status"
+      --log-level=test
+    trap - EXIT
+    cleanup_js_test
     ;;
   *)
     usage

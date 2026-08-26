@@ -21,6 +21,7 @@ import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import { Dialog } from "@web/core/dialog/dialog";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { deserializeDate, serializeDate } from "@web/core/l10n/dates";
+import { _t } from "@web/core/l10n/translation";
 import { Pager } from "@web/core/pager/pager";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
@@ -630,10 +631,13 @@ export class DocumentsWorkspaceView extends Component {
             canUpload: false,
             truncated: false,
             warnings: [],
+            semanticRefining: false,
             starring: {},
             changingLibrary: false,
         });
         this.searchReady = false;
+        this.workspaceLoadToken = 0;
+        this.workspaceMetadataLoaded = false;
         this.metadataSaveQueue = Promise.resolve();
         useSetupAction({
             getOrderBy: () => this.state.orderBy,
@@ -1677,7 +1681,10 @@ export class DocumentsWorkspaceView extends Component {
         await this.openDocumentById(documentId, versionId);
     }
 
-    workspaceKwargs() {
+    workspaceKwargs({
+        searchMode = this.state.searchMode,
+        includeWorkspaceMetadata = !this.workspaceMetadataLoaded,
+    } = {}) {
         const linkedRecordIsActive =
             this.recordContext &&
             this.domainContains(
@@ -1693,7 +1700,8 @@ export class DocumentsWorkspaceView extends Component {
             sort: this.state.sort,
             order_by: this.state.orderBy,
             search_domain: this.searchModel.domain,
-            search_mode: this.state.searchMode,
+            search_mode: searchMode,
+            include_workspace_metadata: includeWorkspaceMetadata,
             background_mode: this.state.backgroundMode,
             // Legacy state is migrated into the native SearchModel before the
             // second load. Never apply a second hidden tag condition.
@@ -1809,57 +1817,122 @@ export class DocumentsWorkspaceView extends Component {
         ];
     }
 
+    hasProgressiveSemanticSearch() {
+        return (
+            this.state.searchMode === "hybrid" &&
+            this.domainLeaves(this.searchModel.domain).some(
+                (leaf) => leaf[0] === "all_text" && leaf[2]
+            )
+        );
+    }
+
+    applyWorkspaceResult(result) {
+        this.state.documents = result.documents;
+        this.state.count = result.count;
+        this.state.degraded = result.degraded;
+        if (result.metadata_included) {
+            this.state.smartViews = result.smart_views || [];
+            this.state.tags = result.tags || [];
+            this.state.correspondents = result.correspondents || [];
+            this.state.documentTypes = result.document_types || [];
+            this.state.companies = result.companies || [];
+            this.state.customFields = result.custom_fields || [];
+            this.state.linkFacets = result.link_facets || [];
+            this.workspaceMetadataLoaded = true;
+        }
+        this.state.canUpload = Boolean(result.can_upload);
+        this.state.failedOperations = result.failed_operations || [];
+        if (!this.state.operation && result.active_operation) {
+            this.state.operation = result.active_operation;
+            this.pollOperation(result.active_operation.id);
+        }
+        this.state.truncated = Boolean(result.truncated);
+        this.state.warnings = (result.warnings || []).map((warning) =>
+            typeof warning === "string"
+                ? warning
+                : warning.message || warning.code || "Search is partially unavailable."
+        );
+        this.state.error = result.error || "";
+        this.state.workspace = result.selected_workspace || this.state.workspace;
+        if (this.state.selected) {
+            const refreshed = result.documents.find(
+                (item) => item.id === this.state.selected.id
+            );
+            if (refreshed) {
+                this.state.selected = { ...this.state.selected, ...refreshed };
+            }
+        }
+    }
+
     async load() {
+        const loadToken = ++this.workspaceLoadToken;
+        const progressive = this.hasProgressiveSemanticSearch();
+        const includeWorkspaceMetadata = !this.workspaceMetadataLoaded;
         this.state.loading = true;
+        this.state.semanticRefining = false;
         this.state.error = "";
         try {
             const result = await this.orm.call(
                 "usl.document",
                 "workspace_data",
                 [],
-                this.workspaceKwargs()
+                this.workspaceKwargs({
+                    searchMode: progressive ? "exact" : this.state.searchMode,
+                    includeWorkspaceMetadata,
+                })
             );
-            this.state.documents = result.documents;
-            this.state.count = result.count;
-            this.state.degraded = result.degraded;
-            this.state.smartViews = result.smart_views || this.state.smartViews;
-            this.state.tags = result.tags || this.state.tags;
-            this.state.correspondents =
-                result.correspondents || this.state.correspondents;
-            this.state.documentTypes =
-                result.document_types || this.state.documentTypes;
-            this.state.companies = result.companies || this.state.companies;
-            this.state.customFields =
-                result.custom_fields || this.state.customFields;
-            this.state.linkFacets = result.link_facets || this.state.linkFacets;
-            this.state.canUpload = Boolean(result.can_upload);
-            this.state.failedOperations = result.failed_operations || [];
-            if (!this.state.operation && result.active_operation) {
-                this.state.operation = result.active_operation;
-                this.pollOperation(result.active_operation.id);
+            if (loadToken !== this.workspaceLoadToken) {
+                return;
             }
-            this.state.truncated = Boolean(result.truncated);
-            this.state.warnings = result.warnings || [];
-            this.state.error = result.error || "";
-            this.state.workspace = result.selected_workspace || this.state.workspace;
-            if (this.state.selected) {
-                const refreshed = result.documents.find(
-                    (item) => item.id === this.state.selected.id
-                );
-                if (refreshed) {
-                    this.state.selected = { ...this.state.selected, ...refreshed };
+            this.applyWorkspaceResult(result);
+            this.state.loading = false;
+            if (progressive && !result.degraded && !result.error) {
+                this.state.semanticRefining = true;
+                try {
+                    const refined = await this.orm.call(
+                        "usl.document",
+                        "workspace_data",
+                        [],
+                        this.workspaceKwargs({
+                            searchMode: "hybrid",
+                            includeWorkspaceMetadata: false,
+                        })
+                    );
+                    if (loadToken !== this.workspaceLoadToken) {
+                        return;
+                    }
+                    this.applyWorkspaceResult(refined);
+                } catch (_error) {
+                    if (loadToken === this.workspaceLoadToken) {
+                        this.state.warnings = [
+                            ...this.state.warnings,
+                            _t(
+                                "Exact matches are shown; semantic refinement is temporarily unavailable."
+                            ),
+                        ];
+                    }
+                } finally {
+                    if (loadToken === this.workspaceLoadToken) {
+                        this.state.semanticRefining = false;
+                    }
                 }
             }
         } catch (error) {
+            if (loadToken !== this.workspaceLoadToken) {
+                return;
+            }
             this.state.degraded = true;
             this.state.error =
                 error.data?.message ||
                 error.message ||
                 "The archive could not be loaded.";
         } finally {
-            this.state.loading = false;
-            this.persistState();
-            this.replaceNavigationState();
+            if (loadToken === this.workspaceLoadToken) {
+                this.state.loading = false;
+                this.state.semanticRefining = false;
+                this.persistState();
+                this.replaceNavigationState();
+            }
         }
     }
 

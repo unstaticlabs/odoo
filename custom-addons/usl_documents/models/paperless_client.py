@@ -1,6 +1,10 @@
+import copy
+import hashlib
 import json
 import logging
 import re
+import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -36,6 +40,10 @@ class PaperlessClient:
     API_VERSION = "10"
     SUPPORTED_SERVER_MAJOR = 3
     FAIL_CLOSED_WORKFLOW_NAME = "USL Odoo fail-closed ingestion"
+    _SCOPED_SEARCH_CACHE_TTL = 5.0
+    _SCOPED_SEARCH_CACHE_LIMIT = 128
+    _scoped_search_cache = {}
+    _scoped_search_cache_lock = threading.Lock()
 
     def __init__(self, env):
         self.env = env
@@ -378,6 +386,62 @@ class PaperlessClient:
             query["query" if full_text else "text"] = text
         query.update(filters or {})
         return self._request("GET", "/api/documents/", query=query)[0]
+
+    def scoped_search(
+        self,
+        text,
+        *,
+        document_ids,
+        limit=10000,
+        fields="all",
+        custom_field_query=None,
+        include_excerpt=False,
+    ):
+        """Run one bounded lexical request inside an explicit Odoo scope."""
+        scope = sorted({int(document_id) for document_id in document_ids})
+        if not scope:
+            return {"results": [], "truncated": False}
+        if fields not in {"all", "content", "custom_fields"}:
+            raise PaperlessError(_("Unsupported scoped search field set."))
+        body = {
+            "query": str(text or ""),
+            "document_ids": scope,
+            "fields": fields,
+            "limit": min(10000, max(1, int(limit))),
+            "include_excerpt": bool(include_excerpt),
+        }
+        if custom_field_query:
+            body["custom_field_query"] = custom_field_query
+        cache_material = json.dumps(
+            {
+                "base_url": self.base_url,
+                "token": hashlib.sha256(self.token.encode()).hexdigest(),
+                "body": body,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+        cache_key = hashlib.sha256(cache_material).digest()
+        now = time.monotonic()
+        with self._scoped_search_cache_lock:
+            cached = self._scoped_search_cache.get(cache_key)
+            if cached and now - cached[0] <= self._SCOPED_SEARCH_CACHE_TTL:
+                return copy.deepcopy(cached[1])
+            self._scoped_search_cache.pop(cache_key, None)
+        payload = self._request(
+            "POST",
+            "/api/documents/scoped_search/",
+            body=body,
+        )[0]
+        with self._scoped_search_cache_lock:
+            if len(self._scoped_search_cache) >= self._SCOPED_SEARCH_CACHE_LIMIT:
+                oldest_key = min(
+                    self._scoped_search_cache,
+                    key=lambda key: self._scoped_search_cache[key][0],
+                )
+                self._scoped_search_cache.pop(oldest_key, None)
+            self._scoped_search_cache[cache_key] = (now, copy.deepcopy(payload))
+        return payload
 
     def semantic_search(self, text, *, document_ids, limit=50, facets=None):
         """Search Paperless vectors inside an explicit Odoo-authorized scope."""

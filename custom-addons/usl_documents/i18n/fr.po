@@ -1631,6 +1631,18 @@ msgstr "Correspondance exacte"
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Exact matches are ready."
+msgstr "Les correspondances exactes sont prêtes."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Exact matches are shown; semantic refinement is temporarily unavailable."
+msgstr "Les correspondances exactes sont affichées ; l’affinement sémantique est temporairement indisponible."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Exact words"
 msgstr "Mots exacts"
 
@@ -4146,6 +4158,11 @@ msgstr ""
 "Recherchez parmi les valeurs de champ personnalisé Paperless synchronisées."
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document__semantic_text
+msgid "Search by meaning with the local BGE-M3 semantic index."
+msgstr "Recherchez par sens avec l’index sémantique local BGE-M3."
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid ""
@@ -4158,8 +4175,20 @@ msgstr "Recherchez par mots ou par sens, ou ajoutez un filtre de société, de d
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__all_text
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
-msgid "Search everywhere"
-msgstr "Rechercher partout"
+msgid "Search everywhere — words + meaning"
+msgstr "Rechercher partout — mots + sens"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Semantic search is still refining these results."
+msgstr "La recherche sémantique affine encore ces résultats."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document__semantic_text
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
+msgid "Semantic search — meaning only"
+msgstr "Recherche sémantique — sens uniquement"
 
 #. module: usl_documents
 #. odoo-javascript

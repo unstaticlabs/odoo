@@ -12,7 +12,6 @@ _MCP_MAX_OFFSET = 49
 _MCP_MAX_CONTENT_LENGTH = 8000
 _MCP_MAX_CONTENT_OFFSET = 1_000_000
 _MCP_EXCERPT_LENGTH = 500
-_MCP_SCOPE_CHUNK = 500
 _MCP_SEARCH_WINDOW = 50
 
 
@@ -168,45 +167,22 @@ class UslDocumentMcp(models.Model):
         if not scope:
             return [], {}, False
         scope_set = set(scope)
-        rankings = []
-        hit_by_id = {}
-        truncated = False
-        for offset in range(0, len(scope), _MCP_SCOPE_CHUNK):
-            filters = {
-                "id__in": ",".join(
-                    str(document_id)
-                    for document_id in scope[offset : offset + _MCP_SCOPE_CHUNK]
-                ),
-            }
-            payload = self._paperless().search(
-                query,
-                page=1,
-                page_size=window,
-                filters=filters,
-                full_text=False,
-            )
-            results = payload.get("results") or []
-            ranking = []
-            for item in results:
-                document_id = int(item["id"])
-                if document_id not in scope_set:
-                    continue
-                ranking.append(document_id)
-                hit_by_id.setdefault(document_id, item)
-            rankings.append(ranking)
-            truncated = truncated or bool(payload.get("next")) or int(
-                payload.get("count") or len(results),
-            ) > len(results)
-
-        merged = []
-        seen = set()
-        for rank in range(max(map(len, rankings), default=0)):
-            for ranking in rankings:
-                if rank >= len(ranking) or ranking[rank] in seen:
-                    continue
-                merged.append(ranking[rank])
-                seen.add(ranking[rank])
-        return merged[:window], hit_by_id, truncated or len(merged) > window
+        payload = self._paperless().scoped_search(
+            query,
+            document_ids=scope,
+            limit=window,
+            fields="all",
+            include_excerpt=True,
+        )
+        results = [
+            item
+            for item in payload.get("results") or []
+            if int(item["id"]) in scope_set
+        ]
+        ids = [int(item["id"]) for item in results]
+        return ids, {int(item["id"]): item for item in results}, bool(
+            payload.get("truncated"),
+        )
 
     @api.model
     def mcp_search(
@@ -262,16 +238,9 @@ class UslDocumentMcp(models.Model):
             )
             local_ids = [
                 document_id
-                for document_id in (
-                    (
-                        self._custom_field_search_ids(
-                            query,
-                            document_ids=binary_scope,
-                        )
-                        if binary_scope
-                        else []
-                    )
-                    + self._accessible_local_text_ids(query)
+                for document_id in self._accessible_local_text_ids(
+                    query,
+                    documents=candidates,
                 )
                 if document_id in candidate_paperless_ids
             ]
@@ -328,7 +297,6 @@ class UslDocumentMcp(models.Model):
             ranked_ids = self._fuse_search_rankings(
                 lexical_ids,
                 semantic_ids,
-                query,
             )
         documents_by_paperless = {
             document.paperless_id: document for document in candidates
@@ -369,7 +337,7 @@ class UslDocumentMcp(models.Model):
             results.append(
                 self._mcp_document_values(
                     documents_by_paperless[document_id],
-                    excerpt=lexical_hit.get("content") or semantic_hit.get("excerpt"),
+                    excerpt=lexical_hit.get("excerpt") or semantic_hit.get("excerpt"),
                     provenance=provenance,
                 ),
             )
