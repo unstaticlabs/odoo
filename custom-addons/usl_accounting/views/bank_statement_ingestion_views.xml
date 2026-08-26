@@ -216,6 +216,6 @@
         </field>
     </record>
 
-    <menuitem id="menu_bank_statement_reviews" name="Bank Statements" parent="account.menu_finance_entries" action="account.action_bank_statement_tree" sequence="12" groups="account.group_account_readonly,account.group_account_manager"/>
+    <menuitem id="menu_bank_statement_reviews" name="Bank Statements" parent="account.menu_finance_entries" action="account.action_bank_statement_tree" sequence="-10" groups="account.group_account_readonly,account.group_account_manager"/>
     <menuitem id="menu_bank_ingestion_config" name="Scheduled Bank Exports" parent="account.menu_finance_configuration" action="action_bank_ingestion_config" sequence="45" groups="account.group_account_manager"/>
 </odoo>
