@@ -1,3 +1,4 @@
+import ast
 import os
 import subprocess
 import unittest
@@ -23,6 +24,9 @@ RELEASE_BUNDLE_SCRIPT = ROOT / "scripts/documents-release-bundle"
 RECOVERY_SCRIPT = ROOT / "scripts/documents-recovery-test"
 MIGRATION_CANDIDATE_SCRIPT = ROOT / "scripts/migration-candidate"
 PRODUCTION_CUTOVER_SCRIPT = ROOT / "scripts/production-cutover"
+EXPENSE_BATCH_MANIFEST = (
+    ROOT / "custom-addons/usl_expense_batch/__manifest__.py"
+)
 
 
 class DocumentsRunnerSafetyTest(unittest.TestCase):
@@ -76,6 +80,13 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             "usl_platform_billing,usl_tese_payroll,usl_documents_accounting",
             script,
         )
+
+    def test_expense_batch_declares_its_documents_adapter_dependency(self):
+        manifest = ast.literal_eval(
+            EXPENSE_BATCH_MANIFEST.read_text(encoding="utf-8"),
+        )
+
+        self.assertIn("usl_documents", manifest["depends"])
 
     def test_native_bridge_checkpoints_progress_before_final_gate(self):
         script = NATIVE_BRIDGE_SCRIPT.read_text(encoding="utf-8")

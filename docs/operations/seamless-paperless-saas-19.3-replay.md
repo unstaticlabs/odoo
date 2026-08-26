@@ -74,8 +74,10 @@ because they protect different delivery paths; dropping either was rejected.
 Paperless import/export writers newly added by mainline were aligned with the
 existing runtime-user ownership rule. Mainline's task-count guard was retained
 but corrected to use Paperless 3.0.5's native `PaperlessTask` model rather than
-the unavailable `django_celery_results` package. Expense conflicts were taken
-byte-for-byte from current mainline and were not product-reviewed here.
+the unavailable `django_celery_results` package. Mainline remained authoritative
+for Expense behavior, assets, security, translations, and version history. The
+feature's pre-merge `usl_documents` dependency was retained because its
+`models/documents.py` adapter directly inherits the Documents link mixin.
 
 ## Retained and superseded changes
 
@@ -141,7 +143,7 @@ rehearsal before the active remote ref is replaced.
 
 ## Source-completion corrections
 
-Three scoped follow-up commits preserve the replay boundary while correcting
+Four scoped follow-up commits preserve the replay boundary while correcting
 issues exposed by the authorized full source run:
 
 - `581138cdd19` reconciles an old failure only when a later archive has the
@@ -154,6 +156,15 @@ issues exposed by the authorized full source run:
 - `6b3d548e06a` keeps all raw operation failures visible but blocks release only
   for a failed operation whose attachment has no archived or explicitly
   excluded final ledger outcome.
+- the final dependency correction restores `usl_documents` to
+  `usl_expense_batch` on top of mainline's newer module version and assets. A
+  whole-manifest mainline resolution was rejected because it left the retained
+  Documents adapter importing a model before its owning module loaded. Moving
+  that adapter to a new optional bridge module was also considered; it would
+  avoid making Documents mandatory for Expense Batches, but would introduce a
+  new production module, data-ownership transition, and broader review surface
+  during a bounded history replay. Restoring the adapter's original explicit
+  dependency is the smaller and already-proven final-state resolution.
 
 Credible alternatives were rejected at their authority boundaries: global ACL
 bypass versus a sudo-only backfill context, implicit attachment filtering

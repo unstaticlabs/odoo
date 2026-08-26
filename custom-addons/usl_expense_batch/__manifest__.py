@@ -1,11 +1,11 @@
 {
     "name": "USL Expense Batches",
     "summary": "Review related expenses with shared business and accounting context",
-    "version": "saas~19.3.1.2.5",
+    "version": "saas~19.3.1.2.6",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
-    "depends": ["hr_expense"],
+    "depends": ["hr_expense", "usl_documents"],
     "data": [
         "security/account_manager_groups.xml",
         "security/expense_batch_security.xml",
