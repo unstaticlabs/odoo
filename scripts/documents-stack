@@ -84,7 +84,9 @@ case "$DATABASE" in
   odoo_dev)
     if [[ "$ENVIRONMENT" != "preprod" \
         || "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" != "1" \
-        || "$PROJECT" != usl-odoo-preprod-* ]]; then
+        || "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" != "1" \
+        || ( "$PROJECT" != usl-odoo-preprod-* \
+          && "$PROJECT" != usl-odoo-paperless-* ) ]]; then
       printf 'Refusing unsafe Documents database: %s\n' "$DATABASE" >&2
       exit 2
     fi
@@ -96,13 +98,19 @@ ENV_FILES=(--env-file "$ENV_FILE")
 if [[ -n "$SSO_ENV_FILE" ]]; then
   ENV_FILES+=(--env-file "$SSO_ENV_FILE")
 fi
+COMPOSE_OVERRIDE=(-f "$OVERRIDE")
+if [[ "$ENVIRONMENT" = "preprod" \
+    && "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
+    && "$PROJECT" = usl-odoo-paperless-* ]]; then
+  COMPOSE_OVERRIDE=()
+fi
 COMPOSE=(
   docker compose
   "${ENV_FILES[@]}"
   -p "$PROJECT"
   -f "$ROOT/compose.yaml"
   -f "$ROOT/compose.pocket-id.yaml"
-  -f "$OVERRIDE"
+  "${COMPOSE_OVERRIDE[@]}"
   --profile paperless
 )
 SERVICES=(
@@ -233,7 +241,8 @@ validate_config() {
   if [[ "$ENVIRONMENT" = "preprod" ]]; then
     if [[ "${USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY:-0}" = "1" \
         && "${USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY:-0}" = "1" \
-        && "$PROJECT" = usl-odoo-preprod-* ]]; then
+        && ( "$PROJECT" = usl-odoo-preprod-* \
+          || "$PROJECT" = usl-odoo-paperless-* ) ]]; then
       grep -Fq "USL_DEPLOYMENT_ENV: qa" <<<"$config" || {
         printf 'Local pre-production recovery must keep QA live guards.\n' >&2
         return 1

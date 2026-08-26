@@ -894,11 +894,62 @@ response`; no document, permission or vector row is missing, and the supported
 final update reconciled its state. The row was not acknowledged, deleted or
 rewritten.
 
-The source module version is now `saas~19.3.1.7.3`. Deployment to the retained
-source-complete Odoo database remains a separate gate: current mainline adds a
-Documents mixin dependency to an already-installed Expense module, so the old
-database dependency metadata cannot load the new registry until that inherited
-base module is included in one update. The Documents-only update was attempted
-and failed closed before module work. This task's Expense exclusion prevented
-performing that base migration without explicit operator approval; no
-workaround, direct SQL change or out-of-scope source edit was used.
+The source module version is now `saas~19.3.1.7.3`. The retained Documents
+adapter in `usl_expense_batch` inherits `usl.document.link.mixin`, so its
+manifest must declare `usl_documents`. Retaining mainline's whole manifest
+without that feature dependency caused the registry to fail closed before any
+module update. After explicit operator approval, the missing dependency was
+restored on top of mainline's Expense assets, security, translations and
+version history; `usl_expense_batch` is now `saas~19.3.1.2.6`. Moving the
+adapter into a new optional bridge module was rejected because it would create
+a new delivered module and data-ownership transition during a bounded replay.
+
+### 2026-08-26 final deployment, test and recovery evidence
+
+The dependency correction was deployed first to `usl_expense_batch`, then to
+`usl_locale`, `usl_documents` and `usl_documents_accounting`, followed by an
+unchanged repeated combined update. All three updates loaded the complete
+100-module registry and returned a healthy runtime. Installed versions are
+`usl_documents saas~19.3.1.7.3`, `usl_documents_accounting
+saas~19.3.1.2.1`, `usl_expense_batch saas~19.3.1.2.6`, `usl_locale
+saas~19.3.1.3.0` and `usl_pocketid saas~19.3.1.1.0`.
+
+A focused backend invocation against the persistent QA database was invalid:
+the suite creates `documents-user`, which that database already contains, so
+PostgreSQL rejected the duplicate login before the selected tests could run.
+The tests and QA users were not changed. The complete module gate was rerun in
+the disposable `odoo_documents_final_20260826` database and automatically
+cleaned afterward. It passed 156 post-tests with zero failures or errors and
+162 Documents entries, including the multi-company cases, 31 desktop browser
+tests/215 assertions and 28 mobile tests/207 assertions. Runner safety now
+passes 24 tests. Manifest parsing, XML parsing, Python compilation, shell
+syntax, changed-file Ruff, `git diff --check`, source boundary and the live
+12-module product-database boundary also pass. A broad informational Ruff run
+reported 23 pre-existing findings only in untouched files; they were not
+rewritten as unrelated formatting churn.
+
+The final recovery rehearsal exposed and corrected two fail-closed tooling
+gaps. First, an isolated ARM64 development project must use its mounted add-ons
+while a true `usl-odoo-preprod-*` project must retain the immutable-image
+overlay. The local path now requires both explicit `odoo_dev` recovery flags
+and a `usl-odoo-paperless-*` project name. Second, the coordinated backup now
+includes the pinned Ollama model volume; downloading a model during recovery
+was rejected as network-dependent and weaker proof. The completed rehearsal
+restored Odoo independently before Paperless, then passed cross-system
+acceptance with 867 document roots, 917 relationships, three companies, 11
+active internal users, 5,428 accounting moves, 12,991 move lines, balanced
+posted debit/credit of `2900936.82`, a checksum-verified Paperless binary and
+preview, source/restored integrity true and zero permission-sync failures. Its
+temporary project, volumes and artifacts were deleted automatically, and the
+source QA stack returned healthy.
+
+The final live identity gate covers all nine governed human users with zero
+unsynchronized visible roots. Odoo inventory remains deliberately partial only
+because operation 908, `qa-corrupted-upload.pdf`, is still failed,
+unacknowledged and has no source attachment; it was not hidden or weakened.
+All archive, relationship, checksum, permission, migration-boundary, queue and
+vector checks otherwise pass. Manual browser checkpoints and later
+`linux/amd64` production qualification remain operator-owned; local development
+and this rehearsal are intentionally ARM64. The sealed deterministic
+`documents-smoke` digest remains
+`dd955252deedc444414b7d31764c751ce93e7643c5de1a966320be9c8153945e`.

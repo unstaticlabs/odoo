@@ -174,3 +174,15 @@ qualification gate. The selected corrections add no old mainline ancestry and
 do not replace current saas~19.3 multi-company identity, metadata-cache,
 translation, dependency, module-version, Accounting, Expense, infrastructure,
 or reconstruction state.
+
+The final local recovery rehearsal also compared two implementation choices.
+Cloning `odoo_dev` and its filestore under a synthetic database name would have
+avoided the old project-prefix guard, but would mutate extra state and test a
+different deployment. The selected guard instead requires both explicit local
+recovery flags, accepts only the existing preprod prefix or the bounded
+`usl-odoo-paperless-*` worktree prefix, and keeps the canonical project
+forbidden. Re-downloading the pinned Ollama model during restore was rejected
+because it makes recovery network-dependent; the qualified model volume now
+travels with the checksummed coordinated backup. True preproduction keeps its
+immutable-image overlay, while the explicitly local ARM64 rehearsal uses the
+same mounted add-ons as its source QA runtime.

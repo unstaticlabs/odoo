@@ -292,6 +292,22 @@ class DocumentsRunnerSafetyTest(unittest.TestCase):
             cutover,
         )
 
+    def test_local_recovery_accepts_only_explicit_isolated_odoo_dev_scopes(self):
+        recovery = RECOVERY_SCRIPT.read_text(encoding="utf-8")
+        stack = (ROOT / "scripts/documents-stack").read_text(encoding="utf-8")
+
+        for script in (recovery, stack):
+            self.assertIn("USL_DOCUMENTS_ALLOW_ODOO_DEV_RECOVERY", script)
+            self.assertIn("USL_DOCUMENTS_LOCAL_PREPROD_RECOVERY", script)
+            self.assertIn("usl-odoo-preprod-*", script)
+            self.assertIn("usl-odoo-paperless-*", script)
+            self.assertNotIn('"$PROJECT" = "*"', script)
+        self.assertIn("LOCAL_DEV_RECOVERY", recovery)
+        self.assertIn("SOURCE_OVERRIDE=()", recovery)
+        self.assertIn("COMPOSE_OVERRIDE=()", stack)
+        self.assertIn("SOURCE_PAPERLESS_OLLAMA_VOLUME", recovery)
+        self.assertIn("paperless-ollama-data.tgz", recovery)
+
     def test_partial_profiles_are_explicit_and_never_reuse_checkpoint(self):
         target = TARGET_SCRIPT.read_text(encoding="utf-8")
 
