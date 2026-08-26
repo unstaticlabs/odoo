@@ -953,3 +953,97 @@ vector checks otherwise pass. Manual browser checkpoints and later
 and this rehearsal are intentionally ARM64. The sealed deterministic
 `documents-smoke` digest remains
 `dd955252deedc444414b7d31764c751ce93e7643c5de1a966320be9c8153945e`.
+
+### 2026-08-26 scoped lexical and progressive search qualification
+
+Documents search now presents exactly two meaning-based paths. **Search
+everywhere — words + meaning** returns the exact lexical result set first and
+then appends new BGE-M3 matches without changing the lexical order. **Semantic
+search — meaning only** goes directly to the local BGE-M3 index. The French
+labels explicitly say `Rechercher partout — mots + sens` and `Recherche
+sémantique — sens uniquement`. Specific title, OCR/archive, tag,
+correspondent, document-type and custom-field suggestions remain lexical; no
+Gemini or other generative model participates in search.
+
+Two credible Paperless resolution strategies were compared. Concurrent calls
+to the existing document-list GET endpoint would reduce wall time but would
+still execute one Tantivy query per custom field, repeatedly parse the same
+authorization scope and split large ID lists across URLs. It was superseded by
+one authenticated `POST /api/documents/scoped_search/`: the endpoint
+intersects at most 50,000 supplied root IDs with Paperless permissions, applies
+an optional structured custom-field filter, and runs one native Tantivy query
+over the selected indexed companion fields. A custom standalone search engine
+or an Odoo-side text mirror was also rejected because it would duplicate
+Paperless indexing, ACL and lifecycle state. MCP may ask the same POST for at
+most 50 bounded OCR excerpts; the normal UI response remains ID/rank only.
+
+Two ranking strategies were compared. Reciprocal-rank fusion was rejected
+because a high semantic score could move an approximate result above an exact
+match. The selected merge retains lexical order as a strict prefix and appends
+only semantic IDs not already present. The web client publishes that exact
+prefix immediately with a visible refinement banner, ignores stale async
+responses, and keeps exact results with a warning if semantic retrieval fails.
+
+Odoo computes the accessible root set once per request and reuses it for
+lexical and semantic calls. Paperless receives the lexical scope once in the
+POST body. Invariant workspace catalogs and facets are omitted from refinement
+RPCs after the initial load. Identical scoped requests use a process-local,
+authorization-sensitive five-second cache with a 128-entry bound; the cache
+key includes the Paperless URL, token hash, full request body and document
+scope, and failed requests are never cached.
+
+The rebuilt Paperless 3.0.5 overlay upgraded only its native Tantivy schema
+from 1 to 2, adding indexed archive-metadata and custom-field companion text;
+it did not rerun OCR. On the 874-root ARM64 QA archive, the bounded lexical
+endpoint returned the exact `INV-QA-2026-0042` document in approximately
+394–398 ms from a cold process, 19–20 ms warm, and 10.6 ms for a custom-field
+query. Browser qualification displayed that exact invoice first in 855 ms,
+then completed semantic refinement while retaining it. A semantic-only
+paraphrase returned the intended invoice in 1.081 seconds.
+
+The complete final backend gate passed 161 post-test methods (169 tagged
+entries) with zero failures or errors; desktop passed 32 tests/223 assertions
+and mobile passed 29 tests/215 assertions. Seventeen Paperless endpoint tests,
+module install, module update, unchanged repeated update, manifest/XML/Python/
+JavaScript/shell/static checks, the 12-module product/migration boundary and
+the live cross-system acceptance all passed. The latter created and recovered
+a deterministic document, metadata, custom field, duplicate, version, Trash,
+relationship, checksum, permission and multi-company scenario and ended with
+874 Paperless roots, two versions and one relationship for its marker. The
+full isolated recovery rehearsal also passed with 871 restored roots, 920
+relationships, three companies, 11 users, 5,428 accounting moves, 12,991 move
+lines, balanced posted debit/credit of `2900936.82`, zero permission failures
+and automatic cleanup. The sealed deterministic smoke digest above remains
+the reconstruction baseline because neither migration nor reconstruction
+source changed.
+
+The final Paperless image has local manifest-list digest
+`sha256:bc8687820f2a765b33e7e5cf1e2a9fd8411489366487c16f9b1ad377d129f87b`
+and config digest
+`sha256:ca46caa6fbb62a12dc907e04cd4d52f31fb94b0d55c2473c38843e9381d28a99`.
+It was recreated in the isolated QA stack, followed by a successful module
+update and unchanged repeated update of the 100-module registry. A live MCP
+exact search then returned one result with a 182-character bounded lexical
+excerpt, and the final source/database product boundary passed with 12 product
+modules and no migration registry or schema residue.
+
+Known validation noise is retained: the first translation and Ruff commands
+lacked their container dependencies and passed when rerun in the development
+image; the first frontend attempt correctly failed because persistent QA uses
+Pocket SSO rather than `admin/admin`, after which the runner was corrected to
+use a disposable database and passed; two migration-boundary invocations were
+rejected by their project-scope guard before the corrected isolated invocation
+passed; and a PDF acceptance step emitted a `wkhtmltopdf` host-resolution
+warning while still producing and verifying the report. A repository-wide
+format check still reports eight pre-existing large-file formatting drifts, so
+those untouched areas were not rewritten.
+
+Remaining risks are bounded and explicit. The 50,000-ID lexical scope is ample
+for the current archive but must be revisited before that population is
+approached. The five-second cache is per Odoo worker rather than shared.
+Production remains `linux/amd64`, so the Paperless image and BGE-M3 release
+still require the planned AMD64 release qualification; development and this
+evidence intentionally use ARM64. A warm semantic response can make the
+progress banner brief, and an unrelated Pocket profile-page console exception
+was observed immediately after one-time-link login, with no Documents-page
+error observed.
