@@ -1,4 +1,6 @@
+import json
 import re
+from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
@@ -34,24 +36,34 @@ class UslDocumentMcp(models.Model):
     def _mcp_candidate_documents(
         self,
         *,
+        saved_view=None,
         company_id=None,
         tag_ids=None,
         correspondent_id=None,
         document_type_id=None,
         date_from=None,
         date_to=None,
+        added_from=None,
+        added_to=None,
+        source=None,
+        confidentiality=None,
+        review_state=None,
+        linked_state=None,
+        linked_model=None,
+        linked_id=None,
         background_mode="include",
     ):
         self.check_access("read")
         if background_mode not in ("include", "exclude", "only"):
             raise ValidationError(_("Unsupported archive visibility filter."))
-        domain = [
+        domain = list(saved_view.document_domain()) if saved_view else []
+        domain.append(
             (
                 "availability_state",
                 "not in",
                 ("trashed", "permanently_deleted"),
             ),
-        ]
+        )
         if background_mode == "exclude":
             domain.append(("is_prominent", "=", True))
         elif background_mode == "only":
@@ -67,14 +79,120 @@ class UslDocumentMcp(models.Model):
             domain.append(("correspondent_id", "=", int(correspondent_id)))
         if document_type_id:
             domain.append(("document_type_id", "=", int(document_type_id)))
-        for value, operator in ((date_from, ">="), (date_to, "<=")):
+        for value, operator, field_name in (
+            (date_from, ">=", "document_date"),
+            (date_to, "<=", "document_date"),
+            (added_from, ">=", "archive_added_at"),
+            (added_to, "<", "archive_added_at"),
+        ):
             if value:
                 try:
                     parsed = fields.Date.to_date(value)
                 except (TypeError, ValueError) as error:
                     raise ValidationError(_("Invalid date filter.")) from error
-                domain.append(("document_date", operator, parsed))
-        return self.search(domain, order="id")
+                if value == added_to and field_name == "archive_added_at":
+                    parsed += timedelta(days=1)
+                domain.append((field_name, operator, parsed))
+        if source:
+            if source not in dict(self._fields["source"].selection):
+                raise ValidationError(_("Invalid document source filter."))
+            domain.append(("source", "=", source))
+        if confidentiality:
+            if confidentiality not in dict(self._fields["confidentiality"].selection):
+                raise ValidationError(_("Invalid confidentiality filter."))
+            domain.append(("confidentiality", "=", confidentiality))
+        if review_state:
+            if review_state not in dict(self._fields["review_state"].selection):
+                raise ValidationError(_("Invalid review-state filter."))
+            domain.append(("review_state", "=", review_state))
+        if linked_model or linked_id:
+            if (
+                linked_model not in self.env["usl.document.link"]._allowed_models()
+                or not linked_id
+            ):
+                raise ValidationError(_("Invalid linked-record filter."))
+            linked_record = self.env[linked_model].browse(int(linked_id)).exists()
+            if not linked_record:
+                raise ValidationError(_("The linked Odoo record no longer exists."))
+            linked_record.check_access("read")
+            domain.append(
+                ("linked_record_ref", "=", f"{linked_model}:{int(linked_id)}"),
+            )
+        elif linked_state:
+            if linked_state not in ("linked", "unlinked"):
+                raise ValidationError(_("Invalid linked-document filter."))
+            domain.append(
+                ("has_linked_record", "=", linked_state == "linked"),
+            )
+        return self.search(
+            domain,
+            order="document_date desc, archive_added_at desc, id desc",
+        )
+
+    @api.model
+    def _mcp_saved_view(self, saved_view_id):
+        self.check_access("read")
+        if not saved_view_id:
+            return self.env["usl.document.smart.view"]
+        try:
+            saved_view_id = int(saved_view_id)
+        except (TypeError, ValueError) as error:
+            raise AccessError(_("The saved view is unavailable.")) from error
+        saved_view = (
+            self.env["usl.document.smart.view"]
+            .accessible_views()
+            .filtered(lambda item: item.id == saved_view_id)[:1]
+        )
+        if not saved_view:
+            raise AccessError(_("The saved view is unavailable."))
+        return saved_view
+
+    @api.model
+    def _mcp_saved_view_filters(self, saved_view):
+        if not saved_view or saved_view.system_rule != "saved":
+            return {}
+        try:
+            filters = json.loads(saved_view.filter_json or "{}")
+        except (TypeError, ValueError) as error:
+            raise ValidationError(_("Invalid saved view filters.")) from error
+        if not isinstance(filters, dict):
+            raise ValidationError(_("Invalid saved view filters."))
+        return filters
+
+    @api.model
+    def _mcp_saved_view_values(self, saved_view):
+        workspace = saved_view.workspace_values()
+        return {
+            "id": saved_view.id,
+            "key": saved_view.key or f"view:{saved_view.id}",
+            "name": saved_view.name,
+            "scope": saved_view.scope,
+            "system_rule": saved_view.system_rule,
+            "archive_native": saved_view.archive_native,
+            "needs_attention": saved_view.paperless_sync_state == "failed",
+            "filters": workspace.get("filters") or {},
+            "tags": [
+                {"id": item.id, "name": item.name}
+                for item in saved_view.tag_ids.filtered("active")
+            ],
+            "correspondents": [
+                {"id": item.id, "name": item.name}
+                for item in saved_view.correspondent_ids.filtered("active")
+            ],
+            "document_types": [
+                {"id": item.id, "name": item.name}
+                for item in saved_view.document_type_ids.filtered("active")
+            ],
+            "quick_filters": [
+                {
+                    "id": item["id"],
+                    "key": item["key"],
+                    "name": item["name"],
+                    "kind": item["kind"],
+                }
+                for item in workspace.get("quick_filters") or []
+            ],
+        }
 
     @api.model
     def _mcp_binary_documents(self, documents):
@@ -187,23 +305,38 @@ class UslDocumentMcp(models.Model):
     @api.model
     def mcp_search(
         self,
-        query,
+        query="",
         *,
         mode="hybrid",
         limit=10,
         offset=0,
+        saved_view_id=None,
         company_id=None,
         tag_ids=None,
         correspondent_id=None,
         document_type_id=None,
         date_from=None,
         date_to=None,
+        added_from=None,
+        added_to=None,
+        source=None,
+        confidentiality=None,
+        review_state=None,
+        linked_state=None,
+        linked_model=None,
+        linked_id=None,
         background_mode="include",
     ):
-        query = str(query or "").strip()
+        saved_view = self._mcp_saved_view(saved_view_id)
+        saved_filters = self._mcp_saved_view_filters(saved_view)
+
+        def saved_default(value, key):
+            return value if value not in (None, "", []) else saved_filters.get(key)
+
+        query = str(query or saved_filters.get("query") or "").strip()
         limit = int(limit)
         offset = int(offset)
-        if not query or len(query) > _MCP_MAX_QUERY_LENGTH:
+        if (not query and not saved_view) or len(query) > _MCP_MAX_QUERY_LENGTH:
             raise ValidationError(_("Invalid document search query."))
         if mode not in ("hybrid", "exact", "semantic"):
             raise ValidationError(_("Unsupported archive search mode."))
@@ -212,15 +345,55 @@ class UslDocumentMcp(models.Model):
         if offset + limit > _MCP_SEARCH_WINDOW:
             raise ValidationError(_("Invalid document search pagination."))
 
+        linked_record = saved_filters.get("linked_record")
+        if linked_record and not (linked_model or linked_id):
+            try:
+                linked_model, linked_id = linked_record.split(":", 1)
+            except (AttributeError, ValueError) as error:
+                raise ValidationError(_("Invalid linked-record filter.")) from error
         candidates = self._mcp_candidate_documents(
-            company_id=company_id,
-            tag_ids=tag_ids,
-            correspondent_id=correspondent_id,
-            document_type_id=document_type_id,
-            date_from=date_from,
-            date_to=date_to,
+            saved_view=saved_view,
+            company_id=saved_default(company_id, "company_id"),
+            tag_ids=saved_default(tag_ids, "tag_ids"),
+            correspondent_id=saved_default(correspondent_id, "correspondent_id"),
+            document_type_id=saved_default(document_type_id, "document_type_id"),
+            date_from=saved_default(date_from, "date_from"),
+            date_to=saved_default(date_to, "date_to"),
+            added_from=saved_default(added_from, "added_from"),
+            added_to=saved_default(added_to, "added_to"),
+            source=saved_default(source, "source"),
+            confidentiality=saved_default(confidentiality, "confidentiality"),
+            review_state=saved_default(review_state, "review_state"),
+            linked_state=saved_default(linked_state, "linked_state"),
+            linked_model=linked_model,
+            linked_id=linked_id,
             background_mode=background_mode,
         )
+        if saved_view and saved_view.system_rule == "archive_search" and not query:
+            candidates = self.browse()
+        saved_view_values = (
+            self._mcp_saved_view_values(saved_view) if saved_view else False
+        )
+        if not query:
+            page = candidates[offset : offset + limit]
+            return {
+                "results": [
+                    self._mcp_document_values(
+                        document,
+                        provenance=[{"source": "odoo_saved_view"}],
+                    )
+                    for document in page
+                ],
+                "count": len(page),
+                "offset": offset,
+                "limit": limit,
+                "has_more": len(candidates) > offset + len(page),
+                "truncated": False,
+                "warnings": [],
+                "mode": "browse",
+                "query": "",
+                "saved_view": saved_view_values,
+            }
         binary_candidates = self._mcp_binary_documents(candidates)
         binary_scope = binary_candidates.mapped("paperless_id")
         candidate_paperless_ids = set(candidates.mapped("paperless_id"))
@@ -349,6 +522,9 @@ class UslDocumentMcp(models.Model):
             "has_more": len(ranked_ids) > offset + len(results),
             "truncated": truncated,
             "warnings": warnings,
+            "mode": mode,
+            "query": query,
+            "saved_view": saved_view_values,
         }
 
     @api.model
@@ -391,17 +567,26 @@ class UslDocumentMcp(models.Model):
         document_id,
         *,
         limit=10,
+        saved_view_id=None,
         company_id=None,
         tag_ids=None,
         correspondent_id=None,
         document_type_id=None,
         date_from=None,
         date_to=None,
+        added_from=None,
+        added_to=None,
+        source=None,
+        confidentiality=None,
+        review_state=None,
+        linked_state=None,
+        linked_model=None,
+        linked_id=None,
         background_mode="include",
     ):
-        source = self._mcp_visible_document(document_id)
+        source_document = self._mcp_visible_document(document_id)
         try:
-            archive_available = source._check_archive_binary_access()
+            archive_available = source_document._check_archive_binary_access()
         except AccessError as error:
             raise AccessError(_("The document is unavailable.")) from error
         if not archive_available:
@@ -409,22 +594,52 @@ class UslDocumentMcp(models.Model):
         limit = int(limit)
         if not 1 <= limit <= _MCP_MAX_RESULTS:
             raise ValidationError(_("Invalid document search pagination."))
+        saved_view = self._mcp_saved_view(saved_view_id)
+        saved_filters = self._mcp_saved_view_filters(saved_view)
+
+        def saved_default(value, key):
+            return value if value not in (None, "", []) else saved_filters.get(key)
+
+        linked_record = saved_filters.get("linked_record")
+        if linked_record and not (linked_model or linked_id):
+            try:
+                linked_model, linked_id = linked_record.split(":", 1)
+            except (AttributeError, ValueError) as error:
+                raise ValidationError(_("Invalid linked-record filter.")) from error
         candidates = self._mcp_binary_documents(
             self._mcp_candidate_documents(
-                company_id=company_id,
-                tag_ids=tag_ids,
-                correspondent_id=correspondent_id,
-                document_type_id=document_type_id,
-                date_from=date_from,
-                date_to=date_to,
+                saved_view=saved_view,
+                company_id=saved_default(company_id, "company_id"),
+                tag_ids=saved_default(tag_ids, "tag_ids"),
+                correspondent_id=saved_default(
+                    correspondent_id,
+                    "correspondent_id",
+                ),
+                document_type_id=saved_default(
+                    document_type_id,
+                    "document_type_id",
+                ),
+                date_from=saved_default(date_from, "date_from"),
+                date_to=saved_default(date_to, "date_to"),
+                added_from=saved_default(added_from, "added_from"),
+                added_to=saved_default(added_to, "added_to"),
+                source=saved_default(source, "source"),
+                confidentiality=saved_default(
+                    confidentiality,
+                    "confidentiality",
+                ),
+                review_state=saved_default(review_state, "review_state"),
+                linked_state=saved_default(linked_state, "linked_state"),
+                linked_model=linked_model,
+                linked_id=linked_id,
                 background_mode=background_mode,
             ),
-        ).filtered(lambda item: item.id != source.id)
+        ).filtered(lambda item: item.id != source_document.id)
         requested_scope = sorted(
-            set(candidates.mapped("paperless_id")) | {source.paperless_id},
+            set(candidates.mapped("paperless_id")) | {source_document.paperless_id},
         )
-        payload = source._paperless().semantic_search_by_document(
-            source.paperless_id,
+        payload = source_document._paperless().semantic_search_by_document(
+            source_document.paperless_id,
             document_ids=requested_scope,
             limit=limit,
         )
@@ -435,7 +650,7 @@ class UslDocumentMcp(models.Model):
         for item in payload.get("results") or []:
             paperless_id = int(item["id"])
             document = candidates_by_paperless.get(paperless_id)
-            if not document or document.id == source.id:
+            if not document or document.id == source_document.id:
                 continue
             results.append(
                 self._mcp_document_values(
@@ -453,10 +668,13 @@ class UslDocumentMcp(models.Model):
             if len(results) >= limit:
                 break
         return {
-            "source_document_id": source.id,
+            "source_document_id": source_document.id,
             "results": results,
             "count": len(results),
             "warnings": payload.get("warnings") or [],
+            "saved_view": (
+                self._mcp_saved_view_values(saved_view) if saved_view else False
+            ),
         }
 
     @api.model
@@ -495,6 +713,34 @@ class UslDocumentMcp(models.Model):
                 }
                 for version in versions
             ],
+        }
+
+    @api.model
+    def mcp_list_saved_views(self, *, query="", scope="all", limit=100, offset=0):
+        self.check_access("read")
+        limit = int(limit)
+        offset = int(offset)
+        if not 1 <= limit <= 100 or not 0 <= offset <= 1000:
+            raise ValidationError(_("Invalid saved view pagination."))
+        if scope not in ("all", "shared", "personal"):
+            raise ValidationError(_("Invalid saved view scope."))
+        views = self.env["usl.document.smart.view"].accessible_views()
+        if scope != "all":
+            views = views.filtered(lambda item: item.scope == scope)
+        normalized_query = str(query or "").strip().casefold()[:200]
+        if normalized_query:
+            views = views.filtered(
+                lambda item: normalized_query in item.name.casefold(),
+            )
+        views = views.sorted(
+            key=lambda item: (item.scope, item.sequence, item.name.casefold(), item.id),
+        )
+        page = views[offset : offset + limit]
+        return {
+            "results": [self._mcp_saved_view_values(item) for item in page],
+            "offset": offset,
+            "limit": limit,
+            "has_more": len(views) > offset + len(page),
         }
 
     @api.model

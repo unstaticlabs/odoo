@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from odoo import Command
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 from odoo.addons.mail.tests.common import mail_new_test_user
@@ -27,9 +27,37 @@ class TestDocumentsMcp(TransactionCase):
             company_ids=[Command.set(cls.company_a.ids)],
             groups="usl_documents.group_documents_user",
         )
+        cls.other_user = mail_new_test_user(
+            cls.env,
+            login="documents-mcp-other",
+            name="Documents MCP Other User",
+            company_id=cls.company_a.id,
+            company_ids=[Command.set(cls.company_a.ids)],
+            groups="usl_documents.group_documents_user",
+        )
+        cls.manager = mail_new_test_user(
+            cls.env,
+            login="documents-mcp-manager",
+            name="Documents MCP Manager",
+            company_id=cls.company_a.id,
+            company_ids=[Command.set(cls.company_a.ids)],
+            groups="usl_documents.group_documents_manager",
+        )
         cls.scope_tag = cls.env["usl.paperless.tag"].sudo().with_context(
             usl_documents_cache_write=True,
         ).create({"paperless_id": 99001, "name": "MCP Isolated Scope"})
+        cls.scope_correspondent = (
+            cls.env["usl.paperless.correspondent"]
+            .sudo()
+            .with_context(usl_documents_cache_write=True)
+            .create({"paperless_id": 99002, "name": "MCP Scoped Correspondent"})
+        )
+        cls.scope_document_type = (
+            cls.env["usl.paperless.document.type"]
+            .sudo()
+            .with_context(usl_documents_cache_write=True)
+            .create({"paperless_id": 99003, "name": "MCP Scoped Type"})
+        )
 
     def _document(self, paperless_id, **values):
         return self.env["usl.document"].sudo().create(
@@ -179,6 +207,196 @@ class TestDocumentsMcp(TransactionCase):
         self.assertEqual(result["results"][0]["id"], document.id)
         self.assertEqual(result["warnings"][0]["code"], "semantic_unavailable")
 
+    def test_saved_view_browse_applies_personal_filters_without_paperless(self):
+        allowed = self._document(
+            51061,
+            name="Saved view result",
+            tag_ids=[Command.set(self.scope_tag.ids)],
+        )
+        self._document(51062, name="Outside saved view")
+        view_values = self.env["usl.document.smart.view"].with_user(
+            self.user,
+        ).save_personal_view(
+            "MCP tag view",
+            {"tag_ids": self.scope_tag.ids},
+        )
+        documents = self.env["usl.document"].with_user(self.user)
+
+        with (
+            patch.object(PaperlessClient, "scoped_search") as lexical,
+            patch.object(PaperlessClient, "semantic_search") as semantic,
+        ):
+            result = documents.mcp_search(saved_view_id=view_values["id"])
+
+        self.assertEqual([item["id"] for item in result["results"]], [allowed.id])
+        self.assertEqual(result["mode"], "browse")
+        self.assertEqual(result["saved_view"]["name"], "MCP tag view")
+        self.assertEqual(
+            result["results"][0]["provenance"],
+            [{"source": "odoo_saved_view"}],
+        )
+        lexical.assert_not_called()
+        semantic.assert_not_called()
+
+    def test_saved_view_query_scopes_semantic_search(self):
+        allowed = self._document(
+            51063,
+            name="Semantic saved result",
+            tag_ids=[Command.set(self.scope_tag.ids)],
+        )
+        outside = self._document(51064, name="Outside semantic saved view")
+        view_values = self.env["usl.document.smart.view"].with_user(
+            self.user,
+        ).save_personal_view(
+            "MCP semantic view",
+            {
+                "query": "renewal obligations",
+                "tag_ids": self.scope_tag.ids,
+            },
+        )
+        documents = self.env["usl.document"].with_user(self.user)
+
+        with (
+            patch.object(PaperlessClient, "scoped_search") as lexical,
+            patch.object(
+                PaperlessClient,
+                "semantic_search",
+                return_value={
+                    "results": [
+                        {"id": outside.paperless_id, "similarity": 0.99},
+                        {"id": allowed.paperless_id, "similarity": 0.82},
+                    ],
+                    "warnings": [],
+                },
+            ) as semantic,
+        ):
+            result = documents.mcp_search(
+                saved_view_id=view_values["id"],
+                mode="semantic",
+            )
+
+        self.assertEqual(result["query"], "renewal obligations")
+        self.assertEqual([item["id"] for item in result["results"]], [allowed.id])
+        self.assertEqual(
+            semantic.call_args.kwargs["document_ids"],
+            [allowed.paperless_id],
+        )
+        lexical.assert_not_called()
+
+    def test_saved_view_browse_applies_complete_structured_filter_scope(self):
+        project = self.env["project.project"].create({"name": "MCP Filter Project"})
+        allowed = self._document(
+            51065,
+            name="Complete saved filter result",
+            tag_ids=[Command.set(self.scope_tag.ids)],
+            correspondent_id=self.scope_correspondent.id,
+            document_type_id=self.scope_document_type.id,
+            document_date="2026-08-15",
+            paperless_created="2026-08-10 10:00:00",
+            confidentiality="accounting",
+            review_state="reviewed",
+            source="paperless",
+        )
+        self._document(
+            51066,
+            name="Outside complete saved filter",
+            tag_ids=[Command.set(self.scope_tag.ids)],
+            correspondent_id=self.scope_correspondent.id,
+            document_type_id=self.scope_document_type.id,
+            document_date="2026-08-15",
+            paperless_created="2026-08-10 10:00:00",
+            confidentiality="internal",
+            review_state="reviewed",
+            source="paperless",
+        )
+        self.env["usl.document.link"].sudo().with_context(
+            usl_documents_link_policy_write=True,
+        ).create(
+            {
+                "document_id": allowed.id,
+                "res_model": project._name,
+                "res_id": project.id,
+                "record_name": project.display_name,
+                "company_id": self.company_a.id,
+                "active": True,
+            },
+        )
+        view_values = self.env["usl.document.smart.view"].with_user(
+            self.user,
+        ).save_personal_view(
+            "MCP complete filter view",
+            {
+                "company_id": self.company_a.id,
+                "tag_ids": self.scope_tag.ids,
+                "correspondent_id": self.scope_correspondent.id,
+                "document_type_id": self.scope_document_type.id,
+                "date_from": "2026-08-01",
+                "date_to": "2026-08-31",
+                "added_from": "2026-08-01",
+                "added_to": "2026-08-31",
+                "source": "paperless",
+                "confidentiality": "accounting",
+                "review_state": "reviewed",
+                "linked_state": "linked",
+                "linked_record": f"{project._name}:{project.id}",
+            },
+        )
+
+        result = self.env["usl.document"].with_user(self.user).mcp_search(
+            saved_view_id=view_values["id"],
+        )
+
+        self.assertEqual([item["id"] for item in result["results"]], [allowed.id])
+        self.assertEqual(result["saved_view"]["filters"]["linked_state"], "linked")
+
+    def test_saved_views_list_only_shared_and_callers_personal_views(self):
+        shared = self.env["usl.document.smart.view"].with_user(self.manager).create(
+            {
+                "name": "MCP shared saved view",
+                "scope": "shared",
+                "system_rule": "metadata",
+                "tag_ids": [Command.set(self.scope_tag.ids)],
+            },
+        )
+        own_values = self.env["usl.document.smart.view"].with_user(
+            self.user,
+        ).save_personal_view("MCP own saved view", {"review_state": "reviewed"})
+        other_values = self.env["usl.document.smart.view"].with_user(
+            self.other_user,
+        ).save_personal_view("MCP other saved view", {})
+
+        result = self.env["usl.document"].with_user(
+            self.user,
+        ).mcp_list_saved_views(query="MCP")
+        result_ids = {item["id"] for item in result["results"]}
+
+        self.assertIn(shared.id, result_ids)
+        self.assertIn(own_values["id"], result_ids)
+        self.assertNotIn(other_values["id"], result_ids)
+        shared_payload = next(
+            item for item in result["results"] if item["id"] == shared.id
+        )
+        self.assertEqual(
+            shared_payload["tags"],
+            [{"id": self.scope_tag.id, "name": self.scope_tag.name}],
+        )
+
+    def test_hidden_and_missing_saved_views_share_one_denial(self):
+        other_values = self.env["usl.document.smart.view"].with_user(
+            self.other_user,
+        ).save_personal_view("MCP hidden saved view", {})
+        documents = self.env["usl.document"].with_user(self.user)
+
+        for saved_view_id in (other_values["id"], 999999):
+            with self.assertRaisesRegex(AccessError, "saved view is unavailable"):
+                documents.mcp_search(
+                    "confidential query",
+                    saved_view_id=saved_view_id,
+                )
+
+        with self.assertRaises(ValidationError):
+            documents.mcp_list_saved_views(scope="private")
+
     def test_search_never_sends_unsynchronized_roots_to_paperless(self):
         allowed = self._document(51071, name="Synchronized comparison root")
         blocked = self._document(
@@ -257,6 +475,7 @@ class TestDocumentsMcp(TransactionCase):
             result = documents.mcp_find_similar(
                 source.id,
                 tag_ids=self.scope_tag.ids,
+                source="paperless",
             )
 
         self.assertEqual([item["id"] for item in result["results"]], [candidate.id])

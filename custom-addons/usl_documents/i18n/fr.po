@@ -5310,8 +5310,32 @@ msgstr "Filtre d’étiquettes de documents non valide."
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid saved view filters."
+msgstr "Filtres de vue enregistrée non valides."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid saved view pagination."
+msgstr "Pagination des vues enregistrées non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "Invalid saved view scope."
+msgstr "Périmètre de vue enregistrée non valide."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
 msgid "The document is unavailable."
 msgstr "Le document n’est pas disponible."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The saved view is unavailable."
+msgstr "La vue enregistrée n’est pas disponible."
 
 #. module: usl_documents
 #. odoo-python
